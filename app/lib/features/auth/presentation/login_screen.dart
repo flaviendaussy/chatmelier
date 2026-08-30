@@ -17,12 +17,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   late TabController _tabController;
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  final _otpCtrl = TextEditingController();
   StreamSubscription? _authSub;
 
   bool _isLoading = false;
   bool _magicLinkSent = false;
-  bool _showDirectOtpEntry = false;
 
   @override
   void initState() {
@@ -41,7 +39,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     _tabController.dispose();
     _emailCtrl.dispose();
     _passCtrl.dispose();
-    _otpCtrl.dispose();
     super.dispose();
   }
 
@@ -98,35 +95,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_formatErrorMessage(e)),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _verifyOtp() async {
-    final email = _emailCtrl.text.trim();
-    final otp = _otpCtrl.text.trim();
-    if (email.isEmpty || otp.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez renseigner votre email et le code de confirmation')),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-    try {
-      final repo = ref.read(authRepositoryProvider);
-      await repo.verifyEmailOtp(email, otp);
-      if (mounted) context.go('/');
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Code invalide ou expiré : ${_formatErrorMessage(e)}'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -284,10 +252,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                               const SizedBox(height: 12),
                               if (_magicLinkSent) ...[
                                 Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(16),
                                     border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
                                   ),
                                   child: Column(
@@ -295,64 +263,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                     children: [
                                       const Row(
                                         children: [
-                                          Icon(Icons.mark_email_read_outlined, color: Color(0xFF10B981), size: 22),
-                                          SizedBox(width: 8),
+                                          Icon(Icons.mark_email_read_outlined, color: Color(0xFF10B981), size: 24),
+                                          SizedBox(width: 10),
                                           Expanded(
                                             child: Text(
-                                              'Lien et Code envoyés par email !',
-                                              style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF065F46)),
+                                              'Lien de connexion envoyé !',
+                                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF065F46)),
                                             ),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 6),
+                                      const SizedBox(height: 10),
                                       Text(
-                                        'Pour vous connecter :\n• Cliquez sur le lien reçu dans votre email.\n• Ou saisissez simplement ci-dessous le code à 6 chiffres reçu dans ce même email.',
-                                        style: theme.textTheme.bodySmall?.copyWith(height: 1.35),
+                                        'Un email sécurisé a été envoyé à :\n${_emailCtrl.text.trim()}\n\nOuvrez simplement cet email et cliquez sur le lien pour vous connecter automatiquement à votre cave (vérifiez votre dossier spams si nécessaire).',
+                                        style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
                                       ),
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: 12),
-                                TextField(
-                                  controller: _otpCtrl,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Code à 6 chiffres reçu par email',
-                                    hintText: 'Ex: 123456',
-                                    prefixIcon: Icon(Icons.pin_outlined),
-                                    border: OutlineInputBorder(),
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                ),
-                                const SizedBox(height: 10),
-                                FilledButton(
-                                  onPressed: _isLoading ? null : _verifyOtp,
+                                const SizedBox(height: 16),
+                                FilledButton.icon(
+                                  onPressed: _isLoading ? null : _sendMagicLink,
                                   style: FilledButton.styleFrom(
                                     backgroundColor: const Color(0xFF8B1E3F),
                                     foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
-                                  child: Text(
-                                    _isLoading ? 'Vérification...' : 'Valider mon code et entrer dans ma cave',
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                  icon: const Icon(Icons.refresh, size: 18),
+                                  label: Text(
+                                    _isLoading ? 'Renvoi en cours...' : 'Renvoyer le lien de connexion',
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
-                                const SizedBox(height: 6),
-                                Wrap(
-                                  alignment: WrapAlignment.spaceBetween,
-                                  runSpacing: 4,
-                                  children: [
-                                    TextButton(
-                                      onPressed: _isLoading ? null : _sendMagicLink,
-                                      child: const Text('Renvoyer un nouveau lien/code', style: TextStyle(fontSize: 12)),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => setState(() {
-                                        _magicLinkSent = false;
-                                        _otpCtrl.clear();
-                                      }),
-                                      child: const Text('Modifier l\'email', style: TextStyle(fontSize: 12)),
-                                    ),
-                                  ],
+                                const SizedBox(height: 8),
+                                Center(
+                                  child: TextButton(
+                                    onPressed: () => setState(() {
+                                      _magicLinkSent = false;
+                                    }),
+                                    child: const Text('Changer d\'adresse email', style: TextStyle(fontSize: 13)),
+                                  ),
                                 ),
                               ] else ...[
                                 FilledButton.icon(
@@ -360,28 +311,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   style: FilledButton.styleFrom(
                                     backgroundColor: const Color(0xFF8B1E3F),
                                     foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
-                                  icon: const Icon(Icons.send, color: Colors.white),
+                                  icon: const Icon(Icons.send, color: Colors.white, size: 18),
                                   label: Text(
                                     _isLoading ? 'Envoi en cours...' : (l10n?.loginSendMagicLink ?? 'Recevoir mon lien de connexion'),
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                Center(
-                                  child: TextButton(
-                                    onPressed: () => setState(() {
-                                      _magicLinkSent = true;
-                                      _showDirectOtpEntry = true;
-                                    }),
-                                    child: const Text('J\'ai déjà un code reçu par email', style: TextStyle(fontSize: 12)),
-                                  ),
-                                ),
+                                const SizedBox(height: 14),
                                 Text(
-                                  'Connexion sans mot de passe : recevez un lien sécurisé pour entrer directement dans votre cave.',
+                                  'Connexion sans mot de passe : vous recevrez un email contenant un lien direct et sécurisé pour accéder à votre cave.',
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
+                                    height: 1.35,
                                   ),
                                 ),
                               ],

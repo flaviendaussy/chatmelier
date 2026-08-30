@@ -197,102 +197,156 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final media = MediaQuery.of(context);
+    final bottomInset = media.viewInsets.bottom;
+
     return PopScope(
-      canPop: false, // Prevent back button dismissal
-      child: AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 28),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Créez votre Pseudo',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+      canPop: false, // Prevent back button dismissal without completing profile
+      child: AnimatedPadding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          bottomInset > 0 ? bottomInset + 12 : 16,
+        ),
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440, maxHeight: 600),
+            child: Material(
+              color: isDark ? const Color(0xFF1E1E2A) : Colors.white,
+              elevation: 24,
+              shadowColor: Colors.black.withValues(alpha: 0.4),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Form(
+                  key: _formKey,
+                  child: CustomScrollView(
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                        sliver: SliverList(
+                          delegate: SliverChildListDelegate([
+                            // Header
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 24),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Créez votre Pseudo',
+                                        style: theme.textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Pour partager vos dégustations et caves avec vos amis',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                          fontSize: 11.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Pseudo Field
+                            TextFormField(
+                              controller: _usernameController,
+                              autocorrect: false,
+                              enableSuggestions: false,
+                              textInputAction: TextInputAction.next,
+                              decoration: InputDecoration(
+                                labelText: 'Pseudo unique *',
+                                prefixText: '@ ',
+                                prefixStyle: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
+                                hintText: 'flavien',
+                                errorText: _usernameError,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              ),
+                              validator: UserProfile.validateUsername,
+                              onChanged: (val) {
+                                if (_usernameError != null) setState(() => _usernameError = null);
+                              },
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Display Name Field
+                            TextFormField(
+                              controller: _displayNameController,
+                              textInputAction: TextInputAction.next,
+                              decoration: InputDecoration(
+                                labelText: 'Nom d\'affichage',
+                                hintText: 'Flavien D.',
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Phone Number Field
+                            InternationalPhoneInput(
+                              labelText: 'Numéro de téléphone (optionnel)',
+                              helperText: 'Pour retrouver vos contacts plus facilement',
+                              onChanged: (val) {
+                                _formattedPhoneNumber = val;
+                              },
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Submit Button
+                            FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF8B1E3F),
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              icon: (_isChecking || _isSaving)
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Icon(Icons.check, size: 20),
+                              label: Text(
+                                _isChecking ? 'Vérification...' : (_isSaving ? 'Enregistrement...' : 'Valider mon Pseudo ✨'),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              onPressed: (_isChecking || _isSaving) ? null : _submit,
+                            ),
+                          ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Pour vous connecter avec vos amis, partager vos dégustations et comparer vos cartes de goûts, choisissez un pseudo unique.',
-                  style: TextStyle(fontSize: 12.5, color: Colors.grey),
-                ),
-                const SizedBox(height: 16),
-
-                // Pseudo TextField (Mandatory)
-                TextFormField(
-                  controller: _usernameController,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  decoration: InputDecoration(
-                    labelText: 'Pseudo unique *',
-                    prefixText: '@ ',
-                    prefixStyle: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
-                    hintText: 'flavien',
-                    errorText: _usernameError,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  ),
-                  validator: UserProfile.validateUsername,
-                  onChanged: (val) {
-                    if (_usernameError != null) setState(() => _usernameError = null);
-                  },
-                ),
-                const SizedBox(height: 12),
-
-                // Display Name
-                TextFormField(
-                  controller: _displayNameController,
-                  decoration: InputDecoration(
-                    labelText: 'Nom d\'affichage',
-                    hintText: 'Flavien D.',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Phone Number with International Dial Code (Mandatory format)
-                InternationalPhoneInput(
-                  labelText: 'Numéro de téléphone (optionnel)',
-                  helperText: 'Indicatif obligatoire (FR 🇫🇷 par défaut, UK 🇬🇧 ou pays détecté par GPS)',
-                  onChanged: (val) {
-                    _formattedPhoneNumber = val;
-                  },
-                ),
-              ],
-            ),
           ),
         ),
-        actions: [
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF8B1E3F),
-              foregroundColor: Colors.white,
-              minimumSize: const Size.fromHeight(46),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            icon: (_isChecking || _isSaving)
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                : const Icon(Icons.check),
-            label: Text(
-              _isChecking ? 'Vérification...' : (_isSaving ? 'Enregistrement...' : 'Valider mon Pseudo ✨'),
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            onPressed: (_isChecking || _isSaving) ? null : _submit,
-          ),
-        ],
       ),
     );
   }

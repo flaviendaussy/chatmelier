@@ -1,7 +1,11 @@
+import 'wine_taste_radar.dart';
+
 class TasteProfile {
   final String id;
   final String name;
   final bool isPrimary;
+
+  WineTasteRadarMetrics get radarMetrics => WineTasteRadarCalculator.compute(this);
   final List<String> favoriteTypes; // e.g. ['Rouge', 'Blanc sec', 'Champagne']
   final List<String> favoriteRegions; // e.g. ['Vallée du Rhône', 'Bourgogne', 'Provence']
   final List<String> favoriteGrapes; // e.g. ['Pinot Noir', 'Syrah', 'Chardonnay']

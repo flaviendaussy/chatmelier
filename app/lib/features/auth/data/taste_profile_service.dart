@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../domain/taste_profile.dart';
+import '../../cellar/domain/wine.dart';
 import '../../friends/domain/friend.dart';
 import '../../journal/domain/tasting_questionnaire_result.dart';
 
@@ -127,6 +128,74 @@ class TasteProfileService {
     if (index != -1) {
       profiles[index] = updated;
       await saveProfiles(profiles);
+    }
+  }
+
+  Future<TasteProfile> addOrGetProfileByName(String name) async {
+    final cleanName = name.trim();
+    if (cleanName.isEmpty) {
+      return getPrimaryProfile();
+    }
+
+    final profiles = await getProfiles();
+    final match = profiles.firstWhere(
+      (p) => p.name.trim().toLowerCase() == cleanName.toLowerCase(),
+      orElse: () => const TasteProfile(id: '', name: ''),
+    );
+
+    if (match.id.isNotEmpty) {
+      return match;
+    }
+
+    return addProfile(
+      name: cleanName,
+      notes: 'Invité / Membre de la famille ajouté lors d\'une dégustation',
+    );
+  }
+
+  Future<void> recordTastingExperience({
+    required String nameOrId,
+    required Wine wine,
+    required double rating,
+  }) async {
+    try {
+      final profiles = await getProfiles();
+      int idx = profiles.indexWhere((p) => p.id == nameOrId || p.name.trim().toLowerCase() == nameOrId.trim().toLowerCase());
+      TasteProfile profile;
+      if (idx == -1) {
+        profile = await addOrGetProfileByName(nameOrId);
+        final freshProfiles = await getProfiles();
+        idx = freshProfiles.indexWhere((p) => p.id == profile.id);
+      } else {
+        profile = profiles[idx];
+      }
+
+      // If user loved the wine (rating >= 7.5), reinforce preferred regions, types, and grapes
+      if (rating >= 7.5) {
+        final favTypes = Set<String>.from(profile.favoriteTypes);
+        final favRegions = Set<String>.from(profile.favoriteRegions);
+        final favGrapes = Set<String>.from(profile.favoriteGrapes);
+
+        if (wine.type.isNotEmpty) {
+          favTypes.add(wine.type.toLowerCase().contains('blanc') ? 'Blanc' : (wine.type.toLowerCase().contains('ros') ? 'Rosé' : 'Rouge'));
+        }
+        if (wine.region.isNotEmpty && wine.region != 'Autre') {
+          favRegions.add(wine.region);
+        }
+        for (final g in wine.grapes) {
+          if (g.name.isNotEmpty) favGrapes.add(g.name);
+        }
+
+        final updated = profile.copyWith(
+          favoriteTypes: favTypes.take(6).toList(),
+          favoriteRegions: favRegions.take(6).toList(),
+          favoriteGrapes: favGrapes.take(8).toList(),
+          questionnairesCompleted: profile.questionnairesCompleted + 1,
+        );
+        await updateProfile(updated);
+      }
+    } catch (e) {
+      AppLogger.warning('TASTE_PROFILE', 'Could not record tasting experience for $nameOrId: $e');
     }
   }
 

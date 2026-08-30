@@ -11,6 +11,7 @@ import '../../offline/presentation/sync_provider.dart';
 import '../../journal/presentation/journal_screen.dart';
 import '../../journal/domain/tasting_pedagogy_engine.dart';
 import '../../journal/presentation/tasting_pedagogy_sheet.dart';
+import '../../auth/data/taste_profile_service.dart';
 
 class SommelierTableModeSheet extends ConsumerStatefulWidget {
   final Bottle bottle;
@@ -192,6 +193,16 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
       ));
 
       ref.invalidate(tastingLogProvider);
+
+      try {
+        final tasteService = ref.read(tasteProfileServiceProvider);
+        await tasteService.recordTastingExperience(
+          nameOrId: 'primary',
+          wine: wine,
+          rating: _userRating,
+        );
+        ref.invalidate(tasteProfilesListProvider);
+      } catch (_) {}
 
       final report = TastingPedagogyEngine.analyze(
         wine: wine,

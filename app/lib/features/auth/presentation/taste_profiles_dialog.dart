@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
+import '../domain/wine_taste_radar.dart';
+import 'widgets/wine_taste_radar_chart.dart';
+import 'taste_profile_radar_screen.dart';
 
 class TasteProfilesDialog extends ConsumerStatefulWidget {
   const TasteProfilesDialog({super.key});
@@ -75,7 +78,33 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          // Spider Chart CTA Button
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 12),
+            child: FilledButton.tonalIcon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF8B1E3F).withAlpha(20),
+                foregroundColor: const Color(0xFF8B1E3F),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              icon: const Icon(Icons.radar, color: Color(0xFF8B1E3F), size: 20),
+              label: const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Spider Chart des Goûts (Radar 3 Modes)',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  Icon(Icons.arrow_forward_ios, size: 12),
+                ],
+              ),
+              onPressed: () {
+                TasteProfileRadarScreen.show(context);
+              },
+            ),
+          ),
           const Divider(height: 1),
           const SizedBox(height: 12),
 
@@ -193,6 +222,26 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                                 ],
                               ),
                             ],
+                            const SizedBox(height: 8),
+                            InkWell(
+                              onTap: () => TasteProfileRadarScreen.show(context, initialProfileId: profile.id),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.radar, size: 15, color: Color(0xFF8B1E3F)),
+                                    const SizedBox(width: 6),
+                                    const Text(
+                                      'Voir le Spider Chart de ce profil',
+                                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
+                                    ),
+                                    const Spacer(),
+                                    const Icon(Icons.arrow_forward_ios, size: 10, color: Color(0xFF8B1E3F)),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),

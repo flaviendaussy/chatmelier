@@ -13,6 +13,9 @@ import '../../journal/presentation/journal_screen.dart';
 import '../../journal/presentation/tasting_questionnaire_sheet.dart';
 import '../../friends/data/friends_repository.dart';
 import '../../friends/domain/friend.dart';
+import '../../auth/domain/taste_profile.dart';
+import '../../auth/data/taste_profile_service.dart';
+import '../../cellar/domain/wine.dart';
 import '../../../config/router.dart';
 import '../data/post_tasting_notification_service.dart';
 
@@ -32,6 +35,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   // Friends & Co-tasters
   List<Friend> _friends = [];
+  List<TasteProfile> _companionProfiles = [];
   final Set<String> _selectedCoTasters = {};
 
   // Dégustation form fields
@@ -61,6 +65,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     try {
       _friends = await ref.read(friendsRepositoryProvider).getFriends();
+      _companionProfiles = await ref.read(tasteProfileServiceProvider).getProfiles();
       if (widget.bottleId != null && widget.bottleId!.isNotEmpty) {
         final res = await supabase
             .from('bottles')
@@ -101,6 +106,69 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       debugPrint('Error loading checkout bottle: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _showAddCompanionDialog() async {
+    final nameCtrl = TextEditingController();
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.person_add, color: Color(0xFF8B1E3F)),
+            SizedBox(width: 8),
+            Text('Ajouter un convive'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Ajoutez un proche ou membre de la famille présent à cette dégustation (ex: Papa, Maman, Sophie...).',
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: nameCtrl,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Prénom / Nom',
+                hintText: 'ex: Papa',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
+            onPressed: () {
+              final text = nameCtrl.text.trim();
+              if (text.isNotEmpty) Navigator.pop(ctx, text);
+            },
+            child: const Text('Ajouter'),
+          ),
+        ],
+      ),
+    );
+
+    if (newName != null && newName.isNotEmpty) {
+      final service = ref.read(tasteProfileServiceProvider);
+      await service.addOrGetProfileByName(newName);
+      final fresh = await service.getProfiles();
+      ref.invalidate(tasteProfilesListProvider);
+      if (mounted) {
+        setState(() {
+          _companionProfiles = fresh;
+          _selectedCoTasters.add(newName);
+        });
+      }
     }
   }
 
@@ -255,6 +323,29 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       // 3. Invalidate cellar & journal cache
       notifyCellarChanged(ref, cellarId);
       ref.invalidate(tastingLogProvider);
+
+      // Reinforce taste profiles for primary user and all participants
+      try {
+        if (wineMap != null) {
+          final wineObj = Wine.fromJson(wineMap);
+          final tasteService = ref.read(tasteProfileServiceProvider);
+          await tasteService.recordTastingExperience(
+            nameOrId: 'primary',
+            wine: wineObj,
+            rating: _rating,
+          );
+          for (final coTaster in _selectedCoTasters) {
+            await tasteService.recordTastingExperience(
+              nameOrId: coTaster,
+              wine: wineObj,
+              rating: _rating,
+            );
+          }
+          ref.invalidate(tasteProfilesListProvider);
+        }
+      } catch (e) {
+        debugPrint('Taste profile reinforcement notice: $e');
+      }
 
       // 4. Schedule post-tasting feedback notification (1h after checkout)
       try {
@@ -569,20 +660,71 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Amis / Co-dégustateurs
-            if (_friends.isNotEmpty) ...[
-              Row(
-                children: [
-                  const Icon(Icons.people_alt, color: Color(0xFF8B1E3F), size: 18),
-                  const SizedBox(width: 6),
-                  Text('Avec qui dégustez-vous ce vin ?', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: _friends.map((f) {
+            // Convives, Famille & Amis Co-dégustateurs
+            Row(
+              children: [
+                const Icon(Icons.people_alt, color: Color(0xFF8B1E3F), size: 18),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Qui a dégusté ce vin avec vous ?',
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                TextButton.icon(
+                  style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                  onPressed: _showAddCompanionDialog,
+                  icon: const Icon(Icons.person_add, size: 15, color: Color(0xFF8B1E3F)),
+                  label: const Text(
+                    '+ Ajouter un convive',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Les goûts de chaque participant seront automatiquement enrichis dans son profil.',
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                // Companion / Family profiles (excluding primary "Moi")
+                ..._companionProfiles.where((p) => !p.isPrimary).map((p) {
+                  final isSelected = _selectedCoTasters.contains(p.name);
+                  return FilterChip(
+                    avatar: CircleAvatar(
+                      backgroundColor: const Color(0xFFD4AF37),
+                      radius: 10,
+                      child: Text(
+                        p.name.isNotEmpty ? p.name[0].toUpperCase() : '?',
+                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    label: Text(p.name),
+                    selected: isSelected,
+                    selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.18),
+                    checkmarkColor: const Color(0xFF8B1E3F),
+                    labelStyle: TextStyle(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? const Color(0xFF8B1E3F) : null,
+                    ),
+                    onSelected: (val) {
+                      setState(() {
+                        if (val) {
+                          _selectedCoTasters.add(p.name);
+                        } else {
+                          _selectedCoTasters.remove(p.name);
+                        }
+                      });
+                    },
+                  );
+                }),
+                // Registered Friends
+                ..._friends.where((f) => !_companionProfiles.any((p) => p.name.toLowerCase() == f.displayName.toLowerCase())).map((f) {
                   final isSelected = _selectedCoTasters.contains(f.displayName);
                   return FilterChip(
                     avatar: const Text('🍷', style: TextStyle(fontSize: 13)),
@@ -604,10 +746,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       });
                     },
                   );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-            ],
+                }),
+                // Quick add ActionChip
+                ActionChip(
+                  avatar: const Icon(Icons.add, size: 16, color: Color(0xFF8B1E3F)),
+                  label: const Text('Ajouter (Papa, Maman...)'),
+                  onPressed: _showAddCompanionDialog,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
 
             // Food paired
             TextField(

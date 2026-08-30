@@ -897,18 +897,80 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 ),
               ),
 
-            // Photo preview
+            // Photo preview with full-screen zoom preview
             if (widget.imagePath.isNotEmpty || widget.imageBytes != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  height: 200,
-                  width: double.infinity,
-                  color: Colors.black12,
-                  child: _buildPhotoPreview(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => Dialog(
+                        backgroundColor: Colors.black,
+                        insetPadding: const EdgeInsets.all(12),
+                        child: Stack(
+                          children: [
+                            InteractiveViewer(
+                              child: Center(
+                                child: _buildPhotoPreview(fit: BoxFit.contain),
+                              ),
+                            ),
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: CircleAvatar(
+                                backgroundColor: Colors.black54,
+                                child: IconButton(
+                                  icon: const Icon(Icons.close, color: Colors.white),
+                                  onPressed: () => Navigator.of(ctx).pop(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      height: 220,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.black12,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: theme.dividerColor.withAlpha(40)),
+                      ),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: _buildPhotoPreview(fit: BoxFit.cover),
+                          ),
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.zoom_in, color: Colors.white, size: 16),
+                                  SizedBox(width: 4),
+                                  Text('Agrandir', style: TextStyle(color: Colors.white, fontSize: 11)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            const SizedBox(height: 16),
 
             // Wine Info Card
             Card(

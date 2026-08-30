@@ -20,6 +20,11 @@ class _ScanScreenState extends State<ScanScreen> {
   bool _isFlashOn = false;
   bool _isCapturing = false;
 
+  double _minZoom = 1.0;
+  double _maxZoom = 1.0;
+  double _currentZoom = 1.0;
+  double _baseZoom = 1.0;
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +69,17 @@ class _ScanScreenState extends State<ScanScreen> {
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
       await _controller!.initialize();
+
+      try {
+        _minZoom = await _controller!.getMinZoomLevel();
+        _maxZoom = await _controller!.getMaxZoomLevel();
+        _currentZoom = _minZoom;
+      } catch (zoomErr) {
+        _minZoom = 1.0;
+        _maxZoom = 1.0;
+        _currentZoom = 1.0;
+      }
+
       if (mounted) {
         setState(() {
           _isInit = true;
@@ -87,6 +103,18 @@ class _ScanScreenState extends State<ScanScreen> {
     setState(() => _isInit = false);
     _selectedCameraIndex = (_selectedCameraIndex + 1) % _cameras.length;
     await _startCameraController(_cameras[_selectedCameraIndex]);
+  }
+
+  Future<void> _setZoom(double zoom) async {
+    if (_controller != null && _controller!.value.isInitialized) {
+      try {
+        final target = zoom.clamp(_minZoom, _maxZoom.clamp(_minZoom, 5.0));
+        await _controller!.setZoomLevel(target);
+        if (mounted) setState(() => _currentZoom = target);
+      } catch (e) {
+        AppLogger.warning('SCAN_SCREEN', 'Error setting zoom: $e');
+      }
+    }
   }
 
   Future<void> _toggleFlash() async {
@@ -295,63 +323,75 @@ class _ScanScreenState extends State<ScanScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Live Camera Preview
+          // Live Camera Preview with Pinch-to-Zoom
           Positioned.fill(
-            child: FittedBox(
-              fit: BoxFit.cover,
-              child: SizedBox(
-                width: _controller!.value.previewSize?.height ?? 1080,
-                height: _controller!.value.previewSize?.width ?? 1920,
-                child: CameraPreview(_controller!),
+            child: GestureDetector(
+              onScaleStart: (_) => _baseZoom = _currentZoom,
+              onScaleUpdate: (details) => _setZoom(_baseZoom * details.scale),
+              child: FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: _controller!.value.previewSize?.height ?? 1080,
+                  height: _controller!.value.previewSize?.width ?? 1920,
+                  child: CameraPreview(_controller!),
+                ),
               ),
             ),
           ),
           
-          // Target focus reticle
+          // Target focus reticle with clear aspect guidance
           Center(
             child: Container(
-              width: 270,
-              height: 380,
+              width: 290,
+              height: 420,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white.withAlpha(220), width: 2),
-                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withAlpha(230), width: 2.5),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha(80),
-                    blurRadius: 16,
+                    color: Colors.black.withAlpha(90),
+                    blurRadius: 20,
+                    spreadRadius: 2,
                   ),
                 ],
               ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(Icons.crop_free, size: 52, color: Colors.white54),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Cadrez l\'étiquette de vin',
-                      style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  if (isFrontCamera) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.amber.shade900.withAlpha(180),
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.black.withAlpha(160),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Text(
-                        '⚠️ Caméra avant active',
-                        style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        '🍾 Rapprochez la bouteille',
+                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                     ),
-                  ],
+                  ),
+                  const Icon(Icons.crop_free, size: 64, color: Colors.white38),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: isFrontCamera
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade900.withAlpha(200),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              '⚠️ Caméra avant active',
+                              style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          )
+                        : const Text(
+                            'Cadrez l\'étiquette dans le rectangle',
+                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                  ),
                 ],
               ),
             ),
@@ -413,88 +453,135 @@ class _ScanScreenState extends State<ScanScreen> {
             ),
           ),
 
+          // Zoom preset chips (1x, 2x)
+          if (_maxZoom > 1.2)
+            Positioned(
+              bottom: 128,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(160),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildZoomButton(1.0, '1x'),
+                      const SizedBox(width: 6),
+                      _buildZoomButton(2.0, '2x (Recommandé)'),
+                      if (_maxZoom >= 3.0) ...[
+                        const SizedBox(width: 6),
+                        _buildZoomButton(3.0, '3x'),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           // Bottom control bar
           Positioned(
             bottom: 36,
             left: 0,
             right: 0,
-            child: Column(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                // Gallery Picker
+                Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Gallery Picker
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(
-                          radius: 26,
-                          backgroundColor: Colors.black54,
-                          child: IconButton(
-                            icon: const Icon(Icons.photo_library_outlined, color: Colors.white, size: 26),
-                            tooltip: 'Galerie photos',
-                            onPressed: _pickGallery,
+                    CircleAvatar(
+                      radius: 26,
+                      backgroundColor: Colors.black54,
+                      child: IconButton(
+                        icon: const Icon(Icons.photo_library_outlined, color: Colors.white, size: 26),
+                        tooltip: 'Galerie photos',
+                        onPressed: _pickGallery,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text('Galerie', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                  ],
+                ),
+
+                // Shutter Button
+                _isCapturing
+                    ? const SizedBox(
+                        width: 76,
+                        height: 76,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                      )
+                    : GestureDetector(
+                        onTap: _takePhoto,
+                        child: Container(
+                          width: 78,
+                          height: 78,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            border: Border.all(color: const Color(0xFF8B1E3F), width: 4.5),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black45,
+                                blurRadius: 16,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(Icons.camera_alt, color: Color(0xFF8B1E3F), size: 38),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        const Text('Galerie', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                      ],
-                    ),
+                      ),
 
-                    // Shutter Button
-                    _isCapturing
-                        ? const SizedBox(
-                            width: 72,
-                            height: 72,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
-                          )
-                        : GestureDetector(
-                            onTap: _takePhoto,
-                            child: Container(
-                              width: 76,
-                              height: 76,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                border: Border.all(color: const Color(0xFF8B1E3F), width: 4),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black38,
-                                    blurRadius: 12,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                              child: const Center(
-                                child: Icon(Icons.camera_alt, color: Color(0xFF8B1E3F), size: 38),
-                              ),
-                            ),
-                          ),
-
-                    // Native Camera Trigger
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(
-                          radius: 26,
-                          backgroundColor: Colors.black54,
-                          child: IconButton(
-                            icon: const Icon(Icons.camera, color: Colors.white, size: 26),
-                            tooltip: 'Appareil photo haute résolution',
-                            onPressed: _pickNativeCamera,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text('Appareil', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                      ],
+                // Native Camera Trigger
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircleAvatar(
+                      radius: 26,
+                      backgroundColor: Colors.black54,
+                      child: IconButton(
+                        icon: const Icon(Icons.camera, color: Colors.white, size: 26),
+                        tooltip: 'Appareil photo haute résolution',
+                        onPressed: _pickNativeCamera,
+                      ),
                     ),
+                    const SizedBox(height: 4),
+                    const Text('Natif', style: TextStyle(color: Colors.white70, fontSize: 11)),
                   ],
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildZoomButton(double zoom, String label) {
+    final isSelected = (_currentZoom - zoom).abs() < 0.3;
+    return GestureDetector(
+      onTap: () => _setZoom(zoom),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF8B1E3F) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.white70,
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
       ),
     );
   }

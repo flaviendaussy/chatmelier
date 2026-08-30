@@ -204,6 +204,10 @@ Return strictly a valid JSON object matching this schema.''';
                 GeminiModelRegistry.recordRateLimit(model);
                 AppLogger.warning('SCAN_AI', 'Model $model returned HTTP 429 (Quota limit), moving to next model');
                 break; // Skip to next model immediately
+              } else if (response.statusCode == 404) {
+                GeminiModelRegistry.recordDisabledModel(model);
+                AppLogger.warning('SCAN_AI', 'Model $model returned HTTP 404 (Deprecated), moving to next active model');
+                break;
               } else {
                 AppLogger.warning('SCAN_AI', 'Model $model returned HTTP ${response.statusCode}: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
               }
@@ -418,6 +422,10 @@ Return strictly a valid JSON object matching this schema.''';
           } else if (response.statusCode == 429) {
             GeminiModelRegistry.recordRateLimit(model);
             AppLogger.warning('SCAN_AI', 'Model $model returned HTTP 429 (Quota limit) during enrichment, skipping');
+            break;
+          } else if (response.statusCode == 404) {
+            GeminiModelRegistry.recordDisabledModel(model);
+            AppLogger.warning('SCAN_AI', 'Model $model returned HTTP 404 during enrichment, disabled');
             break;
           } else {
             AppLogger.warning('SCAN_AI', 'Model $model returned HTTP ${response.statusCode}');

@@ -203,6 +203,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ScratchMapScreen(),
       ),
       GoRoute(
+        path: '/map',
+        builder: (context, state) => const ScratchMapScreen(),
+      ),
+      GoRoute(
+        path: '/terroirs',
+        builder: (context, state) => const ScratchMapScreen(),
+      ),
+      GoRoute(
         path: '/diagnostic-logs',
         builder: (context, state) => const DiagnosticLogsScreen(),
       ),

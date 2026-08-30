@@ -502,8 +502,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Green confirmation box is displayed
-      expect(find.text('Lien et Code envoyés par email !'), findsOneWidget);
-      expect(find.text('Code à 6 chiffres reçu par email'), findsOneWidget);
+      expect(find.text('Lien de connexion envoyé !'), findsOneWidget);
+      expect(find.text('Renvoyer le lien de connexion'), findsOneWidget);
       expect(mockSupabase._mockAuth.lastSentMagicLinkEmail, equals('camille@chatmelier.app'));
     });
 

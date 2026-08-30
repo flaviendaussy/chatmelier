@@ -17,8 +17,9 @@ import '../../journal/presentation/external_tasting_dialog.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
   final String imagePath;
+  final Uint8List? imageBytes;
   final Bottle? prefillBottle;
-  const ReviewScreen({super.key, required this.imagePath, this.prefillBottle});
+  const ReviewScreen({super.key, required this.imagePath, this.imageBytes, this.prefillBottle});
 
   @override
   ConsumerState<ReviewScreen> createState() => _ReviewScreenState();
@@ -54,8 +55,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     super.initState();
     if (widget.prefillBottle != null) {
       _prefillFromExisting(widget.prefillBottle!);
-    } else if (widget.imagePath.isNotEmpty) {
-      _analyzeImage(File(widget.imagePath));
+    } else if (widget.imagePath.isNotEmpty || (widget.imageBytes != null && widget.imageBytes!.isNotEmpty)) {
+      _analyzeImage();
     }
   }
 
@@ -78,7 +79,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     _notesCtrl.text = b.notes ?? '';
   }
 
-  Future<void> _analyzeImage(File file) async {
+  Future<void> _analyzeImage() async {
     setState(() {
       _isAnalyzing = true;
       _analysisError = null;
@@ -86,7 +87,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
     try {
       final scanService = ScanService(ref.read(supabaseProvider));
-      final result = await scanService.analyzeBottleImage(file);
+      final result = await scanService.analyzeBottleImage(
+        imagePath: widget.imagePath,
+        imageBytes: widget.imageBytes,
+      );
       
       if (mounted) {
         setState(() {
@@ -566,10 +570,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       );
 
       // Upload photo to Supabase storage in background if present
-      if (widget.imagePath.isNotEmpty && !kIsWeb) {
+      if (widget.imagePath.isNotEmpty || widget.imageBytes != null) {
         try {
           final scanService = ScanService(supabase);
-          final uploadedUrl = await scanService.uploadPhoto(File(widget.imagePath), bottle.id);
+          final uploadedUrl = await scanService.uploadPhoto(
+            bottleId: bottle.id,
+            imagePath: widget.imagePath,
+            imageBytes: widget.imageBytes,
+          );
           if (uploadedUrl != null && bottle.wine != null) {
             await repo.updateWine(bottle.wine!.id, imageUrl: uploadedUrl);
           }
@@ -604,6 +612,37 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
+  }
+
+  Widget _buildPhotoPreview({double? height, double? width, BoxFit fit = BoxFit.cover}) {
+    if (widget.imageBytes != null && widget.imageBytes!.isNotEmpty) {
+      return Image.memory(
+        widget.imageBytes!,
+        height: height,
+        width: width,
+        fit: fit,
+        errorBuilder: (_, __, ___) => const Icon(Icons.wine_bar, size: 80, color: Colors.grey),
+      );
+    }
+    if (widget.imagePath.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    if (kIsWeb || widget.imagePath.startsWith('blob:') || widget.imagePath.startsWith('http://') || widget.imagePath.startsWith('https://')) {
+      return Image.network(
+        widget.imagePath,
+        height: height,
+        width: width,
+        fit: fit,
+        errorBuilder: (_, __, ___) => const Icon(Icons.wine_bar, size: 80, color: Colors.grey),
+      );
+    }
+    return Image.file(
+      File(widget.imagePath),
+      height: height,
+      width: width,
+      fit: fit,
+      errorBuilder: (_, __, ___) => const Icon(Icons.wine_bar, size: 80, color: Colors.grey),
+    );
   }
 
   @override
@@ -644,9 +683,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: kIsWeb
-                          ? Image.network(widget.imagePath, fit: BoxFit.cover)
-                          : Image.file(File(widget.imagePath), fit: BoxFit.cover),
+                      child: _buildPhotoPreview(),
                     ),
                   ),
                 const SizedBox(height: 32),
@@ -844,10 +881,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                         ),
                       ],
                     ),
-                    if (widget.imagePath.isNotEmpty) ...[
+                    if (widget.imagePath.isNotEmpty || widget.imageBytes != null) ...[
                       const SizedBox(height: 10),
                       OutlinedButton.icon(
-                        onPressed: () => _analyzeImage(File(widget.imagePath)),
+                        onPressed: _analyzeImage,
                         icon: const Icon(Icons.refresh, size: 16),
                         label: const Text('Réessayer l\'analyse IA'),
                         style: OutlinedButton.styleFrom(
@@ -861,16 +898,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               ),
 
             // Photo preview
-            if (widget.imagePath.isNotEmpty)
+            if (widget.imagePath.isNotEmpty || widget.imageBytes != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   height: 200,
                   width: double.infinity,
                   color: Colors.black12,
-                  child: kIsWeb
-                      ? Image.network(widget.imagePath, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.wine_bar, size: 80, color: Colors.grey))
-                      : Image.file(File(widget.imagePath), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.wine_bar, size: 80, color: Colors.grey)),
+                  child: _buildPhotoPreview(),
                 ),
               ),
             const SizedBox(height: 16),

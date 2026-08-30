@@ -246,16 +246,19 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       await repo.updateWine(wine.id, imageUrl: picked.path);
 
       // Upload to Supabase storage if online
-      if (!kIsWeb) {
-        try {
-          final scanService = ScanService(ref.read(supabaseProvider));
-          final publicUrl = await scanService.uploadPhoto(File(picked.path), widget.id);
-          if (publicUrl != null) {
-            await repo.updateWine(wine.id, imageUrl: publicUrl);
-            if (mounted) setState(() => _labelPhotoUrl = publicUrl);
-          }
-        } catch (_) {}
-      }
+      try {
+        final scanService = ScanService(ref.read(supabaseProvider));
+        final bytes = await picked.readAsBytes();
+        final publicUrl = await scanService.uploadPhoto(
+          bottleId: widget.id,
+          imagePath: picked.path,
+          imageBytes: bytes,
+        );
+        if (publicUrl != null) {
+          await repo.updateWine(wine.id, imageUrl: publicUrl);
+          if (mounted) setState(() => _labelPhotoUrl = publicUrl);
+        }
+      } catch (_) {}
 
       final currentCellar = ref.read(currentCellarIdProvider);
       notifyCellarChanged(ref, currentCellar);

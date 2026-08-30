@@ -10,6 +10,7 @@ import '../features/cellar/presentation/cellar_screen.dart';
 import '../features/cellar/presentation/bottle_detail_screen.dart';
 import '../features/cellar/presentation/cellar_sharing_screen.dart';
 import '../features/cellar/presentation/pending_invites_screen.dart';
+import '../features/cellar/domain/bottle.dart';
 import '../features/scan/presentation/scan_screen.dart';
 import '../features/scan/presentation/review_screen.dart';
 import '../features/checkout/presentation/checkout_screen.dart';
@@ -161,9 +162,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/review',
-        builder: (context, state) => ReviewScreen(
-          imagePath: (state.extra as String?) ?? '',
-        ),
+        builder: (context, state) {
+          if (state.extra is Map<String, dynamic>) {
+            final map = state.extra as Map<String, dynamic>;
+            return ReviewScreen(
+              imagePath: (map['path'] as String?) ?? '',
+              imageBytes: map['bytes'] as Uint8List?,
+              prefillBottle: map['prefillBottle'] as Bottle?,
+            );
+          }
+          return ReviewScreen(
+            imagePath: (state.extra as String?) ?? '',
+          );
+        },
       ),
       GoRoute(
         path: '/checkout',

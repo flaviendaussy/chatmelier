@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/services/gemini_model_registry.dart';
 import '../../../shared/utils/app_logger.dart';
@@ -16,27 +18,66 @@ class ScanService {
 
   ScanService(this._client);
 
+  /// Helper to safely read bytes from any image path or url across Web, iOS, Android and Desktop
+  static Future<Uint8List> _readImageBytes(String imagePath) async {
+    if (kIsWeb || imagePath.startsWith('blob:') || imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      try {
+        final xfile = XFile(imagePath);
+        return await xfile.readAsBytes();
+      } catch (_) {
+        final uri = Uri.parse(imagePath);
+        final res = await http.get(uri);
+        if (res.statusCode == 200) {
+          return res.bodyBytes;
+        }
+        throw Exception('Impossible de charger l\'image Web: HTTP ${res.statusCode}');
+      }
+    } else {
+      try {
+        final xfile = XFile(imagePath);
+        return await xfile.readAsBytes();
+      } catch (_) {
+        return await File(imagePath).readAsBytes();
+      }
+    }
+  }
+
   /// Analyze wine bottle photo with Google Gemini Multimodal Vision AI
-  Future<ScanResult> analyzeBottleImage(File imageFile) async {
+  Future<ScanResult> analyzeBottleImage({
+    String? imagePath,
+    Uint8List? imageBytes,
+    File? imageFile,
+  }) async {
     final startTime = DateTime.now();
-    AppLogger.info('SCAN_AI', 'Starting label analysis for image: ${imageFile.path}');
+    final effectivePath = imagePath ?? imageFile?.path ?? '';
+    AppLogger.info('SCAN_AI', 'Starting label analysis for image: $effectivePath');
 
     // Dynamically refresh newest available Gemini models in background
     GeminiModelRegistry.refreshAvailableModels();
 
     try {
-      final bytes = await imageFile.readAsBytes();
+      Uint8List bytes;
+      if (imageBytes != null && imageBytes.isNotEmpty) {
+        bytes = imageBytes;
+      } else if (effectivePath.isNotEmpty) {
+        bytes = await _readImageBytes(effectivePath);
+      } else {
+        throw Exception('Aucune photo fournie pour l\'analyse.');
+      }
+
       final base64Image = base64Encode(bytes);
       final fileSizeKb = (bytes.length / 1024).round();
       AppLogger.debug('SCAN_AI', 'Encoded image size: $fileSizeKb KB');
 
       // Determine mime type
       String mimeType = 'image/jpeg';
-      final pathLower = imageFile.path.toLowerCase();
+      final pathLower = effectivePath.toLowerCase();
       if (pathLower.endsWith('.png')) {
         mimeType = 'image/png';
       } else if (pathLower.endsWith('.webp')) {
         mimeType = 'image/webp';
+      } else if (pathLower.endsWith('.heic') || pathLower.endsWith('.heif')) {
+        mimeType = 'image/heic';
       }
 
       const prompt = '''You are Chatmelier, the world-class master sommelier and OCR wine recognition engine.
@@ -184,7 +225,7 @@ Return strictly a valid JSON object matching this schema.''';
       AppLogger.info('SCAN_AI', 'Edge function scan succeeded in ${duration}ms');
       return fallbackResult;
     } catch (e, stack) {
-      AppLogger.error('SCAN_AI', 'All scan methods failed for image: ${imageFile.path}', e, stack);
+      AppLogger.error('SCAN_AI', 'All scan methods failed for image: $effectivePath', e, stack);
       rethrow;
     }
   }
@@ -205,8 +246,13 @@ Return strictly a valid JSON object matching this schema.''';
     throw Exception('Analyse de l\'étiquette impossible. Vérifiez votre connexion ou saisissez les informations manuellement.');
   }
 
-  /// Uploads photo to Supabase storage bucket 'labels'
-  Future<String?> uploadPhoto(File file, String bottleId) async {
+  /// Uploads photo to Supabase storage bucket 'labels' (Web & Mobile compatible)
+  Future<String?> uploadPhoto({
+    required String bottleId,
+    String? imagePath,
+    Uint8List? imageBytes,
+    File? file,
+  }) async {
     try {
       final user = _client.auth.currentUser;
       if (user == null) {
@@ -214,15 +260,25 @@ Return strictly a valid JSON object matching this schema.''';
         return null;
       }
 
-      final fileExt = file.path.split('.').last;
-      final fileName = '${user.id}/${bottleId}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final bytes = await file.readAsBytes();
+      final effectivePath = imagePath ?? file?.path ?? 'bottle_image.jpg';
+      final fileExt = effectivePath.split('.').last.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final ext = fileExt.isNotEmpty ? fileExt : 'jpg';
+      final fileName = '${user.id}/${bottleId}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+      Uint8List bytes;
+      if (imageBytes != null && imageBytes.isNotEmpty) {
+        bytes = imageBytes;
+      } else if (effectivePath.isNotEmpty) {
+        bytes = await _readImageBytes(effectivePath);
+      } else {
+        return null;
+      }
 
       await _client.storage.from('labels').uploadBinary(
         fileName,
         bytes,
         fileOptions: FileOptions(
-          contentType: fileExt == 'png' ? 'image/png' : 'image/jpeg',
+          contentType: ext == 'png' ? 'image/png' : 'image/jpeg',
           upsert: true,
         ),
       );
@@ -250,7 +306,7 @@ Return strictly a valid JSON object matching this schema.''';
     }
   }
 
-  /// Query AI to enrich missing wine data (cépages, verified apogée, notes, estimated value)
+  /// Enrich existing wine data with sommelier tasting notes, apogée window, and pairings
   Future<Map<String, dynamic>> enrichWineData({
     required String wineName,
     String? producer,
@@ -262,34 +318,34 @@ Return strictly a valid JSON object matching this schema.''';
     String? classification,
     String? wineType,
   }) async {
-    final prompt = '''You are Chatmelier, the world-class master sommelier and enological research assistant.
-Perform a complete enological lookup and enrichment for this wine:
-- Name: "$wineName"
-- Producer: "${producer ?? 'Unknown'}"
-- Vintage: ${vintage != null ? vintage.toString() : 'Non-Vintage'}
-- Country: "${country ?? 'Unknown'}"
-- Region: "${region ?? 'Unknown'}"
-- Sub-Region: "${subRegion ?? ''}"
-- Appellation: "${appellation ?? ''}"
-- Classification: "${classification ?? ''}"
-- Type: "${wineType ?? 'red'}"
+    final startTime = DateTime.now();
+    AppLogger.info('SCAN_AI', 'Enriching wine data: $wineName ($vintage) by $producer');
 
-Find and return factual, verified information:
-1. "grapes": Array of objects [{"name": "Grape Variety Name", "pct": percentage_number or null}]. Always identify the grape varieties (cépages), even without exact percentages.
-2. "tasting_notes": Comprehensive sommelier tasting notes (aromas, palate, structure).
-3. "food_pairings": Array of 4 to 6 gastronomy food pairings.
-4. "ideal_drinking_start": Recommended start year for drinking window.
-5. "ideal_drinking_end": Recommended end year for drinking window.
-6. "peak_drinking_start": Peak maturity start year (apogée).
-7. "peak_drinking_end": Peak maturity end year (apogée).
-8. "estimated_market_value": Approximate retail market price in EUR as number (e.g. 28.0, 95.0) or null.
-9. "estimated_value_currency": "EUR".
-10. "alcohol_pct": Alcohol percentage (e.g. 13.5) or null.
-11. "classification": Official classification if applicable.
-12. "appellation": Verified official AOC/AOP/DOC appellation.
-13. "sub_region": Verified sub-region.
-14. "cuvee_parcel": Specific cuvée / parcel name if applicable.
-15. "ai_summary": Clear 1-2 sentence overview in French, systematically highlighting the grape varieties / cépages.
+    final prompt = '''You are Chatmelier, the world-class sommelier and oenology AI engine.
+Provide comprehensive, verified sommelier data for:
+- Wine Name: $wineName
+- Producer/Domaine: ${producer ?? "Unknown"}
+- Vintage: ${vintage != null ? vintage.toString() : "Non-vintage / Non millésimé"}
+- Region/Terroir: ${region ?? "Unknown"}
+- Appellation: ${appellation ?? "Unknown"}
+- Wine Type: ${wineType ?? "red"}
+
+Search verified wine references (Guide Hachette, Revue du Vin de France, Bettane+Desseauve, Wine Spectator, Decanter) to retrieve exact facts:
+1. "grapes": Array of [{"name": "Grape Name", "pct": percentage or null}]. STRICTLY identify the real blend of this appellation/cuvée.
+2. "appellation": Standardized official Appellation AOC/DOC/AOP.
+3. "region": Primary wine region.
+4. "sub_region": Specific sub-region/commune/cru if applicable.
+5. "classification": Official classification (e.g. Grand Cru Classé, Premier Cru, Cru Bourgeois, AOC), else null.
+6. "tasting_notes": Precise aromas, texture, acidity, and structure notes in French.
+7. "food_pairings": 3-5 harmonious culinary pairings in French.
+8. "ideal_drinking_start": First year this wine becomes enjoyable.
+9. "ideal_drinking_end": Last year of good condition before decline.
+10. "peak_drinking_start": Optimal peak maturity start year (Apogée début).
+11. "peak_drinking_end": Optimal peak maturity end year (Apogée fin).
+12. "estimated_market_value": Approximate fair bottle retail price in EUR as number (e.g. 35.0, 90.0).
+13. "estimated_value_currency": "EUR".
+14. "alcohol_pct": Standard alcohol content as number (e.g. 13.5) or null.
+15. "ai_summary": 1-2 sentence sommelier summary in French systematically highlighting the grape varieties (cépages).
 
 Return strictly a valid JSON object matching this schema.''';
 
@@ -302,7 +358,7 @@ Return strictly a valid JSON object matching this schema.''';
       ],
       'tools': [
         {'googleSearch': {}}
-      ],
+      ]
     });
 
     final requestBodyDirect = jsonEncode({
@@ -322,9 +378,8 @@ Return strictly a valid JSON object matching this schema.''';
     for (final model in activeModels) {
       for (final isSearch in [true, false]) {
         final reqBody = isSearch ? requestBodyWithSearch : requestBodyDirect;
-        final timeoutSec = isSearch ? 24 : 8;
+        final timeoutSec = isSearch ? 18 : 8;
         try {
-          AppLogger.debug('SCAN_AI', 'Calling Gemini enrichWineData with model: $model (Search: $isSearch, Timeout: ${timeoutSec}s)');
           final url = Uri.parse(
             'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
           );
@@ -391,7 +446,7 @@ Return strictly a valid JSON object matching this schema.''';
   }
 
   static Map<String, dynamic>? extractJsonFromText(String rawText) {
-    var clean = rawText.trim();
+    String clean = rawText.trim();
     if (clean.contains('```json')) {
       clean = clean.split('```json')[1].split('```')[0].trim();
     } else if (clean.contains('```')) {

@@ -273,7 +273,23 @@ class Wine {
     int? effectivePeakStart = peakStart;
     int? effectivePeakEnd = peakEnd;
 
-    // Fallback: If no explicit window is stored, estimate from enological properties
+    // Validate explicit drinking windows against the vintage (e.g. if user edited vintage)
+    if (vintage != null) {
+      if (effectiveDrinkStart != null && effectiveDrinkStart < vintage!) {
+        effectiveDrinkStart = null;
+      }
+      if (effectiveDrinkEnd != null && (effectiveDrinkEnd < vintage! || (effectiveDrinkStart != null && effectiveDrinkEnd < effectiveDrinkStart))) {
+        effectiveDrinkEnd = null;
+      }
+      if (effectivePeakStart != null && effectivePeakStart < vintage!) {
+        effectivePeakStart = null;
+      }
+      if (effectivePeakEnd != null && effectivePeakEnd < vintage!) {
+        effectivePeakEnd = null;
+      }
+    }
+
+    // Fallback: If no valid explicit window is stored, estimate from enological properties
     if (effectiveDrinkStart == null || effectiveDrinkEnd == null) {
       if (vintage != null) {
         final v = vintage!;

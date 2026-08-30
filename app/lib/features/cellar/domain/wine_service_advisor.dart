@@ -302,13 +302,20 @@ class WineOenologyAdvisor {
     final currentYear = DateTime.now().year;
     final v = vintage ?? (currentYear - 3);
 
-    // If explicit start and end are provided in the wine model
-    if (explicitDrinkStart != null && explicitDrinkEnd != null) {
+    // If explicit start and end are provided in the wine model and are consistent with vintage
+    if (explicitDrinkStart != null &&
+        explicitDrinkEnd != null &&
+        explicitDrinkStart >= v &&
+        explicitDrinkEnd >= explicitDrinkStart) {
       final start = explicitDrinkStart;
       final end = explicitDrinkEnd;
       final span = (end - start).clamp(1, 60);
-      final pStart = explicitPeakStart ?? (start + (span * 0.35).round());
-      final pEnd = explicitPeakEnd ?? (start + (span * 0.65).round());
+      final pStart = (explicitPeakStart != null && explicitPeakStart >= v)
+          ? explicitPeakStart
+          : (start + (span * 0.35).round());
+      final pEnd = (explicitPeakEnd != null && explicitPeakEnd >= pStart)
+          ? explicitPeakEnd
+          : (start + (span * 0.65).round());
       final maxY = math.max(end + 4, currentYear + 2);
       final minYears = math.max(1, start - v);
       final maxYears = math.max(minYears, end - v);

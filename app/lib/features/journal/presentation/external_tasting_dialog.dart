@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../../../config/router.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/services/cellar_location_service.dart';
 import '../../../shared/services/nearby_places_service.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../../../shared/widgets/bottle_image_view.dart';
 import '../../offline/domain/offline_action.dart';
 import '../../offline/presentation/sync_provider.dart';
+import '../../scan/data/scan_service.dart';
 import '../../friends/data/friends_repository.dart';
 import '../../friends/domain/friend.dart';
 import 'journal_screen.dart';
@@ -89,10 +92,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   bool _rememberThisPlace = true;
   NearbyPlace? _selectedPlace;
   bool _showCustomPlaceInput = false;
+  String? _photoUrl;
 
   @override
   void initState() {
     super.initState();
+    _photoUrl = widget.photoUrl;
     _nameController = TextEditingController(text: widget.initialWineName ?? '');
     _producerController = TextEditingController(text: widget.initialProducer ?? '');
     _vintageController = TextEditingController(text: widget.initialVintage != null ? '${widget.initialVintage}' : '');
@@ -105,6 +110,33 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     }
 
     _detectNearbyPlaces();
+  }
+
+  Future<void> _pickPhoto(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: source, imageQuality: 85);
+      if (picked == null) return;
+      setState(() => _photoUrl = picked.path);
+
+      try {
+        final supabase = ref.read(supabaseProvider);
+        final scanService = ScanService(supabase);
+        final bytes = await picked.readAsBytes();
+        final publicUrl = await scanService.uploadPhoto(
+          bottleId: const Uuid().v4(),
+          imagePath: picked.path,
+          imageBytes: bytes,
+        );
+        if (publicUrl != null && mounted) {
+          setState(() => _photoUrl = publicUrl);
+        }
+      } catch (e) {
+        debugPrint('Photo upload notice: $e');
+      }
+    } catch (e) {
+      debugPrint('Error picking photo: $e');
+    }
   }
 
   Future<void> _detectNearbyPlaces() async {
@@ -215,7 +247,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             'vintage': vintage,
             'type': _wineType,
             'region': region.isNotEmpty ? region : 'Autre',
-            'image_url': widget.photoUrl,
+            'image_url': _photoUrl,
           });
         } catch (e) {
           AppLogger.warning('EXTERNAL_TASTING', 'Could not insert standalone wine: $e');
@@ -230,7 +262,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
           'food_paired': food.isNotEmpty ? food : null,
           'tasting_notes': notes.isNotEmpty ? notes : null,
-          'photo_url': widget.photoUrl,
+          'photo_url': _photoUrl,
           'co_tasters': _selectedCoTasters.toList(),
           'location_name': occasion.isNotEmpty ? occasion : null,
           'is_external': true,
@@ -425,6 +457,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               ),
               const SizedBox(height: 16),
             ],
+
+            // =================================================================
+            // PHOTO DE LA BOUTEILLE (SCAN / APPAREIL / GALERIE)
+            // =================================================================
+            _buildPhotoSection(theme, isDark),
+            const SizedBox(height: 16),
 
             // Nom du vin & Millésime
             Row(
@@ -832,6 +870,166 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             ),
         ],
       ],
+    );
+  }
+
+  Widget _buildPhotoSection(ThemeData theme, bool isDark) {
+    if (_photoUrl != null && _photoUrl!.isNotEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF261F30) : const Color(0xFFF9F6F3),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFD4AF37).withAlpha(100)),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 65,
+                height: 80,
+                child: BottleImageView(
+                  imagePath: _photoUrl,
+                  wineType: _wineType,
+                  width: 65,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 16),
+                      SizedBox(width: 6),
+                      Text(
+                        'Photo de l\'étiquette ajoutée',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Visible dans votre journal de dégustation',
+                    style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        onPressed: () => _showPhotoPickerSheet(context),
+                        icon: const Icon(Icons.refresh, size: 14),
+                        label: const Text('Remplacer', style: TextStyle(fontSize: 11.5)),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                        tooltip: 'Supprimer la photo',
+                        onPressed: () => setState(() => _photoUrl = null),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF221D2C) : const Color(0xFFF9F6F0),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFF8B1E3F).withAlpha(60),
+          style: BorderStyle.solid,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF8B1E3F).withAlpha(20),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF8B1E3F), size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Photographier la bouteille',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                Text(
+                  'Optionnel : gardez un souvenir visuel de ce moment',
+                  style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+          FilledButton.tonalIcon(
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              visualDensity: VisualDensity.compact,
+            ),
+            onPressed: () => _showPhotoPickerSheet(context),
+            icon: const Icon(Icons.add_a_photo, size: 15),
+            label: const Text('Photo', style: TextStyle(fontSize: 12)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPhotoPickerSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF8B1E3F)),
+                title: const Text('Prendre une photo'),
+                subtitle: const Text('Photographier l\'étiquette avec l\'appareil photo'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickPhoto(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: Color(0xFFD4AF37)),
+                title: const Text('Choisir depuis la galerie'),
+                subtitle: const Text('Sélectionner une photo existante'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickPhoto(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

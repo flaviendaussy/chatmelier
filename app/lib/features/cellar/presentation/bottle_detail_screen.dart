@@ -214,9 +214,20 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               onTap: () async {
                 Navigator.of(ctx).pop();
                 final officialImg = WineImageService.resolveWineImageUrl(wine);
-                setState(() => _labelPhotoUrl = officialImg);
+                setState(() {
+                  _labelPhotoUrl = officialImg;
+                  if (_bottleData != null) {
+                    _bottleData!['photo_url'] = null;
+                    if (_bottleData!['wines'] is Map) {
+                      (_bottleData!['wines'] as Map)['image_url'] = officialImg;
+                    }
+                  }
+                });
                 final repo = ref.read(cellarRepositoryProvider);
+                await repo.updateBottle(widget.id, photoUrl: '');
                 await repo.updateWine(wine.id, imageUrl: officialImg);
+                final currentCellar = ref.read(currentCellarIdProvider);
+                notifyCellarChanged(ref, currentCellar);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -239,10 +250,19 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       final picked = await picker.pickImage(source: source, imageQuality: 85);
       if (picked == null) return;
 
-      setState(() => _labelPhotoUrl = picked.path);
+      setState(() {
+        _labelPhotoUrl = picked.path;
+        if (_bottleData != null) {
+          _bottleData!['photo_url'] = picked.path;
+          if (_bottleData!['wines'] is Map) {
+            (_bottleData!['wines'] as Map)['image_url'] = picked.path;
+          }
+        }
+      });
 
-      // Save to wine repo and Supabase
+      // Save to bottle repo and wine repo
       final repo = ref.read(cellarRepositoryProvider);
+      await repo.updateBottle(widget.id, photoUrl: picked.path);
       await repo.updateWine(wine.id, imageUrl: picked.path);
 
       // Upload to Supabase storage if online
@@ -255,10 +275,23 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
           imageBytes: bytes,
         );
         if (publicUrl != null) {
+          await repo.updateBottle(widget.id, photoUrl: publicUrl);
           await repo.updateWine(wine.id, imageUrl: publicUrl);
-          if (mounted) setState(() => _labelPhotoUrl = publicUrl);
+          if (mounted) {
+            setState(() {
+              _labelPhotoUrl = publicUrl;
+              if (_bottleData != null) {
+                _bottleData!['photo_url'] = publicUrl;
+                if (_bottleData!['wines'] is Map) {
+                  (_bottleData!['wines'] as Map)['image_url'] = publicUrl;
+                }
+              }
+            });
+          }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Photo upload notice: $e');
+      }
 
       final currentCellar = ref.read(currentCellarIdProvider);
       notifyCellarChanged(ref, currentCellar);

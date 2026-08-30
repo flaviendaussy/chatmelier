@@ -22,19 +22,21 @@ class GeminiModelRegistry {
     defaultValue: 'AQ.Ab8RN6JFZQNPfXmDdjdGT0posCOmn_4wPIFv_TiviorSGL6BDg',
   );
 
-  /// Curated Lite baseline models (active, ultra-fast, highly economical for structured JSON & vision)
+  /// Curated Lite baseline models (Gemini 3.7 / 3.6 / 3.5 Flash-Lite)
   static const List<String> baselineLiteModels = [
+    'gemini-3.7-flash-lite',
+    'gemini-3.6-flash-lite',
     'gemini-3.5-flash-lite',
-    'gemini-flash-lite-latest',
     'gemini-3.1-flash-lite',
+    'gemini-flash-lite-latest',
   ];
 
-  /// Curated Standard Flash baseline models (powerful multimodal vision & deep reasoning)
+  /// Curated Standard Flash baseline models (Gemini 3.7 / 3.6 / 3.5 Flash)
   static const List<String> baselineStandardFlashModels = [
-    'gemini-3-flash-preview',
-    'gemini-3.5-flash',
-    'gemini-3.6-flash',
     'gemini-3.7-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
+    'gemini-3-flash-preview',
     'gemini-flash-latest',
   ];
 

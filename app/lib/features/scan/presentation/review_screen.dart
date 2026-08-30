@@ -1245,7 +1245,57 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            // Action Buttons
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton.icon(
+                onPressed: _saveBottle,
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B1E3F),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                icon: const Icon(Icons.add_circle_outline, size: 20),
+                label: const Text(
+                  'Ajouter à ma cave',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  final vintage = int.tryParse(_vintageCtrl.text.trim());
+                  ExternalTastingDialog.show(
+                    context,
+                    wineName: _nameCtrl.text.trim(),
+                    producer: _producerCtrl.text.trim(),
+                    vintage: vintage,
+                    region: _regionCtrl.text.trim(),
+                    appellation: _appellationCtrl.text.trim(),
+                    wineType: _wineType,
+                    photoUrl: widget.imagePath.isNotEmpty ? widget.imagePath : null,
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF8B1E3F),
+                  side: const BorderSide(color: Color(0xFF8B1E3F), width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                icon: const Icon(Icons.restaurant, size: 18),
+                label: const Text(
+                  'Dégusté hors cave (Chez des proches, resto...)',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
           ],
         ),
       ),

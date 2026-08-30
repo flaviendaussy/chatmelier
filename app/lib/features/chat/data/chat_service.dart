@@ -232,63 +232,59 @@ SOMMELIER RULES:
     final activeModels = GeminiModelRegistry.getModelsForTier(tier);
     AppLogger.info('CHAT_AI', 'Chat query routed to tier: ${tier.name} (first model: ${activeModels.isNotEmpty ? activeModels.first : "none"})');
 
-    // Multi-model fallback cascade with Google Search grounding
+    // Multi-model fallback cascade for chat sommelier
     for (final model in activeModels) {
-      for (final useSearch in [true, false]) {
-        try {
-          AppLogger.debug('CHAT_AI', 'Calling Gemini ($model, search: $useSearch)...');
+      try {
+        AppLogger.debug('CHAT_AI', 'Calling Gemini ($model)...');
 
-          final url = Uri.parse(
-            'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-          );
+        final url = Uri.parse(
+          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
+        );
 
-          final body = {
-            'systemInstruction': {
-              'parts': [{'text': systemInstruction}]
-            },
-            'contents': contents,
-            if (useSearch)
-              'tools': [
-                {'googleSearch': {}}
-              ],
-          };
+        final body = {
+          'systemInstruction': {
+            'parts': [{'text': systemInstruction}]
+          },
+          'contents': contents,
+        };
 
-          final res = await http.post(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(body),
-          ).timeout(const Duration(seconds: 14));
+        final res = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body),
+        ).timeout(const Duration(seconds: 12));
 
-          if (res.statusCode == 200) {
-            final data = jsonDecode(res.body);
-            final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'] as String?;
-            if (text != null && text.trim().isNotEmpty) {
-              reply = text.trim();
-              final duration = DateTime.now().difference(startTime).inMilliseconds;
-              AppLogger.info('CHAT_AI', 'Chat reply generated via $model (search: $useSearch) in ${duration}ms');
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'] as String?;
+          if (text != null && text.trim().isNotEmpty) {
+            reply = text.trim();
+            final duration = DateTime.now().difference(startTime).inMilliseconds;
+            AppLogger.info('CHAT_AI', 'Chat reply generated via $model in ${duration}ms');
 
-              // Track AI token and cost metrics
-              AiCostTrackerService().recordRawResponse(
-                model: model,
-                feature: 'chat_sommelier',
-                responseJson: data,
-                promptFallbackText: message,
-                candidateFallbackText: reply,
-                isSearchGrounded: useSearch,
-                userId: _client.auth.currentUser?.id,
-              );
-              break;
-            }
-          } else if (res.statusCode == 429) {
-            GeminiModelRegistry.recordRateLimit(model);
-            AppLogger.warning('CHAT_AI', 'Model $model returned HTTP 429 (Quota limit), switching to next model');
+            // Track AI token and cost metrics
+            AiCostTrackerService().recordRawResponse(
+              model: model,
+              feature: 'chat_sommelier',
+              responseJson: data,
+              promptFallbackText: message,
+              candidateFallbackText: reply,
+              isSearchGrounded: false,
+              userId: _client.auth.currentUser?.id,
+            );
             break;
-          } else {
-            AppLogger.warning('CHAT_AI', 'Model $model returned HTTP ${res.statusCode}: ${res.body.substring(0, res.body.length > 200 ? 200 : res.body.length)}');
           }
-        } catch (e) {
-          AppLogger.warning('CHAT_AI', 'Model $model call failed: $e');
+        } else if (res.statusCode == 429) {
+          GeminiModelRegistry.recordRateLimit(model);
+          AppLogger.warning('CHAT_AI', 'Model $model returned HTTP 429 (Quota limit), switching to next model');
+        } else if (res.statusCode == 404) {
+          GeminiModelRegistry.recordDisabledModel(model);
+          AppLogger.warning('CHAT_AI', 'Model $model returned HTTP 404, blacklisting model for session');
+        } else {
+          AppLogger.warning('CHAT_AI', 'Model $model returned HTTP ${res.statusCode}: ${res.body.substring(0, res.body.length > 200 ? 200 : res.body.length)}');
         }
+      } catch (e) {
+        AppLogger.warning('CHAT_AI', 'Model $model call failed: $e');
       }
       if (reply.isNotEmpty) break;
     }

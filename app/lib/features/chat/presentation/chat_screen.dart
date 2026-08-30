@@ -5,6 +5,7 @@ import '../../../shared/utils/responsive_layout.dart';
 import '../../../shared/widgets/drinking_window_badge.dart';
 import '../../../shared/widgets/wine_type_badge.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/data/taste_profile_service.dart';
 import '../../auth/presentation/taste_profiles_dialog.dart';
 import '../../cellar/domain/bottle.dart';
 import '../data/chat_service.dart';
@@ -148,6 +149,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isLargeScreen = Responsive.isTabletOrDesktop(context);
+    final profiles = ref.watch(tasteProfilesListProvider).value ?? [];
+    final names = profiles.map((p) => p.name).where((n) => n.trim().isNotEmpty && n != 'Moi').toList();
+    final profileTooltip = names.isNotEmpty
+        ? 'Profils de Goût (${names.take(2).join(' & ')})'
+        : 'Profils de Goût & Invités';
+    final duoPrompt = names.length >= 2
+        ? '🍷 Que boire ce soir pour ${names[0]} et ${names[1]} ?'
+        : (names.length == 1
+            ? '🍷 Que boire ce soir pour ${names[0]} et moi ?'
+            : '🍷 Que me conseilles-tu d\'ouvrir ce soir ?');
 
     return Scaffold(
       appBar: AppBar(
@@ -155,7 +166,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.people_outline, color: Color(0xFFD4AF37)),
-            tooltip: 'Profils de Goût (Flavien & Caro)',
+            tooltip: profileTooltip,
             onPressed: () => TasteProfilesDialog.show(context),
           ),
         ],
@@ -167,6 +178,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// 📱 Mobile Layout: Single-column chat stream with bottom input and chips
   Widget _buildMobileLayout() {
     final l10n = AppLocalizations.of(context);
+    final profiles = ref.watch(tasteProfilesListProvider).value ?? [];
+    final names = profiles.map((p) => p.name).where((n) => n.trim().isNotEmpty && n != 'Moi').toList();
+    final duoChipText = names.length >= 2
+        ? '🍷 Que boire ce soir pour ${names[0]} et ${names[1]} ?'
+        : (names.length == 1
+            ? '🍷 Que boire ce soir pour ${names[0]} et moi ?'
+            : '🍷 Quel vin ouvrir ce soir ?');
 
     return Column(
       children: [
@@ -192,7 +210,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             children: [
-              _buildChip('🍷 Que boire ce soir pour Flavien et Caro ?'),
+              _buildChip(duoChipText),
               _buildChip(
                   l10n?.chatChipTonight ?? '🍾 Que devrais-je boire ce soir ?'),
               _buildChip(l10n?.chatChipSteak ??
@@ -298,6 +316,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final cellarId = ref.watch(currentCellarIdProvider);
     final bottlesAsync = ref.watch(bottlesProvider(cellarId));
+    final profiles = ref.watch(tasteProfilesListProvider).value ?? [];
+    final names = profiles.map((p) => p.name).where((n) => n.trim().isNotEmpty && n != 'Moi').toList();
 
     return Container(
       color: isDark ? const Color(0xFF16151B) : const Color(0xFFFAF7F5),
@@ -322,9 +342,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
           const SizedBox(height: 10),
           _buildSidebarPromptCard(
-            title: 'Soirée Flavien & Caro 🍷',
-            subtitle: 'Conseil sur-mesure pour les 2 profils de goût',
-            prompt: 'Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à Flavien et à Caro ?',
+            title: names.length >= 2
+                ? 'Soirée ${names[0]} & ${names[1]} 🍷'
+                : (names.length == 1 ? 'Soirée ${names[0]} & moi 🍷' : 'Inspiration du Soir 🍷'),
+            subtitle: 'Conseil sur-mesure pour vos profils de goût',
+            prompt: names.length >= 2
+                ? 'Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à ${names[0]} et à ${names[1]} ?'
+                : (names.length == 1
+                    ? 'Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à ${names[0]} et à moi ?'
+                    : 'Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles pour passer un excellent moment ?'),
           ),
           _buildSidebarPromptCard(
             title: 'Apogées prioritaires ⏰',

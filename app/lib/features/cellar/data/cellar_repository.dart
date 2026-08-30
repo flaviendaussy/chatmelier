@@ -598,6 +598,7 @@ class CellarRepository {
     String? shelf,
     String? position,
     String? notes,
+    String? photoUrl,
     Map<String, dynamic>? rawUpdates,
   }) async {
     final updates = rawUpdates != null
@@ -610,7 +611,8 @@ class CellarRepository {
             if (rack != null) 'rack': rack,
             if (shelf != null) 'shelf': shelf,
             if (position != null) 'position': position,
-            'notes': notes,
+            if (notes != null) 'notes': notes,
+            if (photoUrl != null) 'photo_url': photoUrl,
           };
 
     try {

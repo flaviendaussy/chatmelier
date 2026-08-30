@@ -7,6 +7,7 @@ import '../../../shared/widgets/bottle_image_view.dart';
 import '../domain/bottle.dart';
 import '../domain/wine.dart';
 import '../domain/wine_image_service.dart';
+import '../domain/wine_service_advisor.dart';
 import 'bottle_provenance_picker.dart';
 
 class BottleEditSheet extends ConsumerStatefulWidget {
@@ -233,11 +234,33 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
       final classification = _classificationCtrl.text.trim().isEmpty ? null : _classificationCtrl.text.trim();
       final cuveeParcel = _cuveeParcelCtrl.text.trim().isEmpty ? null : _cuveeParcelCtrl.text.trim();
       final alcoholPct = double.tryParse(_alcoholPctCtrl.text.trim().replaceAll(',', '.'));
+      int? drinkStart = int.tryParse(_drinkStartCtrl.text.trim());
+      int? peakStart = int.tryParse(_peakStartCtrl.text.trim());
+      int? peakEnd = int.tryParse(_peakEndCtrl.text.trim());
+      int? drinkEnd = int.tryParse(_drinkEndCtrl.text.trim());
 
-      final drinkStart = int.tryParse(_drinkStartCtrl.text.trim());
-      final peakStart = int.tryParse(_peakStartCtrl.text.trim());
-      final peakEnd = int.tryParse(_peakEndCtrl.text.trim());
-      final drinkEnd = int.tryParse(_drinkEndCtrl.text.trim());
+      // If vintage was modified and existing drink dates are inconsistent with the new vintage:
+      if (vintage != null) {
+        if (drinkStart != null && drinkStart < vintage) drinkStart = null;
+        if (drinkEnd != null && (drinkEnd < vintage || (drinkStart != null && drinkEnd < drinkStart))) drinkEnd = null;
+        if (peakStart != null && peakStart < vintage) peakStart = null;
+        if (peakEnd != null && peakEnd < vintage) peakEnd = null;
+
+        if (drinkStart == null || drinkEnd == null) {
+          final computed = WineOenologyAdvisor.computeDrinkingWindow(
+            wineType: _wineType,
+            vintage: vintage,
+            region: region,
+            appellation: appellation,
+            classification: classification,
+            wineName: name,
+          );
+          drinkStart ??= computed.drinkStart;
+          peakStart ??= computed.peakStart;
+          peakEnd ??= computed.peakEnd;
+          drinkEnd ??= computed.drinkEnd;
+        }
+      }
 
       final estimatedVal = double.tryParse(_estimatedValueCtrl.text.trim().replaceAll(',', '.'));
       final tastingNotes = _tastingNotesCtrl.text.trim().isEmpty ? null : _tastingNotesCtrl.text.trim();

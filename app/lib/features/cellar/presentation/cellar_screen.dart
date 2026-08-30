@@ -1043,7 +1043,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                             padding: const EdgeInsets.all(12),
                             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                               maxCrossAxisExtent: 260,
-                              childAspectRatio: 0.72,
+                              mainAxisExtent: 295,
                               crossAxisSpacing: 12,
                               mainAxisSpacing: 12,
                             ),
@@ -1300,7 +1300,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                                 physics: const NeverScrollableScrollPhysics(),
                                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                                   maxCrossAxisExtent: 250,
-                                  childAspectRatio: 0.72,
+                                  mainAxisExtent: 295,
                                   crossAxisSpacing: 10,
                                   mainAxisSpacing: 10,
                                 ),

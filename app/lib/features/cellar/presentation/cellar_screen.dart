@@ -27,6 +27,7 @@ import '../../voice/presentation/voice_dictation_sheet.dart';
 import '../../auth/presentation/mandatory_username_dialog.dart';
 import '../../../shared/widgets/offline_sync_banner.dart';
 import '../../../shared/widgets/grape_chart.dart';
+import '../../../shared/utils/responsive_layout.dart';
 
 enum CellarViewMode { grid, list, compact }
 
@@ -1040,8 +1041,8 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                     mainContent = _viewMode == CellarViewMode.grid
                         ? GridView.builder(
                             padding: const EdgeInsets.all(12),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
+                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 260,
                               childAspectRatio: 0.72,
                               crossAxisSpacing: 12,
                               mainAxisSpacing: 12,
@@ -1062,26 +1063,29 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                                 .slideY(begin: 0.08, end: 0);
                             },
                           )
-                        : ListView.builder(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: _viewMode == CellarViewMode.compact ? 8 : 12,
-                              vertical: _viewMode == CellarViewMode.compact ? 4 : 12,
-                            ),
-                            itemCount: sortedList.length,
-                            itemBuilder: (context, index) {
-                              final bottle = sortedList[index];
-                              return BottleListItem(
-                                bottle: bottle,
-                                isUltraCompact: _viewMode == CellarViewMode.compact,
-                                onTap: () => context.push('/cellar/${bottle.id}'),
-                                onLongPress: () => BottleContextSheet.show(
-                                  context,
+                        : ResponsiveContentWrapper(
+                            maxWidth: 1000,
+                            child: ListView.builder(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: _viewMode == CellarViewMode.compact ? 8 : 12,
+                                vertical: _viewMode == CellarViewMode.compact ? 4 : 12,
+                              ),
+                              itemCount: sortedList.length,
+                              itemBuilder: (context, index) {
+                                final bottle = sortedList[index];
+                                return BottleListItem(
                                   bottle: bottle,
-                                  cellarId: activeCellarId ?? '',
-                                ),
-                              ).animate()
-                                .fadeIn(delay: Duration(milliseconds: index * 25));
-                            },
+                                  isUltraCompact: _viewMode == CellarViewMode.compact,
+                                  onTap: () => context.push('/cellar/${bottle.id}'),
+                                  onLongPress: () => BottleContextSheet.show(
+                                    context,
+                                    bottle: bottle,
+                                    cellarId: activeCellarId ?? '',
+                                  ),
+                                ).animate()
+                                  .fadeIn(delay: Duration(milliseconds: index * 25));
+                              },
+                            ),
                           );
                   }
 
@@ -1294,8 +1298,8 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                               return GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
+                                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                                  maxCrossAxisExtent: 250,
                                   childAspectRatio: 0.72,
                                   crossAxisSpacing: 10,
                                   mainAxisSpacing: 10,

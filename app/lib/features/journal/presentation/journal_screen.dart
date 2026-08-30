@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/utils/responsive_layout.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/tasting_entry.dart';
 import 'external_tasting_dialog.dart';
@@ -104,49 +105,42 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     super.dispose();
   }
 
-  List<TastingEntry> _filterEntries(List<TastingEntry> allEntries) {
-    return allEntries.where((entry) {
-      // 1. Origin filter
+  List<TastingEntry> _filterEntries(List<TastingEntry> entries) {
+    return entries.where((entry) {
+      // Filter by origin (Cave vs Hors-cave)
       if (_selectedOriginFilter == 'cellar' && entry.isExternal) return false;
       if (_selectedOriginFilter == 'external' && !entry.isExternal) return false;
 
-      // 2. Year filter
-      if (_selectedYear != null && _selectedYear!.isNotEmpty) {
-        final entryYear = entry.consumedAt.year.toString();
-        if (entryYear != _selectedYear) return false;
+      // Filter by year
+      if (_selectedYear != null && entry.consumedAt.year.toString() != _selectedYear) {
+        return false;
       }
 
-      // 3. Minimum rating filter
-      if (_minRatingOnly) {
-        final r = entry.rating ?? 0.0;
-        // Standardized rating check: rating >= 4/5 (or >= 8/10)
-        if (r < 4.0 && r < 8.0) return false;
+      // Filter by high rating (>= 8/10 or >= 4/5)
+      if (_minRatingOnly && (entry.rating == null || entry.rating! < 8.0)) {
+        return false;
       }
 
-      // 4. Multi-fields text search
+      // Filter by search query
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
-        final name = (entry.wineName ?? '').toLowerCase();
-        final region = (entry.region ?? '').toLowerCase();
-        final appellation = (entry.appellation ?? '').toLowerCase();
-        final country = (entry.country ?? '').toLowerCase();
-        final loc = (entry.locationName ?? '').toLowerCase();
+        final wineName = (entry.wineName ?? '').toLowerCase();
         final notes = (entry.tastingNotes ?? '').toLowerCase();
         final food = (entry.foodPaired ?? '').toLowerCase();
-        final owner = (entry.bottleOwnerName ?? '').toLowerCase();
-        final vintageStr = entry.vintage?.toString() ?? 'nm';
+        final region = (entry.region ?? '').toLowerCase();
+        final country = (entry.country ?? '').toLowerCase();
+        final appellation = (entry.appellation ?? '').toLowerCase();
+        final loc = (entry.locationName ?? '').toLowerCase();
         final yearStr = entry.consumedAt.year.toString();
         final guests = entry.coTasters.map((g) => g.toLowerCase()).join(' ');
 
-        final matches = name.contains(q) ||
-            region.contains(q) ||
-            appellation.contains(q) ||
-            country.contains(q) ||
-            loc.contains(q) ||
+        final matches = wineName.contains(q) ||
             notes.contains(q) ||
             food.contains(q) ||
-            owner.contains(q) ||
-            vintageStr.contains(q) ||
+            region.contains(q) ||
+            country.contains(q) ||
+            appellation.contains(q) ||
+            loc.contains(q) ||
             yearStr.contains(q) ||
             guests.contains(q);
 
@@ -209,18 +203,24 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             return EmptyState(
               icon: Icons.menu_book,
               title: l10n?.journalEmpty ?? 'Aucun souvenir de dégustation pour le moment',
-              subtitle: l10n?.journalEmptySub ?? 'Dégustez et sortez une bouteille de votre cave ou notez un vin bu au restaurant.',
+              subtitle: l10n?.journalEmptySub ??
+                  'Dégustez et sortez une bouteille de votre cave ou notez un vin bu au restaurant.',
               action: FilledButton.icon(
                 icon: const Icon(Icons.restaurant_menu),
                 label: const Text('Noter un vin hors-cave (Restaurant, Amis)'),
-                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F), foregroundColor: Colors.white),
+                style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B1E3F),
+                    foregroundColor: Colors.white),
                 onPressed: () => ExternalTastingDialog.show(context),
               ),
             );
           }
 
           // Extract available years for filter
-          final availableYears = allEntries.map((e) => e.consumedAt.year.toString()).toSet().toList()
+          final availableYears = allEntries
+              .map((e) => e.consumedAt.year.toString())
+              .toSet()
+              .toList()
             ..sort((a, b) => b.compareTo(a));
 
           final filteredEntries = _filterEntries(allEntries);
@@ -239,11 +239,16 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                         // Search textfield
                         TextField(
                           controller: _searchController,
-                          onChanged: (val) => setState(() => _searchQuery = val.trim()),
+                          onChanged: (val) =>
+                              setState(() => _searchQuery = val.trim()),
                           decoration: InputDecoration(
-                            hintText: 'Rechercher : vin, lieu, invité, plat, note, année...',
-                            hintStyle: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black45),
-                            prefixIcon: const Icon(Icons.search, color: Color(0xFF8B1E3F)),
+                            hintText:
+                                'Rechercher : vin, lieu, invité, plat, note, année...',
+                            hintStyle: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? Colors.white54 : Colors.black45),
+                            prefixIcon:
+                                const Icon(Icons.search, color: Color(0xFF8B1E3F)),
                             suffixIcon: _searchQuery.isNotEmpty
                                 ? IconButton(
                                     icon: const Icon(Icons.clear, size: 18),
@@ -253,125 +258,125 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                     },
                                   )
                                 : null,
-                            filled: true,
-                            fillColor: isDark ? const Color(0xFF1E1A24) : Colors.grey.shade100,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: BorderSide(color: isDark ? Colors.white12 : Colors.black12),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: BorderSide(color: isDark ? Colors.white12 : Colors.black12),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(color: Color(0xFF8B1E3F), width: 1.5),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                         ),
                         const SizedBox(height: 10),
 
-                        // Filter Chips row (Horizontally scrollable)
+                        // Filters Chips Row
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
-                              // All / Origin filters
+                              // All / Cave / Hors-cave Segmented Filter
                               FilterChip(
                                 label: const Text('Tous'),
-                                selected: _selectedOriginFilter == 'all' && _selectedYear == null && !_minRatingOnly,
-                                onSelected: (_) {
-                                  setState(() {
-                                    _selectedOriginFilter = 'all';
-                                    _selectedYear = null;
-                                    _minRatingOnly = false;
-                                  });
+                                selected: _selectedOriginFilter == 'all',
+                                selectedColor:
+                                    const Color(0xFF8B1E3F).withValues(alpha: 0.2),
+                                onSelected: (sel) {
+                                  if (sel) {
+                                    setState(
+                                        () => _selectedOriginFilter = 'all');
+                                  }
+                                },
+                              ),
+                              const SizedBox(width: 6),
+                              FilterChip(
+                                avatar: const Text('🍷',
+                                    style: TextStyle(fontSize: 12)),
+                                label: const Text('Ma Cave'),
+                                selected: _selectedOriginFilter == 'cellar',
+                                selectedColor:
+                                    const Color(0xFF8B1E3F).withValues(alpha: 0.2),
+                                onSelected: (sel) {
+                                  setState(() => _selectedOriginFilter =
+                                      sel ? 'cellar' : 'all');
+                                },
+                              ),
+                              const SizedBox(width: 6),
+                              FilterChip(
+                                avatar: const Text('🍽️',
+                                    style: TextStyle(fontSize: 12)),
+                                label: const Text('Hors-Cave'),
+                                selected: _selectedOriginFilter == 'external',
+                                selectedColor:
+                                    Colors.orange.withValues(alpha: 0.2),
+                                onSelected: (sel) {
+                                  setState(() => _selectedOriginFilter =
+                                      sel ? 'external' : 'all');
                                 },
                               ),
                               const SizedBox(width: 8),
+
+                              // High Rating Filter (>= 8/10)
                               FilterChip(
-                                avatar: const Icon(Icons.inventory_2_outlined, size: 14),
-                                label: const Text('Ma Cave'),
-                                selected: _selectedOriginFilter == 'cellar',
-                                onSelected: (sel) => setState(() => _selectedOriginFilter = sel ? 'cellar' : 'all'),
-                              ),
-                              const SizedBox(width: 8),
-                              FilterChip(
-                                avatar: const Icon(Icons.restaurant, size: 14),
-                                label: const Text('Hors-Cave'),
-                                selected: _selectedOriginFilter == 'external',
-                                onSelected: (sel) => setState(() => _selectedOriginFilter = sel ? 'external' : 'all'),
-                              ),
-                              const SizedBox(width: 8),
-                              FilterChip(
-                                avatar: const Icon(Icons.star, size: 14, color: Colors.amber),
-                                label: const Text('Coup de Cœur (⭐ 8+)'),
+                                avatar: const Icon(Icons.star,
+                                    size: 14, color: Color(0xFFD4AF37)),
+                                label: const Text('Coups de Cœur (≥ 8/10)'),
                                 selected: _minRatingOnly,
-                                onSelected: (sel) => setState(() => _minRatingOnly = sel),
+                                selectedColor: const Color(0xFFD4AF37)
+                                    .withValues(alpha: 0.2),
+                                onSelected: (sel) {
+                                  setState(() => _minRatingOnly = sel);
+                                },
                               ),
-                              if (availableYears.length > 1) ...[
-                                const SizedBox(width: 8),
-                                ...availableYears.map((yr) => Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: ChoiceChip(
-                                        label: Text(yr),
-                                        selected: _selectedYear == yr,
-                                        onSelected: (sel) => setState(() => _selectedYear = sel ? yr : null),
+                              const SizedBox(width: 8),
+
+                              // Year Filter Dropdown / Chips
+                              if (availableYears.length > 1)
+                                DropdownButtonHideUnderline(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: _selectedYear != null
+                                          ? const Color(0xFF8B1E3F)
+                                              .withValues(alpha: 0.15)
+                                          : (isDark
+                                              ? Colors.white10
+                                              : Colors.grey.shade200),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: _selectedYear != null
+                                            ? const Color(0xFF8B1E3F)
+                                            : Colors.transparent,
                                       ),
-                                    )),
-                              ],
+                                    ),
+                                    child: DropdownButton<String?>(
+                                      value: _selectedYear,
+                                      hint: const Text('Année',
+                                          style: TextStyle(fontSize: 12)),
+                                      isDense: true,
+                                      items: [
+                                        const DropdownMenuItem<String?>(
+                                          value: null,
+                                          child: Text('Toutes les années',
+                                              style: TextStyle(fontSize: 12)),
+                                        ),
+                                        ...availableYears.map(
+                                          (yr) => DropdownMenuItem<String?>(
+                                            value: yr,
+                                            child: Text(yr,
+                                                style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold)),
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (yr) {
+                                        setState(() => _selectedYear = yr);
+                                      },
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 12),
-
-                        // Scratch Map banner card
-                        Card(
-                          margin: EdgeInsets.zero,
-                          color: const Color(0xFF1E1A24),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(14),
-                            onTap: () => context.push('/scratchcard'),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.public, color: Color(0xFFD4AF37), size: 20),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Carte à Gratter des Terroirs',
-                                          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
-                                        ),
-                                        Text(
-                                          '${allEntries.length} vin(s) dégusté(s) • Voir vos régions débloquées',
-                                          style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70, fontSize: 11),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Icon(Icons.chevron_right, color: Color(0xFFD4AF37), size: 20),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
                       ],
                     ),
                   ),
@@ -387,17 +392,20 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.search_off, size: 48, color: Colors.grey),
+                            const Icon(Icons.search_off,
+                                size: 48, color: Colors.grey),
                             const SizedBox(height: 12),
                             Text(
                               'Aucun souvenir trouvé',
-                              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                              style: theme.textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               'Aucune dégustation ne correspond aux filtres actuels.',
                               textAlign: TextAlign.center,
-                              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                              style: theme.textTheme.bodySmall
+                                  ?.copyWith(color: Colors.grey),
                             ),
                             const SizedBox(height: 16),
                             OutlinedButton.icon(
@@ -421,267 +429,280 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 else
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final entry = filteredEntries[index];
-                          final wineName = entry.wineName ?? 'Vin dégusté';
-                          final vintage = entry.vintage != null && entry.vintage! > 0
-                              ? ' (${entry.vintage})'
-                              : ' (NM)';
-                          final dateStr = _formatDate(entry.consumedAt);
-
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            elevation: 1,
-                            clipBehavior: Clip.antiAlias,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => TastingEntryDetailScreen(entry: entry),
-                                  ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Row 1: Wine Name & Vintage + Rating on 10
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            '$wineName$vintage',
-                                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                        if (entry.rating != null)
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFD4AF37),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(Icons.star, size: 14, color: Colors.white),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  entry.rating! <= 5.0 && entry.rating! > 0
-                                                      ? '${(entry.rating! * 2).toStringAsFixed(1)} / 10'
-                                                      : '${entry.rating!.toStringAsFixed(1)} / 10',
-                                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-
-                                    // Row 2: Origin badge, Location pin, and Date
-                                    Wrap(
-                                      spacing: 6,
-                                      runSpacing: 6,
-                                      crossAxisAlignment: WrapCrossAlignment.center,
-                                      children: [
-                                        // Date badge
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: isDark ? Colors.white10 : Colors.grey.shade200,
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(Icons.calendar_today, size: 11, color: Colors.grey),
-                                              const SizedBox(width: 4),
-                                              Text(dateStr, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-                                            ],
-                                          ),
-                                        ),
-
-                                        // Location badge (Où)
-                                        if (entry.locationName != null && entry.locationName!.isNotEmpty)
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                            decoration: BoxDecoration(
-                                              color: Colors.blue.withValues(alpha: 0.12),
-                                              borderRadius: BorderRadius.circular(6),
-                                              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(Icons.place, size: 12, color: Colors.blue),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  entry.locationName!,
-                                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-
-                                        // Origin Description
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: (entry.isExternal ? Colors.purple : const Color(0xFF8B1E3F)).withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(6),
-                                            border: Border.all(color: (entry.isExternal ? Colors.purple : const Color(0xFF8B1E3F)).withValues(alpha: 0.3)),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                entry.isExternal ? Icons.restaurant : Icons.inventory_2,
-                                                size: 11,
-                                                color: entry.isExternal ? Colors.purple : const Color(0xFF8B1E3F),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                entry.originDescription,
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: entry.isExternal ? Colors.purple : const Color(0xFF8B1E3F),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-
-                                    // Row 3: Co-tasters (Avec qui)
-                                    if (entry.coTasters.isNotEmpty) ...[
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(Icons.people_alt, size: 13, color: Color(0xFFD4AF37)),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              'Avec : ${entry.coTasters.join(", ")}',
-                                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37)),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-
-                                    // Food pairing (Accord mets)
-                                    if (entry.foodPaired != null && entry.foodPaired!.isNotEmpty) ...[
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Icon(Icons.restaurant_menu, size: 14, color: Color(0xFF8B1E3F)),
-                                          const SizedBox(width: 6),
-                                          Expanded(
-                                            child: Text(
-                                              'Accord : ${entry.foodPaired!}',
-                                              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-
-                                    // Occasion
-                                    if (entry.occasion != null && entry.occasion!.isNotEmpty && !entry.isExternal) ...[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Occasion : ${entry.occasion}',
-                                        style: theme.textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-                                      ),
-                                    ],
-
-                                    // Tasting notes
-                                    if (entry.tastingNotes != null && entry.tastingNotes!.isNotEmpty) ...[
-                                      const SizedBox(height: 10),
-                                      Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          entry.tastingNotes!,
-                                          style: theme.textTheme.bodyMedium,
-                                        ),
-                                      ),
-                                    ],
-
-                                    const SizedBox(height: 10),
-
-                                    // Bottom Row: Voir fiche complète & Questionnaire
-                                    Row(
-                                      children: [
-                                        TextButton.icon(
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: const Color(0xFF8B1E3F),
-                                            visualDensity: VisualDensity.compact,
-                                            padding: EdgeInsets.zero,
-                                          ),
-                                          icon: const Icon(Icons.wine_bar_outlined, size: 16),
-                                          label: const Text('Fiche & Carte du Vin ➔', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                          onPressed: () {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (_) => TastingEntryDetailScreen(entry: entry),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                        const Spacer(),
-                                        TextButton.icon(
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: Colors.grey.shade700,
-                                            visualDensity: VisualDensity.compact,
-                                          ),
-                                          icon: const Icon(Icons.quiz_outlined, size: 15),
-                                          label: const Text('Quiz sommelier', style: TextStyle(fontSize: 11)),
-                                          onPressed: () {
-                                            TastingQuestionnaireSheet.show(
-                                              context,
-                                              wineName: entry.wineName ?? 'Vin dégusté',
-                                              vintage: entry.vintage,
-                                              region: entry.region,
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
+                    sliver: Responsive.isTabletOrDesktop(context)
+                        ? SliverGrid(
+                            gridDelegate:
+                                const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 460,
+                              mainAxisExtent: 220,
+                              crossAxisSpacing: 14,
+                              mainAxisSpacing: 14,
                             ),
-                          );
-                        },
-                        childCount: filteredEntries.length,
-                      ),
-                    ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) => _buildTastingCard(
+                                context,
+                                filteredEntries[index],
+                                isDark,
+                                theme,
+                              ),
+                              childCount: filteredEntries.length,
+                            ),
+                          )
+                        : SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) => _buildTastingCard(
+                                context,
+                                filteredEntries[index],
+                                isDark,
+                                theme,
+                              ),
+                              childCount: filteredEntries.length,
+                            ),
+                          ),
                   ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildTastingCard(
+    BuildContext context,
+    TastingEntry entry,
+    bool isDark,
+    ThemeData theme,
+  ) {
+    final wineName = entry.wineName ?? 'Vin dégusté';
+    final vintage = entry.vintage != null && entry.vintage! > 0
+        ? ' (${entry.vintage})'
+        : ' (NM)';
+    final dateStr = _formatDate(entry.consumedAt);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      elevation: 1,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => TastingEntryDetailScreen(entry: entry),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Row 1: Wine Name & Vintage + Rating on 10
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$wineName$vintage',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          [
+                            if (entry.appellation != null &&
+                                entry.appellation!.isNotEmpty)
+                              entry.appellation!
+                            else if (entry.region != null &&
+                                entry.region!.isNotEmpty)
+                              entry.region!,
+                            if (entry.country != null &&
+                                entry.country!.isNotEmpty)
+                              entry.country!,
+                            dateStr,
+                          ].join(' • '),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isDark ? Colors.white60 : Colors.black54,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Rating Badge on 10
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD4AF37).withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: const Color(0xFFD4AF37).withValues(alpha: 0.5)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star,
+                            size: 14, color: Color(0xFFD4AF37)),
+                        const SizedBox(width: 4),
+                        Text(
+                          entry.rating != null
+                              ? '${entry.rating!.toStringAsFixed(1)}/10'
+                              : 'Non noté',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFD4AF37),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Badges row: Provenance / Location / Co-tasters
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  if (entry.isExternal)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('🍽️ Hors-Cave',
+                          style: TextStyle(
+                              fontSize: 10.5, color: Colors.deepOrange)),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('🍷 Cave',
+                          style: TextStyle(
+                              fontSize: 10.5, color: Color(0xFF8B1E3F))),
+                    ),
+                  if (entry.locationName != null &&
+                      entry.locationName!.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.blueGrey.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text('📍 ${entry.locationName}',
+                          style: const TextStyle(
+                              fontSize: 10.5, color: Colors.blueGrey)),
+                    ),
+                  if (entry.coTasters.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text('👥 ${entry.coTasters.join(", ")}',
+                          style: const TextStyle(
+                              fontSize: 10.5, color: Colors.purple)),
+                    ),
+                ],
+              ),
+
+              if (entry.foodPaired != null && entry.foodPaired!.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.restaurant, size: 13, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        'Accord : ${entry.foodPaired}',
+                        style: const TextStyle(
+                            fontSize: 11.5,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+
+              if (entry.tastingNotes != null &&
+                  entry.tastingNotes!.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  '"${entry.tastingNotes}"',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+
+              const Spacer(),
+
+              // Bottom Actions: Questionnaire Sheet & Detail Link
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Fiche complète & arômes',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF8B1E3F).withValues(alpha: 0.8),
+                    ),
+                  ),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey.shade700,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    icon: const Icon(Icons.quiz_outlined, size: 15),
+                    label: const Text('Quiz sommelier',
+                        style: TextStyle(fontSize: 11)),
+                    onPressed: () {
+                      TastingQuestionnaireSheet.show(
+                        context,
+                        wineName: entry.wineName ?? 'Vin dégusté',
+                        vintage: entry.vintage,
+                        region: entry.region,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

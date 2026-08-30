@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/utils/currency_helper.dart';
+import '../../../shared/utils/responsive_layout.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/wine_type_badge.dart';
 import '../../../shared/widgets/drinking_window_badge.dart';
@@ -122,83 +123,209 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
 
           final mapRegions = _buildMapRegions(mapMode, bottles);
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // 1. Valuation & Financial Overview Card
-              _buildValuationCard(context, theme, stats, displayCurrency, l10n),
-              const SizedBox(height: 16),
+          final isLarge = Responsive.isTabletOrDesktop(context);
 
-              // 2. EMBEDDED INTERACTIVE SCRATCH MAP
-              _buildScratchMapCard(context, theme, isDark, mapMode, mapRegions),
-              const SizedBox(height: 16),
-
-              // 3. Sommelier KPI Counters Grid
-              _buildKpiGrid(context, theme, stats, l10n),
-              const SizedBox(height: 20),
-
-              // 4. Sommelier Recommendation & Insight Card
-              _buildSommelierInsightCard(context, theme, stats, isDark),
-              const SizedBox(height: 20),
-
-              // 5. Pie Chart: Wine Colors & Types
-              if (stats.byType.isNotEmpty) ...[
-                _buildWineTypePieChartCard(theme, isDark, stats),
-                const SizedBox(height: 20),
-              ],
-
-              // 6. Pie Chart: Wine Terroirs & Regions
-              if (stats.byRegion.isNotEmpty) ...[
-                _buildRegionPieChartCard(theme, isDark, stats),
-                const SizedBox(height: 20),
-              ],
-
-              // 7. Bar Chart: Vintages Histogram (Millésimes)
-              if (stats.byVintage.isNotEmpty) ...[
-                _buildVintageHistogramCard(theme, isDark, stats),
-                const SizedBox(height: 20),
-              ],
-
-              // 8. Bar Chart: Drinking Window Maturity
-              if (stats.byWindowStatus.isNotEmpty) ...[
-                _buildDrinkingWindowCard(theme, isDark, stats),
-                const SizedBox(height: 20),
-              ],
-
-              // 9. Bar Chart: Price Tiers Histogram
-              if (stats.byPriceRange.isNotEmpty) ...[
-                _buildPriceTierCard(theme, isDark, stats),
-                const SizedBox(height: 20),
-              ],
-
-              // 10. Drink Soon Urgent List
-              if (drinkSoonBottles.isNotEmpty) ...[
-                Row(
+          final content = isLarge
+              ? ListView(
+                  padding: const EdgeInsets.all(20),
                   children: [
-                    const Icon(Icons.alarm, color: Colors.orange),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Prêtes à boire rapidement (${drinkSoonBottles.length})',
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    // Top Overview: Valuation Card + KPI Grid in 2 Columns
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: _buildValuationCard(context, theme, stats, displayCurrency, l10n),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 6,
+                          child: _buildKpiGrid(context, theme, stats, l10n),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 20),
+
+                    // Sommelier Insight
+                    _buildSommelierInsightCard(context, theme, stats, isDark),
+                    const SizedBox(height: 20),
+
+                    // Embedded Terroirs Map Full Width
+                    _buildScratchMapCard(context, theme, isDark, mapMode, mapRegions),
+                    const SizedBox(height: 20),
+
+                    // Charts Row 1: Wine Colors + Drinking Window
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: stats.byType.isNotEmpty
+                              ? _buildWineTypePieChartCard(theme, isDark, stats)
+                              : const SizedBox.shrink(),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: stats.byWindowStatus.isNotEmpty
+                              ? _buildDrinkingWindowCard(theme, isDark, stats)
+                              : const SizedBox.shrink(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Charts Row 2: Regions + Vintages
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: stats.byRegion.isNotEmpty
+                              ? _buildRegionPieChartCard(theme, isDark, stats)
+                              : const SizedBox.shrink(),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: stats.byVintage.isNotEmpty
+                              ? _buildVintageHistogramCard(theme, isDark, stats)
+                              : const SizedBox.shrink(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Charts Row 3: Price Tiers + Urgent Drink List
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: stats.byPriceRange.isNotEmpty
+                              ? _buildPriceTierCard(theme, isDark, stats)
+                              : const SizedBox.shrink(),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: drinkSoonBottles.isNotEmpty
+                              ? Card(
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.alarm, color: Colors.orange),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Prêtes à boire rapidement (${drinkSoonBottles.length})',
+                                              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                        ...drinkSoonBottles.take(6).map((b) {
+                                          final wine = b.wine;
+                                          return ListTile(
+                                            dense: true,
+                                            contentPadding: EdgeInsets.zero,
+                                            title: Text(wine?.name ?? 'Vin', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                            subtitle: Text('${wine?.producer ?? ""} • Qté: ${b.quantity}'),
+                                            trailing: wine != null ? DrinkingWindowBadge(status: wine.windowStatus) : null,
+                                            onTap: () => context.push('/cellar/bottle/${b.id}'),
+                                          );
+                                        }),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
                   ],
-                ),
-                const SizedBox(height: 12),
-                ...drinkSoonBottles.map((b) {
-                  final wine = b.wine;
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      title: Text(wine?.name ?? 'Vin', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('${wine?.producer ?? ""} • Qté: ${b.quantity}'),
-                      trailing: wine != null ? DrinkingWindowBadge(status: wine.windowStatus) : null,
-                      onTap: () => context.push('/cellar/bottle/${b.id}'),
-                    ),
-                  );
-                }),
-                const SizedBox(height: 24),
-              ],
-            ],
+                )
+              : ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    // 1. Valuation & Financial Overview Card
+                    _buildValuationCard(context, theme, stats, displayCurrency, l10n),
+                    const SizedBox(height: 16),
+
+                    // 2. EMBEDDED INTERACTIVE SCRATCH MAP
+                    _buildScratchMapCard(context, theme, isDark, mapMode, mapRegions),
+                    const SizedBox(height: 16),
+
+                    // 3. Sommelier KPI Counters Grid
+                    _buildKpiGrid(context, theme, stats, l10n),
+                    const SizedBox(height: 20),
+
+                    // 4. Sommelier Recommendation & Insight Card
+                    _buildSommelierInsightCard(context, theme, stats, isDark),
+                    const SizedBox(height: 20),
+
+                    // 5. Pie Chart: Wine Colors & Types
+                    if (stats.byType.isNotEmpty) ...[
+                      _buildWineTypePieChartCard(theme, isDark, stats),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // 6. Pie Chart: Wine Terroirs & Regions
+                    if (stats.byRegion.isNotEmpty) ...[
+                      _buildRegionPieChartCard(theme, isDark, stats),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // 7. Bar Chart: Vintages Histogram (Millésimes)
+                    if (stats.byVintage.isNotEmpty) ...[
+                      _buildVintageHistogramCard(theme, isDark, stats),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // 8. Bar Chart: Drinking Window Maturity
+                    if (stats.byWindowStatus.isNotEmpty) ...[
+                      _buildDrinkingWindowCard(theme, isDark, stats),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // 9. Bar Chart: Price Tiers Histogram
+                    if (stats.byPriceRange.isNotEmpty) ...[
+                      _buildPriceTierCard(theme, isDark, stats),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // 10. Drink Soon Urgent List
+                    if (drinkSoonBottles.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          const Icon(Icons.alarm, color: Colors.orange),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Prêtes à boire rapidement (${drinkSoonBottles.length})',
+                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ...drinkSoonBottles.map((b) {
+                        final wine = b.wine;
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            title: Text(wine?.name ?? 'Vin', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('${wine?.producer ?? ""} • Qté: ${b.quantity}'),
+                            trailing: wine != null ? DrinkingWindowBadge(status: wine.windowStatus) : null,
+                            onTap: () => context.push('/cellar/bottle/${b.id}'),
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 24),
+                    ],
+                  ],
+                );
+
+          return ResponsiveContentWrapper(
+            maxWidth: 1350,
+            child: content,
           );
         },
       ),

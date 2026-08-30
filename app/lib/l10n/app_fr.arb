@@ -1,0 +1,190 @@
+{
+  "@@locale": "fr",
+  "appTitle": "Chatmelier",
+  "navCellar": "Ma Cave",
+  "navChat": "Chatmelier",
+  "navJournal": "Historique",
+  "navStats": "Statistiques",
+
+  "actionMenuTitle": "Actions Cave",
+  "actionAddBottle": "Ajouter une bouteille",
+  "actionAddBottleSub": "Scanner une étiquette ou saisie manuelle",
+  "actionCheckoutBottle": "Déguster / Sortir une bouteille",
+  "actionCheckoutBottleSub": "Enregistrer une dégustation et sortir du stock",
+  "actionLookupWine": "Consulter / Identifier un vin",
+  "actionLookupWineSub": "Découverte et analyse instantanée par l'IA",
+
+  "searchWinePlaceholder": "Rechercher un millésime, domaine, appellation...",
+  "emptyCellarTitle": "Votre cave est vide",
+  "emptyCellarSub": "Scannez votre première bouteille pour commencer votre collection",
+  "emptyCellarButton": "Ajouter ma première bouteille",
+  "cellarBottlesCount": "{count, plural, =0{0 bouteille} =1{1 bouteille} other{{count} bouteilles}}",
+  "@cellarBottlesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cellarTotalValue": "Valeur totale",
+
+  "filterAll": "Tous",
+  "filterRed": "Rouge",
+  "filterWhite": "Blanc",
+  "filterRose": "Rosé",
+  "filterSparkling": "Bulles",
+  "filterSheetTitle": "Filtres de Cave",
+  "filterReset": "Réinitialiser",
+  "filterApply": "Appliquer les filtres",
+  "filterMaturity": "Statut de Maturité / Apogée",
+  "maturityAtPeak": "À l'apogée",
+  "maturityDrinkSoon": "À boire vite",
+  "maturityAging": "En garde",
+  "maturityTooYoung": "Trop jeune",
+  "maturityPastPeak": "Passé",
+  "filterContinents": "Continents",
+  "filterCountries": "Pays",
+  "filterGrapes": "Cépages",
+  "filterAppellations": "Régions & Appellations",
+
+  "bottleDetailInfo": "Informations & Terroir",
+  "bottleDetailDrinkingWindow": "Fenêtre de Dégustation",
+  "bottleDetailTerroirMap": "Carte du Terroir & Origine",
+  "bottleDetailLabelPhoto": "Photo originale de l'étiquette",
+  "bottleDetailVintage": "Millésime",
+  "bottleDetailProducer": "Domaine / Producteur",
+  "bottleDetailRegion": "Région",
+  "bottleDetailCountry": "Pays",
+  "bottleDetailAppellation": "Appellation",
+  "bottleDetailGrapes": "Cépages",
+  "bottleDetailAlcohol": "Alcool",
+  "bottleDetailStock": "Stock",
+  "bottleDetailLocation": "Emplacement en cave",
+  "bottleDetailRack": "Rang",
+  "bottleDetailShelf": "Tablette",
+  "bottleDetailPurchasePrice": "Prix d'achat",
+  "bottleDetailEstimatedValue": "Valeur estimée",
+  "bottleDetailFoodPairings": "Accords Mets & Vins conseillés",
+  "bottleDetailTastingNotes": "Profil Sommelier",
+  "bottleDetailDrinkButton": "Sortir cette bouteille",
+  "bottleDetailEdit": "Modifier",
+  "bottleDetailDelete": "Supprimer",
+  "bottleDetailDeleteConfirm": "Êtes-vous sûr de vouloir supprimer cette bouteille de votre cave ?",
+  "deleteBottleTitle": "Supprimer définitivement",
+  "deleteBottleExplanation": "Attention : la suppression efface toute trace de cette bouteille de votre cave et de votre historique sans laisser de trace.",
+  "deleteBottleDifferenceDrink": "Sortir / Boire : archive la bouteille dans votre historique de dégustation, alimente vos statistiques et conserve vos notes.",
+  "deleteBottleDifferenceDelete": "Supprimer définitivement : supprime immédiatement la fiche sans laisser de trace (recommandé en cas d'erreur de saisie, casse ou doublon).",
+  "deleteBottleActionConfirm": "Supprimer définitivement",
+  "deleteBottleActionDrinkInstead": "Sortir / Boire plutôt",
+  "cancel": "Annuler",
+  "confirm": "Confirmer",
+
+  "checkoutTitle": "Déguster & Sortir de la Cave",
+  "checkoutSelectPrompt": "Toucher pour choisir une bouteille de votre cave...",
+  "checkoutQtyOpened": "Nombre de bouteilles ouvertes",
+  "checkoutQtyOfTotal": "sur {total} en cave",
+  "@checkoutQtyOfTotal": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutRating": "Note de dégustation",
+  "checkoutFoodPairing": "Mets & Accords associés (optionnel)",
+  "checkoutFoodHint": "Ex: Côte de bœuf grillée, risotto aux cèpes...",
+  "checkoutNotes": "Impressions & Commentaires de dégustation",
+  "checkoutNotesHint": "Arômes, équilibre, persistance, émotions...",
+  "checkoutSubmit": "Valider la dégustation",
+  "checkoutSuccess": "Dégustation enregistrée avec succès !",
+
+  "chatTitle": "Chatmelier",
+  "chatGreeting": "Bonjour ! Je suis Chatmelier. Posez-moi vos questions sur les accords mets-vins, l'apogée de vos bouteilles, ou demandez-moi des recommandations basées sur votre cave actuelle.",
+  "chatAnalyzing": "Chatmelier analyse votre cave...",
+  "chatInputHint": "Demander à Chatmelier...",
+  "chatChipTonight": "🍷 Que devrais-je boire ce soir ?",
+  "chatChipSteak": "🥩 Quel vin servir avec une viande rouge ?",
+  "chatChipSeafood": "🐟 Quel blanc ouvrir pour un poisson ?",
+  "chatChipPeak": "⏰ Quelles bouteilles sont à leur apogée ?",
+
+  "journalTitle": "Journal de Dégustation",
+  "journalEmpty": "Aucun souvenir de dégustation pour le moment",
+  "journalEmptySub": "Dégustez et sortez une bouteille de votre cave pour commencer votre carnet",
+  "journalTastedOn": "Dégusté le {date}",
+  "@journalTastedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "statsTitle": "Statistiques de la Cave",
+  "statsTotalBottles": "Bouteilles en Cave",
+  "statsTotalValue": "Valeur Totale",
+  "statsBottlesEnjoyed": "Bouteilles Dégustées",
+  "statsByColor": "Répartition par Couleur",
+  "statsByMaturity": "Répartition par Maturité",
+  "statsByRegion": "Principales Régions",
+  "statsByCountry": "Principaux Pays",
+
+  "profileTitle": "Profil & Réglages",
+  "profileEmail": "Email",
+  "profileDisplayName": "Nom d'affichage",
+  "profileDefaultCurrency": "Devise par défaut",
+  "profileLanguage": "Langue de l'application",
+  "profileLanguageSystem": "Automatique (Système)",
+  "profileLanguageFr": "Français",
+  "profileLanguageEn": "English",
+  "profileCurrencyUpdated": "Devise par défaut mise à jour : {currency}",
+  "@profileCurrencyUpdated": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "profileLanguageUpdated": "Langue mise à jour",
+  "profileLogout": "Se déconnecter",
+  "profileAbout": "À propos de Chatmelier",
+
+  "scanTitle": "Scanner une étiquette",
+  "scanTakePhoto": "Prendre une photo",
+  "scanPickGallery": "Choisir dans la galerie",
+  "scanAnalyzing": "L'IA Chatmelier analyse l'étiquette...",
+  "scanIdentified": "Vin identifié par Chatmelier ✨",
+  "scanSaveToCellar": "Ajouter à ma cave",
+
+  "loginTitle": "Connexion",
+  "loginTagline": "Votre cave à vin intelligente et partagée",
+  "loginTabMagicLink": "✉️ Lien de connexion",
+  "loginTabPassword": "🔑 Mot de passe",
+  "loginEmailLabel": "Adresse email",
+  "loginPasswordLabel": "Mot de passe",
+  "loginSendMagicLink": "Recevoir mon lien de connexion",
+  "loginSignInButton": "Se connecter",
+  "loginOrDivider": "OU",
+  "loginGoogleButton": "Continuer avec Google",
+  "loginRegisterLink": "Pas encore de compte ? Créer un compte",
+
+  "registerTitle": "Créer un compte",
+  "registerNameLabel": "Nom d'affichage / Prénom",
+  "registerSubmitButton": "Créer mon compte",
+  "registerFillAllFields": "Veuillez remplir tous les champs",
+  "registerWelcome": "🎉 Bienvenue sur Chatmelier !",
+  "registerErrorGeneric": "Erreur lors de l'inscription",
+
+  "authWelcome": "Bienvenue sur Chatmelier",
+  "authSubtitle": "Votre cave connectée & sommelier intelligent",
+  "authGoogle": "Continuer avec Google",
+  "authMagicLink": "Se connecter avec un lien de connexion",
+  "authEmail": "Adresse email",
+  "authNoAccount": "Pas encore de compte ? S'inscrire",
+  "authHaveAccount": "Déjà un compte ? Se connecter",
+
+  "changelogTitle": "Journal des Versions",
+  "changelogEmpty": "Aucune note de version disponible.",
+  "scratchcardTitle": "Carte à Gratter des Terroirs",
+  "profileChangelog": "Journal des versions & Changelog",
+  "profileScratchcard": "Carte à Gratter des Terroirs"
+}

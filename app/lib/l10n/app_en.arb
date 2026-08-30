@@ -1,0 +1,190 @@
+{
+  "@@locale": "en",
+  "appTitle": "Chatmelier",
+  "navCellar": "Cellar",
+  "navChat": "Chat",
+  "navJournal": "History",
+  "navStats": "Stats",
+
+  "actionMenuTitle": "Cellar Actions",
+  "actionAddBottle": "Add a bottle",
+  "actionAddBottleSub": "Scan label or manual entry",
+  "actionCheckoutBottle": "Taste / Checkout bottle",
+  "actionCheckoutBottleSub": "Record tasting & decrement stock",
+  "actionLookupWine": "Consult / Identify a wine",
+  "actionLookupWineSub": "Instant AI wine discovery",
+
+  "searchWinePlaceholder": "Search vintage, producer, appellation...",
+  "emptyCellarTitle": "Your cellar is empty",
+  "emptyCellarSub": "Scan your first bottle to start building your digital collection",
+  "emptyCellarButton": "Add my first bottle",
+  "cellarBottlesCount": "{count, plural, =0{0 bottles} =1{1 bottle} other{{count} bottles}}",
+  "@cellarBottlesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cellarTotalValue": "Total value",
+
+  "filterAll": "All",
+  "filterRed": "Red",
+  "filterWhite": "White",
+  "filterRose": "Rosé",
+  "filterSparkling": "Sparkling",
+  "filterSheetTitle": "Cellar Filters",
+  "filterReset": "Reset",
+  "filterApply": "Apply filters",
+  "filterMaturity": "Maturity / Drinking Window",
+  "maturityAtPeak": "At Peak",
+  "maturityDrinkSoon": "Drink Soon",
+  "maturityAging": "Aging",
+  "maturityTooYoung": "Too Young",
+  "maturityPastPeak": "Past Peak",
+  "filterContinents": "Continents",
+  "filterCountries": "Countries",
+  "filterGrapes": "Grape Varieties",
+  "filterAppellations": "Regions & Appellations",
+
+  "bottleDetailInfo": "Information & Terroir",
+  "bottleDetailDrinkingWindow": "Drinking Window",
+  "bottleDetailTerroirMap": "Terroir & Origin Map",
+  "bottleDetailLabelPhoto": "Original Scanned Label",
+  "bottleDetailVintage": "Vintage",
+  "bottleDetailProducer": "Producer",
+  "bottleDetailRegion": "Region",
+  "bottleDetailCountry": "Country",
+  "bottleDetailAppellation": "Appellation",
+  "bottleDetailGrapes": "Grape Varieties",
+  "bottleDetailAlcohol": "Alcohol",
+  "bottleDetailStock": "Stock",
+  "bottleDetailLocation": "Cellar Location",
+  "bottleDetailRack": "Rack",
+  "bottleDetailShelf": "Shelf",
+  "bottleDetailPurchasePrice": "Purchase Price",
+  "bottleDetailEstimatedValue": "Estimated Value",
+  "bottleDetailFoodPairings": "Recommended Food Pairings",
+  "bottleDetailTastingNotes": "Sommelier Profile",
+  "bottleDetailDrinkButton": "Checkout this bottle",
+  "bottleDetailEdit": "Edit",
+  "bottleDetailDelete": "Delete",
+  "bottleDetailDeleteConfirm": "Are you sure you want to permanently delete this bottle from your cellar?",
+  "deleteBottleTitle": "Permanently Delete",
+  "deleteBottleExplanation": "Warning: deleting permanently removes all traces of this bottle from your cellar and history.",
+  "deleteBottleDifferenceDrink": "Checkout / Drink: archives the bottle in your tasting history, updates your stats and preserves your notes.",
+  "deleteBottleDifferenceDelete": "Permanently delete: completely erases the record without keeping any trace (recommended for typos, broken bottles, or duplicates).",
+  "deleteBottleActionConfirm": "Permanently Delete",
+  "deleteBottleActionDrinkInstead": "Checkout / Drink instead",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+
+  "checkoutTitle": "Taste & Checkout from Cellar",
+  "checkoutSelectPrompt": "Tap to choose a bottle from your cellar...",
+  "checkoutQtyOpened": "Number of bottles opened",
+  "checkoutQtyOfTotal": "out of {total} in cellar",
+  "@checkoutQtyOfTotal": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutRating": "Tasting Rating",
+  "checkoutFoodPairing": "Associated Food & Dishes (optional)",
+  "checkoutFoodHint": "e.g., Grilled ribeye steak, mushroom risotto...",
+  "checkoutNotes": "Tasting Impressions & Comments",
+  "checkoutNotesHint": "Aromas, balance, length, emotions...",
+  "checkoutSubmit": "Confirm tasting",
+  "checkoutSuccess": "Tasting recorded successfully!",
+
+  "chatTitle": "Chatmelier",
+  "chatGreeting": "Bonjour ! I am Chatmelier. Ask me for food pairings, drinking advice, or wine cellar recommendations based on what you currently have in stock.",
+  "chatAnalyzing": "Chatmelier is analyzing your cellar...",
+  "chatInputHint": "Ask Chatmelier...",
+  "chatChipTonight": "🍷 What should I drink tonight?",
+  "chatChipSteak": "🥩 Pair a bottle with steak",
+  "chatChipSeafood": "🐟 Best white for seafood",
+  "chatChipPeak": "⏰ Which bottles are at their peak?",
+
+  "journalTitle": "Tasting Journal",
+  "journalEmpty": "No tastings recorded yet",
+  "journalEmptySub": "Checkout and taste a bottle from your cellar to start your log",
+  "journalTastedOn": "Tasted on {date}",
+  "@journalTastedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "statsTitle": "Cellar Statistics",
+  "statsTotalBottles": "Bottles in Cellar",
+  "statsTotalValue": "Cellar Value",
+  "statsBottlesEnjoyed": "Bottles Enjoyed",
+  "statsByColor": "Distribution by Wine Color",
+  "statsByMaturity": "Distribution by Maturity",
+  "statsByRegion": "Top Regions",
+  "statsByCountry": "Top Countries",
+
+  "profileTitle": "Profile & Settings",
+  "profileEmail": "Email",
+  "profileDisplayName": "Display Name",
+  "profileDefaultCurrency": "Default Currency",
+  "profileLanguage": "App Language",
+  "profileLanguageSystem": "Automatic (System Default)",
+  "profileLanguageFr": "Français",
+  "profileLanguageEn": "English",
+  "profileCurrencyUpdated": "Default currency updated: {currency}",
+  "@profileCurrencyUpdated": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "profileLanguageUpdated": "Language updated",
+  "profileLogout": "Log out",
+  "profileAbout": "About Chatmelier",
+
+  "scanTitle": "Scan Wine Label",
+  "scanTakePhoto": "Take photo",
+  "scanPickGallery": "Choose from gallery",
+  "scanAnalyzing": "Chatmelier AI is analyzing the label...",
+  "scanIdentified": "Wine identified by Chatmelier ✨",
+  "scanSaveToCellar": "Add to my cellar",
+
+  "loginTitle": "Login",
+  "loginTagline": "Your Shared AI-Powered Wine Cellar",
+  "loginTabMagicLink": "✉️ Sign-in Link",
+  "loginTabPassword": "🔑 Password",
+  "loginEmailLabel": "Email address",
+  "loginPasswordLabel": "Password",
+  "loginSendMagicLink": "Get Sign-in Link",
+  "loginSignInButton": "Sign In",
+  "loginOrDivider": "OR",
+  "loginGoogleButton": "Continue with Google",
+  "loginRegisterLink": "Don't have an account? Create one",
+
+  "registerTitle": "Create Account",
+  "registerNameLabel": "Display Name / First Name",
+  "registerSubmitButton": "Create my account",
+  "registerFillAllFields": "Please fill in all fields",
+  "registerWelcome": "🎉 Welcome to Chatmelier!",
+  "registerErrorGeneric": "Registration error",
+
+  "authWelcome": "Welcome to Chatmelier",
+  "authSubtitle": "Your smart wine cellar manager & AI companion",
+  "authGoogle": "Continue with Google",
+  "authMagicLink": "Sign in with email link",
+  "authEmail": "Email address",
+  "authNoAccount": "Don't have an account? Sign up",
+  "authHaveAccount": "Already have an account? Log in",
+
+  "changelogTitle": "Changelog & Version Notes",
+  "changelogEmpty": "No changelog entries available.",
+  "scratchcardTitle": "World Terroirs Scratchcard",
+  "profileChangelog": "Version History & Changelog",
+  "profileScratchcard": "World Terroirs Scratchcard"
+}

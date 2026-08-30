@@ -1,0 +1,22 @@
+# Flutter & Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+
+# Android & iOS Builds
+**/build/app/
+**/build/ios/
+**/build/linux/
+**/build/macos/
+**/build/windows/
+**/.gradle/
+**/local.properties
+**/GeneratedPluginRegistrant.java
+
+# Logs and environment
+*.log
+.env
+.DS_Store

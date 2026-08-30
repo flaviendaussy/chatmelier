@@ -1,0 +1,23 @@
+{
+  "name": "chatmelier-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server for Chatmelier wine cellar app",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "@supabase/supabase-js": "^2",
+    "dotenv": "^16",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}

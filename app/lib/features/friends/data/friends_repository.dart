@@ -1,0 +1,611 @@
+import 'dart:convert';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
+import '../../../shared/providers/supabase_provider.dart';
+import '../../../shared/utils/app_logger.dart';
+import '../../auth/domain/taste_profile.dart';
+import '../../auth/domain/user_profile.dart';
+import '../domain/cellar_access_request.dart';
+import '../domain/friend.dart';
+import '../domain/user_notification.dart';
+
+final friendsRepositoryProvider = Provider<FriendsRepository>((ref) {
+  final client = ref.watch(supabaseProvider);
+  return FriendsRepository(client);
+});
+
+final friendsListProvider = FutureProvider<List<Friend>>((ref) async {
+  final repo = ref.watch(friendsRepositoryProvider);
+  return repo.getFriends();
+});
+
+final pendingIncomingRequestsProvider = FutureProvider<List<Friend>>((ref) async {
+  final repo = ref.watch(friendsRepositoryProvider);
+  return repo.getPendingIncomingRequests();
+});
+
+final pendingOutgoingRequestsProvider = FutureProvider<List<Friend>>((ref) async {
+  final repo = ref.watch(friendsRepositoryProvider);
+  return repo.getPendingOutgoingRequests();
+});
+
+final incomingCellarRequestsProvider = FutureProvider<List<CellarAccessRequest>>((ref) async {
+  final repo = ref.watch(friendsRepositoryProvider);
+  return repo.getIncomingCellarRequests();
+});
+
+final userNotificationsProvider = FutureProvider<List<UserNotification>>((ref) async {
+  final repo = ref.watch(friendsRepositoryProvider);
+  return repo.getUserNotifications();
+});
+
+class FriendsRepository {
+  final SupabaseClient _client;
+  static const String _cacheKey = 'chatmelier_friends_cache_v2';
+  static const String _pendingCacheKey = 'chatmelier_pending_requests_cache_v2';
+  static const String _cellarRequestsCacheKey = 'chatmelier_cellar_requests_cache_v2';
+
+  FriendsRepository(this._client);
+
+  // ---------------------------------------------------------------------------
+  // Local Cache Helpers
+  // ---------------------------------------------------------------------------
+  Future<List<Friend>> _loadCachedFriends() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_cacheKey);
+      if (raw != null && raw.isNotEmpty) {
+        final List<dynamic> list = jsonDecode(raw);
+        return list.map((e) => Friend.fromJson(e as Map<String, dynamic>)).toList();
+      }
+    } catch (e) {
+      AppLogger.warning('FRIENDS', 'Error reading cached friends: $e');
+    }
+    return [];
+  }
+
+  Future<void> _saveCachedFriends(List<Friend> friends) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonStr = jsonEncode(friends.map((f) => f.toJson()).toList());
+      await prefs.setString(_cacheKey, jsonStr);
+    } catch (e) {
+      AppLogger.error('FRIENDS', 'Error caching friends', e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 1. Get Accepted Friends List (with Cellar Sharing Roles)
+  // ---------------------------------------------------------------------------
+  Future<List<Friend>> getFriends() async {
+    final user = _client.auth.currentUser;
+
+    if (user != null) {
+      try {
+        // Query accepted friendships where user is either sender or receiver
+        final res = await _client
+            .from('friendships')
+            .select('''
+              id, user_id, friend_id, status, created_at,
+              requester:profiles!friendships_user_id_fkey(id, display_name, username, avatar_url, phone_number, email, taste_profile),
+              recipient:profiles!friendships_friend_id_fkey(id, display_name, username, avatar_url, phone_number, email, taste_profile)
+            ''')
+            .or('user_id.eq.${user.id},friend_id.eq.${user.id}')
+            .eq('status', 'accepted')
+            .timeout(const Duration(seconds: 4));
+
+        final List<Friend> friendsList = [];
+
+        // Fetch user's accessible shared cellars to determine roles
+        Map<String, String> friendCellarRoles = {};
+        Map<String, String> friendCellarIds = {};
+        Map<String, String> friendCellarNames = {};
+
+        try {
+          final membersRes = await _client
+              .from('cellar_members')
+              .select('cellar_id, role, cellars(id, name, owner_id)')
+              .eq('user_id', user.id);
+
+          for (final row in (membersRes as List<dynamic>)) {
+            final cellar = row['cellars'] as Map<String, dynamic>?;
+            if (cellar != null) {
+              final ownerId = cellar['owner_id']?.toString() ?? '';
+              friendCellarRoles[ownerId] = row['role']?.toString() ?? 'viewer';
+              friendCellarIds[ownerId] = cellar['id']?.toString() ?? '';
+              friendCellarNames[ownerId] = cellar['name']?.toString() ?? 'Cave Partagée';
+            }
+          }
+        } catch (_) {}
+
+        for (final row in (res as List<dynamic>)) {
+          final map = row as Map<String, dynamic>;
+          final isSender = map['user_id'] == user.id;
+          final friendProfile = isSender ? map['recipient'] as Map<String, dynamic>? : map['requester'] as Map<String, dynamic>?;
+
+          if (friendProfile != null) {
+            final friendId = friendProfile['id']?.toString() ?? '';
+            final role = friendCellarRoles[friendId] ?? 'none';
+
+            final tasteData = friendProfile['taste_profile'] as Map<String, dynamic>?;
+            final taste = tasteData != null
+                ? TasteProfile.fromJson(tasteData)
+                : TasteProfile(
+                    id: friendId,
+                    name: friendProfile['display_name'] as String? ?? 'Ami',
+                    favoriteTypes: (friendProfile['favorite_types'] as List<dynamic>?)?.cast<String>() ?? const [],
+                    favoriteRegions: (friendProfile['favorite_regions'] as List<dynamic>?)?.cast<String>() ?? const [],
+                    favoriteGrapes: (friendProfile['favorite_grapes'] as List<dynamic>?)?.cast<String>() ?? const [],
+                  );
+
+            friendsList.add(
+              Friend(
+                id: map['id']?.toString() ?? '',
+                friendUserId: friendId,
+                displayName: friendProfile['display_name'] as String? ?? 'Ami',
+                username: (friendProfile['username'] as String? ?? '').replaceAll('@', '').toLowerCase(),
+                avatarUrl: friendProfile['avatar_url'] as String?,
+                phoneNumber: friendProfile['phone_number'] as String?,
+                email: friendProfile['email'] as String?,
+                tasteProfile: taste,
+                status: 'accepted',
+                cellarAccessRole: role,
+                friendCellarId: friendCellarIds[friendId],
+                friendCellarName: friendCellarNames[friendId],
+                createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'].toString()) : DateTime.now(),
+              ),
+            );
+          }
+        }
+
+        if (friendsList.isNotEmpty) {
+          await _saveCachedFriends(friendsList);
+          return friendsList;
+        }
+      } catch (e) {
+        AppLogger.warning('FRIENDS', 'Could not fetch remote friends, using cache: $e');
+      }
+    }
+
+    return _loadCachedFriends();
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. Pending Incoming Friend Requests (Must be accepted by current user)
+  // ---------------------------------------------------------------------------
+  Future<List<Friend>> getPendingIncomingRequests() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return [];
+
+    try {
+      final res = await _client
+          .from('friendships')
+          .select('''
+            id, user_id, friend_id, status, created_at,
+            requester:profiles!friendships_user_id_fkey(id, display_name, username, avatar_url, phone_number, email, taste_profile)
+          ''')
+          .eq('friend_id', user.id)
+          .eq('status', 'pending')
+          .timeout(const Duration(seconds: 3));
+
+      final list = <Friend>[];
+      for (final item in (res as List<dynamic>)) {
+        final map = item as Map<String, dynamic>;
+        final profile = map['requester'] as Map<String, dynamic>?;
+        if (profile != null) {
+          final tasteData = profile['taste_profile'] as Map<String, dynamic>?;
+          list.add(
+            Friend(
+              id: map['id']?.toString() ?? '',
+              friendUserId: profile['id']?.toString() ?? '',
+              displayName: profile['display_name'] as String? ?? 'Ami',
+              username: (profile['username'] as String? ?? '').replaceAll('@', '').toLowerCase(),
+              avatarUrl: profile['avatar_url'] as String?,
+              phoneNumber: profile['phone_number'] as String?,
+              email: profile['email'] as String?,
+              tasteProfile: tasteData != null
+                  ? TasteProfile.fromJson(tasteData)
+                  : TasteProfile(id: profile['id']?.toString() ?? '', name: profile['display_name'] as String? ?? 'Ami'),
+              status: 'pending',
+              isOutgoing: false,
+              createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'].toString()) : DateTime.now(),
+            ),
+          );
+        }
+      }
+      return list;
+    } catch (e) {
+      AppLogger.warning('FRIENDS', 'Could not fetch pending incoming requests: $e');
+      return [];
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3. Pending Outgoing Friend Requests (Sent by current user)
+  // ---------------------------------------------------------------------------
+  Future<List<Friend>> getPendingOutgoingRequests() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return [];
+
+    try {
+      final res = await _client
+          .from('friendships')
+          .select('''
+            id, user_id, friend_id, status, created_at,
+            recipient:profiles!friendships_friend_id_fkey(id, display_name, username, avatar_url, phone_number, email, taste_profile)
+          ''')
+          .eq('user_id', user.id)
+          .eq('status', 'pending')
+          .timeout(const Duration(seconds: 3));
+
+      final list = <Friend>[];
+      for (final item in (res as List<dynamic>)) {
+        final map = item as Map<String, dynamic>;
+        final profile = map['recipient'] as Map<String, dynamic>?;
+        if (profile != null) {
+          final tasteData = profile['taste_profile'] as Map<String, dynamic>?;
+          list.add(
+            Friend(
+              id: map['id']?.toString() ?? '',
+              friendUserId: profile['id']?.toString() ?? '',
+              displayName: profile['display_name'] as String? ?? 'Ami',
+              username: (profile['username'] as String? ?? '').replaceAll('@', '').toLowerCase(),
+              avatarUrl: profile['avatar_url'] as String?,
+              phoneNumber: profile['phone_number'] as String?,
+              email: profile['email'] as String?,
+              tasteProfile: tasteData != null
+                  ? TasteProfile.fromJson(tasteData)
+                  : TasteProfile(id: profile['id']?.toString() ?? '', name: profile['display_name'] as String? ?? 'Ami'),
+              status: 'pending',
+              isOutgoing: true,
+              createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'].toString()) : DateTime.now(),
+            ),
+          );
+        }
+      }
+      return list;
+    } catch (e) {
+      AppLogger.warning('FRIENDS', 'Could not fetch pending outgoing requests: $e');
+      return [];
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 4. Send Friend Request (Creates Pending Status + Notification)
+  // ---------------------------------------------------------------------------
+  Future<void> sendFriendRequest(UserProfile targetUser) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+    if (user.id == targetUser.id) throw Exception('Vous ne pouvez pas vous ajouter vous-même en ami.');
+
+    final friendshipId = const Uuid().v4();
+
+    // 1. Insert friendship row with status = 'pending'
+    await _client.from('friendships').upsert({
+      'id': friendshipId,
+      'user_id': user.id,
+      'friend_id': targetUser.id,
+      'status': 'pending',
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    // 2. Send notification to target user
+    final myDisplayName = user.userMetadata?['display_name'] as String? ?? 'Un utilisateur';
+    try {
+      await _client.from('user_notifications').insert({
+        'user_id': targetUser.id,
+        'actor_id': user.id,
+        'type': 'friend_request',
+        'title': 'Nouvelle demande d\'ami 🍷',
+        'body': '$myDisplayName (@${user.userMetadata?['username'] ?? "sommelier"}) vous a envoyé une demande d\'ami pour partager vos goûts et vos caves.',
+        'data': {
+          'friendship_id': friendshipId,
+          'requester_id': user.id,
+          'requester_name': myDisplayName,
+        },
+      });
+    } catch (e) {
+      AppLogger.warning('FRIENDS', 'Could not send friend request notification: $e');
+    }
+
+    AppLogger.info('FRIENDS', 'Sent friend request to ${targetUser.displayName} (${targetUser.id})');
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5. Accept Friend Request (Unlocks mutual taste visibility)
+  // ---------------------------------------------------------------------------
+  Future<void> acceptFriendRequest(String friendshipId, String friendUserId) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    // 1. Update status to accepted
+    await _client
+        .from('friendships')
+        .update({'status': 'accepted', 'updated_at': DateTime.now().toIso8601String()})
+        .eq('id', friendshipId);
+
+    // 2. Notify friend that their request was accepted
+    final myDisplayName = user.userMetadata?['display_name'] as String? ?? 'Votre ami';
+    try {
+      await _client.from('user_notifications').insert({
+        'user_id': friendUserId,
+        'actor_id': user.id,
+        'type': 'friend_accepted',
+        'title': 'Demande d\'ami acceptée ! 🎉',
+        'body': '$myDisplayName a accepté votre demande d\'ami. Vous avez désormais accès à sa Carte des Goûts et pouvez demander l\'accès à sa cave !',
+        'data': {
+          'friend_user_id': user.id,
+        },
+      });
+    } catch (e) {
+      AppLogger.warning('FRIENDS', 'Could not send friend accepted notification: $e');
+    }
+
+    AppLogger.info('FRIENDS', 'Accepted friend request $friendshipId from $friendUserId');
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6. Decline or Cancel Friend Request / Remove Friend
+  // ---------------------------------------------------------------------------
+  Future<void> declineFriendRequest(String friendshipId) async {
+    await _client.from('friendships').delete().eq('id', friendshipId);
+  }
+
+  Future<void> removeFriend(String friendUserId) async {
+    final cached = await _loadCachedFriends();
+    cached.removeWhere((f) => f.friendUserId == friendUserId || f.id == friendUserId);
+    await _saveCachedFriends(cached);
+
+    final user = _client.auth.currentUser;
+    if (user != null) {
+      try {
+        await _client
+            .from('friendships')
+            .delete()
+            .or('and(user_id.eq.${user.id},friend_id.eq.$friendUserId),and(user_id.eq.$friendUserId,friend_id.eq.${user.id})');
+      } catch (e) {
+        AppLogger.warning('FRIENDS', 'Remote delete friend notice: $e');
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 7. Request Cellar Access (Friend asks to view / edit a friend's cellar)
+  // ---------------------------------------------------------------------------
+  Future<void> requestCellarAccess({
+    required String cellarId,
+    required String ownerId,
+    required String requestedRole, // 'viewer' or 'editor'
+    String? message,
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+    if (user.id == ownerId) throw Exception('Vous êtes déjà propriétaire de cette cave.');
+
+    final requestId = const Uuid().v4();
+
+    // 1. Insert or update cellar access request
+    await _client.from('cellar_access_requests').upsert({
+      'id': requestId,
+      'cellar_id': cellarId,
+      'owner_id': ownerId,
+      'requester_id': user.id,
+      'requested_role': requestedRole,
+      'status': 'pending',
+      'message': message,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    // 2. Notify cellar owner
+    final myDisplayName = user.userMetadata?['display_name'] as String? ?? 'Un ami';
+    final roleLabel = requestedRole == 'editor' ? 'Écriture / Sommelier délégué ✍️' : 'Consultation (Lecture seule) 👁️';
+
+    try {
+      await _client.from('user_notifications').insert({
+        'user_id': ownerId,
+        'actor_id': user.id,
+        'type': 'cellar_request',
+        'title': 'Demande d\'accès à votre Cave 🍷',
+        'body': '$myDisplayName souhaite accéder à votre cave en mode "$roleLabel".',
+        'data': {
+          'request_id': requestId,
+          'cellar_id': cellarId,
+          'requester_id': user.id,
+          'requested_role': requestedRole,
+        },
+      });
+    } catch (e) {
+      AppLogger.warning('FRIENDS', 'Could not send cellar access notification: $e');
+    }
+
+    AppLogger.info('FRIENDS', 'Requested cellar access for cellar $cellarId to owner $ownerId (role: $requestedRole)');
+  }
+
+  // ---------------------------------------------------------------------------
+  // 8. Respond to Cellar Access Request (Accept / Refuse with Role selection)
+  // ---------------------------------------------------------------------------
+  Future<void> respondCellarAccess({
+    required String requestId,
+    required String cellarId,
+    required String requesterId,
+    required bool accept,
+    required String role, // 'viewer' or 'editor'
+    String? cellarName,
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    if (accept) {
+      // 1. Update request to accepted
+      await _client
+          .from('cellar_access_requests')
+          .update({'status': 'accepted', 'responded_at': DateTime.now().toIso8601String()})
+          .eq('id', requestId);
+
+      // 2. Add member to cellar_members
+      await _client.from('cellar_members').upsert({
+        'cellar_id': cellarId,
+        'user_id': requesterId,
+        'role': role,
+        'invited_at': DateTime.now().toIso8601String(),
+      });
+
+      // 3. Notify requester
+      final myName = user.userMetadata?['display_name'] as String? ?? 'Le propriétaire';
+      final roleText = role == 'editor' ? 'Éditeur (ajout & retrait)' : 'Lecteur (consultation)';
+      try {
+        await _client.from('user_notifications').insert({
+          'user_id': requesterId,
+          'actor_id': user.id,
+          'type': 'cellar_granted',
+          'title': 'Accès à la cave accordé ! 🍾',
+          'body': '$myName a accepté votre demande d\'accès à sa cave "${cellarName ?? "Ma Cave"}" avec les droits "$roleText".',
+          'data': {
+            'cellar_id': cellarId,
+            'role': role,
+          },
+        });
+      } catch (e) {
+        AppLogger.warning('FRIENDS', 'Could not send cellar granted notification: $e');
+      }
+    } else {
+      // Reject request
+      await _client
+          .from('cellar_access_requests')
+          .update({'status': 'rejected', 'responded_at': DateTime.now().toIso8601String()})
+          .eq('id', requestId);
+
+      final myName = user.userMetadata?['display_name'] as String? ?? 'Le propriétaire';
+      try {
+        await _client.from('user_notifications').insert({
+          'user_id': requesterId,
+          'actor_id': user.id,
+          'type': 'cellar_rejected',
+          'title': 'Demande d\'accès cave refusée',
+          'body': '$myName a décliné votre demande d\'accès à sa cave.',
+          'data': {'cellar_id': cellarId},
+        });
+      } catch (_) {}
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 9. Proactively Grant Cellar Access to a Friend (Owner-Initiated)
+  // ---------------------------------------------------------------------------
+  Future<void> grantCellarAccessDirectly({
+    required String cellarId,
+    required String friendUserId,
+    required String role, // 'viewer' or 'editor'
+    String? cellarName,
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    // 1. Add to cellar_members
+    await _client.from('cellar_members').upsert({
+      'cellar_id': cellarId,
+      'user_id': friendUserId,
+      'role': role,
+      'invited_at': DateTime.now().toIso8601String(),
+    });
+
+    // 2. Notify friend
+    final myName = user.userMetadata?['display_name'] as String? ?? 'Votre ami';
+    final roleText = role == 'editor' ? 'Éditeur / Sommelier' : 'Lecteur';
+
+    try {
+      await _client.from('user_notifications').insert({
+        'user_id': friendUserId,
+        'actor_id': user.id,
+        'type': 'cellar_granted',
+        'title': '🎁 Accès à une cave partagée !',
+        'body': '$myName vous a donné accès à sa cave "${cellarName ?? "Ma Cave"}" en tant que $roleText.',
+        'data': {
+          'cellar_id': cellarId,
+          'role': role,
+        },
+      });
+    } catch (e) {
+      AppLogger.warning('FRIENDS', 'Could not send direct grant notification: $e');
+    }
+
+    AppLogger.info('FRIENDS', 'Owner granted cellar $cellarId access to friend $friendUserId as $role');
+  }
+
+  // ---------------------------------------------------------------------------
+  // 10. Revoke Cellar Access
+  // ---------------------------------------------------------------------------
+  Future<void> revokeCellarAccess({
+    required String cellarId,
+    required String userId,
+  }) async {
+    await _client
+        .from('cellar_members')
+        .delete()
+        .eq('cellar_id', cellarId)
+        .eq('user_id', userId);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 11. Fetch Incoming Cellar Requests
+  // ---------------------------------------------------------------------------
+  Future<List<CellarAccessRequest>> getIncomingCellarRequests() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return [];
+
+    try {
+      final res = await _client
+          .from('cellar_access_requests')
+          .select('''
+            id, cellar_id, owner_id, requester_id, requested_role, status, message, created_at, responded_at,
+            requester:profiles!cellar_access_requests_requester_id_fkey(id, display_name, username, avatar_url),
+            cellars!cellar_access_requests_cellar_id_fkey(id, name)
+          ''')
+          .eq('owner_id', user.id)
+          .eq('status', 'pending')
+          .timeout(const Duration(seconds: 3));
+
+      return (res as List<dynamic>).map((j) => CellarAccessRequest.fromJson(j as Map<String, dynamic>)).toList();
+    } catch (e) {
+      AppLogger.warning('FRIENDS', 'Could not fetch incoming cellar requests: $e');
+      return [];
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 12. User Notifications
+  // ---------------------------------------------------------------------------
+  Future<List<UserNotification>> getUserNotifications() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return [];
+
+    try {
+      final res = await _client
+          .from('user_notifications')
+          .select('''
+            id, user_id, actor_id, type, title, body, data, is_read, created_at,
+            actor:profiles!user_notifications_actor_id_fkey(id, display_name, username, avatar_url)
+          ''')
+          .eq('user_id', user.id)
+          .order('created_at', ascending: false)
+          .limit(30)
+          .timeout(const Duration(seconds: 3));
+
+      return (res as List<dynamic>).map((j) => UserNotification.fromJson(j as Map<String, dynamic>)).toList();
+    } catch (e) {
+      AppLogger.warning('FRIENDS', 'Could not fetch notifications: $e');
+      return [];
+    }
+  }
+
+  Future<void> markNotificationRead(String notificationId) async {
+    try {
+      await _client
+          .from('user_notifications')
+          .update({'is_read': true})
+          .eq('id', notificationId);
+    } catch (_) {}
+  }
+}

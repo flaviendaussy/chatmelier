@@ -125,13 +125,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         if (errText.contains('invalid login credentials') || errText.contains('invalid_credentials')) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Identifiants incorrects. Pas encore de compte ?'),
+              content: const Text('Mot de passe incorrect ou compte créé sans mot de passe.'),
               backgroundColor: Colors.orange.shade800,
-              duration: const Duration(seconds: 5),
+              duration: const Duration(seconds: 8),
               action: SnackBarAction(
-                label: 'Créer mon compte',
+                label: 'Connexion email ✉️',
                 textColor: Colors.white,
-                onPressed: () => context.push('/register'),
+                onPressed: () {
+                  _tabController.animateTo(0);
+                  _sendMagicLink();
+                },
               ),
             ),
           );
@@ -147,6 +150,90 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _showForgotPasswordDialog(BuildContext context) async {
+    final email = _emailCtrl.text.trim();
+    final emailController = TextEditingController(text: email);
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        icon: const Icon(Icons.lock_reset, color: Color(0xFF8B1E3F), size: 40),
+        title: const Text('Mot de passe oublié ?', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Renseignez votre email pour recevoir un lien direct de connexion (sans mot de passe) ou un lien de réinitialisation :',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Adresse email',
+                prefixIcon: Icon(Icons.email_outlined),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actionsOverflowButtonSpacing: 8,
+        actions: [
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.mark_email_read_outlined, size: 18),
+            label: const Text('Lien direct par email (Recommandé)'),
+            onPressed: () async {
+              final targetEmail = emailController.text.trim();
+              if (targetEmail.isEmpty || !targetEmail.contains('@')) return;
+              Navigator.of(dialogCtx).pop();
+              _emailCtrl.text = targetEmail;
+              _tabController.animateTo(0);
+              await _sendMagicLink();
+            },
+          ),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.send_outlined, size: 18),
+            label: const Text('Réinitialiser le mot de passe'),
+            onPressed: () async {
+              final targetEmail = emailController.text.trim();
+              if (targetEmail.isEmpty || !targetEmail.contains('@')) return;
+              Navigator.of(dialogCtx).pop();
+              try {
+                final repo = ref.read(authRepositoryProvider);
+                await repo.resetPasswordForEmail(targetEmail);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('✉️ Email de réinitialisation envoyé à $targetEmail (vérifiez vos spams)'),
+                      backgroundColor: const Color(0xFF8B1E3F),
+                      duration: const Duration(seconds: 6),
+                    ),
+                  );
+                }
+              } catch (err) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erreur : $err'), backgroundColor: Colors.redAccent),
+                  );
+                }
+              }
+            },
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: const Text('Annuler'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _googleLogin() async {
@@ -358,7 +445,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                 ),
                                 obscureText: true,
                               ),
-                              const SizedBox(height: 16),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () => _showForgotPasswordDialog(context),
+                                  child: const Text('Mot de passe oublié ?', style: TextStyle(fontSize: 13)),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
                               FilledButton(
                                 onPressed: _isLoading ? null : _passwordLogin,
                                 style: FilledButton.styleFrom(

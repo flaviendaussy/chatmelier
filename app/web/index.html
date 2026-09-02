@@ -2,6 +2,19 @@
 <html>
 <head>
   <base href="$FLUTTER_BASE_HREF">
+  <script>
+    (function() {
+      var p = window.location.pathname;
+      var b = document.querySelector('base');
+      if (b) {
+        if (p.indexOf('/chatmelier') === 0) {
+          b.setAttribute('href', '/chatmelier/');
+        } else {
+          b.setAttribute('href', '/');
+        }
+      }
+    })();
+  </script>
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">

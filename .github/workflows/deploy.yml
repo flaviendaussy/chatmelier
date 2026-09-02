@@ -43,7 +43,7 @@ jobs:
       - name: Build Flutter Web
         working-directory: app
         run: |
-          flutter build web --base-href="/" --release
+          flutter build web --base-href="/chatmelier/" --release
           cp build/web/index.html build/web/404.html
 
       - name: Setup Pages

@@ -21,14 +21,6 @@ class AuthRepository {
       avatarUrl: null,
     ),
     UserProfile(
-      id: 'mock-user-caro-002',
-      displayName: 'Caro',
-      username: 'caro',
-      phoneNumber: '+33698765432',
-      email: 'caro@chatmelier.app',
-      avatarUrl: null,
-    ),
-    UserProfile(
       id: 'mock-user-dimitri-003',
       displayName: 'Dimitri',
       username: 'dimitri',
@@ -231,20 +223,8 @@ class AuthRepository {
     final clean = username.replaceAll('@', '').trim().toLowerCase();
     if (clean.length < 3) return false;
     final currentId = excludeUserId ?? _client.auth.currentUser?.id;
-    final currentEmail = _client.auth.currentUser?.email?.toLowerCase();
 
-    // 1. Check against mock users
-    for (final mock in _mockUsers) {
-      if (mock.username?.toLowerCase() == clean) {
-        // If current user is Flavien, allow him to keep his identity
-        if (clean == 'flavien' && (currentEmail?.contains('flavien') == true || currentId == '35b89026-6682-47cd-a128-79e3341bfaf2')) {
-          continue;
-        }
-        if (mock.id != currentId) return false;
-      }
-    }
-
-    // 2. Check remote database profiles
+    // Check remote database profiles
     try {
       var query = _client.from('profiles').select('id, display_name, avatar_url');
       if (currentId != null) {
@@ -267,20 +247,8 @@ class AuthRepository {
     final cleanDigits = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
     if (cleanDigits.length < 6) return false;
     final currentId = excludeUserId ?? _client.auth.currentUser?.id;
-    final currentEmail = _client.auth.currentUser?.email?.toLowerCase();
 
-    // 1. Check against mock users
-    for (final mock in _mockUsers) {
-      final mockDigits = (mock.phoneNumber ?? '').replaceAll(RegExp(r'[^0-9]'), '');
-      if (mockDigits.isNotEmpty && (mockDigits == cleanDigits || mockDigits.endsWith(cleanDigits) || cleanDigits.endsWith(mockDigits))) {
-        if (mock.username == 'flavien' && (currentEmail?.contains('flavien') == true || currentId == '35b89026-6682-47cd-a128-79e3341bfaf2')) {
-          continue;
-        }
-        if (mock.id != currentId) return false;
-      }
-    }
-
-    // 2. Check remote database profiles
+    // Check remote database profiles
     try {
       var query = _client.from('profiles').select('id, display_name, avatar_url');
       if (currentId != null) {
@@ -306,19 +274,8 @@ class AuthRepository {
     final cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail.contains('@')) return false;
     final currentId = excludeUserId ?? _client.auth.currentUser?.id;
-    final currentEmail = _client.auth.currentUser?.email?.toLowerCase();
 
-    // 1. Check against mock users
-    for (final mock in _mockUsers) {
-      if (mock.email?.toLowerCase() == cleanEmail) {
-        if (mock.username == 'flavien' && (currentEmail?.contains('flavien') == true || currentId == '35b89026-6682-47cd-a128-79e3341bfaf2')) {
-          continue;
-        }
-        if (mock.id != currentId) return false;
-      }
-    }
-
-    // 2. Check remote database profiles
+    // Check remote database profiles
     try {
       var query = _client.from('profiles').select('id, display_name, avatar_url');
       if (currentId != null) {

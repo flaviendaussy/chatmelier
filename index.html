@@ -1,7 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="/">
+  <base href="/chatmelier/">
+  <script>
+    (function() {
+      var p = window.location.pathname;
+      var b = document.querySelector('base');
+      if (b) {
+        if (p.indexOf('/chatmelier') === 0) {
+          b.setAttribute('href', '/chatmelier/');
+        } else {
+          b.setAttribute('href', '/');
+        }
+      }
+    })();
+  </script>
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">

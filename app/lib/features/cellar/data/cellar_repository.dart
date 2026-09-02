@@ -22,7 +22,7 @@ class CellarRepository {
     try {
       final res = await _client
           .from('cellar_members')
-          .select('cellar_id, role, cellars(id, name, nickname, location_name, latitude, longitude, description, owner_id, created_at)')
+          .select('cellar_id, role, cellars(*)')
           .order('invited_at');
 
       final list = List<Map<String, dynamic>>.from(res as List);
@@ -49,6 +49,8 @@ class CellarRepository {
           'latitude': c.latitude,
           'longitude': c.longitude,
           'description': c.description,
+          'wifi_ssid': c.wifiSsid,
+          'radius_meters': c.radiusMeters,
           'owner_id': c.ownerId,
           'created_at': c.createdAt.toIso8601String(),
         },

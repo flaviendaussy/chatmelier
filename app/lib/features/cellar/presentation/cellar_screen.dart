@@ -51,6 +51,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
   CellarGroupBy _groupBy = CellarGroupBy.none;
   final Set<String> _collapsedGroups = {};
 
+  // Total Costs display toggle (defaults to false)
+  bool _showTotalCosts = false;
+
   // Pending invite count for badge
   int _pendingInviteCount = 0;
 
@@ -61,9 +64,28 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
     _loadGroupByPreference();
     _loadSortByPreference();
     _loadViewModePreference();
+    _loadTotalCostsPreference();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       MandatoryUsernameDialog.checkAndPromptIfNeeded(context, ref);
     });
+  }
+
+  Future<void> _loadTotalCostsPreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getBool('cellar_show_total_costs') ?? false;
+      if (mounted) setState(() => _showTotalCosts = saved);
+    } catch (_) {}
+  }
+
+  Future<void> _toggleTotalCosts() async {
+    HapticFeedback.selectionClick();
+    final next = !_showTotalCosts;
+    setState(() => _showTotalCosts = next);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('cellar_show_total_costs', next);
+    } catch (_) {}
   }
 
   Future<void> _loadSortByPreference() async {
@@ -411,6 +433,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
     
     String? resolvedCellarId = currentCellarId;
     String currentDisplayName = cellarsList.isEmpty ? 'Créer une cave' : 'Cave';
+    String? currentWifiSsid;
 
     if (cellarsList.isNotEmpty) {
       final existsInList = cellarsList.any((item) {
@@ -440,6 +463,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
           final cMap = item['cellars'];
           if (cMap is Map && cMap['id']?.toString() == resolvedCellarId) {
             currentDisplayName = cMap['name']?.toString() ?? 'Cave';
+            currentWifiSsid = cMap['wifi_ssid'] as String?;
             break;
           }
         }
@@ -456,18 +480,39 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
           onTap: () => CellarSwitcherSheet.show(context),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Flexible(
-                  child: Text(
-                    currentDisplayName,
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        currentDisplayName,
+                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_drop_down),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                const Icon(Icons.arrow_drop_down),
+                if (currentWifiSsid != null && currentWifiSsid!.isNotEmpty)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.wifi, size: 11, color: Color(0xFF1976D2)),
+                      const SizedBox(width: 3),
+                      Flexible(
+                        child: Text(
+                          'Wi-Fi : "$currentWifiSsid"',
+                          style: const TextStyle(fontSize: 10.5, color: Color(0xFF1976D2), fontWeight: FontWeight.w500),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -557,9 +602,23 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                 context.push('/friends');
               } else if (value == 'invites') {
                 context.push('/invites');
+              } else if (value == 'toggle_costs') {
+                _toggleTotalCosts();
               }
             },
             itemBuilder: (context) => [
+              CheckedPopupMenuItem<String>(
+                value: 'toggle_costs',
+                checked: _showTotalCosts,
+                child: const Row(
+                  children: [
+                    Icon(Icons.euro, color: Color(0xFFD4AF37), size: 20),
+                    SizedBox(width: 12),
+                    Text('Afficher les coûts totaux'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
               const PopupMenuItem(
                 value: 'friends',
                 child: Row(
@@ -1089,14 +1148,20 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                           );
                   }
 
-                  Widget finalView = _searchQuery.isNotEmpty
-                      ? Column(
-                          children: [
-                            _buildLocationSummaryHeader(theme, sortedList),
-                            Expanded(child: mainContent),
-                          ],
-                        )
-                      : mainContent;
+                  final totalValue = sortedList.fold<double>(0.0, (sum, b) {
+                    final val = b.wine?.estimatedMarketValue ?? b.purchasePrice ?? 0.0;
+                    return sum + (val * b.quantity);
+                  });
+
+                  Widget finalView = Column(
+                    children: [
+                      if (_searchQuery.isNotEmpty)
+                        _buildLocationSummaryHeader(theme, sortedList)
+                      else if (_showTotalCosts && _groupBy == CellarGroupBy.none && totalValue > 0)
+                        _buildTotalCostsBanner(theme, totalBottles, sortedList.length, totalValue),
+                      Expanded(child: mainContent),
+                    ],
+                  );
 
                   return RefreshIndicator(
                     onRefresh: () async {
@@ -1115,6 +1180,42 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
       );
     }
 
+  Widget _buildTotalCostsBanner(ThemeData theme, int totalBottles, int totalReferences, double totalValue) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(14, 4, 14, 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      decoration: BoxDecoration(
+        color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.account_balance_wallet_outlined, size: 18, color: Color(0xFFD4AF37)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Coût total estimé : ${totalValue.toStringAsFixed(0)} € ($totalBottles btl • $totalReferences réf.)',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: Color(0xFFD4AF37),
+              ),
+            ),
+          ),
+          InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: _toggleTotalCosts,
+            child: const Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(Icons.visibility_off_outlined, size: 17, color: Color(0xFFD4AF37)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildGroupedBottleView({
     required ThemeData theme,
     required List<CellarGroupSection> sections,
@@ -1123,6 +1224,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
     required int totalReferences,
   }) {
     final allCollapsed = sections.isNotEmpty && sections.every((s) => _collapsedGroups.contains(s.key));
+    final grandTotalValue = sections.fold<double>(0.0, (sum, s) => sum + s.totalEstimatedValue);
 
     return Column(
       children: [
@@ -1146,6 +1248,31 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                   ),
                 ),
               ),
+              if (_showTotalCosts && grandTotalValue > 0) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.account_balance_wallet_outlined, size: 14, color: Color(0xFFD4AF37)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Total: ${grandTotalValue.toStringAsFixed(0)} €',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFD4AF37),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const Spacer(),
               TextButton.icon(
                 style: TextButton.styleFrom(
@@ -1257,7 +1384,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                                 ),
                               ),
                             ),
-                            if (section.totalEstimatedValue > 0) ...[
+                            if (_showTotalCosts && section.totalEstimatedValue > 0) ...[
                               const SizedBox(width: 6),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),

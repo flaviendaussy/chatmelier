@@ -27,8 +27,8 @@ class TasteProfileService {
       if (raw != null) {
         final List<dynamic> list = jsonDecode(raw);
         final loaded = list.map((j) => TasteProfile.fromJson(j as Map<String, dynamic>)).toList();
-        // Filter out any legacy hardcoded mock profiles if they linger
-        final clean = loaded.where((p) => p.id != 'flavien_main' && p.id != 'caro_profile').toList();
+        // Filter out any legacy hardcoded mock profiles by specific IDs
+        final clean = loaded.where((p) => p.id != 'flavien_main' && p.id != 'caro_profile' && (p.id != 'primary_user' || p.isPrimary)).toList();
         if (clean.isNotEmpty) {
           return clean;
         }

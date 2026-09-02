@@ -1,11 +1,9 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chatmelier/features/scan/data/scan_service.dart';
 import 'package:chatmelier/features/scan/domain/scan_result.dart';
 import 'package:chatmelier/features/scan/presentation/review_screen.dart';
-import 'package:chatmelier/features/cellar/domain/wine.dart';
 
 void main() {
   group('ScanService & JSON Extraction Tests', () {

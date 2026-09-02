@@ -22,28 +22,28 @@ class GeminiModelRegistry {
     defaultValue: 'AQ.Ab8RN6JFZQNPfXmDdjdGT0posCOmn_4wPIFv_TiviorSGL6BDg',
   );
 
-  /// Curated Lite baseline models (Gemini 3.7 / 3.6 / 3.5 Flash-Lite)
+  /// Curated Lite baseline models (Gemini 3.5 / 3.1 Flash-Lite, flash-lite-latest)
   static const List<String> baselineLiteModels = [
-    'gemini-3.7-flash-lite',
-    'gemini-3.6-flash-lite',
     'gemini-3.5-flash-lite',
     'gemini-3.1-flash-lite',
     'gemini-flash-lite-latest',
+    'gemini-3.7-flash-lite',
+    'gemini-3.6-flash-lite',
   ];
 
-  /// Curated Standard Flash baseline models (Gemini 3.7 / 3.6 / 3.5 Flash)
+  /// Curated Standard Flash baseline models (Gemini 3.5 / 3.6 / 3.7 Flash, flash-latest)
   static const List<String> baselineStandardFlashModels = [
-    'gemini-3.7-flash',
-    'gemini-3.6-flash',
     'gemini-3.5-flash',
-    'gemini-3-flash-preview',
+    'gemini-3.6-flash',
+    'gemini-3.7-flash',
     'gemini-flash-latest',
+    'gemini-3-flash-preview',
   ];
 
-  /// Combined baseline list (Strictly excludes all Pro models and deprecated 2.5 models)
+  /// Combined baseline list (Strictly excludes all Pro models)
   static List<String> get baselineModels => [
-        ...baselineLiteModels,
         ...baselineStandardFlashModels,
+        ...baselineLiteModels,
       ];
 
   static List<String>? _discoveredLiteModels;
@@ -51,10 +51,6 @@ class GeminiModelRegistry {
   static DateTime? _lastDiscoveryTime;
   static final Map<String, DateTime> _rateLimitCooldowns = {};
   static final Set<String> _disabledModels = {
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-lite',
     'gemini-1.5-flash',
     'gemini-1.5-pro',
   };
@@ -201,12 +197,10 @@ class GeminiModelRegistry {
             final methods = (item['supportedGenerationMethods'] as List<dynamic>?) ?? [];
             final supportsGenerate = methods.contains('generateContent');
 
-            // Strictly exclude non-Gemini, TTS, Imagen, PRO models, and deprecated 2.5/2.0/1.5
+            // Strictly exclude non-Gemini, TTS, Imagen, PRO models
             if (supportsGenerate &&
                 name.startsWith('gemini-') &&
                 !_disabledModels.contains(name) &&
-                !name.startsWith('gemini-2.') &&
-                !name.startsWith('gemini-1.') &&
                 !name.contains('-tts') &&
                 !name.contains('-image') &&
                 !name.contains('-pro')) {

@@ -74,15 +74,15 @@ class AiCostEvent {
 class AiPricingCalculator {
   static const double usdToEurRate = 0.92;
 
-  // Flash Tier (1.5 Flash, 2.0 Flash, 2.5 Flash, 3.x Flash, flash-latest)
-  // $0.075 / 1M prompt tokens, $0.30 / 1M output tokens
-  static const double flashPromptPerMillionUsd = 0.075;
-  static const double flashCandidatePerMillionUsd = 0.30;
+  // Flash Tier (2.0 Flash, 2.5 Flash, 3.x Flash, flash-latest)
+  // $0.10 / 1M prompt tokens, $0.40 / 1M output tokens (including thoughts)
+  static const double flashPromptPerMillionUsd = 0.10;
+  static const double flashCandidatePerMillionUsd = 0.40;
 
-  // Flash-Lite Tier (2.0 Flash-Lite, 2.5 Flash-Lite, 3.1 Flash-Lite, flash-lite-latest)
-  // $0.0375 / 1M prompt tokens, $0.15 / 1M output tokens
-  static const double flashLitePromptPerMillionUsd = 0.0375;
-  static const double flashLiteCandidatePerMillionUsd = 0.15;
+  // Flash-Lite Tier (2.0 Flash-Lite, 2.5 Flash-Lite, 3.x Flash-Lite, flash-lite-latest)
+  // $0.075 / 1M prompt tokens, $0.30 / 1M output tokens
+  static const double flashLitePromptPerMillionUsd = 0.075;
+  static const double flashLiteCandidatePerMillionUsd = 0.30;
 
   // Pro Tier (1.5 Pro, 2.0 Pro, 2.5 Pro, pro-latest)
   // $1.25 / 1M prompt tokens, $5.00 / 1M output tokens

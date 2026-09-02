@@ -86,12 +86,15 @@ class AuthRepository {
       try {
         final origin = Uri.base.origin;
         if (origin.isNotEmpty && origin != 'null') {
-          return '$origin/';
+          final path = Uri.base.path;
+          final normalizedPath = path.isEmpty ? '/' : (path.endsWith('/') ? path : '$path/');
+          return '$origin$normalizedPath';
         }
       } catch (_) {}
       final base = Uri.base;
       final portStr = (base.hasPort && base.port != 80 && base.port != 443) ? ':${base.port}' : '';
-      return '${base.scheme}://${base.host}$portStr/';
+      final path = base.path.isEmpty ? '/' : (base.path.endsWith('/') ? base.path : '${base.path}/');
+      return '${base.scheme}://${base.host}$portStr$path';
     }
     return 'chatmelier://login-callback';
   }

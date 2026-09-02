@@ -23,7 +23,11 @@ class OwnerAvatar extends StatelessWidget {
         ? displayName![0].toUpperCase()
         : 'U';
 
-    if (avatarUrl != null && avatarUrl!.isNotEmpty) {
+    final bool hasValidNetworkAvatar = avatarUrl != null &&
+        avatarUrl!.isNotEmpty &&
+        (avatarUrl!.startsWith('http://') || avatarUrl!.startsWith('https://'));
+
+    if (hasValidNetworkAvatar) {
       return CircleAvatar(
         radius: effectiveRadius,
         backgroundImage: NetworkImage(avatarUrl!),

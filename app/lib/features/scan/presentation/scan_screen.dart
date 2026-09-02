@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:go_router/go_router.dart';
@@ -172,6 +171,7 @@ class _ScanScreenState extends State<ScanScreen> {
       );
       if (image != null && mounted) {
         final bytes = await image.readAsBytes();
+        if (!mounted) return;
         context.push('/review', extra: {
           'path': image.path,
           'bytes': bytes,
@@ -193,6 +193,7 @@ class _ScanScreenState extends State<ScanScreen> {
       );
       if (image != null && mounted) {
         final bytes = await image.readAsBytes();
+        if (!mounted) return;
         context.push('/review', extra: {
           'path': image.path,
           'bytes': bytes,

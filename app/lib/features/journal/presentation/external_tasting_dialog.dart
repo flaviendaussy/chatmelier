@@ -160,11 +160,24 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   NearbyPlace? _selectedPlace;
   bool _showCustomPlaceInput = false;
   String? _photoUrl;
+  bool _isScanningPhoto = false;
+  bool _isQuickAnalyzing = false;
+  late final TextEditingController _quickSearchController;
+
+  String _normalizeWineType(String type) {
+    final lower = type.toLowerCase();
+    if (lower.contains('blanc') || lower == 'white') return 'white';
+    if (lower.contains('ros') || lower == 'rosé') return 'rose';
+    if (lower.contains('sparkling') || lower.contains('champ') || lower.contains('bulles') || lower.contains('effervescent')) return 'sparkling';
+    if (lower.contains('dessert') || lower.contains('moelleux') || lower.contains('liquoreux')) return 'dessert';
+    return 'red';
+  }
 
   @override
   void initState() {
     super.initState();
     _photoUrl = widget.photoUrl;
+    _quickSearchController = TextEditingController();
     _nameController = TextEditingController(text: widget.initialWineName ?? '');
     _producerController = TextEditingController(text: widget.initialProducer ?? '');
     _vintageController = TextEditingController(text: widget.initialVintage != null ? '${widget.initialVintage}' : '');
@@ -184,12 +197,59 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
       final picker = ImagePicker();
       final picked = await picker.pickImage(source: source, imageQuality: 85);
       if (picked == null) return;
-      setState(() => _photoUrl = picked.path);
+      
+      setState(() {
+        _photoUrl = picked.path;
+        _isScanningPhoto = true;
+      });
 
+      final supabase = ref.read(supabaseProvider);
+      final scanService = ScanService(supabase);
+      final bytes = await picked.readAsBytes();
+
+      // 1. Automatic Gemini Vision OCR & Enology Extraction
       try {
-        final supabase = ref.read(supabaseProvider);
-        final scanService = ScanService(supabase);
-        final bytes = await picked.readAsBytes();
+        final result = await scanService.analyzeBottleImage(
+          imagePath: picked.path,
+          imageBytes: bytes,
+        );
+        if (mounted) {
+          setState(() {
+            _nameController.text = result.name;
+            if (result.producer != null && result.producer!.isNotEmpty) {
+              _producerController.text = result.producer!;
+            }
+            if (result.vintage != null) {
+              _vintageController.text = '${result.vintage}';
+            }
+            if (result.appellation != null && result.appellation!.isNotEmpty) {
+              _regionController.text = result.appellation!;
+            } else if (result.region.isNotEmpty) {
+              _regionController.text = result.region;
+            }
+            _wineType = _normalizeWineType(result.wineType);
+            if (result.tastingNotes != null && result.tastingNotes!.isNotEmpty) {
+              _notesController.text = result.tastingNotes!;
+            }
+            if (result.foodPairings.isNotEmpty) {
+              _foodController.text = result.foodPairings.first;
+            }
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✨ Bouteille reconnue par l\'IA : ${result.name}'),
+              backgroundColor: const Color(0xFF2E7D32),
+            ),
+          );
+        }
+      } catch (scanErr) {
+        AppLogger.warning('EXTERNAL_TASTING', 'AI photo scan error: $scanErr');
+      } finally {
+        if (mounted) setState(() => _isScanningPhoto = false);
+      }
+
+      // 2. Upload photo in background
+      try {
         final publicUrl = await scanService.uploadPhoto(
           bottleId: const Uuid().v4(),
           imagePath: picked.path,
@@ -202,7 +262,62 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         debugPrint('Photo upload notice: $e');
       }
     } catch (e) {
+      if (mounted) setState(() => _isScanningPhoto = false);
       debugPrint('Error picking photo: $e');
+    }
+  }
+
+  Future<void> _quickAnalyzeFromText() async {
+    final text = _quickSearchController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() => _isQuickAnalyzing = true);
+    FocusScope.of(context).unfocus();
+
+    try {
+      final supabase = ref.read(supabaseProvider);
+      final scanService = ScanService(supabase);
+      final result = await scanService.analyzeWineFromText(text);
+
+      if (mounted) {
+        setState(() {
+          _nameController.text = result.name;
+          if (result.producer != null && result.producer!.isNotEmpty) {
+            _producerController.text = result.producer!;
+          }
+          if (result.vintage != null) {
+            _vintageController.text = '${result.vintage}';
+          }
+          if (result.appellation != null && result.appellation!.isNotEmpty) {
+            _regionController.text = result.appellation!;
+          } else if (result.region.isNotEmpty) {
+            _regionController.text = result.region;
+          }
+          _wineType = _normalizeWineType(result.wineType);
+          if (result.tastingNotes != null && result.tastingNotes!.isNotEmpty) {
+            _notesController.text = result.tastingNotes!;
+          }
+          if (result.foodPairings.isNotEmpty) {
+            _foodController.text = result.foodPairings.first;
+          }
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✨ Fiche complétée par l\'IA : ${result.name}'),
+            backgroundColor: const Color(0xFF2E7D32),
+          ),
+        );
+      }
+    } catch (e) {
+      AppLogger.warning('EXTERNAL_TASTING', 'Quick text analysis error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur d\'analyse : $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isQuickAnalyzing = false);
     }
   }
 
@@ -619,6 +734,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             _buildPhotoSection(theme, isDark),
             const SizedBox(height: 16),
 
+            // =================================================================
+            // RECONNAISSANCE IA RAPIDE (ARDOISE BAR / TEXTE / LISTE)
+            // =================================================================
+            _buildQuickAiSearchSection(theme, isDark),
+            const SizedBox(height: 16),
+
             // Nom du vin & Millésime
             Row(
               children: [
@@ -1028,7 +1149,111 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     );
   }
 
+  Widget _buildQuickAiSearchSection(ThemeData theme, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF201A29) : const Color(0xFFF7F4F9),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF8B1E3F).withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome, color: Color(0xFF8B1E3F), size: 16),
+              const SizedBox(width: 6),
+              const Text(
+                'Identifier avec l\'IA (Bar, Restaurant, Ardoise)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+              ),
+              const Spacer(),
+              if (_isQuickAnalyzing)
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF8B1E3F)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Entrez quelques mots (ex: "Saint-Joseph Coursodon 2021" ou "Bandol Terrebrune") pour pré-remplir la fiche.',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _quickSearchController,
+                  decoration: InputDecoration(
+                    hintText: 'Ex: Saint-Joseph 2021 Coursodon...',
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onSubmitted: (_) => _quickAnalyzeFromText(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B1E3F),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  visualDensity: VisualDensity.compact,
+                ),
+                onPressed: _isQuickAnalyzing ? null : _quickAnalyzeFromText,
+                icon: const Icon(Icons.bolt, size: 16),
+                label: const Text('Détecter', style: TextStyle(fontSize: 12)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPhotoSection(ThemeData theme, bool isDark) {
+    if (_isScanningPhoto) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF261F30) : const Color(0xFFF9F6F3),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFD4AF37)),
+        ),
+        child: const Row(
+          children: [
+            SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFFD4AF37)),
+            ),
+            SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Analyse de l\'étiquette par l\'IA...',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Détection du domaine, millésime, cépages et notes...',
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (_photoUrl != null && _photoUrl!.isNotEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
@@ -1129,11 +1354,11 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Photographier la bouteille',
+                  'Photographier l\'étiquette (Scan IA)',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 Text(
-                  'Optionnel : gardez un souvenir visuel de ce moment',
+                  'Reconnaissance automatique du vin et ajout au journal',
                   style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                 ),
               ],
@@ -1146,7 +1371,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             ),
             onPressed: () => _showPhotoPickerSheet(context),
             icon: const Icon(Icons.add_a_photo, size: 15),
-            label: const Text('Photo', style: TextStyle(fontSize: 12)),
+            label: const Text('Scan IA', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

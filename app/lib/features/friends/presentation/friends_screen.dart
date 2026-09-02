@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../shared/providers/auth_provider.dart';
-import '../../../shared/providers/supabase_provider.dart';
-import '../../../shared/utils/phone_dial_code.dart';
 import '../../../shared/widgets/owner_avatar.dart';
 import '../../auth/domain/user_profile.dart';
 import '../data/friends_repository.dart';

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../config/router.dart';
+import '../../../shared/utils/app_logger.dart';
 import '../../journal/presentation/tasting_questionnaire_sheet.dart';
 
 /// A pending post-tasting notification stored in SharedPreferences.
@@ -147,15 +148,21 @@ class PostTastingNotificationService {
 
   /// Check for due notifications and show a dialog if any are ready.
   Future<void> checkAndShow() async {
-    if (_appContext == null || !(_appContext as Element).mounted) return;
+    final ctx = rootNavigatorKey.currentContext ?? _appContext;
+    if (ctx == null || !ctx.mounted || Navigator.maybeOf(ctx) == null) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final all = _loadAll(prefs);
-    final due = all.where((n) => n.isDue).toList();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final all = _loadAll(prefs);
+      final due = all.where((n) => n.isDue).toList();
 
-    for (final notification in due) {
-      if (_appContext == null || !(_appContext as Element).mounted) return;
-      await _showNotificationDialog(_appContext!, notification);
+      for (final notification in due) {
+        final currentCtx = rootNavigatorKey.currentContext ?? _appContext;
+        if (currentCtx == null || !currentCtx.mounted || Navigator.maybeOf(currentCtx) == null) return;
+        await _showNotificationDialog(currentCtx, notification);
+      }
+    } catch (e) {
+      AppLogger.warning('NOTIFICATION', 'Error checking post tasting notifications: $e');
     }
   }
 
@@ -198,120 +205,164 @@ class PostTastingNotificationService {
   }
 
   Future<void> _showNotificationDialog(BuildContext context, PendingTastingNotification notification) async {
+    if (!context.mounted || Navigator.maybeOf(context) == null) return;
+
     final vintageStr = notification.vintage != null ? ' ${notification.vintage}' : '';
     final producerStr = notification.producer != null && notification.producer!.isNotEmpty
         ? ' — ${notification.producer}'
         : '';
 
-    final result = await showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
-                shape: BoxShape.circle,
+    try {
+      final result = await showDialog<String>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Text('🍷', style: TextStyle(fontSize: 24)),
               ),
-              child: const Text('🍷', style: TextStyle(fontSize: 24)),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text(
-                'Alors, cette dégustation ?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Alors, cette dégustation ?',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${notification.wineName}$vintageStr$producerStr',
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-                color: Color(0xFF8B1E3F),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Vous l\'avez sortie il y a ${_formatTimeSince(notification.checkedOutAt)}.\n'
-              'Comment l\'avez-vous trouvé ? Partagez vos impressions pour que Chatmelier affine ses recommandations.',
-              style: const TextStyle(fontSize: 13.5, height: 1.4),
-            ),
-          ],
-        ),
-        actionsAlignment: MainAxisAlignment.spaceBetween,
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        actions: [
-          // Snooze row
-          PopupMenuButton<String>(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.snooze, size: 18, color: Colors.grey),
-                  SizedBox(width: 6),
-                  Text('Rappeler', style: TextStyle(fontSize: 13, color: Colors.grey)),
-                  Icon(Icons.arrow_drop_down, size: 18, color: Colors.grey),
-                ],
-              ),
-            ),
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: 'snooze_1h', child: Text('⏰ Dans 1 heure')),
-              const PopupMenuItem(value: 'snooze_2h', child: Text('⏰ Dans 2 heures')),
-              const PopupMenuItem(value: 'snooze_tonight', child: Text('🌙 Ce soir (21h)')),
             ],
-            onSelected: (val) => Navigator.of(ctx).pop(val),
           ),
-          // Give feedback button
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF8B1E3F),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(ctx).textTheme.bodyMedium,
+                  children: [
+                    const TextSpan(text: 'Vous avez sorti '),
+                    TextSpan(
+                      text: '${notification.wineName}$vintageStr$producerStr',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(
+                      text: ' il y a ${_formatTimeSince(notification.checkedOutAt)}. ',
+                    ),
+                    const TextSpan(
+                      text: 'Prenez 30 secondes pour noter vos impressions afin d\'affiner votre profil de goût !',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(ctx).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.auto_awesome, size: 16, color: Color(0xFFD4AF37)),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Vos réponses permettent à l\'IA de mieux recommander vos prochaines bouteilles.',
+                        style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            PopupMenuButton<String>(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Text(
+                  'Plus tard',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
+              ),
+              onSelected: (val) => Navigator.of(ctx).pop(val),
+              itemBuilder: (popCtx) => [
+                const PopupMenuItem(
+                  value: 'snooze_1h',
+                  child: Row(
+                    children: [
+                      Icon(Icons.timer_outlined, size: 18),
+                      SizedBox(width: 8),
+                      Text('Dans 1 heure'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'snooze_2h',
+                  child: Row(
+                    children: [
+                      Icon(Icons.timer_outlined, size: 18),
+                      SizedBox(width: 8),
+                      Text('Dans 2 heures'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'snooze_tonight',
+                  child: Row(
+                    children: [
+                      Icon(Icons.nightlight_round, size: 18),
+                      SizedBox(width: 8),
+                      Text('Ce soir à 21h'),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            onPressed: () => Navigator.of(ctx).pop('feedback'),
-            icon: const Icon(Icons.rate_review, size: 18),
-            label: const Text('Donner mon avis', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF8B1E3F),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => Navigator.of(ctx).pop('feedback'),
+              icon: const Icon(Icons.rate_review_outlined, size: 18),
+              label: const Text('Donner mon avis', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
 
-    if (result == null) return;
+      if (result == null) return;
 
-    switch (result) {
-      case 'snooze_1h':
-        await snooze(notification.bottleId, const Duration(hours: 1));
-      case 'snooze_2h':
-        await snooze(notification.bottleId, const Duration(hours: 2));
-      case 'snooze_tonight':
-        await snoozeToCeSoir(notification.bottleId);
-      case 'feedback':
-        await dismiss(notification.bottleId);
-        final targetCtx = rootNavigatorKey.currentContext ?? context;
-        if (targetCtx.mounted) {
-          TastingQuestionnaireSheet.show(
-            targetCtx,
-            wineName: notification.wineName,
-            vintage: notification.vintage,
-            producer: notification.producer,
-            region: notification.region,
-            wineType: notification.wineType,
-          );
-        }
+      switch (result) {
+        case 'snooze_1h':
+          await snooze(notification.bottleId, const Duration(hours: 1));
+        case 'snooze_2h':
+          await snooze(notification.bottleId, const Duration(hours: 2));
+        case 'snooze_tonight':
+          await snoozeToCeSoir(notification.bottleId);
+        case 'feedback':
+          await dismiss(notification.bottleId);
+          final targetCtx = rootNavigatorKey.currentContext ?? context;
+          if (targetCtx.mounted && Navigator.maybeOf(targetCtx) != null) {
+            TastingQuestionnaireSheet.show(
+              targetCtx,
+              wineName: notification.wineName,
+              vintage: notification.vintage,
+              producer: notification.producer,
+              region: notification.region,
+              wineType: notification.wineType,
+            );
+          }
+      }
+    } catch (e) {
+      AppLogger.warning('NOTIFICATION', 'Could not show post tasting dialog: $e');
     }
   }
 

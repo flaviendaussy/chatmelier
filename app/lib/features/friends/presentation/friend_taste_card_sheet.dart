@@ -207,6 +207,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.pop(ctx);
                 setState(() => _isActionLoading = true);
                 try {
@@ -229,7 +230,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
 
                   ref.invalidate(friendsListProvider);
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text('🎉 Accès accordé à ${widget.friend.displayName} !'),
                         backgroundColor: const Color(0xFF10B981),
@@ -238,7 +239,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   }
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
                     );
                   }

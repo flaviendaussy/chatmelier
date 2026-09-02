@@ -157,13 +157,13 @@ Return strictly a valid JSON object matching this schema.''';
 
       final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.standardFlashPreferred);
 
-      // Attempt scanning with auto-retry across active models
+      // Attempt scanning: Try Direct Fast JSON OCR FIRST (1.5-3s), then Web Search tool fallback if needed
       for (int attempt = 1; attempt <= 2; attempt++) {
         for (final model in activeModels) {
-          // Pass 1: Try Search tool (with 24s timeout); Pass 2: Direct JSON (with 10s timeout)
-          for (final isSearch in [attempt == 1, false]) {
+          // Pass 1: Direct JSON OCR (super fast, ~2s); Pass 2: Search tool fallback
+          for (final isSearch in [false, attempt == 2]) {
             final reqBody = isSearch ? requestBodyWithSearch : requestBodyDirect;
-            final timeoutSec = isSearch ? 24 : 10;
+            final timeoutSec = isSearch ? 18 : 12;
             try {
               AppLogger.debug('SCAN_AI', 'Calling Gemini API (Attempt $attempt) with model: $model (Search tool: $isSearch, Timeout: ${timeoutSec}s)');
               final url = Uri.parse(
@@ -265,8 +265,13 @@ Return strictly a valid JSON object matching this schema.''';
       }
 
       final effectivePath = imagePath ?? file?.path ?? 'bottle_image.jpg';
-      final fileExt = effectivePath.split('.').last.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-      final ext = fileExt.isNotEmpty ? fileExt : 'jpg';
+      String ext = 'jpg';
+      if (!effectivePath.startsWith('blob:') && !effectivePath.startsWith('http')) {
+        final rawExt = effectivePath.split('.').last.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+        if (['jpg', 'jpeg', 'png', 'webp'].contains(rawExt)) {
+          ext = rawExt == 'jpeg' ? 'jpg' : rawExt;
+        }
+      }
       final fileName = '${user.id}/${bottleId}_${DateTime.now().millisecondsSinceEpoch}.$ext';
 
       Uint8List bytes;
@@ -322,7 +327,6 @@ Return strictly a valid JSON object matching this schema.''';
     String? classification,
     String? wineType,
   }) async {
-    final startTime = DateTime.now();
     AppLogger.info('SCAN_AI', 'Enriching wine data: $wineName ($vintage) by $producer');
 
     final prompt = '''You are Chatmelier, the world-class sommelier and oenology AI engine.
@@ -560,5 +564,114 @@ Return strictly a valid JSON object matching this schema.''';
       }
     }
     return null;
+  }
+
+  /// Fast AI wine detection based on minimal text input (e.g. from bar chalkboard, restaurant wine list, or verbal note)
+  Future<ScanResult> analyzeWineFromText(String text) async {
+    final startTime = DateTime.now();
+    AppLogger.info('SCAN_AI', 'Analyzing wine from text: "$text"');
+
+    GeminiModelRegistry.refreshAvailableModels();
+
+    final prompt = '''You are Chatmelier, the world-class master sommelier and enological intelligence engine.
+Analyze the following wine description, restaurant wine list entry, or chalkboard text:
+"$text"
+
+Extract or deduce the exact factual wine properties:
+1. "name": The wine name / cuvée (e.g. "Château Margaux", "Les Terrasses", "Terrebrune", "Saint-Joseph", "Chablis Premier Cru").
+2. "producer": The winery or estate producer name (e.g. "Domaine Coursodon", "Domaine Laroche", "Domaine de Terrebrune").
+3. "vintage": Year as integer (e.g. 2021, 2022) or null if not indicated.
+4. "cuvee_parcel": Specific parcel/cuvée name or null.
+5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange"].
+6. "country": Country of origin (default "France" if French appellation).
+7. "region": Region (e.g. "Vallée du Rhône", "Bourgogne", "Bordeaux", "Provence", "Loire").
+8. "sub_region": Sub-region or null.
+9. "appellation": Appellation or AOC/AOP/IGP (e.g. "Saint-Joseph", "Chablis", "Bandol").
+10. "classification": Official classification or null.
+11. "alcohol_pct": Typical alcohol percentage as number or null.
+12. "grapes": Array of objects [{"name": "Grape Variety", "pct": percentage_number or null}] (e.g. Syrah 100%, Chardonnay 100%, etc.).
+13. "tasting_notes": Expert sommelier aromas, palate, and structure notes.
+14. "food_pairings": Array of 3 to 5 matching food pairings.
+15. "ideal_drinking_start": Recommended start year or null.
+16. "ideal_drinking_end": Recommended end year or null.
+17. "peak_drinking_start": Peak maturity start year or null.
+18. "peak_drinking_end": Peak maturity end year or null.
+19. "estimated_market_value": Approximate retail price in EUR as number or null.
+20. "estimated_value_currency": "EUR".
+21. "ai_summary": Brief 1-2 sentence sommelier overview in French, systematically mentioning the grape varieties / cépages.
+22. "detected_quantity": 1.
+23. "packaging_type": "single".
+
+Return strictly a valid JSON object matching this schema.''';
+
+    final requestBody = jsonEncode({
+      'contents': [
+        {
+          'role': 'user',
+          'parts': [
+            {'text': prompt}
+          ]
+        }
+      ],
+      'generationConfig': {
+        'responseMimeType': 'application/json',
+      }
+    });
+
+    final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.litePreferred);
+
+    for (final model in activeModels) {
+      try {
+        final url = Uri.parse(
+          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
+        );
+
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: requestBody,
+        ).timeout(const Duration(seconds: 10));
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          String rawText = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '{}';
+          if (rawText.contains('```json')) {
+            rawText = rawText.split('```json')[1].split('```')[0].trim();
+          } else if (rawText.contains('```')) {
+            rawText = rawText.split('```')[1].split('```')[0].trim();
+          }
+          final parsed = jsonDecode(rawText) as Map<String, dynamic>;
+          final result = ScanResult.fromJson(parsed);
+
+          final duration = DateTime.now().difference(startTime).inMilliseconds;
+          AppLogger.info('SCAN_AI', 'Text wine analysis succeeded via $model in ${duration}ms: "${result.name}"');
+
+          AiCostTrackerService().recordRawResponse(
+            model: model,
+            feature: 'text_wine_analysis',
+            responseJson: data,
+            isSearchGrounded: false,
+            userId: _client.auth.currentUser?.id,
+          );
+
+          return result;
+        }
+      } catch (e) {
+        AppLogger.warning('SCAN_AI', 'Model $model text wine analysis failed: $e');
+      }
+    }
+
+    // Heuristic fallback if offline
+    return ScanResult(
+      name: text.trim().isNotEmpty ? text.trim() : 'Vin Dégusté',
+      producer: null,
+      vintage: null,
+      wineType: 'red',
+      country: 'France',
+      region: 'France',
+      tastingNotes: 'Vin dégusté hors-cave.',
+      foodPairings: const [],
+      detectedQuantity: 1,
+    );
   }
 }

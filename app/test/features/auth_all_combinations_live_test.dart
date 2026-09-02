@@ -195,7 +195,6 @@ class MockGoTrueClient extends Fake implements GoTrueClient {
     );
   }
 
-  @override
   Future<bool> signInWithOAuth(
     OAuthProvider provider, {
     String? redirectTo,

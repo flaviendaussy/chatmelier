@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
-import '../../features/auth/presentation/profile_screen.dart';
 import '../../features/cellar/presentation/cellar_switcher_sheet.dart';
-import '../../features/cellar/presentation/cellar_food_pairing_sheet.dart';
 import '../../features/journal/presentation/external_tasting_dialog.dart';
 import '../../features/voice/presentation/voice_dictation_sheet.dart';
 import '../providers/cellar_provider.dart';
@@ -18,11 +16,20 @@ class AdaptiveAppShell extends ConsumerWidget {
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/chat')) return 1;
+    if (location.startsWith('/chat')) {
+      return 1;
+    }
     if (location.startsWith('/journal') ||
         location.startsWith('/history') ||
-        location.startsWith('/historique')) return 2;
-    if (location.startsWith('/stats')) return 3;
+        location.startsWith('/historique')) {
+      return 2;
+    }
+    if (location.startsWith('/stats')) {
+      return 3;
+    }
+    if (location.startsWith('/profile')) {
+      return 4;
+    }
     return 0;
   }
 
@@ -39,6 +46,9 @@ class AdaptiveAppShell extends ConsumerWidget {
         break;
       case 3:
         context.go('/stats');
+        break;
+      case 4:
+        context.go('/profile');
         break;
     }
   }
@@ -107,6 +117,11 @@ class _MobileAppShell extends StatelessWidget {
         icon: Icons.insights_outlined,
         activeIcon: Icons.insights,
         label: l10n?.navStats ?? 'Statistiques'
+      ),
+      (
+        icon: Icons.person_outline,
+        activeIcon: Icons.person,
+        label: 'Profil'
       ),
     ];
 
@@ -340,6 +355,11 @@ class _TabletAppShell extends ConsumerWidget {
                 selectedIcon: const Icon(Icons.insights, color: Color(0xFF8B1E3F)),
                 label: Text(l10n?.navStats ?? 'Statistiques'),
               ),
+              const NavigationRailDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person, color: Color(0xFF8B1E3F)),
+                label: Text('Profil'),
+              ),
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
@@ -528,6 +548,14 @@ class _DesktopAppShell extends ConsumerWidget {
                         label: l10n?.navStats ?? 'Statistiques',
                         isSelected: currentIndex == 3,
                         onTap: () => onNavigate(3),
+                      ),
+                      const SizedBox(height: 4),
+                      _SidebarNavItem(
+                        icon: Icons.person_outline,
+                        activeIcon: Icons.person,
+                        label: 'Profil & Goûts',
+                        isSelected: currentIndex == 4,
+                        onTap: () => onNavigate(4),
                       ),
                     ],
                   ),

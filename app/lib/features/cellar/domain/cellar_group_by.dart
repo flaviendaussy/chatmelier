@@ -131,21 +131,134 @@ class CellarGroupEngine {
 
     // Sort sections meaningfully based on sortBy and groupBy type
     sections.sort((a, b) {
-      // 1. If user explicitly sorted by quantity, order sections by total count
-      if (sortBy == CellarSortBy.quantityDesc) {
-        final cmp = b.totalBottleCount.compareTo(a.totalBottleCount);
-        if (cmp != 0) return cmp;
-      } else if (sortBy == CellarSortBy.quantityAsc) {
-        final cmp = a.totalBottleCount.compareTo(b.totalBottleCount);
-        if (cmp != 0) return cmp;
-      } else if (sortBy == CellarSortBy.priceDesc) {
-        final cmp = b.totalEstimatedValue.compareTo(a.totalEstimatedValue);
-        if (cmp != 0) return cmp;
-      } else if (sortBy == CellarSortBy.priceAsc) {
-        final cmp = a.totalEstimatedValue.compareTo(b.totalEstimatedValue);
-        if (cmp != 0) return cmp;
+      if (sortBy != null) {
+        switch (sortBy) {
+          case CellarSortBy.quantityDesc:
+            final cmp = b.totalBottleCount.compareTo(a.totalBottleCount);
+            if (cmp != 0) return cmp;
+            break;
+          case CellarSortBy.quantityAsc:
+            final cmp = a.totalBottleCount.compareTo(b.totalBottleCount);
+            if (cmp != 0) return cmp;
+            break;
+          case CellarSortBy.priceDesc:
+            final cmp = b.totalEstimatedValue.compareTo(a.totalEstimatedValue);
+            if (cmp != 0) return cmp;
+            break;
+          case CellarSortBy.priceAsc:
+            final cmp = a.totalEstimatedValue.compareTo(b.totalEstimatedValue);
+            if (cmp != 0) return cmp;
+            break;
+          case CellarSortBy.vintageDesc:
+            if (groupBy == CellarGroupBy.vintage) {
+              final vA = int.tryParse(a.key) ?? -1;
+              final vB = int.tryParse(b.key) ?? -1;
+              final cmp = vB.compareTo(vA);
+              if (cmp != 0) return cmp;
+            } else {
+              int maxVintage(CellarGroupSection s) => s.bottles.fold<int>(
+                    -1,
+                    (max, b) => (b.wine?.vintage ?? -1) > max ? (b.wine?.vintage ?? -1) : max,
+                  );
+              final cmp = maxVintage(b).compareTo(maxVintage(a));
+              if (cmp != 0) return cmp;
+            }
+            break;
+          case CellarSortBy.vintageAsc:
+            if (groupBy == CellarGroupBy.vintage) {
+              final vA = int.tryParse(a.key) ?? 99999;
+              final vB = int.tryParse(b.key) ?? 99999;
+              final cmp = vA.compareTo(vB);
+              if (cmp != 0) return cmp;
+            } else {
+              int minVintage(CellarGroupSection s) => s.bottles.fold<int>(
+                    99999,
+                    (min, b) => ((b.wine?.vintage ?? 99999) < min && (b.wine?.vintage ?? 0) > 0)
+                        ? (b.wine!.vintage!)
+                        : min,
+                  );
+              final cmp = minVintage(a).compareTo(minVintage(b));
+              if (cmp != 0) return cmp;
+            }
+            break;
+          case CellarSortBy.recentlyAdded:
+            DateTime newestBottleDate(CellarGroupSection s) => s.bottles.fold<DateTime>(
+                  DateTime(1970),
+                  (latest, b) => b.createdAt.isAfter(latest) ? b.createdAt : latest,
+                );
+            final cmp = newestBottleDate(b).compareTo(newestBottleDate(a));
+            if (cmp != 0) return cmp;
+            break;
+          case CellarSortBy.nameAsc:
+            if (groupBy == CellarGroupBy.appellation ||
+                groupBy == CellarGroupBy.region ||
+                groupBy == CellarGroupBy.country ||
+                groupBy == CellarGroupBy.continent) {
+              final cmp = a.title.toLowerCase().compareTo(b.title.toLowerCase());
+              if (cmp != 0) return cmp;
+            } else {
+              String firstName(CellarGroupSection s) =>
+                  s.bottles.isNotEmpty ? (s.bottles.first.wine?.name ?? '') : '';
+              final cmp = firstName(a).toLowerCase().compareTo(firstName(b).toLowerCase());
+              if (cmp != 0) return cmp;
+            }
+            break;
+          case CellarSortBy.nameDesc:
+            if (groupBy == CellarGroupBy.appellation ||
+                groupBy == CellarGroupBy.region ||
+                groupBy == CellarGroupBy.country ||
+                groupBy == CellarGroupBy.continent) {
+              final cmp = b.title.toLowerCase().compareTo(a.title.toLowerCase());
+              if (cmp != 0) return cmp;
+            } else {
+              String firstName(CellarGroupSection s) =>
+                  s.bottles.isNotEmpty ? (s.bottles.first.wine?.name ?? '') : '';
+              final cmp = firstName(b).toLowerCase().compareTo(firstName(a).toLowerCase());
+              if (cmp != 0) return cmp;
+            }
+            break;
+          case CellarSortBy.producerAsc:
+            String firstProducer(CellarGroupSection s) =>
+                s.bottles.isNotEmpty ? (s.bottles.first.wine?.producer ?? '') : '';
+            final cmp = firstProducer(a).toLowerCase().compareTo(firstProducer(b).toLowerCase());
+            if (cmp != 0) return cmp;
+            break;
+          case CellarSortBy.producerDesc:
+            String firstProducer(CellarGroupSection s) =>
+                s.bottles.isNotEmpty ? (s.bottles.first.wine?.producer ?? '') : '';
+            final cmp = firstProducer(b).toLowerCase().compareTo(firstProducer(a).toLowerCase());
+            if (cmp != 0) return cmp;
+            break;
+          case CellarSortBy.maturity:
+            int sectionMaturityPriority(CellarGroupSection s) {
+              if (s.bottles.isEmpty) return 99;
+              int best = 99;
+              for (final b in s.bottles) {
+                final st = b.wine?.windowStatus;
+                int p = 6;
+                if (st == DrinkWindowStatus.drinkSoon) p = 1;
+                else if (st == DrinkWindowStatus.inPeak) p = 2;
+                else if (st == DrinkWindowStatus.aging) p = 3;
+                else if (st == DrinkWindowStatus.tooYoung) p = 4;
+                else if (st == DrinkWindowStatus.pastPeak) p = 5;
+                if (p < best) best = p;
+              }
+              return best;
+            }
+            final cmp = sectionMaturityPriority(a).compareTo(sectionMaturityPriority(b));
+            if (cmp != 0) return cmp;
+            break;
+          case CellarSortBy.color:
+            final order = ['red', 'white', 'rosé', 'sparkling', 'dessert', 'orange', 'fortified', 'other'];
+            final idxA = order.indexOf(a.key);
+            final idxB = order.indexOf(b.key);
+            final cmp = (idxA != -1 ? idxA : 99).compareTo(idxB != -1 ? idxB : 99);
+            if (cmp != 0) return cmp;
+            break;
+        }
       }
 
+      // Default natural order per groupBy when no override was triggered
       if (groupBy == CellarGroupBy.vintage) {
         final vA = int.tryParse(a.key) ?? -1;
         final vB = int.tryParse(b.key) ?? -1;
@@ -161,7 +274,7 @@ class CellarGroupEngine {
         final idxB = order.indexOf(b.key);
         return (idxA != -1 ? idxA : 99).compareTo(idxB != -1 ? idxB : 99);
       }
-      return a.title.compareTo(b.title);
+      return a.title.toLowerCase().compareTo(b.title.toLowerCase());
     });
 
     return sections;

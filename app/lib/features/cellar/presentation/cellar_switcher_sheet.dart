@@ -242,7 +242,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
                                           const Icon(Icons.wifi, size: 12, color: Color(0xFF1976D2)),
                                           const SizedBox(width: 3),
                                           Text(
-                                            cellar.wifiSsid!,
+                                            'Wi-Fi : "${cellar.wifiSsid!}"',
                                             style: const TextStyle(fontSize: 11, color: Color(0xFF1976D2), fontWeight: FontWeight.w500),
                                           ),
                                         ],

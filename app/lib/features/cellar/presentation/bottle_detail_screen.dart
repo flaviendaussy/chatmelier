@@ -213,7 +213,9 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               subtitle: const Text('Appliquer le visuel haute résolution du domaine'),
               onTap: () async {
                 Navigator.of(ctx).pop();
-                final officialImg = WineImageService.resolveWineImageUrl(wine);
+                final officialImg = WineImageService.resolveWineImageUrl(wine, forceDomainOrArchetype: true);
+                PaintingBinding.instance.imageCache.clear();
+                PaintingBinding.instance.imageCache.clearLiveImages();
                 setState(() {
                   _labelPhotoUrl = officialImg;
                   if (_bottleData != null) {
@@ -249,6 +251,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       final picker = ImagePicker();
       final picked = await picker.pickImage(source: source, imageQuality: 85);
       if (picked == null) return;
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.clearLiveImages();
 
       setState(() {
         _labelPhotoUrl = picked.path;

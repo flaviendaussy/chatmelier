@@ -89,8 +89,8 @@ class FriendsRepository {
             .from('friendships')
             .select('''
               id, user_id, friend_id, status, created_at,
-              requester:profiles!friendships_user_id_fkey(id, display_name, username, avatar_url, phone_number, email, taste_profile),
-              recipient:profiles!friendships_friend_id_fkey(id, display_name, username, avatar_url, phone_number, email, taste_profile)
+              requester:profiles!friendships_user_id_fkey(id, display_name, avatar_url),
+              recipient:profiles!friendships_friend_id_fkey(id, display_name, avatar_url)
             ''')
             .or('user_id.eq.${user.id},friend_id.eq.${user.id}')
             .eq('status', 'accepted')
@@ -184,7 +184,7 @@ class FriendsRepository {
           .from('friendships')
           .select('''
             id, user_id, friend_id, status, created_at,
-            requester:profiles!friendships_user_id_fkey(id, display_name, username, avatar_url, phone_number, email, taste_profile)
+            requester:profiles!friendships_user_id_fkey(id, display_name, avatar_url)
           ''')
           .eq('friend_id', user.id)
           .eq('status', 'pending')
@@ -234,7 +234,7 @@ class FriendsRepository {
           .from('friendships')
           .select('''
             id, user_id, friend_id, status, created_at,
-            recipient:profiles!friendships_friend_id_fkey(id, display_name, username, avatar_url, phone_number, email, taste_profile)
+            recipient:profiles!friendships_friend_id_fkey(id, display_name, avatar_url)
           ''')
           .eq('user_id', user.id)
           .eq('status', 'pending')
@@ -560,7 +560,7 @@ class FriendsRepository {
           .from('cellar_access_requests')
           .select('''
             id, cellar_id, owner_id, requester_id, requested_role, status, message, created_at, responded_at,
-            requester:profiles!cellar_access_requests_requester_id_fkey(id, display_name, username, avatar_url),
+            requester:profiles!cellar_access_requests_requester_id_fkey(id, display_name, avatar_url),
             cellars!cellar_access_requests_cellar_id_fkey(id, name)
           ''')
           .eq('owner_id', user.id)
@@ -586,7 +586,7 @@ class FriendsRepository {
           .from('user_notifications')
           .select('''
             id, user_id, actor_id, type, title, body, data, is_read, created_at,
-            actor:profiles!user_notifications_actor_id_fkey(id, display_name, username, avatar_url)
+            actor:profiles!user_notifications_actor_id_fkey(id, display_name, avatar_url)
           ''')
           .eq('user_id', user.id)
           .order('created_at', ascending: false)

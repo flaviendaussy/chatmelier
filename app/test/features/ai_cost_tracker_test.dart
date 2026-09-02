@@ -7,10 +7,25 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('AI Pricing Calculator Tests', () {
-    test('Flash Tier cost computation (0.075\$ / 1M prompt, 0.30\$ / 1M candidate)', () {
+    test('Flash Tier cost computation (0.10\$ / 1M prompt, 0.40\$ / 1M candidate)', () {
       // 100,000 prompt tokens, 20,000 candidate tokens
       final res = AiPricingCalculator.computeCost(
         model: 'gemini-3.7-flash',
+        promptTokens: 100000,
+        candidateTokens: 20000,
+        isSearchGrounded: false,
+      );
+
+      // 100k * 0.10 / 1M = 0.010$
+      // 20k * 0.40 / 1M = 0.008$
+      // Total = 0.018$
+      expect(res.costUsd, closeTo(0.018, 0.0001));
+      expect(res.costEur, closeTo(0.018 * 0.92, 0.0001));
+    });
+
+    test('Flash-Lite Tier cost computation (0.075\$ / 1M prompt, 0.30\$ / 1M candidate)', () {
+      final res = AiPricingCalculator.computeCost(
+        model: 'gemini-3.1-flash-lite',
         promptTokens: 100000,
         candidateTokens: 20000,
         isSearchGrounded: false,
@@ -20,21 +35,6 @@ void main() {
       // 20k * 0.30 / 1M = 0.006$
       // Total = 0.0135$
       expect(res.costUsd, closeTo(0.0135, 0.0001));
-      expect(res.costEur, closeTo(0.0135 * 0.92, 0.0001));
-    });
-
-    test('Flash-Lite Tier cost computation (0.0375\$ / 1M prompt, 0.15\$ / 1M candidate)', () {
-      final res = AiPricingCalculator.computeCost(
-        model: 'gemini-3.1-flash-lite',
-        promptTokens: 100000,
-        candidateTokens: 20000,
-        isSearchGrounded: false,
-      );
-
-      // 100k * 0.0375 / 1M = 0.00375$
-      // 20k * 0.15 / 1M = 0.003$
-      // Total = 0.00675$
-      expect(res.costUsd, closeTo(0.00675, 0.0001));
     });
 
     test('Pro Tier cost computation (1.25\$ / 1M prompt, 5.00\$ / 1M candidate)', () {

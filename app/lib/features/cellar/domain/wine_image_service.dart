@@ -91,6 +91,12 @@ class WineImageService {
     'obliqua': 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=800&auto=format&fit=crop&q=80',
     'apalta': 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=800&auto=format&fit=crop&q=80',
 
+    // Australie / Nouveau Monde
+    'yellow tail': 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&auto=format&fit=crop&q=80',
+    'yellowtail': 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&auto=format&fit=crop&q=80',
+    'casella': 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&auto=format&fit=crop&q=80',
+    'penfolds': 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=800&auto=format&fit=crop&q=80',
+
     // Champagne & Effervescents
     'dom perignon': 'https://images.unsplash.com/photo-1586370434639-0fe43b2d32e6?w=800&auto=format&fit=crop&q=80',
     'champagne': 'https://images.unsplash.com/photo-1586370434639-0fe43b2d32e6?w=800&auto=format&fit=crop&q=80',
@@ -160,13 +166,13 @@ class WineImageService {
   }
 
   /// Resolves the optimal high-resolution label image for any wine
-  static String resolveWineImageUrl(Wine? wine) {
+  static String resolveWineImageUrl(Wine? wine, {bool forceDomainOrArchetype = false}) {
     if (wine == null) {
       return _terroirArchetypeImages['red_default']!;
     }
 
-    // If wine already has a valid image, use it!
-    if (isValidImagePath(wine.imageUrl)) {
+    // If wine already has a valid image and we're not forcing official domain image, use it!
+    if (!forceDomainOrArchetype && isValidImagePath(wine.imageUrl)) {
       return wine.imageUrl!;
     }
 

@@ -9,6 +9,9 @@ import '../../../shared/providers/cellar_provider.dart';
 import '../../cellar/presentation/cellar_export_dialog.dart';
 import 'taste_profiles_dialog.dart';
 import 'taste_profile_edit_sheet.dart';
+import 'taste_profile_radar_screen.dart';
+import 'widgets/wine_taste_radar_chart.dart';
+import '../domain/wine_taste_radar.dart';
 import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
 import 'mandatory_username_dialog.dart';
@@ -385,65 +388,147 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onTap: _editPhoneNumber,
                 ),
                 const Divider(),
-                // TASTE PROFILE CARD
-                Card(
-                  elevation: 0,
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                  ),
-                  color: isDark ? const Color(0xFF231C28) : const Color(0xFFFAF5EF),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: _openTasteProfileEditor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Row(
-                                children: [
-                                  Icon(Icons.wine_bar_rounded, color: Color(0xFF8B1E3F), size: 22),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Mon Profil de Goûts',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.tune, size: 14, color: Color(0xFF8B1E3F)),
-                                    SizedBox(width: 4),
-                                    Text('Personnaliser', style: TextStyle(color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold, fontSize: 12)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _tasteProfileSummary(),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isDark ? Colors.white70 : Colors.black87,
-                              height: 1.3,
-                            ),
-                          ),
-                        ],
+                // 🕸️ HERO SPIDER CHART DES GOÛTS (RADAR 6D)
+                Builder(
+                  builder: (context) {
+                    final currentProfile = _userTasteProfile ??
+                        const TasteProfile(
+                          id: 'primary_user',
+                          name: 'Moi',
+                          isPrimary: true,
+                          favoriteTypes: [],
+                          favoriteRegions: [],
+                          favoriteGrapes: [],
+                          dislikedCharacteristics: [],
+                          notes: '',
+                        );
+                    final metrics = WineTasteRadarCalculator.compute(currentProfile);
+
+                    return Card(
+                      elevation: 2,
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(color: const Color(0xFFD4AF37).withValues(alpha: 0.8), width: 1.5),
                       ),
-                    ),
-                  ),
+                      color: isDark ? const Color(0xFF221A28) : const Color(0xFFFCF9F5),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.radar, color: Color(0xFF8B1E3F), size: 22),
+                                ),
+                                const SizedBox(width: 10),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Spider Chart des Goûts (Radar 6D)',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                      ),
+                                      Text(
+                                        'Empreinte œnologique & équilibre des saveurs',
+                                        style: TextStyle(fontSize: 11.5, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                FilledButton.tonalIcon(
+                                  style: FilledButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  ),
+                                  onPressed: () => TasteProfileRadarScreen.show(context),
+                                  icon: const Icon(Icons.fullscreen, size: 16),
+                                  label: const Text('Radar 3D', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Radar chart interactive preview
+                            Center(
+                              child: SizedBox(
+                                height: 210,
+                                width: 280,
+                                child: GestureDetector(
+                                  onTap: () => TasteProfileRadarScreen.show(context),
+                                  child: WineTasteRadarChart(
+                                    datasets: [
+                                      RadarChartDataset(
+                                        label: _displayName.isNotEmpty ? _displayName : 'Mes Goûts',
+                                        color: const Color(0xFF8B1E3F),
+                                        metrics: metrics,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Summary of current preferences
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isDark ? Colors.black26 : Colors.white70,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                              ),
+                              child: Text(
+                                _tasteProfileSummary(),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: isDark ? Colors.white70 : Colors.black87,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Action buttons
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                    ),
+                                    onPressed: () => TasteProfilesDialog.show(context),
+                                    icon: const Icon(Icons.people_outline, size: 16),
+                                    label: const Text('Invités / Proches', style: TextStyle(fontSize: 12)),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: FilledButton.icon(
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: const Color(0xFF8B1E3F),
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                    ),
+                                    onPressed: _openTasteProfileEditor,
+                                    icon: const Icon(Icons.tune, size: 16),
+                                    label: const Text('Personnaliser', style: TextStyle(fontSize: 12)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 const Divider(),
                 Padding(
@@ -601,7 +686,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ListTile(
                   leading: const Icon(Icons.palette_outlined, color: Color(0xFF8B1E3F)),
                   title: const Text('Profils de Goût & Co-Dégustateurs', style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text('Gérer les goûts de Flavien, Caro et invités pour l\'IA'),
+                  subtitle: const Text('Gérer vos goûts, proches et invités pour l\'IA'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => TasteProfilesDialog.show(context),
                 ),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -138,10 +139,24 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       }).select('invite_code').single();
 
       final code = res['invite_code'] as String;
-      final link = 'https://chatmelier.app/invite/$code';
+      String baseUrl = 'https://flaviendaussy.github.io/chatmelier';
+      if (kIsWeb) {
+        try {
+          final origin = Uri.base.origin;
+          final path = Uri.base.path;
+          if (origin.isNotEmpty && origin != 'null') {
+            final normalizedPath = path.isEmpty ? '/' : (path.endsWith('/') ? path : '$path/');
+            baseUrl = '$origin$normalizedPath';
+            if (baseUrl.endsWith('/')) {
+              baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+            }
+          }
+        } catch (_) {}
+      }
+      final link = '$baseUrl/invite/$code';
 
       await Share.share(
-        'Join my wine cellar "${widget.cellarName}" on Chatmelier!\n$link',
+        'Rejoins ma cave à vin "${widget.cellarName}" sur Chatmelier !\n$link',
       );
     } catch (e) {
       if (mounted) {

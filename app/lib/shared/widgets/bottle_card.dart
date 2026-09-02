@@ -63,6 +63,10 @@ class BottleCard extends StatelessWidget {
     final maturityColor = _getMaturityColor(status);
     final maturityText = _getMaturityLabel(status, isFr);
     final displayPrice = bottle.purchasePrice ?? wine?.estimatedMarketValue;
+    final hasAppellation = wine != null && (wine.appellation?.isNotEmpty ?? false);
+    final hasRegion = wine != null && wine.region.isNotEmpty;
+    final hasRack = bottle.rack != null && bottle.rack!.isNotEmpty;
+    final hasLocationInfo = hasAppellation || hasRegion || hasRack;
 
     return Card(
       elevation: 2,
@@ -221,8 +225,7 @@ class BottleCard extends StatelessWidget {
 
                     const SizedBox(height: 4),
 
-                    // Appellation / Region & Location
-                    if (wine?.appellation != null || wine?.region != null || (bottle.rack != null && bottle.rack!.isNotEmpty))
+                    if (hasLocationInfo)
                       Row(
                         children: [
                           Icon(Icons.place, size: 11, color: isDark ? Colors.white60 : Colors.black54),
@@ -230,11 +233,11 @@ class BottleCard extends StatelessWidget {
                           Expanded(
                             child: Text(
                               [
-                                if (wine?.appellation != null && wine!.appellation!.isNotEmpty)
+                                if (hasAppellation)
                                   wine.appellation!
-                                else if (wine?.region != null && wine!.region!.isNotEmpty)
-                                  wine.region!,
-                                if (bottle.rack != null && bottle.rack!.isNotEmpty)
+                                else if (hasRegion)
+                                  wine.region,
+                                if (hasRack)
                                   'Casier ${bottle.rack}',
                               ].join(' • '),
                               style: TextStyle(

@@ -46,25 +46,41 @@ class ChatService {
 
     final user = _client.auth.currentUser;
 
+    // Resolve fallback cellar if null or empty
+    String? resolvedCellarId = cellarId;
+    if ((resolvedCellarId == null || resolvedCellarId.isEmpty) && user != null) {
+      try {
+        final cellars = await _repo.getUserCellarsWithRole();
+        if (cellars.isNotEmpty) {
+          final first = cellars.first;
+          final cMap = first['cellars'];
+          resolvedCellarId = (cMap is Map ? cMap['id']?.toString() : null) ?? first['cellar_id']?.toString();
+          AppLogger.info('CHAT_AI', 'Auto-resolved fallback cellar for Chatmelier: $resolvedCellarId');
+        }
+      } catch (e) {
+        AppLogger.warning('CHAT_AI', 'Could not auto-resolve cellar for Chatmelier: $e');
+      }
+    }
+
     // 1. Fetch current cellar bottles inventory for real-time AI grounding
     List<Bottle> cellarBottles = [];
-    if (cellarId != null && cellarId.isNotEmpty) {
+    if (resolvedCellarId != null && resolvedCellarId.isNotEmpty) {
       try {
-        cellarBottles = await _repo.getBottles(cellarId);
+        cellarBottles = await _repo.getBottles(resolvedCellarId);
       } catch (e) {
         AppLogger.warning('CHAT_AI', 'Could not fetch bottles from repo, checking cache: $e');
-        cellarBottles = _offlineStorage.getCachedBottles(cellarId);
+        cellarBottles = _offlineStorage.getCachedBottles(resolvedCellarId);
       }
     }
 
     // 2. Fetch past conversation history (last 10 messages)
     List<Map<String, dynamic>> history = [];
-    if (cellarId != null && cellarId.isNotEmpty && user != null) {
+    if (resolvedCellarId != null && resolvedCellarId.isNotEmpty && user != null) {
       try {
         final histRes = await _client
             .from('chat_messages')
             .select('role, content')
-            .eq('cellar_id', cellarId)
+            .eq('cellar_id', resolvedCellarId)
             .order('created_at', ascending: false)
             .limit(10);
         history = List<Map<String, dynamic>>.from(histRes).reversed.toList();
@@ -74,10 +90,10 @@ class ChatService {
     }
 
     // 3. Save user message in database (if authenticated)
-    if (cellarId != null && cellarId.isNotEmpty && user != null) {
+    if (resolvedCellarId != null && resolvedCellarId.isNotEmpty && user != null) {
       try {
         await _client.from('chat_messages').insert({
-          'cellar_id': cellarId,
+          'cellar_id': resolvedCellarId,
           'user_id': user.id,
           'role': 'user',
           'content': message,
@@ -123,7 +139,7 @@ class ChatService {
       try {
         final tRes = await _client
             .from('tasting_log')
-            .select('rating, occasion, food_paired, tasting_notes, wines(name, producer, vintage, type, region)')
+            .select('rating, occasion, food_paired, tasting_notes, wines(name, producer, vintage, wine_type, region)')
             .eq('user_id', user.id)
             .order('consumed_at', ascending: false)
             .limit(10);
@@ -174,11 +190,11 @@ SOMMELIER RULES:
    Use the exact bottle "id" from the cellar inventory when recommending a cellar bottle.
 5. VOCABULARY: Always use "bouteille" or "vin". NEVER use the word "flacon".
 6. TASTE PROFILE PERSONALIZATION & FRIENDS TASTE CONSULTING:
-   - Use individual taste profiles (e.g. Flavien, Caro) and connected friends' taste cards.
-   - When the user asks for wine/vineyard recommendations for a friend (e.g. "je suis dans le Sud, quels vignobles Flavien aimerait bien pour un rouge sous 30 euros?", "que proposer à Caro pour l'apéro?", "un vin pour Dimitri"):
-     * Automatically consult that specific friend's taste card (their favorite grape varieties, favorite terroirs/regions, palate sensitivities, and aversions).
-     * If geographic criteria or budget is specified (e.g. "dans le Sud", "sous 30€"), filter for top matching appellations, vignobles/estates or specific cuvées within that terroir and price range!
-     * Explicitly explain why this friend will love your recommendation based on their taste preferences.
+   - Use individual taste profiles and connected friends' taste cards.
+   - When the user asks for wine/vineyard recommendations for a friend or family member (e.g. "quel vin pour mon père?", "que proposer à mes invités pour l'apéro?"):
+     * Automatically consult their respective taste card (favorite grape varieties, favorite terroirs/regions, palate sensitivities, and aversions).
+     * If geographic criteria or budget is specified, filter for top matching appellations, vignobles/estates or specific cuvées within that terroir and price range!
+     * Explicitly explain why this person will love your recommendation based on their taste preferences.
    - When recommending for a couple or group of friends, propose harmonious wines that reconcile everyone's preferences while strictly avoiding their stated aversions.
 7. EXPERTISE ŒNOLOGIQUE & MOLÉCULAIRE :
    - Accompagne et explique les vins et dégustations avec passion, précision et profondeur scientifique, en descendant jusqu'au niveau moléculaire lorsque pertinent :
@@ -246,13 +262,17 @@ SOMMELIER RULES:
             'parts': [{'text': systemInstruction}]
           },
           'contents': contents,
+          'generationConfig': {
+            'maxOutputTokens': 1500,
+            'temperature': 0.6,
+          },
         };
 
         final res = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(body),
-        ).timeout(const Duration(seconds: 12));
+        ).timeout(const Duration(seconds: 25));
 
         if (res.statusCode == 200) {
           final data = jsonDecode(res.body);
@@ -294,7 +314,7 @@ SOMMELIER RULES:
       try {
         final edgeRes = await _client.functions.invoke('chat', body: {
           'message': message,
-          'cellarId': cellarId ?? '',
+          'cellarId': resolvedCellarId ?? '',
         });
         if (edgeRes.data is Map<String, dynamic>) {
           reply = edgeRes.data['reply']?.toString() ?? '';
@@ -311,10 +331,10 @@ SOMMELIER RULES:
     }
 
     // Save assistant response to database if authenticated
-    if (cellarId != null && cellarId.isNotEmpty && user != null) {
+    if (resolvedCellarId != null && resolvedCellarId.isNotEmpty && user != null) {
       try {
         await _client.from('chat_messages').insert({
-          'cellar_id': cellarId,
+          'cellar_id': resolvedCellarId,
           'user_id': user.id,
           'role': 'assistant',
           'content': reply,

@@ -578,8 +578,10 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                         ),
                         TextButton.icon(
                           onPressed: () {
+                            PaintingBinding.instance.imageCache.clear();
+                            PaintingBinding.instance.imageCache.clearLiveImages();
                             setState(() {
-                              _imageUrl = WineImageService.resolveWineImageUrl(widget.wine);
+                              _imageUrl = WineImageService.resolveWineImageUrl(widget.wine, forceDomainOrArchetype: true);
                             });
                           },
                           icon: const Icon(Icons.auto_awesome, size: 14, color: Color(0xFFD4AF37)),

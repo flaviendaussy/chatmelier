@@ -11,6 +11,7 @@ import '../../../shared/utils/app_logger.dart';
 import '../../../shared/services/cellar_location_service.dart';
 import '../../cellar/domain/cellar.dart';
 import '../../cellar/domain/bottle.dart';
+import '../../cellar/domain/wine_service_advisor.dart';
 import '../data/scan_service.dart';
 import '../domain/scan_result.dart';
 import '../../journal/presentation/external_tasting_dialog.dart';
@@ -538,6 +539,29 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       final vintage = int.tryParse(_vintageCtrl.text.trim());
       final price = double.tryParse(_priceCtrl.text.trim().replaceAll(',', '.'));
 
+      // Recompute or validate drinking window against the effective vintage
+      int? drinkStart = _scanResult?.idealDrinkingStart;
+      int? drinkEnd = _scanResult?.idealDrinkingEnd;
+      int? peakStart = _scanResult?.peakDrinkingStart;
+      int? peakEnd = _scanResult?.peakDrinkingEnd;
+
+      if (vintage != null) {
+        if (drinkStart == null || drinkStart < vintage || drinkEnd == null || drinkEnd < vintage) {
+          final computed = WineOenologyAdvisor.computeDrinkingWindow(
+            wineType: _wineType,
+            vintage: vintage,
+            region: _regionCtrl.text.trim(),
+            appellation: _appellationCtrl.text.trim().isEmpty ? null : _appellationCtrl.text.trim(),
+            classification: _scanResult?.classification,
+            wineName: _nameCtrl.text.trim(),
+          );
+          drinkStart = computed.drinkStart;
+          drinkEnd = computed.drinkEnd;
+          peakStart = computed.peakStart;
+          peakEnd = computed.peakEnd;
+        }
+      }
+
       final bottle = await repo.addBottle(
         cellarId: cellarId,
         wineName: _nameCtrl.text.trim(),
@@ -561,10 +585,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         tastingNotes: _scanResult?.tastingNotes,
         aiSummary: _scanResult?.summary,
         foodPairings: _scanResult?.foodPairings,
-        idealDrinkingStart: _scanResult?.idealDrinkingStart,
-        idealDrinkingEnd: _scanResult?.idealDrinkingEnd,
-        peakDrinkingStart: _scanResult?.peakDrinkingStart,
-        peakDrinkingEnd: _scanResult?.peakDrinkingEnd,
+        idealDrinkingStart: drinkStart,
+        idealDrinkingEnd: drinkEnd,
+        peakDrinkingStart: peakStart,
+        peakDrinkingEnd: peakEnd,
         estimatedMarketValue: _scanResult?.estimatedMarketValue,
         localPhotoPath: widget.imagePath.isNotEmpty ? widget.imagePath : null,
       );

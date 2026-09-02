@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../../cellar/domain/wine.dart';
 import '../domain/tasting_pedagogy_engine.dart';
 
 class TastingPedagogySheet extends StatelessWidget {

@@ -110,7 +110,9 @@ class AiCostTrackerService {
 
       if (usage != null) {
         promptTokens = (usage['promptTokenCount'] as num?)?.toInt() ?? 0;
-        candidateTokens = (usage['candidatesTokenCount'] as num?)?.toInt() ?? 0;
+        final candidateCount = (usage['candidatesTokenCount'] as num?)?.toInt() ?? 0;
+        final thoughtsCount = (usage['thoughtsTokenCount'] as num?)?.toInt() ?? 0;
+        candidateTokens = candidateCount + thoughtsCount;
       }
 
       // Fallback heuristics if API omitted usageMetadata (approx 3.8 chars per token)

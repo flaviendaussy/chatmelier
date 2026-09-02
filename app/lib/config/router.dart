@@ -142,6 +142,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: StatsScreen(),
             ),
           ),
+          GoRoute(
+            path: '/profile',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: ProfileScreen(),
+            ),
+          ),
         ],
       ),
 
@@ -189,10 +195,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/checkout/review',
         builder: (context, state) => const ConsumptionReviewScreen(),
-      ),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
         path: '/sharing/:cellarId',

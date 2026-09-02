@@ -59,7 +59,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _loadHistory() async {
-    final cellarId = ref.read(currentCellarIdProvider);
+    String? cellarId = ref.read(currentCellarIdProvider);
+    if (cellarId == null) {
+      try {
+        final cellars = await ref.read(userCellarsProvider.future);
+        if (cellars.isNotEmpty) {
+          final first = cellars.first;
+          final cMap = first['cellars'];
+          cellarId = (cMap is Map ? cMap['id']?.toString() : null) ?? first['cellar_id']?.toString();
+          if (cellarId != null && mounted) {
+            ref.read(currentCellarIdProvider.notifier).state = cellarId;
+          }
+        }
+      } catch (_) {}
+    }
     if (cellarId == null) return;
     try {
       final service = ref.read(chatServiceProvider);
@@ -107,7 +120,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
     _scrollToBottom();
 
-    final cellarId = ref.read(currentCellarIdProvider);
+    var cellarId = ref.read(currentCellarIdProvider);
+    if (cellarId == null) {
+      final cellars = ref.read(userCellarsProvider).value;
+      if (cellars != null && cellars.isNotEmpty) {
+        final first = cellars.first;
+        final cMap = first['cellars'];
+        cellarId = (cMap is Map ? cMap['id']?.toString() : null) ?? first['cellar_id']?.toString();
+        if (cellarId != null) {
+          ref.read(currentCellarIdProvider.notifier).state = cellarId;
+        }
+      }
+    }
     final service = ref.read(chatServiceProvider);
     final langCode = Localizations.localeOf(context).languageCode;
 

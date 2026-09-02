@@ -89,7 +89,19 @@ class CellarSwitcherSheet extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Text('Erreur : $err'),
             ),
-            data: (cellars) {
+            data: (rawCellars) {
+              // Deduplicate cellars by ID (prefer admin/owner role if present)
+              final Map<String, Map<String, dynamic>> uniqueMap = {};
+              for (final c in rawCellars) {
+                final cMap = c['cellars'] is Map<String, dynamic> ? c['cellars'] as Map<String, dynamic> : c;
+                final id = (cMap['id'] ?? c['cellar_id'] ?? '').toString();
+                if (id.isEmpty) continue;
+                if (!uniqueMap.containsKey(id) || c['role'] == 'admin') {
+                  uniqueMap[id] = c;
+                }
+              }
+              final cellars = uniqueMap.values.toList();
+
               if (cellars.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.all(16),

@@ -19,22 +19,59 @@ class CellarRepository {
   // ---------------------------------------------------------------------------
 
   Future<List<Map<String, dynamic>>> getUserCellarsWithRole() async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      final cached = _offlineStorage?.getCachedCellars() ?? [];
+      return cached.map((c) => {
+        'cellar_id': c.id,
+        'role': 'admin',
+        'cellars': {
+          'id': c.id,
+          'name': c.name,
+          'nickname': c.nickname,
+          'location_name': c.locationName,
+          'latitude': c.latitude,
+          'longitude': c.longitude,
+          'description': c.description,
+          'wifi_ssid': c.wifiSsid,
+          'radius_meters': c.radiusMeters,
+          'owner_id': c.ownerId,
+          'created_at': c.createdAt.toIso8601String(),
+        },
+      }).toList();
+    }
+
     try {
       final res = await _client
           .from('cellar_members')
           .select('cellar_id, role, cellars(*)')
+          .eq('user_id', user.id)
           .order('invited_at');
 
       final list = List<Map<String, dynamic>>.from(res as List);
       
+      // Deduplicate by cellar_id (keeping highest privilege role)
+      final Map<String, Map<String, dynamic>> uniqueCellars = {};
+      for (final item in list) {
+        final cMap = item['cellars'] as Map<String, dynamic>?;
+        final cId = (cMap != null && cMap['id'] != null)
+            ? cMap['id'].toString()
+            : item['cellar_id']?.toString() ?? '';
+        if (cId.isEmpty) continue;
+        if (!uniqueCellars.containsKey(cId) || item['role'] == 'admin') {
+          uniqueCellars[cId] = item;
+        }
+      }
+      final deduplicated = uniqueCellars.values.toList();
+
       // Save cellars in local cache
-      final cellars = list.map((item) {
+      final cellars = deduplicated.map((item) {
         final cMap = Map<String, dynamic>.from(item['cellars'] as Map);
         return Cellar.fromJson(cMap);
       }).toList();
 
       await _offlineStorage?.saveCachedCellars(cellars);
-      return list;
+      return deduplicated;
     } catch (e) {
       debugPrint('CellarRepository.getUserCellars error, falling back to cache: $e');
       final cached = _offlineStorage?.getCachedCellars() ?? [];

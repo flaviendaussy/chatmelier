@@ -676,6 +676,56 @@ class FriendsRepository {
         });
       } catch (_) {}
     }
+
+    // Always remove/mark read related notifications for the owner
+    try {
+      await _client
+          .from('user_notifications')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('actor_id', requesterId)
+          .eq('type', 'cellar_request');
+    } catch (_) {
+      try {
+        await _client
+            .from('user_notifications')
+            .update({'is_read': true})
+            .eq('user_id', user.id)
+            .eq('type', 'cellar_request');
+      } catch (_) {}
+    }
+  }
+
+  Future<void> dismissCellarRequest({
+    required String requestId,
+    required String requesterId,
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await _client
+          .from('cellar_access_requests')
+          .update({'status': 'rejected', 'responded_at': DateTime.now().toIso8601String()})
+          .eq('id', requestId);
+    } catch (_) {}
+
+    try {
+      await _client
+          .from('user_notifications')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('actor_id', requesterId)
+          .eq('type', 'cellar_request');
+    } catch (_) {
+      try {
+        await _client
+            .from('user_notifications')
+            .update({'is_read': true})
+            .eq('user_id', user.id)
+            .eq('type', 'cellar_request');
+      } catch (_) {}
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -700,7 +750,16 @@ class FriendsRepository {
       }
     }
 
-    // 1. Add to cellar_members
+    if (targetCellarId.isEmpty) {
+      final myMember = await _client.from('cellar_members').select('cellar_id').eq('user_id', user.id).eq('role', 'admin').limit(1).maybeSingle();
+      if (myMember != null && myMember['cellar_id'] != null) {
+        targetCellarId = myMember['cellar_id'].toString();
+      }
+    }
+
+    if (targetCellarId.isEmpty) throw Exception('Impossible de déterminer la cave à partager.');
+
+    // Upsert into cellar_members
     await _client.from('cellar_members').upsert({
       'cellar_id': targetCellarId,
       'user_id': friendUserId,
@@ -708,25 +767,23 @@ class FriendsRepository {
       'invited_at': DateTime.now().toIso8601String(),
     });
 
-    // 2. Notify friend
+    // Notify friend
     final myName = user.userMetadata?['display_name'] as String? ?? 'Votre ami';
-    final roleText = role == 'editor' ? 'Éditeur / Sommelier ✍️' : 'Lecteur 👁️';
+    final roleText = role == 'editor' ? 'Éditeur (Sommelier délégué ✍️)' : 'Lecteur (Consultation 👁️)';
 
     try {
       await _client.from('user_notifications').insert({
         'user_id': friendUserId,
         'actor_id': user.id,
         'type': 'cellar_granted',
-        'title': '🎁 Accès à une cave partagée !',
-        'body': '$myName vous a donné accès à sa cave "${cellarName ?? "Ma Cave"}" en tant que $roleText.',
+        'title': 'Accès à la cave accordé ! 🍷',
+        'body': '$myName vous a accordé l\'accès à sa cave "${cellarName ?? "Ma Cave"}" en mode $roleText.',
         'data': {
           'cellar_id': targetCellarId,
           'role': role,
         },
       });
-    } catch (e) {
-      AppLogger.warning('FRIENDS', 'Could not send direct grant notification: $e');
-    }
+    } catch (_) {}
 
     AppLogger.info('FRIENDS', 'Owner granted cellar $targetCellarId access to friend $friendUserId as $role');
   }
@@ -783,34 +840,50 @@ class FriendsRepository {
           ''')
           .eq('user_id', user.id)
           .eq('type', 'cellar_request')
+          .eq('is_read', false)
           .order('created_at', ascending: false)
           .limit(10);
 
       for (final n in (notifsRes as List<dynamic>)) {
+        if (n['is_read'] == true) continue;
         final nData = n['data'] as Map<String, dynamic>? ?? {};
         final reqId = nData['request_id']?.toString() ?? n['id']?.toString() ?? '';
         final requesterId = nData['requester_id']?.toString() ?? n['actor_id']?.toString() ?? '';
-        final alreadyPresent = requests.any((r) => r.id == reqId || (r.requesterId == requesterId && r.status == 'pending'));
-        if (!alreadyPresent && requesterId.isNotEmpty) {
-          final actorProfile = n['actor'] as Map<String, dynamic>?;
-          final extracted = _extractProfileData(actorProfile ?? {});
-          requests.add(
-            CellarAccessRequest(
-              id: reqId,
-              cellarId: nData['cellar_id']?.toString() ?? '',
-              cellarName: nData['cellar_name']?.toString() ?? 'Ma Cave',
-              ownerId: user.id,
-              requesterId: requesterId,
-              requesterName: extracted.displayName,
-              requesterUsername: extracted.username,
-              requesterAvatarUrl: extracted.avatarUrl,
-              requestedRole: nData['requested_role']?.toString() ?? 'viewer',
-              status: 'pending',
-              message: nData['message']?.toString(),
-              createdAt: DateTime.tryParse(n['created_at']?.toString() ?? '') ?? DateTime.now(),
-            ),
-          );
-        }
+        final alreadyPresent = requests.any((r) => r.id == reqId || (r.requesterId == requesterId));
+        if (alreadyPresent || requesterId.isEmpty) continue;
+
+        // Check if cellar_access_requests has already handled it
+        try {
+          final existing = await _client
+              .from('cellar_access_requests')
+              .select('status')
+              .eq('owner_id', user.id)
+              .eq('requester_id', requesterId)
+              .maybeSingle();
+          if (existing != null && existing['status'] != 'pending') {
+            await _client.from('user_notifications').update({'is_read': true}).eq('id', n['id']);
+            continue;
+          }
+        } catch (_) {}
+
+        final actorProfile = n['actor'] as Map<String, dynamic>?;
+        final extracted = _extractProfileData(actorProfile ?? {});
+        requests.add(
+          CellarAccessRequest(
+            id: reqId,
+            cellarId: nData['cellar_id']?.toString() ?? '',
+            cellarName: nData['cellar_name']?.toString() ?? 'Ma Cave',
+            ownerId: user.id,
+            requesterId: requesterId,
+            requesterName: extracted.displayName,
+            requesterUsername: extracted.username,
+            requesterAvatarUrl: extracted.avatarUrl,
+            requestedRole: nData['requested_role']?.toString() ?? 'viewer',
+            status: 'pending',
+            message: nData['message']?.toString(),
+            createdAt: DateTime.tryParse(n['created_at']?.toString() ?? '') ?? DateTime.now(),
+          ),
+        );
       }
     } catch (_) {}
 

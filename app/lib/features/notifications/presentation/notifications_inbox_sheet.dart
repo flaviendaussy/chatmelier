@@ -91,6 +91,8 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
   }
 
   Future<void> _respondCellarRequest(CellarAccessRequest req, bool accept, String role) async {
+    // Immediately dismiss from local state so badge and card vanish instantly
+    await ref.read(dismissedNotificationIdsProvider.notifier).dismiss(req.id);
     setState(() => _isProcessing = true);
     final repo = ref.read(friendsRepositoryProvider);
     try {
@@ -124,6 +126,15 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
+  }
+
+  Future<void> _dismissCellarRequest(CellarAccessRequest req) async {
+    await ref.read(dismissedNotificationIdsProvider.notifier).dismiss(req.id);
+    final repo = ref.read(friendsRepositoryProvider);
+    try {
+      await repo.dismissCellarRequest(requestId: req.id, requesterId: req.requesterId);
+      refreshFriendsAndNotifications(ref);
+    } catch (_) {}
   }
 
   Future<void> _markAllRead() async {
@@ -420,8 +431,11 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20, color: Colors.grey),
-                  tooltip: 'Annuler',
-                  onPressed: _isProcessing ? null : () => _declineFriend(friend),
+                  tooltip: 'Fermer / Ignorer',
+                  onPressed: _isProcessing ? null : () async {
+                    await ref.read(dismissedNotificationIdsProvider.notifier).dismiss(friend.id);
+                    await _declineFriend(friend);
+                  },
                 ),
               ],
             ),
@@ -535,8 +549,8 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20, color: Colors.grey),
-                  tooltip: 'Refuser',
-                  onPressed: _isProcessing ? null : () => _respondCellarRequest(req, false, 'none'),
+                  tooltip: 'Fermer / Ignorer',
+                  onPressed: _isProcessing ? null : () => _dismissCellarRequest(req),
                 ),
               ],
             ),

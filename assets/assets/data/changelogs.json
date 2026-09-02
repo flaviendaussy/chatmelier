@@ -1,0 +1,174 @@
+[
+  {
+    "version": "1.3.0",
+    "buildNumber": 4,
+    "releaseDate": "2026-08-25",
+    "title": "Multi-Caves, Partage avec Permissions & Mode Hors-Ligne",
+    "isLatest": true,
+    "client": {
+      "summary": "Gérez plusieurs caves (Londres, Vosges, etc.), partagez vos caves en Lecture seule ou Lecture & Écriture, et profitez d'un mode hors-ligne complet pour les caves souterraines sans réseau.",
+      "highlights": [
+        "📍 **Multi-Caves par personne** : Créez et basculez instantanément entre toutes vos caves (ex: Cave de Londres, Cave des Vosges).",
+        "🤝 **Partage avec Permissions Granulaires** : Invitez des proches en 'Lecture seule' (consultation) ou 'Lecture & Écriture' (ajout et dégustation).",
+        "📶 **Mode Hors-Ligne & Sync Buffer** : Votre inventaire reste consultable sans réseau dans les caves souterraines. Les ajouts et dégustations sont enregistrés localement et synchronisés automatiquement au retour du signal.",
+        "✨ **Enrichissement IA Différé** : Reconnaissance automatique des bouteilles ajoutées hors-ligne par Gemini 3.6 Flash et demande de confirmation de millésime si nécessaire.",
+        "🏷️ **Vocabulaire Harmonisé** : Remplacement systématique de toute mention archaïque par 'bouteille'."
+      ]
+    },
+    "developer": {
+      "summary": "Architecture offline-first avec SharedPreferences / JSON Cache, OfflineAction FIFO queue, trigger PostgreSQL auto-admin et permissions granulaires RLS.",
+      "sections": [
+        {
+          "category": "Multi-Cellar Architecture",
+          "items": [
+            "Trigger PostgreSQL `handle_new_cellar` auto-promouvant le créateur comme 'admin'.",
+            "Sélecteur de cave réactif `CellarSwitcherSheet` branché sur `currentCellarIdProvider` et `userCellarsProvider`.",
+            "Dialogue `CreateCellarDialog` avec validation, localisation et description."
+          ]
+        },
+        {
+          "category": "Offline Storage & Sync Engine",
+          "items": [
+            "Service `OfflineStorageService` gérant le cache local des caves et bouteilles et la file FIFO `OfflineAction`.",
+            "Service `SyncService` exécutant la réconciliation idempotente et l'enrichissement Gemini 3.6 Flash.",
+            "Composant réactif `OfflineSyncBanner` avec état réseau et dialogue de résolution de millésime `VintageResolutionDialog`."
+          ]
+        },
+        {
+          "category": "Role-Based Access Control (RBAC)",
+          "items": [
+            "Filtrage conditionnel UI pour le rôle 'viewer' (désactivation des actions d'écriture, dégustation et suppression).",
+            "Écran `CellarSharingScreen` avec bascule dynamique 'viewer' / 'editor' et gestion des invitations."
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "version": "1.2.0",
+    "buildNumber": 3,
+    "releaseDate": "2026-08-25",
+    "title": "Localisation Française, Sommelier Critique Objectif & Carte à Gratter",
+    "isLatest": false,
+    "client": {
+      "summary": "Chatmelier parle désormais un français parfait ! Découvrez également une franchise critique totale de notre sommelier IA et explorez les terroirs du monde avec la nouvelle carte à gratter.",
+      "highlights": [
+        "🇫🇷 **Traduction Française Intégrale** : Interface, filtres, cave, dégustations et réglages traduits avec soin.",
+        "🌐 **Sélecteur de Langue** : Basculez à tout moment entre Français, English ou le mode Automatique Système dans les réglages.",
+        "🍷 **Sommelier IA en Français** : Chatmelier répond en français et s'adapte à la langue de votre choix.",
+        "⚖️ **Neutralité Critique Totale** : Fini la flatterie automatique ! Chatmelier juge les vins objectivement et propose des usages culinaires adaptés pour les bouteilles modestes ou passées.",
+        "🗺️ **Carte à Gratter des Terroirs** : Découvrez et grattez visuellement les terroirs que vous avez dégustés à 4 échelles (Continents, Pays, Régions, Appellations).",
+        "📋 **Journal des Versions Intégré** : Suivez toutes les nouveautés de Chatmelier avec bascule Vue Client / Vue Développeur."
+      ]
+    },
+    "developer": {
+      "summary": "Architecture i18n/l10n standardisée, prompting neutre pour Gemini 2.5 Flash, module scratchcard vectorisé et gestionnaire de versions.",
+      "sections": [
+        {
+          "category": "Internationalization (l10n / i18n)",
+          "items": [
+            "Génération standard Flutter avec `flutter_localizations`, `intl` et `app_en.arb` / `app_fr.arb`.",
+            "Riverpod `LocaleNotifier` persistant la préférence utilisateur via `SharedPreferences`.",
+            "Propagation automatique du `languageCode` vers l'API Gemini et les Edge Functions."
+          ]
+        },
+        {
+          "category": "AI Sommelier & Prompt Engineering",
+          "items": [
+            "Mise à jour des system prompts dans `chat_service.dart` et `supabase/functions/chat/index.ts`.",
+            "Directive de neutralité stricte : évaluation honnête basée sur les notes critiques (<80 pts) et détection de statut `pastPeak`.",
+            "Repositionnement culinaire automatique (sauces, marinades, sangria) sans flatterie artificielle."
+          ]
+        },
+        {
+          "category": "World Wine Scratchcard Engine",
+          "items": [
+            "Taxonomie hiérarchique 4 niveaux (Continent -> Pays -> Région -> Appellation) dans `terroir_catalog.dart`.",
+            "Agrégation en temps réel depuis `tasting_log` et `bottles`.",
+            "Rendu personnalisé CustomPainter avec texture dorée à gratter et indicateurs de complétion."
+          ]
+        },
+        {
+          "category": "Build & UI Polish",
+          "items": [
+            "Icônes adaptatives Android XML (API 26+) avec zone de sécurité 72dp sur fond charbon `#323136`.",
+            "Amélioration de l'alignement des ListTiles dans `profile_screen.dart`."
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "version": "1.1.0",
+    "buildNumber": 2,
+    "releaseDate": "2026-08-24",
+    "title": "Google OAuth, Multi-devises & Cartographie Terroir",
+    "isLatest": false,
+    "client": {
+      "summary": "Connexion simplifiée avec Google, gestion de devises multiples pour vos achats de vin et cartographie interactive du terroir.",
+      "highlights": [
+        "🔑 **Connexion Google OAuth & Magic Link** : Authentification rapide et sécurisée sans mot de passe complexe.",
+        "💶 **Support Multi-Devises** : Déclarez et visualisez vos bouteilles en EUR (€), USD ($), GBP (£), CHF ou JPY (¥) avec conversion en temps réel.",
+        "🗺️ **Carte Terroir & Géographie** : Visualisez l'origine géographique exacte de vos vins dans la fiche bouteille.",
+        "📊 **Courbe Gaussienne d'Apogée** : Visualisez la trajectoire de maturité de vos vins et ne ratez plus le moment idéal.",
+        "⚡ **Menu d'Actions Rapides** : Accédez instantanément à l'ajout, la dégustation et la consultation de vins."
+      ]
+    },
+    "developer": {
+      "summary": "Intégration Google Sign-In SDK, helper de devises, canvas CustomPainter gaussien et intégration Map view.",
+      "sections": [
+        {
+          "category": "Authentication",
+          "items": [
+            "Configuration OAuth 2.0 Web Client & Android SHA-1 fingerprint.",
+            "Supabase Auth listener avec redirection GoRouter réactive."
+          ]
+        },
+        {
+          "category": "Currency & Economics",
+          "items": [
+            "`CurrencyHelper` avec taux de change et formateur de devises.",
+            "Stockage de la devise d'achat par bouteille et devise de consultation par utilisateur."
+          ]
+        },
+        {
+          "category": "Data Visualization",
+          "items": [
+            "`GaussianDrinkingCurve` CustomPainter calculant l'aire sous la courbe d'apogée.",
+            "`TerroirMapView` avec sélecteur d'échelle géographique."
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "version": "1.0.0",
+    "buildNumber": 1,
+    "releaseDate": "2026-08-20",
+    "title": "Lancement initial de Chatmelier",
+    "isLatest": false,
+    "client": {
+      "summary": "Bienvenue sur Chatmelier, votre cave à vin intelligente connectée avec Sommelier IA !",
+      "highlights": [
+        "📸 **Reconnaissance d'Étiquettes par IA** : Scannez vos bouteilles et laissez Chatmelier extraire le domaine, millésime, cépages et notes.",
+        "🍷 **Cave Partagée en Temps Réel** : Gérez vos bouteilles en famille ou entre amis avec gestion des rôles.",
+        "💬 **Chatmelier Sommelier IA** : Posez toutes vos questions d'accords mets-vins et de gestion de stock.",
+        "📖 **Carnet de Dégustation** : Notez vos dégustations, accords et impressions.",
+        "📈 **Statistiques de Cave** : Suivi de la valeur estimée, de la maturité et des couleurs de vins."
+      ]
+    },
+    "developer": {
+      "summary": "Architecture Flutter Riverpod, Supabase backend PostgreSQL avec Row Level Security, Gemini 2.5 Flash API.",
+      "sections": [
+        {
+          "category": "Architecture",
+          "items": [
+            "Flutter 3.x + Riverpod 2.6 State Management.",
+            "GoRouter declarative navigation avec AppShell.",
+            "Supabase PostgreSQL avec tables `cellars`, `bottles`, `wines`, `tasting_log`, `cellar_members`."
+          ]
+        }
+      ]
+    }
+  }
+]

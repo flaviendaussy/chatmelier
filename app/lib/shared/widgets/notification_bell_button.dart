@@ -19,22 +19,31 @@ class NotificationBellButton extends ConsumerStatefulWidget {
   ConsumerState<NotificationBellButton> createState() => _NotificationBellButtonState();
 }
 
-class _NotificationBellButtonState extends ConsumerState<NotificationBellButton> {
+class _NotificationBellButtonState extends ConsumerState<NotificationBellButton> with WidgetsBindingObserver {
   Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
-    // Periodic polling every 15s to keep friend and cellar requests in sync
-    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (_) {
-      if (mounted) {
+    WidgetsBinding.instance.addObserver(this);
+    // Lightweight polling every 75s to keep friend and cellar requests in sync without draining mobile data
+    _pollingTimer = Timer.periodic(const Duration(seconds: 75), (_) {
+      if (mounted && WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
         refreshFriendsAndNotifications(ref);
       }
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      refreshFriendsAndNotifications(ref);
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pollingTimer?.cancel();
     super.dispose();
   }

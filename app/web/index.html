@@ -21,6 +21,10 @@
   <meta name="description" content="Chatmelier — Sommelier Intelligent & Gestionnaire de Cave à Vin">
   <meta name="theme-color" content="#722F37">
 
+  <!-- Preconnect to Supabase API for faster initial fetch -->
+  <link rel="preconnect" href="https://fvnybncauhbpsnikzeeq.supabase.co" crossorigin>
+  <link rel="dns-prefetch" href="https://fvnybncauhbpsnikzeeq.supabase.co">
+
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -36,13 +40,78 @@
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
   <style>
     body {
-      background-color: #1C1B1F;
+      background-color: #1A131F;
       margin: 0;
       padding: 0;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    #loading-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: linear-gradient(180deg, #241426 0%, #150D17 100%);
+      color: #F5E6C8;
+      z-index: 9999;
+      transition: opacity 0.4s ease-out;
+    }
+    .logo-icon {
+      font-size: 54px;
+      margin-bottom: 16px;
+      animation: pulse 1.8s infinite ease-in-out;
+    }
+    .app-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #F8F4EE;
+      margin-bottom: 6px;
+    }
+    .app-subtitle {
+      font-size: 13px;
+      color: #D4AF37;
+      letter-spacing: 0.5px;
+      margin-bottom: 24px;
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(212, 175, 55, 0.2);
+      border-radius: 50%;
+      border-top-color: #D4AF37;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.06); opacity: 1; }
     }
   </style>
 </head>
 <body>
+  <div id="loading-indicator">
+    <div class="logo-icon">🍷</div>
+    <div class="app-title">Chatmelier</div>
+    <div class="app-subtitle">Sommelier Privé & Cave d'Exception</div>
+    <div class="spinner"></div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function() {
+      var el = document.getElementById('loading-indicator');
+      if (el) {
+        el.style.opacity = '0';
+        setTimeout(function() { el.remove(); }, 400);
+      }
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

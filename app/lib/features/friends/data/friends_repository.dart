@@ -478,7 +478,26 @@ class FriendsRepository {
     if (user == null) return;
     if (user.id == ownerId) throw Exception('Vous êtes déjà propriétaire de cette cave.');
 
-    // Look up target cellar ID if missing or equal to ownerId
+    // 1. Try server-side RPC (bypasses RLS restrictions cleanly)
+    try {
+      final rpcRes = await _client.rpc(
+        'request_friend_cellar_access',
+        params: {
+          'p_target_owner_id': ownerId,
+          'p_requested_role': requestedRole,
+          'p_cellar_id': cellarId,
+          'p_message': message,
+        },
+      );
+      if (rpcRes != null) {
+        AppLogger.info('FRIENDS', 'Successfully requested cellar access via RPC: $rpcRes');
+        return;
+      }
+    } catch (rpcErr) {
+      AppLogger.warning('FRIENDS', 'RPC request_friend_cellar_access fallback: $rpcErr');
+    }
+
+    // 2. Client-side fallback if RPC unavailable
     String targetCellarId = cellarId ?? '';
     String targetCellarName = 'Cave Partagée';
 
@@ -518,7 +537,7 @@ class FriendsRepository {
 
     final requestId = const Uuid().v4();
 
-    // 1. Insert into cellar_access_requests if targetCellarId is a valid cellar UUID
+    // Insert into cellar_access_requests if targetCellarId is a valid cellar UUID
     if (targetCellarId.isNotEmpty && targetCellarId != ownerId) {
       try {
         await _client.from('cellar_access_requests').upsert({
@@ -532,7 +551,7 @@ class FriendsRepository {
           'created_at': DateTime.now().toIso8601String(),
         });
       } catch (err) {
-        AppLogger.warning('FRIENDS', 'Could not upsert into cellar_access_requests (will fallback to notification): $err');
+        AppLogger.warning('FRIENDS', 'Could not upsert into cellar_access_requests: $err');
       }
     }
 
@@ -843,5 +862,19 @@ class FriendsRepository {
           .eq('user_id', user.id)
           .eq('is_read', false);
     } catch (_) {}
+  }
+
+  Future<void> deleteNotification(String notificationId) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+    try {
+      await _client
+          .from('user_notifications')
+          .delete()
+          .eq('id', notificationId)
+          .eq('user_id', user.id);
+    } catch (e) {
+      AppLogger.warning('FRIENDS', 'Could not delete notification: $e');
+    }
   }
 }

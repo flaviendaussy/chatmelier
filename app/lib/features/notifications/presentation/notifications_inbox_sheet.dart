@@ -418,6 +418,11 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                   tooltip: 'Garder pour plus tard',
                   onPressed: () => _dismissForLater(friend.id, 'Demande de ${friend.displayName}'),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 20, color: Colors.grey),
+                  tooltip: 'Annuler',
+                  onPressed: _isProcessing ? null : () => _declineFriend(friend),
+                ),
               ],
             ),
           ],
@@ -528,6 +533,11 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                   tooltip: 'Garder pour plus tard',
                   onPressed: () => _dismissForLater(req.id, 'Demande de cave de ${req.requesterName}'),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 20, color: Colors.grey),
+                  tooltip: 'Refuser',
+                  onPressed: _isProcessing ? null : () => _respondCellarRequest(req, false, 'none'),
+                ),
               ],
             ),
           ],
@@ -589,9 +599,11 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
             ),
           ],
         ),
-        trailing: notif.isRead
-            ? null
-            : IconButton(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!notif.isRead)
+              IconButton(
                 icon: const Icon(Icons.done, size: 18, color: Colors.grey),
                 tooltip: 'Marquer comme lu',
                 onPressed: () async {
@@ -599,6 +611,16 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                   refreshFriendsAndNotifications(ref);
                 },
               ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 18, color: Colors.grey),
+              tooltip: 'Supprimer',
+              onPressed: () async {
+                await ref.read(friendsRepositoryProvider).deleteNotification(notif.id);
+                refreshFriendsAndNotifications(ref);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

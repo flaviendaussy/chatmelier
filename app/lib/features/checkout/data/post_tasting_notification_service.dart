@@ -215,9 +215,10 @@ class PostTastingNotificationService {
     try {
       final result = await showDialog<String>(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true,
         builder: (ctx) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          titlePadding: const EdgeInsets.fromLTRB(20, 16, 12, 0),
           title: Row(
             children: [
               Container(
@@ -234,6 +235,11 @@ class PostTastingNotificationService {
                   'Alors, cette dégustation ?',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.grey, size: 22),
+                tooltip: 'Annuler',
+                onPressed: () => Navigator.of(ctx).pop('dismiss'),
               ),
             ],
           ),
@@ -282,6 +288,13 @@ class PostTastingNotificationService {
             ],
           ),
           actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop('dismiss'),
+              child: const Text(
+                'Ignorer',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
             PopupMenuButton<String>(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -338,7 +351,10 @@ class PostTastingNotificationService {
         ),
       );
 
-      if (result == null) return;
+      if (result == null || result == 'dismiss') {
+        await dismiss(notification.bottleId);
+        return;
+      }
 
       switch (result) {
         case 'snooze_1h':

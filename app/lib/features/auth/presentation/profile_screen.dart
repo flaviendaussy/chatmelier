@@ -392,7 +392,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onTap: _editPhoneNumber,
                 ),
                 const Divider(),
-                // 🕸️ HERO SPIDER CHART DES GOÛTS (RADAR 6D)
+                // 🕸️ HERO SPIDER CHART DES GOÛTS (RADAR)
                 Builder(
                   builder: (context) {
                     final currentProfile = _userTasteProfile ??
@@ -437,7 +437,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Spider Chart des Goûts (Radar 6D)',
+                                        'Radar',
                                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                       ),
                                       Text(
@@ -454,7 +454,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   ),
                                   onPressed: () => TasteProfileRadarScreen.show(context),
                                   icon: const Icon(Icons.fullscreen, size: 16),
-                                  label: const Text('Radar 3D', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                  label: const Text('Radar', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),

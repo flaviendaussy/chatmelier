@@ -21,6 +21,7 @@ import '../../../shared/utils/currency_helper.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/phone_dial_code.dart';
 import '../../../shared/widgets/international_phone_input.dart';
+import '../../../shared/widgets/notification_bell_button.dart';
 import '../domain/user_profile.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -295,6 +296,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n?.profileTitle ?? 'Profil & Réglages'),
+        actions: const [
+          NotificationBellButton(),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

@@ -28,6 +28,7 @@ import '../../auth/presentation/mandatory_username_dialog.dart';
 import '../../../shared/widgets/offline_sync_banner.dart';
 import '../../../shared/widgets/grape_chart.dart';
 import '../../../shared/utils/responsive_layout.dart';
+import '../../../shared/widgets/notification_bell_button.dart';
 
 enum CellarViewMode { grid, list, compact }
 
@@ -518,6 +519,8 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
           ),
         ),
         actions: [
+          // Notification Bell with live badge
+          const NotificationBellButton(),
           // Search toggle
           IconButton(
             icon: Icon(_showSearchBar ? Icons.search_off : Icons.search),

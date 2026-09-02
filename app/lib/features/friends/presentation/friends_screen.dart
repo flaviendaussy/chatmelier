@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/owner_avatar.dart';
+import '../../../shared/widgets/notification_bell_button.dart';
 import '../../auth/domain/user_profile.dart';
 import '../data/friends_repository.dart';
 import '../domain/cellar_access_request.dart';
@@ -171,6 +172,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     return Scaffold(
       appBar: AppBar(
         title: const Text('Amis & Caves Partagées'),
+        actions: const [
+          NotificationBellButton(),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: const Color(0xFFD4AF37),
@@ -358,12 +362,134 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                         ...taste.favoriteRegions.take(2).map((r) => _buildMiniChip('🗺️ $r', isDark)),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  // Quick Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          icon: const Icon(Icons.auto_awesome, size: 16, color: Color(0xFFD4AF37)),
+                          label: const Text('Carte des Goûts', style: TextStyle(fontSize: 12)),
+                          onPressed: () => FriendTasteCardSheet.show(context, friend),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: friend.hasCellarAccess ? const Color(0xFF10B981) : const Color(0xFF8B1E3F),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          icon: Icon(friend.hasCellarAccess ? Icons.check_circle : Icons.card_giftcard, size: 16),
+                          label: Text(
+                            friend.hasCellarAccess ? 'Accès Partagé' : 'Partager ma cave',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          onPressed: () => _showGrantCellarDialog(friend),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  void _showGrantCellarDialog(Friend friend) {
+    String selectedRole = friend.cellarAccessRole == 'editor' ? 'editor' : 'viewer';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              const Text('🎁 ', style: TextStyle(fontSize: 22)),
+              Expanded(
+                child: Text(
+                  'Partager ma cave avec ${friend.displayName}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Choisissez les droits d\'accès pour cette personne :',
+                style: TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              RadioListTile<String>(
+                title: const Text('Consultation (Lecteur 👁️)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                subtitle: const Text('Peut voir votre cave, vos bouteilles et vos fiches de dégustation.', style: TextStyle(fontSize: 11)),
+                value: 'viewer',
+                groupValue: selectedRole,
+                onChanged: (val) => setDialogState(() => selectedRole = val!),
+              ),
+              RadioListTile<String>(
+                title: const Text('Sommelier Délégué (Éditeur ✍️)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                subtitle: const Text('Peut ajouter, déplacer ou décrémenter des bouteilles dans votre cave.', style: TextStyle(fontSize: 11)),
+                value: 'editor',
+                groupValue: selectedRole,
+                onChanged: (val) => setDialogState(() => selectedRole = val!),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8B1E3F),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                try {
+                  await ref.read(friendsRepositoryProvider).grantCellarAccessDirectly(
+                    cellarId: '', // Automatically resolved to current user's cellar
+                    friendUserId: friend.friendUserId,
+                    role: selectedRole,
+                  );
+                  ref.invalidate(friendsListProvider);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('🍾 Accès à votre cave accordé à ${friend.displayName} !'),
+                        backgroundColor: const Color(0xFF10B981),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+                    );
+                  }
+                }
+              },
+              child: const Text('Confirmer l\'accès', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

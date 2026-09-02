@@ -41,6 +41,69 @@ final userNotificationsProvider = FutureProvider<List<UserNotification>>((ref) a
   return repo.getUserNotifications();
 });
 
+/// Tracks IDs of notifications / requests dismissed by the user for later
+final dismissedNotificationIdsProvider = StateNotifierProvider<DismissedNotificationIdsNotifier, Set<String>>((ref) {
+  return DismissedNotificationIdsNotifier();
+});
+
+class DismissedNotificationIdsNotifier extends StateNotifier<Set<String>> {
+  static const _key = 'chatmelier_dismissed_notification_ids_v1';
+  DismissedNotificationIdsNotifier() : super({}) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_key) ?? [];
+    if (mounted) {
+      state = list.toSet();
+    }
+  }
+
+  Future<void> dismiss(String id) async {
+    final updated = Set<String>.from(state)..add(id);
+    state = updated;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_key, updated.toList());
+  }
+
+  Future<void> undismiss(String id) async {
+    final updated = Set<String>.from(state)..remove(id);
+    state = updated;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_key, updated.toList());
+  }
+
+  Future<void> clearAll() async {
+    state = {};
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
+  }
+}
+
+/// Global computed badge count for the Notification Bell
+final unreadNotificationsCountProvider = Provider<int>((ref) {
+  final incomingFriends = ref.watch(pendingIncomingRequestsProvider).valueOrNull ?? [];
+  final incomingCellar = ref.watch(incomingCellarRequestsProvider).valueOrNull ?? [];
+  final notifications = ref.watch(userNotificationsProvider).valueOrNull ?? [];
+  final dismissed = ref.watch(dismissedNotificationIdsProvider);
+
+  final activeFriendsCount = incomingFriends.where((f) => !dismissed.contains(f.id) && !dismissed.contains(f.friendUserId)).length;
+  final activeCellarCount = incomingCellar.where((c) => !dismissed.contains(c.id)).length;
+  final unreadNotifsCount = notifications.where((n) => !n.isRead && !dismissed.contains(n.id)).length;
+
+  return activeFriendsCount + activeCellarCount + unreadNotifsCount;
+});
+
+/// Refreshes all friend and notification providers across the app
+void refreshFriendsAndNotifications(WidgetRef ref) {
+  ref.invalidate(friendsListProvider);
+  ref.invalidate(pendingIncomingRequestsProvider);
+  ref.invalidate(pendingOutgoingRequestsProvider);
+  ref.invalidate(incomingCellarRequestsProvider);
+  ref.invalidate(userNotificationsProvider);
+}
+
 class FriendsRepository {
   final SupabaseClient _client;
   static const String _cacheKey = 'chatmelier_friends_cache_v2';
@@ -74,6 +137,33 @@ class FriendsRepository {
     } catch (e) {
       AppLogger.error('FRIENDS', 'Error caching friends', e);
     }
+  }
+
+  static ({String displayName, String username, String? avatarUrl, String? phone, String? email}) _extractProfileData(Map<String, dynamic> map) {
+    String name = map['display_name'] as String? ?? 'Ami';
+    String? user = map['username'] as String?;
+    String? avatar = map['avatar_url'] as String?;
+    String? phone = map['phone_number'] as String?;
+    String? email = map['email'] as String?;
+
+    if (avatar != null && avatar.startsWith('meta://')) {
+      try {
+        final queryStr = avatar.contains('?') ? avatar.substring(avatar.indexOf('?') + 1) : avatar.substring(7);
+        final uriParams = Uri.splitQueryString(queryStr);
+        user ??= uriParams['u'] ?? uriParams['username'];
+        phone ??= uriParams['p'] ?? uriParams['phone'];
+        email ??= uriParams['e'] ?? uriParams['email'];
+        avatar = uriParams['avatar'];
+      } catch (_) {}
+    }
+
+    return (
+      displayName: name,
+      username: (user ?? '').replaceAll('@', '').toLowerCase(),
+      avatarUrl: avatar,
+      phone: phone,
+      email: email,
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -126,15 +216,16 @@ class FriendsRepository {
           final friendProfile = isSender ? map['recipient'] as Map<String, dynamic>? : map['requester'] as Map<String, dynamic>?;
 
           if (friendProfile != null) {
-            final friendId = friendProfile['id']?.toString() ?? '';
+            final friendId = friendProfile['id']?.toString() ?? (isSender ? map['friend_id'] : map['user_id'])?.toString() ?? '';
             final role = friendCellarRoles[friendId] ?? 'none';
+            final extracted = _extractProfileData(friendProfile);
 
             final tasteData = friendProfile['taste_profile'] as Map<String, dynamic>?;
             final taste = tasteData != null
                 ? TasteProfile.fromJson(tasteData)
                 : TasteProfile(
                     id: friendId,
-                    name: friendProfile['display_name'] as String? ?? 'Ami',
+                    name: extracted.displayName,
                     favoriteTypes: (friendProfile['favorite_types'] as List<dynamic>?)?.cast<String>() ?? const [],
                     favoriteRegions: (friendProfile['favorite_regions'] as List<dynamic>?)?.cast<String>() ?? const [],
                     favoriteGrapes: (friendProfile['favorite_grapes'] as List<dynamic>?)?.cast<String>() ?? const [],
@@ -144,11 +235,11 @@ class FriendsRepository {
               Friend(
                 id: map['id']?.toString() ?? '',
                 friendUserId: friendId,
-                displayName: friendProfile['display_name'] as String? ?? 'Ami',
-                username: (friendProfile['username'] as String? ?? '').replaceAll('@', '').toLowerCase(),
-                avatarUrl: friendProfile['avatar_url'] as String?,
-                phoneNumber: friendProfile['phone_number'] as String?,
-                email: friendProfile['email'] as String?,
+                displayName: extracted.displayName,
+                username: extracted.username,
+                avatarUrl: extracted.avatarUrl,
+                phoneNumber: extracted.phone,
+                email: extracted.email,
                 tasteProfile: taste,
                 status: 'accepted',
                 cellarAccessRole: role,
@@ -160,12 +251,11 @@ class FriendsRepository {
           }
         }
 
-        if (friendsList.isNotEmpty) {
-          await _saveCachedFriends(friendsList);
-          return friendsList;
-        }
+        await _saveCachedFriends(friendsList);
+        return friendsList;
       } catch (e) {
         AppLogger.warning('FRIENDS', 'Could not fetch remote friends, using cache: $e');
+        return _loadCachedFriends();
       }
     }
 
@@ -195,19 +285,21 @@ class FriendsRepository {
         final map = item as Map<String, dynamic>;
         final profile = map['requester'] as Map<String, dynamic>?;
         if (profile != null) {
+          final extracted = _extractProfileData(profile);
+          final friendId = profile['id']?.toString() ?? map['user_id']?.toString() ?? '';
           final tasteData = profile['taste_profile'] as Map<String, dynamic>?;
           list.add(
             Friend(
               id: map['id']?.toString() ?? '',
-              friendUserId: profile['id']?.toString() ?? '',
-              displayName: profile['display_name'] as String? ?? 'Ami',
-              username: (profile['username'] as String? ?? '').replaceAll('@', '').toLowerCase(),
-              avatarUrl: profile['avatar_url'] as String?,
-              phoneNumber: profile['phone_number'] as String?,
-              email: profile['email'] as String?,
+              friendUserId: friendId,
+              displayName: extracted.displayName,
+              username: extracted.username,
+              avatarUrl: extracted.avatarUrl,
+              phoneNumber: extracted.phone,
+              email: extracted.email,
               tasteProfile: tasteData != null
                   ? TasteProfile.fromJson(tasteData)
-                  : TasteProfile(id: profile['id']?.toString() ?? '', name: profile['display_name'] as String? ?? 'Ami'),
+                  : TasteProfile(id: friendId, name: extracted.displayName),
               status: 'pending',
               isOutgoing: false,
               createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'].toString()) : DateTime.now(),
@@ -245,19 +337,21 @@ class FriendsRepository {
         final map = item as Map<String, dynamic>;
         final profile = map['recipient'] as Map<String, dynamic>?;
         if (profile != null) {
+          final extracted = _extractProfileData(profile);
+          final friendId = profile['id']?.toString() ?? map['friend_id']?.toString() ?? '';
           final tasteData = profile['taste_profile'] as Map<String, dynamic>?;
           list.add(
             Friend(
               id: map['id']?.toString() ?? '',
-              friendUserId: profile['id']?.toString() ?? '',
-              displayName: profile['display_name'] as String? ?? 'Ami',
-              username: (profile['username'] as String? ?? '').replaceAll('@', '').toLowerCase(),
-              avatarUrl: profile['avatar_url'] as String?,
-              phoneNumber: profile['phone_number'] as String?,
-              email: profile['email'] as String?,
+              friendUserId: friendId,
+              displayName: extracted.displayName,
+              username: extracted.username,
+              avatarUrl: extracted.avatarUrl,
+              phoneNumber: extracted.phone,
+              email: extracted.email,
               tasteProfile: tasteData != null
                   ? TasteProfile.fromJson(tasteData)
-                  : TasteProfile(id: profile['id']?.toString() ?? '', name: profile['display_name'] as String? ?? 'Ami'),
+                  : TasteProfile(id: friendId, name: extracted.displayName),
               status: 'pending',
               isOutgoing: true,
               createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'].toString()) : DateTime.now(),
@@ -375,7 +469,7 @@ class FriendsRepository {
   // 7. Request Cellar Access (Friend asks to view / edit a friend's cellar)
   // ---------------------------------------------------------------------------
   Future<void> requestCellarAccess({
-    required String cellarId,
+    String? cellarId,
     required String ownerId,
     required String requestedRole, // 'viewer' or 'editor'
     String? message,
@@ -384,21 +478,65 @@ class FriendsRepository {
     if (user == null) return;
     if (user.id == ownerId) throw Exception('Vous êtes déjà propriétaire de cette cave.');
 
+    // Look up target cellar ID if missing or equal to ownerId
+    String targetCellarId = cellarId ?? '';
+    String targetCellarName = 'Cave Partagée';
+
+    if (targetCellarId.isEmpty || targetCellarId == ownerId) {
+      try {
+        final cellarRes = await _client
+            .from('cellars')
+            .select('id, name')
+            .eq('owner_id', ownerId)
+            .limit(1)
+            .maybeSingle();
+        if (cellarRes != null && cellarRes['id'] != null) {
+          targetCellarId = cellarRes['id'].toString();
+          targetCellarName = cellarRes['name']?.toString() ?? 'Cave Partagée';
+        }
+      } catch (_) {}
+    }
+
+    if (targetCellarId.isEmpty || targetCellarId == ownerId) {
+      try {
+        final memberRes = await _client
+            .from('cellar_members')
+            .select('cellar_id, cellars(id, name)')
+            .eq('user_id', ownerId)
+            .eq('role', 'admin')
+            .limit(1)
+            .maybeSingle();
+        if (memberRes != null) {
+          targetCellarId = memberRes['cellar_id']?.toString() ?? '';
+          final cMap = memberRes['cellars'] as Map<String, dynamic>?;
+          if (cMap != null && cMap['name'] != null) {
+            targetCellarName = cMap['name'].toString();
+          }
+        }
+      } catch (_) {}
+    }
+
     final requestId = const Uuid().v4();
 
-    // 1. Insert or update cellar access request
-    await _client.from('cellar_access_requests').upsert({
-      'id': requestId,
-      'cellar_id': cellarId,
-      'owner_id': ownerId,
-      'requester_id': user.id,
-      'requested_role': requestedRole,
-      'status': 'pending',
-      'message': message,
-      'created_at': DateTime.now().toIso8601String(),
-    });
+    // 1. Insert into cellar_access_requests if targetCellarId is a valid cellar UUID
+    if (targetCellarId.isNotEmpty && targetCellarId != ownerId) {
+      try {
+        await _client.from('cellar_access_requests').upsert({
+          'id': requestId,
+          'cellar_id': targetCellarId,
+          'owner_id': ownerId,
+          'requester_id': user.id,
+          'requested_role': requestedRole,
+          'status': 'pending',
+          'message': message,
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      } catch (err) {
+        AppLogger.warning('FRIENDS', 'Could not upsert into cellar_access_requests (will fallback to notification): $err');
+      }
+    }
 
-    // 2. Notify cellar owner
+    // 2. Always notify cellar owner
     final myDisplayName = user.userMetadata?['display_name'] as String? ?? 'Un ami';
     final roleLabel = requestedRole == 'editor' ? 'Écriture / Sommelier délégué ✍️' : 'Consultation (Lecture seule) 👁️';
 
@@ -411,16 +549,19 @@ class FriendsRepository {
         'body': '$myDisplayName souhaite accéder à votre cave en mode "$roleLabel".',
         'data': {
           'request_id': requestId,
-          'cellar_id': cellarId,
+          'cellar_id': targetCellarId,
+          'cellar_name': targetCellarName,
           'requester_id': user.id,
+          'requester_name': myDisplayName,
           'requested_role': requestedRole,
+          'message': message,
         },
       });
     } catch (e) {
       AppLogger.warning('FRIENDS', 'Could not send cellar access notification: $e');
     }
 
-    AppLogger.info('FRIENDS', 'Requested cellar access for cellar $cellarId to owner $ownerId (role: $requestedRole)');
+    AppLogger.info('FRIENDS', 'Requested cellar access for owner $ownerId (cellar: $targetCellarId, role: $requestedRole)');
   }
 
   // ---------------------------------------------------------------------------
@@ -437,20 +578,45 @@ class FriendsRepository {
     final user = _client.auth.currentUser;
     if (user == null) return;
 
+    // Resolve owner's actual cellar if cellarId was blank
+    String targetCellarId = cellarId;
+    if (targetCellarId.isEmpty) {
+      try {
+        final myCellar = await _client.from('cellars').select('id, name').eq('owner_id', user.id).limit(1).maybeSingle();
+        if (myCellar != null && myCellar['id'] != null) {
+          targetCellarId = myCellar['id'].toString();
+          cellarName ??= myCellar['name']?.toString();
+        }
+      } catch (_) {}
+    }
+
+    if (targetCellarId.isEmpty) {
+      try {
+        final myMember = await _client.from('cellar_members').select('cellar_id').eq('user_id', user.id).eq('role', 'admin').limit(1).maybeSingle();
+        if (myMember != null && myMember['cellar_id'] != null) {
+          targetCellarId = myMember['cellar_id'].toString();
+        }
+      } catch (_) {}
+    }
+
     if (accept) {
       // 1. Update request to accepted
-      await _client
-          .from('cellar_access_requests')
-          .update({'status': 'accepted', 'responded_at': DateTime.now().toIso8601String()})
-          .eq('id', requestId);
+      try {
+        await _client
+            .from('cellar_access_requests')
+            .update({'status': 'accepted', 'responded_at': DateTime.now().toIso8601String()})
+            .eq('id', requestId);
+      } catch (_) {}
 
       // 2. Add member to cellar_members
-      await _client.from('cellar_members').upsert({
-        'cellar_id': cellarId,
-        'user_id': requesterId,
-        'role': role,
-        'invited_at': DateTime.now().toIso8601String(),
-      });
+      if (targetCellarId.isNotEmpty) {
+        await _client.from('cellar_members').upsert({
+          'cellar_id': targetCellarId,
+          'user_id': requesterId,
+          'role': role,
+          'invited_at': DateTime.now().toIso8601String(),
+        });
+      }
 
       // 3. Notify requester
       final myName = user.userMetadata?['display_name'] as String? ?? 'Le propriétaire';
@@ -463,7 +629,7 @@ class FriendsRepository {
           'title': 'Accès à la cave accordé ! 🍾',
           'body': '$myName a accepté votre demande d\'accès à sa cave "${cellarName ?? "Ma Cave"}" avec les droits "$roleText".',
           'data': {
-            'cellar_id': cellarId,
+            'cellar_id': targetCellarId,
             'role': role,
           },
         });
@@ -472,10 +638,12 @@ class FriendsRepository {
       }
     } else {
       // Reject request
-      await _client
-          .from('cellar_access_requests')
-          .update({'status': 'rejected', 'responded_at': DateTime.now().toIso8601String()})
-          .eq('id', requestId);
+      try {
+        await _client
+            .from('cellar_access_requests')
+            .update({'status': 'rejected', 'responded_at': DateTime.now().toIso8601String()})
+            .eq('id', requestId);
+      } catch (_) {}
 
       final myName = user.userMetadata?['display_name'] as String? ?? 'Le propriétaire';
       try {
@@ -485,7 +653,7 @@ class FriendsRepository {
           'type': 'cellar_rejected',
           'title': 'Demande d\'accès cave refusée',
           'body': '$myName a décliné votre demande d\'accès à sa cave.',
-          'data': {'cellar_id': cellarId},
+          'data': {'cellar_id': targetCellarId},
         });
       } catch (_) {}
     }
@@ -503,9 +671,19 @@ class FriendsRepository {
     final user = _client.auth.currentUser;
     if (user == null) return;
 
+    // Resolve cellar ID if empty
+    String targetCellarId = cellarId;
+    if (targetCellarId.isEmpty) {
+      final myCellar = await _client.from('cellars').select('id, name').eq('owner_id', user.id).limit(1).maybeSingle();
+      if (myCellar != null && myCellar['id'] != null) {
+        targetCellarId = myCellar['id'].toString();
+        cellarName ??= myCellar['name']?.toString();
+      }
+    }
+
     // 1. Add to cellar_members
     await _client.from('cellar_members').upsert({
-      'cellar_id': cellarId,
+      'cellar_id': targetCellarId,
       'user_id': friendUserId,
       'role': role,
       'invited_at': DateTime.now().toIso8601String(),
@@ -513,7 +691,7 @@ class FriendsRepository {
 
     // 2. Notify friend
     final myName = user.userMetadata?['display_name'] as String? ?? 'Votre ami';
-    final roleText = role == 'editor' ? 'Éditeur / Sommelier' : 'Lecteur';
+    final roleText = role == 'editor' ? 'Éditeur / Sommelier ✍️' : 'Lecteur 👁️';
 
     try {
       await _client.from('user_notifications').insert({
@@ -523,7 +701,7 @@ class FriendsRepository {
         'title': '🎁 Accès à une cave partagée !',
         'body': '$myName vous a donné accès à sa cave "${cellarName ?? "Ma Cave"}" en tant que $roleText.',
         'data': {
-          'cellar_id': cellarId,
+          'cellar_id': targetCellarId,
           'role': role,
         },
       });
@@ -531,7 +709,7 @@ class FriendsRepository {
       AppLogger.warning('FRIENDS', 'Could not send direct grant notification: $e');
     }
 
-    AppLogger.info('FRIENDS', 'Owner granted cellar $cellarId access to friend $friendUserId as $role');
+    AppLogger.info('FRIENDS', 'Owner granted cellar $targetCellarId access to friend $friendUserId as $role');
   }
 
   // ---------------------------------------------------------------------------
@@ -555,6 +733,8 @@ class FriendsRepository {
     final user = _client.auth.currentUser;
     if (user == null) return [];
 
+    final List<CellarAccessRequest> requests = [];
+
     try {
       final res = await _client
           .from('cellar_access_requests')
@@ -567,11 +747,55 @@ class FriendsRepository {
           .eq('status', 'pending')
           .timeout(const Duration(seconds: 3));
 
-      return (res as List<dynamic>).map((j) => CellarAccessRequest.fromJson(j as Map<String, dynamic>)).toList();
+      for (final j in (res as List<dynamic>)) {
+        requests.add(CellarAccessRequest.fromJson(j as Map<String, dynamic>));
+      }
     } catch (e) {
-      AppLogger.warning('FRIENDS', 'Could not fetch incoming cellar requests: $e');
-      return [];
+      AppLogger.warning('FRIENDS', 'Could not fetch incoming cellar requests from table: $e');
     }
+
+    // Complement with pending cellar requests from notifications
+    try {
+      final notifsRes = await _client
+          .from('user_notifications')
+          .select('''
+            id, user_id, actor_id, type, title, body, data, is_read, created_at,
+            actor:profiles!user_notifications_actor_id_fkey(id, display_name, avatar_url)
+          ''')
+          .eq('user_id', user.id)
+          .eq('type', 'cellar_request')
+          .order('created_at', ascending: false)
+          .limit(10);
+
+      for (final n in (notifsRes as List<dynamic>)) {
+        final nData = n['data'] as Map<String, dynamic>? ?? {};
+        final reqId = nData['request_id']?.toString() ?? n['id']?.toString() ?? '';
+        final requesterId = nData['requester_id']?.toString() ?? n['actor_id']?.toString() ?? '';
+        final alreadyPresent = requests.any((r) => r.id == reqId || (r.requesterId == requesterId && r.status == 'pending'));
+        if (!alreadyPresent && requesterId.isNotEmpty) {
+          final actorProfile = n['actor'] as Map<String, dynamic>?;
+          final extracted = _extractProfileData(actorProfile ?? {});
+          requests.add(
+            CellarAccessRequest(
+              id: reqId,
+              cellarId: nData['cellar_id']?.toString() ?? '',
+              cellarName: nData['cellar_name']?.toString() ?? 'Ma Cave',
+              ownerId: user.id,
+              requesterId: requesterId,
+              requesterName: extracted.displayName,
+              requesterUsername: extracted.username,
+              requesterAvatarUrl: extracted.avatarUrl,
+              requestedRole: nData['requested_role']?.toString() ?? 'viewer',
+              status: 'pending',
+              message: nData['message']?.toString(),
+              createdAt: DateTime.tryParse(n['created_at']?.toString() ?? '') ?? DateTime.now(),
+            ),
+          );
+        }
+      }
+    } catch (_) {}
+
+    return requests;
   }
 
   // ---------------------------------------------------------------------------
@@ -606,6 +830,18 @@ class FriendsRepository {
           .from('user_notifications')
           .update({'is_read': true})
           .eq('id', notificationId);
+    } catch (_) {}
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+    try {
+      await _client
+          .from('user_notifications')
+          .update({'is_read': true})
+          .eq('user_id', user.id)
+          .eq('is_read', false);
     } catch (_) {}
   }
 }

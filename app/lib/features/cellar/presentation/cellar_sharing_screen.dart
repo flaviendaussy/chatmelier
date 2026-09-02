@@ -6,6 +6,9 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/widgets/owner_avatar.dart';
+import '../../../shared/widgets/notification_bell_button.dart';
+import '../../friends/data/friends_repository.dart';
+import '../../friends/domain/friend.dart';
 
 /// Screen for managing cellar members and invitations.
 /// Allows admins to invite users (by email or shareable link),
@@ -260,18 +263,38 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
     final theme = Theme.of(context);
     final currentUserId = ref.read(supabaseProvider).auth.currentUser?.id;
 
+    final incomingCellarAsync = ref.watch(incomingCellarRequestsProvider);
+    final cellarRequests = (incomingCellarAsync.valueOrNull ?? [])
+        .where((r) => r.cellarId == widget.cellarId || r.cellarId.isEmpty)
+        .toList();
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sharing & Members'),
+        title: Text('Partage - ${widget.cellarName}'),
+        actions: const [
+          NotificationBellButton(),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                // ============ INCOMING CELLAR REQUESTS ============
+                if (cellarRequests.isNotEmpty) ...[
+                  _buildPendingCellarRequestsBanner(cellarRequests, theme),
+                  const SizedBox(height: 20),
+                ],
+
+                // ============ FRIENDS DIRECT ACCESS SECTION ============
+                if (_isAdmin) ...[
+                  _buildFriendsAccessSection(theme),
+                  const SizedBox(height: 24),
+                ],
+
                 // ============ INVITE SECTION (admin only) ============
                 if (_isAdmin) ...[
-                  Text('Invite someone', style: theme.textTheme.titleMedium),
+                  Text('Inviter par email ou lien', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -475,6 +498,287 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pending Requests Banner
+  // ---------------------------------------------------------------------------
+  Widget _buildPendingCellarRequestsBanner(List<dynamic> requests, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFD4AF37), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.mark_email_unread_outlined, color: Color(0xFFD4AF37), size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Demandes d\'accès reçues (${requests.length})',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: Color(0xFFD4AF37)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...requests.map((r) {
+            final req = r;
+            final reqName = req.requesterName as String? ?? 'Un ami';
+            final role = req.requestedRole == 'editor' ? 'Sommelier ✍️' : 'Lecteur 👁️';
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '$reqName souhaite accéder en tant que $role',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _respondCellarRequest(req.id, req.requesterId, false, 'none'),
+                    child: const Text('Refuser', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  ),
+                  const SizedBox(width: 6),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    ),
+                    onPressed: () => _respondCellarRequest(req.id, req.requesterId, true, req.requestedRole),
+                    child: const Text('Accepter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _respondCellarRequest(String reqId, String requesterId, bool accept, String role) async {
+    try {
+      await ref.read(friendsRepositoryProvider).respondCellarAccess(
+        requestId: reqId,
+        cellarId: widget.cellarId,
+        requesterId: requesterId,
+        accept: accept,
+        role: role,
+        cellarName: widget.cellarName,
+      );
+      _loadData();
+      refreshFriendsAndNotifications(ref);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(accept ? 'Accès accordé !' : 'Demande refusée.'),
+            backgroundColor: accept ? const Color(0xFF10B981) : Colors.grey.shade800,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Friends Direct Access Section
+  // ---------------------------------------------------------------------------
+  Widget _buildFriendsAccessSection(ThemeData theme) {
+    final friendsAsync = ref.watch(friendsListProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Partager avec mes amis', style: theme.textTheme.titleMedium),
+            TextButton.icon(
+              icon: const Icon(Icons.person_add, size: 16, color: Color(0xFFD4AF37)),
+              label: const Text('Ajouter un ami', style: TextStyle(fontSize: 12, color: Color(0xFFD4AF37))),
+              onPressed: () => context.push('/friends'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        friendsAsync.when(
+          loading: () => const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator())),
+          error: (err, _) => Text('Erreur amis: $err', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          data: (friends) {
+            if (friends.isEmpty) {
+              return Card(
+                elevation: 0,
+                color: theme.colorScheme.surfaceContainerLow,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      const Text('👥 ', style: TextStyle(fontSize: 24)),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Vous n\'avez pas encore d\'amis ajoutés. Ajoutez vos proches pour partager votre cave en 1 clic !',
+                          style: TextStyle(fontSize: 12.5, color: Colors.grey),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.push('/friends'),
+                        child: const Text('Rechercher'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return Column(
+              children: friends.map((friend) {
+                final member = _members.firstWhere(
+                  (m) => m['user_id'] == friend.friendUserId,
+                  orElse: () => <String, dynamic>{},
+                );
+                final isAlreadyMember = member.isNotEmpty;
+                final memberRole = member['role']?.toString() ?? 'viewer';
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    leading: OwnerAvatar(userId: friend.friendUserId, radius: 20),
+                    title: Text(friend.displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    subtitle: Text(friend.handle, style: const TextStyle(fontSize: 12, color: Color(0xFF8B1E3F))),
+                    trailing: isAlreadyMember
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+                            ),
+                            child: Text(
+                              memberRole == 'editor' ? '✍️ Sommelier' : '👁️ Lecteur',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: Color(0xFF10B981)),
+                            ),
+                          )
+                        : ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF8B1E3F),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            ),
+                            icon: const Icon(Icons.card_giftcard, size: 15),
+                            label: const Text('Donner accès', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            onPressed: () => _showGrantCellarDialogToFriend(friend),
+                          ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  void _showGrantCellarDialogToFriend(Friend friend) {
+    String selectedRole = 'viewer';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              const Text('🎁 ', style: TextStyle(fontSize: 22)),
+              Expanded(
+                child: Text(
+                  'Accès cave pour ${friend.displayName}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Donner accès à "${widget.cellarName}" :',
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              RadioListTile<String>(
+                title: const Text('Lecteur (Consultation 👁️)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                subtitle: const Text('Peut voir votre cave, vos bouteilles et vos fiches de dégustation.', style: TextStyle(fontSize: 11)),
+                value: 'viewer',
+                groupValue: selectedRole,
+                onChanged: (val) => setDialogState(() => selectedRole = val!),
+              ),
+              RadioListTile<String>(
+                title: const Text('Sommelier Délégué (Éditeur ✍️)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                subtitle: const Text('Peut ajouter, déplacer et consommer des bouteilles dans cette cave.', style: TextStyle(fontSize: 11)),
+                value: 'editor',
+                groupValue: selectedRole,
+                onChanged: (val) => setDialogState(() => selectedRole = val!),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8B1E3F),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                try {
+                  await ref.read(friendsRepositoryProvider).grantCellarAccessDirectly(
+                    cellarId: widget.cellarId,
+                    friendUserId: friend.friendUserId,
+                    role: selectedRole,
+                    cellarName: widget.cellarName,
+                  );
+                  _loadData();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('🍾 Accès accordé à ${friend.displayName} !'),
+                        backgroundColor: const Color(0xFF10B981),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+                    );
+                  }
+                }
+              },
+              child: const Text('Confirmer l\'accès', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

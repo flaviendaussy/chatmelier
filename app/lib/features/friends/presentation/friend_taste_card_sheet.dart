@@ -109,10 +109,8 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                 setState(() => _isActionLoading = true);
                 try {
                   final repo = ref.read(friendsRepositoryProvider);
-                  // Default or fetch friend cellar ID
-                  final cellarId = widget.friend.friendCellarId ?? widget.friend.friendUserId;
                   await repo.requestCellarAccess(
-                    cellarId: cellarId,
+                    cellarId: widget.friend.friendCellarId,
                     ownerId: widget.friend.friendUserId,
                     requestedRole: selectedRole,
                     message: messageCtrl.text.trim().isNotEmpty ? messageCtrl.text.trim() : null,

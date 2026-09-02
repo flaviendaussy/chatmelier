@@ -1,7 +1,7 @@
 name: chatmelier
 description: A wine cellar management app.
 publish_to: 'none'
-version: 1.2.0+20
+version: 1.2.0+21
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -10,6 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_localizations:
+    sdk: flutter
+  flutter_web_plugins:
     sdk: flutter
   supabase_flutter: ^2.8.0
   flutter_riverpod: ^2.6.0

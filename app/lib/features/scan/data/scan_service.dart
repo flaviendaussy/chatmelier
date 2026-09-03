@@ -82,18 +82,18 @@ class ScanService {
 
       const prompt = '''You are Chatmelier, the world-class master sommelier and OCR wine recognition engine.
 Analyze this wine bottle label photo with maximum precision.
-Extract or infer the following factual wine properties:
-1. "name": The wine name / cuvée (e.g. "Château Margaux", "Les Terrasses", "Tignanello", "Terrebrune").
-2. "producer": The winery, estate, domain, or chateau producer name (e.g. "Domaine de Terrebrune", "Domaine Tempier", "Antinori").
-3. "vintage": Year as integer (e.g. 2018, 2019, 2020) or null if non-vintage / not visible.
-4. "cuvee_parcel": Specific cuvée, parcel, or plot name if indicated, else null.
-5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange"].
-6. "country": Country of origin (e.g. "France", "Italy", "Spain", "United States").
-7. "region": Region (e.g. "Provence", "Bordeaux", "Bourgogne", "Toscana", "Napa Valley").
-8. "sub_region": Sub-region if applicable (e.g. "Bandol", "Médoc", "Côte de Nuits"), else null.
-9. "appellation": Appellation or AOC/DOC/DOCG (e.g. "Bandol", "Margaux", "Pauillac", "Chianti Classico"), else null.
-10. "classification": Official classification if applicable (e.g. "Grand Cru Classé", "Premier Cru", "AOP", "AOC"), else null.
-11. "alcohol_pct": Alcohol percentage as number (e.g. 13.5, 14.0) or null.
+Extract or infer the following factual beverage properties:
+1. "name": The wine or spirit name / cuvée (e.g. "Château Margaux", "Bénédictine D.O.M.", "Chartreuse Verte", "Lagavulin 16").
+2. "producer": The winery, estate, domain, distillery or house name (e.g. "Bénédictine", "Domaine de Terrebrune", "Antinori").
+3. "vintage": Year as integer (e.g. 2018, 2019) or null if non-vintage / not visible / spirit.
+4. "cuvee_parcel": Specific cuvée, parcel, or cask/expression name if indicated, else null.
+5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits and herbal liqueurs (e.g. Bénédictine, Chartreuse, Cointreau, Amaretto) must be classified as "liqueur" or "spirit" (or specific spirit), NEVER as "dessert" or "moelleux".
+6. "country": Country of origin (e.g. "France", "Italy", "Scotland", "United States").
+7. "region": Region (e.g. "Normandie", "Bordeaux", "Bourgogne", "Islay").
+8. "sub_region": Sub-region if applicable, else null.
+9. "appellation": Appellation or AOC/DOC/AOP/type if applicable, else null.
+10. "classification": Official classification if applicable (e.g. "Liqueur de plantes", "Grand Cru Classé", "Single Malt"), else null.
+11. "alcohol_pct": Alcohol percentage (% vol / ABV) as number (e.g. 40.0 for Bénédictine, 55.0 for Chartreuse Verte, 13.5 for wine). Look closely for % vol on label or provide the verified standard ABV. Do not leave null if known.
 12. "grapes": Array of objects [{"name": "Grape Variety Name", "pct": percentage_number or null}]. YOU MUST strictly extract or deduce the exact grape variety composition (e.g., Bandol Rouge Terrebrune = 85% Mourvèdre, 10% Grenache, 5% Cinsault; Châteauneuf-du-Pape = Grenache, Syrah, Mourvèdre, Cinsault; Bordeaux = Cabernet Sauvignon, Merlot, etc.).
 13. "tasting_notes": Expert sommelier aromas, palate, and structure notes.
 14. "food_pairings": Array of 3 to 5 matching food pairings.
@@ -577,18 +577,18 @@ Return strictly a valid JSON object matching this schema.''';
 Analyze the following wine description, restaurant wine list entry, or chalkboard text:
 "$text"
 
-Extract or deduce the exact factual wine properties:
-1. "name": The wine name / cuvée (e.g. "Château Margaux", "Les Terrasses", "Terrebrune", "Saint-Joseph", "Chablis Premier Cru").
-2. "producer": The winery or estate producer name (e.g. "Domaine Coursodon", "Domaine Laroche", "Domaine de Terrebrune").
-3. "vintage": Year as integer (e.g. 2021, 2022) or null if not indicated.
+Extract or deduce the exact factual wine or spirit properties:
+1. "name": The wine or spirit name / cuvée (e.g. "Château Margaux", "Bénédictine D.O.M.", "Chartreuse", "Lagavulin 16").
+2. "producer": The winery, estate or distillery producer name (e.g. "Bénédictine", "Domaine Laroche", "Domaine de Terrebrune").
+3. "vintage": Year as integer (e.g. 2021, 2022) or null if not indicated / spirit.
 4. "cuvee_parcel": Specific parcel/cuvée name or null.
-5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange"].
-6. "country": Country of origin (default "France" if French appellation).
-7. "region": Region (e.g. "Vallée du Rhône", "Bourgogne", "Bordeaux", "Provence", "Loire").
+5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits and herbal liqueurs (e.g. Bénédictine, Chartreuse, Cointreau) must be classified as "liqueur" or "spirit", NEVER as "dessert" or "moelleux".
+6. "country": Country of origin (default "France" if French appellation or distillery).
+7. "region": Region (e.g. "Normandie", "Vallée du Rhône", "Bourgogne", "Bordeaux").
 8. "sub_region": Sub-region or null.
-9. "appellation": Appellation or AOC/AOP/IGP (e.g. "Saint-Joseph", "Chablis", "Bandol").
+9. "appellation": Appellation or AOC/AOP/IGP or null.
 10. "classification": Official classification or null.
-11. "alcohol_pct": Typical alcohol percentage as number or null.
+11. "alcohol_pct": Typical alcohol percentage (% vol / ABV) as number (e.g. 40.0, 13.5) or null.
 12. "grapes": Array of objects [{"name": "Grape Variety", "pct": percentage_number or null}] (e.g. Syrah 100%, Chardonnay 100%, etc.).
 13. "tasting_notes": Expert sommelier aromas, palate, and structure notes.
 14. "food_pairings": Array of 3 to 5 matching food pairings.

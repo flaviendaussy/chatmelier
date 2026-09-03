@@ -338,6 +338,16 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                       onChanged: (v) => setState(() => _pantrySearch = v.trim()),
                     ),
                   ),
+                  // Add Custom Item Button
+                  FilledButton.tonalIcon(
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Ajouter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    onPressed: () => _showAddPantryItemDialog(context),
+                  ),
                   const SizedBox(width: 8),
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
@@ -347,7 +357,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text('Reset tout', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    label: const Text('Reset', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     onPressed: () => _confirmResetAll(context),
                   ),
                 ],
@@ -715,6 +725,124 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showAddPantryItemDialog(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    PantryCategory selectedCat = PantryCategory.custom;
+    final emojiCtrl = TextEditingController(text: '✨');
+    final unitCtrl = TextEditingController(text: 'unités');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Row(
+              children: [
+                Icon(Icons.add_circle_outline, color: Color(0xFF8B1E3F)),
+                SizedBox(width: 8),
+                Text('Nouvel ingrédient', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: 'Nom de l\'ingrédient *',
+                      hintText: 'Ex: Sirop de fleur de sureau, Yuzu...',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<PantryCategory>(
+                    value: selectedCat,
+                    decoration: InputDecoration(
+                      labelText: 'Catégorie',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    items: PantryCategory.values.map((cat) {
+                      return DropdownMenuItem(
+                        value: cat,
+                        child: Row(
+                          children: [
+                            Icon(cat.icon, size: 16),
+                            const SizedBox(width: 8),
+                            Text(cat.labelFr),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) setDialogState(() => selectedCat = val);
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 80,
+                        child: TextField(
+                          controller: emojiCtrl,
+                          textAlign: TextAlign.center,
+                          decoration: InputDecoration(
+                            labelText: 'Émoji',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: unitCtrl,
+                          decoration: InputDecoration(
+                            labelText: 'Unité (ex: pièces, cl)',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B1E3F),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  final name = nameCtrl.text.trim();
+                  if (name.isEmpty) return;
+                  ref.read(barPantryProvider.notifier).addCustomItem(
+                    name,
+                    selectedCat,
+                    unit: unitCtrl.text.trim().isNotEmpty ? unitCtrl.text.trim() : 'unités',
+                    emoji: emojiCtrl.text.trim().isNotEmpty ? emojiCtrl.text.trim() : '🍹',
+                  );
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Ingrédient "$name" ajouté au bar pantry !'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                child: const Text('Ajouter'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

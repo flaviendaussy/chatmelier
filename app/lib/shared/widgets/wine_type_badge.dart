@@ -54,6 +54,9 @@ class WineTypeBadge extends StatelessWidget {
       case 'liqueur':
       case 'amaretto':
       case 'triple_sec':
+      case 'benedictine':
+      case 'bénédictine':
+      case 'chartreuse':
         return const Color(0xFF9C27B0); // Velvet Purple
       case 'campari':
       case 'bitter':
@@ -121,6 +124,9 @@ class WineTypeBadge extends StatelessWidget {
       case 'liqueur':
       case 'amaretto':
       case 'triple_sec':
+      case 'benedictine':
+      case 'bénédictine':
+      case 'chartreuse':
         return 'LIQUEUR';
       case 'campari':
       case 'bitter':

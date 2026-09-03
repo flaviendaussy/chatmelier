@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 
 enum PantryCategory {
+  ice,
   fruits,
   herbs,
   mixers,
   syrups,
-  ice,
   custom;
 
   String get labelFr {
     switch (this) {
+      case PantryCategory.ice:
+        return 'Glaçons & Glace';
       case PantryCategory.fruits:
-        return 'Fruits & Agrumes';
+        return 'Agrumes & Fruits';
       case PantryCategory.herbs:
-        return 'Herbes & Aromates';
+        return 'Herbes & Épices';
       case PantryCategory.mixers:
-        return 'Softs & Mixers';
+        return 'Mixers & Softs';
       case PantryCategory.syrups:
         return 'Sirops & Bitters';
-      case PantryCategory.ice:
-        return 'Glace';
       case PantryCategory.custom:
         return 'Personnalisés';
     }

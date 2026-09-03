@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:chatmelier/features/cocktails/data/cocktail_catalog.dart';
 import 'package:chatmelier/features/cocktails/data/custom_cocktail_service.dart';
 import 'package:chatmelier/features/cocktails/domain/cocktail.dart';
 

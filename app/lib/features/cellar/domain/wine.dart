@@ -213,59 +213,103 @@ class Wine {
     this.userOverrides = const [],
   });
 
-  factory Wine.fromJson(Map<String, dynamic> json) => Wine(
-    id: json['id'] as String? ?? '',
-    name: json['name'] as String? ?? 'Unnamed Wine',
-    producer: json['producer'] as String?,
-    cuveeParcel: json['cuvee_parcel'] as String?,
-    type: json['wine_type'] as String? ?? json['type'] as String? ?? 'red',
-    country: json['country'] as String? ?? '',
-    region: json['region'] as String? ?? '',
-    subRegion: json['sub_region'] as String?,
-    appellation: json['appellation'] as String?,
-    classification: json['classification'] as String?,
-    vintage: (json['vintage'] as num?)?.toInt() ?? int.tryParse(json['vintage']?.toString() ?? ''),
-    alcoholPct: (json['alcohol_pct'] as num?)?.toDouble(),
-    grapes: (json['grapes'] as List<dynamic>?)
-        ?.map((g) => Grape.fromJson(g as Map<String, dynamic>))
-        .toList() ?? const [],
-    tastingNotes: json['tasting_notes'] as String?,
-    drinkStart: (json['ideal_drinking_start'] as num?)?.toInt(),
-    drinkEnd: (json['ideal_drinking_end'] as num?)?.toInt(),
-    peakStart: (json['peak_drinking_start'] as num?)?.toInt(),
-    peakEnd: (json['peak_drinking_end'] as num?)?.toInt(),
-    foodPairings: (json['ai_food_pairings'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
-    summary: json['ai_summary'] as String?,
-    criticScores: (json['critic_scores'] as List<dynamic>?)
-        ?.map((s) => CriticScore.fromJson(s as Map<String, dynamic>))
-        .toList() ?? const [],
-    estimatedMarketValue: (json['estimated_market_value'] as num?)?.toDouble(),
-    estimatedValueCurrency: json['estimated_value_currency'] as String? ?? 'EUR',
-    lastValuationDate: json['last_valuation_date'] != null ? DateTime.tryParse(json['last_valuation_date'].toString()) : null,
-    valuationHistory: (json['valuation_history'] as List<dynamic>?)
-        ?.map((v) => ValuationPoint.fromJson(v as Map<String, dynamic>))
-        .toList() ?? const [],
-    sourcesVerified: (json['sources_verified'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
-    isVerifiedOnline: json['is_verified_online'] as bool? ?? false,
-    barrelAging: json['barrel_aging'] as String?,
-    vinificationMethod: json['vinification_method'] as String?,
-    malolacticFermentation: json['malolactic_fermentation'] as String?,
-    harvestMethod: json['harvest_method'] as String?,
-    terroirSoil: json['terroir_soil'] as String?,
-    isTechnicalDataVerified: json['is_technical_data_verified'] as bool? ?? false,
-    imageUrl: json['image_url'] as String? ??
-        json['label_image_url'] as String? ??
-        (json['external_links'] is Map ? (json['external_links'] as Map)['image_url'] as String? : null) ??
-        json['imageUrl'] as String?,
-    userOverrides: (json['user_overrides'] as List<dynamic>?)?.map((e) => e.toString()).toList()
-        ?? (json['external_links'] is Map && (json['external_links'] as Map)['user_overrides'] is List
-            ? ((json['external_links'] as Map)['user_overrides'] as List<dynamic>).map((e) => e.toString()).toList()
-            : const []),
-  );
+  factory Wine.fromJson(Map<String, dynamic> json) {
+    final rawType = json['wine_type'] as String? ?? json['type'] as String? ?? 'red';
+    final rawName = json['name'] as String? ?? 'Unnamed Wine';
+    final rawProducer = json['producer'] as String?;
+    final rawAppellation = json['appellation'] as String?;
+    final combinedLower = '$rawName ${rawProducer ?? ""} ${rawAppellation ?? ""}'.toLowerCase();
+
+    // Auto-normalize spirits and famous liqueurs misclassified as dessert/moelleux/white
+    String resolvedType = rawType;
+    if (combinedLower.contains('bénédictine') ||
+        combinedLower.contains('benedictine') ||
+        combinedLower.contains('chartreuse') ||
+        combinedLower.contains('cointreau') ||
+        combinedLower.contains('grand marnier') ||
+        combinedLower.contains('amaretto') ||
+        combinedLower.contains('disaronno') ||
+        combinedLower.contains('kahlúa') ||
+        combinedLower.contains('kahlua') ||
+        combinedLower.contains('limoncello') ||
+        combinedLower.contains('sambuca')) {
+      if (resolvedType == 'dessert' || resolvedType == 'moelleux' || resolvedType == 'white' || resolvedType == 'red') {
+        resolvedType = 'liqueur';
+      }
+    } else if (combinedLower.contains('whisky') || combinedLower.contains('whiskey') || combinedLower.contains('bourbon') || combinedLower.contains('scotch')) {
+      if (resolvedType == 'dessert' || resolvedType == 'white' || resolvedType == 'red') resolvedType = 'whisky';
+    } else if (combinedLower.contains('rhum') || combinedLower.contains('rum')) {
+      if (resolvedType == 'dessert' || resolvedType == 'white' || resolvedType == 'red') resolvedType = 'rhum';
+    } else if (combinedLower.contains('cognac') || combinedLower.contains('armagnac') || combinedLower.contains('calvados')) {
+      if (resolvedType == 'dessert' || resolvedType == 'white' || resolvedType == 'red') resolvedType = 'cognac';
+    }
+
+    // Auto-fill alcohol content for famous spirits if missing from DB
+    double? alcohol = (json['alcohol_pct'] as num?)?.toDouble();
+    if (alcohol == null) {
+      if (combinedLower.contains('bénédictine') || combinedLower.contains('benedictine')) {
+        alcohol = 40.0;
+      } else if (combinedLower.contains('chartreuse')) {
+        alcohol = combinedLower.contains('jaune') ? 43.0 : 55.0;
+      } else if (combinedLower.contains('cointreau')) {
+        alcohol = 40.0;
+      }
+    }
+
+    return Wine(
+      id: json['id'] as String? ?? '',
+      name: rawName,
+      producer: rawProducer,
+      cuveeParcel: json['cuvee_parcel'] as String?,
+      type: resolvedType,
+      country: json['country'] as String? ?? '',
+      region: json['region'] as String? ?? '',
+      subRegion: json['sub_region'] as String?,
+      appellation: rawAppellation,
+      classification: json['classification'] as String?,
+      vintage: (json['vintage'] as num?)?.toInt() ?? int.tryParse(json['vintage']?.toString() ?? ''),
+      alcoholPct: alcohol,
+      grapes: (json['grapes'] as List<dynamic>?)
+          ?.map((g) => Grape.fromJson(g as Map<String, dynamic>))
+          .toList() ?? const [],
+      tastingNotes: json['tasting_notes'] as String?,
+      drinkStart: (json['ideal_drinking_start'] as num?)?.toInt(),
+      drinkEnd: (json['ideal_drinking_end'] as num?)?.toInt(),
+      peakStart: (json['peak_drinking_start'] as num?)?.toInt(),
+      peakEnd: (json['peak_drinking_end'] as num?)?.toInt(),
+      foodPairings: (json['ai_food_pairings'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
+      summary: json['ai_summary'] as String?,
+      criticScores: (json['critic_scores'] as List<dynamic>?)
+          ?.map((s) => CriticScore.fromJson(s as Map<String, dynamic>))
+          .toList() ?? const [],
+      estimatedMarketValue: (json['estimated_market_value'] as num?)?.toDouble(),
+      estimatedValueCurrency: json['estimated_value_currency'] as String? ?? 'EUR',
+      lastValuationDate: json['last_valuation_date'] != null ? DateTime.tryParse(json['last_valuation_date'].toString()) : null,
+      valuationHistory: (json['valuation_history'] as List<dynamic>?)
+          ?.map((v) => ValuationPoint.fromJson(v as Map<String, dynamic>))
+          .toList() ?? const [],
+      sourcesVerified: (json['sources_verified'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
+      isVerifiedOnline: json['is_verified_online'] as bool? ?? false,
+      barrelAging: json['barrel_aging'] as String?,
+      vinificationMethod: json['vinification_method'] as String?,
+      malolacticFermentation: json['malolactic_fermentation'] as String?,
+      harvestMethod: json['harvest_method'] as String?,
+      terroirSoil: json['terroir_soil'] as String?,
+      isTechnicalDataVerified: json['is_technical_data_verified'] as bool? ?? false,
+      imageUrl: json['image_url'] as String? ??
+          json['label_image_url'] as String? ??
+          (json['external_links'] is Map ? (json['external_links'] as Map)['image_url'] as String? : null) ??
+          json['imageUrl'] as String?,
+      userOverrides: (json['user_overrides'] as List<dynamic>?)?.map((e) => e.toString()).toList()
+          ?? (json['external_links'] is Map && (json['external_links'] as Map)['user_overrides'] is List
+              ? ((json['external_links'] as Map)['user_overrides'] as List<dynamic>).map((e) => e.toString()).toList()
+              : const []),
+    );
+  }
 
   bool get isSpirit {
     final t = type.toLowerCase().trim();
-    return t == 'spirit' ||
+    if (t == 'spirit' ||
         t == 'whisky' ||
         t == 'whiskey' ||
         t == 'bourbon' ||
@@ -278,11 +322,38 @@ class Wine {
         t == 'mezcal' ||
         t == 'cognac' ||
         t == 'armagnac' ||
+        t == 'calvados' ||
         t == 'liqueur' ||
         t == 'vermouth' ||
         t == 'aperitif' ||
         t == 'bitter' ||
-        t == 'hard';
+        t == 'hard') {
+      return true;
+    }
+
+    final n = '$name ${producer ?? ""} ${appellation ?? ""}'.toLowerCase();
+    return n.contains('bénédictine') ||
+        n.contains('benedictine') ||
+        n.contains('chartreuse') ||
+        n.contains('cointreau') ||
+        n.contains('grand marnier') ||
+        n.contains('amaretto') ||
+        n.contains('disaronno') ||
+        n.contains('campari') ||
+        n.contains('aperol') ||
+        n.contains('kahlúa') ||
+        n.contains('kahlua') ||
+        n.contains('sambuca') ||
+        n.contains('limoncello') ||
+        n.contains('pastis') ||
+        n.contains('ricard') ||
+        n.contains('absinthe') ||
+        n.contains('calvados') ||
+        n.contains('grappa') ||
+        n.contains('pisco') ||
+        n.contains('whisky') ||
+        n.contains('whiskey') ||
+        n.contains('bourbon');
   }
 
   DrinkWindowStatus get windowStatus {

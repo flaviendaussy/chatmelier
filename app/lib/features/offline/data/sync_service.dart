@@ -508,8 +508,11 @@ class SyncService {
     if (updates.containsKey('purchase_price')) {
       updates['purchase_price'] = (updates['purchase_price'] as num?)?.toDouble();
     }
+    if (updates.containsKey('fill_level')) {
+      updates['fill_level'] = (updates['fill_level'] as num?)?.toInt();
+    }
     if (updates.isNotEmpty) {
-      await _supabase.from('bottles').update(updates).eq('id', bottleId);
+      await _executeResilientUpdate('bottles', bottleId, updates);
     }
   }
 
@@ -562,7 +565,45 @@ class SyncService {
     if (wineId == null || wineId.startsWith('temp_')) return;
     final updates = Map<String, dynamic>.from(data)..remove('wine_id');
     if (updates.isNotEmpty) {
-      await _supabase.from('wines').update(updates).eq('id', wineId);
+      await _executeResilientUpdate('wines', wineId, updates);
+    }
+  }
+
+  /// Executes an update on a Supabase table defensively. If PostgREST returns a PGRST204
+  /// (column not in schema cache), it strips the unmapped column and retries cleanly
+  /// so that offline action queues are never permanently blocked by schema variations.
+  Future<void> _executeResilientUpdate(
+    String table,
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    if (updates.isEmpty) return;
+    final currentUpdates = Map<String, dynamic>.from(updates);
+
+    while (currentUpdates.isNotEmpty) {
+      try {
+        await _supabase.from(table).update(currentUpdates).eq('id', id);
+        return;
+      } catch (e) {
+        final errStr = e.toString();
+        if (errStr.contains('PGRST204') ||
+            errStr.contains('Could not find the') ||
+            errStr.contains('column of')) {
+          final match = RegExp(r"Could not find the '([^']+)' column").firstMatch(errStr);
+          if (match != null) {
+            final col = match.group(1);
+            if (col != null && currentUpdates.containsKey(col)) {
+              AppLogger.warning(
+                'OFFLINE_SYNC',
+                'Suppression automatique du champ "$col" non présent dans le schéma "$table" lors du sync: $errStr',
+              );
+              currentUpdates.remove(col);
+              continue;
+            }
+          }
+        }
+        rethrow;
+      }
     }
   }
 

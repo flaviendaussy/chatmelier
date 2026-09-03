@@ -40,6 +40,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   final _notesCtrl = TextEditingController();
   final _rackCtrl = TextEditingController();
   final _shelfCtrl = TextEditingController();
+  final _alcoholPctCtrl = TextEditingController();
 
   String _wineType = 'red';
   int _quantity = 1;
@@ -95,6 +96,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     _rackCtrl.text = b.rack ?? '';
     _shelfCtrl.text = b.shelf ?? '';
     _notesCtrl.text = b.notes ?? '';
+    if (w?.alcoholPct != null) {
+      _alcoholPctCtrl.text = w!.alcoholPct!.toStringAsFixed(w.alcoholPct! % 1 == 0 ? 0 : 1);
+    }
   }
 
   Future<void> _analyzeImage() async {
@@ -120,6 +124,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           _countryCtrl.text = result.country.isNotEmpty ? result.country : 'France';
           _regionCtrl.text = result.region.isNotEmpty ? result.region : 'Bordeaux';
           _appellationCtrl.text = result.appellation ?? '';
+          if (result.alcoholPct != null) {
+            _alcoholPctCtrl.text = result.alcoholPct!.toStringAsFixed(result.alcoholPct! % 1 == 0 ? 0 : 1);
+          }
           // Note: result.tastingNotes is an enological property of the wine, stored on Wine,
           // not user's personal bottle notes (_notesCtrl.text remains clean for user input).
           if (result.estimatedMarketValue != null && _priceCtrl.text.isEmpty) {
@@ -427,7 +434,15 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   String _normalizeWineType(String type) {
-    final lower = type.toLowerCase();
+    final lower = type.toLowerCase().trim();
+    if (lower.contains('bénédictine') || lower.contains('benedictine') || lower == 'liqueur') return 'liqueur';
+    if (lower.contains('whisky') || lower.contains('whiskey') || lower.contains('bourbon') || lower.contains('scotch')) return 'whisky';
+    if (lower.contains('rhum') || lower.contains('rum')) return 'rhum';
+    if (lower.contains('gin')) return 'gin';
+    if (lower.contains('vodka')) return 'vodka';
+    if (lower.contains('tequila') || lower.contains('mezcal')) return 'tequila';
+    if (lower.contains('cognac') || lower.contains('armagnac') || lower.contains('brandy')) return 'cognac';
+    if (lower == 'spirit' || lower == 'spiritueux') return 'spirit';
     if (lower.contains('blanc') || lower == 'white') return 'white';
     if (lower.contains('ros') || lower == 'rosé') return 'rosé';
     if (lower.contains('sparkling') || lower.contains('champ') || lower.contains('bulles') || lower.contains('effervescent')) return 'sparkling';
@@ -440,6 +455,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     _nameCtrl.dispose();
     _producerCtrl.dispose();
     _vintageCtrl.dispose();
+    _alcoholPctCtrl.dispose();
     _regionCtrl.dispose();
     _countryCtrl.dispose();
     _appellationCtrl.dispose();
@@ -590,7 +606,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         appellation: _appellationCtrl.text.trim().isEmpty ? null : _appellationCtrl.text.trim(),
         classification: _scanResult?.classification,
         cuveeParcel: _scanResult?.cuveeParcel,
-        alcoholPct: _scanResult?.alcoholPct,
+        alcoholPct: double.tryParse(_alcoholPctCtrl.text.trim().replaceAll(',', '.')) ?? _scanResult?.alcoholPct,
         quantity: _quantity,
         purchasePrice: price,
         currency: _selectedCurrency,
@@ -1174,24 +1190,40 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     Row(
                       children: [
                         Expanded(
+                          flex: 3,
                           child: TextFormField(
                             controller: _vintageCtrl,
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
                               labelText: 'Millésime',
                               hintText: 'ex: 2018',
-                              prefixIcon: Icon(Icons.calendar_today),
+                              prefixIcon: Icon(Icons.calendar_today, size: 16),
                               border: OutlineInputBorder(),
                             ),
                             onChanged: (_) => _checkDuplicateInCellar(),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Expanded(
+                          flex: 3,
+                          child: TextFormField(
+                            controller: _alcoholPctCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: const InputDecoration(
+                              labelText: 'Alcool',
+                              hintText: 'ex: 13.5 ou 40',
+                              suffixText: '%',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 4,
                           child: DropdownButtonFormField<String>(
                             initialValue: _wineType,
                             decoration: const InputDecoration(
-                              labelText: 'Type de vin',
+                              labelText: 'Catégorie',
                               border: OutlineInputBorder(),
                             ),
                             items: const [
@@ -1200,6 +1232,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                               DropdownMenuItem(value: 'rosé', child: Text('Rosé 🌸')),
                               DropdownMenuItem(value: 'sparkling', child: Text('Bulles 🍾')),
                               DropdownMenuItem(value: 'dessert', child: Text('Moelleux 🍯')),
+                              DropdownMenuItem(value: 'liqueur', child: Text('Liqueur 🍯')),
+                              DropdownMenuItem(value: 'spirit', child: Text('Spiritueux 🥃')),
+                              DropdownMenuItem(value: 'whisky', child: Text('Whisky 🥃')),
+                              DropdownMenuItem(value: 'rhum', child: Text('Rhum 🏴‍☠️')),
+                              DropdownMenuItem(value: 'gin', child: Text('Gin 🍸')),
+                              DropdownMenuItem(value: 'vodka', child: Text('Vodka 🧊')),
+                              DropdownMenuItem(value: 'tequila', child: Text('Tequila 🌵')),
+                              DropdownMenuItem(value: 'cognac', child: Text('Cognac 🍷')),
                             ],
                             onChanged: (val) {
                               if (val != null) {

@@ -29,6 +29,7 @@ import 'sommelier_table_mode_sheet.dart';
 import 'bottle_edit_sheet.dart';
 import 'wine_enrichment_diff_dialog.dart';
 import 'wine_reverse_food_pairing_sheet.dart';
+import 'spirit_bottle_fill_view.dart';
 import '../../offline/presentation/sync_provider.dart';
 
 class BottleDetailScreen extends ConsumerStatefulWidget {
@@ -725,6 +726,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     if (_isLoading) {
       return const Scaffold(
@@ -761,6 +763,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
     final userNotes = isAIPollutedNote ? null : rawUserNotes;
     final isViewOnly = ref.watch(currentCellarRoleProvider) == 'viewer';
 
+    final fillLevel = (_bottleData!['fill_level'] as num?)?.toInt() ?? 100;
+
     final bottleObj = Bottle(
       id: widget.id,
       cellarId: _bottleData!['cellar_id'] as String? ?? '',
@@ -777,6 +781,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       notes: userNotes,
       createdAt: DateTime.tryParse(_bottleData!['created_at']?.toString() ?? '') ?? DateTime.now(),
       wine: wine,
+      fillLevel: fillLevel,
     );
 
     return Scaffold(
@@ -911,6 +916,27 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     children: [
                       WineTypeBadge(type: wine.type),
                       const SizedBox(width: 8),
+                      if (wine.alcoholPct != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white12 : Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isDark ? Colors.white24 : Colors.grey.shade400,
+                            ),
+                          ),
+                          child: Text(
+                            '${wine.alcoholPct!.toStringAsFixed(wine.alcoholPct! % 1 == 0 ? 0 : 1)}% vol',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white70 : Colors.black87,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       DrinkingWindowBadge(status: wine.windowStatus),
                       const Spacer(),
                       if (ownerProfile != null)
@@ -967,6 +993,27 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                       ),
                     ),
                   ],
+
+                  // Spirit Bottle Fill View (Only for spirits)
+                  if (wine.isSpirit) ...[
+                    const SizedBox(height: 14),
+                    SpiritBottleFillView(
+                      fillLevel: bottleObj.fillLevel,
+                      spiritType: wine.type,
+                      wineName: wine.name,
+                      readOnly: isViewOnly,
+                      onFillLevelChanged: (newLevel) async {
+                        final repo = ref.read(cellarRepositoryProvider);
+                        await repo.updateBottle(bottleObj.id, fillLevel: newLevel);
+                        if (mounted) {
+                          setState(() {
+                            _bottleData!['fill_level'] = newLevel;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+
                   const SizedBox(height: 16),
 
                   // ================= ACTIONS: AI ENRICHMENT & EDIT ALL FIELDS =================

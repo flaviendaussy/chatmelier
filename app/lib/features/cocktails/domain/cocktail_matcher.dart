@@ -28,7 +28,7 @@ class CocktailMatcher {
     required List<Bottle> cellarBottles,
     required List<BarPantryItem> pantryItems,
   }) {
-    final availableSpirits = cellarBottles.where((b) => b.quantity > 0).toList();
+    final availableSpirits = cellarBottles.where((b) => b.quantity > 0 && b.fillLevel > 0).toList();
     final inStockPantry = {for (final item in pantryItems.where((i) => i.inStock)) item.id: item};
 
     final List<String> available = [];
@@ -133,6 +133,23 @@ class CocktailMatcher {
           break;
         case 'triple_sec':
           if (combined.contains('triple sec') || combined.contains('cointreau') || combined.contains('grand marnier') || combined.contains('curaçao') || combined.contains('curacao')) return b;
+          break;
+        case 'benedictine':
+        case 'bénédictine':
+          if (combined.contains('benedictine') || combined.contains('bénédictine')) return b;
+          break;
+        case 'chartreuse':
+        case 'chartreuse_green':
+        case 'chartreuse_yellow':
+          if (combined.contains('chartreuse')) return b;
+          break;
+        case 'maraschino':
+        case 'marasquin':
+          if (combined.contains('marasquin') || combined.contains('maraschino') || combined.contains('luxardo')) return b;
+          break;
+        case 'cherry_brandy':
+        case 'cherry_liqueur':
+          if (combined.contains('cherry') || combined.contains('cerise') || combined.contains('guignolet') || combined.contains('heering')) return b;
           break;
         case 'liqueur_coffee':
           if (combined.contains('kahlúa') || combined.contains('kahlua') || combined.contains('tia maria') || (combined.contains('liqueur') && combined.contains('café'))) return b;

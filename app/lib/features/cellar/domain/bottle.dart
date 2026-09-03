@@ -26,6 +26,7 @@ class Bottle {
   final Wine? wine;
   final String? ownerName;
   final String? photoUrl;
+  final int fillLevel; // 0 to 100 %, default 100
 
   const Bottle({
     required this.id,
@@ -50,6 +51,7 @@ class Bottle {
     this.wine,
     this.ownerName,
     this.photoUrl,
+    this.fillLevel = 100,
   });
 
   factory Bottle.fromJson(Map<String, dynamic> json) {
@@ -125,6 +127,7 @@ class Bottle {
       wine: wineObj,
       ownerName: (json['profiles'] as Map<String, dynamic>?)?['display_name'] as String?,
       photoUrl: resolvedPhoto,
+      fillLevel: (json['fill_level'] ?? json['fillLevel'] as num?)?.toInt() ?? 100,
     );
   }
 
@@ -151,10 +154,13 @@ class Bottle {
         if (wine != null) 'wines': wine!.toJson(),
         if (ownerName != null) 'profiles': {'display_name': ownerName},
         if (photoUrl != null) 'photo_url': photoUrl,
+        'fill_level': fillLevel,
       };
 
   bool get isInCellar => status == 'in_cellar';
   bool get isConsumed => status == 'consumed';
+  double get fillFraction => (fillLevel.clamp(0, 100)) / 100.0;
+  bool get isSpiritBottle => wine?.isSpirit ?? false;
 
   /// Returns user-facing sommelier display text for bottle origin
   String get provenanceDisplay {
@@ -203,6 +209,7 @@ class Bottle {
     Wine? wine,
     String? ownerName,
     String? photoUrl,
+    int? fillLevel,
   }) {
     return Bottle(
       id: id ?? this.id,
@@ -227,6 +234,7 @@ class Bottle {
       wine: wine ?? this.wine,
       ownerName: ownerName ?? this.ownerName,
       photoUrl: photoUrl ?? this.photoUrl,
+      fillLevel: fillLevel ?? this.fillLevel,
     );
   }
 }

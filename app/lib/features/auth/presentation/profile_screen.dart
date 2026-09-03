@@ -6,6 +6,7 @@ import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/providers/locale_provider.dart';
 import '../../../shared/providers/theme_provider.dart';
 import '../../../shared/providers/cellar_provider.dart';
+import '../../../shared/providers/premium_provider.dart';
 import '../../cellar/presentation/cellar_export_dialog.dart';
 import 'taste_profiles_dialog.dart';
 import 'taste_profile_edit_sheet.dart';
@@ -290,6 +291,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final userLocale = ref.watch(localeProvider);
+    final isPremium = ref.watch(premiumProvider);
 
     final currentLangValue = userLocale == null ? 'system' : userLocale.languageCode;
 
@@ -343,7 +345,95 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
 
                 Center(child: OwnerAvatar(userId: user?.id ?? '', radius: 50)),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+
+                // ================= MODE PREMIUM TOGGLE (DEBUG / TEST) =================
+                Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: isPremium ? const Color(0xFFD4AF37) : Colors.grey.withValues(alpha: 0.3),
+                      width: isPremium ? 2 : 1,
+                    ),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: isPremium
+                          ? LinearGradient(
+                              colors: [
+                                const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                                const Color(0xFF8B1E3F).withValues(alpha: 0.08),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                    ),
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isPremium ? const Color(0xFFD4AF37) : Colors.grey.shade400,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.workspace_premium, color: Colors.white, size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    isPremium ? '👑 Mode Premium Actif' : 'Mode Standard (Gratuit)',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.shade700,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Text('DEBUG', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                isPremium
+                                    ? 'Scans IA illimités, zéro pub, apogées & exports illimités'
+                                    : 'Basculez librement pour tester le comportement Premium',
+                                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch.adaptive(
+                          value: isPremium,
+                          activeColor: const Color(0xFFD4AF37),
+                          onChanged: (val) {
+                            ref.read(premiumProvider.notifier).setPremium(val);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(val ? '👑 Mode Premium activé !' : 'Mode Standard activé.'),
+                                duration: const Duration(seconds: 2),
+                                backgroundColor: val ? const Color(0xFFD4AF37) : Colors.grey.shade800,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
                 ListTile(
                   leading: const Icon(Icons.alternate_email, color: Color(0xFF8B1E3F)),
                   title: const Text('Pseudo unique Chatmelier', style: TextStyle(fontWeight: FontWeight.bold)),

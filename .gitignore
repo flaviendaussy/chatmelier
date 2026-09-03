@@ -20,3 +20,8 @@
 *.log
 .env
 .DS_Store
+node_modules/
+package*.json
+test_assets/
+iphone_test_results/
+iphone_*.png

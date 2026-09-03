@@ -7,6 +7,7 @@ import 'l10n/app_localizations.dart';
 import 'shared/providers/locale_provider.dart';
 import 'shared/providers/theme_provider.dart';
 import 'features/checkout/data/post_tasting_notification_service.dart';
+import 'features/offline/data/connectivity_service.dart';
 
 class ChatmelierApp extends ConsumerWidget {
   const ChatmelierApp({super.key});
@@ -37,6 +38,7 @@ class ChatmelierApp extends ConsumerWidget {
       builder: (context, child) {
         // Initialize post-tasting notification checker with a valid context
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(connectivityServiceProvider);
           final notifService = ref.read(postTastingNotificationProvider);
           notifService.init(context);
         });

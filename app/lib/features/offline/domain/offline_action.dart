@@ -27,6 +27,7 @@ class OfflineAction {
   final DateTime createdAt;
   final OfflineActionStatus status;
   final String? errorMessage;
+  final int retryCount;
 
   OfflineAction({
     String? id,
@@ -37,6 +38,7 @@ class OfflineAction {
     DateTime? createdAt,
     this.status = OfflineActionStatus.pending,
     this.errorMessage,
+    this.retryCount = 0,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now();
 
@@ -49,6 +51,7 @@ class OfflineAction {
         'created_at': createdAt.toIso8601String(),
         'status': status.name,
         'error_message': errorMessage,
+        'retry_count': retryCount,
       };
 
   factory OfflineAction.fromJson(Map<String, dynamic> json) => OfflineAction(
@@ -68,6 +71,7 @@ class OfflineAction {
           orElse: () => OfflineActionStatus.pending,
         ),
         errorMessage: json['error_message'] as String?,
+        retryCount: (json['retry_count'] as num?)?.toInt() ?? 0,
       );
 
   OfflineAction copyWith({
@@ -80,6 +84,7 @@ class OfflineAction {
     OfflineActionStatus? status,
     String? errorMessage,
     bool clearErrorMessage = false,
+    int? retryCount,
   }) {
     return OfflineAction(
       id: id ?? this.id,
@@ -90,6 +95,7 @@ class OfflineAction {
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
       errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      retryCount: retryCount ?? this.retryCount,
     );
   }
 }

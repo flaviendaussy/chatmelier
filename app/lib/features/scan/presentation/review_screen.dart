@@ -19,6 +19,8 @@ import '../../../shared/widgets/chatmelier_loader.dart';
 import '../../offline/presentation/chatmelier_offline_antenna_widget.dart';
 import '../../offline/presentation/sync_provider.dart';
 import '../../offline/data/connectivity_service.dart';
+import '../../../shared/providers/premium_provider.dart';
+import 'rewarded_video_ad_sheet.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
   final String imagePath;
@@ -78,7 +80,31 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     if (widget.prefillBottle != null) {
       _prefillFromExisting(widget.prefillBottle!);
     } else if (widget.imagePath.isNotEmpty || (widget.imageBytes != null && widget.imageBytes!.isNotEmpty)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkAndTriggerAnalysis();
+      });
+    }
+  }
+
+  void _checkAndTriggerAnalysis() {
+    final isPremium = ref.read(premiumProvider);
+    if (isPremium) {
       _analyzeImage();
+    } else {
+      RewardedVideoAdSheet.show(
+        context,
+        onRewardEarned: () {
+          if (mounted) _analyzeImage();
+        },
+        onCancel: () {
+          if (mounted) {
+            setState(() {
+              _isAnalyzing = false;
+              _ignoreUndetected = true;
+            });
+          }
+        },
+      );
     }
   }
 
@@ -794,7 +820,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   onRetry: () async {
                     final online = await ref.read(connectivityServiceProvider).checkConnection();
                     if (online && mounted) {
-                      _analyzeImage();
+                      _checkAndTriggerAnalysis();
                     }
                   },
                 ),
@@ -1134,7 +1160,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     if (widget.imagePath.isNotEmpty || widget.imageBytes != null) ...[
                       const SizedBox(height: 10),
                       OutlinedButton.icon(
-                        onPressed: _analyzeImage,
+                        onPressed: _checkAndTriggerAnalysis,
                         icon: const Icon(Icons.refresh, size: 16),
                         label: const Text('Réessayer l\'analyse IA'),
                         style: OutlinedButton.styleFrom(

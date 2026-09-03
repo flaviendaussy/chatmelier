@@ -2,23 +2,63 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/offline/presentation/sync_provider.dart';
 import '../../features/offline/presentation/pending_actions_sheet.dart';
+import '../../features/offline/domain/offline_action.dart';
 import '../../features/cellar/presentation/vintage_resolution_dialog.dart';
 import '../../shared/providers/cellar_provider.dart';
 
 class OfflineSyncBanner extends ConsumerWidget {
   const OfflineSyncBanner({super.key});
 
+  void _showDismissOptions(BuildContext context, WidgetRef ref, int pendingCount) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Alerte de synchronisation'),
+        content: Text(
+          'Il y a $pendingCount action${pendingCount > 1 ? 's' : ''} hors-ligne enregistrée${pendingCount > 1 ? 's' : ''}.\n\nQue souhaitez-vous faire ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(syncBannerDismissedProvider.notifier).state = true;
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Masquer l\'alerte'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700),
+            onPressed: () async {
+              final storage = ref.read(offlineStorageServiceProvider);
+              await storage.saveQueue([]);
+              ref.read(pendingSyncCountProvider.notifier).state = 0;
+              if (ctx.mounted) Navigator.of(ctx).pop();
+            },
+            child: const Text('Tout effacer', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDismissed = ref.watch(syncBannerDismissedProvider);
     final pendingCount = ref.watch(pendingSyncCountProvider);
     final isSyncing = ref.watch(isSyncingStateProvider);
     final pendingResolutions = ref.watch(pendingResolutionWinesProvider);
 
-    if (pendingCount == 0 && pendingResolutions.isEmpty && !isSyncing) {
+    if (isDismissed || (pendingCount == 0 && pendingResolutions.isEmpty && !isSyncing)) {
       return const SizedBox.shrink();
     }
 
     final theme = Theme.of(context);
+    final storage = ref.watch(offlineStorageServiceProvider);
+    final queue = storage.getQueue();
+    final hasFailedActions = queue.isNotEmpty && queue.any((a) => a.status == OfflineActionStatus.failed);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -32,12 +72,16 @@ class OfflineSyncBanner extends ConsumerWidget {
             decoration: BoxDecoration(
               color: isSyncing
                   ? const Color(0xFF1E3A5F).withValues(alpha: 0.12)
-                  : const Color(0xFFD97706).withValues(alpha: 0.14),
+                  : (hasFailedActions
+                      ? Colors.red.shade50
+                      : const Color(0xFFD97706).withValues(alpha: 0.14)),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSyncing
                     ? const Color(0xFF2563EB).withValues(alpha: 0.3)
-                    : const Color(0xFFD97706).withValues(alpha: 0.4),
+                    : (hasFailedActions
+                        ? Colors.red.shade300
+                        : const Color(0xFFD97706).withValues(alpha: 0.4)),
               ),
             ),
             child: Row(
@@ -52,12 +96,12 @@ class OfflineSyncBanner extends ConsumerWidget {
                   InkWell(
                     onTap: () => PendingActionsSheet.show(context),
                     borderRadius: BorderRadius.circular(8),
-                    child: const Padding(
-                      padding: EdgeInsets.all(2.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2.0),
                       child: Icon(
-                        Icons.cloud_off,
+                        hasFailedActions ? Icons.sync_problem : Icons.cloud_off,
                         size: 20,
-                        color: Color(0xFFD97706),
+                        color: hasFailedActions ? Colors.red.shade700 : const Color(0xFFD97706),
                       ),
                     ),
                   ),
@@ -77,23 +121,27 @@ class OfflineSyncBanner extends ConsumerWidget {
                             fontWeight: FontWeight.w600,
                             color: isSyncing
                                 ? const Color(0xFF1E3A5F)
-                                : const Color(0xFF92400E),
+                                : (hasFailedActions ? Colors.red.shade800 : const Color(0xFF92400E)),
                           ),
                         ),
                         if (!isSyncing)
-                          const Text(
-                            'Appuyez pour voir le détail des actions',
-                            style: TextStyle(fontSize: 11, color: Color(0xFFB45309)),
+                          Text(
+                            hasFailedActions
+                                ? 'Certaines actions ont échoué. Appuyez pour voir.'
+                                : 'Appuyez pour voir le détail des actions',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: hasFailedActions ? Colors.red.shade600 : const Color(0xFFB45309),
+                            ),
                           ),
                       ],
                     ),
                   ),
                 ),
-                if (!isSyncing)
+                if (!isSyncing) ...[
                   TextButton(
                     onPressed: () async {
                       ref.read(isSyncingStateProvider.notifier).state = true;
-                      final storage = ref.read(offlineStorageServiceProvider);
                       await storage.retryFailedActions();
                       final syncService = ref.read(syncServiceProvider);
                       final result = await syncService.processPendingActions();
@@ -134,7 +182,7 @@ class OfflineSyncBanner extends ConsumerWidget {
                       }
                     },
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -143,9 +191,19 @@ class OfflineSyncBanner extends ConsumerWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: theme.colorScheme.primary,
+                        fontSize: 13,
                       ),
                     ),
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    tooltip: 'Masquer l\'alerte',
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(),
+                    color: Colors.grey.shade600,
+                    onPressed: () => _showDismissOptions(context, ref, pendingCount),
+                  ),
+                ],
               ],
             ),
           ),
@@ -208,6 +266,18 @@ class OfflineSyncBanner extends ConsumerWidget {
                         color: Color(0xFF6B21A8),
                       ),
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    tooltip: 'Masquer',
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(),
+                    color: const Color(0xFF581C87),
+                    onPressed: () async {
+                      await storage.removePendingResolutionWine(bottleId);
+                      ref.read(pendingResolutionWinesProvider.notifier).state =
+                          storage.getPendingResolutionWines();
+                    },
                   ),
                 ],
               ),

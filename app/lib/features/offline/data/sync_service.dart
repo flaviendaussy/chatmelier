@@ -80,6 +80,17 @@ class SyncService {
       );
     }
 
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return const SyncResult(
+        totalProcessed: 0,
+        succeeded: 0,
+        failed: 0,
+        errors: ['Utilisateur non connecté — connectez-vous pour synchroniser votre cave'],
+        winesNeedingVintage: [],
+      );
+    }
+
     _isSyncing = true;
     int succeeded = 0;
     int failed = 0;
@@ -147,6 +158,7 @@ class SyncService {
             action.copyWith(
               status: OfflineActionStatus.failed,
               errorMessage: errorMsg,
+              retryCount: action.retryCount + 1,
             ),
           );
         }

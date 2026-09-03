@@ -35,3 +35,5 @@ final pendingResolutionWinesProvider = StateProvider<List<Map<String, dynamic>>>
 });
 
 final isSyncingStateProvider = StateProvider<bool>((ref) => false);
+
+final syncBannerDismissedProvider = StateProvider<bool>((ref) => false);

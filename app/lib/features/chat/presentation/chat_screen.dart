@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/utils/responsive_layout.dart';
-import '../../../shared/widgets/drinking_window_badge.dart';
-import '../../../shared/widgets/wine_type_badge.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../auth/presentation/taste_profiles_dialog.dart';
-import '../../cellar/domain/bottle.dart';
 import '../data/chat_service.dart';
 import '../domain/chat_message.dart';
 import 'chat_bubble.dart';
 import 'chatmelier_thinking_indicator.dart';
+import '../../offline/presentation/chatmelier_offline_antenna_widget.dart';
+import '../../offline/presentation/sync_provider.dart';
+import '../../offline/data/connectivity_service.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -105,6 +105,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final text = (presetText ?? _textController.text).trim();
     if (text.isEmpty || _isLoading) return;
 
+    final isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (ctx) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: ChatmelierOfflineAntennaWidget(
+              title: 'Chatmelier est hors-ligne',
+              message: 'L\'IA Chatmelier requiert une connexion internet pour vous conseiller et analyser votre cave. Vos bouteilles et statistiques restent consultables hors-ligne.',
+              onRetry: () async {
+                final online = await ref.read(connectivityServiceProvider).checkConnection();
+                if (online && mounted && ctx.mounted) {
+                  Navigator.pop(ctx);
+                  _sendMessage(presetText ?? text);
+                }
+              },
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
     if (presetText == null) _textController.clear();
 
     final userMsg = ChatMessage(
@@ -165,7 +193,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _scrollToBottom();
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -178,11 +208,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final profileTooltip = names.isNotEmpty
         ? 'Profils de Goût (${names.take(2).join(' & ')})'
         : 'Profils de Goût & Invités';
-    final duoPrompt = names.length >= 2
-        ? '🍷 Que boire ce soir pour ${names[0]} et ${names[1]} ?'
-        : (names.length == 1
-            ? '🍷 Que boire ce soir pour ${names[0]} et moi ?'
-            : '🍷 Que me conseilles-tu d\'ouvrir ce soir ?');
 
     return Scaffold(
       appBar: AppBar(
@@ -210,8 +235,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ? '🍷 Que boire ce soir pour ${names[0]} et moi ?'
             : '🍷 Quel vin ouvrir ce soir ?');
 
+    final isOnline = ref.watch(isOnlineProvider);
+
     return Column(
       children: [
+        if (!isOnline)
+          Container(
+            color: Colors.amber.shade900.withValues(alpha: 0.9),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                const Icon(Icons.wifi_off, color: Colors.white, size: 18),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Mode Hors-Ligne : Chatmelier recherche du réseau...',
+                    style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => ref.read(connectivityServiceProvider).checkConnection(),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: Text('Tester', style: TextStyle(color: Colors.white, decoration: TextDecoration.underline, fontSize: 12)),
+                  ),
+                ),
+              ],
+            ),
+          ),
         Expanded(
           child: ListView.builder(
             controller: _scrollController,
@@ -254,6 +305,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// 💻 Tablet & Desktop Layout: 2-Column Split Workspace
   Widget _buildLargeScreenLayout() {
+    final isOnline = ref.watch(isOnlineProvider);
+
     return Row(
       children: [
         // Main Column: Chat Conversation Stream
@@ -261,6 +314,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           flex: 6,
           child: Column(
             children: [
+              if (!isOnline)
+                Container(
+                  color: Colors.amber.shade900.withValues(alpha: 0.9),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.wifi_off, color: Colors.white, size: 18),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Mode Hors-Ligne : Chatmelier recherche du réseau...',
+                          style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () => ref.read(connectivityServiceProvider).checkConnection(),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          child: Text('Tester', style: TextStyle(color: Colors.white, decoration: TextDecoration.underline, fontSize: 12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Expanded(
                 child: ListView.builder(
                   controller: _scrollController,

@@ -46,8 +46,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final cellarId = ref.watch(currentCellarIdProvider);
-    final bottlesAsync = ref.watch(bottlesProvider(cellarId));
+    final selectedCellarId = ref.watch(statsSelectedCellarIdProvider);
+    final bottlesAsync = ref.watch(statsBottlesProvider);
+    final userCellarsAsync = ref.watch(userCellarsProvider);
+    final userCellars = userCellarsAsync.valueOrNull ?? [];
     final displayCurrency = ref.watch(statsDisplayCurrencyProvider);
     final mapMode = ref.watch(statsMapModeProvider);
     final l10n = AppLocalizations.of(context);
@@ -82,6 +84,87 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             ),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+            child: Row(
+              children: [
+                const Icon(Icons.wine_bar, size: 18, color: Color(0xFF8B1E3F)),
+                const SizedBox(width: 8),
+                const Text(
+                  'Périmètre :',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey.shade800 : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedCellarId ?? 'overall',
+                        isExpanded: true,
+                        isDense: true,
+                        icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+                        items: [
+                          const DropdownMenuItem(
+                            value: 'overall',
+                            child: Row(
+                              children: [
+                                Icon(Icons.public, size: 16, color: Color(0xFF8B1E3F)),
+                                SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    'Toutes mes caves (Global / Overall)',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ...userCellars.map((c) {
+                            final cMap = c['cellars'] as Map<String, dynamic>?;
+                            final id = cMap?['id']?.toString() ?? c['cellar_id']?.toString() ?? '';
+                            final name = cMap?['name']?.toString() ?? 'Cave $id';
+                            return DropdownMenuItem(
+                              value: id,
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.storefront, size: 16, color: Colors.grey),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      name,
+                                      style: const TextStyle(fontSize: 12.5),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            ref.read(statsSelectedCellarIdProvider.notifier).state = val;
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
       body: bottlesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

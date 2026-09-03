@@ -9,6 +9,7 @@ import '../domain/cellar_access_request.dart';
 import '../domain/friend.dart';
 import '../domain/user_notification.dart';
 import 'friend_taste_card_sheet.dart';
+import 'contact_invite_sheet.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});
@@ -721,7 +722,24 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8B1E3F),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.contacts, size: 20),
+              label: const Text('Chercher depuis mes contacts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+              onPressed: () => ContactInviteSheet.show(context, existingUserIds),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(

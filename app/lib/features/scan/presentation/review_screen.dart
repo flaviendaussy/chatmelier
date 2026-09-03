@@ -16,6 +16,9 @@ import '../data/scan_service.dart';
 import '../domain/scan_result.dart';
 import '../../journal/presentation/external_tasting_dialog.dart';
 import '../../../shared/widgets/chatmelier_loader.dart';
+import '../../offline/presentation/chatmelier_offline_antenna_widget.dart';
+import '../../offline/presentation/sync_provider.dart';
+import '../../offline/data/connectivity_service.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
   final String imagePath;
@@ -102,6 +105,15 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   Future<void> _analyzeImage() async {
+    final isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) {
+      setState(() {
+        _isAnalyzing = false;
+        _analysisError = 'offline';
+      });
+      return;
+    }
+
     setState(() {
       _isAnalyzing = true;
       _analysisError = null;
@@ -748,6 +760,66 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   size: 190,
                   title: 'Chatmelier essaye de trouver...',
                   subtitle: 'Lecture de l\'étiquette, détection du domaine, millésime et accords mets-vins...',
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_analysisError == 'offline' && !_ignoreUndetected) {
+      final isDark = theme.brightness == Brightness.dark;
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF1A1A1E) : Colors.grey.shade50,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.close, color: isDark ? Colors.white : Colors.black87),
+            tooltip: 'Retour',
+            onPressed: () => context.pop(),
+          ),
+          title: const Text('Mode Hors-Ligne', style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ChatmelierOfflineAntennaWidget(
+                  title: 'Chatmelier cherche du réseau...',
+                  message: 'La détection photo automatique par IA a besoin d\'une connexion internet. Vous pouvez saisir les détails manuellement ou réessayer dès que le réseau revient.',
+                  onRetry: () async {
+                    final online = await ref.read(connectivityServiceProvider).checkConnection();
+                    if (online && mounted) {
+                      _analyzeImage();
+                    }
+                  },
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8B1E3F),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    icon: const Icon(Icons.edit_note),
+                    label: const Text(
+                      'Saisir manuellement ma bouteille',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _ignoreUndetected = true;
+                        _analysisError = null;
+                      });
+                    },
+                  ),
                 ),
               ],
             ),

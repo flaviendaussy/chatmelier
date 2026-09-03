@@ -31,6 +31,7 @@ import 'wine_enrichment_diff_dialog.dart';
 import 'wine_reverse_food_pairing_sheet.dart';
 import 'spirit_bottle_fill_view.dart';
 import '../../offline/presentation/sync_provider.dart';
+import '../data/vineyard_knowledge_service.dart';
 
 class BottleDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -1748,6 +1749,113 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
+
+                  // ================= VERIFIED VINEYARD KNOWLEDGE (TRANSVERSAL 1-YEAR CACHE) =================
+                  if (!wine.isSpirit && (wine.producer != null && wine.producer!.trim().isNotEmpty)) ...[
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final producer = wine.producer!.trim();
+                        final vineyardAsync = ref.watch(vineyardKnowledgeProvider(producer));
+
+                        return vineyardAsync.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (vk) {
+                            if (vk == null) return const SizedBox.shrink();
+                            final verifiedDateStr = '${vk.verifiedAt.day.toString().padLeft(2, '0')}/${vk.verifiedAt.month.toString().padLeft(2, '0')}/${vk.verifiedAt.year}';
+                            final expiryDays = vk.daysUntilExpiry;
+
+                            return Card(
+                              elevation: 1,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.terrain_outlined, color: Color(0xFF8B1E3F), size: 20),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Histoire & Terroir du Domaine',
+                                                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                              ),
+                                              Text(
+                                                'Base transversale partagée • Re-vérification annuelle',
+                                                style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, color: Colors.grey),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green.withAlpha(25),
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(color: Colors.green.withAlpha(60)),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.verified, color: Colors.green, size: 14),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'Vérifié le $verifiedDateStr',
+                                                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.green),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      vk.terroirDescription,
+                                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 6,
+                                      children: [
+                                        if (vk.soilType != null)
+                                          Chip(
+                                            avatar: const Text('🪨', style: TextStyle(fontSize: 12)),
+                                            label: Text('Sols : ${vk.soilType}', style: const TextStyle(fontSize: 11)),
+                                            backgroundColor: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                                            visualDensity: VisualDensity.compact,
+                                          ),
+                                        if (vk.viticultureStyle != null)
+                                          Chip(
+                                            avatar: const Text('🌿', style: TextStyle(fontSize: 12)),
+                                            label: Text('Culture : ${vk.viticultureStyle}', style: const TextStyle(fontSize: 11)),
+                                            backgroundColor: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                                            visualDensity: VisualDensity.compact,
+                                          ),
+                                        Chip(
+                                          avatar: const Icon(Icons.schedule, size: 13, color: Colors.grey),
+                                          label: Text('Valable encore $expiryDays jours', style: const TextStyle(fontSize: 10.5, color: Colors.grey)),
+                                          backgroundColor: Colors.transparent,
+                                          side: BorderSide(color: Colors.grey.withAlpha(50)),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // ================= TASTING NOTES & FOOD PAIRINGS =================
                   if (wine.tastingNotes != null || wine.foodPairings.isNotEmpty) ...[

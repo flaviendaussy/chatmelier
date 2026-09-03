@@ -75,3 +75,48 @@ final bottleDetailProvider = FutureProvider.family<Bottle, String>((ref, id) asy
   ref.watch(cellarVersionProvider);
   return ref.watch(cellarRepositoryProvider).getBottleById(id);
 });
+
+/// Provider to select a specific cellar or 'overall' (all cellars aggregated) for Statistics
+final statsSelectedCellarIdProvider = StateProvider<String?>((ref) => 'overall');
+
+final statsBottlesProvider = FutureProvider<List<Bottle>>((ref) async {
+  ref.watch(cellarVersionProvider);
+  final repo = ref.watch(cellarRepositoryProvider);
+  final selected = ref.watch(statsSelectedCellarIdProvider);
+
+  // If a specific cellar is selected (and not 'overall')
+  if (selected != null && selected != 'overall') {
+    return repo.getBottles(selected);
+  }
+
+  // Overall: aggregate bottles from ALL cellars belonging to the user
+  final cellars = await ref.watch(userCellarsProvider.future);
+  if (cellars.isEmpty) {
+    final currentCellarId = ref.watch(currentCellarIdProvider);
+    if (currentCellarId != null) {
+      return repo.getBottles(currentCellarId);
+    }
+    return [];
+  }
+
+  final Set<String> loadedCellarIds = {};
+  final List<Bottle> allBottles = [];
+  for (final item in cellars) {
+    final cMap = item['cellars'] as Map<String, dynamic>?;
+    final id = (cMap != null && cMap['id'] != null)
+        ? cMap['id'].toString()
+        : item['cellar_id']?.toString();
+    if (id != null && id.isNotEmpty && !loadedCellarIds.contains(id)) {
+      loadedCellarIds.add(id);
+      final bottles = await repo.getBottles(id);
+      allBottles.addAll(bottles);
+    }
+  }
+
+  // Deduplicate bottles by id if present in multiple cellar memberships
+  final Map<String, Bottle> uniqueBottles = {};
+  for (final b in allBottles) {
+    uniqueBottles[b.id] = b;
+  }
+  return uniqueBottles.values.toList();
+});

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../../offline/presentation/sync_provider.dart';
 
-class ScanScreen extends StatefulWidget {
+class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key});
   @override
-  State<ScanScreen> createState() => _ScanScreenState();
+  ConsumerState<ScanScreen> createState() => _ScanScreenState();
 }
 
-class _ScanScreenState extends State<ScanScreen> {
+class _ScanScreenState extends ConsumerState<ScanScreen> {
   List<CameraDescription> _cameras = [];
   int _selectedCameraIndex = 0;
   CameraController? _controller;
@@ -453,6 +455,32 @@ class _ScanScreenState extends State<ScanScreen> {
               ],
             ),
           ),
+          if (!ref.watch(isOnlineProvider))
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 60,
+              left: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade900.withAlpha(225),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 6)],
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.wifi_off, color: Colors.white, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Hors-ligne : l\'analyse photo IA nécessite du réseau. La saisie manuelle reste disponible.',
+                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // Zoom preset chips (1x, 2x)
           if (_maxZoom > 1.2)

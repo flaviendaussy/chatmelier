@@ -15,6 +15,7 @@ import '../../cellar/domain/wine_service_advisor.dart';
 import '../data/scan_service.dart';
 import '../domain/scan_result.dart';
 import '../../journal/presentation/external_tasting_dialog.dart';
+import '../../../shared/widgets/chatmelier_loader.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
   final String imagePath;
@@ -710,30 +711,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       child: _buildPhotoPreview(),
                     ),
                   ),
-                const SizedBox(height: 32),
-                const SizedBox(
-                  width: 36,
-                  height: 36,
-                  child: CircularProgressIndicator(
-                    color: Color(0xFFD4AF37),
-                    strokeWidth: 3,
-                  ),
-                ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Chatmelier essaye de trouver...',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Lecture de l\'étiquette, détection du domaine, millésime et accords mets-vins...',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                const ChatmelierLoader.detective(
+                  size: 140,
+                  title: 'Chatmelier essaye de trouver...',
+                  subtitle: 'Lecture de l\'étiquette, détection du domaine, millésime et accords mets-vins...',
                 ),
               ],
             ),

@@ -66,34 +66,41 @@ class _ChatmelierThinkingIndicatorState extends State<ChatmelierThinkingIndicato
         ),
         child: Row(
           children: [
-            // Prominent Animated Chatmelier Mascot Logo
-            Container(
-              width: 48,
-              height: 48,
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B1E3F).withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFF8B1E3F).withValues(alpha: 0.5),
-                  width: 1.5,
+            // Prominent Animated Chatmelier Sommelier Mascot
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E2226),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF8B1E3F).withValues(alpha: 0.2),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  'assets/animations/loader_sommelier_square.webp',
+                  fit: BoxFit.cover,
+                  errorBuilder: (ctx, err, stack) {
+                    return Image.asset(
+                      'assets/animations/loader_sommelier_square.gif',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Image.asset(
+                        'assets/images/logo_transparent_64.png',
+                        fit: BoxFit.contain,
+                      ),
+                    );
+                  },
                 ),
               ),
-              child: Image.asset(
-                'assets/images/logo_transparent_64.png',
-                fit: BoxFit.contain,
-              ),
-            )
-            .animate(onPlay: (controller) => controller.repeat(reverse: true))
-            .scale(
-              begin: const Offset(0.92, 0.92),
-              end: const Offset(1.10, 1.10),
-              duration: 1000.ms,
-              curve: Curves.easeInOut,
-            )
-            .shimmer(
-              duration: 1800.ms,
-              color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
             ),
 
             const SizedBox(width: 14),

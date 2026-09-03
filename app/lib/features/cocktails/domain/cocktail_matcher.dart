@@ -8,7 +8,8 @@ class CocktailMatchResult {
   final bool isAlmostReady;
   final List<String> availableIngredients;
   final List<String> missingIngredients;
-  final Map<String, Bottle> matchedBottles;
+  /// Maps ingredient spiritType -> ALL matching bottles in the user's cellar
+  final Map<String, List<Bottle>> matchedBottles;
 
   const CocktailMatchResult({
     required this.cocktail,
@@ -22,6 +23,20 @@ class CocktailMatchResult {
   int get missingCount => missingIngredients.length;
 }
 
+/// Mixer equivalence groups: if a recipe asks for 'tonic', any of these pantry keys satisfy it.
+const Map<String, Set<String>> _mixerEquivalences = {
+  'tonic': {
+    'tonic', 'mediterranean_tonic',
+    'ft_elderflower_tonic', 'ft_light_tonic', 'ft_aromatic_tonic',
+    'ft_clementine_tonic', 'ft_rhubarb_tonic', 'ft_cucumber_tonic',
+  },
+  'ginger_beer': {'ginger_beer', 'ft_ginger_beer'},
+  'ginger_ale': {'ginger_ale', 'ft_ginger_ale'},
+  'soda_water': {'soda_water', 'ft_soda_water'},
+  'cola': {'cola', 'ft_cola'},
+  'lemonade': {'lemonade', 'ft_lemonade'},
+};
+
 class CocktailMatcher {
   static CocktailMatchResult matchCocktail({
     required Cocktail cocktail,
@@ -33,21 +48,21 @@ class CocktailMatcher {
 
     final List<String> available = [];
     final List<String> missing = [];
-    final Map<String, Bottle> matchedBottles = {};
+    final Map<String, List<Bottle>> matchedBottles = {};
 
     for (final ing in cocktail.ingredients) {
       if (ing.optional) continue;
 
       if (ing.isSpirit && ing.spiritType != null) {
-        final matched = _findMatchingSpirit(ing.spiritType!, availableSpirits);
-        if (matched != null) {
+        final allMatched = _findAllMatchingSpirits(ing.spiritType!, availableSpirits);
+        if (allMatched.isNotEmpty) {
           available.add(ing.name);
-          matchedBottles[ing.spiritType!] = matched;
+          matchedBottles[ing.spiritType!] = allMatched;
         } else {
           missing.add(ing.name);
         }
       } else if (ing.pantryKey != null) {
-        if (inStockPantry.containsKey(ing.pantryKey)) {
+        if (_isPantryIngredientAvailable(ing.pantryKey!, inStockPantry)) {
           available.add(ing.name);
         } else {
           missing.add(ing.name);
@@ -71,8 +86,25 @@ class CocktailMatcher {
     );
   }
 
-  static Bottle? _findMatchingSpirit(String spiritType, List<Bottle> bottles) {
+  /// Check if a pantry ingredient is available, considering mixer equivalences.
+  static bool _isPantryIngredientAvailable(String pantryKey, Map<String, BarPantryItem> inStockPantry) {
+    if (inStockPantry.containsKey(pantryKey)) return true;
+
+    for (final entry in _mixerEquivalences.entries) {
+      if (entry.value.contains(pantryKey)) {
+        for (final alt in entry.value) {
+          if (inStockPantry.containsKey(alt)) return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /// Returns ALL bottles matching a given spirit type, sorted by fill level descending.
+  static List<Bottle> _findAllMatchingSpirits(String spiritType, List<Bottle> bottles) {
     final target = spiritType.toLowerCase().trim();
+    final List<Bottle> matches = [];
 
     for (final b in bottles) {
       final w = b.wine;
@@ -83,89 +115,97 @@ class CocktailMatcher {
       final producer = (w.producer ?? '').toLowerCase();
       final combined = '$wineName $producer $wineType';
 
+      bool isMatch = false;
+
       switch (target) {
         case 'gin':
-          if (wineType == 'gin' || combined.contains('gin')) return b;
+          isMatch = wineType == 'gin' || combined.contains('gin');
           break;
         case 'rum':
         case 'rhum':
-          if (wineType == 'rum' || wineType == 'rhum' || combined.contains('rhum') || combined.contains('rum') || combined.contains('cachaça')) return b;
+          isMatch = wineType == 'rum' || wineType == 'rhum' || combined.contains('rhum') || combined.contains('rum') || combined.contains('cachaça');
           break;
         case 'rum_dark':
-          if (combined.contains('dark') || combined.contains('ambré') || combined.contains('brun') || combined.contains('noir') || combined.contains('vieilli') || combined.contains('spiced') || wineType == 'rum' || wineType == 'rhum') return b;
+          isMatch = combined.contains('dark') || combined.contains('ambré') || combined.contains('brun') || combined.contains('noir') || combined.contains('vieilli') || combined.contains('spiced') || wineType == 'rum' || wineType == 'rhum';
           break;
         case 'whisky':
         case 'whiskey':
         case 'bourbon':
-          if (wineType == 'whisky' || wineType == 'whiskey' || wineType == 'bourbon' || combined.contains('whisky') || combined.contains('whiskey') || combined.contains('bourbon') || combined.contains('scotch') || combined.contains('rye')) return b;
+          isMatch = wineType == 'whisky' || wineType == 'whiskey' || wineType == 'bourbon' || combined.contains('whisky') || combined.contains('whiskey') || combined.contains('bourbon') || combined.contains('scotch') || combined.contains('rye');
           break;
         case 'whisky_peated':
-          if (combined.contains('tourb') || combined.contains('islay') || combined.contains('laphroaig') || combined.contains('ardbeg') || combined.contains('talisk') || combined.contains('lagavulin') || combined.contains('peated') || wineType == 'whisky') return b;
+          isMatch = combined.contains('tourb') || combined.contains('islay') || combined.contains('laphroaig') || combined.contains('ardbeg') || combined.contains('talisk') || combined.contains('lagavulin') || combined.contains('peated') || wineType == 'whisky';
           break;
         case 'vodka':
-          if (wineType == 'vodka' || combined.contains('vodka')) return b;
+          isMatch = wineType == 'vodka' || combined.contains('vodka');
           break;
         case 'tequila':
-          if (wineType == 'tequila' || combined.contains('tequila')) return b;
+          isMatch = wineType == 'tequila' || combined.contains('tequila');
           break;
         case 'mezcal':
-          if (wineType == 'mezcal' || combined.contains('mezcal') || combined.contains('tequila')) return b;
+          isMatch = wineType == 'mezcal' || combined.contains('mezcal') || combined.contains('tequila');
           break;
         case 'cognac':
         case 'armagnac':
         case 'brandy':
-          if (wineType == 'cognac' || wineType == 'armagnac' || wineType == 'brandy' || combined.contains('cognac') || combined.contains('armagnac') || combined.contains('brandy')) return b;
+          isMatch = wineType == 'cognac' || wineType == 'armagnac' || wineType == 'brandy' || combined.contains('cognac') || combined.contains('armagnac') || combined.contains('brandy');
           break;
         case 'campari':
-          if (combined.contains('campari') || combined.contains('bitter')) return b;
+          isMatch = combined.contains('campari') || combined.contains('bitter');
           break;
         case 'aperol':
-          if (combined.contains('aperol') || combined.contains('campari')) return b;
+          isMatch = combined.contains('aperol') || combined.contains('campari');
           break;
         case 'vermouth_red':
-          if (combined.contains('vermouth') && (combined.contains('rouge') || combined.contains('rosso') || combined.contains('red') || combined.contains('doux') || combined.contains('carpano') || combined.contains('martini'))) return b;
-          if (wineType == 'vermouth') return b;
+          isMatch = (combined.contains('vermouth') && (combined.contains('rouge') || combined.contains('rosso') || combined.contains('red') || combined.contains('doux') || combined.contains('carpano') || combined.contains('martini'))) || wineType == 'vermouth';
           break;
         case 'vermouth_dry':
         case 'vermouth_white':
-          if (combined.contains('vermouth') && (combined.contains('dry') || combined.contains('sec') || combined.contains('blanc') || combined.contains('white') || combined.contains('noilly'))) return b;
-          if (wineType == 'vermouth') return b;
+          isMatch = (combined.contains('vermouth') && (combined.contains('dry') || combined.contains('sec') || combined.contains('blanc') || combined.contains('white') || combined.contains('noilly'))) || wineType == 'vermouth';
           break;
         case 'triple_sec':
-          if (combined.contains('triple sec') || combined.contains('cointreau') || combined.contains('grand marnier') || combined.contains('curaçao') || combined.contains('curacao')) return b;
+          isMatch = combined.contains('triple sec') || combined.contains('cointreau') || combined.contains('grand marnier') || combined.contains('curaçao') || combined.contains('curacao');
           break;
         case 'benedictine':
         case 'bénédictine':
-          if (combined.contains('benedictine') || combined.contains('bénédictine')) return b;
+          isMatch = combined.contains('benedictine') || combined.contains('bénédictine');
           break;
         case 'chartreuse':
         case 'chartreuse_green':
         case 'chartreuse_yellow':
-          if (combined.contains('chartreuse')) return b;
+          isMatch = combined.contains('chartreuse');
           break;
         case 'maraschino':
         case 'marasquin':
-          if (combined.contains('marasquin') || combined.contains('maraschino') || combined.contains('luxardo')) return b;
+          isMatch = combined.contains('marasquin') || combined.contains('maraschino') || combined.contains('luxardo');
           break;
         case 'cherry_brandy':
         case 'cherry_liqueur':
-          if (combined.contains('cherry') || combined.contains('cerise') || combined.contains('guignolet') || combined.contains('heering')) return b;
+          isMatch = combined.contains('cherry') || combined.contains('cerise') || combined.contains('guignolet') || combined.contains('heering');
           break;
         case 'liqueur_coffee':
-          if (combined.contains('kahlúa') || combined.contains('kahlua') || combined.contains('tia maria') || (combined.contains('liqueur') && combined.contains('café'))) return b;
+          isMatch = combined.contains('kahlúa') || combined.contains('kahlua') || combined.contains('tia maria') || (combined.contains('liqueur') && combined.contains('café'));
           break;
         case 'amaretto':
-          if (combined.contains('amaretto') || combined.contains('disaronno')) return b;
+          isMatch = combined.contains('amaretto') || combined.contains('disaronno');
           break;
         case 'sparkling':
         case 'champagne':
         case 'prosecco':
-          if (wineType == 'sparkling' || combined.contains('champagne') || combined.contains('prosecco') || combined.contains('crémant') || combined.contains('cremant') || combined.contains('cava') || combined.contains('effervescent')) return b;
+          isMatch = wineType == 'sparkling' || combined.contains('champagne') || combined.contains('prosecco') || combined.contains('crémant') || combined.contains('cremant') || combined.contains('cava') || combined.contains('effervescent');
           break;
         default:
-          if (wineType == target || combined.contains(target)) return b;
+          isMatch = wineType == target || combined.contains(target);
+      }
+
+      if (isMatch) {
+        matches.add(b);
       }
     }
-    return null;
+
+    // Sort by fill level descending (fullest bottles first)
+    matches.sort((a, b) => b.fillLevel.compareTo(a.fillLevel));
+    return matches;
   }
 }
+

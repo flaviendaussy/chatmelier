@@ -209,7 +209,7 @@ class CocktailDetailSheet extends ConsumerWidget {
 
                     ...cocktail.ingredients.map((ing) {
                       final isAvailable = match.availableIngredients.contains(ing.name);
-                      final matchedBottle = ing.spiritType != null ? match.matchedBottles[ing.spiritType] : null;
+                      final matchedBottles = ing.spiritType != null ? match.matchedBottles[ing.spiritType] : null;
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -243,16 +243,53 @@ class CocktailDetailSheet extends ConsumerWidget {
                                       color: isDark ? Colors.white : Colors.black87,
                                     ),
                                   ),
-                                  if (matchedBottle != null)
-                                    Text(
-                                      'Dans votre cave : ${matchedBottle.wine?.name ?? "Bouteille"}',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: isDark ? Colors.green.shade300 : const Color(0xFF2E7D32),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    )
-                                  else if (!isAvailable && ing.isSpirit)
+                                  if (matchedBottles != null && matchedBottles.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    ...matchedBottles.map((bottle) {
+                                      final name = bottle.wine?.name ?? 'Bouteille';
+                                      final producer = bottle.wine?.producer;
+                                      final displayName = producer != null && producer.isNotEmpty
+                                          ? '$producer – $name'
+                                          : name;
+                                      final location = bottle.rack != null && bottle.rack!.isNotEmpty
+                                          ? ' • ${bottle.rack}${bottle.shelf != null ? " - ${bottle.shelf}" : ""}'
+                                          : '';
+                                      final fillColor = bottle.fillLevel <= 20
+                                          ? Colors.red.shade600
+                                          : bottle.fillLevel <= 50
+                                              ? Colors.orange.shade700
+                                              : Colors.green.shade600;
+                                      return Padding(
+                                        padding: const EdgeInsets.only(bottom: 2),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.liquor, size: 12, color: isDark ? Colors.green.shade300 : const Color(0xFF2E7D32)),
+                                            const SizedBox(width: 4),
+                                            Flexible(
+                                              child: Text(
+                                                displayName,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: isDark ? Colors.green.shade300 : const Color(0xFF2E7D32),
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              '${bottle.fillLevel}%$location',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: fillColor,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                  ] else if (!isAvailable && ing.isSpirit)
                                     Text(
                                       'Spiritueux manquant dans votre cave',
                                       style: TextStyle(fontSize: 11, color: Colors.orange.shade800),

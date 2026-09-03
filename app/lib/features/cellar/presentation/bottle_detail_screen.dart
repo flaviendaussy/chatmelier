@@ -139,6 +139,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               'wines': foundBottle.wine?.toJson() ?? {},
               'profiles': null,
               'cellars': {'name': 'Cave', 'nickname': 'Cave'},
+              'fill_level': foundBottle.fillLevel,
             };
             _labelPhotoUrl = resolvedImg;
             _isLoading = false;
@@ -937,7 +938,10 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         ),
                         const SizedBox(width: 8),
                       ],
-                      DrinkingWindowBadge(status: wine.windowStatus),
+                      if (!wine.isSpirit) ...[
+                        DrinkingWindowBadge(status: wine.windowStatus),
+                        const SizedBox(width: 8),
+                      ],
                       const Spacer(),
                       if (ownerProfile != null)
                         Row(
@@ -1003,13 +1007,13 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                       wineName: wine.name,
                       readOnly: isViewOnly,
                       onFillLevelChanged: (newLevel) async {
+                        setState(() {
+                          _bottleData!['fill_level'] = newLevel;
+                        });
                         final repo = ref.read(cellarRepositoryProvider);
                         await repo.updateBottle(bottleObj.id, fillLevel: newLevel);
-                        if (mounted) {
-                          setState(() {
-                            _bottleData!['fill_level'] = newLevel;
-                          });
-                        }
+                        final currentCellar = ref.read(currentCellarIdProvider);
+                        notifyCellarChanged(ref, currentCellar);
                       },
                     ),
                   ],
@@ -1232,7 +1236,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                   const SizedBox(height: 16),
 
                   // ================= QUICK SOMMAIRE NAVIGATION =================
-                  _buildQuickNavBar(context),
+                  _buildQuickNavBar(context, wine),
 
                   // ================= CRITIC SCORES / RANKINGS =================
                   if (wine.criticScores.isNotEmpty) ...[
@@ -1307,62 +1311,64 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  // ================= DRINKING WINDOW GAUSSIAN CURVE =================
-                  Container(
-                    key: _apogeeKey,
-                    child: Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  wine.vintage != null && wine.vintage! > 0
-                                      ? 'Garde & Fenêtre d\'Apogée'
-                                      : 'Garde & Maturité (Non Millésimé)',
-                                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                if (wine.userOverrides.any((k) => k.contains('drinking') || k.contains('peak'))) ...[
+                  // ================= DRINKING WINDOW GAUSSIAN CURVE (Only for wines) =================
+                  if (!wine.isSpirit) ...[
+                    Container(
+                      key: _apogeeKey,
+                      child: Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 20),
                                   const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.lock_outline, size: 11, color: Colors.green),
-                                        SizedBox(width: 3),
-                                        Text('Personnalisé', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
+                                  Text(
+                                    wine.vintage != null && wine.vintage! > 0
+                                        ? 'Garde & Fenêtre d\'Apogée'
+                                        : 'Garde & Maturité (Non Millésimé)',
+                                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                   ),
+                                  if (wine.userOverrides.any((k) => k.contains('drinking') || k.contains('peak'))) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.lock_outline, size: 11, color: Colors.green),
+                                          SizedBox(width: 3),
+                                          Text('Personnalisé', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  const Spacer(),
+                                  if (!isViewOnly)
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined, size: 18),
+                                      tooltip: 'Modifier les dates d\'apogée et de garde',
+                                      onPressed: () => _showFullEditSheet(wine, bottleObj),
+                                    ),
                                 ],
-                                const Spacer(),
-                                if (!isViewOnly)
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined, size: 18),
-                                    tooltip: 'Modifier les dates d\'apogée et de garde',
-                                    onPressed: () => _showFullEditSheet(wine, bottleObj),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            GaussianDrinkingCurve(wine: wine),
-                          ],
+                              ),
+                              const SizedBox(height: 8),
+                              GaussianDrinkingCurve(wine: wine),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
+                  ],
 
                   // ================= SOMMELIER SERVICE & TEMPERATURE ADVICE =================
                   Container(
@@ -1535,46 +1541,49 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // ================= GRAPES COMPOSITION (PIE CHART) =================
-                  Container(
-                    key: _grapesKey,
-                    child: Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.pie_chart, color: Color(0xFF8B1E3F), size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  l10n?.bottleDetailGrapes ?? 'Composition & Cépages (Raisin)',
-                                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                const Spacer(),
-                                if (!isViewOnly)
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined, size: 18),
-                                    tooltip: 'Modifier les cépages',
-                                    onPressed: () => _showFullEditSheet(wine, bottleObj),
+                  // ================= GRAPES COMPOSITION (PIE CHART) (Only for wines) =================
+                  if (!wine.isSpirit) ...[
+                    Container(
+                      key: _grapesKey,
+                      child: Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.pie_chart, color: Color(0xFF8B1E3F), size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l10n?.bottleDetailGrapes ?? 'Composition & Cépages (Raisin)',
+                                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                   ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            GrapeChart(grapes: wine.grapes, wine: wine),
-                          ],
+                                  const Spacer(),
+                                  if (!isViewOnly)
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined, size: 18),
+                                      tooltip: 'Modifier les cépages',
+                                      onPressed: () => _showFullEditSheet(wine, bottleObj),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              GrapeChart(grapes: wine.grapes, wine: wine),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
+                  ],
 
-                  // ================= ÉLEVAGE & VINIFICATION (BARREL AGING & OENOLOGY) =================
-                  Container(
-                    key: _elevageKey,
+                  // ================= ÉLEVAGE & VINIFICATION (BARREL AGING & OENOLOGY) (Only for wines) =================
+                  if (!wine.isSpirit) ...[
+                    Container(
+                      key: _elevageKey,
                     child: Builder(
                       builder: (context) {
                         final oenology = WineOenologyAdvisor.computeAdvice(
@@ -1738,6 +1747,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                ],
 
                   // ================= TASTING NOTES & FOOD PAIRINGS =================
                   if (wine.tastingNotes != null || wine.foodPairings.isNotEmpty) ...[
@@ -1789,7 +1799,9 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                             if (wine.foodPairings.isNotEmpty) ...[
                               const SizedBox(height: 16),
                               Text(
-                                l10n?.bottleDetailFoodPairings ?? 'Accords Mets & Vins conseillés',
+                                wine.isSpirit
+                                    ? 'Accords & Dégustation conseillés'
+                                    : (l10n?.bottleDetailFoodPairings ?? 'Accords Mets & Vins conseillés'),
                                 style: theme.textTheme.labelLarge?.copyWith(
                                   color: theme.brightness == Brightness.dark ? const Color(0xFFE25C74) : const Color(0xFF8B1E3F),
                                   fontWeight: FontWeight.bold,
@@ -2126,7 +2138,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
     );
   }
 
-  Widget _buildQuickNavBar(BuildContext context) {
+  Widget _buildQuickNavBar(BuildContext context, Wine wine) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -2140,15 +2152,19 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            _buildQuickNavChip(context, icon: Icons.show_chart, label: 'Apogée', targetKey: _apogeeKey),
-            const SizedBox(width: 8),
+            if (!wine.isSpirit) ...[
+              _buildQuickNavChip(context, icon: Icons.show_chart, label: 'Apogée', targetKey: _apogeeKey),
+              const SizedBox(width: 8),
+            ],
             _buildQuickNavChip(context, icon: Icons.wine_bar, label: 'Service', targetKey: _serviceKey),
             const SizedBox(width: 8),
             _buildQuickNavChip(context, icon: Icons.explore_outlined, label: 'Terroir', targetKey: _terroirKey),
-            const SizedBox(width: 8),
-            _buildQuickNavChip(context, icon: Icons.pie_chart_outline, label: 'Cépages', targetKey: _grapesKey),
-            const SizedBox(width: 8),
-            _buildQuickNavChip(context, icon: Icons.inventory_2_outlined, label: 'Élevage', targetKey: _elevageKey),
+            if (!wine.isSpirit) ...[
+              const SizedBox(width: 8),
+              _buildQuickNavChip(context, icon: Icons.pie_chart_outline, label: 'Cépages', targetKey: _grapesKey),
+              const SizedBox(width: 8),
+              _buildQuickNavChip(context, icon: Icons.inventory_2_outlined, label: 'Élevage', targetKey: _elevageKey),
+            ],
           ],
         ),
       ),

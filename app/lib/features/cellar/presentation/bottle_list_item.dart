@@ -175,26 +175,43 @@ class BottleListItem extends StatelessWidget {
 
                     if (!isUltraCompact) const SizedBox(height: 3),
 
-                    // Row 3: Statut d'apogée & Emplacement
+                    // Row 3: Statut d'apogée (wines) or Fill Level (spirits) & Emplacement
                     Row(
                       children: [
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: BoxDecoration(
-                            color: maturityColor,
-                            shape: BoxShape.circle,
+                        if (bottle.isSpiritBottle) ...[
+                          Icon(Icons.local_bar, size: 12, color: Colors.amber.shade700),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${bottle.fillLevel}% restant',
+                            style: TextStyle(
+                              fontSize: isUltraCompact ? 10 : 11,
+                              fontWeight: FontWeight.w600,
+                              color: bottle.fillLevel <= 20
+                                  ? Colors.red.shade600
+                                  : bottle.fillLevel <= 50
+                                      ? Colors.orange.shade700
+                                      : Colors.green.shade600,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          maturityText,
-                          style: TextStyle(
-                            fontSize: isUltraCompact ? 10 : 11,
-                            fontWeight: FontWeight.w600,
-                            color: maturityColor,
+                        ] else ...[
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              color: maturityColor,
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 4),
+                          Text(
+                            maturityText,
+                            style: TextStyle(
+                              fontSize: isUltraCompact ? 10 : 11,
+                              fontWeight: FontWeight.w600,
+                              color: maturityColor,
+                            ),
+                          ),
+                        ],
                         if (bottle.rack != null && bottle.rack!.isNotEmpty) ...[
                           const SizedBox(width: 8),
                           Icon(Icons.location_on, size: 11, color: Colors.grey.shade600),

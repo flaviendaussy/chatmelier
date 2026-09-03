@@ -225,6 +225,9 @@ class OfflineStorageService {
           shelf: updates.containsKey('shelf') ? updates['shelf'] as String? : current.shelf,
           position: updates.containsKey('position') ? updates['position'] as String? : current.position,
           notes: updates.containsKey('notes') ? updates['notes'] as String? : current.notes,
+          fillLevel: updates.containsKey('fill_level')
+              ? (updates['fill_level'] as num?)?.toInt() ?? current.fillLevel
+              : current.fillLevel,
         );
         await saveCachedBottles(c.id, bottles);
         break;

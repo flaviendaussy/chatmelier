@@ -91,7 +91,8 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    final isSpirit = widget.wine.isSpirit;
+    _tabController = TabController(length: isSpirit ? 3 : 4, vsync: this);
 
     final w = widget.wine;
     final b = widget.bottle;
@@ -438,11 +439,12 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             tabAlignment: TabAlignment.start,
             labelColor: const Color(0xFF8B1E3F),
             indicatorColor: const Color(0xFF8B1E3F),
-            tabs: const [
-              Tab(icon: Icon(Icons.wine_bar, size: 18), text: '1. Identité'),
-              Tab(icon: Icon(Icons.auto_awesome, size: 18), text: '2. Apogée & Garde'),
-              Tab(icon: Icon(Icons.menu_book, size: 18), text: '3. Profil Sommelier (IA)'),
-              Tab(icon: Icon(Icons.inventory_2, size: 18), text: '4. Mon Exemplaire & Notes'),
+            tabs: [
+              const Tab(icon: Icon(Icons.wine_bar, size: 18), text: '1. Identité'),
+              if (!widget.wine.isSpirit)
+                const Tab(icon: Icon(Icons.auto_awesome, size: 18), text: '2. Apogée & Garde'),
+              Tab(icon: const Icon(Icons.menu_book, size: 18), text: widget.wine.isSpirit ? '2. Profil Sommelier (IA)' : '3. Profil Sommelier (IA)'),
+              Tab(icon: const Icon(Icons.inventory_2, size: 18), text: widget.wine.isSpirit ? '3. Mon Exemplaire & Notes' : '4. Mon Exemplaire & Notes'),
             ],
           ),
 
@@ -454,7 +456,8 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                 controller: _tabController,
                 children: [
                   _buildIdentityTab(theme),
-                  _buildApogeeTab(theme),
+                  if (!widget.wine.isSpirit)
+                    _buildApogeeTab(theme),
                   _buildSommelierTab(theme),
                   _buildInventoryTab(theme),
                 ],

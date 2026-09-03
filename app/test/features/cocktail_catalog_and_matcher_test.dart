@@ -124,5 +124,93 @@ void main() {
       expect(match.isReady, isFalse);
       expect(match.missingIngredients.any((i) => i.contains('Tequila')), isTrue);
     });
+
+    test('CocktailMatcher returns ALL matching bottles for a spirit, sorted by fill level descending', () {
+      final ginTonic = CocktailCatalog.all.firstWhere((c) => c.id == 'gin_tonic');
+
+      final ginBottle1 = Bottle(
+        id: 'bottle-gin-1',
+        cellarId: 'cellar-1',
+        wineId: 'wine-gin-1',
+        addedBy: 'user-1',
+        ownerId: 'user-1',
+        createdAt: DateTime(2025, 1, 1),
+        quantity: 1,
+        fillLevel: 40,
+        wine: const Wine(id: 'wine-gin-1', name: 'Hendrick\'s Gin', type: 'gin', country: 'Scotland', region: 'Girvan'),
+      );
+
+      final ginBottle2 = Bottle(
+        id: 'bottle-gin-2',
+        cellarId: 'cellar-1',
+        wineId: 'wine-gin-2',
+        addedBy: 'user-1',
+        ownerId: 'user-1',
+        createdAt: DateTime(2025, 1, 2),
+        quantity: 1,
+        fillLevel: 90,
+        wine: const Wine(id: 'wine-gin-2', name: 'Monkey 47 Schwarzwald Dry Gin', type: 'gin', country: 'Germany', region: 'Black Forest'),
+      );
+
+      final ginBottleEmpty = Bottle(
+        id: 'bottle-gin-empty',
+        cellarId: 'cellar-1',
+        wineId: 'wine-gin-3',
+        addedBy: 'user-1',
+        ownerId: 'user-1',
+        createdAt: DateTime(2025, 1, 3),
+        quantity: 1,
+        fillLevel: 0,
+        wine: const Wine(id: 'wine-gin-3', name: 'Tanqueray No. Ten', type: 'gin', country: 'UK', region: 'London'),
+      );
+
+      final pantry = [
+        const BarPantryItem(id: 'tonic', name: 'Tonic Water', category: PantryCategory.mixers, quantity: 2),
+        const BarPantryItem(id: 'lime', name: 'Citron vert', category: PantryCategory.fruits, quantity: 1),
+      ];
+
+      final match = CocktailMatcher.matchCocktail(
+        cocktail: ginTonic,
+        cellarBottles: [ginBottle1, ginBottle2, ginBottleEmpty],
+        pantryItems: pantry,
+      );
+
+      expect(match.isReady, isTrue);
+      final matchedGins = match.matchedBottles['gin']!;
+      expect(matchedGins.length, 2); // Excludes 0% fill level bottle
+      expect(matchedGins.first.id, 'bottle-gin-2'); // 90% comes first
+      expect(matchedGins.last.id, 'bottle-gin-1'); // 40% comes second
+    });
+
+    test('CocktailMatcher validates mixer equivalence for Fever-Tree range', () {
+      final ginTonic = CocktailCatalog.all.firstWhere((c) => c.id == 'gin_tonic');
+
+      final ginBottle = Bottle(
+        id: 'bottle-gin-1',
+        cellarId: 'cellar-1',
+        wineId: 'wine-gin-1',
+        addedBy: 'user-1',
+        ownerId: 'user-1',
+        createdAt: DateTime(2025, 1, 1),
+        quantity: 1,
+        fillLevel: 100,
+        wine: const Wine(id: 'wine-gin-1', name: 'Roku Gin', type: 'gin', country: 'Japan', region: 'Osaka'),
+      );
+
+      // User has Fever-Tree Mediterranean Tonic and Elderflower Tonic, plus lime, but not generic 'tonic'
+      final pantry = [
+        const BarPantryItem(id: 'ft_elderflower_tonic', name: 'Fever-Tree Elderflower', category: PantryCategory.mixers, quantity: 4),
+        const BarPantryItem(id: 'lime', name: 'Citron vert', category: PantryCategory.fruits, quantity: 1),
+      ];
+
+      final match = CocktailMatcher.matchCocktail(
+        cocktail: ginTonic,
+        cellarBottles: [ginBottle],
+        pantryItems: pantry,
+      );
+
+      expect(match.isReady, isTrue);
+      expect(match.availableIngredients.any((i) => i.contains('Tonic')), isTrue);
+    });
   });
 }

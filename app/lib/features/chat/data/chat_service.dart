@@ -158,10 +158,14 @@ class ChatService {
     final langName = languageCode == 'en' ? 'English' : 'French (Français)';
     final currentYear = DateTime.now().year;
 
+    final isFirstMessageEver = history.isEmpty;
     final systemInstruction = '''You are Chatmelier, the world-class sommelier, cellar master, and wine intelligence companion.
-Always introduce and refer to yourself strictly as "Chatmelier" (never say "Chatmelier Sommelier", "votre sommelier IA", or "l'IA").
 Current Year: $currentYear.
 User language: $langName.
+
+CRITICAL IDENTITY & INTRODUCTION RULES:
+${isFirstMessageEver ? '- This is the user\'s first time chatting with you: you may briefly introduce yourself ONCE as "Chatmelier".' : '- DO NOT INTRODUCE YOURSELF! You already know this user and this is an ongoing dialogue. NEVER repeat "Je suis Chatmelier...", "Bonjour, je suis Chatmelier...", "En tant que Chatmelier...", "En tant que sommelier...", or similar self-introductions. Never start with a generic greeting about who you are. Jump DIRECTLY into your answer and wine recommendations!'}
+- Never say "Chatmelier Sommelier", "votre sommelier IA", or "l'IA". Refer to yourself strictly as "Chatmelier" only when naturally required.
 
 CELLAR INVENTORY AVAILABLE IN THE USER'S CELLAR (${bottlesSummary.length} available references):
 ${jsonEncode(bottlesSummary)}
@@ -420,13 +424,11 @@ SOMMELIER RULES:
     }
 
     if (isFr) {
-      return "### 🍷 Conseil de Dégustation Chatmelier\n\n"
-          "Je suis **Chatmelier**, votre compagnon de cave personnel.\n\n"
+      return "### 🍷 Conseils & Suggestions Sommelier\n\n"
           "- **Accords mets-vins** : Indiquez-moi votre plat ou vos ingrédients pour trouver la meilleure bouteille dans votre cave.\n"
           "- **Apogée & Dégustation** : Demandez-moi si un millésime est prêt à boire ou la température idéale de service.";
     } else {
-      return "### 🍷 Chatmelier Sommelier Advice\n\n"
-          "I am **Chatmelier**, your personal wine advisor.\n\n"
+      return "### 🍷 Sommelier Recommendations\n\n"
           "- **Food Pairing**: Tell me what you're cooking and I'll find the best matching bottle in your cellar.\n"
           "- **Drinking Windows**: Ask me which bottles are at their peak or how long to decant.";
     }

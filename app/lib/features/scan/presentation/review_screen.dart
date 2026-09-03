@@ -51,6 +51,22 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
   Bottle? _duplicateBottle;
   bool _dismissDuplicate = false;
+  bool _ignoreUndetected = false;
+
+  bool get _isUndetected {
+    if (_ignoreUndetected) return false;
+    final hasImage = widget.imagePath.isNotEmpty || (widget.imageBytes != null && widget.imageBytes!.isNotEmpty);
+    if (!hasImage) return false;
+    if (widget.prefillBottle != null) return false;
+
+    if (_analysisError != null) return true;
+    if (_scanResult == null) return true;
+    final name = _scanResult!.name.trim().toLowerCase();
+    if (name.isEmpty || name == 'inconnu' || name == 'unknown' || name == 'non reconnu' || name == 'vin inconnu' || name == 'vin') {
+      return true;
+    }
+    return false;
+  }
 
   @override
   void initState() {
@@ -687,35 +703,175 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           title: const Text('Analyse du vin', style: TextStyle(color: Colors.white)),
         ),
         body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (widget.imagePath.isNotEmpty)
+                if (widget.imagePath.isNotEmpty || (widget.imageBytes != null && widget.imageBytes!.isNotEmpty))
                   Container(
-                    width: 180,
-                    height: 240,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    width: 100,
+                    height: 130,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF8B1E3F).withAlpha(120),
-                          blurRadius: 24,
-                          spreadRadius: 4,
+                          color: const Color(0xFF8B1E3F).withValues(alpha: 0.5),
+                          blurRadius: 18,
+                          spreadRadius: 2,
                         ),
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: _buildPhotoPreview(),
+                      borderRadius: BorderRadius.circular(14),
+                      child: _buildPhotoPreview(height: 130, width: 100, fit: BoxFit.cover),
                     ),
                   ),
-                const SizedBox(height: 24),
                 const ChatmelierLoader.detective(
-                  size: 140,
+                  size: 190,
                   title: 'Chatmelier essaye de trouver...',
                   subtitle: 'Lecture de l\'étiquette, détection du domaine, millésime et accords mets-vins...',
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_isUndetected) {
+      final isDark = theme.brightness == Brightness.dark;
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF1A1A1E) : Colors.grey.shade50,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.close, color: isDark ? Colors.white : Colors.black87),
+            tooltip: 'Abandonner',
+            onPressed: () => context.pop(),
+          ),
+          title: Text(
+            'Bouteille non détectée',
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.imagePath.isNotEmpty || (widget.imageBytes != null && widget.imageBytes!.isNotEmpty))
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        width: 130,
+                        height: 170,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.amber.shade700, width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 16,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: _buildPhotoPreview(height: 170, width: 130, fit: BoxFit.cover),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.all(6),
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade700,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.search_off, color: Colors.white, size: 20),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 24),
+                Text(
+                  'Vin non reconnu',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Chatmelier n\'a pas réussi à identifier l\'étiquette sur cette photo. Elle est peut-être trop sombre, floue ou avec des reflets.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark ? Colors.white70 : Colors.black87,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Option 1: Reprendre une photo
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8B1E3F),
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    icon: const Icon(Icons.camera_alt_outlined),
+                    label: const Text(
+                      'Reprendre une photo',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    onPressed: () => context.pop(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Option 2: Entrer manuellement les détails
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFD4AF37),
+                      side: const BorderSide(color: Color(0xFFD4AF37), width: 1.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    icon: const Icon(Icons.edit_note),
+                    label: const Text(
+                      'Entrer manuellement les détails',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _ignoreUndetected = true;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Option 3: Abandonner
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: isDark ? Colors.white60 : Colors.black54,
+                  ),
+                  icon: const Icon(Icons.close, size: 18),
+                  label: const Text('Abandonner'),
+                  onPressed: () => context.pop(),
                 ),
               ],
             ),

@@ -31,6 +31,41 @@ class WineTypeBadge extends StatelessWidget {
       case 'porto':
       case 'xérès':
         return const Color(0xFF78281F); // Fortified
+      case 'whisky':
+      case 'whiskey':
+      case 'bourbon':
+      case 'scotch':
+        return const Color(0xFFC67D28); // Amber Oak
+      case 'rum':
+      case 'rhum':
+        return const Color(0xFFB85D19); // Golden Rum
+      case 'gin':
+        return const Color(0xFF167D7F); // Botanical Teal
+      case 'vodka':
+        return const Color(0xFF4A90E2); // Crystal Ice Blue
+      case 'tequila':
+        return const Color(0xFF2E7D32); // Agave Green
+      case 'mezcal':
+        return const Color(0xFF388E3C); // Smoky Mezcal Green
+      case 'cognac':
+      case 'armagnac':
+      case 'brandy':
+        return const Color(0xFF8D4004); // Cognac Copper
+      case 'liqueur':
+      case 'amaretto':
+      case 'triple_sec':
+        return const Color(0xFF9C27B0); // Velvet Purple
+      case 'campari':
+      case 'bitter':
+        return const Color(0xFFD32F2F); // Bitter Ruby Red
+      case 'aperol':
+      case 'aperitif':
+        return const Color(0xFFFF5722); // Aperol Orange
+      case 'vermouth':
+        return const Color(0xFF880E4F); // Vermouth Rosso
+      case 'spirit':
+      case 'spiritueux':
+        return const Color(0xFF5D4037); // Deep Spirit Brown
       default:
         return Colors.grey.shade700;
     }
@@ -63,6 +98,41 @@ class WineTypeBadge extends StatelessWidget {
       case 'porto':
       case 'xérès':
         return 'FORTIFIÉ';
+      case 'whisky':
+      case 'whiskey':
+      case 'bourbon':
+      case 'scotch':
+        return 'WHISKY';
+      case 'rum':
+      case 'rhum':
+        return 'RHUM';
+      case 'gin':
+        return 'GIN';
+      case 'vodka':
+        return 'VODKA';
+      case 'tequila':
+        return 'TEQUILA';
+      case 'mezcal':
+        return 'MEZCAL';
+      case 'cognac':
+      case 'armagnac':
+      case 'brandy':
+        return 'COGNAC';
+      case 'liqueur':
+      case 'amaretto':
+      case 'triple_sec':
+        return 'LIQUEUR';
+      case 'campari':
+      case 'bitter':
+        return 'BITTER';
+      case 'aperol':
+      case 'aperitif':
+        return 'APÉRITIF';
+      case 'vermouth':
+        return 'VERMOUTH';
+      case 'spirit':
+      case 'spiritueux':
+        return 'SPIRITUEUX';
       default:
         return type.toUpperCase();
     }

@@ -26,6 +26,7 @@ import '../features/voice/presentation/voice_dictation_sheet.dart';
 import '../features/journal/presentation/external_tasting_dialog.dart';
 import '../features/auth/presentation/ai_cost_estimator_screen.dart';
 import '../features/friends/presentation/friends_screen.dart';
+import '../features/cocktails/presentation/bar_cocktails_hub_screen.dart';
 import '../shared/widgets/adaptive_app_shell.dart';
 import '../shared/providers/supabase_provider.dart';
 import '../l10n/app_localizations.dart';
@@ -218,6 +219,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/map',
         builder: (context, state) => const ScratchMapScreen(),
+      ),
+      GoRoute(
+        path: '/bar',
+        builder: (context, state) => const BarCocktailsHubScreen(),
+      ),
+      GoRoute(
+        path: '/cocktails',
+        builder: (context, state) => const BarCocktailsHubScreen(),
       ),
       GoRoute(
         path: '/terroirs',

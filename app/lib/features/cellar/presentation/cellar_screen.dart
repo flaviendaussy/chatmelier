@@ -31,6 +31,7 @@ import '../../../shared/utils/responsive_layout.dart';
 import '../../../shared/widgets/notification_bell_button.dart';
 
 enum CellarViewMode { grid, list, compact }
+enum BeverageFilter { all, wine, spirit }
 
 class CellarScreen extends ConsumerStatefulWidget {
   const CellarScreen({super.key});
@@ -42,6 +43,7 @@ class CellarScreen extends ConsumerStatefulWidget {
 class _CellarScreenState extends ConsumerState<CellarScreen> {
   CellarViewMode _viewMode = CellarViewMode.grid;
   CellarSortBy _sortBy = CellarSortBy.recentlyAdded;
+  BeverageFilter _beverageFilter = BeverageFilter.all;
   String _searchQuery = '';
   bool _showSearchBar = false;
   final _searchController = TextEditingController();
@@ -213,6 +215,10 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
     return bottleList.where((b) {
       final wine = b.wine;
       if (wine == null) return true;
+
+      // 0. Beverage Type filter (All vs Wine vs Spirit)
+      if (_beverageFilter == BeverageFilter.wine && wine.isSpirit) return false;
+      if (_beverageFilter == BeverageFilter.spirit && !wine.isSpirit) return false;
 
       // 1. Wine Type filter
       if (_filter.wineType != null && _filter.wineType!.isNotEmpty) {
@@ -521,6 +527,12 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
         actions: [
           // Notification Bell with live badge
           const NotificationBellButton(),
+          // Bar & Cocktails Hub
+          IconButton(
+            icon: const Icon(Icons.local_bar, color: Color(0xFF8B1E3F)),
+            tooltip: 'Bar & Cocktails',
+            onPressed: () => context.push('/bar'),
+          ),
           // Search toggle
           IconButton(
             icon: Icon(_showSearchBar ? Icons.search_off : Icons.search),
@@ -601,6 +613,8 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                 }
               } else if (value == 'map') {
                 context.push('/scratchcard');
+              } else if (value == 'bar') {
+                context.push('/bar');
               } else if (value == 'friends') {
                 context.push('/friends');
               } else if (value == 'invites') {
@@ -622,6 +636,16 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                 ),
               ),
               const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'bar',
+                child: Row(
+                  children: [
+                    Icon(Icons.local_bar, color: Color(0xFF8B1E3F), size: 20),
+                    SizedBox(width: 12),
+                    Text('Bar & Cocktails 🍸'),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'friends',
                 child: Row(
@@ -739,6 +763,33 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Row(
               children: [
+                // Beverage Category Filter
+                ChoiceChip(
+                  label: const Text('Tous'),
+                  selected: _beverageFilter == BeverageFilter.all,
+                  onSelected: (_) => setState(() => _beverageFilter = BeverageFilter.all),
+                ),
+                const SizedBox(width: 6),
+                ChoiceChip(
+                  label: const Text('🍷 Vins'),
+                  selected: _beverageFilter == BeverageFilter.wine,
+                  onSelected: (_) => setState(() => _beverageFilter = BeverageFilter.wine),
+                ),
+                const SizedBox(width: 6),
+                ChoiceChip(
+                  label: const Text('🥃 Spiritueux'),
+                  selected: _beverageFilter == BeverageFilter.spirit,
+                  onSelected: (_) => setState(() => _beverageFilter = BeverageFilter.spirit),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  height: 20,
+                  width: 1,
+                  color: Colors.grey.withOpacity(0.3),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                ),
+                const SizedBox(width: 8),
+
                 // Sort Selector Menu
                 PopupMenuButton<CellarSortBy>(
                   tooltip: 'Trier les vins',

@@ -263,6 +263,28 @@ class Wine {
             : const []),
   );
 
+  bool get isSpirit {
+    final t = type.toLowerCase().trim();
+    return t == 'spirit' ||
+        t == 'whisky' ||
+        t == 'whiskey' ||
+        t == 'bourbon' ||
+        t == 'scotch' ||
+        t == 'rum' ||
+        t == 'rhum' ||
+        t == 'gin' ||
+        t == 'vodka' ||
+        t == 'tequila' ||
+        t == 'mezcal' ||
+        t == 'cognac' ||
+        t == 'armagnac' ||
+        t == 'liqueur' ||
+        t == 'vermouth' ||
+        t == 'aperitif' ||
+        t == 'bitter' ||
+        t == 'hard';
+  }
+
   DrinkWindowStatus get windowStatus {
     final currentYear = DateTime.now().year;
     final wType = type.toLowerCase();

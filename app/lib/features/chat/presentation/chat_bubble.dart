@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'chat_wine_card.dart';
+import 'chat_cocktail_card.dart';
 
 class ChatBubble extends StatelessWidget {
   final bool isUser;
@@ -140,6 +141,10 @@ class ChatBubble extends StatelessWidget {
                 // Render Wine Cards if any detected
                 if (parsed.wineCards.isNotEmpty)
                   ...parsed.wineCards.map((card) => ChatWineCard(data: card)),
+
+                // Render Cocktail Cards if any detected
+                if (parsed.cocktailCards.isNotEmpty)
+                  ...parsed.cocktailCards.map((card) => ChatCocktailCard(data: card)),
               ],
             ),
           ),
@@ -149,26 +154,50 @@ class ChatBubble extends StatelessWidget {
   }
 
   _ParsedContent _parseMessage(String raw) {
-    final List<ChatWineCardData> cards = [];
-    final cardRegex = RegExp(r'\[WINE_CARD:\s*(\{.*?\})\]', dotAll: true);
+    final List<ChatWineCardData> wineCards = [];
+    final List<ChatCocktailCardData> cocktailCards = [];
 
-    final cleaned = raw.replaceAllMapped(cardRegex, (match) {
+    // 1. Wine Cards
+    final wineCardRegex = RegExp(r'\[WINE_CARD:\s*(\{.*?\})\]', dotAll: true);
+    var cleaned = raw.replaceAllMapped(wineCardRegex, (match) {
       final jsonStr = match.group(1);
       if (jsonStr != null) {
         try {
           final map = jsonDecode(jsonStr) as Map<String, dynamic>;
-          cards.add(ChatWineCardData.fromJson(map));
+          wineCards.add(ChatWineCardData.fromJson(map));
         } catch (_) {}
       }
-      return ''; // remove token from text
+      return '';
+    });
+
+    // 2. Cocktail Cards
+    final cocktailCardRegex = RegExp(r'\[COCKTAIL_CARD:\s*(\{.*?\})\]', dotAll: true);
+    cleaned = cleaned.replaceAllMapped(cocktailCardRegex, (match) {
+      final jsonStr = match.group(1);
+      if (jsonStr != null) {
+        try {
+          final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+          cocktailCards.add(ChatCocktailCardData.fromJson(map));
+        } catch (_) {}
+      }
+      return '';
     }).trim();
 
-    return _ParsedContent(cleanedText: cleaned, wineCards: cards);
+    return _ParsedContent(
+      cleanedText: cleaned,
+      wineCards: wineCards,
+      cocktailCards: cocktailCards,
+    );
   }
 }
 
 class _ParsedContent {
   final String cleanedText;
   final List<ChatWineCardData> wineCards;
-  _ParsedContent({required this.cleanedText, required this.wineCards});
+  final List<ChatCocktailCardData> cocktailCards;
+  _ParsedContent({
+    required this.cleanedText,
+    required this.wineCards,
+    required this.cocktailCards,
+  });
 }

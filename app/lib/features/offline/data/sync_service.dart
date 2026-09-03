@@ -138,17 +138,17 @@ class SyncService {
             action.copyWith(status: OfflineActionStatus.completed),
           );
           succeeded++;
-        } catch (e) {
+        } catch (e, stack) {
           failed++;
           final errorMsg = e.toString();
           errors.add(errorMsg);
+          AppLogger.error('OFFLINE_SYNC', 'Action ${action.type.name} (id: ${action.id}) en échec: $errorMsg', e, stack);
           await _offlineStorage.updateAction(
             action.copyWith(
               status: OfflineActionStatus.failed,
               errorMessage: errorMsg,
             ),
           );
-          debugPrint('Sync action failed: $action, error: $e');
         }
       }
 
@@ -173,8 +173,35 @@ class SyncService {
   Future<Map<String, dynamic>?> _syncAddBottle(OfflineAction action) async {
     final user = _supabase.auth.currentUser;
     final userId = user?.id;
+    if (userId == null) {
+      throw Exception('Utilisateur non connecté pour synchroniser la bouteille.');
+    }
+
     final data = action.data;
-    final cellarId = action.cellarId ?? data['cellar_id'] as String;
+    String? cellarId = action.cellarId ?? data['cellar_id']?.toString();
+
+    // If cellarId is temporary or invalid, resolve the user's primary/active cellar in Supabase
+    if (cellarId == null || cellarId.isEmpty || cellarId.startsWith('temp_')) {
+      final cellarsRes = await _supabase
+          .from('cellars')
+          .select('id')
+          .eq('owner_id', userId)
+          .limit(1);
+      if (cellarsRes.isNotEmpty) {
+        cellarId = cellarsRes.first['id'] as String;
+      } else {
+        final memberRes = await _supabase
+            .from('cellar_members')
+            .select('cellar_id')
+            .eq('user_id', userId)
+            .limit(1);
+        if (memberRes.isNotEmpty) {
+          cellarId = memberRes.first['cellar_id'] as String;
+        } else {
+          throw Exception('Aucune cave valide trouvée sur le serveur pour cette bouteille.');
+        }
+      }
+    }
 
     String wineName = data['wine_name'] as String? ?? 'Vin Sans Nom';
     int? vintage = (data['vintage'] as num?)?.toInt() ?? int.tryParse(data['vintage']?.toString() ?? '');
@@ -226,31 +253,42 @@ class SyncService {
       }
     }
 
-    // 1. Insert Wine
-    final wineInsert = await _supabase.from('wines').insert({
-      'name': wineName,
-      'vintage': vintage,
-      'producer': producer,
-      'wine_type': wineType,
-      'country': country ?? 'France',
-      'region': region ?? 'Bordeaux',
-      if (subRegion != null) 'sub_region': subRegion,
-      if (appellation != null) 'appellation': appellation,
-      if (classification != null) 'classification': classification,
-      if (cuveeParcel != null) 'cuvee_parcel': cuveeParcel,
-      if (alcoholPct != null) 'alcohol_pct': alcoholPct,
-      if (data['tasting_notes'] != null) 'tasting_notes': data['tasting_notes'] as String,
-      if (aiSummary != null) 'ai_summary': aiSummary,
-      if (foodPairings != null) 'ai_food_pairings': foodPairings,
-      if (idealDrinkingStart != null) 'ideal_drinking_start': idealDrinkingStart,
-      if (idealDrinkingEnd != null) 'ideal_drinking_end': idealDrinkingEnd,
-      if (peakDrinkingStart != null) 'peak_drinking_start': peakDrinkingStart,
-      if (peakDrinkingEnd != null) 'peak_drinking_end': peakDrinkingEnd,
-      if (estimatedMarketValue != null) 'estimated_market_value': estimatedMarketValue,
-      if (grapes != null && grapes.isNotEmpty) 'grapes': grapes,
-    }).select().single();
+    // 1. Check or Insert Wine
+    String? wineId = data['wine_id']?.toString();
+    if (wineId != null && !wineId.startsWith('temp_')) {
+      final existing = await _supabase.from('wines').select('id').eq('id', wineId).maybeSingle();
+      if (existing == null) {
+        wineId = null;
+      }
+    } else {
+      wineId = null;
+    }
 
-    final wineId = wineInsert['id'] as String;
+    if (wineId == null) {
+      final wineInsert = await _supabase.from('wines').insert({
+        'name': wineName,
+        'vintage': vintage,
+        'producer': producer,
+        'wine_type': wineType,
+        'country': country ?? 'France',
+        'region': region ?? 'Bordeaux',
+        if (subRegion != null) 'sub_region': subRegion,
+        if (appellation != null) 'appellation': appellation,
+        if (classification != null) 'classification': classification,
+        if (cuveeParcel != null) 'cuvee_parcel': cuveeParcel,
+        if (alcoholPct != null) 'alcohol_pct': alcoholPct,
+        if (data['tasting_notes'] != null) 'tasting_notes': data['tasting_notes'] as String,
+        if (aiSummary != null) 'ai_summary': aiSummary,
+        if (foodPairings != null) 'ai_food_pairings': foodPairings,
+        if (idealDrinkingStart != null) 'ideal_drinking_start': idealDrinkingStart,
+        if (idealDrinkingEnd != null) 'ideal_drinking_end': idealDrinkingEnd,
+        if (peakDrinkingStart != null) 'peak_drinking_start': peakDrinkingStart,
+        if (peakDrinkingEnd != null) 'peak_drinking_end': peakDrinkingEnd,
+        if (estimatedMarketValue != null) 'estimated_market_value': estimatedMarketValue,
+        if (grapes != null && grapes.isNotEmpty) 'grapes': grapes,
+      }).select().single();
+      wineId = wineInsert['id'] as String;
+    }
 
     // 2. Insert Bottle
     final bottleInsert = await _supabase.from('bottles').insert({
@@ -326,13 +364,86 @@ class SyncService {
   Future<void> _syncConsumeBottle(OfflineAction action) async {
     final user = _supabase.auth.currentUser;
     final userId = user?.id;
-    final data = action.data;
-    final bottleId = data['bottle_id'] as String;
-    final rating = (data['rating'] as num?)?.toInt() ?? 5;
-    final notes = data['notes'] as String?;
-    final foodPaired = data['food_paired'] as String?;
+    if (userId == null) {
+      throw Exception('Utilisateur non connecté pour synchroniser la dégustation.');
+    }
 
-    // Fetch current bottle
+    final data = action.data;
+    final rawBottleId = data['bottle_id']?.toString();
+    final isExternal = data['is_external'] == true || rawBottleId == null || rawBottleId.isEmpty;
+    final rating = (data['rating'] as num?)?.toDouble() ?? 5.0;
+    final notes = data['notes'] as String? ?? data['tasting_notes'] as String?;
+    final foodPaired = data['food_paired'] as String?;
+    final occasion = data['occasion'] as String? ?? (isExternal ? 'Dégustation hors cave' : 'Dégustation');
+    final coTasters = data['co_tasters'] as List<dynamic>? ?? [];
+    final locationName = data['location_name'] as String?;
+    final photoUrl = data['photo_url'] as String?;
+
+    if (isExternal) {
+      // 1. External tasting without physical cellar bottle
+      String? wineId = data['wine_id']?.toString();
+      if (wineId == null || wineId.isEmpty || wineId.startsWith('temp_')) {
+        final wineName = data['wine_name']?.toString() ?? 'Vin dégusté';
+        final producer = data['producer']?.toString();
+        final vintage = (data['vintage'] as num?)?.toInt() ?? int.tryParse(data['vintage']?.toString() ?? '');
+        final wineType = data['type']?.toString() ?? data['wine_type']?.toString() ?? 'red';
+        final region = data['region']?.toString() ?? 'Autre';
+
+        try {
+          final wInsert = await _supabase.from('wines').insert({
+            'name': wineName,
+            'producer': producer,
+            'vintage': vintage,
+            'wine_type': wineType,
+            'region': region,
+            'image_url': photoUrl,
+          }).select('id').single();
+          wineId = wInsert['id'] as String;
+        } catch (_) {}
+      }
+
+      if (wineId != null) {
+        await _supabase.from('tasting_log').insert({
+          'wine_id': wineId,
+          'user_id': userId,
+          'rating': rating,
+          'occasion': occasion,
+          'food_paired': foodPaired,
+          'tasting_notes': notes,
+          'photo_url': photoUrl,
+          'co_tasters': coTasters,
+          'location_name': locationName,
+          'is_external': true,
+          'consumed_at': action.createdAt.toIso8601String(),
+        });
+      }
+      return;
+    }
+
+    // 2. Cellar bottle consumption
+    final bottleId = rawBottleId;
+    if (bottleId.startsWith('temp_')) {
+      // Offline temporary bottle: record tasting log directly if wine_id is valid
+      final wineId = data['wine_id']?.toString();
+      if (wineId != null && !wineId.startsWith('temp_')) {
+        await _supabase.from('tasting_log').insert({
+          'wine_id': wineId,
+          'user_id': userId,
+          'rating': rating,
+          'occasion': occasion,
+          'food_paired': foodPaired,
+          'tasting_notes': notes,
+          'photo_url': photoUrl,
+          'co_tasters': coTasters,
+          'location_name': locationName,
+          'is_external': false,
+          'consumed_at': action.createdAt.toIso8601String(),
+        });
+      }
+      return;
+    }
+
+    // Remote UUID bottle
     final bottleRes = await _supabase
         .from('bottles')
         .select('*, wines(*)')
@@ -341,26 +452,37 @@ class SyncService {
 
     if (bottleRes != null) {
       final currentQuantity = (bottleRes['quantity'] as num?)?.toInt() ?? 1;
-      if (currentQuantity > 1) {
+      final consumeCount = (data['quantity'] as num?)?.toInt() ?? 1;
+
+      if (currentQuantity > consumeCount) {
         await _supabase.from('bottles').update({
-          'quantity': currentQuantity - 1,
+          'quantity': currentQuantity - consumeCount,
         }).eq('id', bottleId);
       } else {
         await _supabase.from('bottles').update({
+          'quantity': 0,
           'status': 'consumed',
           'consumed_at': DateTime.now().toIso8601String(),
         }).eq('id', bottleId);
       }
 
-      if (userId != null && bottleRes['wine_id'] != null) {
+      final wineId = bottleRes['wine_id']?.toString() ?? data['wine_id']?.toString();
+      if (wineId != null) {
         await _supabase.from('tasting_log').insert({
-          'wine_id': bottleRes['wine_id'],
+          'wine_id': wineId,
           'bottle_id': bottleId,
           'user_id': userId,
           'rating': rating,
-          'tasting_notes': notes,
+          'occasion': occasion,
           'food_paired': foodPaired,
-          'consumed_at': DateTime.now().toIso8601String(),
+          'tasting_notes': notes,
+          'photo_url': photoUrl,
+          'co_tasters': coTasters,
+          'location_name': locationName,
+          'bottle_owner_id': data['bottle_owner_id'] ?? bottleRes['owner_id'],
+          'bottle_owner_name': data['bottle_owner_name'],
+          'is_external': false,
+          'consumed_at': action.createdAt.toIso8601String(),
         });
       }
     }
@@ -372,9 +494,9 @@ class SyncService {
       await _syncMoveBottle(action);
       return;
     }
-    final bottleId = data['bottle_id'] as String?;
-    if (bottleId == null) {
-      if (data.containsKey('wine_id')) {
+    final bottleId = data['bottle_id']?.toString();
+    if (bottleId == null || bottleId.startsWith('temp_')) {
+      if (data.containsKey('wine_id') && !data['wine_id'].toString().startsWith('temp_')) {
         await _syncUpdateWine(action);
       }
       return;
@@ -393,11 +515,12 @@ class SyncService {
 
   Future<void> _syncMoveBottle(OfflineAction action) async {
     final data = action.data;
-    final bottleId = data['bottle_id'] as String?;
-    final targetCellarId = (data['target_cellar_id'] ?? action.cellarId) as String?;
+    final bottleId = data['bottle_id']?.toString();
+    final targetCellarId = (data['target_cellar_id'] ?? action.cellarId)?.toString();
     final quantityToMove = (data['quantity_to_move'] as num?)?.toInt() ?? 1;
 
     if (bottleId == null || targetCellarId == null) return;
+    if (bottleId.startsWith('temp_') || targetCellarId.startsWith('temp_')) return;
 
     final bottleRes = await _supabase
         .from('bottles')
@@ -435,8 +558,8 @@ class SyncService {
 
   Future<void> _syncUpdateWine(OfflineAction action) async {
     final data = action.data;
-    final wineId = data['wine_id'] as String?;
-    if (wineId == null) return;
+    final wineId = data['wine_id']?.toString();
+    if (wineId == null || wineId.startsWith('temp_')) return;
     final updates = Map<String, dynamic>.from(data)..remove('wine_id');
     if (updates.isNotEmpty) {
       await _supabase.from('wines').update(updates).eq('id', wineId);
@@ -444,7 +567,20 @@ class SyncService {
   }
 
   Future<void> _syncDeleteBottle(OfflineAction action) async {
-    final bottleId = action.data['bottle_id'] as String;
+    final bottleId = action.data['bottle_id']?.toString();
+    if (bottleId == null || bottleId.startsWith('temp_')) return;
+
+    final quantityToRemove = (action.data['quantity_to_remove'] as num?)?.toInt();
+    if (quantityToRemove != null && quantityToRemove > 0) {
+      final bottleRes = await _supabase.from('bottles').select('quantity').eq('id', bottleId).maybeSingle();
+      if (bottleRes != null) {
+        final currentQty = (bottleRes['quantity'] as num?)?.toInt() ?? 1;
+        if (currentQty > quantityToRemove) {
+          await _supabase.from('bottles').update({'quantity': currentQty - quantityToRemove}).eq('id', bottleId);
+          return;
+        }
+      }
+    }
     await _supabase.from('bottles').delete().eq('id', bottleId);
   }
 
@@ -462,14 +598,36 @@ class SyncService {
       'owner_id': userId,
     }).select().single();
 
-    final cellarId = res['id'] as String;
+    final newCellarId = res['id'] as String;
+    final oldTempId = action.cellarId;
+
     try {
       await _supabase.from('cellar_members').insert({
-        'cellar_id': cellarId,
+        'cellar_id': newCellarId,
         'user_id': userId,
         'role': 'admin',
       });
     } catch (_) {}
+
+    // Remap any subsequent actions in queue that were tied to oldTempId
+    if (oldTempId != null && oldTempId.startsWith('temp_')) {
+      final queue = _offlineStorage.getQueue();
+      bool modified = false;
+      for (int i = 0; i < queue.length; i++) {
+        final a = queue[i];
+        if (a.cellarId == oldTempId) {
+          final updatedData = Map<String, dynamic>.from(a.data);
+          if (updatedData['cellar_id'] == oldTempId) {
+            updatedData['cellar_id'] = newCellarId;
+          }
+          queue[i] = a.copyWith(cellarId: newCellarId);
+          modified = true;
+        }
+      }
+      if (modified) {
+        await _offlineStorage.saveQueue(queue);
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------

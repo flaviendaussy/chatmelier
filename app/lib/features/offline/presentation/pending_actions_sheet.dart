@@ -74,11 +74,13 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
 
   Future<void> _syncAll() async {
     setState(() => _isProcessing = true);
+    final storage = ref.read(offlineStorageServiceProvider);
+    await storage.retryFailedActions();
+
     final syncService = ref.read(syncServiceProvider);
     final result = await syncService.processPendingActions();
 
     // Refresh state
-    final storage = ref.read(offlineStorageServiceProvider);
     ref.read(pendingSyncCountProvider.notifier).state = storage.pendingActionCount;
     ref.read(pendingResolutionWinesProvider.notifier).state = storage.getPendingResolutionWines();
 
@@ -114,6 +116,13 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
     await storage.removeAction(actionId);
     ref.read(pendingSyncCountProvider.notifier).state = storage.pendingActionCount;
     setState(() {});
+  }
+
+  Future<void> _clearFailed() async {
+    final storage = ref.read(offlineStorageServiceProvider);
+    await storage.clearFailedActions();
+    ref.read(pendingSyncCountProvider.notifier).state = storage.pendingActionCount;
+    if (mounted) setState(() {});
   }
 
   Future<void> _clearAll() async {
@@ -223,6 +232,42 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
           ),
 
           const Divider(height: 1),
+
+          // Failed actions alert banner
+          if (queue.any((a) => a.status == OfflineActionStatus.failed))
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${queue.where((a) => a.status == OfflineActionStatus.failed).length} action(s) en échec',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _clearFailed,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'Effacer les erreurs',
+                      style: TextStyle(fontSize: 12, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // Actions List
           if (queue.isEmpty)

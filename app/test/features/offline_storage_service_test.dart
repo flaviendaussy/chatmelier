@@ -119,5 +119,72 @@ void main() {
       expect(cached.first.name, 'Cave Vosges');
       expect(cached.last.name, 'Cave Londres');
     });
+
+    test('clearFailedActions removes only failed actions', () async {
+      final action1 = OfflineAction(
+        id: 'action-1',
+        type: OfflineActionType.consumeBottle,
+        data: {'bottle_id': null, 'is_external': true},
+        status: OfflineActionStatus.failed,
+        errorMessage: "type 'Null' is not a subtype of type 'String'",
+      );
+      final action2 = OfflineAction(
+        id: 'action-2',
+        type: OfflineActionType.addBottle,
+        data: {'wine_name': 'Pétrus'},
+        status: OfflineActionStatus.pending,
+      );
+
+      await service.enqueueAction(action1);
+      await service.enqueueAction(action2);
+
+      expect(service.getQueue().length, 2);
+      await service.clearFailedActions();
+
+      final remaining = service.getQueue();
+      expect(remaining.length, 1);
+      expect(remaining.first.id, 'action-2');
+      expect(remaining.first.status, OfflineActionStatus.pending);
+    });
+
+    test('retryFailedActions resets failed actions to pending and clears error', () async {
+      final action = OfflineAction(
+        id: 'action-failed',
+        type: OfflineActionType.consumeBottle,
+        cellarId: 'cellar-1',
+        data: {'rating': 4.5},
+        status: OfflineActionStatus.failed,
+        errorMessage: 'Connection failed',
+      );
+
+      await service.enqueueAction(action);
+      expect(service.getQueue().first.status, OfflineActionStatus.failed);
+
+      await service.retryFailedActions();
+
+      final queue = service.getQueue();
+      expect(queue.first.status, OfflineActionStatus.pending);
+      expect(queue.first.errorMessage, isNull);
+    });
+
+    test('OfflineAction copyWith supports all fields including cellarId and data', () {
+      final original = OfflineAction(
+        id: 'orig-id',
+        type: OfflineActionType.addBottle,
+        cellarId: 'temp_cellar_123',
+        data: {'wine_name': 'Margaux'},
+        status: OfflineActionStatus.pending,
+      );
+
+      final updated = original.copyWith(
+        cellarId: 'real-cellar-uuid',
+        status: OfflineActionStatus.completed,
+      );
+
+      expect(updated.id, 'orig-id');
+      expect(updated.cellarId, 'real-cellar-uuid');
+      expect(updated.status, OfflineActionStatus.completed);
+      expect(updated.data['wine_name'], 'Margaux');
+    });
   });
 }

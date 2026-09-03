@@ -423,6 +423,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     final tastingId = const Uuid().v4();
 
     try {
+      bool savedOnline = false;
       if (user != null) {
         // Create wine record in database
         try {
@@ -440,26 +441,34 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         }
 
         // Insert into tasting_log
-        await supabase.from('tasting_log').insert({
-          'id': tastingId,
-          'wine_id': wineId,
-          'user_id': user.id,
-          'rating': effectiveRating,
-          'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
-          'food_paired': food.isNotEmpty ? food : null,
-          'tasting_notes': notes.isNotEmpty ? notes : null,
-          'photo_url': _photoUrl,
-          'co_tasters': _selectedCoTasters.toList(),
-          'location_name': occasion.isNotEmpty ? occasion : null,
-          'is_external': true,
-          'consumed_at': DateTime.now().toIso8601String(),
-        });
+        try {
+          await supabase.from('tasting_log').insert({
+            'id': tastingId,
+            'wine_id': wineId,
+            'user_id': user.id,
+            'rating': effectiveRating,
+            'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
+            'food_paired': food.isNotEmpty ? food : null,
+            'tasting_notes': notes.isNotEmpty ? notes : null,
+            'photo_url': _photoUrl,
+            'co_tasters': _selectedCoTasters.toList(),
+            'location_name': occasion.isNotEmpty ? occasion : null,
+            'is_external': true,
+            'consumed_at': DateTime.now().toIso8601String(),
+          });
+          savedOnline = true;
+        } catch (e) {
+          AppLogger.warning('EXTERNAL_TASTING', 'Could not save online, queueing offline: $e');
+          savedOnline = false;
+        }
       }
 
-      // Queue offline action
+    // Only queue offline action if online insert failed
+    if (!savedOnline) {
       await offlineStorage.queueAction(OfflineAction(
         id: tastingId,
         type: OfflineActionType.consumeBottle,
+        status: OfflineActionStatus.pending,
         data: {
           'tasting_id': tastingId,
           'wine_id': wineId,
@@ -479,6 +488,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         },
         createdAt: DateTime.now(),
       ));
+    }
 
       // Invalidate tasting log
       ref.invalidate(tastingLogProvider);

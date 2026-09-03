@@ -257,6 +257,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final ownerId = _selectedBottle!['owner_id'] as String? ?? user?.id;
 
     try {
+      bool savedOnline = false;
       // 1. Record tasting log
       if (user != null) {
         try {
@@ -278,30 +279,46 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       }
 
       // 2. Decrement bottle quantity or mark as consumed
-      if (currentQty > _consumeCount) {
-        await supabase
-            .from('bottles')
-            .update({'quantity': currentQty - _consumeCount})
-            .eq('id', bottleId);
-      } else {
-        await supabase
-            .from('bottles')
-            .update({
-              'quantity': 0,
-              'status': 'consumed',
-              'consumed_at': DateTime.now().toIso8601String(),
-            })
-            .eq('id', bottleId);
+      try {
+        if (currentQty > _consumeCount) {
+          await supabase
+              .from('bottles')
+              .update({'quantity': currentQty - _consumeCount})
+              .eq('id', bottleId);
+        } else {
+          await supabase
+              .from('bottles')
+              .update({
+                'quantity': 0,
+                'status': 'consumed',
+                'consumed_at': DateTime.now().toIso8601String(),
+              })
+              .eq('id', bottleId);
+        }
+        savedOnline = true;
+      } catch (e) {
+        debugPrint('Checkout offline fallback: $e');
+        savedOnline = false;
       }
 
-      // Record offline action so Journal and Stats update immediately
-      final offlineStorage = ref.read(offlineStorageServiceProvider);
-      final wineMap = _selectedBottle!['wines'] as Map<String, dynamic>?;
+    final offlineStorage = ref.read(offlineStorageServiceProvider);
+    final wineMap = _selectedBottle!['wines'] as Map<String, dynamic>?;
+
+    // Apply immediate local cache update
+    if (cellarId != null) {
+      await offlineStorage.applyOfflineConsume(cellarId, bottleId);
+    }
+
+    // Only queue offline sync action if remote push failed
+    if (!savedOnline) {
       await offlineStorage.queueAction(OfflineAction(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         type: OfflineActionType.consumeBottle,
+        cellarId: cellarId,
+        status: OfflineActionStatus.pending,
         data: {
           'bottle_id': bottleId,
+          'cellar_id': cellarId,
           'wine_id': _selectedBottle!['wine_id'] as String? ?? '',
           'wine_name': wineMap?['name'] as String? ?? 'Vin dégusté',
           'vintage': (wineMap?['vintage'] as num?)?.toInt() ?? int.tryParse(wineMap?['vintage']?.toString() ?? ''),
@@ -319,6 +336,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         },
         createdAt: DateTime.now(),
       ));
+    }
 
       // 3. Invalidate cellar & journal cache
       notifyCellarChanged(ref, cellarId);

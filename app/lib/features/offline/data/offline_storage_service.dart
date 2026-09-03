@@ -75,7 +75,28 @@ class OfflineStorageService {
     await _saveQueue(queue);
   }
 
+  Future<void> clearFailedActions() async {
+    final queue = getQueue();
+    queue.removeWhere((a) => a.status == OfflineActionStatus.failed);
+    await _saveQueue(queue);
+  }
+
+  Future<void> retryFailedActions() async {
+    final queue = getQueue();
+    for (int i = 0; i < queue.length; i++) {
+      if (queue[i].status == OfflineActionStatus.failed) {
+        queue[i] = queue[i].copyWith(
+          status: OfflineActionStatus.pending,
+          clearErrorMessage: true,
+        );
+      }
+    }
+    await _saveQueue(queue);
+  }
+
   int get pendingActionCount => getQueue().length;
+
+  Future<void> saveQueue(List<OfflineAction> queue) => _saveQueue(queue);
 
   Future<void> _saveQueue(List<OfflineAction> queue) async {
     final raw = jsonEncode(queue.map((a) => a.toJson()).toList());

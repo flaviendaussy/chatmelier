@@ -157,6 +157,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
         notesSummary.writeln('Impression : ${_commentController.text.trim()}');
       }
 
+      bool savedOnline = false;
       if (userId != null) {
         try {
           await supabase.from('tasting_log').insert({
@@ -168,29 +169,37 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
             'occasion': 'Dégustation Sommelier à Table',
             'consumed_at': DateTime.now().toIso8601String(),
           });
-        } catch (_) {}
+          savedOnline = true;
+        } catch (_) {
+          savedOnline = false;
+        }
       }
 
-      // Record offline action so Journal and Stats update immediately
-      final offlineStorage = ref.read(offlineStorageServiceProvider);
-      await offlineStorage.queueAction(OfflineAction(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        type: OfflineActionType.consumeBottle,
-        data: {
-          'bottle_id': widget.bottle.id,
-          'wine_id': wine.id,
-          'wine_name': wine.name,
-          'vintage': wine.vintage,
-          'region': wine.region,
-          'country': wine.country,
-          'appellation': wine.appellation,
-          'rating': _userRating,
-          'tasting_notes': notesSummary.toString(),
-          'occasion': 'Dégustation Sommelier à Table',
-          'quantity': 0,
-        },
-        createdAt: DateTime.now(),
-      ));
+      // Only queue offline action if remote insert failed
+      if (!savedOnline) {
+        final offlineStorage = ref.read(offlineStorageServiceProvider);
+        await offlineStorage.queueAction(OfflineAction(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          type: OfflineActionType.consumeBottle,
+          cellarId: widget.bottle.cellarId,
+          status: OfflineActionStatus.pending,
+          data: {
+            'bottle_id': widget.bottle.id,
+            'cellar_id': widget.bottle.cellarId,
+            'wine_id': wine.id,
+            'wine_name': wine.name,
+            'vintage': wine.vintage,
+            'region': wine.region,
+            'country': wine.country,
+            'appellation': wine.appellation,
+            'rating': _userRating,
+            'tasting_notes': notesSummary.toString(),
+            'occasion': 'Dégustation Sommelier à Table',
+            'quantity': 0,
+          },
+          createdAt: DateTime.now(),
+        ));
+      }
 
       ref.invalidate(tastingLogProvider);
 

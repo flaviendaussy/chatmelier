@@ -71,18 +71,25 @@ class OfflineAction {
       );
 
   OfflineAction copyWith({
+    String? id,
+    OfflineActionType? type,
+    String? cellarId,
+    Map<String, dynamic>? data,
+    String? localPhotoPath,
+    DateTime? createdAt,
     OfflineActionStatus? status,
     String? errorMessage,
+    bool clearErrorMessage = false,
   }) {
     return OfflineAction(
-      id: id,
-      type: type,
-      cellarId: cellarId,
-      data: data,
-      localPhotoPath: localPhotoPath,
-      createdAt: createdAt,
+      id: id ?? this.id,
+      type: type ?? this.type,
+      cellarId: cellarId ?? this.cellarId,
+      data: data ?? this.data,
+      localPhotoPath: localPhotoPath ?? this.localPhotoPath,
+      createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
     );
   }
 }

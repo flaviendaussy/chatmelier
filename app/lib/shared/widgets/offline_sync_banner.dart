@@ -93,13 +93,14 @@ class OfflineSyncBanner extends ConsumerWidget {
                   TextButton(
                     onPressed: () async {
                       ref.read(isSyncingStateProvider.notifier).state = true;
+                      final storage = ref.read(offlineStorageServiceProvider);
+                      await storage.retryFailedActions();
                       final syncService = ref.read(syncServiceProvider);
                       final result = await syncService.processPendingActions();
                       if (!context.mounted) return;
                       ref.read(isSyncingStateProvider.notifier).state = false;
 
                       // Refresh pending count
-                      final storage = ref.read(offlineStorageServiceProvider);
                       ref.read(pendingSyncCountProvider.notifier).state =
                           storage.pendingActionCount;
                       ref.read(pendingResolutionWinesProvider.notifier).state =

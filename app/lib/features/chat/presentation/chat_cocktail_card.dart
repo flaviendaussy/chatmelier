@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../cocktails/data/cocktail_catalog.dart';
+import '../../cocktails/data/custom_cocktail_service.dart';
 import '../../cocktails/domain/cocktail.dart';
 import '../../cocktails/presentation/cocktail_detail_sheet.dart';
+import '../../cocktails/presentation/save_cocktail_dialog.dart';
 
 class ChatCocktailCardData {
   final String name;
@@ -45,15 +48,20 @@ class ChatCocktailCardData {
   }
 }
 
-class ChatCocktailCard extends StatelessWidget {
+class ChatCocktailCard extends ConsumerWidget {
   final ChatCocktailCardData data;
 
   const ChatCocktailCard({super.key, required this.data});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    final customCocktails = ref.watch(customCocktailsProvider);
+    final isSaved = customCocktails.any((c) =>
+        c.name.toLowerCase().trim() == data.name.toLowerCase().trim() ||
+        c.id.toLowerCase() == data.name.toLowerCase().replaceAll(' ', '_'));
 
     return Container(
       margin: const EdgeInsets.only(top: 10, bottom: 6),
@@ -61,7 +69,9 @@ class ChatCocktailCard extends StatelessWidget {
         color: isDark ? const Color(0xFF222222) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFD4AF37).withOpacity(0.4),
+          color: isSaved
+              ? const Color(0xFF2E7D32).withOpacity(0.5)
+              : const Color(0xFFD4AF37).withOpacity(0.4),
           width: 1.5,
         ),
         boxShadow: [
@@ -109,22 +119,47 @@ class ChatCocktailCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD4AF37).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFD4AF37)),
-                  ),
-                  child: const Text(
-                    'Mixologie ✨',
-                    style: TextStyle(
-                      color: Color(0xFFB8860B),
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                if (isSaved)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2E7D32).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF2E7D32)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check, size: 12, color: Color(0xFF2E7D32)),
+                        SizedBox(width: 4),
+                        Text(
+                          'Enregistré',
+                          style: TextStyle(
+                            color: Color(0xFF2E7D32),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD4AF37).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFD4AF37)),
+                    ),
+                    child: const Text(
+                      'Mixologie ✨',
+                      style: TextStyle(
+                        color: Color(0xFFB8860B),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
 
@@ -175,23 +210,45 @@ class ChatCocktailCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Action Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B1E3F),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8B1E3F),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.local_bar, size: 18),
+                    label: const Text(
+                      'Voir la recette',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    onPressed: () => _openCocktailRecipe(context, ref),
+                  ),
                 ),
-                icon: const Icon(Icons.local_bar, size: 18),
-                label: const Text(
-                  'Voir la recette pas à pas',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                const SizedBox(width: 8),
+                IconButton.filledTonal(
+                  style: IconButton.styleFrom(
+                    backgroundColor: isSaved
+                        ? const Color(0xFF2E7D32).withOpacity(0.15)
+                        : (isDark ? Colors.white10 : Colors.grey.shade200),
+                    foregroundColor: isSaved ? const Color(0xFF2E7D32) : const Color(0xFF8B1E3F),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.all(10),
+                  ),
+                  icon: Icon(
+                    isSaved ? Icons.bookmark : Icons.bookmark_add_outlined,
+                    size: 20,
+                  ),
+                  tooltip: isSaved
+                      ? 'Cocktail déjà enregistré (cliquer pour renommer)'
+                      : 'Ajouter à mes cocktails',
+                  onPressed: () => _saveCocktail(context, ref),
                 ),
-                onPressed: () => _openCocktailRecipe(context),
-              ),
+              ],
             ),
           ],
         ),
@@ -199,10 +256,15 @@ class ChatCocktailCard extends StatelessWidget {
     );
   }
 
-  void _openCocktailRecipe(BuildContext context) {
-    // Check if matching cocktail in catalog
-    final catalogMatch = CocktailCatalog.all.firstWhere(
-      (c) => c.name.toLowerCase() == data.name.toLowerCase(),
+  void _saveCocktail(BuildContext context, WidgetRef ref) {
+    final cocktail = _toCocktail(ref);
+    SaveCocktailDialog.show(context, cocktail: cocktail);
+  }
+
+  Cocktail _toCocktail(WidgetRef ref) {
+    final allCocktails = ref.read(allCocktailsProvider);
+    return allCocktails.firstWhere(
+      (c) => c.name.toLowerCase().trim() == data.name.toLowerCase().trim(),
       orElse: () => Cocktail(
         id: 'custom_chat_${data.name.toLowerCase().replaceAll(' ', '_')}',
         name: data.name,
@@ -222,10 +284,14 @@ class ChatCocktailCard extends StatelessWidget {
                 'Frapper vigoureusement pendant 15 secondes.',
                 'Filtrer dans le verre et garnir.',
               ],
+        isCustom: true,
       ),
     );
+  }
 
-    CocktailDetailSheet.show(context, catalogMatch);
+  void _openCocktailRecipe(BuildContext context, WidgetRef ref) {
+    final cocktail = _toCocktail(ref);
+    CocktailDetailSheet.show(context, cocktail);
   }
 
   static String _getSpiritEmoji(String baseSpirit) {

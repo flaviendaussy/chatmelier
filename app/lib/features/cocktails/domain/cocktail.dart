@@ -60,6 +60,7 @@ class Cocktail {
   final String description;
   final List<CocktailIngredient> ingredients;
   final List<String> instructions;
+  final bool isCustom;
 
   const Cocktail({
     required this.id,
@@ -75,7 +76,42 @@ class Cocktail {
     required this.description,
     required this.ingredients,
     required this.instructions,
+    this.isCustom = false,
   });
+
+  Cocktail copyWith({
+    String? id,
+    String? name,
+    String? baseSpirit,
+    String? category,
+    String? glass,
+    String? method,
+    String? difficulty,
+    String? prepTime,
+    String? ice,
+    String? garnish,
+    String? description,
+    List<CocktailIngredient>? ingredients,
+    List<String>? instructions,
+    bool? isCustom,
+  }) {
+    return Cocktail(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      baseSpirit: baseSpirit ?? this.baseSpirit,
+      category: category ?? this.category,
+      glass: glass ?? this.glass,
+      method: method ?? this.method,
+      difficulty: difficulty ?? this.difficulty,
+      prepTime: prepTime ?? this.prepTime,
+      ice: ice ?? this.ice,
+      garnish: garnish ?? this.garnish,
+      description: description ?? this.description,
+      ingredients: ingredients ?? this.ingredients,
+      instructions: instructions ?? this.instructions,
+      isCustom: isCustom ?? this.isCustom,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -91,6 +127,7 @@ class Cocktail {
     'description': description,
     'ingredients': ingredients.map((i) => i.toJson()).toList(),
     'instructions': instructions,
+    'is_custom': isCustom,
   };
 
   factory Cocktail.fromJson(Map<String, dynamic> json) {
@@ -106,6 +143,7 @@ class Cocktail {
       ice: json['ice'] as String? ?? 'Glaçons',
       garnish: json['garnish'] as String? ?? '',
       description: json['description'] as String? ?? '',
+      isCustom: json['is_custom'] as bool? ?? false,
       ingredients: (json['ingredients'] as List<dynamic>?)
               ?.map((i) => CocktailIngredient.fromJson(i as Map<String, dynamic>))
               .toList() ??

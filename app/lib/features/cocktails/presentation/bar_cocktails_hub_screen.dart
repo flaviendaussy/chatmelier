@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../data/bar_pantry_service.dart';
 import '../data/cocktail_catalog.dart';
+import '../data/custom_cocktail_service.dart';
 import '../domain/bar_pantry_item.dart';
 import '../domain/cocktail.dart';
 import '../domain/cocktail_matcher.dart';
@@ -52,9 +53,10 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
         : null;
     final bottles = bottlesAsync?.valueOrNull ?? [];
     final pantry = ref.watch(barPantryProvider);
+    final allCocktails = ref.watch(allCocktailsProvider);
 
     // Compute matches
-    final allMatches = CocktailCatalog.all.map((c) {
+    final allMatches = allCocktails.map((c) {
       return CocktailMatcher.matchCocktail(
         cocktail: c,
         cellarBottles: bottles,
@@ -482,13 +484,17 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
     final filtered = allMatches.where((m) {
       final c = m.cocktail;
       if (_selectedCatalogSpirit != 'Tous') {
-        final target = _selectedCatalogSpirit.toLowerCase();
-        if (target == 'gin' && c.baseSpirit != 'gin') return false;
-        if (target == 'rhum' && c.baseSpirit != 'rhum') return false;
-        if (target == 'whisky' && c.baseSpirit != 'whisky') return false;
-        if (target == 'vodka' && c.baseSpirit != 'vodka') return false;
-        if (target == 'tequila' && (c.baseSpirit != 'tequila' && c.baseSpirit != 'mezcal')) return false;
-        if (target == 'apéritifs' && (c.baseSpirit != 'aperitif' && c.baseSpirit != 'liqueur' && c.baseSpirit != 'cognac')) return false;
+        if (_selectedCatalogSpirit == '✨ Mes créations') {
+          if (!c.isCustom) return false;
+        } else {
+          final target = _selectedCatalogSpirit.toLowerCase();
+          if (target == 'gin' && c.baseSpirit != 'gin') return false;
+          if (target == 'rhum' && c.baseSpirit != 'rhum') return false;
+          if (target == 'whisky' && c.baseSpirit != 'whisky') return false;
+          if (target == 'vodka' && c.baseSpirit != 'vodka') return false;
+          if (target == 'tequila' && (c.baseSpirit != 'tequila' && c.baseSpirit != 'mezcal')) return false;
+          if (target == 'apéritifs' && (c.baseSpirit != 'aperitif' && c.baseSpirit != 'liqueur' && c.baseSpirit != 'cognac')) return false;
+        }
       }
       if (_catalogSearch.isNotEmpty) {
         final q = _catalogSearch.toLowerCase();
@@ -521,6 +527,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                 child: Row(
                   children: [
                     'Tous',
+                    '✨ Mes créations',
                     'Gin',
                     'Rhum',
                     'Whisky',
@@ -547,14 +554,41 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
 
         // List
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-            itemCount: filtered.length,
-            itemBuilder: (context, index) {
-              final m = filtered[index];
-              return _buildCocktailCard(context, m, isReady: m.isReady);
-            },
-          ),
+          child: filtered.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.bookmark_border, size: 48, color: Colors.grey),
+                        const SizedBox(height: 12),
+                        Text(
+                          _selectedCatalogSpirit == '✨ Mes créations'
+                              ? 'Aucune création enregistrée'
+                              : 'Aucun cocktail trouvé',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _selectedCatalogSpirit == '✨ Mes créations'
+                              ? 'Demandez au Chatmelier Mixologue de vous concevoir un cocktail sur-mesure, puis enregistrez-le d\'un simple clic !'
+                              : 'Essayez une autre recherche ou un autre spiritueux.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final m = filtered[index];
+                    return _buildCocktailCard(context, m, isReady: m.isReady);
+                  },
+                ),
         ),
       ],
     );
@@ -615,6 +649,24 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                             style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
+                        if (c.isCustom)
+                          Container(
+                            margin: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD4AF37).withOpacity(0.18),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFD4AF37)),
+                            ),
+                            child: const Text(
+                              '✨ Ma Recette',
+                              style: TextStyle(
+                                color: Color(0xFFB8860B),
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         if (isReady)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

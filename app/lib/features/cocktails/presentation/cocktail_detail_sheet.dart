@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../data/bar_pantry_service.dart';
+import '../data/custom_cocktail_service.dart';
 import '../domain/cocktail.dart';
 import '../domain/cocktail_matcher.dart';
+import 'save_cocktail_dialog.dart';
 
 class CocktailDetailSheet extends ConsumerWidget {
   final Cocktail cocktail;
@@ -29,6 +31,9 @@ class CocktailDetailSheet extends ConsumerWidget {
         : null;
     final bottles = bottlesAsync?.valueOrNull ?? [];
     final pantry = ref.watch(barPantryProvider);
+    final customCocktails = ref.watch(customCocktailsProvider);
+    final isSaved = customCocktails.any((c) =>
+        c.id == cocktail.id || c.name.toLowerCase().trim() == cocktail.name.toLowerCase().trim());
 
     final match = CocktailMatcher.matchCocktail(
       cocktail: cocktail,
@@ -131,6 +136,14 @@ class CocktailDetailSheet extends ConsumerWidget {
                           ),
                         ],
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        isSaved ? Icons.bookmark : Icons.bookmark_add_outlined,
+                        color: isSaved ? const Color(0xFFD4AF37) : null,
+                      ),
+                      tooltip: isSaved ? 'Modifier le nom dans mes cocktails' : 'Ajouter à mes cocktails',
+                      onPressed: () => SaveCocktailDialog.show(context, cocktail: cocktail),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
@@ -342,6 +355,56 @@ class CocktailDetailSheet extends ConsumerWidget {
                         ),
                       ),
                     ],
+
+                    const SizedBox(height: 20),
+
+                    // Add to My Cocktails / Rename Actions
+                    if (!isSaved)
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8B1E3F),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        icon: const Icon(Icons.bookmark_add, size: 20),
+                        label: const Text(
+                          'Ajouter à mes cocktails',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        onPressed: () => SaveCocktailDialog.show(context, cocktail: cocktail),
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              label: const Text('Renommer le cocktail'),
+                              onPressed: () => SaveCocktailDialog.show(
+                                context,
+                                cocktail: cocktail,
+                                initialName: cocktail.name,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton.outlined(
+                            style: IconButton.styleFrom(
+                              side: BorderSide(color: Colors.red.shade300),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.all(12),
+                            ),
+                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            tooltip: 'Retirer de mes cocktails',
+                            onPressed: () => _confirmDelete(context, ref),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -350,6 +413,42 @@ class CocktailDetailSheet extends ConsumerWidget {
         );
       },
     );
+  }
+
+  void _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Retirer ce cocktail ?'),
+        content: Text('Voulez-vous retirer "${cocktail.name}" de vos recettes enregistrées ?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Retirer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final saved = ref.read(customCocktailsProvider).firstWhere(
+        (c) => c.name.toLowerCase() == cocktail.name.toLowerCase() || c.id == cocktail.id,
+        orElse: () => cocktail,
+      );
+      await ref.read(customCocktailsProvider.notifier).deleteCocktail(saved.id);
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Cocktail "${cocktail.name}" retiré de vos recettes.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildSpecCard(BuildContext context, IconData icon, String label, String value) {

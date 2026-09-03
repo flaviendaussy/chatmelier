@@ -5,6 +5,7 @@ import '../../friends/domain/cellar_access_request.dart';
 import '../../friends/domain/friend.dart';
 import '../../friends/domain/user_notification.dart';
 import '../../../shared/widgets/owner_avatar.dart';
+import '../../../shared/providers/cellar_provider.dart';
 
 /// Modal bottom sheet providing a full Inbox for incoming friend requests,
 /// cellar access requests, and notifications, with support for "Dismiss / Pour plus tard".
@@ -121,6 +122,280 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _showGrantCellarAccessDialog(CellarAccessRequest req) async {
+    final cellars = await ref.read(cellarRepositoryProvider).getUserCellarsWithRole();
+    final ownedCellars = cellars.where((c) => c['role'] == 'admin').toList();
+
+    if (!mounted) return;
+
+    if (ownedCellars.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aucune cave propriétaire trouvée.')),
+      );
+      return;
+    }
+
+    // Default: ONLY check the requested cellar (or the first one if not matched).
+    // All other cellars are UNCHECKED by default!
+    final Map<String, bool> selectedCellars = {};
+    final Map<String, String> selectedRoles = {};
+
+    bool hasRequestedMatch = false;
+    for (final c in ownedCellars) {
+      final cMap = c['cellars'] is Map<String, dynamic> ? c['cellars'] as Map<String, dynamic> : c;
+      final cId = (cMap['id'] ?? c['cellar_id'] ?? '').toString();
+      final isRequested = (cId == req.cellarId) || (req.cellarId.isEmpty && !hasRequestedMatch);
+      if (isRequested) hasRequestedMatch = true;
+      selectedCellars[cId] = isRequested;
+      selectedRoles[cId] = isRequested ? req.requestedRole : 'editor';
+    }
+
+    if (!selectedCellars.values.any((v) => v)) {
+      final firstCMap = ownedCellars.first['cellars'] is Map<String, dynamic>
+          ? ownedCellars.first['cellars'] as Map<String, dynamic>
+          : ownedCellars.first;
+      final firstId = (firstCMap['id'] ?? ownedCellars.first['cellar_id'] ?? '').toString();
+      selectedCellars[firstId] = true;
+    }
+
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (dialogCtx, setDialogState) {
+            final theme = Theme.of(dialogCtx);
+            final anySelected = selectedCellars.values.any((v) => v);
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.share, color: Color(0xFF10B981), size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Partager mes caves',
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'avec ${req.requesterName}',
+                          style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Choisissez quelle(s) cave(s) partager et l\'accès pour chacune :',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.75),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    ...ownedCellars.map((item) {
+                      final cMap = item['cellars'] is Map<String, dynamic>
+                          ? item['cellars'] as Map<String, dynamic>
+                          : item;
+                      final cId = (cMap['id'] ?? item['cellar_id'] ?? '').toString();
+                      final cName = cMap['name']?.toString() ?? 'Cave';
+                      final isChecked = selectedCellars[cId] ?? false;
+                      final currentRole = selectedRoles[cId] ?? 'editor';
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: isChecked
+                              ? const Color(0xFF10B981).withValues(alpha: 0.08)
+                              : Colors.grey.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isChecked
+                                ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                                : Colors.grey.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: isChecked,
+                                  activeColor: const Color(0xFF10B981),
+                                  onChanged: (val) {
+                                    setDialogState(() {
+                                      selectedCellars[cId] = val ?? false;
+                                    });
+                                  },
+                                ),
+                                const Icon(Icons.wine_bar, size: 20, color: Color(0xFF8B1E3F)),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    cName,
+                                    style: TextStyle(
+                                      fontWeight: isChecked ? FontWeight.bold : FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (isChecked) ...[
+                              const Divider(height: 12),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8, right: 8, bottom: 4),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Accès :',
+                                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                                    ),
+                                    DropdownButton<String>(
+                                      value: currentRole,
+                                      isDense: true,
+                                      underline: const SizedBox(),
+                                      items: const [
+                                        DropdownMenuItem(
+                                          value: 'editor',
+                                          child: Text('✍️ Sommelier (Écriture)', style: TextStyle(fontSize: 12.5)),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'viewer',
+                                          child: Text('👁️ Lecteur (Lecture)', style: TextStyle(fontSize: 12.5)),
+                                        ),
+                                      ],
+                                      onChanged: (newRole) {
+                                        if (newRole != null) {
+                                          setDialogState(() {
+                                            selectedRoles[cId] = newRole;
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogCtx).pop(),
+                  child: const Text('Annuler'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: anySelected
+                      ? () async {
+                          Navigator.of(dialogCtx).pop();
+                          await _executeMultiCellarGrant(
+                            req: req,
+                            selectedCellars: selectedCellars,
+                            selectedRoles: selectedRoles,
+                            ownedCellars: ownedCellars,
+                          );
+                        }
+                      : null,
+                  child: const Text('Confirmer le partage', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _executeMultiCellarGrant({
+    required CellarAccessRequest req,
+    required Map<String, bool> selectedCellars,
+    required Map<String, String> selectedRoles,
+    required List<Map<String, dynamic>> ownedCellars,
+  }) async {
+    // 1. Instantly dismiss locally so card vanishes
+    await ref.read(dismissedNotificationIdsProvider.notifier).dismiss(req.id);
+    setState(() => _isProcessing = true);
+
+    final repo = ref.read(friendsRepositoryProvider);
+    int grantedCount = 0;
+
+    try {
+      // 2. Grant access for each selected cellar
+      for (final item in ownedCellars) {
+        final cMap = item['cellars'] is Map<String, dynamic> ? item['cellars'] as Map<String, dynamic> : item;
+        final cId = (cMap['id'] ?? item['cellar_id'] ?? '').toString();
+        final isChecked = selectedCellars[cId] ?? false;
+        if (isChecked && cId.isNotEmpty) {
+          final role = selectedRoles[cId] ?? 'editor';
+          final cName = cMap['name']?.toString() ?? 'Ma Cave';
+          await repo.grantCellarAccessDirectly(
+            cellarId: cId,
+            friendUserId: req.requesterId,
+            role: role,
+            cellarName: cName,
+          );
+          grantedCount++;
+        }
+      }
+
+      // 3. Mark the access request as accepted
+      await repo.respondCellarAccess(
+        requestId: req.id,
+        cellarId: req.cellarId,
+        requesterId: req.requesterId,
+        accept: true,
+        role: req.requestedRole,
+        cellarName: req.cellarName,
+      );
+
+      refreshFriendsAndNotifications(ref);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('🍾 Accès accordé pour $grantedCount cave(s) à ${req.requesterName} !'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -522,12 +797,12 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                     ),
                     icon: const Icon(Icons.check, size: 16),
                     label: Text(
-                      'Accorder (${req.requestedRole == "editor" ? "Sommelier" : "Lecteur"})',
+                      'Accorder l\'accès (${req.requestedRole == "editor" ? "Sommelier" : "Lecteur"})',
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                     onPressed: _isProcessing
                         ? null
-                        : () => _respondCellarRequest(req, true, req.requestedRole),
+                        : () => _showGrantCellarAccessDialog(req),
                   ),
                 ),
                 const SizedBox(width: 8),

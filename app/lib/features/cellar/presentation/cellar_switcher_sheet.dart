@@ -296,10 +296,18 @@ class CellarSwitcherSheet extends ConsumerWidget {
                                   cellarName: name,
                                   isSelected: isSelected,
                                 );
+                              } else if (action == 'leave') {
+                                _showLeaveCellarDialog(
+                                  context,
+                                  ref,
+                                  cellarId: cellarId,
+                                  cellarName: name,
+                                  isSelected: isSelected,
+                                );
                               }
                             },
                             itemBuilder: (ctx) => [
-                              if (role == 'admin')
+                              if (role == 'admin') ...[
                                 const PopupMenuItem(
                                   value: 'share',
                                   child: Row(
@@ -310,7 +318,6 @@ class CellarSwitcherSheet extends ConsumerWidget {
                                     ],
                                   ),
                                 ),
-                              if (role == 'admin')
                                 const PopupMenuItem(
                                   value: 'edit',
                                   child: Row(
@@ -321,7 +328,6 @@ class CellarSwitcherSheet extends ConsumerWidget {
                                     ],
                                   ),
                                 ),
-                              if (role == 'admin')
                                 const PopupMenuItem(
                                   value: 'delete',
                                   child: Row(
@@ -332,6 +338,18 @@ class CellarSwitcherSheet extends ConsumerWidget {
                                     ],
                                   ),
                                 ),
+                              ] else ...[
+                                const PopupMenuItem(
+                                  value: 'leave',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.logout, size: 18, color: Colors.orange),
+                                      SizedBox(width: 8),
+                                      Text('Retirer de mes caves', style: TextStyle(color: Colors.orange)),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                           if (isSelected)
@@ -393,7 +411,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
           ],
         ),
         content: const Text(
-          'Attention : Toutes les bouteilles contenues dans cette cave seront définitivement supprimées. Cette action est irréversible.',
+          'Attention : Vous êtes le propriétaire de cette cave. La cave et toutes ses bouteilles seront définitivement supprimées pour vous et pour tous les utilisateurs avec qui elle est partagée. Cette action est irréversible.',
         ),
         actions: [
           TextButton(
@@ -420,13 +438,72 @@ class CellarSwitcherSheet extends ConsumerWidget {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Cave "$cellarName" supprimée'),
+                    content: Text('Cave "$cellarName" supprimée définitivement'),
                     backgroundColor: Colors.redAccent,
                   ),
                 );
               }
             },
             child: const Text('Supprimer définitivement'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLeaveCellarDialog(
+    BuildContext context,
+    WidgetRef ref, {
+    required String cellarId,
+    required String cellarName,
+    required bool isSelected,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.logout, color: Colors.orange),
+            const SizedBox(width: 8),
+            Expanded(child: Text('Retirer "$cellarName" ?')),
+          ],
+        ),
+        content: const Text(
+          'Cette cave partagée ne sera plus visible dans votre application.\n\n'
+          'Les bouteilles et données restent intactes pour le propriétaire et ses autres membres.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.orange.shade800,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.of(ctx).pop(); // Close dialog
+              Navigator.of(context).pop(); // Close sheet
+
+              await ref.read(cellarRepositoryProvider).leaveCellar(cellarId);
+
+              if (isSelected) {
+                ref.read(currentCellarIdProvider.notifier).state = null;
+              }
+              ref.invalidate(userCellarsProvider);
+              ref.invalidate(bottlesProvider(null));
+
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Cave "$cellarName" retirée de votre vue'),
+                    backgroundColor: Colors.orange.shade800,
+                  ),
+                );
+              }
+            },
+            child: const Text('Retirer de ma vue'),
           ),
         ],
       ),

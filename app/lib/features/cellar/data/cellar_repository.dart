@@ -315,6 +315,29 @@ class CellarRepository {
     }
   }
 
+  Future<void> leaveCellar(String cellarId) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await _client
+          .from('cellar_members')
+          .delete()
+          .eq('cellar_id', cellarId)
+          .eq('user_id', user.id);
+
+      // Clean local cache
+      final cached = _offlineStorage?.getCachedCellars() ?? [];
+      cached.removeWhere((c) => c.id == cellarId);
+      await _offlineStorage?.saveCachedCellars(cached);
+    } catch (e) {
+      debugPrint('leaveCellar error: $e');
+      final cached = _offlineStorage?.getCachedCellars() ?? [];
+      cached.removeWhere((c) => c.id == cellarId);
+      await _offlineStorage?.saveCachedCellars(cached);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Bottles Listing & Retrieval
   // ---------------------------------------------------------------------------

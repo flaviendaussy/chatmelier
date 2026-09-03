@@ -81,6 +81,7 @@ class ChatService {
             .from('chat_messages')
             .select('role, content')
             .eq('cellar_id', resolvedCellarId)
+            .eq('user_id', user.id)
             .order('created_at', ascending: false)
             .limit(10);
         history = List<Map<String, dynamic>>.from(histRes).reversed.toList();
@@ -432,11 +433,15 @@ SOMMELIER RULES:
   }
 
   Future<List<ChatMessage>> getChatHistory(String cellarId) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return [];
+
     try {
       final res = await _client
           .from('chat_messages')
           .select()
           .eq('cellar_id', cellarId)
+          .eq('user_id', user.id)
           .order('created_at', ascending: true);
 
       return (res as List<dynamic>)

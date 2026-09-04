@@ -275,6 +275,20 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 SizedBox(
                   width: double.infinity,
                   height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.push('/scan/menu'),
+                    icon: const Icon(Icons.restaurant_menu, color: Color(0xFFC2185B)),
+                    label: const Text('Scanner une carte des vins (Restaurant)', style: TextStyle(color: Colors.white)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFC2185B)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
                   child: TextButton.icon(
                     onPressed: _manualEntry,
                     icon: const Icon(Icons.edit_note, color: Colors.white70),
@@ -438,6 +452,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                         ),
                         tooltip: 'Torche / Éclairage cave',
                         onPressed: _toggleFlash,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: () => context.push('/scan/menu'),
+                      icon: const Icon(Icons.restaurant_menu, color: Colors.white, size: 16),
+                      label: const Text('Carte Menu', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFFC2185B).withAlpha(200),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
                     ),
                     const SizedBox(width: 8),

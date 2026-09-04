@@ -25,6 +25,9 @@ import '../features/scratchcard/presentation/scratch_map_screen.dart';
 import '../features/auth/presentation/ai_cost_estimator_screen.dart';
 import '../features/friends/presentation/friends_screen.dart';
 import '../features/cocktails/presentation/bar_cocktails_hub_screen.dart';
+import '../features/menu_scan/domain/menu_wine.dart';
+import '../features/menu_scan/presentation/menu_photo_capture_screen.dart';
+import '../features/menu_scan/presentation/enriched_menu_screen.dart';
 import '../shared/widgets/adaptive_app_shell.dart';
 import '../shared/providers/supabase_provider.dart';
 
@@ -163,6 +166,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/scan',
         builder: (context, state) => const ScanScreen(),
+      ),
+      GoRoute(
+        path: '/scan/menu',
+        builder: (context, state) => const MenuPhotoCaptureScreen(),
+      ),
+      GoRoute(
+        path: '/scan/menu/result',
+        builder: (context, state) {
+          final menu = state.extra as ScannedMenu;
+          return EnrichedMenuScreen(menu: menu);
+        },
       ),
       GoRoute(
         path: '/review',

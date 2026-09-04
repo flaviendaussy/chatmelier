@@ -197,6 +197,17 @@ class _MobileAppShell extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _ActionMenuItem(
+              icon: Icons.restaurant_menu_rounded,
+              color: const Color(0xFFC2185B),
+              title: 'Scanner la Carte des Vins (Restaurant)',
+              subtitle: 'Capture multi-pages, radar sensoriel, filtres & comparateur',
+              onTap: () {
+                Navigator.pop(ctx);
+                context.push('/scan/menu');
+              },
+            ),
+            const SizedBox(height: 8),
+            _ActionMenuItem(
               icon: Icons.mic_outlined,
               color: Colors.purple.shade700,
               title: 'Ajout Rapide à la Voix (Sommelier)',

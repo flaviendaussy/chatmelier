@@ -31,9 +31,6 @@ void main() async {
   AppLogger.init(Supabase.instance.client);
   AppLogger.info('SYSTEM', 'Chatmelier app launched and centralized logging initialized');
 
-  // Initialize Google Mobile Ads (AdMob) on supported mobile devices
-  await AdMobService().initialize();
-
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
     AppLogger.error('FLUTTER_UI', details.exceptionAsString(), details.exception, details.stack);
@@ -42,6 +39,13 @@ void main() async {
     AppLogger.error('ASYNC_UNCAUGHT', error.toString(), error, stack);
     return true;
   };
+
+  // Initialize Google Mobile Ads (AdMob) on supported mobile devices
+  try {
+    await AdMobService().initialize();
+  } catch (e, stack) {
+    AppLogger.warning('ADMOB_INIT', 'Failed to initialize AdMob SDK: $e', e);
+  }
 
   runApp(
     ProviderScope(

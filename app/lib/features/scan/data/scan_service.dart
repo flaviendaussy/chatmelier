@@ -87,7 +87,7 @@ Extract or infer the following factual beverage properties:
 2. "producer": The winery, estate, domain, distillery or house name (e.g. "Bénédictine", "Domaine de Terrebrune", "Antinori").
 3. "vintage": Year as integer (e.g. 2018, 2019) or null if non-vintage / not visible / spirit.
 4. "cuvee_parcel": Specific cuvée, parcel, or cask/expression name if indicated, else null.
-5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits and herbal liqueurs (e.g. Bénédictine, Chartreuse, Cointreau, Amaretto) must be classified as "liqueur" or "spirit" (or specific spirit), NEVER as "dessert" or "moelleux".
+5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits, aperitifs, gins, and herbal liqueurs (e.g. Italicus, Rosolio, Bénédictine, Chartreuse, Cointreau, Amaretto, Disaronno, Gin, Pisco, Grappa, Aguardente, Rum, Whisky, Vodka, Pastis) must be classified as their specific spirit type ("gin", "whisky", "rum", "vodka", "tequila", "cognac") or as "liqueur" or "spirit". NEVER classify any spirit, gin, or liqueur as "fortified", "dessert", or "wine"! "fortified" is STRICTLY reserved for true fortified wines (Porto, Sherry/Xérès, Banyuls, Madeira, Marsala).
 6. "country": Country of origin (e.g. "France", "Italy", "Scotland", "United States").
 7. "region": Region (e.g. "Normandie", "Bordeaux", "Bourgogne", "Islay").
 8. "sub_region": Sub-region if applicable, else null.
@@ -582,7 +582,7 @@ Extract or deduce the exact factual wine or spirit properties:
 2. "producer": The winery, estate or distillery producer name (e.g. "Bénédictine", "Domaine Laroche", "Domaine de Terrebrune").
 3. "vintage": Year as integer (e.g. 2021, 2022) or null if not indicated / spirit.
 4. "cuvee_parcel": Specific parcel/cuvée name or null.
-5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits and herbal liqueurs (e.g. Bénédictine, Chartreuse, Cointreau) must be classified as "liqueur" or "spirit", NEVER as "dessert" or "moelleux".
+5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits, aperitifs, gins, and herbal liqueurs (e.g. Italicus, Rosolio, Bénédictine, Chartreuse, Cointreau, Amaretto, Disaronno, Gin, Pisco, Grappa, Aguardente, Rum, Whisky, Vodka, Pastis) must be classified as their specific spirit type ("gin", "whisky", "rum", "vodka", "tequila", "cognac") or as "liqueur" or "spirit". NEVER classify any spirit, gin, or liqueur as "fortified", "dessert", or "wine"! "fortified" is STRICTLY reserved for true fortified wines (Porto, Sherry/Xérès, Banyuls, Madeira, Marsala).
 6. "country": Country of origin (default "France" if French appellation or distillery).
 7. "region": Region (e.g. "Normandie", "Vallée du Rhône", "Bourgogne", "Bordeaux").
 8. "sub_region": Sub-region or null.

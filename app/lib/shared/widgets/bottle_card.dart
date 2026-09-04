@@ -123,33 +123,48 @@ class BottleCard extends StatelessWidget {
                     left: 8,
                     child: WineTypeBadge(type: wine.type),
                   ),
-                // Top-Right: Apogée status capsule (for wines) or Fill level capsule (for spirits)
+                // Top-Right: Apogée status capsule (for wines) or Fill level capsule (for spirits & fortified)
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: (bottle.isSpiritBottle || (wine?.isSpirit ?? false))
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.7),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.8), width: 1),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.local_bar, size: 10, color: Colors.amber.shade400),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${bottle.fillLevel}% plein',
-                                style: TextStyle(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.amber.shade400,
-                                ),
+                  child: (bottle.tracksFillLevel || (wine?.tracksFillLevel ?? false))
+                      ? Builder(
+                          builder: (context) {
+                            final fillLevel = bottle.fillLevel;
+                            final fillColor = fillLevel <= 20
+                                ? Colors.redAccent
+                                : fillLevel <= 50
+                                    ? Colors.orangeAccent
+                                    : Colors.amber.shade400;
+                            final borderColor = fillLevel <= 20
+                                ? Colors.red.shade700
+                                : fillLevel <= 50
+                                    ? Colors.orange.shade700
+                                    : Colors.amber.shade700;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.75),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: borderColor.withValues(alpha: 0.85), width: 1),
                               ),
-                            ],
-                          ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.local_bar, size: 10, color: fillColor),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '$fillLevel% plein',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: fillColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         )
                       : Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),

@@ -161,6 +161,7 @@ class Bottle {
   bool get isConsumed => status == 'consumed';
   double get fillFraction => (fillLevel.clamp(0, 100)) / 100.0;
   bool get isSpiritBottle => wine?.isSpirit ?? false;
+  bool get tracksFillLevel => (wine?.tracksFillLevel ?? false) || isSpiritBottle;
 
   /// Returns user-facing sommelier display text for bottle origin
   String get provenanceDisplay {

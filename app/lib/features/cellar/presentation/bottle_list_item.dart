@@ -175,10 +175,10 @@ class BottleListItem extends StatelessWidget {
 
                     if (!isUltraCompact) const SizedBox(height: 3),
 
-                    // Row 3: Statut d'apogée (wines) or Fill Level (spirits) & Emplacement
+                    // Row 3: Statut d'apogée (wines) or Fill Level (spirits & fortified) & Emplacement
                     Row(
                       children: [
-                        if (bottle.isSpiritBottle) ...[
+                        if (bottle.tracksFillLevel) ...[
                           Icon(Icons.local_bar, size: 12, color: Colors.amber.shade700),
                           const SizedBox(width: 4),
                           Text(

@@ -47,6 +47,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   String? _error;
 
   final _apogeeKey = GlobalKey();
+  final _fillLevelKey = GlobalKey();
   final _serviceKey = GlobalKey();
   final _terroirKey = GlobalKey();
   final _grapesKey = GlobalKey();
@@ -937,7 +938,47 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         ),
                         const SizedBox(width: 8),
                       ],
-                      if (!wine.isSpirit) ...[
+                      if (wine.tracksFillLevel) ...[
+                        Builder(
+                          builder: (context) {
+                            final fillLevel = bottleObj.fillLevel;
+                            final fillColor = fillLevel <= 20
+                                ? Colors.redAccent
+                                : fillLevel <= 50
+                                    ? Colors.orangeAccent
+                                    : Colors.amber.shade400;
+                            final borderColor = fillLevel <= 20
+                                ? Colors.red.shade700
+                                : fillLevel <= 50
+                                    ? Colors.orange.shade700
+                                    : Colors.amber.shade700;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF2A2325) : const Color(0xFFFAF0E6),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: borderColor.withValues(alpha: 0.85), width: 1),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.local_bar, size: 12, color: fillColor),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '$fillLevel% plein',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: fillColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                      ] else ...[
                         DrinkingWindowBadge(status: wine.windowStatus),
                         const SizedBox(width: 8),
                       ],
@@ -997,23 +1038,26 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     ),
                   ],
 
-                  // Spirit Bottle Fill View (Only for spirits)
-                  if (wine.isSpirit) ...[
+                  // Bottle Fill View (Spirits, Liqueurs & Fortified/Mutés)
+                  if (wine.tracksFillLevel) ...[
                     const SizedBox(height: 14),
-                    SpiritBottleFillView(
-                      fillLevel: bottleObj.fillLevel,
-                      spiritType: wine.type,
-                      wineName: wine.name,
-                      readOnly: isViewOnly,
-                      onFillLevelChanged: (newLevel) async {
-                        setState(() {
-                          _bottleData!['fill_level'] = newLevel;
-                        });
-                        final repo = ref.read(cellarRepositoryProvider);
-                        await repo.updateBottle(bottleObj.id, fillLevel: newLevel);
-                        final currentCellar = ref.read(currentCellarIdProvider);
-                        notifyCellarChanged(ref, currentCellar);
-                      },
+                    Container(
+                      key: _fillLevelKey,
+                      child: SpiritBottleFillView(
+                        fillLevel: bottleObj.fillLevel,
+                        spiritType: wine.type,
+                        wineName: wine.name,
+                        readOnly: isViewOnly,
+                        onFillLevelChanged: (newLevel) async {
+                          setState(() {
+                            _bottleData!['fill_level'] = newLevel;
+                          });
+                          final repo = ref.read(cellarRepositoryProvider);
+                          await repo.updateBottle(bottleObj.id, fillLevel: newLevel);
+                          final currentCellar = ref.read(currentCellarIdProvider);
+                          notifyCellarChanged(ref, currentCellar);
+                        },
+                      ),
                     ),
                   ],
 
@@ -1311,7 +1355,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                   ],
 
                   // ================= DRINKING WINDOW GAUSSIAN CURVE (Only for wines) =================
-                  if (!wine.isSpirit) ...[
+                  if (!wine.tracksFillLevel) ...[
                     Container(
                       key: _apogeeKey,
                       child: Card(
@@ -1580,7 +1624,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                   ],
 
                   // ================= ÉLEVAGE & VINIFICATION (BARREL AGING & OENOLOGY) (Only for wines) =================
-                  if (!wine.isSpirit) ...[
+                  if (!wine.tracksFillLevel) ...[
                     Container(
                       key: _elevageKey,
                     child: Builder(
@@ -1905,7 +1949,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                             if (wine.foodPairings.isNotEmpty) ...[
                               const SizedBox(height: 16),
                               Text(
-                                wine.isSpirit
+                                wine.tracksFillLevel
                                     ? 'Accords & Dégustation conseillés'
                                     : (l10n?.bottleDetailFoodPairings ?? 'Accords Mets & Vins conseillés'),
                                 style: theme.textTheme.labelLarge?.copyWith(
@@ -2258,7 +2302,10 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            if (!wine.isSpirit) ...[
+            if (wine.tracksFillLevel) ...[
+              _buildQuickNavChip(context, icon: Icons.local_bar, label: 'Niveau', targetKey: _fillLevelKey),
+              const SizedBox(width: 8),
+            ] else ...[
               _buildQuickNavChip(context, icon: Icons.show_chart, label: 'Apogée', targetKey: _apogeeKey),
               const SizedBox(width: 8),
             ],
@@ -2268,6 +2315,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
             if (!wine.isSpirit) ...[
               const SizedBox(width: 8),
               _buildQuickNavChip(context, icon: Icons.pie_chart_outline, label: 'Cépages', targetKey: _grapesKey),
+            ],
+            if (!wine.tracksFillLevel) ...[
               const SizedBox(width: 8),
               _buildQuickNavChip(context, icon: Icons.inventory_2_outlined, label: 'Élevage', targetKey: _elevageKey),
             ],

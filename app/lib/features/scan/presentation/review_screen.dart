@@ -264,12 +264,61 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
   static String _normalizeColor(String? type) {
     final t = (type ?? 'red').toLowerCase().trim();
+    if (t.contains('gin')) return 'gin';
+    if (t.contains('vodka')) return 'vodka';
+    if (t.contains('whisky') || t.contains('whiskey') || t.contains('bourbon') || t.contains('scotch')) return 'whisky';
+    if (t.contains('rhum') || t.contains('rum')) return 'rhum';
+    if (t.contains('tequila') || t.contains('mezcal')) return 'tequila';
+    if (t.contains('cognac') || t.contains('armagnac') || t.contains('calvados')) return 'cognac';
+    if (t.contains('italicus') ||
+        t.contains('rosolio') ||
+        t.contains('bénédictine') ||
+        t.contains('benedictine') ||
+        t.contains('amaretto') ||
+        t.contains('disaronno') ||
+        t.contains('chartreuse') ||
+        t.contains('cointreau') ||
+        t.contains('chambord') ||
+        t.contains('pimm') ||
+        t.contains('fleur de lavande') ||
+        t.contains('liqueur')) {
+      return 'liqueur';
+    }
+    if (t.contains('pisco') ||
+        t.contains('grappa') ||
+        t.contains('aguardente') ||
+        t.contains('eau de vie') ||
+        t.contains('eau-de-vie') ||
+        t.contains('pastis') ||
+        t.contains('ricard') ||
+        t.contains('absinthe') ||
+        t == 'spirit' ||
+        t == 'spiritueux') {
+      return 'spirit';
+    }
+    if (t.contains('porto') ||
+        t.contains('port wine') ||
+        t.contains('sherry') ||
+        t.contains('xérès') ||
+        t.contains('xeres') ||
+        t.contains('banyuls') ||
+        t.contains('maury') ||
+        t.contains('rivesaltes') ||
+        t.contains('madère') ||
+        t.contains('madeira') ||
+        t.contains('marsala') ||
+        t.contains('vermouth') ||
+        t.contains('fortified') ||
+        t.contains('muté') ||
+        t.contains('mute')) {
+      return 'fortified';
+    }
     if (t.contains('red') || t.contains('rouge')) return 'red';
     if (t.contains('white') || t.contains('blanc')) return 'white';
     if (t.contains('rosé') || t.contains('rose')) return 'rosé';
     if (t.contains('sparkling') || t.contains('champagne') || t.contains('bulles') || t.contains('crémant')) return 'sparkling';
     if (t.contains('sweet') || t.contains('liquoreux') || t.contains('moelleux') || t.contains('dessert')) return 'dessert';
-    if (t.contains('fortified') || t.contains('porto')) return 'fortified';
+    if (t.contains('orange')) return 'orange';
     return t;
   }
 
@@ -529,20 +578,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   String _normalizeWineType(String type) {
-    final lower = type.toLowerCase().trim();
-    if (lower.contains('bénédictine') || lower.contains('benedictine') || lower == 'liqueur') return 'liqueur';
-    if (lower.contains('whisky') || lower.contains('whiskey') || lower.contains('bourbon') || lower.contains('scotch')) return 'whisky';
-    if (lower.contains('rhum') || lower.contains('rum')) return 'rhum';
-    if (lower.contains('gin')) return 'gin';
-    if (lower.contains('vodka')) return 'vodka';
-    if (lower.contains('tequila') || lower.contains('mezcal')) return 'tequila';
-    if (lower.contains('cognac') || lower.contains('armagnac') || lower.contains('brandy')) return 'cognac';
-    if (lower == 'spirit' || lower == 'spiritueux') return 'spirit';
-    if (lower.contains('blanc') || lower == 'white') return 'white';
-    if (lower.contains('ros') || lower == 'rosé') return 'rosé';
-    if (lower.contains('sparkling') || lower.contains('champ') || lower.contains('bulles') || lower.contains('effervescent')) return 'sparkling';
-    if (lower.contains('dessert') || lower.contains('moelleux') || lower.contains('liquoreux')) return 'dessert';
-    return 'red';
+    return _normalizeColor(type);
   }
 
   @override

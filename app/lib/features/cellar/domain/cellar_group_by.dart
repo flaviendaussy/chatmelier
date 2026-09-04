@@ -295,6 +295,7 @@ class CellarGroupEngine {
 
       case CellarGroupBy.color:
         if (wine.isSpirit) return 'spirit';
+        if (wine.isFortified) return 'fortified';
         final t = wine.type.toLowerCase().trim();
         if (t.contains('red') || t.contains('rouge')) return 'red';
         if (t.contains('white') || t.contains('blanc')) return 'white';
@@ -330,7 +331,7 @@ class CellarGroupEngine {
         return _getContinent(wine.country);
 
       case CellarGroupBy.maturity:
-        if (wine.isSpirit) return 'spirit_no_apogee';
+        if (wine.tracksFillLevel) return 'spirit_no_apogee';
         final status = wine.windowStatus;
         switch (status) {
           case DrinkWindowStatus.inPeak:
@@ -524,7 +525,7 @@ class CellarGroupEngine {
             );
           case 'spirit_no_apogee':
             return const _GroupMetadata(
-              title: 'Spiritueux (Sans apogée)',
+              title: 'Spiritueux & Vins Mutés (Sans apogée)',
               emoji: '🥃',
               color: Color(0xFFD35400),
             );

@@ -220,9 +220,23 @@ class Wine {
     final rawAppellation = json['appellation'] as String?;
     final combinedLower = '$rawName ${rawProducer ?? ""} ${rawAppellation ?? ""}'.toLowerCase();
 
-    // Auto-normalize spirits and famous liqueurs misclassified as dessert/moelleux/white
+    // Auto-normalize spirits, liqueurs, and fortified wines misclassified in database
     String resolvedType = rawType;
-    if (combinedLower.contains('bénédictine') ||
+    if (combinedLower.contains('gin')) {
+      resolvedType = 'gin';
+    } else if (combinedLower.contains('vodka')) {
+      resolvedType = 'vodka';
+    } else if (combinedLower.contains('whisky') || combinedLower.contains('whiskey') || combinedLower.contains('bourbon') || combinedLower.contains('scotch')) {
+      resolvedType = 'whisky';
+    } else if (combinedLower.contains('rhum') || combinedLower.contains('rum')) {
+      resolvedType = 'rhum';
+    } else if (combinedLower.contains('cognac') || combinedLower.contains('armagnac') || combinedLower.contains('calvados')) {
+      resolvedType = 'cognac';
+    } else if (combinedLower.contains('tequila') || combinedLower.contains('mezcal')) {
+      resolvedType = 'tequila';
+    } else if (combinedLower.contains('italicus') ||
+        combinedLower.contains('rosolio') ||
+        combinedLower.contains('bénédictine') ||
         combinedLower.contains('benedictine') ||
         combinedLower.contains('chartreuse') ||
         combinedLower.contains('cointreau') ||
@@ -232,22 +246,36 @@ class Wine {
         combinedLower.contains('kahlúa') ||
         combinedLower.contains('kahlua') ||
         combinedLower.contains('limoncello') ||
-        combinedLower.contains('sambuca')) {
-      if (resolvedType == 'dessert' || resolvedType == 'moelleux' || resolvedType == 'white' || resolvedType == 'red') {
-        resolvedType = 'liqueur';
-      }
-    } else if (combinedLower.contains('whisky') || combinedLower.contains('whiskey') || combinedLower.contains('bourbon') || combinedLower.contains('scotch')) {
-      if (resolvedType == 'dessert' || resolvedType == 'white' || resolvedType == 'red') resolvedType = 'whisky';
-    } else if (combinedLower.contains('rhum') || combinedLower.contains('rum')) {
-      if (resolvedType == 'dessert' || resolvedType == 'white' || resolvedType == 'red') resolvedType = 'rhum';
-    } else if (combinedLower.contains('cognac') || combinedLower.contains('armagnac') || combinedLower.contains('calvados')) {
-      if (resolvedType == 'dessert' || resolvedType == 'white' || resolvedType == 'red') resolvedType = 'cognac';
-    } else if (combinedLower.contains('gin')) {
-      if (resolvedType == 'white' || resolvedType == 'dessert' || resolvedType == 'red' || resolvedType == 'other') resolvedType = 'gin';
-    } else if (combinedLower.contains('vodka')) {
-      if (resolvedType == 'white' || resolvedType == 'dessert' || resolvedType == 'red' || resolvedType == 'other') resolvedType = 'vodka';
-    } else if (combinedLower.contains('tequila') || combinedLower.contains('mezcal')) {
-      if (resolvedType == 'white' || resolvedType == 'dessert' || resolvedType == 'red' || resolvedType == 'other') resolvedType = 'tequila';
+        combinedLower.contains('sambuca') ||
+        combinedLower.contains('chambord') ||
+        combinedLower.contains('fleur de lavande') ||
+        combinedLower.contains('crème de') ||
+        combinedLower.contains('creme de') ||
+        combinedLower.contains('pimm') ||
+        combinedLower.contains('liqueur')) {
+      resolvedType = 'liqueur';
+    } else if (combinedLower.contains('pisco') ||
+        combinedLower.contains('grappa') ||
+        combinedLower.contains('eau de vie') ||
+        combinedLower.contains('eau-de-vie') ||
+        combinedLower.contains('aguardente') ||
+        combinedLower.contains('pastis') ||
+        combinedLower.contains('ricard') ||
+        combinedLower.contains('absinthe')) {
+      resolvedType = 'spirit';
+    } else if (combinedLower.contains('porto') ||
+        combinedLower.contains('port wine') ||
+        combinedLower.contains('sherry') ||
+        combinedLower.contains('xérès') ||
+        combinedLower.contains('xeres') ||
+        combinedLower.contains('banyuls') ||
+        combinedLower.contains('maury') ||
+        combinedLower.contains('rivesaltes') ||
+        combinedLower.contains('madère') ||
+        combinedLower.contains('madeira') ||
+        combinedLower.contains('marsala') ||
+        combinedLower.contains('vermouth')) {
+      resolvedType = 'fortified';
     }
 
     // Auto-fill alcohol content for famous spirits if missing from DB
@@ -330,8 +358,15 @@ class Wine {
         t == 'cognac' ||
         t == 'armagnac' ||
         t == 'calvados' ||
+        t == 'pisco' ||
+        t == 'grappa' ||
+        t == 'eau-de-vie' ||
+        t == 'eau de vie' ||
+        t == 'aguardente' ||
+        t == 'pastis' ||
+        t == 'absinthe' ||
         t == 'liqueur' ||
-        t == 'vermouth' ||
+        t == 'rosolio' ||
         t == 'aperitif' ||
         t == 'bitter' ||
         t == 'hard') {
@@ -353,6 +388,17 @@ class Wine {
         words.contains('cognac') ||
         words.contains('armagnac') ||
         words.contains('calvados') ||
+        words.contains('pisco') ||
+        words.contains('grappa') ||
+        words.contains('pastis') ||
+        words.contains('ricard') ||
+        words.contains('absinthe') ||
+        words.contains('italicus') ||
+        words.contains('rosolio') ||
+        words.contains('chambord') ||
+        words.contains('disaronno') ||
+        words.contains('amaretto') ||
+        words.contains('aguardente') ||
         words.contains('liqueur') ||
         words.contains('spiritueux') ||
         words.contains('spirit')) {
@@ -376,8 +422,49 @@ class Wine {
         n.contains('ricard') ||
         n.contains('absinthe') ||
         n.contains('grappa') ||
-        n.contains('pisco');
+        n.contains('pisco') ||
+        n.contains('italicus') ||
+        n.contains('rosolio') ||
+        n.contains('aguardente') ||
+        n.contains('chambord') ||
+        n.contains('pimm') ||
+        n.contains('fleur de lavande') ||
+        n.contains('eau de vie') ||
+        n.contains('eau-de-vie') ||
+        n.contains('crème de') ||
+        n.contains('creme de') ||
+        n.contains('amaro') ||
+        n.contains('triple sec') ||
+        n.contains('curacao') ||
+        n.contains('curaçao') ||
+        n.contains('genepi') ||
+        n.contains('génépi') ||
+        n.contains('ratafia');
   }
+
+  /// True for fortified / muté wines (Porto, Sherry, Banyuls, Vermouth, VDN, Madeira).
+  bool get isFortified {
+    final t = type.toLowerCase().trim();
+    if (t == 'fortified' || t == 'muté' || t == 'mute' || t == 'vdn' || t == 'vermouth' || t == 'porto' || t == 'sherry') return true;
+    final n = '$name ${producer ?? ""} ${appellation ?? ""}'.toLowerCase();
+    return n.contains('porto') ||
+        n.contains('port wine') ||
+        n.contains('sherry') ||
+        n.contains('xérès') ||
+        n.contains('xeres') ||
+        n.contains('banyuls') ||
+        n.contains('maury') ||
+        n.contains('rivesaltes') ||
+        n.contains('madère') ||
+        n.contains('madeira') ||
+        n.contains('marsala') ||
+        n.contains('vermouth') ||
+        n.contains('vin doux naturel');
+  }
+
+  /// True for spirits, liqueurs, and fortified/muté wines where bottle fill level (0-100%)
+  /// is tracked instead of an oenological wine drinking window / apogée.
+  bool get tracksFillLevel => isSpirit || isFortified;
 
   DrinkWindowStatus get windowStatus {
     final currentYear = DateTime.now().year;

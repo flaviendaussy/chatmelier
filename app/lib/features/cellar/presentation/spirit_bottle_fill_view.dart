@@ -296,19 +296,73 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
 
   static String _getSpiritIcon(String spiritType, String? wineName) {
     final lower = '${spiritType.toLowerCase()} ${wineName?.toLowerCase() ?? ""}';
+    if (lower.contains('italicus') || lower.contains('rosolio')) return '🍋';
+    if (lower.contains('pisco') || lower.contains('grappa') || lower.contains('aguardente')) return '🍇';
     if (lower.contains('bénédictine') || lower.contains('benedictine')) return '🍯';
+    if (lower.contains('disaronno') || lower.contains('amaretto')) return '🌰';
+    if (lower.contains('chambord') || lower.contains('cassis') || lower.contains('framboise')) return '🫐';
+    if (lower.contains('ricard') || lower.contains('pastis') || lower.contains('absinthe')) return '🌾';
     if (lower.contains('chartreuse')) return '🌿';
-    if (lower.contains('whisky') || lower.contains('bourbon')) return '🥃';
+    if (lower.contains('whisky') || lower.contains('bourbon') || lower.contains('scotch')) return '🥃';
     if (lower.contains('rhum') || lower.contains('rum')) return '🏴‍☠️';
     if (lower.contains('gin')) return '🍸';
     if (lower.contains('vodka')) return '🧊';
     if (lower.contains('tequila') || lower.contains('mezcal')) return '🌵';
-    if (lower.contains('cognac') || lower.contains('armagnac')) return '🍷';
+    if (lower.contains('cognac') || lower.contains('armagnac') || lower.contains('calvados')) return '🥃';
+    if (lower.contains('porto') || lower.contains('sherry') || lower.contains('banyuls') || lower.contains('fortified') || lower.contains('muté')) return '🍷';
     return '🍾';
   }
 
   static _SpiritColors _resolveLiquidColors(String spiritType, String? wineName, bool isDark) {
     final text = '${spiritType.toLowerCase()} ${wineName?.toLowerCase() ?? ""}';
+
+    // Italicus / Rosolio di Bergamotto: Mediterranean Bergamot Turquoise
+    if (text.contains('italicus') || text.contains('rosolio')) {
+      return const _SpiritColors(
+        primary: Color(0xFF00A896),
+        secondary: Color(0xFF00C9A7),
+      );
+    }
+
+    // Pisco / Grappa / Aguardente / Eau de vie: Crystal Mist Platinum
+    if (text.contains('pisco') || text.contains('grappa') || text.contains('aguardente') || text.contains('eau de vie') || text.contains('eau-de-vie')) {
+      return const _SpiritColors(
+        primary: Color(0xFF00ACC1),
+        secondary: Color(0xFF80DEEA),
+      );
+    }
+
+    // Porto / Banyuls / Maury / Rivesaltes / Fortified Red: Deep Ruby Garnet
+    if (text.contains('porto') || text.contains('port wine') || text.contains('banyuls') || text.contains('maury')) {
+      return const _SpiritColors(
+        primary: Color(0xFF78281F),
+        secondary: Color(0xFF9E2A2B),
+      );
+    }
+
+    // Sherry / Xérès / Madère / Marsala / Fortified White: Amber Topaz
+    if (text.contains('sherry') || text.contains('xérès') || text.contains('xeres') || text.contains('madère') || text.contains('madeira') || text.contains('marsala') || text.contains('fortified') || text.contains('muté')) {
+      return const _SpiritColors(
+        primary: Color(0xFFD4AF37),
+        secondary: Color(0xFFE5A93B),
+      );
+    }
+
+    // Chambord / Berry Liqueurs: Deep Mulberry
+    if (text.contains('chambord') || text.contains('cassis') || text.contains('framboise')) {
+      return const _SpiritColors(
+        primary: Color(0xFF6A1B9A),
+        secondary: Color(0xFF8E24AA),
+      );
+    }
+
+    // Disaronno / Amaretto: Warm Toasted Amber Copper
+    if (text.contains('disaronno') || text.contains('amaretto')) {
+      return const _SpiritColors(
+        primary: Color(0xFFBF360C),
+        secondary: Color(0xFFE64A19),
+      );
+    }
 
     // Bénédictine: Honey amber gold
     if (text.contains('bénédictine') || text.contains('benedictine')) {
@@ -355,7 +409,7 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
     }
 
     // Cognac / Armagnac
-    if (text.contains('cognac') || text.contains('armagnac') || text.contains('brandy')) {
+    if (text.contains('cognac') || text.contains('armagnac') || text.contains('brandy') || text.contains('calvados')) {
       return const _SpiritColors(
         primary: Color(0xFF9C4116),
         secondary: Color(0xFFD35400),

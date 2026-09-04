@@ -84,6 +84,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
   late TextEditingController _shelfCtrl;
   late TextEditingController _positionCtrl;
   late TextEditingController _userNotesCtrl;
+  late int _fillLevel;
   String? _imageUrl;
 
   bool _isSaving = false;
@@ -91,8 +92,9 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
   @override
   void initState() {
     super.initState();
-    final isSpirit = widget.wine.isSpirit;
-    _tabController = TabController(length: isSpirit ? 3 : 4, vsync: this);
+    final tracksFillLevel = widget.wine.tracksFillLevel;
+    _tabController = TabController(length: tracksFillLevel ? 3 : 4, vsync: this);
+    _fillLevel = widget.bottle.fillLevel;
 
     final w = widget.wine;
     final b = widget.bottle;
@@ -158,12 +160,59 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
     if (lower.contains('vodka')) return 'vodka';
     if (lower.contains('tequila') || lower.contains('mezcal')) return 'tequila';
     if (lower.contains('cognac') || lower.contains('armagnac') || lower.contains('brandy') || lower.contains('calvados')) return 'cognac';
-    if (lower.contains('spirit') || lower.contains('liqueur') || lower.contains('spiritueux') || lower.contains('digestif')) return 'spirit';
+    if (lower.contains('italicus') ||
+        lower.contains('rosolio') ||
+        lower.contains('bénédictine') ||
+        lower.contains('benedictine') ||
+        lower.contains('chartreuse') ||
+        lower.contains('cointreau') ||
+        lower.contains('grand marnier') ||
+        lower.contains('amaretto') ||
+        lower.contains('disaronno') ||
+        lower.contains('kahlúa') ||
+        lower.contains('kahlua') ||
+        lower.contains('limoncello') ||
+        lower.contains('chambord') ||
+        lower.contains('pimm') ||
+        lower.contains('fleur de lavande') ||
+        lower.contains('liqueur')) {
+      return 'liqueur';
+    }
+    if (lower.contains('pisco') ||
+        lower.contains('grappa') ||
+        lower.contains('eau de vie') ||
+        lower.contains('eau-de-vie') ||
+        lower.contains('aguardente') ||
+        lower.contains('pastis') ||
+        lower.contains('ricard') ||
+        lower.contains('absinthe') ||
+        lower.contains('spirit') ||
+        lower.contains('spiritueux') ||
+        lower.contains('digestif')) {
+      return 'spirit';
+    }
+    if (lower.contains('porto') ||
+        lower.contains('port wine') ||
+        lower.contains('sherry') ||
+        lower.contains('xérès') ||
+        lower.contains('xeres') ||
+        lower.contains('banyuls') ||
+        lower.contains('maury') ||
+        lower.contains('rivesaltes') ||
+        lower.contains('madère') ||
+        lower.contains('madeira') ||
+        lower.contains('marsala') ||
+        lower.contains('vermouth') ||
+        lower.contains('fortif') ||
+        lower.contains('vdn') ||
+        lower.contains('muté') ||
+        lower.contains('mute')) {
+      return 'fortified';
+    }
     if (lower.contains('blanc') || lower.contains('white')) return 'white';
     if (lower.contains('ros')) return 'rosé';
     if (lower.contains('efferv') || lower.contains('spark') || lower.contains('champ')) return 'sparkling';
     if (lower.contains('liquor') || lower.contains('moell') || lower.contains('dessert') || lower.contains('sauterne')) return 'dessert';
-    if (lower.contains('fortif') || lower.contains('port') || lower.contains('vdn') || lower.contains('banyuls')) return 'fortified';
     if (lower.contains('orange')) return 'orange';
     return 'red';
   }
@@ -344,6 +393,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
 
       await repo.updateBottle(
         initialBottle.id,
+        fillLevel: _fillLevel,
         rawUpdates: {
           'quantity': quantity,
           'purchase_price': purchasePrice,
@@ -355,6 +405,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
           'shelf': shelf,
           'position': position,
           'notes': userNotes,
+          'fill_level': _fillLevel,
         },
       );
 
@@ -448,10 +499,10 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             indicatorColor: const Color(0xFF8B1E3F),
             tabs: [
               const Tab(icon: Icon(Icons.wine_bar, size: 18), text: '1. Identité'),
-              if (!widget.wine.isSpirit)
+              if (!widget.wine.tracksFillLevel)
                 const Tab(icon: Icon(Icons.auto_awesome, size: 18), text: '2. Apogée & Garde'),
-              Tab(icon: const Icon(Icons.menu_book, size: 18), text: widget.wine.isSpirit ? '2. Profil Sommelier (IA)' : '3. Profil Sommelier (IA)'),
-              Tab(icon: const Icon(Icons.inventory_2, size: 18), text: widget.wine.isSpirit ? '3. Mon Exemplaire & Notes' : '4. Mon Exemplaire & Notes'),
+              Tab(icon: const Icon(Icons.menu_book, size: 18), text: widget.wine.tracksFillLevel ? '2. Profil Sommelier (IA)' : '3. Profil Sommelier (IA)'),
+              Tab(icon: const Icon(Icons.inventory_2, size: 18), text: widget.wine.tracksFillLevel ? '3. Mon Exemplaire & Notes' : '4. Mon Exemplaire & Notes'),
             ],
           ),
 
@@ -463,7 +514,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                 controller: _tabController,
                 children: [
                   _buildIdentityTab(theme),
-                  if (!widget.wine.isSpirit)
+                  if (!widget.wine.tracksFillLevel)
                     _buildApogeeTab(theme),
                   _buildSommelierTab(theme),
                   _buildInventoryTab(theme),
@@ -967,6 +1018,131 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (widget.wine.tracksFillLevel) ...[
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: _fillLevel <= 20
+                    ? Colors.redAccent
+                    : _fillLevel <= 50
+                        ? Colors.orangeAccent
+                        : const Color(0xFFD4AF37).withValues(alpha: 0.5),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.local_bar,
+                          size: 18,
+                          color: _fillLevel <= 20
+                              ? Colors.redAccent
+                              : _fillLevel <= 50
+                                  ? Colors.orangeAccent
+                                  : const Color(0xFFD4AF37),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Niveau de remplissage',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _fillLevel <= 20
+                            ? Colors.red.withValues(alpha: 0.15)
+                            : _fillLevel <= 50
+                                ? Colors.orange.withValues(alpha: 0.15)
+                                : const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$_fillLevel %',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: _fillLevel <= 20
+                              ? Colors.redAccent
+                              : _fillLevel <= 50
+                                  ? Colors.orangeAccent
+                                  : const Color(0xFFD4AF37),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: _fillLevel <= 20
+                        ? Colors.redAccent
+                        : _fillLevel <= 50
+                            ? Colors.orangeAccent
+                            : const Color(0xFFD4AF37),
+                    thumbColor: _fillLevel <= 20
+                        ? Colors.redAccent
+                        : _fillLevel <= 50
+                            ? Colors.orangeAccent
+                            : const Color(0xFFD4AF37),
+                  ),
+                  child: Slider(
+                    value: _fillLevel.toDouble(),
+                    min: 0,
+                    max: 100,
+                    divisions: 10,
+                    label: '$_fillLevel%',
+                    onChanged: (val) {
+                      setState(() {
+                        _fillLevel = val.round();
+                      });
+                    },
+                  ),
+                ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('Vide (0%)'),
+                      selected: _fillLevel == 0,
+                      onSelected: (_) => setState(() => _fillLevel = 0),
+                    ),
+                    ChoiceChip(
+                      label: const Text('1/4 (25%)'),
+                      selected: _fillLevel == 25,
+                      onSelected: (_) => setState(() => _fillLevel = 25),
+                    ),
+                    ChoiceChip(
+                      label: const Text('1/2 (50%)'),
+                      selected: _fillLevel == 50,
+                      onSelected: (_) => setState(() => _fillLevel = 50),
+                    ),
+                    ChoiceChip(
+                      label: const Text('3/4 (75%)'),
+                      selected: _fillLevel == 75,
+                      onSelected: (_) => setState(() => _fillLevel = 75),
+                    ),
+                    ChoiceChip(
+                      label: const Text('Pleine (100%)'),
+                      selected: _fillLevel == 100,
+                      onSelected: (_) => setState(() => _fillLevel = 100),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
         Row(
           children: [
             Expanded(

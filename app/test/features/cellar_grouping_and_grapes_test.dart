@@ -226,4 +226,142 @@ void main() {
       expect(sections[3].key, equals('2018'));
     });
   });
+
+  group('Spirits & Fortified Wines Fill Level Tracking Tests', () {
+    test('Correctly classifies Italicus, Gin, Pisco as spirits/liqueurs and NOT fortified', () {
+      final italicus = Wine.fromJson({
+        'id': 'w_italicus',
+        'name': 'Italicus Rosolio di Bergamotto',
+        'producer': 'Italicus',
+        'wine_type': 'fortified', // Misclassified raw type in DB
+        'appellation': 'Rosolio',
+      });
+      expect(italicus.type, equals('liqueur'));
+      expect(italicus.isSpirit, isTrue);
+      expect(italicus.tracksFillLevel, isTrue);
+
+      final gin = Wine.fromJson({
+        'id': 'w_gin',
+        'name': 'Cotswolds Dry Gin',
+        'producer': 'Cotswolds Distillery',
+        'wine_type': 'fortified', // Misclassified raw type in DB
+      });
+      expect(gin.type, equals('gin'));
+      expect(gin.isSpirit, isTrue);
+      expect(gin.tracksFillLevel, isTrue);
+
+      final pisco = Wine.fromJson({
+        'id': 'w_pisco',
+        'name': 'Bou Barroeta Pisco Cofradía Envejecido',
+        'producer': 'Bou Barroeta',
+        'wine_type': 'fortified', // Misclassified raw type in DB
+      });
+      expect(pisco.type, equals('spirit'));
+      expect(pisco.isSpirit, isTrue);
+      expect(pisco.tracksFillLevel, isTrue);
+    });
+
+    test('Correctly identifies genuine Fortified wines (Porto, Banyuls, Sherry) with tracksFillLevel', () {
+      final porto = Wine.fromJson({
+        'id': 'w_porto',
+        'name': 'Velhotes 10 Anos Tawny Porto',
+        'producer': 'Real Companhia Velha',
+        'wine_type': 'fortified',
+        'appellation': 'Porto',
+      });
+      expect(porto.type, equals('fortified'));
+      expect(porto.isSpirit, isFalse);
+      expect(porto.isFortified, isTrue);
+      expect(porto.tracksFillLevel, isTrue);
+
+      final banyuls = Wine.fromJson({
+        'id': 'w_banyuls',
+        'name': 'Banyuls Grand Cru',
+        'producer': 'Domaine du Mas Blanc',
+        'wine_type': 'red',
+        'appellation': 'Banyuls',
+      });
+      expect(banyuls.isFortified, isTrue);
+      expect(banyuls.tracksFillLevel, isTrue);
+    });
+
+    test('Standard wines do not track fill level', () {
+      final bordeaux = Wine.fromJson({
+        'id': 'w_bdx',
+        'name': 'Château Margaux',
+        'producer': 'Château Margaux',
+        'wine_type': 'red',
+        'appellation': 'Margaux',
+      });
+      expect(bordeaux.isSpirit, isFalse);
+      expect(bordeaux.isFortified, isFalse);
+      expect(bordeaux.tracksFillLevel, isFalse);
+    });
+
+    test('Bottle.tracksFillLevel reflects wine tracksFillLevel', () {
+      final portoWine = Wine.fromJson({
+        'id': 'w_porto',
+        'name': 'Tawny Porto',
+        'wine_type': 'fortified',
+      });
+      final bottle = Bottle(
+        id: 'b_porto',
+        cellarId: 'c1',
+        wineId: portoWine.id,
+        addedBy: 'u1',
+        ownerId: 'u1',
+        createdAt: DateTime.now(),
+        wine: portoWine,
+        fillLevel: 75,
+      );
+      expect(bottle.tracksFillLevel, isTrue);
+      expect(bottle.fillFraction, equals(0.75));
+    });
+
+    test('CellarGroupEngine groups spirits and fortified wines appropriately', () {
+      final gin = Bottle(
+        id: 'b_gin',
+        cellarId: 'c1',
+        wineId: 'w_gin',
+        addedBy: 'u1',
+        ownerId: 'u1',
+        createdAt: DateTime.now(),
+        wine: Wine.fromJson({'id': 'w_gin', 'name': 'Cotswolds Gin', 'wine_type': 'gin'}),
+        fillLevel: 60,
+      );
+      final porto = Bottle(
+        id: 'b_porto',
+        cellarId: 'c1',
+        wineId: 'w_porto',
+        addedBy: 'u1',
+        ownerId: 'u1',
+        createdAt: DateTime.now(),
+        wine: Wine.fromJson({'id': 'w_porto', 'name': 'Porto Tawny', 'wine_type': 'fortified'}),
+        fillLevel: 40,
+      );
+      final red = Bottle(
+        id: 'b_red',
+        cellarId: 'c1',
+        wineId: 'w_red',
+        addedBy: 'u1',
+        ownerId: 'u1',
+        createdAt: DateTime.now(),
+        wine: Wine.fromJson({'id': 'w_red', 'name': 'Bordeaux Rouge', 'wine_type': 'red', 'vintage': 2020}),
+      );
+
+      final mixed = [gin, porto, red];
+
+      // Group by color: gin -> spirit, porto -> fortified, red -> red
+      final colorSections = CellarGroupEngine.partitionBottles(mixed, CellarGroupBy.color);
+      expect(colorSections.any((s) => s.key == 'spirit' && s.bottles.first.id == 'b_gin'), isTrue);
+      expect(colorSections.any((s) => s.key == 'fortified' && s.bottles.first.id == 'b_porto'), isTrue);
+      expect(colorSections.any((s) => s.key == 'red' && s.bottles.first.id == 'b_red'), isTrue);
+
+      // Group by maturity: both gin and porto go to 'spirit_no_apogee'
+      final maturitySections = CellarGroupEngine.partitionBottles(mixed, CellarGroupBy.maturity);
+      final noApogeeSection = maturitySections.firstWhere((s) => s.key == 'spirit_no_apogee');
+      expect(noApogeeSection.bottles.length, equals(2));
+      expect(noApogeeSection.title, contains('Spiritueux & Vins Mutés'));
+    });
+  });
 }

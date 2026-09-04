@@ -57,12 +57,69 @@ class ScanResult {
     this.packagingType,
   });
 
-  factory ScanResult.fromJson(Map<String, dynamic> json) => ScanResult(
-    name: json['name'] as String? ?? 'Vin sans nom',
-    producer: json['producer'] as String?,
-    cuveeParcel: json['cuvee_parcel'] as String?,
-    vintage: (json['vintage'] as num?)?.toInt() ?? int.tryParse(json['vintage']?.toString() ?? ''),
-    wineType: json['wine_type'] as String? ?? 'red',
+  factory ScanResult.fromJson(Map<String, dynamic> json) {
+    final rawName = json['name'] as String? ?? 'Vin sans nom';
+    final rawProducer = json['producer'] as String?;
+    final rawType = json['wine_type'] as String? ?? 'red';
+    final rawAppellation = json['appellation'] as String?;
+    final combinedLower = '$rawName ${rawProducer ?? ""} ${rawAppellation ?? ""} $rawType'.toLowerCase();
+
+    String resolvedType = rawType;
+    if (combinedLower.contains('gin')) {
+      resolvedType = 'gin';
+    } else if (combinedLower.contains('vodka')) {
+      resolvedType = 'vodka';
+    } else if (combinedLower.contains('whisky') || combinedLower.contains('whiskey') || combinedLower.contains('bourbon') || combinedLower.contains('scotch')) {
+      resolvedType = 'whisky';
+    } else if (combinedLower.contains('rhum') || combinedLower.contains('rum')) {
+      resolvedType = 'rhum';
+    } else if (combinedLower.contains('cognac') || combinedLower.contains('armagnac') || combinedLower.contains('calvados')) {
+      resolvedType = 'cognac';
+    } else if (combinedLower.contains('tequila') || combinedLower.contains('mezcal')) {
+      resolvedType = 'tequila';
+    } else if (combinedLower.contains('italicus') ||
+        combinedLower.contains('rosolio') ||
+        combinedLower.contains('bénédictine') ||
+        combinedLower.contains('benedictine') ||
+        combinedLower.contains('amaretto') ||
+        combinedLower.contains('disaronno') ||
+        combinedLower.contains('chartreuse') ||
+        combinedLower.contains('cointreau') ||
+        combinedLower.contains('chambord') ||
+        combinedLower.contains('pimm') ||
+        combinedLower.contains('fleur de lavande') ||
+        combinedLower.contains('liqueur')) {
+      resolvedType = 'liqueur';
+    } else if (combinedLower.contains('pisco') ||
+        combinedLower.contains('grappa') ||
+        combinedLower.contains('aguardente') ||
+        combinedLower.contains('eau de vie') ||
+        combinedLower.contains('eau-de-vie') ||
+        combinedLower.contains('pastis') ||
+        combinedLower.contains('ricard') ||
+        combinedLower.contains('absinthe')) {
+      resolvedType = 'spirit';
+    } else if (combinedLower.contains('porto') ||
+        combinedLower.contains('port wine') ||
+        combinedLower.contains('sherry') ||
+        combinedLower.contains('xérès') ||
+        combinedLower.contains('xeres') ||
+        combinedLower.contains('banyuls') ||
+        combinedLower.contains('maury') ||
+        combinedLower.contains('rivesaltes') ||
+        combinedLower.contains('madère') ||
+        combinedLower.contains('madeira') ||
+        combinedLower.contains('marsala') ||
+        combinedLower.contains('vermouth')) {
+      resolvedType = 'fortified';
+    }
+
+    return ScanResult(
+      name: rawName,
+      producer: rawProducer,
+      cuveeParcel: json['cuvee_parcel'] as String?,
+      vintage: (json['vintage'] as num?)?.toInt() ?? int.tryParse(json['vintage']?.toString() ?? ''),
+      wineType: resolvedType,
     country: json['country'] as String? ?? '',
     region: json['region'] as String? ?? '',
     subRegion: json['sub_region'] as String?,
@@ -89,4 +146,6 @@ class ScanResult {
     detectedQuantity: (json['detected_quantity'] as num?)?.toInt() ?? 1,
     packagingType: json['packaging_type'] as String?,
   );
+  }
 }
+

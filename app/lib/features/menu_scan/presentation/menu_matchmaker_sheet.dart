@@ -20,63 +20,77 @@ class MenuMatchmakerSheet extends StatefulWidget {
 }
 
 class _MatchmakerQuestion {
+  final String id;
   final String title;
   final String subtitle;
   final IconData icon;
   final Color iconColor;
-  final List<MenuWine> Function(List<MenuWine> pool, bool answerYes) filter;
   final String userPreferenceLabel;
+  final bool Function(List<MenuWine> pool) isEligible;
+  final List<MenuWine> Function(List<MenuWine> pool, bool answerYes) filter;
 
   const _MatchmakerQuestion({
+    required this.id,
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.iconColor,
-    required this.filter,
     required this.userPreferenceLabel,
+    required this.isEligible,
+    required this.filter,
   });
 }
 
 class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
   late List<MenuWine> _currentPool;
-  int _currentQuestionIndex = 0;
+  final Set<String> _askedQuestionIds = {};
   final List<String> _recordedChoices = [];
   bool _isFinished = false;
+  _MatchmakerQuestion? _activeQuestion;
+  int _lastEliminatedDelta = 0;
 
   // Swipe offset for interactive card dragging
   double _dragOffset = 0.0;
 
-  late final List<_MatchmakerQuestion> _questions;
+  late final List<_MatchmakerQuestion> _allQuestionCatalog;
 
   @override
   void initState() {
     super.initState();
     _currentPool = List<MenuWine>.from(widget.allWines);
-    _buildQuestions();
+    _buildQuestionCatalog();
+    _activeQuestion = _selectNextQuestion(_currentPool, _askedQuestionIds);
+    if (_activeQuestion == null || _currentPool.length <= 2) {
+      _isFinished = true;
+    }
   }
 
-  void _buildQuestions() {
-    _questions = [
-      // Q1: Rouge ou autre ?
+  void _buildQuestionCatalog() {
+    _allQuestionCatalog = [
+      // 1. Rouge ou Autre
       _MatchmakerQuestion(
+        id: 'color_red',
         title: 'Envie de vin Rouge ce soir ?',
         subtitle: 'Pour accompagner viandes, charcuteries ou plats généreux.',
         icon: Icons.wine_bar,
         iconColor: const Color(0xFF8B1E3F),
         userPreferenceLabel: 'Vin Rouge',
+        isEligible: (pool) => pool.any((w) => w.isRed) && pool.any((w) => !w.isRed),
         filter: (pool, answerYes) {
           final filtered = answerYes ? pool.where((w) => w.isRed).toList() : pool.where((w) => !w.isRed).toList();
           return filtered.isNotEmpty ? filtered : pool;
         },
       ),
 
-      // Q2: Bulles ou Blanc ?
+      // 2. Bulles / Champagne
       _MatchmakerQuestion(
+        id: 'sparkling',
         title: 'Plutôt Bulles festives / Champagne ?',
         subtitle: 'Pour l\'apéritif, les célébrations ou la fraîcheur pétillante.',
         icon: Icons.celebration,
         iconColor: const Color(0xFFD4AF37),
         userPreferenceLabel: 'Bulles / Champagne',
+        isEligible: (pool) => pool.any((w) => w.isSparkling) && pool.any((w) => !w.isSparkling),
         filter: (pool, answerYes) {
           final filtered =
               answerYes ? pool.where((w) => w.isSparkling).toList() : pool.where((w) => !w.isSparkling).toList();
@@ -84,13 +98,62 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
         },
       ),
 
-      // Q3: Minéralité & Tension
+      // 3. Rosé estival
       _MatchmakerQuestion(
+        id: 'rose',
+        title: 'Une envie de Rosé frais & convivial ?',
+        subtitle: 'Idéal pour la détente, cuisine méditerranéenne ou grillades légères.',
+        icon: Icons.wb_sunny_outlined,
+        iconColor: const Color(0xFFE91E63),
+        userPreferenceLabel: 'Vin Rosé',
+        isEligible: (pool) => pool.any((w) => w.isRose) && pool.any((w) => !w.isRose),
+        filter: (pool, answerYes) {
+          final filtered =
+              answerYes ? pool.where((w) => w.isRose).toList() : pool.where((w) => !w.isRose).toList();
+          return filtered.isNotEmpty ? filtered : pool;
+        },
+      ),
+
+      // 4. Tannique & Structuré (STRICTEMENT réservé s'il y a des rouges en lice !)
+      _MatchmakerQuestion(
+        id: 'tannins',
+        title: 'Amateur de Tannins & Structure ?',
+        subtitle: 'Vins charpentés, corsés, matière dense (ex: Bordeaux, Cahors, Syrah).',
+        icon: Icons.fitness_center,
+        iconColor: const Color(0xFF5D4037),
+        userPreferenceLabel: 'Tannique & Structuré',
+        isEligible: (pool) =>
+            pool.any((w) => w.isRed && (w.metrics.tannins >= 5.0 || w.tags.contains('tannique'))) &&
+            pool.any((w) => w.metrics.tannins < 5.0),
+        filter: (pool, answerYes) {
+          final filtered = answerYes
+              ? pool
+                  .where((w) =>
+                      w.metrics.tannins >= 5.0 ||
+                      w.tags.contains('tannique') ||
+                      w.metrics.body >= 6.0)
+                  .toList()
+              : pool
+                  .where((w) =>
+                      w.metrics.tannins < 5.0 ||
+                      w.tags.contains('léger') ||
+                      w.tags.contains('fruité'))
+                  .toList();
+          return filtered.isNotEmpty ? filtered : pool;
+        },
+      ),
+
+      // 5. Minéralité & Tension (Très pertinent pour les blancs et rosés ciselés)
+      _MatchmakerQuestion(
+        id: 'minerality',
         title: 'Recherche de Minéralité & Vivacité ?',
-        subtitle: 'Vins tendus, ciselés, salins (ex: Chablis, Sancerre, Riesling sec).',
+        subtitle: 'Vins tendus, ciselés, salins (ex: Chablis, Sancerre, Muscadet, Riesling sec).',
         icon: Icons.landscape,
         iconColor: const Color(0xFF00897B),
         userPreferenceLabel: 'Minéral & Vif',
+        isEligible: (pool) =>
+            pool.any((w) => w.metrics.minerality >= 5.5 || w.tags.contains('minéral') || w.metrics.acidity >= 6.5) &&
+            pool.any((w) => w.metrics.minerality < 5.5 && !w.tags.contains('minéral')),
         filter: (pool, answerYes) {
           final filtered = answerYes
               ? pool
@@ -101,69 +164,109 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   .toList()
               : pool
                   .where((w) =>
-                      w.metrics.minerality < 6.5 &&
+                      w.metrics.minerality < 6.0 &&
                       !w.tags.contains('minéral'))
                   .toList();
           return filtered.isNotEmpty ? filtered : pool;
         },
       ),
 
-      // Q4: Tannique & Puissant
+      // 6. Beurré & Rondeur (STRICTEMENT réservé aux blancs opulents)
       _MatchmakerQuestion(
-        title: 'Amateur de Tannins & Structure ?',
-        subtitle: 'Vins charpentés, corsés, matière dense (ex: Bordeaux, Cahors, Syrah).',
-        icon: Icons.fitness_center,
-        iconColor: const Color(0xFF5D4037),
-        userPreferenceLabel: 'Tannique & Structuré',
-        filter: (pool, answerYes) {
-          final filtered = answerYes
-              ? pool
-                  .where((w) =>
-                      w.metrics.tannins >= 5.5 ||
-                      w.tags.contains('tannique') ||
-                      w.metrics.body >= 6.0)
-                  .toList()
-              : pool
-                  .where((w) =>
-                      w.metrics.tannins < 5.5 ||
-                      w.tags.contains('léger') ||
-                      w.tags.contains('fruité'))
-                  .toList();
-          return filtered.isNotEmpty ? filtered : pool;
-        },
-      ),
-
-      // Q5: Beurré & Rondeur
-      _MatchmakerQuestion(
+        id: 'butteriness',
         title: 'Caractère Beurré, Brioché & Gourmand ?',
-        subtitle: 'Vins opulents avec élevage soigné (ex: Meursault, grands Chardonnay, viognier).',
+        subtitle: 'Vins opulents avec élevage soigné (ex: Meursault, grands Chardonnay, Viognier).',
         icon: Icons.bakery_dining,
         iconColor: const Color(0xFFF57F17),
         userPreferenceLabel: 'Beurré & Rond',
+        isEligible: (pool) =>
+            pool.any((w) => w.isWhite && (w.metrics.butteriness >= 4.0 || w.tags.contains('beurré') || w.tags.contains('rond'))) &&
+            pool.any((w) => w.metrics.butteriness < 4.0),
         filter: (pool, answerYes) {
           final filtered = answerYes
               ? pool
                   .where((w) =>
-                      w.metrics.butteriness >= 4.5 ||
+                      w.metrics.butteriness >= 4.0 ||
                       w.tags.contains('beurré') ||
                       w.tags.contains('rond'))
                   .toList()
               : pool
                   .where((w) =>
-                      w.metrics.butteriness < 5.0 &&
+                      w.metrics.butteriness < 4.5 &&
                       !w.tags.contains('beurré'))
                   .toList();
           return filtered.isNotEmpty ? filtered : pool;
         },
       ),
 
-      // Q6: Budget sage
+      // 7. Légèreté & Fruit Frais Croquant
       _MatchmakerQuestion(
+        id: 'light_fruity',
+        title: 'Fruit Frais, Légèreté & Digestibilité ?',
+        subtitle: 'Vins gouleyants et aériens, faciles à boire (ex: Pinot Noir léger, Gamay, Loire).',
+        icon: Icons.eco_outlined,
+        iconColor: const Color(0xFF43A047),
+        userPreferenceLabel: 'Léger & Fruité',
+        isEligible: (pool) =>
+            pool.any((w) => w.tags.contains('léger') || w.tags.contains('fruité') || (w.metrics.body <= 5.0 && w.metrics.fruit >= 5.5)) &&
+            pool.any((w) => w.metrics.body > 5.5),
+        filter: (pool, answerYes) {
+          final filtered = answerYes
+              ? pool.where((w) => w.tags.contains('léger') || w.tags.contains('fruité') || w.metrics.body <= 5.0).toList()
+              : pool.where((w) => w.metrics.body >= 5.0).toList();
+          return filtered.isNotEmpty ? filtered : pool;
+        },
+      ),
+
+      // 8. Notes Boisées & Fût de Chêne
+      _MatchmakerQuestion(
+        id: 'oak',
+        title: 'Notes Boisées, Toastées & Vanillées ?',
+        subtitle: 'Élevage en barrique de chêne apportant complexité et rondeur.',
+        icon: Icons.forest,
+        iconColor: const Color(0xFF8D6E63),
+        userPreferenceLabel: 'Boisé & Fût',
+        isEligible: (pool) =>
+            pool.any((w) => w.metrics.oak >= 5.0 || w.tags.contains('boisé')) &&
+            pool.any((w) => w.metrics.oak < 4.5),
+        filter: (pool, answerYes) {
+          final filtered = answerYes
+              ? pool.where((w) => w.metrics.oak >= 4.5 || w.tags.contains('boisé')).toList()
+              : pool.where((w) => w.metrics.oak < 5.0).toList();
+          return filtered.isNotEmpty ? filtered : pool;
+        },
+      ),
+
+      // 9. Format au Verre
+      _MatchmakerQuestion(
+        id: 'by_the_glass',
+        title: 'Dégustation au Verre privilégiée ?',
+        subtitle: 'Pour profiter d\'un cru sélectionné sans commander une bouteille.',
+        icon: Icons.local_bar_outlined,
+        iconColor: const Color(0xFF00ACC1),
+        userPreferenceLabel: 'Au Verre',
+        isEligible: (pool) =>
+            pool.any((w) => w.hasGlassPrice) && pool.any((w) => !w.hasGlassPrice),
+        filter: (pool, answerYes) {
+          if (answerYes) {
+            final filtered = pool.where((w) => w.hasGlassPrice).toList();
+            return filtered.isNotEmpty ? filtered : pool;
+          }
+          return pool;
+        },
+      ),
+
+      // 10. Budget Bouteille maîtrisé
+      _MatchmakerQuestion(
+        id: 'budget',
         title: 'Budget Bouteille maîtrisé (< 45 €) ?',
         subtitle: 'Pour dénicher les pépites au meilleur rapport plaisir/prix.',
         icon: Icons.savings_outlined,
         iconColor: const Color(0xFF2E7D32),
         userPreferenceLabel: 'Budget < 45€',
+        isEligible: (pool) =>
+            pool.any((w) => (w.bottlePrice != null && w.bottlePrice! <= 45.0) || (w.primaryGlassPrice != null && w.primaryGlassPrice! <= 9.0)) &&
+            pool.any((w) => (w.bottlePrice != null && w.bottlePrice! > 45.0) || (w.primaryGlassPrice != null && w.primaryGlassPrice! > 9.0)),
         filter: (pool, answerYes) {
           if (answerYes) {
             final filtered = pool
@@ -179,23 +282,68 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     ];
   }
 
-  void _answer(bool answerYes) {
-    if (_isFinished) return;
+  _MatchmakerQuestion? _selectNextQuestion(List<MenuWine> pool, Set<String> askedIds) {
+    if (pool.length <= 2 || askedIds.length >= 6) return null;
 
-    final currentQ = _questions[_currentQuestionIndex];
+    final candidates = _allQuestionCatalog.where((q) {
+      if (askedIds.contains(q.id)) return false;
+      if (!q.isEligible(pool)) return false;
+
+      final yesCount = q.filter(pool, true).length;
+      final noCount = q.filter(pool, false).length;
+
+      // Ensure question meaningfully separates the remaining pool
+      if (yesCount == 0 || noCount == 0) return false;
+      if (yesCount == pool.length && noCount == pool.length) return false;
+      return true;
+    }).toList();
+
+    if (candidates.isEmpty) return null;
+
+    // Prioritize color/category question first if mixed
+    candidates.sort((a, b) {
+      final aIsCategory = a.id == 'color_red' || a.id == 'sparkling' || a.id == 'rose';
+      final bIsCategory = b.id == 'color_red' || b.id == 'sparkling' || b.id == 'rose';
+      if (aIsCategory && !bIsCategory && askedIds.length < 2) return -1;
+      if (!aIsCategory && bIsCategory && askedIds.length < 2) return 1;
+
+      // Balance of split: choose question whose yes/no split is closest to 50/50
+      final aYes = a.filter(pool, true).length;
+      final aNo = a.filter(pool, false).length;
+      final bYes = b.filter(pool, true).length;
+      final bNo = b.filter(pool, false).length;
+
+      final aDiff = (aYes - aNo).abs();
+      final bDiff = (bYes - bNo).abs();
+      return aDiff.compareTo(bDiff);
+    });
+
+    return candidates.first;
+  }
+
+  void _answer(bool answerYes) {
+    if (_isFinished || _activeQuestion == null) return;
+
+    final currentQ = _activeQuestion!;
+    final prevCount = _currentPool.length;
     final nextPool = currentQ.filter(_currentPool, answerYes);
+    final eliminated = prevCount - nextPool.length;
+
+    _askedQuestionIds.add(currentQ.id);
 
     if (answerYes) {
       _recordedChoices.add(currentQ.userPreferenceLabel);
     }
 
+    final nextQ = _selectNextQuestion(nextPool, _askedQuestionIds);
+
     setState(() {
       _dragOffset = 0.0;
       _currentPool = nextPool;
-      _currentQuestionIndex++;
+      _lastEliminatedDelta = eliminated;
+      _activeQuestion = nextQ;
 
-      // Check if finished: down to <= 2 wines or exhausted questions
-      if (_currentPool.length <= 2 || _currentQuestionIndex >= _questions.length) {
+      if (_currentPool.length <= 2 || nextQ == null || _askedQuestionIds.length >= 5) {
         _isFinished = true;
       }
     });
@@ -204,10 +352,15 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
   void _reset() {
     setState(() {
       _currentPool = List<MenuWine>.from(widget.allWines);
-      _currentQuestionIndex = 0;
+      _askedQuestionIds.clear();
       _recordedChoices.clear();
       _isFinished = false;
       _dragOffset = 0.0;
+      _lastEliminatedDelta = 0;
+      _activeQuestion = _selectNextQuestion(_currentPool, _askedQuestionIds);
+      if (_activeQuestion == null || _currentPool.length <= 2) {
+        _isFinished = true;
+      }
     });
   }
 
@@ -312,35 +465,76 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
   }
 
   Widget _buildSwiperView(ThemeData theme, bool isDark) {
-    final q = _questions[_currentQuestionIndex];
+    if (_activeQuestion == null) {
+      return _buildPodiumView(theme, isDark);
+    }
+    final q = _activeQuestion!;
+    final totalCount = widget.allWines.length;
     final remainingCount = _currentPool.length;
 
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
       child: Column(
         children: [
-          // Remaining Badge Counter
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.filter_list, size: 16, color: Color(0xFFD4AF37)),
-                const SizedBox(width: 6),
-                Text(
-                  '$remainingCount vins en lice sur la carte',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFD4AF37)),
+          // Remaining Badge Counter (X en lice sur Y au total)
+                Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.5)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.wine_bar, size: 18, color: Color(0xFFD4AF37)),
+                              const SizedBox(width: 8),
+                              Text(
+                                '$remainingCount vins en lice sur $totalCount au total',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (_lastEliminatedDelta > 0) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.red.withValues(alpha: 0.4)),
+                            ),
+                            child: Text(
+                              '-$_lastEliminatedDelta',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: SizedBox(
+                        width: 220,
+                        height: 4,
+                        child: LinearProgressIndicator(
+                          value: totalCount > 0 ? (remainingCount / totalCount).clamp(0.0, 1.0) : 1.0,
+                          backgroundColor: isDark ? Colors.white12 : Colors.grey.shade300,
+                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFD4AF37)),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
 
-          const Spacer(),
+                const SizedBox(height: 16),
 
           // Interactive Swipeable Card with gesture detector
           GestureDetector(
@@ -440,7 +634,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
             ),
           ),
 
-          const Spacer(),
+          const SizedBox(height: 24),
 
           // Swipe Instructions and Quick Buttons
           Row(

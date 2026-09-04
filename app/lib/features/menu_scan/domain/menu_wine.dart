@@ -173,6 +173,7 @@ class MenuWine {
       wineType.toLowerCase().contains('bulles') ||
       wineType.toLowerCase().contains('effervescent');
 
+  bool get hasGlassPrice => glassPrices.isNotEmpty;
   double? get primaryGlassPrice => glassPrices.isNotEmpty ? glassPrices.first.price : null;
 
   String get priceDisplay {

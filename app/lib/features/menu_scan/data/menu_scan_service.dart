@@ -55,9 +55,11 @@ class MenuScanService {
     List<Uint8List>? imageBytesList,
     String? restaurantNameHint,
     TasteProfile? userTasteProfile,
+    void Function(String step)? onStepUpdate,
   }) async {
     final startTime = DateTime.now();
     AppLogger.info('MENU_SCAN', 'Starting multi-page restaurant menu analysis (${imagePaths.length} pages)');
+    onStepUpdate?.call('Chatmelier analyse le menu...');
 
     GeminiModelRegistry.refreshAvailableModels();
 
@@ -139,13 +141,25 @@ Return STRICTLY a JSON object with:
       }
     });
 
-    final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.standardFlashPreferred);
+    // Prioritize high-throughput, fast responsive multimodal vision models first
+    // (gemini-3.1-flash-lite, gemini-flash-latest, gemini-3.5-flash-lite) to avoid gateway timeouts
+    // when outputting 5,000+ tokens of wine JSON.
+    final candidateModels = <String>[
+      'gemini-3.1-flash-lite',
+      'gemini-flash-latest',
+      'gemini-3.5-flash-lite',
+      'gemini-3.5-flash',
+      'gemini-flash-lite-latest',
+      'gemini-3.7-flash',
+    ];
+
     Map<String, dynamic>? parsedJson;
     String? usedModel;
 
-    for (final model in activeModels) {
+    for (final model in candidateModels) {
       try {
         AppLogger.debug('MENU_SCAN', 'Calling Gemini with model $model for ${parts.length - 1} images...');
+        onStepUpdate?.call('Déchiffrage optique des cuvées, producteurs et millésimes...');
         final url = Uri.parse(
           'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
         );
@@ -154,9 +168,10 @@ Return STRICTLY a JSON object with:
           url,
           headers: {'Content-Type': 'application/json'},
           body: requestBody,
-        ).timeout(const Duration(seconds: 35));
+        ).timeout(const Duration(seconds: 22));
 
         if (response.statusCode == 200) {
+          onStepUpdate?.call('Extraction des prix, accords mets & vins et profils sensoriels...');
           final data = jsonDecode(response.body);
           String rawText = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '{}';
           if (rawText.contains('```json')) {
@@ -183,6 +198,8 @@ Return STRICTLY a JSON object with:
     if (parsedJson == null) {
       throw Exception('Impossible d\'extraire les vins du menu avec l\'IA. Veuillez vérifier vos photos et réessayer.');
     }
+
+    onStepUpdate?.call('Vérification dans la cave de connaissances Chatmelier...');
 
     final detectedRestaurant = (parsedJson['restaurant_name'] as String?) ?? restaurantNameHint ?? 'Restaurant';
     final rawWinesList = (parsedJson['wines'] as List?) ?? [];

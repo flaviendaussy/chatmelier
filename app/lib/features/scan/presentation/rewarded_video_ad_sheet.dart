@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/premium_provider.dart';
@@ -74,7 +75,7 @@ class _RewardedVideoAdSheetState extends ConsumerState<RewardedVideoAdSheet> {
   @override
   void initState() {
     super.initState();
-    _currentSponsor = (_sponsors..shuffle()).first;
+    _currentSponsor = _sponsors[Random().nextInt(_sponsors.length)];
     // Auto-start video countdown after 500ms
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) _startPlayback();
@@ -170,8 +171,10 @@ class _RewardedVideoAdSheetState extends ConsumerState<RewardedVideoAdSheet> {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
             children: [
               // Handle bar
               Center(
@@ -392,6 +395,7 @@ class _RewardedVideoAdSheetState extends ConsumerState<RewardedVideoAdSheet> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

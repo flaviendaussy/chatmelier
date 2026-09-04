@@ -159,12 +159,14 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
     try {
       final scanService = ref.read(menuScanServiceProvider);
       final paths = _capturedPages.map((f) => f.path).toList();
+      final bytesList = await Future.wait(_capturedPages.map((f) => f.readAsBytes()));
 
       final profiles = await ref.read(tasteProfilesListProvider.future);
       final activeProfile = profiles.isNotEmpty ? profiles.first : null;
 
       final resultMenu = await scanService.analyzeMenuPages(
         imagePaths: paths,
+        imageBytesList: bytesList,
         restaurantNameHint: restName,
         userTasteProfile: activeProfile,
         onStepUpdate: (step) {

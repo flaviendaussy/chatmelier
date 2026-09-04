@@ -466,6 +466,38 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     border: OutlineInputBorder(),
                   ),
                 ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () {
+                    _vintageCtrl.text = '';
+                    Navigator.pop(ctx);
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFD4AF37)),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.all_inclusive, size: 18, color: Color(0xFFB8860B)),
+                        SizedBox(width: 8),
+                        Text(
+                          'C\'est un Non millésimé (NM)',
+                          style: TextStyle(
+                            color: Color(0xFF8B1E3F),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
             actions: [
@@ -474,7 +506,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   _vintageCtrl.text = '';
                   Navigator.pop(ctx);
                 },
-                child: const Text('Inconnu / Non millésimé (NM)', style: TextStyle(color: Colors.grey)),
+                child: const Text('Passer / Non millésimé'),
               ),
               FilledButton(
                 onPressed: () {
@@ -779,7 +811,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => context.pop(),
           ),
-          title: const Text('Analyse du vin', style: TextStyle(color: Colors.white)),
+          title: const Text('Analyse de la bouteille', style: TextStyle(color: Colors.white)),
         ),
         body: Center(
           child: SingleChildScrollView(
@@ -810,7 +842,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 const ChatmelierLoader.detective(
                   size: 190,
                   title: 'Chatmelier essaye de trouver...',
-                  subtitle: 'Lecture de l\'étiquette, détection du domaine, millésime et accords mets-vins...',
+                  subtitle: 'Lecture de l\'étiquette, détection du domaine ou de la distillerie, millésime...',
                 ),
               ],
             ),
@@ -1317,13 +1349,22 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                           child: TextFormField(
                             controller: _vintageCtrl,
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Millésime',
                               hintText: 'ex: 2018',
-                              prefixIcon: Icon(Icons.calendar_today, size: 16),
-                              border: OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.calendar_today, size: 16),
+                              border: const OutlineInputBorder(),
+                              suffixIcon: _vintageCtrl.text.isEmpty
+                                  ? const Tooltip(
+                                      message: 'Non millésimé',
+                                      child: Icon(Icons.all_inclusive, size: 16, color: Color(0xFF8B1E3F)),
+                                    )
+                                  : null,
                             ),
-                            onChanged: (_) => _checkDuplicateInCellar(),
+                            onChanged: (_) {
+                              setState(() {});
+                              _checkDuplicateInCellar();
+                            },
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1373,6 +1414,61 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            _vintageCtrl.clear();
+                            _checkDuplicateInCellar();
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _vintageCtrl.text.isEmpty
+                                ? const Color(0xFF8B1E3F).withValues(alpha: 0.12)
+                                : Colors.grey.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _vintageCtrl.text.isEmpty
+                                  ? const Color(0xFF8B1E3F)
+                                  : Colors.grey.shade400,
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.all_inclusive,
+                                size: 15,
+                                color: _vintageCtrl.text.isEmpty
+                                    ? const Color(0xFF8B1E3F)
+                                    : Colors.grey.shade700,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _vintageCtrl.text.isEmpty
+                                    ? 'Non millésimé (NM) ✓'
+                                    : 'Cliquer si Non millésimé (NM)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: _vintageCtrl.text.isEmpty
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: _vintageCtrl.text.isEmpty
+                                      ? const Color(0xFF8B1E3F)
+                                      : Colors.grey.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),

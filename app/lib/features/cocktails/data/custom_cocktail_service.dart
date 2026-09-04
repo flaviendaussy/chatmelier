@@ -21,7 +21,20 @@ class CustomCocktailService {
     if (raw == null || raw.isEmpty) return [];
     try {
       final list = jsonDecode(raw) as List<dynamic>;
-      return list.map((e) => Cocktail.fromJson(e as Map<String, dynamic>)).toList();
+      final parsed = list.map((e) => Cocktail.fromJson(e as Map<String, dynamic>)).toList();
+      final seenIds = <String>{};
+      final seenNames = <String>{};
+      final unique = <Cocktail>[];
+      for (final c in parsed) {
+        final nid = c.id.trim().toLowerCase();
+        final nname = c.name.trim().toLowerCase();
+        if (!seenIds.contains(nid) && !seenNames.contains(nname)) {
+          seenIds.add(nid);
+          seenNames.add(nname);
+          unique.add(c);
+        }
+      }
+      return unique;
     } catch (e) {
       AppLogger.warning('CUSTOM_COCKTAILS', 'Could not parse custom cocktails: $e');
       return [];
@@ -129,15 +142,34 @@ class CustomCocktailsNotifier extends StateNotifier<List<Cocktail>> {
   }
 }
 
-/// Combines user's custom saved cocktails with the static catalogue presets
+/// Combines user's custom saved cocktails with the static catalogue presets, strictly deduplicated
 final allCocktailsProvider = Provider<List<Cocktail>>((ref) {
   final customList = ref.watch(customCocktailsProvider);
-  final customIds = customList.map((c) => c.id.toLowerCase()).toSet();
-  final customNames = customList.map((c) => c.name.toLowerCase()).toSet();
+  final seenIds = <String>{};
+  final seenNames = <String>{};
+  final result = <Cocktail>[];
 
-  final presets = CocktailCatalog.all
-      .where((c) => !customIds.contains(c.id.toLowerCase()) && !customNames.contains(c.name.toLowerCase()))
-      .toList();
+  // 1. Custom cocktails first
+  for (final c in customList) {
+    final normId = c.id.trim().toLowerCase();
+    final normName = c.name.trim().toLowerCase();
+    if (!seenIds.contains(normId) && !seenNames.contains(normName)) {
+      seenIds.add(normId);
+      seenNames.add(normName);
+      result.add(c);
+    }
+  }
 
-  return [...customList, ...presets];
+  // 2. Preset catalog
+  for (final c in CocktailCatalog.all) {
+    final normId = c.id.trim().toLowerCase();
+    final normName = c.name.trim().toLowerCase();
+    if (!seenIds.contains(normId) && !seenNames.contains(normName)) {
+      seenIds.add(normId);
+      seenNames.add(normName);
+      result.add(c);
+    }
+  }
+
+  return result;
 });

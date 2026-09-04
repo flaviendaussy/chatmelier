@@ -142,15 +142,13 @@ Return STRICTLY a JSON object with:
     });
 
     // Prioritize high-throughput, fast responsive multimodal vision models first
-    // (gemini-3.1-flash-lite, gemini-flash-latest, gemini-3.5-flash-lite) to avoid gateway timeouts
-    // when outputting 5,000+ tokens of wine JSON.
+    // (gemini-3.1-flash-lite, gemini-3.5-flash, gemini-flash-latest) with a generous 55s timeout
+    // because extracting 20 to 50 wines with full structured JSON yields 5,000+ tokens.
     final candidateModels = <String>[
       'gemini-3.1-flash-lite',
+      'gemini-3.5-flash',
       'gemini-flash-latest',
       'gemini-3.5-flash-lite',
-      'gemini-3.5-flash',
-      'gemini-flash-lite-latest',
-      'gemini-3.7-flash',
     ];
 
     Map<String, dynamic>? parsedJson;
@@ -168,7 +166,7 @@ Return STRICTLY a JSON object with:
           url,
           headers: {'Content-Type': 'application/json'},
           body: requestBody,
-        ).timeout(const Duration(seconds: 22));
+        ).timeout(const Duration(seconds: 55));
 
         if (response.statusCode == 200) {
           onStepUpdate?.call('Extraction des prix, accords mets & vins et profils sensoriels...');

@@ -270,12 +270,12 @@ class CellarGroupEngine {
         final vB = int.tryParse(b.key) ?? -1;
         return vB.compareTo(vA); // Descending year
       } else if (groupBy == CellarGroupBy.maturity) {
-        final order = ['peak', 'drink_soon', 'aging', 'too_young', 'past_peak', 'unknown'];
+        final order = ['peak', 'drink_soon', 'aging', 'too_young', 'past_peak', 'spirit_no_apogee', 'unknown'];
         final idxA = order.indexOf(a.key);
         final idxB = order.indexOf(b.key);
         return (idxA != -1 ? idxA : 99).compareTo(idxB != -1 ? idxB : 99);
       } else if (groupBy == CellarGroupBy.color) {
-        final order = ['red', 'white', 'rosé', 'sparkling', 'dessert', 'orange', 'fortified', 'other'];
+        final order = ['red', 'white', 'rosé', 'sparkling', 'dessert', 'orange', 'fortified', 'spirit', 'other'];
         final idxA = order.indexOf(a.key);
         final idxB = order.indexOf(b.key);
         return (idxA != -1 ? idxA : 99).compareTo(idxB != -1 ? idxB : 99);
@@ -294,6 +294,7 @@ class CellarGroupEngine {
         return 'all';
 
       case CellarGroupBy.color:
+        if (wine.isSpirit) return 'spirit';
         final t = wine.type.toLowerCase().trim();
         if (t.contains('red') || t.contains('rouge')) return 'red';
         if (t.contains('white') || t.contains('blanc')) return 'white';
@@ -329,6 +330,7 @@ class CellarGroupEngine {
         return _getContinent(wine.country);
 
       case CellarGroupBy.maturity:
+        if (wine.isSpirit) return 'spirit_no_apogee';
         final status = wine.windowStatus;
         switch (status) {
           case DrinkWindowStatus.inPeak:
@@ -426,6 +428,8 @@ class CellarGroupEngine {
             return const _GroupMetadata(title: 'Vins Oranges', emoji: '🏺', color: Color(0xFFE67E22));
           case 'fortified':
             return const _GroupMetadata(title: 'Vins Fortifiés & Mutés', emoji: '🍷', color: Color(0xFF78281F));
+          case 'spirit':
+            return const _GroupMetadata(title: 'Spiritueux', emoji: '🥃', color: Color(0xFFD35400));
           default:
             return const _GroupMetadata(title: 'Autres Vins', emoji: '🍾');
         }
@@ -517,6 +521,12 @@ class CellarGroupEngine {
               title: 'Apogée dépassée',
               emoji: '⚠️',
               color: Color(0xFFC62828),
+            );
+          case 'spirit_no_apogee':
+            return const _GroupMetadata(
+              title: 'Spiritueux (Sans apogée)',
+              emoji: '🥃',
+              color: Color(0xFFD35400),
             );
           default:
             return const _GroupMetadata(title: 'Maturité indéterminée', emoji: '❓');

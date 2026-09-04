@@ -245,7 +245,35 @@ class CocktailDetailSheet extends ConsumerWidget {
                                   ),
                                   if (matchedBottles != null && matchedBottles.isNotEmpty) ...[
                                     const SizedBox(height: 4),
-                                    ...matchedBottles.map((bottle) {
+                                    if (matchedBottles.length > 1) ...[
+                                      Container(
+                                        margin: const EdgeInsets.only(bottom: 6),
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.touch_app_outlined, size: 12, color: Color(0xFFD4AF37)),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Au choix : utilisez 1 seule bouteille parmi vos ${matchedBottles.length} disponibles',
+                                              style: const TextStyle(
+                                                fontSize: 10.5,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFFD4AF37),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    ...matchedBottles.asMap().entries.map((entry) {
+                                      final optIndex = entry.key + 1;
+                                      final bottle = entry.value;
                                       final name = bottle.wine?.name ?? 'Bouteille';
                                       final producer = bottle.wine?.producer;
                                       final displayName = producer != null && producer.isNotEmpty
@@ -260,9 +288,27 @@ class CocktailDetailSheet extends ConsumerWidget {
                                               ? Colors.orange.shade700
                                               : Colors.green.shade600;
                                       return Padding(
-                                        padding: const EdgeInsets.only(bottom: 2),
+                                        padding: const EdgeInsets.only(bottom: 3),
                                         child: Row(
                                           children: [
+                                            if (matchedBottles.length > 1) ...[
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                                margin: const EdgeInsets.only(right: 6),
+                                                decoration: BoxDecoration(
+                                                  color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.06),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  'Option $optIndex',
+                                                  style: TextStyle(
+                                                    fontSize: 9.5,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: isDark ? Colors.white70 : Colors.black87,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                             Icon(Icons.liquor, size: 12, color: isDark ? Colors.green.shade300 : const Color(0xFF2E7D32)),
                                             const SizedBox(width: 4),
                                             Flexible(

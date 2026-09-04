@@ -242,6 +242,12 @@ class Wine {
       if (resolvedType == 'dessert' || resolvedType == 'white' || resolvedType == 'red') resolvedType = 'rhum';
     } else if (combinedLower.contains('cognac') || combinedLower.contains('armagnac') || combinedLower.contains('calvados')) {
       if (resolvedType == 'dessert' || resolvedType == 'white' || resolvedType == 'red') resolvedType = 'cognac';
+    } else if (combinedLower.contains('gin')) {
+      if (resolvedType == 'white' || resolvedType == 'dessert' || resolvedType == 'red' || resolvedType == 'other') resolvedType = 'gin';
+    } else if (combinedLower.contains('vodka')) {
+      if (resolvedType == 'white' || resolvedType == 'dessert' || resolvedType == 'red' || resolvedType == 'other') resolvedType = 'vodka';
+    } else if (combinedLower.contains('tequila') || combinedLower.contains('mezcal')) {
+      if (resolvedType == 'white' || resolvedType == 'dessert' || resolvedType == 'red' || resolvedType == 'other') resolvedType = 'tequila';
     }
 
     // Auto-fill alcohol content for famous spirits if missing from DB
@@ -310,6 +316,7 @@ class Wine {
   bool get isSpirit {
     final t = type.toLowerCase().trim();
     if (t == 'spirit' ||
+        t == 'spiritueux' ||
         t == 'whisky' ||
         t == 'whiskey' ||
         t == 'bourbon' ||
@@ -332,6 +339,26 @@ class Wine {
     }
 
     final n = '$name ${producer ?? ""} ${appellation ?? ""}'.toLowerCase();
+    final words = n.split(RegExp(r'[\s,\.\-_]+')).toSet();
+    if (words.contains('gin') ||
+        words.contains('vodka') ||
+        words.contains('whisky') ||
+        words.contains('whiskey') ||
+        words.contains('bourbon') ||
+        words.contains('scotch') ||
+        words.contains('rhum') ||
+        words.contains('rum') ||
+        words.contains('tequila') ||
+        words.contains('mezcal') ||
+        words.contains('cognac') ||
+        words.contains('armagnac') ||
+        words.contains('calvados') ||
+        words.contains('liqueur') ||
+        words.contains('spiritueux') ||
+        words.contains('spirit')) {
+      return true;
+    }
+
     return n.contains('bénédictine') ||
         n.contains('benedictine') ||
         n.contains('chartreuse') ||
@@ -348,12 +375,8 @@ class Wine {
         n.contains('pastis') ||
         n.contains('ricard') ||
         n.contains('absinthe') ||
-        n.contains('calvados') ||
         n.contains('grappa') ||
-        n.contains('pisco') ||
-        n.contains('whisky') ||
-        n.contains('whiskey') ||
-        n.contains('bourbon');
+        n.contains('pisco');
   }
 
   DrinkWindowStatus get windowStatus {

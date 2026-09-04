@@ -152,6 +152,13 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
   String _normalizeWineType(String? raw) {
     if (raw == null) return 'red';
     final lower = raw.toLowerCase();
+    if (lower.contains('whisky') || lower.contains('whiskey') || lower.contains('bourbon') || lower.contains('scotch')) return 'whisky';
+    if (lower.contains('rhum') || lower.contains('rum')) return 'rhum';
+    if (lower.contains('gin')) return 'gin';
+    if (lower.contains('vodka')) return 'vodka';
+    if (lower.contains('tequila') || lower.contains('mezcal')) return 'tequila';
+    if (lower.contains('cognac') || lower.contains('armagnac') || lower.contains('brandy') || lower.contains('calvados')) return 'cognac';
+    if (lower.contains('spirit') || lower.contains('liqueur') || lower.contains('spiritueux') || lower.contains('digestif')) return 'spirit';
     if (lower.contains('blanc') || lower.contains('white')) return 'white';
     if (lower.contains('ros')) return 'rosé';
     if (lower.contains('efferv') || lower.contains('spark') || lower.contains('champ')) return 'sparkling';
@@ -623,17 +630,73 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
         ),
         const SizedBox(height: 14),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: TextFormField(
-                controller: _vintageCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Millésime (Année)',
-                  hintText: 'ex: 2020',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.history),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: _vintageCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Millésime (Année)',
+                      hintText: 'ex: 2020',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.history),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 6),
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _vintageCtrl.clear();
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: _vintageCtrl.text.isEmpty
+                            ? const Color(0xFF8B1E3F).withValues(alpha: 0.12)
+                            : Colors.grey.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _vintageCtrl.text.isEmpty
+                              ? const Color(0xFF8B1E3F)
+                              : Colors.grey.shade400,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.all_inclusive,
+                            size: 14,
+                            color: _vintageCtrl.text.isEmpty
+                                ? const Color(0xFF8B1E3F)
+                                : Colors.grey.shade700,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _vintageCtrl.text.isEmpty ? 'Non millésimé (NM) ✓' : 'Non millésimé (NM)',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: _vintageCtrl.text.isEmpty
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: _vintageCtrl.text.isEmpty
+                                  ? const Color(0xFF8B1E3F)
+                                  : Colors.grey.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 12),
@@ -650,8 +713,15 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                   DropdownMenuItem(value: 'rosé', child: Text('🌸 Rosé')),
                   DropdownMenuItem(value: 'sparkling', child: Text('🍾 Effervescent')),
                   DropdownMenuItem(value: 'dessert', child: Text('🍯 Liquoreux')),
-                  DropdownMenuItem(value: 'fortified', child: Text('🥃 Fortifié / VDN')),
+                  DropdownMenuItem(value: 'fortified', child: Text('🍷 Fortifié / VDN')),
                   DropdownMenuItem(value: 'orange', child: Text('🍊 Vin Orange')),
+                  DropdownMenuItem(value: 'spirit', child: Text('🥃 Spiritueux')),
+                  DropdownMenuItem(value: 'whisky', child: Text('🥃 Whisky')),
+                  DropdownMenuItem(value: 'rhum', child: Text('🏴‍☠️ Rhum')),
+                  DropdownMenuItem(value: 'gin', child: Text('🍸 Gin')),
+                  DropdownMenuItem(value: 'vodka', child: Text('🧊 Vodka')),
+                  DropdownMenuItem(value: 'tequila', child: Text('🌵 Tequila / Mezcal')),
+                  DropdownMenuItem(value: 'cognac', child: Text('🍷 Cognac / Armagnac')),
                 ],
                 onChanged: (val) {
                   if (val != null) setState(() => _wineType = val);

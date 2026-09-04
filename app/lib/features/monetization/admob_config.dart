@@ -7,8 +7,8 @@ import 'package:flutter/foundation.dart';
 class AdMobConfig {
   /// Toggle to switch between Google Test Ads and live Production Ads.
   /// When true, official Google test ad unit IDs are served.
-  /// Set to false once your AdMob account and ad units are approved on Google Play.
-  static bool useTestAds = true;
+  /// Set to false to serve real production AdMob ads.
+  static bool useTestAds = false;
 
   // --- Official Google AdMob Sample Test IDs ---
   // https://developers.google.com/admob/android/test-ads#sample_ad_units
@@ -17,8 +17,9 @@ class AdMobConfig {
   static const String testIosRewardedUnitId =
       'ca-app-pub-3940256099942544/1712485313';
 
-  // --- Production IDs (Replace with your approved AdMob ad unit IDs) ---
-  static String? productionAndroidRewardedUnitId;
+  // --- Production IDs (Configured with user's AdMob Ad Unit) ---
+  static String? productionAndroidRewardedUnitId =
+      'ca-app-pub-6095914862192850/1740903138';
   static String? productionIosRewardedUnitId;
 
   /// Returns true if AdMob is supported on the current running platform.

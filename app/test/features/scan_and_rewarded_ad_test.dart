@@ -111,10 +111,14 @@ void main() {
       AdMobConfig.productionAndroidRewardedUnitId = 'ca-app-pub-1234567890/9876543210';
       expect(AdMobConfig.rewardedAdUnitId, 'ca-app-pub-1234567890/9876543210');
 
-      // Reset
+      // Test test mode switch
       AdMobConfig.useTestAds = true;
-      AdMobConfig.productionAndroidRewardedUnitId = null;
       expect(AdMobConfig.rewardedAdUnitId, AdMobConfig.testAndroidRewardedUnitId);
+
+      // Restore production config
+      AdMobConfig.useTestAds = false;
+      AdMobConfig.productionAndroidRewardedUnitId = 'ca-app-pub-6095914862192850/1740903138';
+      expect(AdMobConfig.rewardedAdUnitId, 'ca-app-pub-6095914862192850/1740903138');
     });
 
     test('AdMobService gracefully reports false when not loaded / in mock test environment', () async {

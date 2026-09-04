@@ -16,10 +16,10 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round">
-        <!-- Google Mobile Ads (AdMob) App ID: default test sample ID; replace with production ID when approved -->
+        <!-- Google Mobile Ads (AdMob) Production App ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>
+            android:value="ca-app-pub-6095914862192850~8857081029"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

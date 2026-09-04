@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/utils/phone_dial_code.dart';
 import '../../../shared/widgets/owner_avatar.dart';
@@ -29,22 +28,23 @@ class FriendTasteCardSheet extends ConsumerStatefulWidget {
 class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
   bool _isActionLoading = false;
 
-  void _showRequestCellarAccessDialog() {
+  Future<void> _showRequestCellarAccessDialog() async {
     String selectedRole = 'viewer';
     final messageCtrl = TextEditingController();
+    final messenger = ScaffoldMessenger.of(context);
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
+        builder: (dialogCtx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
+          title: const Row(
             children: [
-              const Text('🍷 ', style: TextStyle(fontSize: 22)),
+              Text('🍷 ', style: TextStyle(fontSize: 22)),
               Expanded(
                 child: Text(
                   'Demander l\'accès à la cave',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
             ],
@@ -116,7 +116,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                     message: messageCtrl.text.trim().isNotEmpty ? messageCtrl.text.trim() : null,
                   );
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text('📬 Demande envoyée à ${widget.friend.displayName} !'),
                         backgroundColor: const Color(0xFF10B981),
@@ -125,7 +125,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   }
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
                     );
                   }
@@ -139,6 +139,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
         ),
       ),
     );
+    messageCtrl.dispose();
   }
 
   Future<void> _showGrantMyCellarDialog() async {

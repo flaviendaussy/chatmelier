@@ -5,7 +5,7 @@ import 'package:chatmelier/features/cellar/domain/wine_reverse_pairing_engine.da
 
 void main() {
   group('V4 PDF, Extensions & Reverse Food Pairing Tests', () {
-    final sampleRedWine = Wine(
+    const sampleRedWine = Wine(
       id: 'wine-bandol-001',
       name: 'Bandol Rouge Classique',
       producer: 'Domaine de Terrebrune',
@@ -14,13 +14,13 @@ void main() {
       country: 'France',
       region: 'Provence',
       appellation: 'Bandol AOC',
-      grapes: const [
+      grapes: [
         Grape(name: 'Mourvèdre', pct: 85),
         Grape(name: 'Grenache', pct: 10),
         Grape(name: 'Cinsault', pct: 5),
       ],
       tastingNotes: 'Robe grenat intense, fruits noirs, garrigue, épices et tannins nobles.',
-      foodPairings: const ['Gigot d\'agneau', 'Côte de bœuf'],
+      foodPairings: ['Gigot d\'agneau', 'Côte de bœuf'],
       drinkStart: 2024,
       drinkEnd: 2039,
       peakStart: 2027,
@@ -28,7 +28,7 @@ void main() {
       estimatedMarketValue: 38.0,
     );
 
-    final sampleChampagne = Wine(
+    const sampleChampagne = Wine(
       id: 'wine-champagne-002',
       name: 'Cuvée Royale Brut',
       producer: 'Maison Pol Roger',
@@ -37,12 +37,12 @@ void main() {
       country: 'France',
       region: 'Champagne',
       appellation: 'Champagne AOC',
-      grapes: const [
+      grapes: [
         Grape(name: 'Chardonnay', pct: 60),
         Grape(name: 'Pinot Noir', pct: 40),
       ],
       tastingNotes: 'Bulle crémeuse, brioche, noisette et agrumes confits.',
-      foodPairings: const ['Huîtres', 'Ris de veau'],
+      foodPairings: ['Huîtres', 'Ris de veau'],
       drinkStart: 2022,
       drinkEnd: 2032,
       peakStart: 2024,
@@ -50,7 +50,7 @@ void main() {
       estimatedMarketValue: 65.0,
     );
 
-    final sampleWhiteWine = Wine(
+    const sampleWhiteWine = Wine(
       id: 'wine-chablis-003',
       name: 'Chablis Grand Cru Les Clos',
       producer: 'Domaine Laroche',
@@ -59,9 +59,9 @@ void main() {
       country: 'France',
       region: 'Bourgogne',
       appellation: 'Chablis Grand Cru AOC',
-      grapes: const [Grape(name: 'Chardonnay', pct: 100)],
+      grapes: [Grape(name: 'Chardonnay', pct: 100)],
       tastingNotes: 'Minéralité saline, coquille d\'huître, agrumes et tension.',
-      foodPairings: const ['Bar de ligne', 'Homard'],
+      foodPairings: ['Bar de ligne', 'Homard'],
       drinkStart: 2023,
       drinkEnd: 2035,
       estimatedMarketValue: 95.0,

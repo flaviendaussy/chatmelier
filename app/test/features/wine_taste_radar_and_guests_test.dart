@@ -145,14 +145,14 @@ void main() {
 
   group('Wine Taste Radar Widget Tests', () {
     testWidgets('WineTasteRadarChart paints without throwing exceptions', (tester) async {
-      final dataset = RadarChartDataset(
+      const dataset = RadarChartDataset(
         label: 'Papa',
         metrics: WineTasteRadarMetrics.balanced,
-        color: const Color(0xFF8B1E3F),
+        color: Color(0xFF8B1E3F),
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Center(
               child: WineTasteRadarChart(

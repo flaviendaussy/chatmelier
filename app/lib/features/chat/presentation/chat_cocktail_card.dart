@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../cocktails/data/cocktail_catalog.dart';
 import '../../cocktails/data/custom_cocktail_service.dart';
 import '../../cocktails/domain/cocktail.dart';
 import '../../cocktails/presentation/cocktail_detail_sheet.dart';
@@ -70,13 +69,13 @@ class ChatCocktailCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSaved
-              ? const Color(0xFF2E7D32).withOpacity(0.5)
-              : const Color(0xFFD4AF37).withOpacity(0.4),
+              ? const Color(0xFF2E7D32).withValues(alpha: 0.5)
+              : const Color(0xFFD4AF37).withValues(alpha: 0.4),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -93,7 +92,7 @@ class ChatCocktailCard extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B1E3F).withOpacity(0.12),
+                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -123,7 +122,7 @@ class ChatCocktailCard extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2E7D32).withOpacity(0.15),
+                      color: const Color(0xFF2E7D32).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFF2E7D32)),
                     ),
@@ -147,7 +146,7 @@ class ChatCocktailCard extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD4AF37).withOpacity(0.2),
+                      color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFFD4AF37)),
                     ),
@@ -168,7 +167,7 @@ class ChatCocktailCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withOpacity(0.04) : Colors.grey.shade100,
+                  color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -233,7 +232,7 @@ class ChatCocktailCard extends ConsumerWidget {
                 IconButton.filledTonal(
                   style: IconButton.styleFrom(
                     backgroundColor: isSaved
-                        ? const Color(0xFF2E7D32).withOpacity(0.15)
+                        ? const Color(0xFF2E7D32).withValues(alpha: 0.15)
                         : (isDark ? Colors.white10 : Colors.grey.shade200),
                     foregroundColor: isSaved ? const Color(0xFF2E7D32) : const Color(0xFF8B1E3F),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

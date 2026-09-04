@@ -15,7 +15,6 @@ import '../../auth/data/taste_profile_service.dart';
 import '../../auth/data/ai_cost_tracker_service.dart';
 import '../../friends/data/friends_repository.dart';
 import '../../cocktails/data/bar_pantry_service.dart';
-import '../../cocktails/domain/bar_pantry_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/chat_message.dart';
 

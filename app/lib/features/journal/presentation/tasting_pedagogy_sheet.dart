@@ -243,12 +243,12 @@ class TastingPedagogySheet extends StatelessWidget {
                           const Divider(height: 24),
 
                           // Theoretical Archetype for this terroir
-                          Text(
+                          const Text(
                             'SIGNATURE ARCHÉTYPALE DU FLACON :',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFFD4AF37),
+                              color: Color(0xFFD4AF37),
                               letterSpacing: 0.8,
                             ),
                           ),

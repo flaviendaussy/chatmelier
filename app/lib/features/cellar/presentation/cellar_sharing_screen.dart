@@ -142,7 +142,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       }).select('invite_code').single();
 
       final code = res['invite_code'] as String;
-      String baseUrl = 'https://flaviendaussy.github.io/chatmelier';
+      String baseUrl = 'https://flaviendaussy.github.io';
       if (kIsWeb) {
         try {
           final origin = Uri.base.origin;
@@ -695,11 +695,12 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
 
   void _showGrantCellarDialogToFriend(Friend friend) {
     String selectedRole = 'viewer';
+    final messenger = ScaffoldMessenger.of(context);
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
+        builder: (dialogCtx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
@@ -759,7 +760,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                   );
                   _loadData();
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text('🍾 Accès accordé à ${friend.displayName} !'),
                         backgroundColor: const Color(0xFF10B981),
@@ -768,7 +769,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                   }
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
                     );
                   }

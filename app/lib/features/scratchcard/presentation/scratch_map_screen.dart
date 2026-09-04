@@ -98,6 +98,13 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
     'ZA': (const LatLng(-33.8, 19.0), 7.5),
   };
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _mapController.dispose();
+    super.dispose();
+  }
+
   void _flyTo(LatLng target, double zoom) {
     final latTween = Tween<double>(
       begin: _mapController.camera.center.latitude,

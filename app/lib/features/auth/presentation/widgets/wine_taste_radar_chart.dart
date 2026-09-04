@@ -125,7 +125,7 @@ class _RadarChartPainter extends CustomPainter {
       ..strokeWidth = 1.0;
 
     final axisPaint = Paint()
-      ..color = gridColor.withAlpha(gridColor.alpha * 2)
+      ..color = gridColor.withValues(alpha: (gridColor.a * 2).clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
 

@@ -84,7 +84,7 @@ void main() {
     test('Chat prompts are clean and contain no hardcoded "Flavien et Caro"', () {
       final tasteProfileService = TasteProfileService();
       final profiles = [
-        TasteProfile(id: 'camille-1', name: 'Camille', favoriteTypes: ['white', 'red'], favoriteRegions: ['Bourgogne', 'Rhône']),
+        const TasteProfile(id: 'camille-1', name: 'Camille', favoriteTypes: ['white', 'red'], favoriteRegions: ['Bourgogne', 'Rhône']),
       ];
 
       final contextStr = tasteProfileService.formatProfilesForSommelier(profiles);
@@ -137,8 +137,8 @@ void main() {
       // Prepare 2 profiles for overlay and comparison modes
       final tasteService = TasteProfileService();
       await tasteService.saveProfiles([
-        TasteProfile(id: 'p1', name: 'Moi', isPrimary: true, favoriteTypes: ['Rouge']),
-        TasteProfile(id: 'p2', name: 'Papa', isPrimary: false, favoriteTypes: ['Rouge', 'Blanc']),
+        const TasteProfile(id: 'p1', name: 'Moi', isPrimary: true, favoriteTypes: ['Rouge']),
+        const TasteProfile(id: 'p2', name: 'Papa', isPrimary: false, favoriteTypes: ['Rouge', 'Blanc']),
       ]);
 
       await tester.pumpWidget(

@@ -6,7 +6,7 @@ import 'package:chatmelier/features/scratchcard/domain/terroir_catalog.dart';
 
 void main() {
   group('V5 Tasting Pedagogy & Global Terroirs Tests', () {
-    final sampleBandol = Wine(
+    const sampleBandol = Wine(
       id: 'wine-bandol-rouge',
       name: 'Bandol Rouge Cuvée Spéciale',
       producer: 'Domaine de Terrebrune',
@@ -15,7 +15,7 @@ void main() {
       country: 'France',
       region: 'Provence',
       appellation: 'Bandol AOC',
-      grapes: const [
+      grapes: [
         Grape(name: 'Mourvèdre', pct: 85),
         Grape(name: 'Grenache', pct: 10),
         Grape(name: 'Cinsault', pct: 5),
@@ -27,7 +27,7 @@ void main() {
       peakEnd: 2033,
     );
 
-    final sampleChablis = Wine(
+    const sampleChablis = Wine(
       id: 'wine-chablis-grand-cru',
       name: 'Chablis Grand Cru Les Clos',
       producer: 'Domaine Laroche',
@@ -36,12 +36,12 @@ void main() {
       country: 'France',
       region: 'Bourgogne',
       appellation: 'Chablis Grand Cru AOC',
-      grapes: const [Grape(name: 'Chardonnay', pct: 100)],
+      grapes: [Grape(name: 'Chardonnay', pct: 100)],
       drinkStart: 2024,
       drinkEnd: 2036,
     );
 
-    final sampleChampagne = Wine(
+    const sampleChampagne = Wine(
       id: 'wine-champagne-prestige',
       name: 'Cuvée Sir Winston Churchill',
       producer: 'Pol Roger',
@@ -50,7 +50,7 @@ void main() {
       country: 'France',
       region: 'Champagne',
       appellation: 'Champagne AOC',
-      grapes: const [
+      grapes: [
         Grape(name: 'Pinot Noir', pct: 60),
         Grape(name: 'Chardonnay', pct: 40),
       ],

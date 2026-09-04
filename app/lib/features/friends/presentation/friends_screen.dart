@@ -408,11 +408,12 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
 
   void _showGrantCellarDialog(Friend friend) {
     String selectedRole = friend.cellarAccessRole == 'editor' ? 'editor' : 'viewer';
+    final messenger = ScaffoldMessenger.of(context);
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
+        builder: (dialogCtx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
@@ -443,7 +444,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
               ),
               RadioListTile<String>(
                 title: const Text('Sommelier Délégué (Éditeur ✍️)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: const Text('Peut ajouter, déplacer ou décrémenter des bouteilles dans votre cave.', style: TextStyle(fontSize: 11)),
+                subtitle: const Text('Peut ajouter, déplacer et consommer des bouteilles dans votre cave.', style: TextStyle(fontSize: 11)),
                 value: 'editor',
                 groupValue: selectedRole,
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
@@ -452,7 +453,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx),
+              onPressed: () => Navigator.pop(dialogCtx),
               child: const Text('Annuler'),
             ),
             ElevatedButton(
@@ -462,7 +463,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () async {
-                Navigator.pop(ctx);
+                Navigator.pop(dialogCtx);
                 try {
                   await ref.read(friendsRepositoryProvider).grantCellarAccessDirectly(
                     cellarId: '', // Automatically resolved to current user's cellar
@@ -471,7 +472,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                   );
                   ref.invalidate(friendsListProvider);
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text('🍾 Accès à votre cave accordé à ${friend.displayName} !'),
                         backgroundColor: const Color(0xFF10B981),
@@ -480,7 +481,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                   }
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
                     );
                   }
@@ -504,20 +505,20 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     required bool isDark,
   }) {
     if (incomingFriends.isEmpty && incomingCellar.isEmpty && notifications.isEmpty) {
-      return Center(
+      return const Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.notifications_none, size: 48, color: Colors.grey),
-              const SizedBox(height: 12),
-              const Text(
+              Icon(Icons.notifications_none, size: 48, color: Colors.grey),
+              SizedBox(height: 12),
+              Text(
                 'Aucune demande en attente',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              const SizedBox(height: 4),
-              const Text(
+              SizedBox(height: 4),
+              Text(
                 'Vous recevrez ici les demandes d\'amis et les demandes d\'accès à vos caves.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12.5, color: Colors.grey),

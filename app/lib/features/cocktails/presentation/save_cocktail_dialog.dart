@@ -62,7 +62,7 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF8B1E3F).withOpacity(0.12),
+              color: const Color(0xFF8B1E3F).withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.bookmark_add, color: Color(0xFF8B1E3F), size: 24),
@@ -137,9 +137,9 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -162,9 +162,9 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withOpacity(0.04) : const Color(0xFFF9F9FB),
+                  color: isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF9F9FB),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

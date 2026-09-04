@@ -75,7 +75,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
     
     final inviteMessage = '${nameSalutation}Rejoins-moi sur Chatmelier, l\'application sommelier et gestionnaire de cave à vin !\n\n'
         'Tu pourras voir ma cave, explorer mes bouteilles et partager nos dégustations.\n'
-        'Télécharge l\'app ici : https://chatmelier.app/invite?ref=$myCode';
+        'Télécharge l\'app ici : https://flaviendaussy.github.io/#/invite?ref=$myCode';
 
     Share.share(inviteMessage, subject: 'Invitation à rejoindre Chatmelier');
   }

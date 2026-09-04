@@ -505,7 +505,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                     const Icon(Icons.arrow_drop_down),
                   ],
                 ),
-                if (currentWifiSsid != null && currentWifiSsid!.isNotEmpty)
+                if (currentWifiSsid != null && currentWifiSsid.isNotEmpty)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -785,7 +785,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                 Container(
                   height: 20,
                   width: 1,
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withValues(alpha: 0.3),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                 ),
                 const SizedBox(width: 8),

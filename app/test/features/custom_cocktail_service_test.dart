@@ -22,7 +22,7 @@ void main() {
     });
 
     test('saveCocktail saves with suggested name by default', () async {
-      final cocktail = Cocktail(
+      const cocktail = Cocktail(
         id: 'chat_creation_1',
         name: 'Gin Basilic Givré',
         baseSpirit: 'gin',
@@ -31,8 +31,8 @@ void main() {
         method: 'Au shaker',
         garnish: 'Feuille de basilic',
         description: 'Recette rafraîchissante au basilic',
-        ingredients: const [CocktailIngredient(name: 'Gin', amount: 5, unit: 'cl')],
-        instructions: const ['Shaker et servir.'],
+        ingredients: [CocktailIngredient(name: 'Gin', amount: 5, unit: 'cl')],
+        instructions: ['Shaker et servir.'],
       );
 
       final saved = await service.saveCocktail(cocktail);
@@ -44,7 +44,7 @@ void main() {
     });
 
     test('saveCocktail saves with user preferred custom name', () async {
-      final cocktail = Cocktail(
+      const cocktail = Cocktail(
         id: 'chat_creation_2',
         name: 'Cocktail Méditerranéen Chatmelier',
         baseSpirit: 'vodka',
@@ -53,8 +53,8 @@ void main() {
         method: 'Direct au verre',
         garnish: 'Zeste de citron',
         description: 'Création aux agrumes',
-        ingredients: const [CocktailIngredient(name: 'Vodka', amount: 4, unit: 'cl')],
-        instructions: const ['Mélanger avec des glaçons.'],
+        ingredients: [CocktailIngredient(name: 'Vodka', amount: 4, unit: 'cl')],
+        instructions: ['Mélanger avec des glaçons.'],
       );
 
       final saved = await service.saveCocktail(
@@ -70,7 +70,7 @@ void main() {
     });
 
     test('saveCocktail updates existing cocktail when re-saved with new preferred name', () async {
-      final cocktail = Cocktail(
+      const cocktail = Cocktail(
         id: 'custom_fixed_id',
         name: 'Mon Sour',
         baseSpirit: 'whisky',
@@ -79,8 +79,8 @@ void main() {
         method: 'Au shaker',
         garnish: 'Cerise amarena',
         description: 'Sour équilibré',
-        ingredients: const [CocktailIngredient(name: 'Bourbon', amount: 5, unit: 'cl')],
-        instructions: const ['Shaker 15s.'],
+        ingredients: [CocktailIngredient(name: 'Bourbon', amount: 5, unit: 'cl')],
+        instructions: ['Shaker 15s.'],
       );
 
       await service.saveCocktail(cocktail);
@@ -94,7 +94,7 @@ void main() {
     });
 
     test('deleteCocktail removes the custom cocktail', () async {
-      final cocktail = Cocktail(
+      const cocktail = Cocktail(
         id: 'custom_to_delete',
         name: 'Cocktail Éphémère',
         baseSpirit: 'rhum',
@@ -103,8 +103,8 @@ void main() {
         method: 'Shaker',
         garnish: 'Menthe',
         description: 'Test',
-        ingredients: const [],
-        instructions: const [],
+        ingredients: [],
+        instructions: [],
       );
 
       await service.saveCocktail(cocktail);

@@ -73,7 +73,7 @@ class CellarPdfExportService {
                   children: [
                     pw.Text(
                       'CHATMELIER',
-                      style: pw.TextStyle(
+                      style: const pw.TextStyle(
                         color: primaryBurgundy,
                         fontSize: 20,
                         fontWeight: pw.FontWeight.bold,
@@ -82,7 +82,7 @@ class CellarPdfExportService {
                     ),
                     pw.Text(
                       'CARTE DES VINS & LIVRE DE CAVE',
-                      style: pw.TextStyle(
+                      style: const pw.TextStyle(
                         color: goldAccent,
                         fontSize: 9,
                         fontWeight: pw.FontWeight.bold,
@@ -96,7 +96,7 @@ class CellarPdfExportService {
                   children: [
                     pw.Text(
                       cellarName.toUpperCase(),
-                      style: pw.TextStyle(color: darkSlate, fontSize: 12, fontWeight: pw.FontWeight.bold),
+                      style: const pw.TextStyle(color: darkSlate, fontSize: 12, fontWeight: pw.FontWeight.bold),
                     ),
                     pw.Text(
                       'Édition du $dateStr',
@@ -174,7 +174,7 @@ class CellarPdfExportService {
                       children: [
                         pw.Text(
                           title,
-                          style: pw.TextStyle(color: PdfColors.white, fontSize: 10, fontWeight: pw.FontWeight.bold, letterSpacing: 1),
+                          style: const pw.TextStyle(color: PdfColors.white, fontSize: 10, fontWeight: pw.FontWeight.bold, letterSpacing: 1),
                         ),
                         pw.Text(
                           '${sBottles.fold<int>(0, (sum, b) => sum + b.quantity)} bouteilles (${sBottles.length} réf.)',
@@ -187,7 +187,7 @@ class CellarPdfExportService {
                   // Table of bottles
                   pw.TableHelper.fromTextArray(
                     border: null,
-                    headerStyle: pw.TextStyle(color: darkSlate, fontSize: 8, fontWeight: pw.FontWeight.bold),
+                    headerStyle: const pw.TextStyle(color: darkSlate, fontSize: 8, fontWeight: pw.FontWeight.bold),
                     headerDecoration: const pw.BoxDecoration(color: rowAltBg),
                     cellHeight: 22,
                     cellStyle: const pw.TextStyle(fontSize: 7.5, color: darkSlate),
@@ -209,7 +209,7 @@ class CellarPdfExportService {
                       final wineName = w?.name ?? 'Vin';
                       final name = prod.isNotEmpty ? '$prod • $wineName' : wineName;
                       final vintage = w?.vintage != null ? '${w!.vintage}' : 'NM';
-                      final regionApp = '${w?.appellation ?? w?.region ?? "-"}';
+                      final regionApp = w?.appellation ?? w?.region ?? "-";
                       final grapes = (w?.grapes != null && w!.grapes.isNotEmpty)
                           ? w.grapes.map((g) => g.name).take(2).join(', ')
                           : '-';

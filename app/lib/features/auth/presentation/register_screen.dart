@@ -104,7 +104,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _showExistingAccountDialog(BuildContext context, String email) async {
-    showDialog(
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+
+    await showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         icon: const Icon(Icons.account_circle, color: Color(0xFF8B1E3F), size: 48),
@@ -142,18 +145,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 final repo = ref.read(authRepositoryProvider);
                 await repo.sendMagicLink(email);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     SnackBar(
                       content: Text('✉️ Lien de connexion envoyé à $email ! Cliquez sur le lien reçu par email (vérifiez vos spams) pour vous connecter.'),
                       backgroundColor: const Color(0xFF10B981),
                       duration: const Duration(seconds: 8),
                     ),
                   );
-                  context.go('/login');
+                  router.go('/login');
                 }
               } catch (err) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     SnackBar(content: Text('Erreur : $err'), backgroundColor: Colors.redAccent),
                   );
                 }

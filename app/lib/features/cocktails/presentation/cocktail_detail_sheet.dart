@@ -73,8 +73,8 @@ class CocktailDetailSheet extends ConsumerWidget {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: match.isReady
-                            ? const Color(0xFF2E7D32).withOpacity(0.15)
-                            : const Color(0xFF8B1E3F).withOpacity(0.15),
+                            ? const Color(0xFF2E7D32).withValues(alpha: 0.15)
+                            : const Color(0xFF8B1E3F).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
@@ -99,7 +99,7 @@ class CocktailDetailSheet extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+                                  color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -220,7 +220,7 @@ class CocktailDetailSheet extends ConsumerWidget {
                               : (isDark ? const Color(0xFF2E241E) : const Color(0xFFFFF3E0)),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isAvailable ? const Color(0xFF81C784).withOpacity(0.4) : Colors.orange.withOpacity(0.4),
+                            color: isAvailable ? const Color(0xFF81C784).withValues(alpha: 0.4) : Colors.orange.withValues(alpha: 0.4),
                           ),
                         ),
                         child: Row(
@@ -338,7 +338,7 @@ class CocktailDetailSheet extends ConsumerWidget {
                           children: [
                             CircleAvatar(
                               radius: 12,
-                              backgroundColor: const Color(0xFF8B1E3F).withOpacity(0.15),
+                              backgroundColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
                               child: Text(
                                 '$index',
                                 style: const TextStyle(
@@ -367,7 +367,7 @@ class CocktailDetailSheet extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+                          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Column(
@@ -494,7 +494,7 @@ class CocktailDetailSheet extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(

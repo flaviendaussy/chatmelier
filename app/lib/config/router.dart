@@ -22,14 +22,11 @@ import '../features/stats/presentation/stats_screen.dart';
 import '../features/changelog/presentation/changelog_screen.dart';
 import '../features/changelog/presentation/diagnostic_logs_screen.dart';
 import '../features/scratchcard/presentation/scratch_map_screen.dart';
-import '../features/voice/presentation/voice_dictation_sheet.dart';
-import '../features/journal/presentation/external_tasting_dialog.dart';
 import '../features/auth/presentation/ai_cost_estimator_screen.dart';
 import '../features/friends/presentation/friends_screen.dart';
 import '../features/cocktails/presentation/bar_cocktails_hub_screen.dart';
 import '../shared/widgets/adaptive_app_shell.dart';
 import '../shared/providers/supabase_provider.dart';
-import '../l10n/app_localizations.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();

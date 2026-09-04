@@ -107,8 +107,6 @@ void refreshFriendsAndNotifications(WidgetRef ref) {
 class FriendsRepository {
   final SupabaseClient _client;
   static const String _cacheKey = 'chatmelier_friends_cache_v2';
-  static const String _pendingCacheKey = 'chatmelier_pending_requests_cache_v2';
-  static const String _cellarRequestsCacheKey = 'chatmelier_cellar_requests_cache_v2';
 
   FriendsRepository(this._client);
 

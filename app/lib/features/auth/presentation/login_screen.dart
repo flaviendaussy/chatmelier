@@ -155,8 +155,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   Future<void> _showForgotPasswordDialog(BuildContext context) async {
     final email = _emailCtrl.text.trim();
     final emailController = TextEditingController(text: email);
+    final messenger = ScaffoldMessenger.of(context);
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         icon: const Icon(Icons.lock_reset, color: Color(0xFF8B1E3F), size: 40),
@@ -210,7 +211,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 final repo = ref.read(authRepositoryProvider);
                 await repo.resetPasswordForEmail(targetEmail);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     SnackBar(
                       content: Text('✉️ Email de réinitialisation envoyé à $targetEmail (vérifiez vos spams)'),
                       backgroundColor: const Color(0xFF8B1E3F),
@@ -220,7 +221,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 }
               } catch (err) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     SnackBar(content: Text('Erreur : $err'), backgroundColor: Colors.redAccent),
                   );
                 }
@@ -234,6 +235,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         ],
       ),
     );
+    emailController.dispose();
   }
 
   Future<void> _googleLogin() async {

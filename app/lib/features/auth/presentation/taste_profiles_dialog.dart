@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
-import '../domain/wine_taste_radar.dart';
-import 'widgets/wine_taste_radar_chart.dart';
 import 'taste_profile_radar_screen.dart';
 
 class TasteProfilesDialog extends ConsumerStatefulWidget {
@@ -226,18 +224,18 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                             InkWell(
                               onTap: () => TasteProfileRadarScreen.show(context, initialProfileId: profile.id),
                               borderRadius: BorderRadius.circular(8),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 4),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.radar, size: 15, color: Color(0xFF8B1E3F)),
-                                    const SizedBox(width: 6),
-                                    const Text(
+                                    Icon(Icons.radar, size: 15, color: Color(0xFF8B1E3F)),
+                                    SizedBox(width: 6),
+                                    Text(
                                       'Voir le Spider Chart de ce profil',
                                       style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
                                     ),
-                                    const Spacer(),
-                                    const Icon(Icons.arrow_forward_ios, size: 10, color: Color(0xFF8B1E3F)),
+                                    Spacer(),
+                                    Icon(Icons.arrow_forward_ios, size: 10, color: Color(0xFF8B1E3F)),
                                   ],
                                 ),
                               ),
@@ -285,7 +283,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
     );
   }
 
-  void _showEditProfileSheet(TasteProfile? existing) {
+  Future<void> _showEditProfileSheet(TasteProfile? existing) async {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final notesCtrl = TextEditingController(text: existing?.notes ?? '');
     final typesCtrl = TextEditingController(text: existing?.favoriteTypes.join(', ') ?? '');
@@ -293,109 +291,118 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
     final grapesCtrl = TextEditingController(text: existing?.favoriteGrapes.join(', ') ?? '');
     final dislikesCtrl = TextEditingController(text: existing?.dislikedCharacteristics.join(', ') ?? '');
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(existing == null ? 'Nouveau profil' : 'Modifier ${existing.name}'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Prénom / Nom *', hintText: 'ex: Caro'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: typesCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Types & Couleurs préférés (séparés par virgule)',
-                  hintText: 'ex: Blanc sec, Rosé de Provence, Champagne',
+    try {
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(existing == null ? 'Nouveau profil' : 'Modifier ${existing.name}'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: 'Prénom / Nom *', hintText: 'ex: Caro'),
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: regionsCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Régions & Terroirs aimés',
-                  hintText: 'ex: Bourgogne, Rhône, Loire, Provence',
+                const SizedBox(height: 10),
+                TextField(
+                  controller: typesCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Types & Couleurs préférés (séparés par virgule)',
+                    hintText: 'ex: Blanc sec, Rosé de Provence, Champagne',
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: grapesCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Cépages favoris',
-                  hintText: 'ex: Pinot Noir, Chardonnay, Syrah',
+                const SizedBox(height: 10),
+                TextField(
+                  controller: regionsCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Régions & Terroirs aimés',
+                    hintText: 'ex: Bourgogne, Rhône, Loire, Provence',
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: dislikesCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Ce qu\'il / elle n\'aime pas',
-                  hintText: 'ex: Trop tannique, Boisé excessif',
+                const SizedBox(height: 10),
+                TextField(
+                  controller: grapesCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Cépages favoris',
+                    hintText: 'ex: Pinot Noir, Chardonnay, Syrah',
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: notesCtrl,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Notes & style général',
-                  hintText: 'ex: Aime les vins frais et fruités pour l\'apéritif...',
+                const SizedBox(height: 10),
+                TextField(
+                  controller: dislikesCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Ce qu\'il / elle n\'aime pas',
+                    hintText: 'ex: Trop tannique, Boisé excessif',
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF8B1E3F),
-              foregroundColor: Colors.white,
+                const SizedBox(height: 10),
+                TextField(
+                  controller: notesCtrl,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    labelText: 'Notes & style général',
+                    hintText: 'ex: Aime les vins frais et fruités pour l\'apéritif...',
+                  ),
+                ),
+              ],
             ),
-            onPressed: () async {
-              final name = nameCtrl.text.trim();
-              if (name.isEmpty) return;
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF8B1E3F),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                final name = nameCtrl.text.trim();
+                if (name.isEmpty) return;
 
-              List<String> parseList(String text) =>
-                  text.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+                List<String> parseList(String text) =>
+                    text.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
 
-              final service = ref.read(tasteProfileServiceProvider);
-              if (existing != null) {
-                await service.updateProfile(
-                  existing.copyWith(
+                final service = ref.read(tasteProfileServiceProvider);
+                if (existing != null) {
+                  await service.updateProfile(
+                    existing.copyWith(
+                      name: name,
+                      favoriteTypes: parseList(typesCtrl.text),
+                      favoriteRegions: parseList(regionsCtrl.text),
+                      favoriteGrapes: parseList(grapesCtrl.text),
+                      dislikedCharacteristics: parseList(dislikesCtrl.text),
+                      notes: notesCtrl.text.trim(),
+                    ),
+                  );
+                } else {
+                  await service.addProfile(
                     name: name,
                     favoriteTypes: parseList(typesCtrl.text),
                     favoriteRegions: parseList(regionsCtrl.text),
                     favoriteGrapes: parseList(grapesCtrl.text),
                     dislikedCharacteristics: parseList(dislikesCtrl.text),
                     notes: notesCtrl.text.trim(),
-                  ),
-                );
-              } else {
-                await service.addProfile(
-                  name: name,
-                  favoriteTypes: parseList(typesCtrl.text),
-                  favoriteRegions: parseList(regionsCtrl.text),
-                  favoriteGrapes: parseList(grapesCtrl.text),
-                  dislikedCharacteristics: parseList(dislikesCtrl.text),
-                  notes: notesCtrl.text.trim(),
-                );
-              }
+                  );
+                }
 
-              ref.invalidate(tasteProfilesListProvider);
-              if (ctx.mounted) Navigator.pop(ctx);
-            },
-            child: const Text('Enregistrer'),
-          ),
-        ],
-      ),
-    );
+                ref.invalidate(tasteProfilesListProvider);
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              child: const Text('Enregistrer'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      nameCtrl.dispose();
+      notesCtrl.dispose();
+      typesCtrl.dispose();
+      regionsCtrl.dispose();
+      grapesCtrl.dispose();
+      dislikesCtrl.dispose();
+    }
   }
 }

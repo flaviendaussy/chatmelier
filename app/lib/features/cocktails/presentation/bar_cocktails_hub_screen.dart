@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../data/bar_pantry_service.dart';
-import '../data/cocktail_catalog.dart';
 import '../data/custom_cocktail_service.dart';
 import '../domain/bar_pantry_item.dart';
-import '../domain/cocktail.dart';
 import '../domain/cocktail_matcher.dart';
 import 'cocktail_detail_sheet.dart';
 
@@ -78,7 +75,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF8B1E3F).withOpacity(0.15),
+                color: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.local_bar, color: Color(0xFF8B1E3F), size: 20),
@@ -260,11 +257,11 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                   height: 44,
                   decoration: BoxDecoration(
                     color: inStock
-                        ? const Color(0xFF2E7D32).withOpacity(0.12)
+                        ? const Color(0xFF2E7D32).withValues(alpha: 0.12)
                         : (isDark ? Colors.white10 : Colors.grey.shade100),
                     borderRadius: BorderRadius.circular(12),
                     border: inStock
-                        ? Border.all(color: const Color(0xFF2E7D32).withOpacity(0.4))
+                        ? Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.4))
                         : null,
                   ),
                   child: Center(
@@ -340,8 +337,6 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
     List<CocktailMatchResult> readyMatches,
     List<CocktailMatchResult> almostMatches,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final filtered = allMatches.where((m) {
       final c = m.cocktail;
 
@@ -472,9 +467,9 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B1E3F).withOpacity(0.1),
+                        color: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF8B1E3F).withOpacity(0.3)),
+                        border: Border.all(color: const Color(0xFF8B1E3F).withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -512,7 +507,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                       avatar: const Icon(Icons.check_circle, size: 15, color: Color(0xFF2E7D32)),
                       label: Text('Prêts à shaker (${readyMatches.length})'),
                       selected: _filterStatus == 'Prêts',
-                      selectedColor: const Color(0xFF2E7D32).withOpacity(0.2),
+                      selectedColor: const Color(0xFF2E7D32).withValues(alpha: 0.2),
                       onSelected: (_) => setState(() => _filterStatus = 'Prêts'),
                     ),
                     const SizedBox(width: 6),
@@ -520,7 +515,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                       avatar: Icon(Icons.pending_actions, size: 15, color: Colors.orange.shade800),
                       label: Text('1 manquant (${almostMatches.length})'),
                       selected: _filterStatus == '1 manquant',
-                      selectedColor: Colors.orange.withOpacity(0.2),
+                      selectedColor: Colors.orange.withValues(alpha: 0.2),
                       onSelected: (_) => setState(() => _filterStatus = '1 manquant'),
                     ),
                   ],
@@ -563,9 +558,9 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
             margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF2E7D32).withOpacity(0.12),
+              color: const Color(0xFF2E7D32).withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.3)),
+              border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -704,7 +699,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                 height: 52,
                 decoration: BoxDecoration(
                   color: isReady
-                      ? const Color(0xFF2E7D32).withOpacity(0.12)
+                      ? const Color(0xFF2E7D32).withValues(alpha: 0.12)
                       : (isDark ? Colors.white10 : Colors.grey.shade100),
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -735,7 +730,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                             margin: const EdgeInsets.only(right: 6),
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFD4AF37).withOpacity(0.18),
+                              color: const Color(0xFFD4AF37).withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(color: const Color(0xFFD4AF37)),
                             ),
@@ -800,122 +795,129 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
     );
   }
 
-  void _showAddPantryItemDialog(BuildContext context) {
+  Future<void> _showAddPantryItemDialog(BuildContext context) async {
     final nameCtrl = TextEditingController();
     PantryCategory selectedCat = PantryCategory.custom;
     final emojiCtrl = TextEditingController(text: '✨');
     final unitCtrl = TextEditingController(text: 'unités');
+    final messenger = ScaffoldMessenger.of(context);
 
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Row(
-              children: [
-                Icon(Icons.add_circle_outline, color: Color(0xFF8B1E3F)),
-                SizedBox(width: 8),
-                Text('Nouvel ingrédient', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+    try {
+      await showDialog(
+        context: context,
+        builder: (ctx) => StatefulBuilder(
+          builder: (dialogCtx, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(
                 children: [
-                  TextField(
-                    controller: nameCtrl,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      labelText: 'Nom de l\'ingrédient *',
-                      hintText: 'Ex: Sirop de fleur de sureau, Yuzu...',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  DropdownButtonFormField<PantryCategory>(
-                    value: selectedCat,
-                    decoration: InputDecoration(
-                      labelText: 'Catégorie',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    items: PantryCategory.values.map((cat) {
-                      return DropdownMenuItem(
-                        value: cat,
-                        child: Row(
-                          children: [
-                            Icon(cat.icon, size: 16),
-                            const SizedBox(width: 8),
-                            Text(cat.labelFr),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) setDialogState(() => selectedCat = val);
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: 80,
-                        child: TextField(
-                          controller: emojiCtrl,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                            labelText: 'Émoji',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: unitCtrl,
-                          decoration: InputDecoration(
-                            labelText: 'Unité (ex: pièces, cl)',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  Icon(Icons.add_circle_outline, color: Color(0xFF8B1E3F)),
+                  SizedBox(width: 8),
+                  Text('Nouvel ingrédient', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ],
               ),
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B1E3F),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () {
-                  final name = nameCtrl.text.trim();
-                  if (name.isEmpty) return;
-                  ref.read(barPantryProvider.notifier).addCustomItem(
-                    name,
-                    selectedCat,
-                    unit: unitCtrl.text.trim().isNotEmpty ? unitCtrl.text.trim() : 'unités',
-                    emoji: emojiCtrl.text.trim().isNotEmpty ? emojiCtrl.text.trim() : '🍹',
-                  );
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Ingrédient "$name" ajouté au bar pantry !'),
-                      behavior: SnackBarBehavior.floating,
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: nameCtrl,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: 'Nom de l\'ingrédient *',
+                        hintText: 'Ex: Sirop de fleur de sureau, Yuzu...',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                     ),
-                  );
-                },
-                child: const Text('Ajouter'),
+                    const SizedBox(height: 14),
+                    DropdownButtonFormField<PantryCategory>(
+                      initialValue: selectedCat,
+                      decoration: InputDecoration(
+                        labelText: 'Catégorie',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: PantryCategory.values.map((cat) {
+                        return DropdownMenuItem(
+                          value: cat,
+                          child: Row(
+                            children: [
+                              Icon(cat.icon, size: 16),
+                              const SizedBox(width: 8),
+                              Text(cat.labelFr),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) setDialogState(() => selectedCat = val);
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 80,
+                          child: TextField(
+                            controller: emojiCtrl,
+                            textAlign: TextAlign.center,
+                            decoration: InputDecoration(
+                              labelText: 'Émoji',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: unitCtrl,
+                            decoration: InputDecoration(
+                              labelText: 'Unité (ex: pièces, cl)',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ],
-          );
-        },
-      ),
-    );
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Annuler')),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B1E3F),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    final name = nameCtrl.text.trim();
+                    if (name.isEmpty) return;
+                    ref.read(barPantryProvider.notifier).addCustomItem(
+                      name,
+                      selectedCat,
+                      unit: unitCtrl.text.trim().isNotEmpty ? unitCtrl.text.trim() : 'unités',
+                      emoji: emojiCtrl.text.trim().isNotEmpty ? emojiCtrl.text.trim() : '🍹',
+                    );
+                    Navigator.pop(dialogCtx);
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Ingrédient "$name" ajouté au bar pantry !'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  child: const Text('Ajouter'),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    } finally {
+      nameCtrl.dispose();
+      emojiCtrl.dispose();
+      unitCtrl.dispose();
+    }
   }
 
   void _confirmResetAll(BuildContext context) {

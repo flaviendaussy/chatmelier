@@ -417,7 +417,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                         Switch.adaptive(
                           value: isPremium,
-                          activeColor: const Color(0xFFD4AF37),
+                          activeTrackColor: const Color(0xFFD4AF37),
                           onChanged: (val) {
                             ref.read(premiumProvider.notifier).setPremium(val);
                             ScaffoldMessenger.of(context).showSnackBar(

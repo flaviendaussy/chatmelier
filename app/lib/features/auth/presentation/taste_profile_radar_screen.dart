@@ -5,7 +5,6 @@ import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
 import '../domain/wine_taste_radar.dart';
 import 'widgets/wine_taste_radar_chart.dart';
-import 'taste_profiles_dialog.dart';
 
 /// 🎨 Distinct Vibrant Color Palette for Multi-Guest Overlays
 const List<Color> kRadarPalette = [

@@ -6,7 +6,7 @@ import 'package:chatmelier/features/cellar/domain/cellar_sort_by.dart';
 
 void main() {
   group('CellarGroupEngine - Group By + Sort By Combinations', () {
-    final wine2022 = const Wine(
+    const wine2022 = Wine(
       id: 'w1',
       name: 'Beaujolais Lantignié',
       producer: 'Frédéric Berne',
@@ -18,7 +18,7 @@ void main() {
       estimatedMarketValue: 16.5,
     );
 
-    final wine2015 = const Wine(
+    const wine2015 = Wine(
       id: 'w2',
       name: 'Château Margaux',
       producer: 'Château Margaux',
@@ -30,7 +30,7 @@ void main() {
       estimatedMarketValue: 650.0,
     );
 
-    final wine2020White = const Wine(
+    const wine2020White = Wine(
       id: 'w3',
       name: 'Alba Dolia',
       producer: 'Mas des Volques',

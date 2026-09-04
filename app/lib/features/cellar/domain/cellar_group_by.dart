@@ -236,11 +236,17 @@ class CellarGroupEngine {
               for (final b in s.bottles) {
                 final st = b.wine?.windowStatus;
                 int p = 6;
-                if (st == DrinkWindowStatus.drinkSoon) p = 1;
-                else if (st == DrinkWindowStatus.inPeak) p = 2;
-                else if (st == DrinkWindowStatus.aging) p = 3;
-                else if (st == DrinkWindowStatus.tooYoung) p = 4;
-                else if (st == DrinkWindowStatus.pastPeak) p = 5;
+                if (st == DrinkWindowStatus.drinkSoon) {
+                  p = 1;
+                } else if (st == DrinkWindowStatus.inPeak) {
+                  p = 2;
+                } else if (st == DrinkWindowStatus.aging) {
+                  p = 3;
+                } else if (st == DrinkWindowStatus.tooYoung) {
+                  p = 4;
+                } else if (st == DrinkWindowStatus.pastPeak) {
+                  p = 5;
+                }
                 if (p < best) best = p;
               }
               return best;

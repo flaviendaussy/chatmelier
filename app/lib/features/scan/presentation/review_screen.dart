@@ -431,65 +431,69 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     if (!mounted) return;
     final tempVintageCtrl = TextEditingController();
 
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Row(
-            children: [
-              Icon(Icons.calendar_month, color: Color(0xFFD4AF37)),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text('Millésime / Année', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Indiquez ou confirmez l\'année de récolte de cette bouteille :',
-                style: TextStyle(fontSize: 13),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: tempVintageCtrl,
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Année (ex: 2018, 2020)',
-                  prefixIcon: Icon(Icons.date_range),
-                  border: OutlineInputBorder(),
+    try {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Row(
+              children: [
+                Icon(Icons.calendar_month, color: Color(0xFFD4AF37)),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text('Millésime / Année', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Indiquez ou confirmez l\'année de récolte de cette bouteille :',
+                  style: TextStyle(fontSize: 13),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: tempVintageCtrl,
+                  keyboardType: TextInputType.number,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Année (ex: 2018, 2020)',
+                    prefixIcon: Icon(Icons.date_range),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  _vintageCtrl.text = '';
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Inconnu / Non millésimé (NM)', style: TextStyle(color: Colors.grey)),
+              ),
+              FilledButton(
+                onPressed: () {
+                  _vintageCtrl.text = tempVintageCtrl.text.trim();
+                  Navigator.pop(ctx);
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B1E3F),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Valider', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _vintageCtrl.text = '';
-                Navigator.pop(ctx);
-              },
-              child: const Text('Inconnu / Non millésimé (NM)', style: TextStyle(color: Colors.grey)),
-            ),
-            FilledButton(
-              onPressed: () {
-                _vintageCtrl.text = tempVintageCtrl.text.trim();
-                Navigator.pop(ctx);
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF8B1E3F),
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Valider', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        );
-      },
-    );
+          );
+        },
+      );
+    } finally {
+      tempVintageCtrl.dispose();
+    }
   }
 
   String _normalizeWineType(String type) {

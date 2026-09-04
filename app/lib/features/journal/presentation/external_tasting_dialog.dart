@@ -91,64 +91,68 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
 
   Future<void> _showAddCompanionDialog() async {
     final nameCtrl = TextEditingController();
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.person_add, color: Color(0xFF8B1E3F)),
-            SizedBox(width: 8),
-            Text('Ajouter un convive'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Ajoutez un proche présent à cette dégustation hors cave (ex: Papa, Maman, Sophie...).',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: nameCtrl,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Prénom / Nom',
-                hintText: 'ex: Papa',
-                border: OutlineInputBorder(),
+    try {
+      final newName = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.person_add, color: Color(0xFF8B1E3F)),
+              SizedBox(width: 8),
+              Text('Ajouter un convive'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Ajoutez un proche présent à cette dégustation hors cave (ex: Papa, Maman, Sophie...).',
+                style: TextStyle(fontSize: 13, color: Colors.grey),
               ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameCtrl,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Prénom / Nom',
+                  hintText: 'ex: Papa',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
+              onPressed: () {
+                final text = nameCtrl.text.trim();
+                if (text.isNotEmpty) Navigator.pop(ctx, text);
+              },
+              child: const Text('Ajouter'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
-            onPressed: () {
-              final text = nameCtrl.text.trim();
-              if (text.isNotEmpty) Navigator.pop(ctx, text);
-            },
-            child: const Text('Ajouter'),
-          ),
-        ],
-      ),
-    );
+      );
 
-    if (newName != null && newName.isNotEmpty) {
-      final service = ref.read(tasteProfileServiceProvider);
-      await service.addOrGetProfileByName(newName);
-      final fresh = await service.getProfiles();
-      ref.invalidate(tasteProfilesListProvider);
-      if (mounted) {
-        setState(() {
-          _companionProfiles = fresh;
-          _selectedCoTasters.add(newName);
-        });
+      if (newName != null && newName.isNotEmpty) {
+        final service = ref.read(tasteProfileServiceProvider);
+        await service.addOrGetProfileByName(newName);
+        final fresh = await service.getProfiles();
+        ref.invalidate(tasteProfilesListProvider);
+        if (mounted) {
+          setState(() {
+            _companionProfiles = fresh;
+            _selectedCoTasters.add(newName);
+          });
+        }
       }
+    } finally {
+      nameCtrl.dispose();
     }
   }
 
@@ -373,6 +377,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
 
   @override
   void dispose() {
+    _quickSearchController.dispose();
     _nameController.dispose();
     _producerController.dispose();
     _vintageController.dispose();

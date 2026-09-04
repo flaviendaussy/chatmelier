@@ -23,12 +23,12 @@ void main() {
         overrides: [
           pendingIncomingRequestsProvider.overrideWith(
             (ref) => Future.value([
-              Friend(
+              const Friend(
                 id: 'req-caro-1',
                 friendUserId: 'user-caro',
                 displayName: 'Caro',
                 username: 'caro',
-                tasteProfile: const TasteProfile(id: 'user-caro', name: 'Caro'),
+                tasteProfile: TasteProfile(id: 'user-caro', name: 'Caro'),
                 status: 'pending',
               ),
             ]),
@@ -99,12 +99,12 @@ void main() {
         overrides: [
           pendingIncomingRequestsProvider.overrideWith(
             (ref) => Future.value([
-              Friend(
+              const Friend(
                 id: 'req-caro-1',
                 friendUserId: 'user-caro',
                 displayName: 'Caro',
                 username: 'caro',
-                tasteProfile: const TasteProfile(id: 'user-caro', name: 'Caro'),
+                tasteProfile: TasteProfile(id: 'user-caro', name: 'Caro'),
                 status: 'pending',
               ),
             ]),
@@ -149,12 +149,12 @@ void main() {
         overrides: [
           pendingIncomingRequestsProvider.overrideWith(
             (ref) => Future.value([
-              Friend(
+              const Friend(
                 id: 'req-caro-1',
                 friendUserId: 'user-caro',
                 displayName: 'Caro',
                 username: 'caro',
-                tasteProfile: const TasteProfile(id: 'user-caro', name: 'Caro'),
+                tasteProfile: TasteProfile(id: 'user-caro', name: 'Caro'),
                 status: 'pending',
               ),
             ]),

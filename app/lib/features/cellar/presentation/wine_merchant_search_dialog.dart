@@ -31,6 +31,12 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
     _loadInitialMerchants();
   }
 
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadInitialMerchants() async {
     final service = ref.read(wineMerchantServiceProvider);
     final list = await service.getMerchants();
@@ -63,121 +69,125 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
 
   Future<void> _confirmAndSaveMerchant(WineMerchant candidate) async {
     final notesCtrl = TextEditingController(text: candidate.notes ?? '');
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) {
-        final theme = Theme.of(ctx);
-        final isDark = theme.brightness == Brightness.dark;
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) {
+          final theme = Theme.of(ctx);
+          final isDark = theme.brightness == Brightness.dark;
 
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.storefront, color: Color(0xFFD4AF37), size: 22),
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Text('Confirmer le Caviste', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            title: Row(
               children: [
-                // Confirmation Map / Pin Card
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E1A24) : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4), width: 1.2),
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.pin_drop, color: Color(0xFF8B1E3F), size: 18),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              candidate.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        candidate.fullAddressDisplay,
-                        style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87),
-                      ),
-                      if (candidate.latitude != null && candidate.longitude != null) ...[
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Icon(Icons.map_outlined, size: 12, color: Colors.grey),
-                            const SizedBox(width: 4),
-                            Text(
-                              'GPS : ${candidate.latitude!.toStringAsFixed(4)}, ${candidate.longitude!.toStringAsFixed(4)} (Google Maps Grounded)',
-                              style: const TextStyle(fontSize: 10, color: Colors.grey, fontStyle: FontStyle.italic),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
+                  child: const Icon(Icons.storefront, color: Color(0xFFD4AF37), size: 22),
                 ),
-                const SizedBox(height: 14),
-                const Text('Notes ou contact (optionnel) :', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: notesCtrl,
-                  decoration: InputDecoration(
-                    hintText: 'Ex: Conseillé par Pierre, spécialité Champagne...',
-                    filled: true,
-                    fillColor: isDark ? Colors.white10 : Colors.grey.shade50,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  ),
-                  maxLines: 2,
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text('Confirmer le Caviste', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                 ),
               ],
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Annuler'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Confirmation Map / Pin Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E1A24) : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4), width: 1.2),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.pin_drop, color: Color(0xFF8B1E3F), size: 18),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                candidate.name,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          candidate.fullAddressDisplay,
+                          style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87),
+                        ),
+                        if (candidate.latitude != null && candidate.longitude != null) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.map_outlined, size: 12, color: Colors.grey),
+                              const SizedBox(width: 4),
+                              Text(
+                                'GPS : ${candidate.latitude!.toStringAsFixed(4)}, ${candidate.longitude!.toStringAsFixed(4)} (Google Maps Grounded)',
+                                style: const TextStyle(fontSize: 10, color: Colors.grey, fontStyle: FontStyle.italic),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text('Notes ou contact (optionnel) :', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: notesCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Ex: Conseillé par Pierre, spécialité Champagne...',
+                      filled: true,
+                      fillColor: isDark ? Colors.white10 : Colors.grey.shade50,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    maxLines: 2,
+                  ),
+                ],
+              ),
             ),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F), foregroundColor: Colors.white),
-              icon: const Icon(Icons.check, size: 16),
-              label: const Text('Confirmer & Enregistrer'),
-              onPressed: () => Navigator.of(ctx).pop(true),
-            ),
-          ],
-        );
-      },
-    );
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Annuler'),
+              ),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F), foregroundColor: Colors.white),
+                icon: const Icon(Icons.check, size: 16),
+                label: const Text('Confirmer & Enregistrer'),
+                onPressed: () => Navigator.of(ctx).pop(true),
+              ),
+            ],
+          );
+        },
+      );
 
-    if (confirmed == true && mounted) {
-      final finalMerchant = candidate.copyWith(notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null);
-      final service = ref.read(wineMerchantServiceProvider);
-      await service.saveMerchant(finalMerchant);
-      ref.invalidate(wineMerchantsProvider);
-      if (mounted) {
-        Navigator.of(context).pop(finalMerchant);
+      if (confirmed == true && mounted) {
+        final finalMerchant = candidate.copyWith(notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null);
+        final service = ref.read(wineMerchantServiceProvider);
+        await service.saveMerchant(finalMerchant);
+        ref.invalidate(wineMerchantsProvider);
+        if (mounted) {
+          Navigator.of(context).pop(finalMerchant);
+        }
       }
+    } finally {
+      notesCtrl.dispose();
     }
   }
 

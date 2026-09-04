@@ -86,12 +86,12 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
         color: isDark ? const Color(0xFF1E1A1B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: colors.primary.withOpacity(0.35),
+          color: colors.primary.withValues(alpha: 0.35),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: colors.primary.withOpacity(0.08),
+            color: colors.primary.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -106,7 +106,7 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: colors.primary.withOpacity(0.15),
+                  color: colors.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -139,8 +139,8 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: _currentLevel == 0
-                      ? Colors.red.withOpacity(0.15)
-                      : colors.primary.withOpacity(0.15),
+                      ? Colors.red.withValues(alpha: 0.15)
+                      : colors.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: _currentLevel == 0 ? Colors.red : colors.primary,
@@ -197,7 +197,7 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withOpacity(0.04) : Colors.grey.shade100,
+                        color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
@@ -478,7 +478,7 @@ class _StylizedBottlePainter extends CustomPainter {
 
     // Subtle dark/light glass backplate
     final glassBackPaint = Paint()
-      ..color = isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.02);
+      ..color = isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.02);
     canvas.drawPaint(glassBackPaint);
 
     // 3. Draw Liquid if fillFraction > 0
@@ -492,8 +492,8 @@ class _StylizedBottlePainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          secondaryColor.withOpacity(0.85),
-          primaryColor.withOpacity(0.95),
+          secondaryColor.withValues(alpha: 0.85),
+          primaryColor.withValues(alpha: 0.95),
         ],
       );
 
@@ -502,7 +502,7 @@ class _StylizedBottlePainter extends CustomPainter {
 
       // Meniscus / surface line
       final meniscusPaint = Paint()
-        ..color = Colors.white.withOpacity(0.6)
+        ..color = Colors.white.withValues(alpha: 0.6)
         ..strokeWidth = 2.0
         ..style = PaintingStyle.stroke;
 
@@ -535,8 +535,8 @@ class _StylizedBottlePainter extends CustomPainter {
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
         colors: [
-          Colors.white.withOpacity(0.35),
-          Colors.white.withOpacity(0.0),
+          Colors.white.withValues(alpha: 0.35),
+          Colors.white.withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromLTWH(bodyLeft + 6, shoulderBottom, 12, bodyBottom - shoulderBottom));
 
@@ -552,7 +552,7 @@ class _StylizedBottlePainter extends CustomPainter {
 
     // 6. Draw Bottle Outer Stroke
     final outlinePaint = Paint()
-      ..color = glassBorderColor.withOpacity(isDark ? 0.7 : 0.6)
+      ..color = glassBorderColor.withValues(alpha: isDark ? 0.7 : 0.6)
       ..strokeWidth = 2.2
       ..style = PaintingStyle.stroke;
     canvas.drawPath(bottlePath, outlinePaint);

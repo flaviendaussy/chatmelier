@@ -43,7 +43,7 @@ void main() async {
   // Initialize Google Mobile Ads (AdMob) on supported mobile devices
   try {
     await AdMobService().initialize();
-  } catch (e, stack) {
+  } catch (e) {
     AppLogger.warning('ADMOB_INIT', 'Failed to initialize AdMob SDK: $e', e);
   }
 

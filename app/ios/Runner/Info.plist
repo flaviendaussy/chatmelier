@@ -32,6 +32,10 @@
 	<string>Chatmelier a besoin d'accéder à vos photos pour importer des étiquettes de vin.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Chatmelier a besoin du micro pour les commandes vocales de gestion de cave.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Chatmelier utilise votre position pour localiser vos dégustations et détecter automatiquement votre cave à proximité.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Chatmelier utilise votre position pour localiser vos dégustations et détecter automatiquement votre cave à proximité.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -83,6 +87,17 @@
 			<array>
 				<string>chatmelier</string>
 			</array>
+		</dict>
+	</array>
+	<!-- Google Mobile Ads (AdMob) iOS App ID (Official test safeguard, replace with your production iOS App ID from AdMob console) -->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<!-- SKAdNetwork Identifiers for Google AdMob -->
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
 		</dict>
 	</array>
 </dict>

@@ -777,3 +777,37 @@ BEGIN
     CREATE POLICY "Authenticated Update Avatars" ON storage.objects FOR UPDATE USING (bucket_id = 'avatars' AND auth.role() = 'authenticated');
   END IF;
 END $$;
+
+-- ============================================================================
+-- ACCOUNT DELETION (Apple 5.1.1(v) & Google Play Compliance)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION delete_user_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  calling_user_id UUID;
+BEGIN
+  calling_user_id := auth.uid();
+  IF calling_user_id IS NULL THEN
+    RAISE EXCEPTION 'Non authentifié. Impossible de supprimer le compte.';
+  END IF;
+
+  DELETE FROM app_diagnostic_logs WHERE user_id = calling_user_id;
+  DELETE FROM chat_messages WHERE user_id = calling_user_id;
+  DELETE FROM tasting_log WHERE user_id = calling_user_id;
+  DELETE FROM friendships WHERE user_id = calling_user_id OR friend_id = calling_user_id;
+  DELETE FROM bar_pantries WHERE user_id = calling_user_id;
+  DELETE FROM user_overrides WHERE user_id = calling_user_id;
+  DELETE FROM cellar_invites WHERE invited_by = calling_user_id OR invited_user_id = calling_user_id;
+  DELETE FROM bottles WHERE owner_id = calling_user_id OR added_by = calling_user_id;
+  DELETE FROM cellar_members WHERE user_id = calling_user_id;
+  DELETE FROM cellars WHERE owner_id = calling_user_id;
+  DELETE FROM profiles WHERE id = calling_user_id;
+  DELETE FROM auth.users WHERE id = calling_user_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION delete_user_account() TO authenticated;

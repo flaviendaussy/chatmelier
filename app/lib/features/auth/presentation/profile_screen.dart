@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/providers/auth_provider.dart';
-import '../../../shared/providers/supabase_provider.dart';
+import '../../monetization/admob_service.dart';
 import '../../../shared/providers/locale_provider.dart';
 import '../../../shared/providers/theme_provider.dart';
 import '../../../shared/providers/cellar_provider.dart';
@@ -39,11 +40,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String? _phoneNumber;
   TasteProfile? _userTasteProfile;
   bool _isLoading = true;
+  bool _showPrivacyOptions = false;
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _checkPrivacyOptions();
+  }
+
+  Future<void> _checkPrivacyOptions() async {
+    try {
+      final admob = ref.read(admobServiceProvider);
+      final required = await admob.isPrivacyOptionsRequired();
+      if (mounted) {
+        setState(() => _showPrivacyOptions = required);
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadProfile() async {
@@ -284,6 +297,195 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  void _showLegalDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Text(content, style: const TextStyle(fontSize: 13, height: 1.5)),
+          ),
+        ),
+        actions: [
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF8B1E3F),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Fermer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPrivacyPolicy() {
+    _showLegalDialog(
+      'Politique de Confidentialité',
+      'APPLICATION CHATMELIER — POLITIQUE DE CONFIDENTIALITÉ\n'
+      'Dernière mise à jour : 4 septembre 2026\n\n'
+      '1. ENGAGEMENT DE CONFIDENTIALITÉ\n'
+      'Chatmelier respecte scrupuleusement la vie privée de ses utilisateurs conformément au RGPD (Règlement UE 2016/679) et aux exigences d\'Apple et de Google.\n\n'
+      '2. DONNÉES COLLECTÉES\n'
+      '• Compte : Email, nom d\'affichage, pseudo et téléphone optionnel pour l\'ajout d\'amis.\n'
+      '• Caves & Bouteilles : Noms de caves, inventaire, notes de dégustation, historique de consommation.\n'
+      '• Photos : Étiquettes et bouteilles analysées par IA (Google Gemini Vision).\n'
+      '• Localisation (Optionnelle) : Coordonnées GPS pour localiser les dégustations extérieures et détecter votre cave à proximité.\n'
+      '• Publicités : Identifiants publicitaires pour annonces récompensées via Google AdMob.\n\n'
+      '3. SUPPRESSION DU COMPTE (Article 17 RGPD)\n'
+      'Vous pouvez à tout moment supprimer définitivement votre compte et l\'intégralité de vos données via le bouton "Supprimer mon compte" ci-dessous ou par email à contact@chatmelier.app.\n\n'
+      'Version web complète consultable sur : https://chatmelier.app/privacy.html',
+    );
+  }
+
+  void _showTermsOfService() {
+    _showLegalDialog(
+      'Conditions Générales d\'Utilisation',
+      'APPLICATION CHATMELIER — CONDITIONS GÉNÉRALES D\'UTILISATION\n'
+      'En vigueur au 4 septembre 2026\n\n'
+      '1. OBJET DU SERVICE\n'
+      'Chatmelier est une application de gestion de cave à vins et spiritueux assistée par intelligence artificielle.\n\n'
+      '2. PRÉVENTION & SANTÉ\n'
+      'L\'abus d\'alcool est dangereux pour la santé, à consommer avec modération. Chatmelier est un outil informatif de gestion patrimoniale et n\'encourage pas la consommation excessive.\n\n'
+      '3. CONSEILS DE L\'INTELLIGENCE ARTIFICIELLE\n'
+      'Les estimations d\'apogée, accords mets-vins et valorisations financières sont donnés à titre indicatif sans garantie de valorisation marchande future.\n\n'
+      '4. PROPRIÉTÉ DES DONNÉES\n'
+      'Vous demeurez propriétaire de vos photos et notes de dégustation.\n\n'
+      'Version web complète consultable sur : https://chatmelier.app/terms.html',
+    );
+  }
+
+  Future<void> _confirmDeleteAccount() async {
+    final confirmCtrl = TextEditingController();
+    bool canDelete = false;
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Supprimer mon compte ?',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Cette action est irréversible et immédiate.\n\n'
+                'Toutes vos données seront définitivement effacées :\n'
+                '• Vos caves, casiers et bouteilles\n'
+                '• Vos photos et vos notes de dégustation\n'
+                '• Votre profil et votre historique de discussion',
+                style: TextStyle(fontSize: 14, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Pour confirmer, tapez SUPPRIMER ci-dessous :',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: confirmCtrl,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'SUPPRIMER',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                onChanged: (val) {
+                  setDialogState(() {
+                    canDelete = val.trim().toUpperCase() == 'SUPPRIMER';
+                  });
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: canDelete ? () => Navigator.of(ctx).pop(true) : null,
+              child: const Text('Supprimer définitivement', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (shouldDelete == true && mounted) {
+      // Afficher un dialogue de chargement non dismissible
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: Colors.red),
+                  SizedBox(height: 16),
+                  Text('Suppression du compte et des données...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      try {
+        final repo = ref.read(authRepositoryProvider);
+        await repo.deleteAccount();
+
+        ref.read(currentCellarIdProvider.notifier).state = null;
+
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop(); // Fermer le loader
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Votre compte et vos données ont été définitivement supprimés.'),
+              backgroundColor: Colors.black87,
+            ),
+          );
+          context.go('/login');
+        }
+      } catch (e) {
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop(); // Fermer le loader
+          AppLogger.error('AUTH', 'Error during deleteAccount', e);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur lors de la suppression : $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
@@ -292,6 +494,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final userLocale = ref.watch(localeProvider);
     final isPremium = ref.watch(premiumProvider);
+    final isAdmin = kDebugMode || (user?.email?.toLowerCase().contains('flavien') ?? false);
 
     final currentLangValue = userLocale == null ? 'system' : userLocale.languageCode;
 
@@ -809,28 +1012,55 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/changelog'),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
-                  title: const Text('Estimation des Coûts IA (Gemini)', style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text('Suivi des tokens et dépenses : Jour, Semaine, Mois, Année, All-Time'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/ai-costs'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.terminal, color: Colors.teal),
-                  title: const Text('Console & Logs de Diagnostic', style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text('Inspecter l\'historique des requêtes et copier les rapports'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/diagnostic-logs'),
-                ),
+                if (isAdmin) ...[
+                  ListTile(
+                    leading: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
+                    title: const Text('Estimation des Coûts IA (Gemini)', style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: const Text('Suivi des tokens et dépenses : Jour, Semaine, Mois, Année, All-Time'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/ai-costs'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.terminal, color: Colors.teal),
+                    title: const Text('Console & Logs de Diagnostic', style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: const Text('Inspecter l\'historique des requêtes et copier les rapports'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/diagnostic-logs'),
+                  ),
+                ],
                 const Divider(),
+                // Section Légal, Confidentialité & RGPD
                 ListTile(
-                  title: Text(l10n?.profileLogout ?? 'Se déconnecter', style: const TextStyle(color: Colors.red)),
-                  leading: const Icon(Icons.logout, color: Colors.red),
+                  leading: const Icon(Icons.privacy_tip_outlined, color: Color(0xFF8B1E3F)),
+                  title: const Text('Politique de Confidentialité', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Protection des données, RGPD & traitements'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _showPrivacyPolicy,
+                ),
+                ListTile(
+                  leading: const Icon(Icons.description_outlined, color: Color(0xFF8B1E3F)),
+                  title: const Text('Conditions Générales d\'Utilisation', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Règles d\'utilisation et cadre légal'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _showTermsOfService,
+                ),
+                if (_showPrivacyOptions)
+                  ListTile(
+                    leading: const Icon(Icons.tune, color: Color(0xFFD4AF37)),
+                    title: const Text('Préférences Publicitaires & RGPD', style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: const Text('Modifier mes choix de consentement publicitaire'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => ref.read(admobServiceProvider).showPrivacyOptionsForm(),
+                  ),
+                const Divider(),
+                // Section Compte & Sécurité
+                ListTile(
+                  title: Text(l10n?.profileLogout ?? 'Se déconnecter', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  leading: const Icon(Icons.logout),
                   onTap: () async {
                     AppLogger.info('AUTH', 'User requested sign out from ProfileScreen');
                     try {
-                      await ref.read(supabaseProvider).auth.signOut();
+                      await ref.read(authRepositoryProvider).signOut();
                     } catch (e) {
                       AppLogger.error('AUTH', 'Error during signOut', e);
                     }
@@ -839,6 +1069,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       context.go('/login');
                     }
                   },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_forever, color: Colors.red),
+                  title: const Text('Supprimer mon compte', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Suppression immédiate et irréversible de toutes vos données'),
+                  trailing: const Icon(Icons.chevron_right, color: Colors.red),
+                  onTap: _confirmDeleteAccount,
                 ),
                 const SizedBox(height: 12),
                 AboutListTile(
@@ -849,7 +1086,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     width: 48,
                     height: 48,
                   ),
-                  applicationLegalese: '© 2026 Chatmelier • Smart AI Wine Cellar Manager',
+                  applicationLegalese: '© 2026 Chatmelier • Smart AI Wine Cellar Manager\nConforme RGPD & Apple/Google Store Guidelines',
                   icon: const Icon(Icons.info_outline),
                 ),
               ],

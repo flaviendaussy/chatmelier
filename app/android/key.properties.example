@@ -1,0 +1,19 @@
+# ==============================================================================
+# CHATMELLIER — Android Release Keystore Configuration Template
+# ==============================================================================
+# 1. Générez votre clé de signature release avec la commande terminal suivante :
+#
+#    keytool -genkey -v -keystore android/app/upload-keystore.jks -keyalg RSA \
+#            -keysize 2048 -validity 10000 -alias upload
+#
+# 2. Copiez ce fichier vers 'android/key.properties' (ce fichier est exclu par .gitignore) :
+#
+#    cp android/key.properties.example android/key.properties
+#
+# 3. Remplissez les valeurs ci-dessous avec vos mots de passe :
+# ==============================================================================
+
+storePassword=VOTRE_MOT_DE_PASSE_KEYSTORE
+keyPassword=VOTRE_MOT_DE_PASSE_CLE
+keyAlias=upload
+storeFile=upload-keystore.jks

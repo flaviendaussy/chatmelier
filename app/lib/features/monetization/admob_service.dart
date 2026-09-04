@@ -22,7 +22,7 @@ class AdMobService {
 
   bool get isReady => _rewardedAd != null;
 
-  /// Initializes the Google Mobile Ads SDK on supported mobile platforms.
+  /// Initializes the Google Mobile Ads SDK on supported mobile platforms with UMP GDPR consent.
   Future<void> initialize() async {
     if (_isInitialized) return;
     if (!AdMobConfig.isPlatformSupported) {
@@ -31,13 +31,74 @@ class AdMobService {
     }
 
     try {
+      // UMP Consent flow for European Regulations (GDPR)
+      final params = ConsentRequestParameters();
+      ConsentInformation.instance.requestConsentInfoUpdate(
+        params,
+        () async {
+          ConsentForm.loadAndShowConsentFormIfRequired((FormError? formError) async {
+            if (formError != null) {
+              debugPrint('[AdMobService] UMP ConsentForm error: ${formError.message}');
+            }
+            final canRequest = await ConsentInformation.instance.canRequestAds();
+            if (canRequest) {
+              await _initMobileAds();
+            } else {
+              debugPrint('[AdMobService] Ads cannot be requested per current UMP consent state.');
+            }
+          });
+        },
+        (FormError formError) async {
+          debugPrint('[AdMobService] ConsentInfoUpdate failed: ${formError.message}. Proceeding with standard init.');
+          await _initMobileAds();
+        },
+      );
+    } catch (e) {
+      debugPrint('[AdMobService] Error setting up UMP consent: $e. Proceeding with standard init.');
+      await _initMobileAds();
+    }
+  }
+
+  Future<void> _initMobileAds() async {
+    if (_isInitialized) return;
+    try {
+      if (AdMobConfig.testDeviceIds.isNotEmpty) {
+        await MobileAds.instance.updateRequestConfiguration(
+          RequestConfiguration(testDeviceIds: AdMobConfig.testDeviceIds),
+        );
+      }
       await MobileAds.instance.initialize();
       _isInitialized = true;
       debugPrint('[AdMobService] MobileAds SDK initialized successfully.');
-      // Preload first rewarded ad for instant playback on scan
       preloadRewardedAd();
     } catch (e) {
       debugPrint('[AdMobService] MobileAds initialization failed: $e');
+    }
+  }
+
+  /// Displays the UMP Privacy Options form so users can review/update consent at any time.
+  Future<void> showPrivacyOptionsForm({void Function(FormError? error)? onDismissed}) async {
+    if (!AdMobConfig.isPlatformSupported) return;
+    try {
+      await ConsentForm.showPrivacyOptionsForm((FormError? formError) {
+        if (formError != null) {
+          debugPrint('[AdMobService] Error showing privacy options: ${formError.message}');
+        }
+        onDismissed?.call(formError);
+      });
+    } catch (e) {
+      debugPrint('[AdMobService] showPrivacyOptionsForm failed: $e');
+    }
+  }
+
+  /// Checks if privacy options button is required for current user jurisdiction.
+  Future<bool> isPrivacyOptionsRequired() async {
+    if (!AdMobConfig.isPlatformSupported) return false;
+    try {
+      final status = await ConsentInformation.instance.getPrivacyOptionsRequirementStatus();
+      return status == PrivacyOptionsRequirementStatus.required;
+    } catch (_) {
+      return false;
     }
   }
 

@@ -437,4 +437,37 @@ class AuthRepository {
   Future<void> signOut() async {
     await _client.auth.signOut();
   }
+
+  /// Permanently deletes the user account and associated personal data,
+  /// satisfying Apple Guideline 5.1.1(v), Google Play Account Deletion requirements, and RGPD.
+  Future<void> deleteAccount() async {
+    final user = currentUser;
+    if (user == null) {
+      throw StateError('Aucun utilisateur connecté pour supprimer le compte.');
+    }
+
+    AppLogger.warning('AUTH', 'Initiating permanent account deletion for user: ${user.id}');
+
+    // 1. Appeler la fonction RPC Supabase delete_user_account
+    await _client.rpc('delete_user_account');
+
+    // 2. Nettoyer le cache local SharedPreferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_profile_username_${user.id}');
+      await prefs.remove('user_profile_configured_${user.id}');
+      await prefs.remove('user_profile_phone_${user.id}');
+      await prefs.remove('user_profile_email_${user.id}');
+      await prefs.remove('user_profile_name_${user.id}');
+      await prefs.remove('user_profile_currency_${user.id}');
+    } catch (e) {
+      AppLogger.warning('AUTH', 'Error clearing local profile cache during account deletion: $e');
+    }
+
+    // 3. Déconnexion de la session
+    try {
+      await _client.auth.signOut();
+    } catch (_) {}
+    AppLogger.info('AUTH', 'Account deletion complete and session terminated.');
+  }
 }

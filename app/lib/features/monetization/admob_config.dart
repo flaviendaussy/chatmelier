@@ -20,7 +20,12 @@ class AdMobConfig {
   // --- Production IDs (Configured with user's AdMob Ad Unit) ---
   static String? productionAndroidRewardedUnitId =
       'ca-app-pub-6095914862192850/1740903138';
+  /// Set this once you create the iOS app and rewarded ad unit in the AdMob console
   static String? productionIosRewardedUnitId;
+
+  /// Test device identifiers to prevent "Invalid Traffic" penalties on your personal phone.
+  /// Add your test device ID here (displayed in logcat/console on launch).
+  static List<String> testDeviceIds = [];
 
   /// Returns true if AdMob is supported on the current running platform.
   /// AdMob Flutter SDK supports Android and iOS native; Web uses fallback player.

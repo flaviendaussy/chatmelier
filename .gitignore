@@ -12,6 +12,8 @@
 **/build/linux/
 **/build/macos/
 **/build/windows/
+**/build/
+**/android/build/
 **/.gradle/
 **/local.properties
 **/GeneratedPluginRegistrant.java

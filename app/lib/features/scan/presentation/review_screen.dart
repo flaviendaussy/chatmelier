@@ -20,6 +20,7 @@ import '../../offline/presentation/chatmelier_offline_antenna_widget.dart';
 import '../../offline/presentation/sync_provider.dart';
 import '../../offline/data/connectivity_service.dart';
 import '../../../shared/providers/premium_provider.dart';
+import '../../monetization/admob_service.dart';
 import 'rewarded_video_ad_sheet.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
@@ -86,11 +87,31 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     }
   }
 
-  void _checkAndTriggerAnalysis() {
+  void _checkAndTriggerAnalysis() async {
     final isPremium = ref.read(premiumProvider);
     if (isPremium) {
       _analyzeImage();
-    } else {
+      return;
+    }
+
+    // Try showing real Google AdMob Rewarded Video Ad first (on Android/iOS)
+    final showedAdMob = await AdMobService().showRewardedAd(
+      onRewardEarned: () {
+        if (mounted) _analyzeImage();
+      },
+      onAdDismissed: () {
+        if (mounted) {
+          setState(() {
+            _isAnalyzing = false;
+            _ignoreUndetected = true;
+          });
+        }
+      },
+    );
+
+    // If AdMob is not supported (Web) or ad was not ready yet,
+    // fallback cleanly to the interactive sponsor video sheet
+    if (!showedAdMob && mounted) {
       RewardedVideoAdSheet.show(
         context,
         onRewardEarned: () {

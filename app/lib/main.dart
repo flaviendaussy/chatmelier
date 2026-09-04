@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'features/offline/presentation/sync_provider.dart';
+import 'features/monetization/admob_service.dart';
 import 'shared/utils/app_logger.dart';
 
 void main() async {
@@ -29,6 +30,9 @@ void main() async {
 
   AppLogger.init(Supabase.instance.client);
   AppLogger.info('SYSTEM', 'Chatmelier app launched and centralized logging initialized');
+
+  // Initialize Google Mobile Ads (AdMob) on supported mobile devices
+  await AdMobService().initialize();
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);

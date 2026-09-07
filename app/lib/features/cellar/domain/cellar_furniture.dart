@@ -32,24 +32,26 @@ class CellarFurniture {
   /// don't have rigid coordinates and can be moved freely without slot tracking.
   bool get isCupboard => shapeType == 'cupboard' || shapeType == 'bulk' || shapeType == 'free_shelf';
 
-  /// Human-readable French label for this furniture shape.
-  String get shapeTypeName {
+  /// Human-readable label for this furniture shape.
+  String getShapeTypeName([bool isFr = true]) {
     switch (shapeType) {
       case 'cupboard':
       case 'bulk':
       case 'free_shelf':
-        return 'Placard / Rangement libre';
+        return isFr ? 'Placard / Rangement libre' : 'Cupboard / Free storage';
       case 'triangle':
-        return 'Casier triangulaire (Pyramide)';
+        return isFr ? 'Casier triangulaire (Pyramide)' : 'Triangular rack (Pyramid)';
       case 'staggered_4_2':
-        return 'Casier décalé 4+2';
+        return isFr ? 'Casier décalé 4+2' : 'Staggered rack 4+2';
       case 'custom':
-        return 'Meuble personnalisé';
+        return isFr ? 'Meuble personnalisé' : 'Custom furniture';
       case 'rectangle':
       default:
-        return 'Casier rectangulaire';
+        return isFr ? 'Casier rectangulaire' : 'Rectangular rack';
     }
   }
+
+  String get shapeTypeName => getShapeTypeName(true);
 
   /// Converts 0-indexed column and row into a sommelier coordinate string.
   /// Example: col 0, row 6 -> 'A7' (Col A, 7th row)
@@ -78,15 +80,28 @@ class CellarFurniture {
     return (col: colIndex, row: rowNum - 1);
   }
 
-  /// Describes slot code in plain French/sommelier wording.
-  /// Example: 'A7' -> 'A7 (1ère colonne, 7e rangée)'
-  /// Or: 'Étagère 2' / 'Placard' -> 'Étagère 2'
-  static String describeSlotCode(String code) {
-    final lower = code.trim().toLowerCase();
-    if (lower == 'placard' || lower == 'vrac' || lower == 'libre') {
-      return 'Rangement libre (sans case fixe)';
+  static String _ordinalEn(int n) {
+    if (n >= 11 && n <= 13) return '${n}th';
+    switch (n % 10) {
+      case 1:
+        return '${n}st';
+      case 2:
+        return '${n}nd';
+      case 3:
+        return '${n}rd';
+      default:
+        return '${n}th';
     }
-    if (lower.startsWith('etagere') || lower.startsWith('étagère') || lower.startsWith('niveau')) {
+  }
+
+  /// Describes slot code in plain French/English sommelier wording.
+  /// Example: 'A7' -> 'A7 (1ère colonne, 7e rangée)' or 'A7 (1st column, 7th row)'
+  static String describeSlotCode(String code, [bool isFr = true]) {
+    final lower = code.trim().toLowerCase();
+    if (lower == 'placard' || lower == 'vrac' || lower == 'libre' || lower == 'free' || lower == 'bulk' || lower == 'closet') {
+      return isFr ? 'Rangement libre (sans case fixe)' : 'Free placement (no fixed slot)';
+    }
+    if (lower.startsWith('etagere') || lower.startsWith('étagère') || lower.startsWith('niveau') || lower.startsWith('shelf')) {
       return code.trim();
     }
     final parsed = parseSlotCode(code);
@@ -94,8 +109,12 @@ class CellarFurniture {
     final colNum = parsed.col + 1;
     final rowNum = parsed.row + 1;
     final colLetter = String.fromCharCode(65 + parsed.col);
-    final colDesc = colNum == 1 ? '1ère colonne' : '${colNum}e colonne';
-    final rowDesc = rowNum == 1 ? '1ère rangée' : '${rowNum}e rangée';
+    final colDesc = isFr
+        ? (colNum == 1 ? '1ère colonne' : '${colNum}e colonne')
+        : '${_ordinalEn(colNum)} column';
+    final rowDesc = isFr
+        ? (rowNum == 1 ? '1ère rangée' : '${rowNum}e rangée')
+        : '${_ordinalEn(rowNum)} row';
     return '$colLetter$rowNum ($colDesc, $rowDesc)';
   }
 

@@ -91,6 +91,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
     required List<Bottle> allBottles,
   }) async {
     final repo = ref.read(cellarRepositoryProvider);
+    final isFr = Localizations.localeOf(context).languageCode != 'en';
 
     // MODE 1: Bottle placement mode
     if (widget.bottleToPlace != null) {
@@ -109,7 +110,9 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
             Navigator.of(context).pop(slotCode);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('✅ Bouteille rangée dans ${furniture.name} (${CellarFurniture.describeSlotCode(slotCode)})'),
+                content: Text(isFr
+                    ? '✅ Bouteille rangée dans ${furniture.name} (${CellarFurniture.describeSlotCode(slotCode, isFr)})'
+                    : '✅ Bottle placed in ${furniture.name} (${CellarFurniture.describeSlotCode(slotCode, isFr)})'),
                 backgroundColor: const Color(0xFF2E7D32),
               ),
             );
@@ -130,7 +133,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
               children: [
                 const Icon(Icons.swap_horiz, color: Color(0xFFD4AF37), size: 28),
                 const SizedBox(width: 8),
-                Text('Emplacement $slotCode occupé'),
+                Text(isFr ? 'Emplacement $slotCode occupé' : 'Slot $slotCode occupied'),
               ],
             ),
             content: Column(
@@ -138,7 +141,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Cet emplacement contient déjà :',
+                  isFr ? 'Cet emplacement contient déjà :' : 'This slot already contains:',
                   style: Theme.of(ctx).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 8),
@@ -165,7 +168,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              occupantBottle.wine?.name ?? 'Bouteille en cave',
+                              occupantBottle.wine?.name ?? (isFr ? 'Bouteille en cave' : 'Cellar bottle'),
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             if (occupantBottle.wine?.producer != null)
@@ -182,8 +185,12 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                 const SizedBox(height: 14),
                 Text(
                   target.furnitureSlot != null
-                      ? 'Souhaitez-vous échanger les places entre ces deux bouteilles ?'
-                      : 'Souhaitez-vous placer "${target.wine?.name ?? 'cette bouteille'}" ici et déplacer l\'autre ?',
+                      ? (isFr
+                          ? 'Souhaitez-vous échanger les places entre ces deux bouteilles ?'
+                          : 'Would you like to swap places between these two bottles?')
+                      : (isFr
+                          ? 'Souhaitez-vous placer "${target.wine?.name ?? 'cette bouteille'}" ici et déplacer l\'autre ?'
+                          : 'Would you like to place "${target.wine?.name ?? 'this bottle'}" here and relocate the other?'),
                   style: const TextStyle(fontSize: 13),
                 ),
               ],
@@ -191,13 +198,13 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Annuler'),
+                child: Text(isFr ? 'Annuler' : 'Cancel'),
               ),
               FilledButton.icon(
                 onPressed: () => Navigator.of(ctx).pop(true),
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
                 icon: const Icon(Icons.swap_horiz, size: 18),
-                label: const Text('Échanger les places (Swap)'),
+                label: Text(isFr ? 'Échanger les places (Swap)' : 'Swap places'),
               ),
             ],
           ),
@@ -219,7 +226,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
               Navigator.of(context).pop(slotCode);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('🔄 Bouteilles échangées : $slotCode'),
+                  content: Text(isFr ? '🔄 Bouteilles échangées : $slotCode' : '🔄 Bottles swapped: $slotCode'),
                   backgroundColor: const Color(0xFF2E7D32),
                 ),
               );
@@ -243,7 +250,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
           Navigator.of(context).pop(slotCode);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ Bouteille assignée en $slotCode (${furniture.name})'),
+              content: Text(isFr ? '✅ Bouteille assignée en $slotCode (${furniture.name})' : '✅ Bottle assigned to $slotCode (${furniture.name})'),
               backgroundColor: const Color(0xFF2E7D32),
             ),
           );
@@ -256,14 +263,14 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
 
     // MODE 2: Explore / view mode
     if (occupantBottle != null) {
-      _showOccupantDetails(occupantBottle, slotCode);
+      _showOccupantDetails(occupantBottle, slotCode, isFr);
     } else {
       // Empty slot -> Offer to place a bottle from cellar
-      _showPickBottleForSlotSheet(furniture: furniture, slotCode: slotCode, allBottles: allBottles);
+      _showPickBottleForSlotSheet(furniture: furniture, slotCode: slotCode, allBottles: allBottles, isFr: isFr);
     }
   }
 
-  void _showOccupantDetails(Bottle occupantBottle, String slotCode) {
+  void _showOccupantDetails(Bottle occupantBottle, String slotCode, bool isFr) {
     final repo = ref.read(cellarRepositoryProvider);
     showModalBottomSheet(
       context: context,
@@ -283,7 +290,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'Emplacement ${CellarFurniture.describeSlotCode(slotCode)}',
+                      '${isFr ? "Emplacement" : "Slot"} ${CellarFurniture.describeSlotCode(slotCode, isFr)}',
                       style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF9A7B1C)),
                     ),
                   ),
@@ -307,7 +314,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
               ),
               const SizedBox(height: 12),
               Text(
-                occupantBottle.wine?.name ?? 'Vin en cave',
+                occupantBottle.wine?.name ?? (isFr ? 'Vin en cave' : 'Cellar wine'),
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               if (occupantBottle.wine?.producer != null)
@@ -321,7 +328,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.remove_circle_outline, size: 18),
-                      label: const Text('Libérer la place'),
+                      label: Text(isFr ? 'Libérer la place' : 'Free slot'),
                       onPressed: () async {
                         Navigator.of(ctx).pop();
                         await repo.assignBottleToSlot(
@@ -337,7 +344,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                   Expanded(
                     child: FilledButton.icon(
                       icon: const Icon(Icons.info_outline, size: 18),
-                      label: const Text('Voir la fiche'),
+                      label: Text(isFr ? 'Voir la fiche' : 'View details'),
                       style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
                       onPressed: () {
                         Navigator.of(ctx).pop();
@@ -360,6 +367,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
     List<Bottle> allBottles,
     bool isDark,
     ThemeData theme,
+    bool isFr,
   ) {
     final cupboardBottles = allBottles.where((b) => b.furnitureId == furniture.id).toList();
 
@@ -416,11 +424,13 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${furniture.name} • ${furniture.rows} niveau${furniture.rows > 1 ? "x" : ""}',
+                        '${furniture.name} • ${furniture.rows} ${isFr ? (furniture.rows > 1 ? "niveaux" : "niveau") : (furniture.rows > 1 ? "levels" : "level")}',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                       Text(
-                        'Rangement libre : déposez vos bouteilles sans contrainte d\'emplacement précis.',
+                        isFr
+                            ? 'Rangement libre : déposez vos bouteilles sans contrainte d\'emplacement précis.'
+                            : 'Free storage: place your bottles without rigid coordinate constraints.',
                         style: TextStyle(
                           fontSize: 11,
                           color: isDark ? Colors.white70 : Colors.black87,
@@ -434,7 +444,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
           ),
           const SizedBox(height: 16),
           ...List.generate(furniture.rows, (r) {
-            final shelfSlotCode = 'Étagère ${r + 1}';
+            final shelfSlotCode = isFr ? 'Étagère ${r + 1}' : 'Shelf ${r + 1}';
             final shelfBottles = bottlesByShelf[r] ?? [];
             final isHighlighted = widget.highlightedSlot != null &&
                 (widget.highlightedSlot!.trim().toLowerCase() == shelfSlotCode.toLowerCase() ||
@@ -472,7 +482,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                         const Icon(Icons.table_rows_outlined, size: 16, color: Color(0xFFD4AF37)),
                         const SizedBox(width: 6),
                         Text(
-                          'Étagère / Niveau ${r + 1}',
+                          isFr ? 'Étagère / Niveau ${r + 1}' : 'Shelf / Level ${r + 1}',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         const SizedBox(width: 8),
@@ -483,7 +493,9 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            '${shelfBottles.length} bouteille${shelfBottles.length > 1 ? "s" : ""}',
+                            isFr
+                                ? '${shelfBottles.length} bouteille${shelfBottles.length > 1 ? "s" : ""}'
+                                : '${shelfBottles.length} bottle${shelfBottles.length > 1 ? "s" : ""}',
                             style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF9A7B1C)),
                           ),
                         ),
@@ -497,7 +509,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                               foregroundColor: Colors.white,
                             ),
                             icon: const Icon(Icons.add, size: 16),
-                            label: const Text('Déposer ici', style: TextStyle(fontSize: 12)),
+                            label: Text(isFr ? 'Déposer ici' : 'Place here', style: const TextStyle(fontSize: 12)),
                             onPressed: () => _handleSlotTap(
                               furniture: furniture,
                               slotCode: shelfSlotCode,
@@ -518,7 +530,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Center(
                         child: Text(
-                          'Étagère vide',
+                          isFr ? 'Étagère vide' : 'Empty shelf',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.grey.shade500,
@@ -538,7 +550,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                           return InkWell(
                             borderRadius: BorderRadius.circular(8),
                             onTap: () {
-                              _showOccupantDetails(b, b.furnitureSlot ?? shelfSlotCode);
+                              _showOccupantDetails(b, b.furnitureSlot ?? shelfSlotCode, isFr);
                             },
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -569,7 +581,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                                   ConstrainedBox(
                                     constraints: const BoxConstraints(maxWidth: 140),
                                     child: Text(
-                                      b.wine?.name ?? 'Bouteille',
+                                      b.wine?.name ?? (isFr ? 'Bouteille' : 'Bottle'),
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: isTarget ? FontWeight.bold : FontWeight.w500,
@@ -604,6 +616,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
     required CellarFurniture furniture,
     required String slotCode,
     required List<Bottle> allBottles,
+    bool isFr = true,
   }) {
     final unassigned = allBottles.where((b) => b.furnitureSlot == null || b.furnitureSlot!.isEmpty).toList();
 
@@ -621,7 +634,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
               child: Row(
                 children: [
                   Text(
-                    'Ranger une bouteille en $slotCode',
+                    isFr ? 'Ranger une bouteille en $slotCode' : 'Place a bottle in $slotCode',
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
@@ -636,7 +649,9 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                       child: Padding(
                         padding: const EdgeInsets.all(24),
                         child: Text(
-                          'Toutes vos bouteilles ont déjà un emplacement attitré.',
+                          isFr
+                              ? 'Toutes vos bouteilles ont déjà un emplacement attitré.'
+                              : 'All your bottles already have an assigned slot.',
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.grey.shade600),
                         ),
@@ -653,7 +668,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                             radius: 14,
                             child: const Icon(Icons.wine_bar, size: 14, color: Colors.white),
                           ),
-                          title: Text(b.wine?.name ?? 'Bouteille', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          title: Text(b.wine?.name ?? (isFr ? 'Bouteille' : 'Bottle'), style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text(b.wine?.producer ?? ''),
                           trailing: Text(b.sizeBadgeLabel, style: const TextStyle(fontSize: 12, color: Colors.grey)),
                           onTap: () async {
@@ -680,6 +695,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode != 'en';
 
     final furnitureAsync = ref.watch(cellarFurnitureProvider(widget.cellarId));
     final bottlesAsync = ref.watch(bottlesProvider(widget.cellarId));
@@ -691,7 +707,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
       expand: false,
       builder: (ctx, scrollCtrl) => furnitureAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Erreur: $err')),
+        error: (err, stack) => Center(child: Text(isFr ? 'Erreur: $err' : 'Error: $err')),
         data: (furnitures) {
           if (furnitures.isEmpty) {
             return Center(
@@ -702,10 +718,12 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                   children: [
                     const Icon(Icons.shelves, size: 64, color: Color(0xFFD4AF37)),
                     const SizedBox(height: 16),
-                    Text('Aucun meuble de cave déclaré', style: theme.textTheme.titleMedium),
+                    Text(isFr ? 'Aucun meuble de cave déclaré' : 'No cellar furniture declared', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
                     Text(
-                      'Déclarez vos casiers, étagères ou meubles pour modéliser précisément votre cave.',
+                      isFr
+                          ? 'Déclarez vos casiers, étagères ou meubles pour modéliser précisément votre cave.'
+                          : 'Declare your racks, shelves, or furniture to model your cellar layout.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                     ),
@@ -713,7 +731,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                     FilledButton.icon(
                       style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
                       icon: const Icon(Icons.add),
-                      label: const Text('Ajouter un premier meuble'),
+                      label: Text(isFr ? 'Ajouter un premier meuble' : 'Add first furniture'),
                       onPressed: () async {
                         final created = await FurnitureEditorDialog.show(context, cellarId: widget.cellarId);
                         if (created != null && mounted) {
@@ -777,7 +795,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           items: furnitures.map((f) {
                             final label = f.isCupboard
-                                ? '${f.name} (${f.rows} niveau${f.rows > 1 ? "x" : ""})'
+                                ? (isFr ? '${f.name} (${f.rows} niveau${f.rows > 1 ? "x" : ""})' : '${f.name} (${f.rows} shelf levels)')
                                 : '${f.name} (${f.columns}x${f.rows})';
                             return DropdownMenuItem(
                               value: f.id,
@@ -795,7 +813,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                     ),
                     IconButton(
                       icon: const Icon(Icons.edit_outlined, size: 20),
-                      tooltip: 'Modifier ce meuble',
+                      tooltip: isFr ? 'Modifier ce meuble' : 'Edit this furniture',
                       onPressed: () => FurnitureEditorDialog.show(
                         context,
                         initialFurniture: currentFurniture,
@@ -804,7 +822,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                     ),
                     IconButton(
                       icon: const Icon(Icons.add, size: 22),
-                      tooltip: 'Nouveau meuble',
+                      tooltip: isFr ? 'Nouveau meuble' : 'New furniture',
                       onPressed: () async {
                         final created = await FurnitureEditorDialog.show(context, cellarId: widget.cellarId);
                         if (created != null && mounted) {
@@ -832,7 +850,9 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Emplacement : ${widget.highlightedSlot} (${currentFurniture.name})',
+                          isFr
+                              ? 'Emplacement : ${widget.highlightedSlot} (${currentFurniture.name})'
+                              : 'Slot: ${widget.highlightedSlot} (${currentFurniture.name})',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                       ),
@@ -855,7 +875,9 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Touchez un casier pour y ranger "${widget.bottleToPlace!.wine?.name ?? 'la bouteille'}"',
+                          isFr
+                              ? 'Touchez un casier pour y ranger "${widget.bottleToPlace!.wine?.name ?? 'la bouteille'}"'
+                              : 'Tap a slot to place "${widget.bottleToPlace!.wine?.name ?? 'the bottle'}"',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                         ),
                       ),
@@ -872,7 +894,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                   padding: const EdgeInsets.all(16),
                   child: Center(
                     child: currentFurniture.isCupboard
-                        ? _buildCupboardView(context, currentFurniture, allBottles, isDark, theme)
+                        ? _buildCupboardView(context, currentFurniture, allBottles, isDark, theme, isFr)
                         : Container(
                             constraints: const BoxConstraints(maxWidth: 600),
                       padding: const EdgeInsets.all(14),
@@ -1056,15 +1078,15 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildLegendDot(const Color(0xFF8B1E3F), 'Rouge'),
+                    _buildLegendDot(const Color(0xFF8B1E3F), isFr ? 'Rouge' : 'Red'),
                     const SizedBox(width: 12),
-                    _buildLegendDot(const Color(0xFFE2C968), 'Blanc'),
+                    _buildLegendDot(const Color(0xFFE2C968), isFr ? 'Blanc' : 'White'),
                     const SizedBox(width: 12),
-                    _buildLegendDot(const Color(0xFFE88E9B), 'Rosé'),
+                    _buildLegendDot(const Color(0xFFE88E9B), isFr ? 'Rosé' : 'Rosé'),
                     const SizedBox(width: 12),
-                    _buildLegendDot(const Color(0xFFD4AF37), 'Champagne'),
+                    _buildLegendDot(const Color(0xFFD4AF37), isFr ? 'Champagne' : 'Sparkling'),
                     const SizedBox(width: 12),
-                    _buildLegendDot(const Color(0xFFC07028), 'Spiritueux'),
+                    _buildLegendDot(const Color(0xFFC07028), isFr ? 'Spiritueux' : 'Spirits'),
                   ],
                 ),
               ),

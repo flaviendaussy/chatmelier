@@ -8,20 +8,38 @@ enum PantryCategory {
   syrups,
   custom;
 
-  String get labelFr {
+  String get labelFr => label(true);
+
+  String label([bool isFr = true]) {
+    if (isFr) {
+      switch (this) {
+        case PantryCategory.ice:
+          return 'Glaçons & Glace';
+        case PantryCategory.fruits:
+          return 'Agrumes & Fruits';
+        case PantryCategory.herbs:
+          return 'Herbes & Épices';
+        case PantryCategory.mixers:
+          return 'Mixers & Softs';
+        case PantryCategory.syrups:
+          return 'Sirops & Bitters';
+        case PantryCategory.custom:
+          return 'Personnalisés';
+      }
+    }
     switch (this) {
       case PantryCategory.ice:
-        return 'Glaçons & Glace';
+        return 'Ice & Cubes';
       case PantryCategory.fruits:
-        return 'Agrumes & Fruits';
+        return 'Citrus & Fruits';
       case PantryCategory.herbs:
-        return 'Herbes & Épices';
+        return 'Herbs & Spices';
       case PantryCategory.mixers:
-        return 'Mixers & Softs';
+        return 'Mixers & Sodas';
       case PantryCategory.syrups:
-        return 'Sirops & Bitters';
+        return 'Syrups & Bitters';
       case PantryCategory.custom:
-        return 'Personnalisés';
+        return 'Custom';
     }
   }
 

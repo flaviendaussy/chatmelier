@@ -158,7 +158,7 @@ class BottleCard extends StatelessWidget {
                                   Icon(Icons.local_bar, size: 10, color: fillColor),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '$fillLevel% plein',
+                                    isFr ? '$fillLevel% plein' : '$fillLevel% full',
                                     style: TextStyle(
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.bold,
@@ -296,11 +296,11 @@ class BottleCard extends StatelessWidget {
                                 else if (hasRegion)
                                   wine.region,
                                 if (hasSlot)
-                                  CellarFurniture.describeSlotCode(bottle.furnitureSlot!)
+                                  CellarFurniture.describeSlotCode(bottle.furnitureSlot!, isFr)
                                 else if (hasRack)
-                                  'Casier ${bottle.rack}'
+                                  isFr ? 'Casier ${bottle.rack}' : 'Rack ${bottle.rack}'
                                 else if (bottle.furnitureId != null && bottle.furnitureId!.isNotEmpty)
-                                  'En meuble',
+                                  isFr ? 'En meuble' : 'In furniture',
                               ].join(' • '),
                               style: TextStyle(
                                 fontSize: 11,

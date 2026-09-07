@@ -20,7 +20,6 @@ class ExcelImportScreen extends ConsumerStatefulWidget {
 
 class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
   String? _selectedFileName;
-  List<String> _rawRows = [];
   List<ImportedWineCandidate> _candidates = [];
 
   bool _isAnalyzing = false;
@@ -62,7 +61,6 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
 
       // 1. Extract text lines
       final rows = ExcelImportService.extractRawRows(bytes: bytes, fileName: file.name);
-      _rawRows = rows;
 
       if (rows.isEmpty) {
         setState(() {

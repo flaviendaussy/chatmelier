@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chatmelier/features/offline/data/offline_storage_service.dart';
-import 'package:chatmelier/features/journal/domain/tasting_entry.dart';
 import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/cellar/domain/bottle.dart';
 import 'package:chatmelier/features/cellar/domain/cellar_group_by.dart';

@@ -199,6 +199,7 @@ class _MobileAppShell extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     showModalBottomSheet(
       context: context,
@@ -222,7 +223,7 @@ class _MobileAppShell extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              l10n?.actionMenuTitle ?? 'Actions Cave',
+              l10n?.actionMenuTitle ?? (isFr ? 'Actions Cave' : 'Cellar Actions'),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,
@@ -232,9 +233,9 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.add_a_photo_outlined,
               color: const Color(0xFF8B1E3F),
-              title: l10n?.actionAddBottle ?? 'Ajouter une bouteille',
+              title: l10n?.actionAddBottle ?? (isFr ? 'Ajouter une bouteille' : 'Add a bottle'),
               subtitle: l10n?.actionAddBottleSub ??
-                  'Scanner une étiquette ou saisie manuelle',
+                  (isFr ? 'Scanner une étiquette ou saisie manuelle' : 'Scan a label or enter manually'),
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/scan');
@@ -244,8 +245,10 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.restaurant_menu_rounded,
               color: const Color(0xFFC2185B),
-              title: 'Scanner la Carte des Vins (Restaurant)',
-              subtitle: 'Capture multi-pages, radar sensoriel, filtres & comparateur',
+              title: isFr ? 'Scanner la Carte des Vins (Restaurant)' : 'Scan Wine List (Restaurant)',
+              subtitle: isFr
+                  ? 'Capture multi-pages, radar sensoriel, filtres & comparateur'
+                  : 'Multi-page capture, taste radar, filters & comparison',
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/scan/menu');
@@ -255,8 +258,8 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.mic_outlined,
               color: Colors.purple.shade700,
-              title: 'Ajout Rapide à la Voix (Sommelier)',
-              subtitle: 'Dictez vos bouteilles naturellement à l\'IA',
+              title: isFr ? 'Ajout Rapide à la Voix (Sommelier)' : 'Voice Sommelier Quick Add',
+              subtitle: isFr ? 'Dictez vos bouteilles naturellement à l\'IA' : 'Dictate your bottles naturally to the AI',
               onTap: () {
                 Navigator.pop(ctx);
                 showModalBottomSheet(
@@ -272,9 +275,9 @@ class _MobileAppShell extends ConsumerWidget {
               icon: Icons.wine_bar_outlined,
               color: const Color(0xFFD4AF37),
               title: l10n?.actionCheckoutBottle ??
-                  'Déguster / Sortir une bouteille',
+                  (isFr ? 'Déguster / Sortir une bouteille' : 'Taste / Checkout a bottle'),
               subtitle: l10n?.actionCheckoutBottleSub ??
-                  'Enregistrer une dégustation et sortir du stock',
+                  (isFr ? 'Enregistrer une dégustation et sortir du stock' : 'Log a tasting and deduct from stock'),
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/checkout');
@@ -284,8 +287,10 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.table_chart_outlined,
               color: const Color(0xFF1B5E20),
-              title: 'Importer un fichier (Excel / CSV)',
-              subtitle: 'Importez toute votre cave en quelques secondes par IA',
+              title: isFr ? 'Importer un fichier (Excel / CSV)' : 'Import File (Excel / CSV)',
+              subtitle: isFr
+                  ? 'Importez toute votre cave en quelques secondes par IA'
+                  : 'Import your whole cellar in seconds via AI',
               onTap: () {
                 Navigator.pop(ctx);
                 final currentCellarId = ref.read(currentCellarIdProvider);
@@ -296,20 +301,22 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.restaurant_menu_rounded,
               color: const Color(0xFFD4AF37),
-              title: 'Quel vin pour mon plat ? (Accords Mets & Vins)',
-              subtitle: 'L\'IA sommelier trouve les meilleurs accords dans votre cave',
+              title: isFr ? 'Quel vin pour mon plat ? (Accords Mets & Vins)' : 'Which wine for my dish? (Food Pairings)',
+              subtitle: isFr
+                  ? 'L\'IA sommelier trouve les meilleurs accords dans votre cave'
+                  : 'AI Sommelier finds the best pairings from your cellar',
               onTap: () {
                 Navigator.pop(ctx);
                 final currentCellarId = ref.read(currentCellarIdProvider);
                 final bottles = (ref.read(bottlesProvider(currentCellarId)).valueOrNull ?? []);
                 final cellars = ref.read(userCellarsProvider).valueOrNull ?? [];
-                String cellarName = Localizations.localeOf(context).languageCode == 'fr' ? 'Ma Cave' : 'My Cellar';
+                String cellarName = isFr ? 'Ma Cave' : 'My Cellar';
                 for (final item in cellars) {
                   final cMap = item['cellars'];
                   if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
                     final raw = cMap['name']?.toString() ?? '';
                     if (raw.isEmpty || raw == 'Ma Cave' || raw == 'My Cellar') {
-                      cellarName = Localizations.localeOf(context).languageCode == 'fr' ? 'Ma Cave' : 'My Cellar';
+                      cellarName = isFr ? 'Ma Cave' : 'My Cellar';
                     } else {
                       cellarName = raw;
                     }
@@ -327,8 +334,10 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.restaurant_outlined,
               color: const Color(0xFFE65100),
-              title: 'Déguster Hors-Cave (Restaurant, Amis)',
-              subtitle: 'Noter un vin bu à l\'extérieur sans toucher au stock',
+              title: isFr ? 'Déguster Hors-Cave (Restaurant, Amis)' : 'Taste Out-of-Cellar (Restaurant, Friends)',
+              subtitle: isFr
+                  ? 'Noter un vin bu à l\'extérieur sans toucher au stock'
+                  : 'Log a wine tasted outside without affecting stock',
               onTap: () {
                 Navigator.pop(ctx);
                 ExternalTastingDialog.show(context);
@@ -338,9 +347,9 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.auto_awesome_outlined,
               color: const Color(0xFF2E7D32),
-              title: l10n?.actionLookupWine ?? 'Consulter / Identifier un vin',
+              title: l10n?.actionLookupWine ?? (isFr ? 'Consulter / Identifier un vin' : 'Ask Sommelier / Identify wine'),
               subtitle: l10n?.actionLookupWineSub ??
-                  'Découverte et analyse instantanée par l\'IA',
+                  (isFr ? 'Découverte et analyse instantanée par l\'IA' : 'Instant AI sommelier discovery and analysis'),
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/chat');
@@ -497,14 +506,15 @@ class _DesktopAppShell extends ConsumerWidget {
     final supabase = ref.watch(supabaseProvider);
     final user = supabase.auth.currentUser;
 
-    String currentCellarName = Localizations.localeOf(context).languageCode == 'fr' ? 'Ma Cave' : 'My Cellar';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    String currentCellarName = isFr ? 'Ma Cave' : 'My Cellar';
     final cellarsList = cellarsAsync.value ?? const [];
     for (final item in cellarsList) {
       final cMap = item['cellars'];
       if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
         final raw = cMap['name']?.toString() ?? '';
         if (raw.isEmpty || raw == 'Ma Cave' || raw == 'My Cellar') {
-          currentCellarName = Localizations.localeOf(context).languageCode == 'fr' ? 'Ma Cave' : 'My Cellar';
+          currentCellarName = isFr ? 'Ma Cave' : 'My Cellar';
         } else {
           currentCellarName = raw;
         }
@@ -705,13 +715,13 @@ class _DesktopAppShell extends ConsumerWidget {
                     children: [
                       _SidebarActionItem(
                         icon: Icons.add_circle_outline,
-                        label: 'Ajouter une bouteille',
+                        label: l10n?.actionAddBottle ?? (isFr ? 'Ajouter une bouteille' : 'Add a bottle'),
                         color: const Color(0xFF8B1E3F),
                         onTap: () => context.push('/scan'),
                       ),
                       _SidebarActionItem(
                         icon: Icons.shelves,
-                        label: 'Meubles & Rayonnages',
+                        label: isFr ? 'Meubles & Rayonnages' : 'Furniture & Shelves',
                         color: const Color(0xFFD4AF37),
                         onTap: () {
                           if (currentCellarId != null) {
@@ -721,25 +731,25 @@ class _DesktopAppShell extends ConsumerWidget {
                       ),
                       _SidebarActionItem(
                         icon: Icons.mic_none,
-                        label: 'Dictée vocale (Sommelier)',
+                        label: isFr ? 'Dictée vocale (Sommelier)' : 'Voice Sommelier',
                         color: Colors.purple.shade700,
                         onTap: () => VoiceDictationSheet.show(context),
                       ),
                       _SidebarActionItem(
                         icon: Icons.wine_bar,
-                        label: 'Déguster / Sortir un vin',
+                        label: l10n?.actionCheckoutBottle ?? (isFr ? 'Déguster / Sortir un vin' : 'Taste / Checkout wine'),
                         color: const Color(0xFFD4AF37),
                         onTap: () => context.push('/checkout'),
                       ),
                       _SidebarActionItem(
                         icon: Icons.restaurant,
-                        label: 'Déguster Hors-Cave',
+                        label: isFr ? 'Déguster Hors-Cave' : 'Taste Out of Cellar',
                         color: const Color(0xFFE65100),
                         onTap: () => ExternalTastingDialog.show(context),
                       ),
                       _SidebarActionItem(
                         icon: Icons.public,
-                        label: 'Carte des Terroirs',
+                        label: isFr ? 'Carte des Terroirs' : 'World Terroirs Map',
                         color: const Color(0xFF2E7D32),
                         onTap: () => context.push('/scratchcard'),
                       ),
@@ -776,7 +786,7 @@ class _DesktopAppShell extends ConsumerWidget {
                                 Text(
                                   user?.userMetadata?['full_name'] as String? ??
                                       user?.email?.split('@').first ??
-                                      'Mon Profil',
+                                      (isFr ? 'Mon Profil' : 'My Profile'),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,

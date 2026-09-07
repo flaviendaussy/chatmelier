@@ -23,6 +23,38 @@ enum CellarSortBy {
 
   const CellarSortBy(this.key, this.label, this.icon);
 
+  String localizedLabel(bool isFr) {
+    if (isFr) return label;
+    switch (this) {
+      case CellarSortBy.nameAsc:
+        return 'Wine name (A → Z)';
+      case CellarSortBy.nameDesc:
+        return 'Wine name (Z → A)';
+      case CellarSortBy.producerAsc:
+        return 'Estate / Producer (A → Z)';
+      case CellarSortBy.producerDesc:
+        return 'Estate / Producer (Z → A)';
+      case CellarSortBy.vintageDesc:
+        return 'Vintage (Newest)';
+      case CellarSortBy.vintageAsc:
+        return 'Vintage (Oldest)';
+      case CellarSortBy.maturity:
+        return 'Ready to drink (Peak & Urgency)';
+      case CellarSortBy.quantityDesc:
+        return 'Quantity (Descending)';
+      case CellarSortBy.quantityAsc:
+        return 'Quantity (Ascending)';
+      case CellarSortBy.color:
+        return 'Color & Type';
+      case CellarSortBy.priceDesc:
+        return 'Price / Value (Highest)';
+      case CellarSortBy.priceAsc:
+        return 'Price / Value (Lowest)';
+      case CellarSortBy.recentlyAdded:
+        return 'Recently added';
+    }
+  }
+
   static CellarSortBy fromKey(String? key) {
     if (key == null) return CellarSortBy.recentlyAdded;
     return CellarSortBy.values.firstWhere(

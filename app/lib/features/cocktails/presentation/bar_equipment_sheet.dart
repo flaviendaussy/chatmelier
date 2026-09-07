@@ -18,6 +18,7 @@ class BarEquipmentSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode != 'en';
     final equipment = ref.watch(barEquipmentProvider);
     final notifier = ref.read(barEquipmentProvider.notifier);
 
@@ -60,12 +61,14 @@ class BarEquipmentSheet extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mon Matériel de Bar',
+                      isFr ? 'Mon Matériel de Bar' : 'My Bar Equipment',
                       style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    const Text(
-                      'Indiquez vos ustensiles pour adapter les recettes',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    Text(
+                      isFr
+                          ? 'Indiquez vos ustensiles pour adapter les recettes'
+                          : 'Check your bar tools to adapt cocktail recipes',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -77,9 +80,11 @@ class BarEquipmentSheet extends ConsumerWidget {
 
           // 1. Shaker
           _buildEquipmentSwitch(
-            title: 'Shaker à cocktail',
-            subtitle: 'Cobbler, Boston ou Parisien',
-            diyTip: 'Alternative : Pot de confiture hermétique (Bonne Maman) ou shaker de sport.',
+            title: isFr ? 'Shaker à cocktail' : 'Cocktail Shaker',
+            subtitle: isFr ? 'Cobbler, Boston ou Parisien' : 'Cobbler, Boston or Parisian',
+            diyTip: isFr
+                ? 'Alternative : Pot de confiture hermétique (Bonne Maman) ou shaker de sport.'
+                : 'Alternative: Airtight jam jar or protein shaker bottle.',
             icon: '🍸',
             value: equipment.hasShaker,
             onChanged: (val) => notifier.setHasShaker(val),
@@ -88,9 +93,11 @@ class BarEquipmentSheet extends ConsumerWidget {
 
           // 2. Jigger / Doseur
           _buildEquipmentSwitch(
-            title: 'Doseur gradué (Jigger)',
-            subtitle: 'Doseur double (ex: 2cl / 4cl)',
-            diyTip: 'Alternative : 1 cuillère à soupe = 15 ml (1,5 cl), 1 shooter = 30 ml.',
+            title: isFr ? 'Doseur gradué (Jigger)' : 'Graduated Jigger',
+            subtitle: isFr ? 'Doseur double (ex: 2cl / 4cl)' : 'Double jigger (e.g. 1 oz / 2 oz)',
+            diyTip: isFr
+                ? 'Alternative : 1 cuillère à soupe = 15 ml (1,5 cl), 1 shooter = 30 ml.'
+                : 'Alternative: 1 tablespoon = 15 ml (0.5 oz), 1 shot glass = 30 ml (1 oz).',
             icon: '⚖️',
             value: equipment.hasJigger,
             onChanged: (val) => notifier.setHasJigger(val),
@@ -99,9 +106,11 @@ class BarEquipmentSheet extends ConsumerWidget {
 
           // 3. Strainer / Passoire
           _buildEquipmentSwitch(
-            title: 'Passoire à cocktail (Strainer)',
-            subtitle: 'Hawthorne, Julep ou fine passoire',
-            diyTip: 'Alternative : Petite passoire à thé ou couvercle entrouvert.',
+            title: isFr ? 'Passoire à cocktail (Strainer)' : 'Cocktail Strainer',
+            subtitle: isFr ? 'Hawthorne, Julep ou fine passoire' : 'Hawthorne, Julep or fine mesh strainer',
+            diyTip: isFr
+                ? 'Alternative : Petite passoire à thé ou couvercle entrouvert.'
+                : 'Alternative: Small tea strainer or slightly cracked lid.',
             icon: '🥄',
             value: equipment.hasStrainer,
             onChanged: (val) => notifier.setHasStrainer(val),
@@ -110,9 +119,13 @@ class BarEquipmentSheet extends ConsumerWidget {
 
           // 4. Pilon / Muddler
           _buildEquipmentSwitch(
-            title: 'Pilon (Muddler)',
-            subtitle: 'Pour extraire les huiles des agrumes et herbes',
-            diyTip: 'Alternative : Le manche plat d\'une cuillère en bois.',
+            title: isFr ? 'Pilon (Muddler)' : 'Muddler',
+            subtitle: isFr
+                ? 'Pour extraire les huiles des agrumes et herbes'
+                : 'To extract oils from citrus and herbs',
+            diyTip: isFr
+                ? 'Alternative : Le manche plat d\'une cuillère en bois.'
+                : 'Alternative: The flat end of a wooden spoon handle.',
             icon: '🪵',
             value: equipment.hasMuddler,
             onChanged: (val) => notifier.setHasMuddler(val),
@@ -121,9 +134,13 @@ class BarEquipmentSheet extends ConsumerWidget {
 
           // 5. Cuillère à mélange
           _buildEquipmentSwitch(
-            title: 'Cuillère à mélange torsadée',
-            subtitle: 'Pour les cocktails remués sans bulles d\'air',
-            diyTip: 'Alternative : Une cuillère à glace à long manche ou baguette propre.',
+            title: isFr ? 'Cuillère à mélange torsadée' : 'Bar Spoon',
+            subtitle: isFr
+                ? 'Pour les cocktails remués sans bulles d\'air'
+                : 'For stirred cocktails without air bubbles',
+            diyTip: isFr
+                ? 'Alternative : Une cuillère à glace à long manche ou baguette propre.'
+                : 'Alternative: Long-handled sundae spoon or clean chopstick.',
             icon: '🥢',
             value: equipment.hasBarSpoon,
             onChanged: (val) => notifier.setHasBarSpoon(val),
@@ -141,9 +158,9 @@ class BarEquipmentSheet extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Enregistrer mon matériel',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              child: Text(
+                isFr ? 'Enregistrer mon matériel' : 'Save My Equipment',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
             ),
           ),

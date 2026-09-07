@@ -203,7 +203,7 @@ class BottleListItem extends StatelessWidget {
                           Icon(Icons.local_bar, size: 12, color: Colors.amber.shade700),
                           const SizedBox(width: 4),
                           Text(
-                            '${bottle.fillLevel}% restant',
+                            isFr ? '${bottle.fillLevel}% restant' : '${bottle.fillLevel}% left',
                             style: TextStyle(
                               fontSize: isUltraCompact ? 10 : 11,
                               fontWeight: FontWeight.w600,
@@ -238,7 +238,7 @@ class BottleListItem extends StatelessWidget {
                           Icon(Icons.location_on, size: 11, color: Colors.grey.shade600),
                           const SizedBox(width: 1),
                           Text(
-                            bottle.locationSummary,
+                            bottle.getLocationSummary(isFr),
                             style: TextStyle(
                               fontSize: isUltraCompact ? 10 : 11,
                               color: Colors.grey.shade600,

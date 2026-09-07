@@ -2,6 +2,29 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.2.1+49] — 2026-09-07
+
+### 🍷 Ce qui change pour vous / What's New for You
+- **Localisation Intégrale en Anglais (Full English Localization)** : Lorsque vous choisissez l'anglais dans les réglages (ou sur un appareil configuré en anglais), l'ensemble de l'application est désormais traduit dans un anglais œnologique authentique et naturel.
+- **Toutes les sections traduites** :
+  - **Cave / Cellar** : Tri (« Vintage », « Estimated Value », etc.), groupements (« Type / Color », « Maturity / Peak », etc.), filtres (« Furniture & Shelves », « Pair wine with dish », « Favorites », etc.), puces d'étagères, menus d'actions, et bannière de valorisation.
+  - **Fiche Bouteille / Bottle Details** : Carte d'évaluation, fenêtre de garde et d'apogée, accords mets & vins, conseils de service et carafage, notes techniques de vinification, terroirs et histoire, gestion des stocks et mouvements.
+  - **Bar & Cocktails** : Ingrédients du bar (Glaçons, Agrumes, Herbes, Mixers, Sirops, etc.), filtres du bar et du catalogue, tri et recherche, équipement du barman et alternatives maison (Shaker, Jigger, Passoire, Pilon, Cuillère).
+  - **Carnet de Dégustation / Journal** : Cartes et filtres de dégustation (« My Cellar », « Out-of-Cellar », « Favorites », « Top Rated »), badges œnologiques et progression, options de dégustation rapide et raccourcis.
+  - **Profil Utilisateur / Profile** : Onglets (« Palate », « Settings », « Tools », « Account »), radar de profil gustatif, export de cave CSV/PDF, gestion des amis et préférences.
+- **Traductions dynamiques instantanées** : Le basculement de langue met à jour instantanément tous les écrans, boîtes de dialogue et fiches sans nécessiter de redémarrage.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Localisation dynamique (`cellar_screen.dart`, `bottle_detail_screen.dart`, `bar_cocktails_hub_screen.dart`, `journal_screen.dart`, `profile_screen.dart`)* :
+  - Support systématique de `isFr = Localizations.localeOf(context).languageCode != 'en'` sur toutes les vues de présentation.
+  - Découplage des clés de filtres internes (`all`, `ready`, `almost`, `custom`, `gin`, `rhum`, etc.) des libellés affichés.
+- *Modèles de domaine localisés (`bottle.dart`, `cellar_sort_by.dart`, `cellar_group_by.dart`, `cellar_furniture.dart`, `bar_pantry_item.dart`)* :
+  - Ajout des méthodes `localizedLabel(bool isFr)`, `getLocationSummary(bool isFr)`, `getProvenanceDisplay([bool isFr])`, `describeSlotCode(code, [bool isFr])`, et `label([bool isFr])`.
+- *Validation et Tests (`multi_language_dynamic_switching_test.dart`)* :
+  - Couverture complète des 12 langues supportées, des enums de tri et groupement, et des descriptions d'emplacements.
+
+---
+
 ## [v1.2.1+48] — 2026-09-07
 
 ### 🍷 Ce qui change pour vous

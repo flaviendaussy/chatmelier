@@ -186,44 +186,78 @@ class Bottle {
       (position != null && position!.trim().isNotEmpty);
 
   /// Returns a clean, concise location summary description.
-  String get locationSummary {
+  String getLocationSummary([bool isFr = true]) {
     if (furnitureSlot != null && furnitureSlot!.trim().isNotEmpty) {
       return furnitureSlot!.trim();
     }
     final parts = <String>[];
-    if (rack != null && rack!.trim().isNotEmpty) parts.add('Casier ${rack!.trim()}');
-    if (shelf != null && shelf!.trim().isNotEmpty) parts.add('Tablette ${shelf!.trim()}');
-    if (position != null && position!.trim().isNotEmpty) parts.add('Pos ${position!.trim()}');
+    if (rack != null && rack!.trim().isNotEmpty) {
+      parts.add(isFr ? 'Casier ${rack!.trim()}' : 'Rack ${rack!.trim()}');
+    }
+    if (shelf != null && shelf!.trim().isNotEmpty) {
+      parts.add(isFr ? 'Tablette ${shelf!.trim()}' : 'Shelf ${shelf!.trim()}');
+    }
+    if (position != null && position!.trim().isNotEmpty) {
+      parts.add('Pos ${position!.trim()}');
+    }
     if (parts.isNotEmpty) return parts.join(' • ');
     if (furnitureId != null && furnitureId!.trim().isNotEmpty) {
-      return 'Dans le meuble (Rangement libre)';
+      return isFr ? 'Dans le meuble (Rangement libre)' : 'In furniture (free placement)';
     }
-    return 'Emplacement non défini';
+    return isFr ? 'Emplacement non défini' : 'Location not set';
   }
 
+  String get locationSummary => getLocationSummary(true);
+
   /// Returns user-facing sommelier display text for bottle origin
-  String get provenanceDisplay {
+  String getProvenanceDisplay([bool isFr = true]) {
     final details = sourceDetails?.trim();
     switch (sourceType) {
       case 'estate':
-        return details != null && details.isNotEmpty ? '🏰 Acheté au domaine ($details)' : '🏰 Acheté au domaine';
+        if (isFr) {
+          return details != null && details.isNotEmpty ? '🏰 Acheté au domaine ($details)' : '🏰 Acheté au domaine';
+        } else {
+          return details != null && details.isNotEmpty ? '🏰 Bought at estate ($details)' : '🏰 Bought at estate';
+        }
       case 'merchant':
-        return details != null && details.isNotEmpty ? '🏪 Caviste : $details' : '🏪 Chez un caviste';
+        if (isFr) {
+          return details != null && details.isNotEmpty ? '🏪 Caviste : $details' : '🏪 Chez un caviste';
+        } else {
+          return details != null && details.isNotEmpty ? '🏪 Wine merchant: $details' : '🏪 Wine merchant';
+        }
       case 'gift':
-        return details != null && details.isNotEmpty ? '🎁 Offert par $details' : '🎁 Bouteille offerte';
+        if (isFr) {
+          return details != null && details.isNotEmpty ? '🎁 Offert par $details' : '🎁 Bouteille offerte';
+        } else {
+          return details != null && details.isNotEmpty ? '🎁 Gift from $details' : '🎁 Gift bottle';
+        }
       case 'supermarket':
-        return details != null && details.isNotEmpty ? '🛒 Grande surface ($details)' : '🛒 Grande surface';
+        if (isFr) {
+          return details != null && details.isNotEmpty ? '🛒 Grande surface ($details)' : '🛒 Grande surface';
+        } else {
+          return details != null && details.isNotEmpty ? '🛒 Supermarket ($details)' : '🛒 Supermarket';
+        }
       case 'auction':
-        return details != null && details.isNotEmpty ? '🔨 Enchères ($details)' : '🔨 Vente aux enchères';
+        if (isFr) {
+          return details != null && details.isNotEmpty ? '🔨 Enchères ($details)' : '🔨 Vente aux enchères';
+        } else {
+          return details != null && details.isNotEmpty ? '🔨 Auction ($details)' : '🔨 Wine auction';
+        }
       case 'other':
-        return details != null && details.isNotEmpty ? '📦 $details' : '📦 Autre provenance';
+        if (isFr) {
+          return details != null && details.isNotEmpty ? '📦 $details' : '📦 Autre provenance';
+        } else {
+          return details != null && details.isNotEmpty ? '📦 $details' : '📦 Other origin';
+        }
       default:
         if (purchaseLocation != null && purchaseLocation!.isNotEmpty) {
           return '📍 $purchaseLocation';
         }
-        return '📦 Stock cave';
+        return isFr ? '📦 Stock cave' : '📦 Cellar stock';
     }
   }
+
+  String get provenanceDisplay => getProvenanceDisplay(true);
 
   BottleSize get sizeObject => BottleSize.fromCode(bottleSize);
   bool get isStandardSize => sizeObject.isStandard75cl;

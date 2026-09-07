@@ -205,9 +205,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     }).toList();
   }
 
-  String _formatDate(DateTime dt) {
+  String _formatDate(DateTime dt, [bool isFr = true]) {
     try {
-      return DateFormat('d MMMM yyyy', 'fr_FR').format(dt);
+      return DateFormat('d MMMM yyyy', isFr ? 'fr_FR' : 'en_US').format(dt);
     } catch (_) {
       return '${dt.day}/${dt.month}/${dt.year}';
     }
@@ -218,21 +218,22 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     final entriesAsync = ref.watch(tastingLogProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode != 'en';
     final l10n = AppLocalizations.of(context);
     final favoriteWineIds = ref.watch(favoriteWineIdsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dégustation'),
+        title: Text(isFr ? 'Dégustation' : 'Tasting Journal'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline, color: Color(0xFF8B1E3F)),
-            tooltip: 'Dégustation Hors-Cave (Restaurant, Amis)',
+            tooltip: isFr ? 'Dégustation Hors-Cave (Restaurant, Amis)' : 'Out-of-Cellar Tasting (Restaurant, Friends)',
             onPressed: () => ExternalTastingDialog.show(context),
           ),
           IconButton(
             icon: const Icon(Icons.public, color: Colors.amber),
-            tooltip: 'Carte à Gratter des Terroirs',
+            tooltip: isFr ? 'Carte à Gratter des Terroirs' : 'Terroir Scratch Map',
             onPressed: () => context.push('/scratchcard'),
           ),
         ],
@@ -241,7 +242,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         heroTag: 'journal_external_tasting_fab',
         onPressed: () => ExternalTastingDialog.show(context),
         icon: const Icon(Icons.restaurant),
-        label: const Text('Déguster Hors-Cave'),
+        label: Text(isFr ? 'Déguster Hors-Cave' : 'Taste Out-of-Cellar'),
         backgroundColor: const Color(0xFF8B1E3F),
         foregroundColor: Colors.white,
       ),
@@ -250,7 +251,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         error: (err, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text('Erreur : $err'),
+            child: Text(isFr ? 'Erreur : $err' : 'Error: $err'),
           ),
         ),
         data: (allEntries) {
@@ -258,16 +259,18 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildTastingHubActions(context, isDark),
+                  _buildTastingHubActions(context, isDark, isFr),
                   const SizedBox(height: 16),
                   EmptyState(
                     icon: Icons.menu_book,
-                    title: l10n?.journalEmpty ?? 'Aucun souvenir de dégustation pour le moment',
+                    title: l10n?.journalEmpty ?? (isFr ? 'Aucun souvenir de dégustation pour le moment' : 'No tasting memories yet'),
                     subtitle: l10n?.journalEmptySub ??
-                        'Dégustez et sortez une bouteille de votre cave, notez un vin bu au restaurant ou scannez une carte.',
+                        (isFr
+                            ? 'Dégustez et sortez une bouteille de votre cave, notez un vin bu au restaurant ou scannez une carte.'
+                            : 'Taste and check out a bottle from your cellar, rate a wine at a restaurant or scan a menu.'),
                     action: FilledButton.icon(
                       icon: const Icon(Icons.restaurant_menu),
-                      label: const Text('Noter un vin hors-cave (Restaurant, Amis)'),
+                      label: Text(isFr ? 'Noter un vin hors-cave (Restaurant, Amis)' : 'Log out-of-cellar wine (Restaurant, Friends)'),
                       style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFF8B1E3F),
                           foregroundColor: Colors.white),
@@ -294,7 +297,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
               slivers: [
                 // 0. Tasting Hub Actions (Sortir de la cave, Déguster hors-cave, Scanner un menu)
                 SliverToBoxAdapter(
-                  child: _buildTastingHubActions(context, isDark),
+                  child: _buildTastingHubActions(context, isDark, isFr),
                 ),
                 // 1. Search Bar & Multi-fields Search Filter Header
                 SliverToBoxAdapter(
@@ -309,8 +312,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                           onChanged: (val) =>
                               setState(() => _searchQuery = val.trim()),
                           decoration: InputDecoration(
-                            hintText:
-                                'Rechercher : vin, lieu, invité, plat, note, année...',
+                            hintText: isFr
+                                ? 'Rechercher : vin, lieu, invité, plat, note, année...'
+                                : 'Search: wine, place, guest, dish, rating, year...',
                             hintStyle: TextStyle(
                                 fontSize: 13,
                                 color: isDark ? Colors.white54 : Colors.black45),
@@ -341,7 +345,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                             children: [
                               // All / Cave / Hors-cave Segmented Filter
                               FilterChip(
-                                label: const Text('Tous'),
+                                label: Text(isFr ? 'Tous' : 'All'),
                                 selected: _selectedOriginFilter == 'all',
                                 selectedColor:
                                     const Color(0xFF8B1E3F).withValues(alpha: 0.2),
@@ -356,7 +360,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                               FilterChip(
                                 avatar: const Text('🍷',
                                     style: TextStyle(fontSize: 12)),
-                                label: const Text('Ma Cave'),
+                                label: Text(isFr ? 'Ma Cave' : 'My Cellar'),
                                 selected: _selectedOriginFilter == 'cellar',
                                 selectedColor:
                                     const Color(0xFF8B1E3F).withValues(alpha: 0.2),
@@ -369,7 +373,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                               FilterChip(
                                 avatar: const Text('🍽️',
                                     style: TextStyle(fontSize: 12)),
-                                label: const Text('Hors-Cave'),
+                                label: Text(isFr ? 'Hors-Cave' : 'Out-of-Cellar'),
                                 selected: _selectedOriginFilter == 'external',
                                 selectedColor:
                                     Colors.orange.withValues(alpha: 0.2),
@@ -384,7 +388,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                               FilterChip(
                                 avatar: const Icon(Icons.favorite,
                                     size: 13, color: Color(0xFFE91E63)),
-                                label: const Text('Favoris'),
+                                label: Text(isFr ? 'Favoris' : 'Favorites'),
                                 selected: _onlyFavorites,
                                 selectedColor:
                                     const Color(0xFFE91E63).withValues(alpha: 0.2),
@@ -398,7 +402,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                               FilterChip(
                                 avatar: const Icon(Icons.star,
                                     size: 14, color: Color(0xFFD4AF37)),
-                                label: const Text('Coups de Cœur (≥ 8/10)'),
+                                label: Text(isFr ? 'Coups de Cœur (≥ 8/10)' : 'Top Rated (≥ 8/10)'),
                                 selected: _minRatingOnly,
                                 selectedColor: const Color(0xFFD4AF37)
                                     .withValues(alpha: 0.2),
@@ -430,14 +434,14 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                     ),
                                     child: DropdownButton<String?>(
                                       value: _selectedYear,
-                                      hint: const Text('Année',
-                                          style: TextStyle(fontSize: 12)),
+                                      hint: Text(isFr ? 'Année' : 'Year',
+                                          style: const TextStyle(fontSize: 12)),
                                       isDense: true,
                                       items: [
-                                        const DropdownMenuItem<String?>(
+                                        DropdownMenuItem<String?>(
                                           value: null,
-                                          child: Text('Toutes les années',
-                                              style: TextStyle(fontSize: 12)),
+                                          child: Text(isFr ? 'Toutes les années' : 'All years',
+                                              style: const TextStyle(fontSize: 12)),
                                         ),
                                         ...availableYears.map(
                                           (yr) => DropdownMenuItem<String?>(
@@ -477,13 +481,15 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                 size: 48, color: Colors.grey),
                             const SizedBox(height: 12),
                             Text(
-                              'Aucun souvenir trouvé',
+                              isFr ? 'Aucun souvenir trouvé' : 'No memories found',
                               style: theme.textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Aucune dégustation ne correspond aux filtres actuels.',
+                              isFr
+                                  ? 'Aucune dégustation ne correspond aux filtres actuels.'
+                                  : 'No tastings match current filters.',
                               textAlign: TextAlign.center,
                               style: theme.textTheme.bodySmall
                                   ?.copyWith(color: Colors.grey),
@@ -491,7 +497,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                             const SizedBox(height: 16),
                             OutlinedButton.icon(
                               icon: const Icon(Icons.filter_alt_off),
-                              label: const Text('Réinitialiser les filtres'),
+                              label: Text(isFr ? 'Réinitialiser les filtres' : 'Reset filters'),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() {
@@ -526,6 +532,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                 filteredEntries[index],
                                 isDark,
                                 theme,
+                                isFr,
                               ),
                               childCount: filteredEntries.length,
                             ),
@@ -537,6 +544,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                 filteredEntries[index],
                                 isDark,
                                 theme,
+                                isFr,
                               ),
                               childCount: filteredEntries.length,
                             ),
@@ -555,12 +563,13 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     TastingEntry entry,
     bool isDark,
     ThemeData theme,
+    bool isFr,
   ) {
-    final wineName = entry.wineName ?? 'Vin dégusté';
+    final wineName = entry.wineName ?? (isFr ? 'Vin dégusté' : 'Tasted wine');
     final vintage = entry.vintage != null && entry.vintage! > 0
         ? ' (${entry.vintage})'
-        : ' (NM)';
-    final dateStr = _formatDate(entry.consumedAt);
+        : ' (NV)';
+    final dateStr = _formatDate(entry.consumedAt, isFr);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -676,8 +685,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                         color: Colors.orange.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text('🍽️ Hors-Cave',
-                          style: TextStyle(
+                      child: Text(isFr ? '🍽️ Hors-Cave' : '🍽️ Out-of-Cellar',
+                          style: const TextStyle(
                               fontSize: 10.5, color: Colors.deepOrange)),
                     )
                   else
@@ -688,12 +697,12 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                         color: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text('🍷 Cave',
-                          style: TextStyle(
+                      child: Text(isFr ? '🍷 Cave' : '🍷 Cellar',
+                          style: const TextStyle(
                               fontSize: 10.5, color: Color(0xFF8B1E3F))),
                     ),
                   if (entry.locationName != null &&
-                      entry.locationName!.isNotEmpty)
+                       entry.locationName!.isNotEmpty)
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
@@ -728,7 +737,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        'Accord : ${entry.foodPaired}',
+                        '${isFr ? "Accord" : "Pairing"} : ${entry.foodPaired}',
                         style: const TextStyle(
                             fontSize: 11.5,
                             fontStyle: FontStyle.italic,
@@ -763,7 +772,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Fiche complète & arômes',
+                    isFr ? 'Fiche complète & arômes' : 'Full details & aromas',
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
@@ -776,12 +785,12 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                       visualDensity: VisualDensity.compact,
                     ),
                     icon: const Icon(Icons.quiz_outlined, size: 15),
-                    label: const Text('Quiz sommelier',
-                        style: TextStyle(fontSize: 11)),
+                    label: Text(isFr ? 'Quiz sommelier' : 'Sommelier quiz',
+                        style: const TextStyle(fontSize: 11)),
                     onPressed: () {
                       TastingQuestionnaireSheet.show(
                         context,
-                        wineName: entry.wineName ?? 'Vin dégusté',
+                        wineName: entry.wineName ?? (isFr ? 'Vin dégusté' : 'Tasted wine'),
                         vintage: entry.vintage,
                         region: entry.region,
                       );
@@ -796,7 +805,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     );
   }
 
-  Widget _buildTastingHubActions(BuildContext context, bool isDark) {
+  Widget _buildTastingHubActions(BuildContext context, bool isDark, bool isFr) {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       padding: const EdgeInsets.all(14),
@@ -822,7 +831,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
               const Icon(Icons.wine_bar, size: 20, color: Color(0xFF8B1E3F)),
               const SizedBox(width: 8),
               Text(
-                'Espace Dégustation',
+                isFr ? 'Espace Dégustation' : 'Tasting Hub',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -836,9 +845,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                   color: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Text(
-                  'Cave & Hors-Cave',
-                  style: TextStyle(
+                child: Text(
+                  isFr ? 'Cave & Hors-Cave' : 'Cellar & Out-of-Cellar',
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF8B1E3F),
@@ -855,8 +864,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 child: _buildActionTile(
                   context,
                   icon: Icons.inventory_2_outlined,
-                  title: 'Sortir de\nma cave',
-                  subtitle: 'Boire un flacon',
+                  title: isFr ? 'Sortir de\nma cave' : 'Check out\ncellar bottle',
+                  subtitle: isFr ? 'Boire un flacon' : 'Drink a bottle',
                   badgeColor: const Color(0xFF8B1E3F),
                   onTap: () => context.push('/checkout'),
                 ),
@@ -867,8 +876,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 child: _buildActionTile(
                   context,
                   icon: Icons.restaurant,
-                  title: 'Déguster\nhors-cave',
-                  subtitle: 'Resto ou amis',
+                  title: isFr ? 'Déguster\nhors-cave' : 'Taste\nout-of-cellar',
+                  subtitle: isFr ? 'Resto ou amis' : 'Resto or friends',
                   badgeColor: Colors.orange.shade800,
                   onTap: () => ExternalTastingDialog.show(context),
                 ),
@@ -879,8 +888,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 child: _buildActionTile(
                   context,
                   icon: Icons.document_scanner_outlined,
-                  title: 'Scanner\nun menu',
-                  subtitle: 'Carte des vins',
+                  title: isFr ? 'Scanner\nun menu' : 'Scan\na menu',
+                  subtitle: isFr ? 'Carte des vins' : 'Wine list',
                   badgeColor: Colors.teal.shade700,
                   onTap: () => context.push('/scan/menu'),
                 ),
@@ -898,11 +907,11 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 final currentCellarId = ref.read(currentCellarIdProvider);
                 final bottles = (ref.read(bottlesProvider(currentCellarId)).valueOrNull ?? []);
                 final cellars = ref.read(userCellarsProvider).valueOrNull ?? [];
-                String cellarName = 'Ma Cave';
+                String cellarName = isFr ? 'Ma Cave' : 'My Cellar';
                 for (final item in cellars) {
                   final cMap = item['cellars'];
                   if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
-                    cellarName = cMap['name']?.toString() ?? 'Ma Cave';
+                    cellarName = cMap['name']?.toString() ?? (isFr ? 'Ma Cave' : 'My Cellar');
                     break;
                   }
                 }
@@ -936,16 +945,20 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Quel vin pour mon plat ? (Accords mets & vins)',
-                            style: TextStyle(
+                          Text(
+                            isFr
+                                ? 'Quel vin pour mon plat ? (Accords mets & vins)'
+                                : 'Which wine for my dish? (Food & wine pairings)',
+                            style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFFD4AF37),
                             ),
                           ),
                           Text(
-                            'Trouvez le flacon idéal de votre cave pour votre repas',
+                            isFr
+                                ? 'Trouvez le flacon idéal de votre cave pour votre repas'
+                                : 'Find the ideal bottle from your cellar for your meal',
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark ? Colors.white70 : Colors.black87,

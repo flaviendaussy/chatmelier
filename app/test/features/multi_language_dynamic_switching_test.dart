@@ -9,7 +9,6 @@ import 'package:chatmelier/shared/providers/locale_provider.dart';
 import 'package:chatmelier/shared/widgets/adaptive_app_shell.dart';
 import 'package:chatmelier/features/auth/presentation/profile_screen.dart';
 import 'package:chatmelier/features/badges/domain/badge.dart';
-import 'package:chatmelier/features/badges/data/badge_catalog.dart';
 import 'package:chatmelier/features/badges/data/badges_provider.dart';
 import 'package:chatmelier/shared/providers/auth_provider.dart';
 import 'package:chatmelier/features/auth/data/auth_repository.dart';
@@ -18,6 +17,11 @@ import 'package:chatmelier/features/offline/data/offline_storage_service.dart';
 import 'package:chatmelier/features/offline/presentation/sync_provider.dart';
 import 'package:chatmelier/shared/providers/cellar_provider.dart';
 import 'package:chatmelier/features/friends/data/friends_repository.dart';
+import 'package:chatmelier/features/cellar/domain/bottle.dart';
+import 'package:chatmelier/features/cellar/domain/cellar_furniture.dart';
+import 'package:chatmelier/features/cellar/domain/cellar_sort_by.dart';
+import 'package:chatmelier/features/cellar/domain/cellar_group_by.dart';
+import 'package:chatmelier/features/cocktails/domain/bar_pantry_item.dart';
 
 class _MockAuthRepo implements AuthRepository {
   @override
@@ -315,5 +319,77 @@ void main() {
       expect(find.text('Werkzeuge'), findsOneWidget);
       expect(find.text('Konto'), findsOneWidget);
     });
+
+    test('Cellar and Cocktail domain models localize correctly in English and French', () {
+      // CellarSortBy
+      expect(CellarSortBy.vintageAsc.localizedLabel(true), 'Millésime (Plus ancien)');
+      expect(CellarSortBy.vintageAsc.localizedLabel(false), 'Vintage (Oldest)');
+      expect(CellarSortBy.priceDesc.localizedLabel(true), 'Prix / Valeur (Plus cher)');
+      expect(CellarSortBy.priceDesc.localizedLabel(false), 'Price / Value (Highest)');
+
+      // CellarGroupBy
+      expect(CellarGroupBy.color.localizedLabel(true), 'Couleur');
+      expect(CellarGroupBy.color.localizedLabel(false), 'Color');
+      expect(CellarGroupBy.region.localizedLabel(true), 'Région');
+      expect(CellarGroupBy.region.localizedLabel(false), 'Region');
+      expect(CellarGroupBy.vintage.localizedLabel(true), 'Millésime');
+      expect(CellarGroupBy.vintage.localizedLabel(false), 'Vintage');
+      expect(CellarGroupBy.maturity.localizedLabel(true), 'Maturité / Apogée');
+      expect(CellarGroupBy.maturity.localizedLabel(false), 'Maturity / Peak');
+
+      // CellarFurniture slot code description
+      expect(CellarFurniture.describeSlotCode('A1', true), 'A1 (1ère colonne, 1ère rangée)');
+      expect(CellarFurniture.describeSlotCode('A1', false), 'A1 (1st column, 1st row)');
+      expect(CellarFurniture.describeSlotCode('B2', false), 'B2 (2nd column, 2nd row)');
+      expect(CellarFurniture.describeSlotCode('placard', true), 'Rangement libre (sans case fixe)');
+      expect(CellarFurniture.describeSlotCode('closet', false), 'Free placement (no fixed slot)');
+
+      // Bottle location and provenance
+      final now = DateTime(2026, 1, 1);
+      final testBottle = Bottle(
+        id: 'b1',
+        cellarId: 'c1',
+        wineId: 'w1',
+        addedBy: 'u1',
+        ownerId: 'u1',
+        createdAt: now,
+        sourceType: 'gift',
+        sourceDetails: 'Alice',
+        rack: 'A',
+        shelf: '2',
+      );
+      expect(testBottle.getLocationSummary(true), 'Casier A • Tablette 2');
+      expect(testBottle.getLocationSummary(false), 'Rack A • Shelf 2');
+      expect(testBottle.getProvenanceDisplay(true), '🎁 Offert par Alice');
+      expect(testBottle.getProvenanceDisplay(false), '🎁 Gift from Alice');
+
+      final boughtBottle = Bottle(
+        id: 'b2',
+        cellarId: 'c1',
+        wineId: 'w2',
+        addedBy: 'u1',
+        ownerId: 'u1',
+        createdAt: now,
+        sourceType: 'merchant',
+        sourceDetails: 'La Maison du Whisky',
+      );
+      expect(boughtBottle.getProvenanceDisplay(true), '🏪 Caviste : La Maison du Whisky');
+      expect(boughtBottle.getProvenanceDisplay(false), '🏪 Wine merchant: La Maison du Whisky');
+
+      // PantryCategory labels
+      expect(PantryCategory.ice.label(true), 'Glaçons & Glace');
+      expect(PantryCategory.ice.label(false), 'Ice & Cubes');
+      expect(PantryCategory.fruits.label(true), 'Agrumes & Fruits');
+      expect(PantryCategory.fruits.label(false), 'Citrus & Fruits');
+      expect(PantryCategory.herbs.label(true), 'Herbes & Épices');
+      expect(PantryCategory.herbs.label(false), 'Herbs & Spices');
+      expect(PantryCategory.mixers.label(true), 'Mixers & Softs');
+      expect(PantryCategory.mixers.label(false), 'Mixers & Sodas');
+      expect(PantryCategory.syrups.label(true), 'Sirops & Bitters');
+      expect(PantryCategory.syrups.label(false), 'Syrups & Bitters');
+      expect(PantryCategory.custom.label(true), 'Personnalisés');
+      expect(PantryCategory.custom.label(false), 'Custom');
+    });
   });
 }
+

@@ -31,11 +31,11 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
   String _catalogSearch = '';
   bool _showCatalogSearch = false;
   final TextEditingController _catalogSearchController = TextEditingController();
-  String _selectedCatalogSpirit = 'Tous';
+  String _selectedCatalogSpirit = 'all';
 
   // Sort for unified Cocktails tab
-  String _sortBy = 'missing'; // 'missing', 'name', 'base_spirit', 'difficulty'
-  String _filterStatus = 'Tous'; // 'Tous', 'Prêts', '1 manquant'
+  String _sortBy = 'missing'; // 'missing', 'name', 'spirit', 'difficulty'
+  String _filterStatus = 'all'; // 'all', 'ready', 'almost'
 
   @override
   void initState() {
@@ -57,6 +57,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isFr = Localizations.localeOf(context).languageCode != 'en';
 
     final currentCellarId = ref.watch(currentCellarIdProvider);
     final bottlesAsync = currentCellarId != null
@@ -99,12 +100,12 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
         ),
         actions: [
           IconButton(
-            tooltip: 'Mon Matériel de Bar',
+            tooltip: isFr ? 'Mon Matériel de Bar' : 'My Bar Equipment',
             icon: const Icon(Icons.handyman_outlined),
             onPressed: () => BarEquipmentSheet.show(context),
           ),
           IconButton(
-            tooltip: 'Demander au Chatmelier Mixologue',
+            tooltip: isFr ? 'Demander au Chatmelier Mixologue' : 'Ask Chatmelier Mixologist',
             icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
             onPressed: () => _askChatmelierMixologist(context, readyMatches.length),
           ),
@@ -160,7 +161,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('🥫 Réserve du Bar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text(isFr ? '🥫 Réserve du Bar' : '🥫 Bar Pantry', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -191,24 +192,19 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
         controller: _tabController,
         children: [
           // 1. Cocktails (Catalogue unifié avec tri & filtres prêts à shaker)
-          _buildCatalogTab(context, allMatches, readyMatches, almostMatches),
+          _buildCatalogTab(context, allMatches, readyMatches, almostMatches, isFr),
 
           // 2. Bar Pantry Stock
-          _buildBarPantryTab(context, pantry),
+          _buildBarPantryTab(context, pantry, isFr),
         ],
       ),
     );
   }
 
   // ==========================================
-  // TAB 1: Cocktails Réalisables
-  // ==========================================
-
-
-  // ==========================================
   // TAB 2: Bar Pantry Stock
   // ==========================================
-  Widget _buildBarPantryTab(BuildContext context, List<BarPantryItem> pantry) {
+  Widget _buildBarPantryTab(BuildContext context, List<BarPantryItem> pantry, bool isFr) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -218,7 +214,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
       }
       if (_pantrySearch.isNotEmpty) {
         final q = _pantrySearch.toLowerCase();
-        return item.name.toLowerCase().contains(q) || item.category.labelFr.toLowerCase().contains(q);
+        return item.name.toLowerCase().contains(q) || item.category.label(isFr).toLowerCase().contains(q);
       }
       return true;
     }).toList();
@@ -239,7 +235,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                     controller: _pantrySearchController,
                     autofocus: true,
                     decoration: InputDecoration(
-                      hintText: 'Rechercher un ingrédient...',
+                      hintText: isFr ? 'Rechercher un ingrédient...' : 'Search for an ingredient...',
                       prefixIcon: const Icon(Icons.search, size: 20),
                       suffixIcon: _pantrySearch.isNotEmpty
                           ? IconButton(
@@ -301,8 +297,8 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       icon: const Icon(Icons.add, size: 16),
-                      label: const Text('Ajouter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                      onPressed: () => _showAddPantryItemDialog(context),
+                      label: Text(isFr ? 'Ajouter' : 'Add', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () => _showAddPantryItemDialog(context, isFr),
                     ),
                     const SizedBox(width: 6),
 
@@ -316,13 +312,13 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                       ),
                       icon: const Icon(Icons.refresh, size: 16),
                       label: const Text('Reset', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                      onPressed: () => _confirmResetAll(context),
+                      onPressed: () => _confirmResetAll(context, isFr),
                     ),
                     const SizedBox(width: 8),
 
                     // Tous Chip
                     FilterChip(
-                      label: const Text('Tous'),
+                      label: Text(isFr ? 'Tous' : 'All'),
                       selected: _selectedPantryCategory == null,
                       onSelected: (_) => setState(() => _selectedPantryCategory = null),
                     ),
@@ -332,7 +328,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                         padding: const EdgeInsets.only(right: 6),
                         child: FilterChip(
                           avatar: Icon(cat.icon, size: 14),
-                          label: Text(cat.labelFr),
+                          label: Text(cat.label(isFr)),
                           selected: _selectedPantryCategory == cat,
                           onSelected: (_) => setState(() {
                             _selectedPantryCategory = _selectedPantryCategory == cat ? null : cat;
@@ -385,7 +381,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                   ),
                 ),
                 subtitle: Text(
-                  '${item.category.labelFr} • ${item.unit}',
+                  '${item.category.label(isFr)} • ${item.unit}',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
                 trailing: Row(
@@ -445,30 +441,31 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
     List<CocktailMatchResult> allMatches,
     List<CocktailMatchResult> readyMatches,
     List<CocktailMatchResult> almostMatches,
+    bool isFr,
   ) {
     final theme = Theme.of(context);
     final filtered = allMatches.where((m) {
       final c = m.cocktail;
 
       // Filter by readiness status
-      if (_filterStatus == 'Prêts') {
+      if (_filterStatus == 'ready' || _filterStatus == 'Prêts') {
         if (!m.isReady) return false;
-      } else if (_filterStatus == '1 manquant') {
+      } else if (_filterStatus == 'almost' || _filterStatus == '1 manquant') {
         if (!m.isAlmostReady) return false;
       }
 
       // Filter by base spirit / creations
-      if (_selectedCatalogSpirit != 'Tous') {
-        if (_selectedCatalogSpirit == '✨ Mes créations') {
+      if (_selectedCatalogSpirit != 'all' && _selectedCatalogSpirit != 'Tous') {
+        if (_selectedCatalogSpirit == 'custom' || _selectedCatalogSpirit == '✨ Mes créations') {
           if (!c.isCustom) return false;
         } else {
           final target = _selectedCatalogSpirit.toLowerCase();
           if (target == 'gin' && c.baseSpirit != 'gin') return false;
-          if (target == 'rhum' && c.baseSpirit != 'rhum') return false;
-          if (target == 'whisky' && c.baseSpirit != 'whisky') return false;
+          if ((target == 'rhum' || target == 'rum') && c.baseSpirit != 'rhum' && c.baseSpirit != 'rum') return false;
+          if ((target == 'whisky' || target == 'whiskey') && c.baseSpirit != 'whisky' && c.baseSpirit != 'whiskey' && c.baseSpirit != 'bourbon') return false;
           if (target == 'vodka' && c.baseSpirit != 'vodka') return false;
           if (target == 'tequila' && (c.baseSpirit != 'tequila' && c.baseSpirit != 'mezcal')) return false;
-          if (target == 'apéritifs' && (c.baseSpirit != 'aperitif' && c.baseSpirit != 'liqueur' && c.baseSpirit != 'cognac')) return false;
+          if ((target == 'apéritifs' || target == 'aperitifs') && (c.baseSpirit != 'aperitif' && c.baseSpirit != 'liqueur' && c.baseSpirit != 'cognac' && c.baseSpirit != 'campari' && c.baseSpirit != 'aperol')) return false;
         }
       }
 
@@ -520,7 +517,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                     controller: _catalogSearchController,
                     autofocus: true,
                     decoration: InputDecoration(
-                      hintText: 'Rechercher un cocktail, ingrédient...',
+                      hintText: isFr ? 'Rechercher un cocktail, ingrédient...' : 'Search cocktail, ingredient...',
                       prefixIcon: const Icon(Icons.search, size: 20),
                       suffixIcon: _catalogSearch.isNotEmpty
                           ? IconButton(
@@ -593,7 +590,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
 
                     // Sort button
                     PopupMenuButton<String>(
-                      tooltip: 'Trier la liste',
+                      tooltip: isFr ? 'Trier la liste' : 'Sort list',
                       initialValue: _sortBy,
                       onSelected: (val) => setState(() => _sortBy = val),
                       itemBuilder: (context) => [
@@ -603,7 +600,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                             children: [
                               Icon(Icons.check_circle_outline, size: 18, color: _sortBy == 'missing' ? const Color(0xFF2E7D32) : null),
                               const SizedBox(width: 8),
-                              const Text('Les + faisables en 1er (Défaut)'),
+                              Text(isFr ? 'Les + faisables en 1er (Défaut)' : 'Most ready first (Default)'),
                             ],
                           ),
                         ),
@@ -613,7 +610,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                             children: [
                               Icon(Icons.sort_by_alpha, size: 18, color: _sortBy == 'name' ? const Color(0xFF8B1E3F) : null),
                               const SizedBox(width: 8),
-                              const Text('Nom (A → Z)'),
+                              Text(isFr ? 'Nom (A → Z)' : 'Name (A → Z)'),
                             ],
                           ),
                         ),
@@ -623,7 +620,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                             children: [
                               Icon(Icons.local_bar, size: 18, color: _sortBy == 'spirit' ? const Color(0xFF8B1E3F) : null),
                               const SizedBox(width: 8),
-                              const Text('Alcool de base'),
+                              Text(isFr ? 'Alcool de base' : 'Base spirit'),
                             ],
                           ),
                         ),
@@ -633,7 +630,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                             children: [
                               Icon(Icons.speed, size: 18, color: _sortBy == 'difficulty' ? const Color(0xFF8B1E3F) : null),
                               const SizedBox(width: 8),
-                              const Text('Difficulté'),
+                              Text(isFr ? 'Difficulté' : 'Difficulty'),
                             ],
                           ),
                         ),
@@ -651,7 +648,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                             const Icon(Icons.sort, color: Color(0xFF8B1E3F), size: 18),
                             const SizedBox(width: 4),
                             Text(
-                              _getSortLabel(_sortBy),
+                              _getSortLabel(_sortBy, isFr),
                               style: const TextStyle(
                                 color: Color(0xFF8B1E3F),
                                 fontSize: 12,
@@ -665,34 +662,34 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                     const SizedBox(width: 6),
                     FilterChip(
                       visualDensity: VisualDensity.compact,
-                      label: Text('Tous (${allMatches.length})', style: const TextStyle(fontSize: 12)),
-                      selected: _filterStatus == 'Tous' && _selectedCatalogSpirit == 'Tous',
+                      label: Text('${isFr ? "Tous" : "All"} (${allMatches.length})', style: const TextStyle(fontSize: 12)),
+                      selected: (_filterStatus == 'all' || _filterStatus == 'Tous') && (_selectedCatalogSpirit == 'all' || _selectedCatalogSpirit == 'Tous'),
                       selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
                       checkmarkColor: const Color(0xFF8B1E3F),
                       onSelected: (_) => setState(() {
-                        _filterStatus = 'Tous';
-                        _selectedCatalogSpirit = 'Tous';
+                        _filterStatus = 'all';
+                        _selectedCatalogSpirit = 'all';
                       }),
                     ),
                     const SizedBox(width: 6),
                     FilterChip(
                       visualDensity: VisualDensity.compact,
                       avatar: const Icon(Icons.check_circle, size: 14, color: Color(0xFF2E7D32)),
-                      label: Text('Prêts (${readyMatches.length})', style: const TextStyle(fontSize: 12)),
-                      selected: _filterStatus == 'Prêts',
+                      label: Text('${isFr ? "Prêts" : "Ready"} (${readyMatches.length})', style: const TextStyle(fontSize: 12)),
+                      selected: _filterStatus == 'ready' || _filterStatus == 'Prêts',
                       selectedColor: const Color(0xFF2E7D32).withValues(alpha: 0.18),
                       checkmarkColor: const Color(0xFF2E7D32),
-                      onSelected: (_) => setState(() => _filterStatus = _filterStatus == 'Prêts' ? 'Tous' : 'Prêts'),
+                      onSelected: (_) => setState(() => _filterStatus = (_filterStatus == 'ready' || _filterStatus == 'Prêts') ? 'all' : 'ready'),
                     ),
                     const SizedBox(width: 6),
                     FilterChip(
                       visualDensity: VisualDensity.compact,
                       avatar: Icon(Icons.pending_actions, size: 14, color: Colors.orange.shade800),
-                      label: Text('1 manquant (${almostMatches.length})', style: const TextStyle(fontSize: 12)),
-                      selected: _filterStatus == '1 manquant',
+                      label: Text('${isFr ? "1 manquant" : "1 missing"} (${almostMatches.length})', style: const TextStyle(fontSize: 12)),
+                      selected: _filterStatus == 'almost' || _filterStatus == '1 manquant',
                       selectedColor: Colors.orange.withValues(alpha: 0.18),
                       checkmarkColor: Colors.orange.shade800,
-                      onSelected: (_) => setState(() => _filterStatus = _filterStatus == '1 manquant' ? 'Tous' : '1 manquant'),
+                      onSelected: (_) => setState(() => _filterStatus = (_filterStatus == 'almost' || _filterStatus == '1 manquant') ? 'all' : 'almost'),
                     ),
                     const SizedBox(width: 6),
                     Container(
@@ -703,25 +700,25 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                     ),
                     const SizedBox(width: 6),
                     ...[
-                      '✨ Mes créations',
-                      'Gin',
-                      'Rhum',
-                      'Whisky',
-                      'Vodka',
-                      'Tequila',
-                      'Apéritifs',
-                    ].map((spirit) {
-                      final isSelected = _selectedCatalogSpirit == spirit;
+                      (key: 'custom', label: isFr ? '✨ Mes créations' : '✨ My creations'),
+                      (key: 'gin', label: 'Gin'),
+                      (key: 'rhum', label: isFr ? 'Rhum' : 'Rum'),
+                      (key: 'whisky', label: 'Whisky'),
+                      (key: 'vodka', label: 'Vodka'),
+                      (key: 'tequila', label: 'Tequila'),
+                      (key: 'aperitifs', label: isFr ? 'Apéritifs' : 'Aperitifs'),
+                    ].map((item) {
+                      final isSelected = _selectedCatalogSpirit == item.key || _selectedCatalogSpirit == item.label;
                       return Padding(
                         padding: const EdgeInsets.only(right: 6),
                         child: FilterChip(
                           visualDensity: VisualDensity.compact,
-                          label: Text(spirit, style: const TextStyle(fontSize: 12)),
+                          label: Text(item.label, style: const TextStyle(fontSize: 12)),
                           selected: isSelected,
                           selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
                           checkmarkColor: const Color(0xFF8B1E3F),
                           onSelected: (_) => setState(() {
-                            _selectedCatalogSpirit = isSelected ? 'Tous' : spirit;
+                            _selectedCatalogSpirit = isSelected ? 'all' : item.key;
                           }),
                         ),
                       );
@@ -745,34 +742,38 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          _filterStatus == 'Prêts' ? Icons.inventory_2_outlined : Icons.bookmark_border,
+                          (_filterStatus == 'ready' || _filterStatus == 'Prêts') ? Icons.inventory_2_outlined : Icons.bookmark_border,
                           size: 48,
                           color: Colors.grey,
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          _filterStatus == 'Prêts'
-                              ? 'Aucun cocktail 100% prêt pour l\'instant'
-                              : _selectedCatalogSpirit == '✨ Mes créations'
-                                  ? 'Aucune création enregistrée'
-                                  : 'Aucun cocktail trouvé',
+                          (_filterStatus == 'ready' || _filterStatus == 'Prêts')
+                              ? (isFr ? 'Aucun cocktail 100% prêt pour l\'instant' : 'No 100% ready cocktails right now')
+                              : (_selectedCatalogSpirit == 'custom' || _selectedCatalogSpirit == '✨ Mes créations')
+                                  ? (isFr ? 'Aucune création enregistrée' : 'No custom creations saved')
+                                  : (isFr ? 'Aucun cocktail trouvé' : 'No cocktails found'),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          _filterStatus == 'Prêts'
-                              ? 'Allez dans l\'onglet "Réserve du Bar" pour cocher vos citrons, glaçons, tonics ou menthe fraîche !'
-                              : _selectedCatalogSpirit == '✨ Mes créations'
-                                  ? 'Demandez au Chatmelier Mixologue de concevoir un cocktail sur-mesure !'
-                                  : 'Essayez un autre filtre ou une autre recherche.',
+                          (_filterStatus == 'ready' || _filterStatus == 'Prêts')
+                              ? (isFr
+                                  ? 'Allez dans l\'onglet "Réserve du Bar" pour cocher vos citrons, glaçons, tonics ou menthe fraîche !'
+                                  : 'Go to the "Bar Pantry" tab to add your lemons, ice, tonics or fresh mint!')
+                              : (_selectedCatalogSpirit == 'custom' || _selectedCatalogSpirit == '✨ Mes créations')
+                                  ? (isFr
+                                      ? 'Demandez au Chatmelier Mixologue de concevoir un cocktail sur-mesure !'
+                                      : 'Ask Chatmelier Mixologist to design a custom cocktail!')
+                                  : (isFr ? 'Essayez un autre filtre ou une autre recherche.' : 'Try another filter or search.'),
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                         ),
-                        if (_filterStatus == 'Prêts') ...[
+                        if (_filterStatus == 'ready' || _filterStatus == 'Prêts') ...[
                           const SizedBox(height: 16),
                           OutlinedButton.icon(
                             icon: const Icon(Icons.kitchen_outlined),
-                            label: const Text('Gérer ma Réserve'),
+                            label: Text(isFr ? 'Gérer ma Réserve' : 'Manage Pantry'),
                             onPressed: () => _tabController.animateTo(1),
                           ),
                         ],
@@ -785,7 +786,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
                     final m = filtered[index];
-                    return _buildCocktailCard(context, m, isReady: m.isReady);
+                    return _buildCocktailCard(context, m, isReady: m.isReady, isFr: isFr);
                   },
                 ),
         ),
@@ -793,18 +794,18 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
     );
   }
 
-  String _getSortLabel(String sort) {
+  String _getSortLabel(String sort, bool isFr) {
     switch (sort) {
       case 'missing':
-        return 'Faisables d\'abord';
+        return isFr ? 'Faisables d\'abord' : 'Ready first';
       case 'name':
-        return 'Nom (A-Z)';
+        return isFr ? 'Nom (A-Z)' : 'Name (A-Z)';
       case 'spirit':
-        return 'Alcool';
+        return isFr ? 'Alcool' : 'Spirit';
       case 'difficulty':
-        return 'Difficulté';
+        return isFr ? 'Difficulté' : 'Difficulty';
       default:
-        return 'Trier';
+        return isFr ? 'Trier' : 'Sort';
     }
   }
 
@@ -815,6 +816,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
     BuildContext context,
     CocktailMatchResult match, {
     required bool isReady,
+    required bool isFr,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -872,9 +874,9 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(color: const Color(0xFFD4AF37)),
                             ),
-                            child: const Text(
-                              '✨ Ma Recette',
-                              style: TextStyle(
+                            child: Text(
+                              isFr ? '✨ Ma Recette' : '✨ My Recipe',
+                              style: const TextStyle(
                                 color: Color(0xFFB8860B),
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.bold,
@@ -888,9 +890,9 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                               color: const Color(0xFF2E7D32),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
-                              'Prêt',
-                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            child: Text(
+                              isFr ? 'Prêt' : 'Ready',
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                             ),
                           )
                         else if (match.isAlmostReady)
@@ -900,9 +902,9 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                               color: Colors.orange.shade800,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
-                              'Manque 1',
-                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            child: Text(
+                              isFr ? 'Manque 1' : '1 missing',
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                             ),
                           ),
                       ],
@@ -915,7 +917,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                     if (!isReady && match.missingIngredients.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        'Manquant : ${match.missingIngredients.join(', ')}',
+                        '${isFr ? "Manquant" : "Missing"} : ${match.missingIngredients.join(', ')}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 11, color: Colors.orange.shade800),
@@ -933,11 +935,11 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
     );
   }
 
-  Future<void> _showAddPantryItemDialog(BuildContext context) async {
+  Future<void> _showAddPantryItemDialog(BuildContext context, bool isFr) async {
     final nameCtrl = TextEditingController();
     PantryCategory selectedCat = PantryCategory.custom;
     final emojiCtrl = TextEditingController(text: '✨');
-    final unitCtrl = TextEditingController(text: 'unités');
+    final unitCtrl = TextEditingController(text: isFr ? 'unités' : 'units');
     final messenger = ScaffoldMessenger.of(context);
 
     try {
@@ -947,11 +949,11 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
           builder: (dialogCtx, setDialogState) {
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Row(
+              title: Row(
                 children: [
-                  Icon(Icons.add_circle_outline, color: Color(0xFF8B1E3F)),
-                  SizedBox(width: 8),
-                  Text('Nouvel ingrédient', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Icon(Icons.add_circle_outline, color: Color(0xFF8B1E3F)),
+                  const SizedBox(width: 8),
+                  Text(isFr ? 'Nouvel ingrédient' : 'New Ingredient', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ],
               ),
               content: SingleChildScrollView(
@@ -963,8 +965,8 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                       controller: nameCtrl,
                       autofocus: true,
                       decoration: InputDecoration(
-                        labelText: 'Nom de l\'ingrédient *',
-                        hintText: 'Ex: Sirop de fleur de sureau, Yuzu...',
+                        labelText: isFr ? 'Nom de l\'ingrédient *' : 'Ingredient name *',
+                        hintText: isFr ? 'Ex: Sirop de fleur de sureau, Yuzu...' : 'e.g. Elderflower syrup, Yuzu...',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
@@ -972,7 +974,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                     DropdownButtonFormField<PantryCategory>(
                       initialValue: selectedCat,
                       decoration: InputDecoration(
-                        labelText: 'Catégorie',
+                        labelText: isFr ? 'Catégorie' : 'Category',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       items: PantryCategory.values.map((cat) {
@@ -982,7 +984,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                             children: [
                               Icon(cat.icon, size: 16),
                               const SizedBox(width: 8),
-                              Text(cat.labelFr),
+                              Text(cat.label(isFr)),
                             ],
                           ),
                         );
@@ -1000,7 +1002,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                             controller: emojiCtrl,
                             textAlign: TextAlign.center,
                             decoration: InputDecoration(
-                              labelText: 'Émoji',
+                              labelText: isFr ? 'Émoji' : 'Emoji',
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
@@ -1010,7 +1012,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                           child: TextField(
                             controller: unitCtrl,
                             decoration: InputDecoration(
-                              labelText: 'Unité (ex: pièces, cl)',
+                              labelText: isFr ? 'Unité (ex: pièces, cl)' : 'Unit (e.g. pcs, cl)',
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
@@ -1021,7 +1023,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Annuler')),
+                TextButton(onPressed: () => Navigator.pop(dialogCtx), child: Text(isFr ? 'Annuler' : 'Cancel')),
                 FilledButton(
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF8B1E3F),
@@ -1033,18 +1035,20 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                     ref.read(barPantryProvider.notifier).addCustomItem(
                       name,
                       selectedCat,
-                      unit: unitCtrl.text.trim().isNotEmpty ? unitCtrl.text.trim() : 'unités',
+                      unit: unitCtrl.text.trim().isNotEmpty ? unitCtrl.text.trim() : (isFr ? 'unités' : 'units'),
                       emoji: emojiCtrl.text.trim().isNotEmpty ? emojiCtrl.text.trim() : '🍹',
                     );
                     Navigator.pop(dialogCtx);
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text('Ingrédient "$name" ajouté à la réserve du bar !'),
+                        content: Text(isFr
+                            ? 'Ingrédient "$name" ajouté à la réserve du bar !'
+                            : 'Ingredient "$name" added to bar pantry!'),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
                   },
-                  child: const Text('Ajouter'),
+                  child: Text(isFr ? 'Ajouter' : 'Add'),
                 ),
               ],
             );
@@ -1058,18 +1062,20 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
     }
   }
 
-  void _confirmResetAll(BuildContext context) {
+  void _confirmResetAll(BuildContext context, bool isFr) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Réinitialiser la Réserve du Bar ?'),
-        content: const Text(
-          'Voulez-vous remettre toutes les quantités d\'ingrédients frais, softs et herbes à 0 ?',
+        title: Text(isFr ? 'Réinitialiser la Réserve du Bar ?' : 'Reset Bar Pantry?'),
+        content: Text(
+          isFr
+              ? 'Voulez-vous remettre toutes les quantités d\'ingrédients frais, softs et herbes à 0 ?'
+              : 'Do you want to reset all quantities of fresh ingredients, sodas and herbs to 0?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(isFr ? 'Annuler' : 'Cancel'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1080,10 +1086,10 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
               Navigator.pop(ctx);
               ref.read(barPantryProvider.notifier).resetAll();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Réserve du bar réinitialisée à zéro.')),
+                SnackBar(content: Text(isFr ? 'Réserve du bar réinitialisée à zéro.' : 'Bar pantry reset to zero.')),
               );
             },
-            child: const Text('Tout réinitialiser'),
+            child: Text(isFr ? 'Tout réinitialiser' : 'Reset all'),
           ),
         ],
       ),

@@ -117,7 +117,7 @@ class BottleContextSheet extends ConsumerWidget {
                               ],
                               Expanded(
                                 child: Text(
-                                  wine?.producer ?? 'Producteur non renseigné',
+                                  wine?.producer ?? (isFr ? 'Producteur non renseigné' : 'Unknown Producer'),
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -136,7 +136,7 @@ class BottleContextSheet extends ConsumerWidget {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  'Stock : ${bottle.quantity}',
+                                  isFr ? 'Stock : ${bottle.quantity}' : 'Stock: ${bottle.quantity}',
                                   style: theme.textTheme.labelSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -145,7 +145,7 @@ class BottleContextSheet extends ConsumerWidget {
                               if (bottle.rack != null && bottle.rack!.isNotEmpty) ...[
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Casier ${bottle.rack}',
+                                  isFr ? 'Casier ${bottle.rack}' : 'Rack ${bottle.rack}',
                                   style: theme.textTheme.labelSmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -158,7 +158,7 @@ class BottleContextSheet extends ConsumerWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            bottle.provenanceDisplay,
+                            bottle.getProvenanceDisplay(isFr),
                             style: TextStyle(
                               fontSize: 11,
                               color: theme.brightness == Brightness.dark ? const Color(0xFFD4AF37) : const Color(0xFF8B1E3F),
@@ -186,8 +186,10 @@ class BottleContextSheet extends ConsumerWidget {
                     ),
                     child: const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 20),
                   ),
-                  title: const Text('Sortir / Boire cette bouteille', style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(bottle.quantity > 1 ? 'Déguster 1 ou plusieurs bouteilles (${bottle.quantity} dispo)' : 'Enregistrer la dégustation dans le journal'),
+                  title: Text(isFr ? 'Sortir / Boire cette bouteille' : 'Checkout / Drink this bottle', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(bottle.quantity > 1
+                      ? (isFr ? 'Déguster 1 ou plusieurs bouteilles (${bottle.quantity} dispo)' : 'Taste 1 or more bottles (${bottle.quantity} available)')
+                      : (isFr ? 'Enregistrer la dégustation dans le journal' : 'Log tasting in journal')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     HapticFeedback.heavyImpact();
@@ -206,8 +208,8 @@ class BottleContextSheet extends ConsumerWidget {
                   ),
                   child: const Icon(Icons.room_service_outlined, color: Color(0xFFD4AF37), size: 20),
                 ),
-                title: const Text('Mode Sommelier à Table', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
-                subtitle: const Text('Minuteur de carafage & fiche express de dégustation'),
+                title: Text(isFr ? 'Mode Sommelier à Table' : 'Table Sommelier Mode', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
+                subtitle: Text(isFr ? 'Minuteur de carafage & fiche express de dégustation' : 'Decanting timer & express tasting card'),
                 trailing: const Icon(Icons.chevron_right, color: Color(0xFFD4AF37)),
                 onTap: () {
                   HapticFeedback.mediumImpact();
@@ -227,8 +229,8 @@ class BottleContextSheet extends ConsumerWidget {
                     ),
                     child: const Icon(Icons.add, color: Colors.green, size: 20),
                   ),
-                  title: const Text('Ajouter des bouteilles au stock', style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text('+1, +2, carton de 6, caisse de 12...'),
+                  title: Text(isFr ? 'Ajouter des bouteilles au stock' : 'Add bottles to stock', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(isFr ? '+1, +2, carton de 6, caisse de 12...' : '+1, +2, case of 6, crate of 12...'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.of(context).pop();
@@ -247,8 +249,8 @@ class BottleContextSheet extends ConsumerWidget {
                     ),
                     child: const Icon(Icons.drive_file_move_outline, color: Colors.blue, size: 20),
                   ),
-                  title: const Text('Déplacer vers une autre cave', style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text('Transférer tout ou partie du stock (ex: vers Vosges, Londres...)'),
+                  title: Text(isFr ? 'Déplacer vers une autre cave' : 'Move to another cellar', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(isFr ? 'Transférer tout ou partie du stock (ex: vers Vosges, Londres...)' : 'Transfer all or part of the stock to another cellar'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.of(context).pop();
@@ -266,8 +268,8 @@ class BottleContextSheet extends ConsumerWidget {
                   ),
                   child: const Icon(Icons.chat_bubble_outline, color: Colors.amber, size: 20),
                 ),
-                title: const Text('Demander conseil à Chatmelier', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Accords mets-vins, apogée, température de service...'),
+                title: Text(isFr ? 'Demander conseil à Chatmelier' : 'Ask Chatmelier for advice', style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(isFr ? 'Accords mets-vins, apogée, température de service...' : 'Food & wine pairing, peak, serving temperature...'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -285,8 +287,8 @@ class BottleContextSheet extends ConsumerWidget {
                   ),
                   child: const Icon(Icons.info_outline, color: Colors.purple, size: 20),
                 ),
-                title: const Text('Voir la fiche détaillée', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Terroir, carte, notes de dégustation, historique de prix'),
+                title: Text(isFr ? 'Voir la fiche détaillée' : 'View detailed card', style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(isFr ? 'Terroir, carte, notes de dégustation, historique de prix' : 'Terroir, map, tasting notes, price history'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -306,11 +308,11 @@ class BottleContextSheet extends ConsumerWidget {
                     ),
                     child: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
                   ),
-                  title: const Text(
-                    'Supprimer définitivement',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent),
+                  title: Text(
+                    isFr ? 'Supprimer définitivement' : 'Permanently delete',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent),
                   ),
-                  subtitle: const Text('Effacer toute trace (erreur, casse, doublon)'),
+                  subtitle: Text(isFr ? 'Effacer toute trace (erreur, casse, doublon)' : 'Erase record (error, broken, duplicate)'),
                   trailing: const Icon(Icons.chevron_right, color: Colors.redAccent),
                   onTap: () {
                     Navigator.of(context).pop();
@@ -334,24 +336,27 @@ class BottleContextSheet extends ConsumerWidget {
   void _showAddQuantityDialog(BuildContext context, WidgetRef ref) {
     int qtyToAdd = 1;
     final repo = ref.read(cellarRepositoryProvider);
+    final isFr = Localizations.localeOf(context).languageCode != 'en';
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.add_circle_outline, color: Colors.green),
-              SizedBox(width: 8),
-              Text('Ajouter au stock'),
+              const Icon(Icons.add_circle_outline, color: Colors.green),
+              const SizedBox(width: 8),
+              Text(isFr ? 'Ajouter au stock' : 'Add to stock'),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Combien de bouteilles de "${bottle.wine?.name ?? "ce vin"}" souhaitez-vous ajouter ?',
+                isFr
+                    ? 'Combien de bouteilles de "${bottle.wine?.name ?? "ce vin"}" souhaitez-vous ajouter ?'
+                    : 'How many bottles of "${bottle.wine?.name ?? "this wine"}" would you like to add?',
               ),
               const SizedBox(height: 16),
               Row(
@@ -387,11 +392,11 @@ class BottleContextSheet extends ConsumerWidget {
                     onPressed: () => setDlgState(() => qtyToAdd = 3),
                   ),
                   ActionChip(
-                    label: const Text('+6 (Carton)'),
+                    label: Text(isFr ? '+6 (Carton)' : '+6 (Case)'),
                     onPressed: () => setDlgState(() => qtyToAdd = 6),
                   ),
                   ActionChip(
-                    label: const Text('+12 (Caisse)'),
+                    label: Text(isFr ? '+12 (Caisse)' : '+12 (Crate)'),
                     onPressed: () => setDlgState(() => qtyToAdd = 12),
                   ),
                 ],
@@ -401,7 +406,7 @@ class BottleContextSheet extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Annuler'),
+              child: Text(isFr ? 'Annuler' : 'Cancel'),
             ),
             FilledButton(
               onPressed: () async {
@@ -415,12 +420,14 @@ class BottleContextSheet extends ConsumerWidget {
                 notifyCellarChanged(ref, cellarId);
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text('🍾 +$qtyToAdd bouteille(s) ajoutée(s) au stock !'),
+                    content: Text(isFr
+                        ? '🍾 +$qtyToAdd bouteille(s) ajoutée(s) au stock !'
+                        : '🍾 +$qtyToAdd bottle(s) added to stock!'),
                     backgroundColor: Colors.green.shade800,
                   ),
                 );
               },
-              child: const Text('Ajouter'),
+              child: Text(isFr ? 'Ajouter' : 'Add'),
             ),
           ],
         ),
@@ -431,6 +438,7 @@ class BottleContextSheet extends ConsumerWidget {
   void _showMoveCellarDialog(BuildContext context, WidgetRef ref) async {
     final repo = ref.read(cellarRepositoryProvider);
     final userCellars = await repo.getUserCellarsWithRole();
+    final isFr = Localizations.localeOf(context).languageCode != 'en';
     final otherCellars = userCellars.where((c) {
       final cMap = c['cellars'];
       final id = cMap is Map ? cMap['id']?.toString() : c['cellar_id']?.toString();
@@ -441,8 +449,10 @@ class BottleContextSheet extends ConsumerWidget {
 
     if (otherCellars.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vous n\'avez pas d\'autre cave configurée. Créez-en une nouvelle depuis le sélecteur de cave !'),
+        SnackBar(
+          content: Text(isFr
+              ? 'Vous n\'avez pas d\'autre cave configurée. Créez-en une nouvelle depuis le sélecteur de cave !'
+              : 'You have no other cellar configured. Create a new one from the cellar switcher!'),
         ),
       );
       return;
@@ -459,20 +469,25 @@ class BottleContextSheet extends ConsumerWidget {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.drive_file_move, color: Colors.blue),
-              SizedBox(width: 8),
-              Text('Déplacer vers une cave'),
+              const Icon(Icons.drive_file_move, color: Colors.blue),
+              const SizedBox(width: 8),
+              Text(isFr ? 'Déplacer vers une cave' : 'Move to cellar'),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Vin : ${bottle.wine?.name ?? "Vin"} (${bottle.quantity} en stock)'),
+              Text(isFr
+                  ? 'Vin : ${bottle.wine?.name ?? "Vin"} (${bottle.quantity} en stock)'
+                  : 'Wine: ${bottle.wine?.name ?? "Wine"} (${bottle.quantity} in stock)'),
               const SizedBox(height: 16),
-              const Text('Sélectionner la cave de destination :', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                isFr ? 'Sélectionner la cave de destination :' : 'Select destination cellar:',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: targetCellarId,
@@ -480,10 +495,10 @@ class BottleContextSheet extends ConsumerWidget {
                 items: otherCellars.map((c) {
                   final map = c['cellars'];
                   final id = map is Map ? map['id']?.toString() : c['cellar_id']?.toString();
-                  final name = map is Map ? map['name']?.toString() : 'Cave';
+                  final name = map is Map ? map['name']?.toString() : (isFr ? 'Cave' : 'Cellar');
                   return DropdownMenuItem<String>(
                     value: id,
-                    child: Text(name ?? 'Cave'),
+                    child: Text(name ?? (isFr ? 'Cave' : 'Cellar')),
                   );
                 }).toList(),
                 onChanged: (val) {
@@ -492,7 +507,12 @@ class BottleContextSheet extends ConsumerWidget {
               ),
               if (bottle.quantity > 1) ...[
                 const SizedBox(height: 16),
-                Text('Quantité à déplacer : $qtyToMove / ${bottle.quantity}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  isFr
+                      ? 'Quantité à déplacer : $qtyToMove / ${bottle.quantity}'
+                      : 'Quantity to move: $qtyToMove / ${bottle.quantity}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -511,7 +531,7 @@ class BottleContextSheet extends ConsumerWidget {
                     ),
                     TextButton(
                       onPressed: () => setDlgState(() => qtyToMove = bottle.quantity),
-                      child: const Text('Tout'),
+                      child: Text(isFr ? 'Tout' : 'All'),
                     ),
                   ],
                 ),
@@ -521,7 +541,7 @@ class BottleContextSheet extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Annuler'),
+              child: Text(isFr ? 'Annuler' : 'Cancel'),
             ),
             FilledButton(
               onPressed: targetCellarId == null
@@ -539,12 +559,14 @@ class BottleContextSheet extends ConsumerWidget {
                       notifyCellarChanged(ref, targetCellarId);
                       messenger.showSnackBar(
                         SnackBar(
-                          content: Text('🚚 $qtyToMove bouteille(s) déplacée(s) avec succès !'),
+                          content: Text(isFr
+                              ? '🚚 $qtyToMove bouteille(s) déplacée(s) avec succès !'
+                              : '🚚 $qtyToMove bottle(s) moved successfully!'),
                           backgroundColor: Colors.blue.shade800,
                         ),
                       );
                     },
-              child: const Text('Déplacer'),
+              child: Text(isFr ? 'Déplacer' : 'Move'),
             ),
           ],
         ),

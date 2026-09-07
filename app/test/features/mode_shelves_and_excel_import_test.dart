@@ -367,6 +367,22 @@ Brunello di Montalcino,Biondi-Santi,2015,red,1
       );
       expect(unassignedFromFurniture.hasLocation, isFalse);
       expect(unassignedFromFurniture.locationSummary, 'Emplacement non défini');
+
+      // 8. Cupboard bottle with 'Étagère 2' slot
+      final cupboardBottle = Bottle(
+        id: 'cupboard-b-1',
+        cellarId: 'cellar-uuid',
+        wineId: 'wine-uuid',
+        addedBy: 'user-uuid',
+        ownerId: 'user-uuid',
+        createdAt: now,
+        furnitureId: 'cupboard-uuid',
+        furnitureSlot: 'Étagère 2',
+      );
+      expect(cupboardBottle.hasLocation, isTrue);
+      expect(cupboardBottle.furnitureSlot, 'Étagère 2');
+      expect(cupboardBottle.locationSummary, 'Étagère 2');
+      expect(CellarFurniture.describeSlotCode('Étagère 2'), 'Étagère 2');
     });
   });
 }

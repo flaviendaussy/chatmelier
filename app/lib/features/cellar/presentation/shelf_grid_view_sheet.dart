@@ -434,11 +434,13 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
           ),
           const SizedBox(height: 16),
           ...List.generate(furniture.rows, (r) {
-            final shelfSlotCode = CellarFurniture.slotCode(0, r);
+            final shelfSlotCode = 'Étagère ${r + 1}';
             final shelfBottles = bottlesByShelf[r] ?? [];
             final isHighlighted = widget.highlightedSlot != null &&
-                (widget.highlightedSlot!.toUpperCase() == shelfSlotCode ||
-                    widget.highlightedSlot!.toUpperCase().contains('R${r + 1}'));
+                (widget.highlightedSlot!.trim().toLowerCase() == shelfSlotCode.toLowerCase() ||
+                    widget.highlightedSlot!.toUpperCase() == CellarFurniture.slotCode(0, r) ||
+                    widget.highlightedSlot!.toUpperCase().contains('R${r + 1}') ||
+                    RegExp(r'\d+').firstMatch(widget.highlightedSlot!)?.group(0) == '${r + 1}');
 
             return Container(
               margin: const EdgeInsets.only(bottom: 14),

@@ -143,7 +143,23 @@ class FurnitureGraphicCard extends ConsumerWidget {
     if (furniture != null) {
       if (furniture.isCupboard) {
         if (bottle.furnitureSlot != null && bottle.furnitureSlot!.isNotEmpty) {
-          detailedLocationText = CellarFurniture.describeSlotCode(bottle.furnitureSlot!);
+          final slot = bottle.furnitureSlot!;
+          final lower = slot.trim().toLowerCase();
+          if (lower.startsWith('etagere') || lower.startsWith('étagère') || lower.startsWith('niveau')) {
+            detailedLocationText = slot.trim();
+          } else {
+            final parsed = CellarFurniture.parseSlotCode(slot);
+            if (parsed != null) {
+              detailedLocationText = 'Étagère ${parsed.row + 1}';
+            } else {
+              final numMatch = RegExp(r'\d+').firstMatch(slot);
+              if (numMatch != null) {
+                detailedLocationText = 'Étagère ${numMatch.group(0)}';
+              } else {
+                detailedLocationText = 'Rangement libre dans le meuble';
+              }
+            }
+          }
         } else {
           detailedLocationText = 'Rangement libre dans le meuble';
         }
@@ -278,7 +294,19 @@ class FurnitureGraphicCard extends ConsumerWidget {
           // Shelves
           ...List.generate(furniture.rows, (rowIndex) {
             final shelfNum = rowIndex + 1;
-            final isTargetShelf = (bottle.furnitureSlot ?? '').contains('$shelfNum') ||
+            int? targetShelfIndex;
+            if (bottle.furnitureSlot != null && bottle.furnitureSlot!.isNotEmpty) {
+              final parsed = CellarFurniture.parseSlotCode(bottle.furnitureSlot!);
+              if (parsed != null) {
+                targetShelfIndex = parsed.row;
+              } else {
+                final match = RegExp(r'\d+').firstMatch(bottle.furnitureSlot!);
+                if (match != null) {
+                  targetShelfIndex = (int.tryParse(match.group(0)!) ?? 1) - 1;
+                }
+              }
+            }
+            final isTargetShelf = (targetShelfIndex != null && targetShelfIndex == rowIndex) ||
                 (furniture.rows == 1) ||
                 ((bottle.furnitureSlot == null || bottle.furnitureSlot == 'Placard') && rowIndex == 0);
 

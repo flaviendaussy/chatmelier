@@ -53,7 +53,14 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
     _shapeType = init?.shapeType ?? 'rectangle';
     _columns = init?.columns ?? 6;
     _rows = init?.rows ?? 6;
-    if (init != null) {
+    if (_shapeType == CellarFurniture.shapeCupboard) {
+      _columns = 1;
+      _slotsMatrix = CellarFurniture.generateMatrix(
+        shapeType: _shapeType,
+        columns: 1,
+        rows: _rows,
+      );
+    } else if (init != null) {
       _slotsMatrix = init.slotsMatrix.map((r) => List<bool>.from(r)).toList();
     } else {
       _slotsMatrix = CellarFurniture.generateMatrix(
@@ -164,6 +171,15 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
     try {
       final repo = ref.read(cellarRepositoryProvider);
       CellarFurniture result;
+
+      if (_shapeType == CellarFurniture.shapeCupboard) {
+        _columns = 1;
+        _slotsMatrix = CellarFurniture.generateMatrix(
+          shapeType: _shapeType,
+          columns: 1,
+          rows: _rows,
+        );
+      }
 
       if (widget.initialFurniture != null) {
         final updated = widget.initialFurniture!.copyWith(

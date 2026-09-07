@@ -390,7 +390,15 @@ class CellarRepository {
           .eq('id', id)
           .single()
           .timeout(const Duration(seconds: 10));
-      return Bottle.fromJson(res);
+      final bottle = Bottle.fromJson(res);
+      await _offlineStorage?.applyOfflineUpdateBottle(id, {
+        'furniture_id': bottle.furnitureId,
+        'furniture_slot': bottle.furnitureSlot,
+        'rack': bottle.rack,
+        'shelf': bottle.shelf,
+        'position': bottle.position,
+      });
+      return bottle;
     } catch (e) {
       if (cachedMatch != null) return cachedMatch;
       rethrow;
@@ -1060,6 +1068,11 @@ class CellarRepository {
           'furniture_id': previousFurnitureId,
           'furniture_slot': previousSlot,
         }).eq('id', existingOccupantBottleId);
+
+        await _offlineStorage?.applyOfflineUpdateBottle(existingOccupantBottleId, {
+          'furniture_id': previousFurnitureId,
+          'furniture_slot': previousSlot,
+        });
       }
 
       // Assign target bottle to new slot
@@ -1067,6 +1080,11 @@ class CellarRepository {
         'furniture_id': furnitureId,
         'furniture_slot': slot,
       }).eq('id', bottleId);
+
+      await _offlineStorage?.applyOfflineUpdateBottle(bottleId, {
+        'furniture_id': furnitureId,
+        'furniture_slot': slot,
+      });
 
       AppLogger.info('CELLAR', 'Assigned bottle $bottleId to $furnitureId slot $slot (swap: $allowSwap)');
     } catch (e) {

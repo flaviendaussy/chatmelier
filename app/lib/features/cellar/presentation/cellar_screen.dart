@@ -15,6 +15,7 @@ import '../domain/cellar_group_by.dart';
 import '../domain/cellar_sort_by.dart';
 import '../domain/bottle.dart';
 import '../domain/wine.dart';
+import '../domain/cellar_furniture.dart';
 import 'bottle_list_item.dart';
 import 'bottle_context_sheet.dart';
 import 'cellar_filter_sheet.dart';
@@ -419,10 +420,44 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
   }
 
   List<Widget> _buildLocationSummaryChips(List<Bottle> bottleList) {
+    final currentCellarId = ref.watch(currentCellarIdProvider);
+    final furnitures = currentCellarId != null
+        ? (ref.watch(cellarFurnitureProvider(currentCellarId)).value ?? const <CellarFurniture>[])
+        : const <CellarFurniture>[];
+    final furnitureMap = {for (final f in furnitures) f.id: f};
+
     final Map<String, int> locations = {};
     for (final b in bottleList) {
       String loc = 'Non classé';
-      if (b.rack != null && b.rack!.isNotEmpty) {
+      if (b.furnitureId != null && b.furnitureId!.isNotEmpty) {
+        final f = furnitureMap[b.furnitureId];
+        final fName = f?.name ?? 'Meuble';
+        if (b.furnitureSlot != null && b.furnitureSlot!.isNotEmpty) {
+          final slotStr = b.furnitureSlot!;
+          final lower = slotStr.trim().toLowerCase();
+          String slotDesc;
+          if (f?.isCupboard == true) {
+            if (lower.startsWith('etagere') || lower.startsWith('étagère') || lower.startsWith('niveau')) {
+              slotDesc = slotStr.trim();
+            } else {
+              final parsed = CellarFurniture.parseSlotCode(slotStr);
+              if (parsed != null) {
+                slotDesc = 'Étagère ${parsed.row + 1}';
+              } else {
+                final match = RegExp(r'\d+').firstMatch(slotStr);
+                slotDesc = match != null ? 'Étagère ${match.group(0)}' : slotStr;
+              }
+            }
+          } else {
+            slotDesc = CellarFurniture.describeSlotCode(slotStr);
+          }
+          loc = '📍 $fName ($slotDesc)';
+        } else {
+          loc = '📍 $fName';
+        }
+      } else if (b.furnitureSlot != null && b.furnitureSlot!.isNotEmpty) {
+        loc = '📍 ${CellarFurniture.describeSlotCode(b.furnitureSlot!)}';
+      } else if (b.rack != null && b.rack!.isNotEmpty) {
         loc = '📍 ${b.rack}';
         if (b.shelf != null && b.shelf!.isNotEmpty) {
           loc += ' • ${b.shelf}';

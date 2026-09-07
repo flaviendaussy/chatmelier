@@ -99,6 +99,20 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
           _labelPhotoUrl = photoUrl;
           _isLoading = false;
         });
+
+        try {
+          final offline = ref.read(offlineStorageServiceProvider);
+          offline.applyOfflineUpdateBottle(widget.id, {
+            'furniture_id': res['furniture_id'],
+            'furniture_slot': res['furniture_slot'],
+            'rack': res['rack'],
+            'shelf': res['shelf'],
+            'position': res['position'],
+            'quantity': res['quantity'],
+            'status': res['status'],
+            'notes': res['notes'],
+          });
+        } catch (_) {}
       }
     } catch (e) {
       debugPrint('BottleDetailScreen offline fallback: $e');

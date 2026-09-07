@@ -2,6 +2,26 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.2.1+47] — 2026-09-07
+
+### 🍷 Ce qui change pour vous
+- **Affichage instantané des meubles & emplacements sur la Web App** : Résolution du délai d'affichage et du cache navigateur mobile : lorsque vous rangez une bouteille dans un meuble ou une étagère, l'emplacement apparaît immédiatement et ne reste plus bloqué sur "Ranger dans un meuble".
+- **Libellés naturels « Étagère 1, 2... » pour les placards** : Les étagères libres ne sont plus affichées sous la forme de coordonnées matricielles (A1, A2...) mais avec un libellé clair et naturel (« Étagère 1 », « Étagère 2 »).
+- **Puces d'emplacements dans la cave** : Les filtres et résumés d'emplacements dans la cave prennent désormais en compte les meubles et leurs étagères au lieu de classer les bouteilles en « Non classé ».
+- **Cache-Busting Web PWA** : Chargement systématique de la dernière version de l'application web sans rétention de vieux fichiers par le cache du navigateur mobile.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Synchronisation Offline & Cache (`cellar_repository.dart`, `offline_storage_service.dart`, `bottle_detail_screen.dart`)* :
+  - `applyOfflineUpdateBottle` intègre désormais `furniture_id` et `furniture_slot`.
+  - `assignBottleToSlot` et `getBottleById` synchronisent instantanément les modifications dans le cache local hors-ligne.
+  - `_loadBottleDetails` met à jour le cache local dès réception de la réponse Supabase.
+- *Web PWA Cache-Busting (`app/web/index.html`, `index.html`, `404.html`)* :
+  - Chargement dynamique de `flutter_bootstrap.js` avec paramètre d'invalidation de cache `?v=`.
+- *Résumé d'emplacements (`cellar_screen.dart`)* :
+  - `_buildLocationSummaryChips` intègre désormais les identifiants et libellés de meubles et étagères.
+
+---
+
 ## [v1.2.1+46] — 2026-09-07
 
 ### 🍷 Ce qui change pour vous

@@ -136,6 +136,10 @@ class WineImageService {
     // Sweet / Liquoreux
     'sweet_sauternes': 'https://images.unsplash.com/photo-1568213816046-0ee1c42bd559?w=800&auto=format&fit=crop&q=80',
     'sweet_default': 'https://images.unsplash.com/photo-1568213816046-0ee1c42bd559?w=800&auto=format&fit=crop&q=80',
+
+    // Spirits, Grappa, Digestifs & Eaux-de-vie
+    'spirit_grappa': 'https://images.unsplash.com/photo-1569919659476-f0852f6834b7?w=800&auto=format&fit=crop&q=80',
+    'spirit_default': 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?w=800&auto=format&fit=crop&q=80',
   };
 
   /// Validates if an existing image path is usable and not a dead local temporary cache file
@@ -238,11 +242,44 @@ class WineImageService {
     if (combinedText.contains('espagne') || combinedText.contains('spain') || combinedText.contains('ribera') || combinedText.contains('jumilla')) {
       return _terroirArchetypeImages['red_spain']!;
     }
-    if (combinedText.contains('italie') || combinedText.contains('italy') || combinedText.contains('toscane') || combinedText.contains('piemont')) {
-      return _terroirArchetypeImages['red_italy']!;
+    if (normType.contains('spirit') ||
+        normType.contains('grappa') ||
+        normType.contains('eau-de-vie') ||
+        normType.contains('eau de vie') ||
+        normType.contains('whisky') ||
+        normType.contains('rhum') ||
+        normType.contains('rum') ||
+        normType.contains('gin') ||
+        normType.contains('vodka') ||
+        normType.contains('tequila') ||
+        normType.contains('cognac') ||
+        normType.contains('armagnac') ||
+        combinedText.contains('grappa') ||
+        combinedText.contains('distillat') ||
+        combinedText.contains('eau de vie')) {
+      if (combinedText.contains('grappa')) {
+        return _terroirArchetypeImages['spirit_grappa']!;
+      }
+      return _terroirArchetypeImages['spirit_default']!;
     }
 
     return _terroirArchetypeImages['red_default']!;
+  }
+
+  /// Resolves the optimal display image for a bottle in list and cards:
+  /// 1. Bottle custom photo (if valid)
+  /// 2. Wine image_url (if valid)
+  /// 3. Wine label_image_url (if valid)
+  /// 4. Sommelier estate or terroir archetype image fallback
+  static String? resolveBottleDisplayImage(Bottle? bottle, Wine? wine) {
+    if (bottle != null && isValidImagePath(bottle.photoUrl)) {
+      return bottle.photoUrl;
+    }
+    if (wine != null) {
+      if (isValidImagePath(wine.imageUrl)) return wine.imageUrl;
+      return resolveWineImageUrl(wine);
+    }
+    return null;
   }
 
   /// Forces enrichment of missing bottle label photos across an entire cellar

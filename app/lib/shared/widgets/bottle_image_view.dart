@@ -96,25 +96,48 @@ class BottleImageView extends StatelessWidget {
     if (raw.startsWith('http://') || raw.startsWith('https://')) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: CachedNetworkImage(
-          imageUrl: raw,
-          width: width,
-          height: height,
-          fit: fit,
-          placeholder: (context, url) => Container(
-            width: width,
-            height: height,
-            color: Colors.grey.withValues(alpha: 0.1),
-            child: const Center(
-              child: SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 1.5),
+        child: kIsWeb
+            ? Image.network(
+                raw,
+                width: width,
+                height: height,
+                fit: fit,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    width: width,
+                    height: height,
+                    color: Colors.grey.withValues(alpha: 0.1),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 1.5),
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => _buildFallback(context),
+              )
+            : CachedNetworkImage(
+                imageUrl: raw,
+                width: width,
+                height: height,
+                fit: fit,
+                placeholder: (context, url) => Container(
+                  width: width,
+                  height: height,
+                  color: Colors.grey.withValues(alpha: 0.1),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 1.5),
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) => _buildFallback(context),
               ),
-            ),
-          ),
-          errorWidget: (context, url, error) => _buildFallback(context),
-        ),
       );
     }
 

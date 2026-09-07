@@ -1,4 +1,6 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../../shared/utils/currency_helper.dart';
 import '../domain/menu_wine.dart';
 
 class MenuMatchmakerSheet extends StatefulWidget {
@@ -51,6 +53,45 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
 
   // Swipe offset for interactive card dragging
   double _dragOffset = 0.0;
+
+  // Budget slider state
+  bool _isGlassSelected = false;
+  double? _selectedBudgetLimit;
+  bool _noPriceLimit = false;
+
+  double get _minPrice {
+    final prices = _currentPool
+        .map((w) => _isGlassSelected ? (w.primaryGlassPrice ?? w.bottlePrice) : w.bottlePrice)
+        .whereType<double>()
+        .where((p) => p > 0)
+        .toList();
+    if (prices.isEmpty) return _isGlassSelected ? 4.0 : 15.0;
+    return prices.reduce((a, b) => a < b ? a : b);
+  }
+
+  double get _maxPrice {
+    final prices = _currentPool
+        .map((w) => _isGlassSelected ? (w.primaryGlassPrice ?? w.bottlePrice) : w.bottlePrice)
+        .whereType<double>()
+        .where((p) => p > 0)
+        .toList();
+    if (prices.isEmpty) return _isGlassSelected ? 25.0 : 150.0;
+    final max = prices.reduce((a, b) => a > b ? a : b);
+    return max <= _minPrice ? _minPrice + 20.0 : max;
+  }
+
+  _MatchmakerQuestion get _priceSliderQuestion => _MatchmakerQuestion(
+        id: 'price_slider',
+        title: 'Quel est votre budget maximum ?',
+        subtitle: _isGlassSelected
+            ? 'Ajustez le curseur pour fixer votre limite de prix par verre.'
+            : 'Ajustez le curseur pour fixer votre limite de prix par bouteille.',
+        icon: Icons.price_change_outlined,
+        iconColor: const Color(0xFF2E7D32),
+        userPreferenceLabel: 'Budget maîtrisé',
+        isEligible: (pool) => true,
+        filter: (pool, answerYes) => pool,
+      );
 
   late final List<_MatchmakerQuestion> _allQuestionCatalog;
 
@@ -255,35 +296,21 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
           return pool;
         },
       ),
-
-      // 10. Budget Bouteille maîtrisé
-      _MatchmakerQuestion(
-        id: 'budget',
-        title: 'Budget Bouteille maîtrisé (< 45 €) ?',
-        subtitle: 'Pour dénicher les pépites au meilleur rapport plaisir/prix.',
-        icon: Icons.savings_outlined,
-        iconColor: const Color(0xFF2E7D32),
-        userPreferenceLabel: 'Budget < 45€',
-        isEligible: (pool) =>
-            pool.any((w) => (w.bottlePrice != null && w.bottlePrice! <= 45.0) || (w.primaryGlassPrice != null && w.primaryGlassPrice! <= 9.0)) &&
-            pool.any((w) => (w.bottlePrice != null && w.bottlePrice! > 45.0) || (w.primaryGlassPrice != null && w.primaryGlassPrice! > 9.0)),
-        filter: (pool, answerYes) {
-          if (answerYes) {
-            final filtered = pool
-                .where((w) =>
-                    (w.bottlePrice != null && w.bottlePrice! <= 45.0) ||
-                    (w.primaryGlassPrice != null && w.primaryGlassPrice! <= 9.0))
-                .toList();
-            return filtered.isNotEmpty ? filtered : pool;
-          }
-          return pool;
-        },
-      ),
     ];
   }
 
   _MatchmakerQuestion? _selectNextQuestion(List<MenuWine> pool, Set<String> askedIds) {
     if (pool.length <= 2 || askedIds.length >= 6) return null;
+
+    final hasGlassOption = pool.any((w) => w.hasGlassPrice);
+
+    // If budget slider hasn't been asked yet:
+    // Ask it immediately after by_the_glass has been answered, or after first question if no glass option exists
+    if (!askedIds.contains('price_slider')) {
+      if (askedIds.contains('by_the_glass') || (!hasGlassOption && askedIds.isNotEmpty)) {
+        return _priceSliderQuestion;
+      }
+    }
 
     final candidates = _allQuestionCatalog.where((q) {
       if (askedIds.contains(q.id)) return false;
@@ -306,6 +333,12 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       final bIsCategory = b.id == 'color_red' || b.id == 'sparkling' || b.id == 'rose';
       if (aIsCategory && !bIsCategory && askedIds.length < 2) return -1;
       if (!aIsCategory && bIsCategory && askedIds.length < 2) return 1;
+
+      // Prioritize format question (by the glass) right after category question
+      final aIsGlass = a.id == 'by_the_glass';
+      final bIsGlass = b.id == 'by_the_glass';
+      if (aIsGlass && !bIsGlass && askedIds.isNotEmpty && !askedIds.contains('by_the_glass')) return -1;
+      if (!aIsGlass && bIsGlass && askedIds.isNotEmpty && !askedIds.contains('by_the_glass')) return 1;
 
       // Balance of split: choose question whose yes/no split is closest to 50/50
       final aYes = a.filter(pool, true).length;
@@ -334,6 +367,9 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     if (answerYes) {
       _recordedChoices.add(currentQ.userPreferenceLabel);
     }
+    if (currentQ.id == 'by_the_glass') {
+      _isGlassSelected = answerYes;
+    }
 
     final nextQ = _selectNextQuestion(nextPool, _askedQuestionIds);
 
@@ -354,6 +390,9 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       _currentPool = List<MenuWine>.from(widget.allWines);
       _askedQuestionIds.clear();
       _recordedChoices.clear();
+      _isGlassSelected = false;
+      _selectedBudgetLimit = null;
+      _noPriceLimit = false;
       _isFinished = false;
       _dragOffset = 0.0;
       _lastEliminatedDelta = 0;
@@ -378,8 +417,8 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     if (wine.tags.contains('tannique') || _recordedChoices.contains('Tannique & Structuré')) {
       reasons.add('doté de tanins nobles et d\'une charpente équilibrée');
     }
-    if (wine.bottlePrice != null && wine.bottlePrice! <= 45.0) {
-      reasons.add('pour un tarif très sage de ${wine.bottlePrice!.toStringAsFixed(0)} €');
+    if (wine.bottlePrice != null) {
+      reasons.add('pour un tarif de ${CurrencyHelper.formatPrice(wine.bottlePrice!)}');
     }
 
     if (reasons.isEmpty) {
@@ -472,69 +511,26 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     final totalCount = widget.allWines.length;
     final remainingCount = _currentPool.length;
 
+    if (q.id == 'price_slider') {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+        child: Column(
+          children: [
+            _buildRemainingBadgeCounter(totalCount, remainingCount, isDark),
+            const SizedBox(height: 20),
+            _buildPriceSliderCard(theme, isDark, q),
+          ],
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
       child: Column(
         children: [
           // Remaining Badge Counter (X en lice sur Y au total)
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.5)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.wine_bar, size: 18, color: Color(0xFFD4AF37)),
-                              const SizedBox(width: 8),
-                              Text(
-                                '$remainingCount vins en lice sur $totalCount au total',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (_lastEliminatedDelta > 0) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.red.withValues(alpha: 0.4)),
-                            ),
-                            child: Text(
-                              '-$_lastEliminatedDelta',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: SizedBox(
-                        width: 220,
-                        height: 4,
-                        child: LinearProgressIndicator(
-                          value: totalCount > 0 ? (remainingCount / totalCount).clamp(0.0, 1.0) : 1.0,
-                          backgroundColor: isDark ? Colors.white12 : Colors.grey.shade300,
-                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFD4AF37)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
+          _buildRemainingBadgeCounter(totalCount, remainingCount, isDark),
+          const SizedBox(height: 16),
 
           // Interactive Swipeable Card with gesture detector
           GestureDetector(
@@ -681,6 +677,245 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
         ],
       ),
     );
+  }
+
+  Widget _buildRemainingBadgeCounter(int totalCount, int remainingCount, bool isDark) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.5)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.wine_bar, size: 18, color: Color(0xFFD4AF37)),
+                  const SizedBox(width: 8),
+                  Text(
+                    '$remainingCount vins en lice sur $totalCount au total',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
+                  ),
+                ],
+              ),
+            ),
+            if (_lastEliminatedDelta > 0) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  '-$_lastEliminatedDelta',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: SizedBox(
+            width: 220,
+            height: 4,
+            child: LinearProgressIndicator(
+              value: totalCount > 0 ? (remainingCount / totalCount).clamp(0.0, 1.0) : 1.0,
+              backgroundColor: isDark ? Colors.white12 : Colors.grey.shade300,
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFD4AF37)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceSliderCard(ThemeData theme, bool isDark, _MatchmakerQuestion q) {
+    final min = _minPrice;
+    final max = _maxPrice;
+    final currentVal = (_selectedBudgetLimit ?? ((min + max) / 2)).clamp(min, max);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF251F2E) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(
+          color: const Color(0xFF2E7D32).withValues(alpha: 0.4),
+          width: 2.0,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2E7D32).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.price_change_outlined, size: 42, color: Color(0xFF2E7D32)),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            q.title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            q.subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white70 : Colors.black54),
+          ),
+          const SizedBox(height: 18),
+
+          // Price display
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: _noPriceLimit
+                  ? Colors.grey.withValues(alpha: 0.15)
+                  : const Color(0xFF2E7D32).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _noPriceLimit ? Colors.grey : const Color(0xFF2E7D32),
+                width: 1.5,
+              ),
+            ),
+            child: Text(
+              _noPriceLimit
+                  ? '✨ Pas de limite de budget'
+                  : 'Budget max : ${CurrencyHelper.formatPrice(currentVal)}',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: _noPriceLimit
+                    ? (isDark ? Colors.white70 : Colors.black87)
+                    : const Color(0xFF2E7D32),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Slider
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: const Color(0xFF2E7D32),
+              inactiveTrackColor: isDark ? Colors.white12 : Colors.grey.shade300,
+              thumbColor: const Color(0xFF2E7D32),
+              overlayColor: const Color(0xFF2E7D32).withValues(alpha: 0.2),
+            ),
+            child: Slider(
+              value: currentVal,
+              min: min,
+              max: max,
+              divisions: (max - min) > 1 ? math.min(50, (max - min).round()) : 1,
+              onChanged: _noPriceLimit
+                  ? null
+                  : (val) {
+                      setState(() {
+                        _selectedBudgetLimit = val.roundToDouble();
+                      });
+                    },
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  CurrencyHelper.formatPrice(min),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+                ),
+                ChoiceChip(
+                  label: const Text('Pas de limite'),
+                  selected: _noPriceLimit,
+                  onSelected: (val) {
+                    setState(() {
+                      _noPriceLimit = val;
+                    });
+                  },
+                ),
+                Text(
+                  CurrencyHelper.formatPrice(max),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Action Button
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF2E7D32),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              icon: const Icon(Icons.check, size: 20),
+              label: Text(
+                _noPriceLimit ? 'Continuer sans limite de prix' : 'Valider ce budget',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              onPressed: () => _applyBudgetLimit(currentVal),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _applyBudgetLimit(double limit) {
+    final prevCount = _currentPool.length;
+    List<MenuWine> nextPool;
+
+    if (_noPriceLimit) {
+      nextPool = _currentPool;
+      _recordedChoices.add('Budget libre');
+    } else {
+      nextPool = _currentPool.where((w) {
+        final p = _isGlassSelected ? (w.primaryGlassPrice ?? w.bottlePrice) : w.bottlePrice;
+        return p == null || p <= limit;
+      }).toList();
+      if (nextPool.isEmpty) nextPool = _currentPool;
+      _recordedChoices.add('Budget max : ${CurrencyHelper.formatPrice(limit)}');
+    }
+
+    final eliminated = prevCount - nextPool.length;
+    _askedQuestionIds.add('price_slider');
+
+    final nextQ = _selectNextQuestion(nextPool, _askedQuestionIds);
+
+    setState(() {
+      _currentPool = nextPool;
+      _lastEliminatedDelta = eliminated;
+      _activeQuestion = nextQ;
+      if (_currentPool.length <= 2 || nextQ == null || _askedQuestionIds.length >= 5) {
+        _isFinished = true;
+      }
+    });
   }
 
   Widget _buildPodiumView(ThemeData theme, bool isDark) {

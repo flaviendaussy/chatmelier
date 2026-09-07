@@ -121,7 +121,6 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
 
       // Select new cellar
       ref.read(currentCellarIdProvider.notifier).state = newCellar.id;
-      ref.read(currentCellarRoleProvider.notifier).state = 'admin';
       ref.invalidate(userCellarsProvider);
       ref.invalidate(bottlesProvider(newCellar.id));
 

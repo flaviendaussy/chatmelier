@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/presentation/login_screen.dart';
@@ -10,6 +9,7 @@ import '../features/cellar/presentation/cellar_screen.dart';
 import '../features/cellar/presentation/bottle_detail_screen.dart';
 import '../features/cellar/presentation/cellar_sharing_screen.dart';
 import '../features/cellar/presentation/pending_invites_screen.dart';
+import '../features/cellar/presentation/excel_import_screen.dart';
 import '../features/cellar/domain/bottle.dart';
 import '../features/scan/presentation/scan_screen.dart';
 import '../features/scan/presentation/review_screen.dart';
@@ -25,14 +25,15 @@ import '../features/scratchcard/presentation/scratch_map_screen.dart';
 import '../features/auth/presentation/ai_cost_estimator_screen.dart';
 import '../features/friends/presentation/friends_screen.dart';
 import '../features/cocktails/presentation/bar_cocktails_hub_screen.dart';
+import '../features/badges/presentation/badges_gallery_sheet.dart';
 import '../features/menu_scan/domain/menu_wine.dart';
 import '../features/menu_scan/presentation/menu_photo_capture_screen.dart';
 import '../features/menu_scan/presentation/enriched_menu_screen.dart';
 import '../shared/widgets/adaptive_app_shell.dart';
 import '../shared/providers/supabase_provider.dart';
 
-final rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
+export 'navigator_keys.dart';
+import 'navigator_keys.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
@@ -102,7 +103,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Main app shell with adaptive responsive navigation (Mobile / Tablet / Desktop)
       ShellRoute(
-        navigatorKey: _shellNavigatorKey,
+        navigatorKey: shellNavigatorKey,
         builder: (context, state, child) {
           return AdaptiveAppShell(child: child);
         },
@@ -111,6 +112,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: CellarScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/bar',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: BarCocktailsHubScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/cocktails',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: BarCocktailsHubScreen(),
             ),
           ),
           GoRoute(
@@ -149,10 +162,30 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: ProfileScreen(),
             ),
           ),
+          GoRoute(
+            path: '/badges',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: BadgesGalleryPage(),
+            ),
+          ),
         ],
       ),
 
       // Full-screen routes (outside shell)
+      GoRoute(
+        path: '/cellar/import-excel',
+        builder: (context, state) {
+          final cellarId = state.uri.queryParameters['cellarId'] ?? '';
+          return ExcelImportScreen(cellarId: cellarId);
+        },
+      ),
+      GoRoute(
+        path: '/cellar-import-excel',
+        builder: (context, state) {
+          final cellarId = state.uri.queryParameters['cellarId'] ?? '';
+          return ExcelImportScreen(cellarId: cellarId);
+        },
+      ),
       GoRoute(
         path: '/cellar/:id',
         builder: (context, state) =>
@@ -230,14 +263,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/map',
         builder: (context, state) => const ScratchMapScreen(),
-      ),
-      GoRoute(
-        path: '/bar',
-        builder: (context, state) => const BarCocktailsHubScreen(),
-      ),
-      GoRoute(
-        path: '/cocktails',
-        builder: (context, state) => const BarCocktailsHubScreen(),
       ),
       GoRoute(
         path: '/terroirs',

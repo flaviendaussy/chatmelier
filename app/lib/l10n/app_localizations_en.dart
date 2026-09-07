@@ -12,13 +12,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Chatmelier';
 
   @override
+  String get defaultCellarName => 'My Cellar';
+
+  @override
   String get navCellar => 'Cellar';
 
   @override
   String get navChat => 'Chat';
 
   @override
-  String get navJournal => 'History';
+  String get navJournal => 'Degust.';
 
   @override
   String get navStats => 'Stats';
@@ -467,4 +470,117 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileScratchcard => 'World Terroirs Scratchcard';
+
+  @override
+  String get navBar => 'Bar';
+
+  @override
+  String get navProfile => 'Profile';
+
+  @override
+  String get quickActions => 'QUICK ACTIONS';
+
+  @override
+  String get appSubtitle => 'Sommelier & Wine Cellar';
+
+  @override
+  String get profileTabPalate => 'Palate';
+
+  @override
+  String get profileTabSettings => 'Settings';
+
+  @override
+  String get profileTabTools => 'Tools';
+
+  @override
+  String get profileTabAccount => 'Account';
+
+  @override
+  String get profileTheme => 'Ambience / Theme';
+
+  @override
+  String get profileThemeLight => 'Light ☀️';
+
+  @override
+  String get profileThemeDark => 'Dark 🌙';
+
+  @override
+  String get profileThemeSystem => 'System ⚙️';
+
+  @override
+  String get profileFriends => 'Friends & Taste Maps 🍷';
+
+  @override
+  String get profileExport => 'Export Cellar & Valuation Report 📊';
+
+  @override
+  String get profileDeleteAccount => 'Permanently Delete My Account';
+
+  @override
+  String get profileDeleteConfirmTitle => 'Delete Permanently';
+
+  @override
+  String get profileDeleteConfirmMsg =>
+      'This action is irreversible. All your data will be deleted.';
+
+  @override
+  String get badgesGalleryTitle => 'Trophy Gallery';
+
+  @override
+  String badgesGallerySubtitle(Object pct, Object total, Object unlocked) {
+    return '$unlocked / $total unlocked • $pct% completed';
+  }
+
+  @override
+  String get badgesFilterAll => 'All';
+
+  @override
+  String get badgesEmpty => 'No badges found in this category.';
+
+  @override
+  String get badgesUnlockedChip => 'Unlocked ✨';
+
+  @override
+  String get badgesStatusUnlocked => 'Badge Unlocked!';
+
+  @override
+  String get badgesStatusInProgress => 'In Progress';
+
+  @override
+  String get badgesObjectiveLabel => 'Objective:';
+
+  @override
+  String get badgesChatmelierLoreTitle => 'Chatmelier\'s Science & Lore';
+
+  @override
+  String get badgesCloseButton => 'Close';
+
+  @override
+  String get badgesTierLabel => 'Tier';
+
+  @override
+  String get badgesShowcaseTitle => 'Trophies & Badges';
+
+  @override
+  String badgesShowcaseCount(Object total, Object unlocked) {
+    return '$unlocked of $total unlocked';
+  }
+
+  @override
+  String get badgesShowcaseGallery => 'Gallery';
+
+  @override
+  String get cocktailsTitle => 'Bar & Cocktails';
+
+  @override
+  String get cocktailsReadyToShake => 'Ready to Shake';
+
+  @override
+  String get cocktailsMissingOne => '1 missing';
+
+  @override
+  String get cocktailsManagePantry => 'Manage Bar Pantry';
+
+  @override
+  String get cocktailsResetPantry => 'Reset Bar Pantry';
 }

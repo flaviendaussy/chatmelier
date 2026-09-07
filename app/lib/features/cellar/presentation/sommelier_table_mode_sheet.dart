@@ -12,6 +12,7 @@ import '../../journal/presentation/journal_screen.dart';
 import '../../journal/domain/tasting_pedagogy_engine.dart';
 import '../../journal/presentation/tasting_pedagogy_sheet.dart';
 import '../../auth/data/taste_profile_service.dart';
+import '../../notifications/data/local_notification_service.dart';
 
 class SommelierTableModeSheet extends ConsumerStatefulWidget {
   final Bottle bottle;
@@ -100,11 +101,23 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
 
   void _toggleTimer() {
     HapticFeedback.selectionClick();
+    final wine = widget.bottle.wine;
+    final notifService = ref.read(localNotificationServiceProvider);
+
     if (_isTimerRunning) {
       _timer?.cancel();
+      notifService.stopLiveAerationNotification();
       setState(() => _isTimerRunning = false);
     } else {
       setState(() => _isTimerRunning = true);
+      if (wine != null) {
+        notifService.showLiveAerationNotification(
+          wineName: wine.name,
+          vintage: wine.vintage,
+          remainingSeconds: _remainingSeconds,
+          bottleId: widget.bottle.id,
+        );
+      }
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_remainingSeconds > 0) {
           setState(() => _remainingSeconds--);
@@ -112,12 +125,20 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
           _timer?.cancel();
           HapticFeedback.heavyImpact();
           setState(() => _isTimerRunning = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('🔔 Le vin est parfaitement aéré et prêt pour la dégustation !'),
-              backgroundColor: Color(0xFFD4AF37),
-            ),
-          );
+          if (wine != null) {
+            notifService.showAerationFinishedNotification(
+              wineName: wine.name,
+              vintage: wine.vintage,
+            );
+          }
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('🔔 Le vin est parfaitement aéré et prêt pour la dégustation !'),
+                backgroundColor: Color(0xFFD4AF37),
+              ),
+            );
+          }
         }
       });
     }
@@ -126,6 +147,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
   void _resetTimer() {
     HapticFeedback.selectionClick();
     _timer?.cancel();
+    ref.read(localNotificationServiceProvider).stopLiveAerationNotification();
     setState(() {
       _remainingSeconds = _totalSeconds;
       _isTimerRunning = false;
@@ -205,8 +227,9 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
 
       try {
         final tasteService = ref.read(tasteProfileServiceProvider);
+        final primaryProfile = await tasteService.getPrimaryProfile();
         await tasteService.recordTastingExperience(
-          nameOrId: 'primary',
+          nameOrId: primaryProfile.id,
           wine: wine,
           rating: _userRating,
         );
@@ -414,6 +437,35 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                           ),
                         ],
                       ),
+
+                      if (_isTimerRunning) ...[
+                        const SizedBox(height: 14),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.screen_lock_portrait_outlined, size: 16, color: Color(0xFFD4AF37)),
+                              SizedBox(width: 8),
+                              Text(
+                                'Chrono actif en direct sur votre écran de verrouillage',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFD4AF37),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
 
                       const SizedBox(height: 24),
 

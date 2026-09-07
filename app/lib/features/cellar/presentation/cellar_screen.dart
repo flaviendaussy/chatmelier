@@ -22,6 +22,8 @@ import 'cellar_switcher_sheet.dart';
 import 'cellar_export_dialog.dart';
 import 'cellar_food_pairing_sheet.dart';
 import 'create_cellar_dialog.dart';
+import 'shelf_grid_view_sheet.dart';
+import '../data/favorite_wines_service.dart';
 import 'cellar_proximity_banner.dart';
 import '../../voice/presentation/voice_dictation_sheet.dart';
 import '../../auth/presentation/mandatory_username_dialog.dart';
@@ -30,8 +32,7 @@ import '../../../shared/widgets/grape_chart.dart';
 import '../../../shared/utils/responsive_layout.dart';
 import '../../../shared/widgets/notification_bell_button.dart';
 
-enum CellarViewMode { grid, list, compact }
-enum BeverageFilter { all, wine, spirit }
+enum CellarViewMode { grid, list }
 
 class CellarScreen extends ConsumerStatefulWidget {
   const CellarScreen({super.key});
@@ -40,15 +41,19 @@ class CellarScreen extends ConsumerStatefulWidget {
   ConsumerState<CellarScreen> createState() => _CellarScreenState();
 }
 
-class _CellarScreenState extends ConsumerState<CellarScreen> {
+class _CellarScreenState extends ConsumerState<CellarScreen>
+    with TickerProviderStateMixin {
   CellarViewMode _viewMode = CellarViewMode.grid;
   CellarSortBy _sortBy = CellarSortBy.recentlyAdded;
-  BeverageFilter _beverageFilter = BeverageFilter.all;
   String _searchQuery = '';
   bool _showSearchBar = false;
   final _searchController = TextEditingController();
 
   CellarFilterState _filter = const CellarFilterState();
+
+  // Tab controller for swipeable Vins vs Spiritueux zones
+  TabController? _tabController;
+  int _activeTabIndex = 0; // 0 = wines, 1 = spirits (when both exist)
 
   // Custom Grouping State
   CellarGroupBy _groupBy = CellarGroupBy.none;
@@ -56,6 +61,8 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
 
   // Total Costs display toggle (defaults to false)
   bool _showTotalCosts = false;
+
+  bool get _isViewOnly => ref.watch(currentCellarRoleProvider) == 'viewer';
 
   // Pending invite count for badge
   int _pendingInviteCount = 0;
@@ -116,10 +123,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
       final prefs = await SharedPreferences.getInstance();
       final saved = prefs.getString('cellar_view_mode');
       if (saved != null) {
-        final mode = CellarViewMode.values.firstWhere(
-          (e) => e.name == saved,
-          orElse: () => CellarViewMode.grid,
-        );
+        final mode = (saved == 'grid') ? CellarViewMode.grid : CellarViewMode.list;
         if (mounted) setState(() => _viewMode = mode);
       }
     } catch (_) {}
@@ -185,8 +189,35 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
     });
   }
 
+  void _onTabChanged() {
+    if (mounted && _tabController != null && _activeTabIndex != _tabController!.index) {
+      setState(() {
+        _activeTabIndex = _tabController!.index;
+        // Reset specific type filter when switching between Vins and Spiritueux
+        _filter = _filter.copyWith(wineType: () => null);
+      });
+    }
+  }
+
+  void _updateTabController(int count) {
+    if (_tabController == null || _tabController!.length != count) {
+      final oldIndex = _tabController?.index ?? 0;
+      _tabController?.removeListener(_onTabChanged);
+      _tabController?.dispose();
+      _tabController = TabController(
+        length: count,
+        vsync: this,
+        initialIndex: oldIndex.clamp(0, count - 1),
+      );
+      _activeTabIndex = _tabController!.index;
+      _tabController!.addListener(_onTabChanged);
+    }
+  }
+
   @override
   void dispose() {
+    _tabController?.removeListener(_onTabChanged);
+    _tabController?.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -212,23 +243,53 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
   }
 
   List<Bottle> _filterBottles(List<Bottle> bottleList) {
+    final favIds = ref.watch(favoriteWineIdsProvider);
+
     return bottleList.where((b) {
       final wine = b.wine;
       if (wine == null) return true;
 
-      // 0. Beverage Type filter (All vs Wine vs Spirit)
-      if (_beverageFilter == BeverageFilter.wine && wine.isSpirit) return false;
-      if (_beverageFilter == BeverageFilter.spirit && !wine.isSpirit) return false;
+      // 0. Favorites filter
+      if (_filter.onlyFavorites) {
+        final isFav = favIds.contains(b.id) || (favIds.contains(wine.id));
+        if (!isFav) return false;
+      }
 
-      // 1. Wine Type filter
+      // 1. Wine or Spirit Type filter
       if (_filter.wineType != null && _filter.wineType!.isNotEmpty) {
         final targetType = _filter.wineType!.toLowerCase();
         final actualType = wine.type.toLowerCase();
-        if (targetType == 'red' && actualType != 'red' && actualType != 'rouge') return false;
-        if (targetType == 'white' && actualType != 'white' && actualType != 'blanc') return false;
-        if (targetType == 'rose' && !actualType.contains('ros')) return false;
-        if (targetType == 'sparkling' && !actualType.contains('spark') && !actualType.contains('bull') && !actualType.contains('champ')) return false;
-        if (targetType == 'dessert' && !actualType.contains('dessert') && !actualType.contains('moell') && !actualType.contains('liquor')) return false;
+        final actualName = wine.name.toLowerCase();
+
+        if (targetType == 'red') {
+          if (actualType != 'red' && actualType != 'rouge') return false;
+        } else if (targetType == 'white') {
+          if (actualType != 'white' && actualType != 'blanc') return false;
+        } else if (targetType == 'rose') {
+          if (!actualType.contains('ros')) return false;
+        } else if (targetType == 'sparkling') {
+          if (!actualType.contains('spark') && !actualType.contains('bull') && !actualType.contains('champ')) return false;
+        } else if (targetType == 'dessert') {
+          if (!actualType.contains('dessert') && !actualType.contains('moell') && !actualType.contains('liquor')) return false;
+        } else if (targetType == 'gin') {
+          if (!actualType.contains('gin') && !actualName.contains('gin')) return false;
+        } else if (targetType == 'whisky') {
+          if (!actualType.contains('whisk') && !actualType.contains('bourbon') && !actualType.contains('scotch') && !actualName.contains('whisk') && !actualName.contains('bourbon')) return false;
+        } else if (targetType == 'rum') {
+          if (!actualType.contains('rum') && !actualType.contains('rhum') && !actualName.contains('rum') && !actualName.contains('rhum')) return false;
+        } else if (targetType == 'vodka') {
+          if (!actualType.contains('vodka') && !actualName.contains('vodka')) return false;
+        } else if (targetType == 'liqueur') {
+          if (!actualType.contains('liqueur') && !actualType.contains('rosolio') && !actualType.contains('amaretto') && !actualName.contains('liqueur') && !actualName.contains('crème de') && !actualName.contains('creme de')) return false;
+        } else if (targetType == 'grappa') {
+          if (!actualType.contains('grappa') && !actualType.contains('eau-de-vie') && !actualType.contains('eau de vie') && !actualName.contains('grappa') && !actualName.contains('eau de vie') && !actualName.contains('eau-de-vie')) return false;
+        } else if (targetType == 'tequila') {
+          if (!actualType.contains('tequila') && !actualType.contains('mezcal') && !actualName.contains('tequila') && !actualName.contains('mezcal')) return false;
+        } else if (targetType == 'cognac') {
+          if (!actualType.contains('cognac') && !actualType.contains('armagnac') && !actualType.contains('calvados') && !actualName.contains('cognac') && !actualName.contains('armagnac') && !actualName.contains('calvados')) return false;
+        } else {
+          if (actualType != targetType && !actualName.contains(targetType)) return false;
+        }
       }
 
       // 2. Continent filter
@@ -454,7 +515,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
         final cMap = first['cellars'];
         if (cMap is Map) {
           resolvedCellarId = cMap['id']?.toString();
-          currentDisplayName = cMap['name']?.toString() ?? 'Cave';
+          final raw = cMap['name']?.toString() ?? 'Cave';
+          final isFr = Localizations.localeOf(context).languageCode == 'fr';
+          currentDisplayName = (raw == 'Ma Cave' || raw == 'My Cellar') ? (isFr ? 'Ma Cave' : 'My Cellar') : raw;
         } else {
           resolvedCellarId = first['cellar_id']?.toString();
         }
@@ -469,7 +532,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
         for (final item in cellarsList) {
           final cMap = item['cellars'];
           if (cMap is Map && cMap['id']?.toString() == resolvedCellarId) {
-            currentDisplayName = cMap['name']?.toString() ?? 'Cave';
+            final raw = cMap['name']?.toString() ?? 'Cave';
+            final isFr = Localizations.localeOf(context).languageCode == 'fr';
+            currentDisplayName = (raw == 'Ma Cave' || raw == 'My Cellar') ? (isFr ? 'Ma Cave' : 'My Cellar') : raw;
             currentWifiSsid = cMap['wifi_ssid'] as String?;
             break;
           }
@@ -480,13 +545,33 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
     final activeCellarId = resolvedCellarId;
     final bottles = ref.watch(bottlesProvider(activeCellarId));
 
-    return Scaffold(
-      appBar: AppBar(
+    final canPopCellar = !_showSearchBar && !(_tabController != null && _tabController!.index > 0);
+
+    return PopScope(
+      canPop: canPopCellar,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_showSearchBar) {
+          setState(() {
+            _showSearchBar = false;
+            _searchQuery = '';
+            _searchController.clear();
+          });
+          return;
+        }
+        if (_tabController != null && _tabController!.index > 0) {
+          _tabController!.animateTo(0);
+          return;
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          titleSpacing: 16,
         title: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () => CellarSwitcherSheet.show(context),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -527,24 +612,24 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
         actions: [
           // Notification Bell with live badge
           const NotificationBellButton(),
-          // Bar & Cocktails Hub
+          // Mode Shelves (Meubles & Rayonnages)
           IconButton(
-            icon: const Icon(Icons.local_bar, color: Color(0xFF8B1E3F)),
-            tooltip: 'Bar & Cocktails',
-            onPressed: () => context.push('/bar'),
-          ),
-          // Search toggle
-          IconButton(
-            icon: Icon(_showSearchBar ? Icons.search_off : Icons.search),
-            tooltip: 'Recherche',
+            icon: const Icon(Icons.shelves, color: Color(0xFFD4AF37)),
+            tooltip: 'Meubles & Rayonnages (Mode Shelves)',
             onPressed: () {
-              setState(() {
-                _showSearchBar = !_showSearchBar;
-                if (!_showSearchBar) {
-                  _searchQuery = '';
-                  _searchController.clear();
-                }
-              });
+              final cid = currentCellarId;
+              if (cid != null) {
+                ShelfGridViewSheet.show(context, cellarId: cid);
+              }
+            },
+          ),
+          // Importer Excel / CSV
+          IconButton(
+            icon: const Icon(Icons.table_chart_outlined, color: Color(0xFF2E7D32)),
+            tooltip: 'Importer un fichier (Excel / CSV)',
+            onPressed: () {
+              final cid = currentCellarId;
+              context.push('/cellar/import-excel?cellarId=${cid ?? ""}');
             },
           ),
           // Voice Dictation
@@ -553,16 +638,12 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
             tooltip: 'Dictée Vocale Mains Libres',
             onPressed: () => VoiceDictationSheet.show(context),
           ),
-          // View Mode Selector (Grid, List, Ultra-Compact)
+          // View Mode Selector (Grid / Liste)
           PopupMenuButton<CellarViewMode>(
             icon: Icon(
-              _viewMode == CellarViewMode.grid
-                  ? Icons.grid_view
-                  : _viewMode == CellarViewMode.list
-                      ? Icons.view_list
-                      : Icons.density_small,
+              _viewMode == CellarViewMode.grid ? Icons.grid_view : Icons.view_list,
             ),
-            tooltip: 'Mode d\'affichage (Grille / Liste / Compacte)',
+            tooltip: 'Mode d\'affichage (Grille / Liste)',
             initialValue: _viewMode,
             onSelected: _setViewMode,
             itemBuilder: (context) => [
@@ -572,7 +653,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                   children: [
                     Icon(Icons.grid_view, size: 20),
                     SizedBox(width: 12),
-                    Text('Grille Visuelle'),
+                    Text('Grille'),
                   ],
                 ),
               ),
@@ -582,128 +663,11 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                   children: [
                     Icon(Icons.view_list, size: 20),
                     SizedBox(width: 12),
-                    Text('Liste Détaillée'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: CellarViewMode.compact,
-                child: Row(
-                  children: [
-                    Icon(Icons.density_small, size: 20),
-                    SizedBox(width: 12),
-                    Text('Liste Ultra-Compacte (Pixel / Mobile)'),
+                    Text('Liste'),
                   ],
                 ),
               ),
             ],
-          ),
-          // More options menu
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            tooltip: 'Options de la cave',
-            onSelected: (value) {
-              if (value == 'export') {
-                CellarExportDialog.show(context, currentDisplayName);
-              } else if (value == 'sharing') {
-                if (activeCellarId != null) {
-                  context.push(
-                    '/sharing/$activeCellarId?name=${Uri.encodeComponent(currentDisplayName)}',
-                  );
-                }
-              } else if (value == 'map') {
-                context.push('/scratchcard');
-              } else if (value == 'bar') {
-                context.push('/bar');
-              } else if (value == 'friends') {
-                context.push('/friends');
-              } else if (value == 'invites') {
-                context.push('/invites');
-              } else if (value == 'toggle_costs') {
-                _toggleTotalCosts();
-              }
-            },
-            itemBuilder: (context) => [
-              CheckedPopupMenuItem<String>(
-                value: 'toggle_costs',
-                checked: _showTotalCosts,
-                child: const Row(
-                  children: [
-                    Icon(Icons.euro, color: Color(0xFFD4AF37), size: 20),
-                    SizedBox(width: 12),
-                    Text('Afficher les coûts totaux'),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'bar',
-                child: Row(
-                  children: [
-                    Icon(Icons.local_bar, color: Color(0xFF8B1E3F), size: 20),
-                    SizedBox(width: 12),
-                    Text('Bar & Cocktails 🍸'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'friends',
-                child: Row(
-                  children: [
-                    Icon(Icons.people_alt, color: Color(0xFF8B1E3F), size: 20),
-                    SizedBox(width: 12),
-                    Text('Amis & Cartes des Goûts 🍷'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'map',
-                child: Row(
-                  children: [
-                    Icon(Icons.public, color: Color(0xFFD4AF37), size: 20),
-                    SizedBox(width: 12),
-                    Text('Carte des Terroirs du Monde'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'export',
-                child: Row(
-                  children: [
-                    Icon(Icons.file_download_outlined, size: 20),
-                    SizedBox(width: 12),
-                    Text('Exporter (CSV / Assurance)'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'sharing',
-                child: Row(
-                  children: [
-                    Icon(Icons.people_outline, size: 20),
-                    SizedBox(width: 12),
-                    Text('Membres & Partage'),
-                  ],
-                ),
-              ),
-              if (_pendingInviteCount > 0)
-                PopupMenuItem(
-                  value: 'invites',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.mail_outline, size: 20),
-                      const SizedBox(width: 12),
-                      Text('Invitations ($_pendingInviteCount)'),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          // Profile
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            tooltip: 'Mon Profil',
-            onPressed: () => context.push('/profile'),
           ),
         ],
       ),
@@ -757,299 +721,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
               ),
             ),
 
-          // Interactive Filter chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Row(
-              children: [
-                // Beverage Category Filter
-                ChoiceChip(
-                  label: const Text('Tous'),
-                  selected: _beverageFilter == BeverageFilter.all,
-                  onSelected: (_) => setState(() => _beverageFilter = BeverageFilter.all),
-                ),
-                const SizedBox(width: 6),
-                ChoiceChip(
-                  label: const Text('🍷 Vins'),
-                  selected: _beverageFilter == BeverageFilter.wine,
-                  onSelected: (_) => setState(() => _beverageFilter = BeverageFilter.wine),
-                ),
-                const SizedBox(width: 6),
-                ChoiceChip(
-                  label: const Text('🥃 Spiritueux'),
-                  selected: _beverageFilter == BeverageFilter.spirit,
-                  onSelected: (_) => setState(() => _beverageFilter = BeverageFilter.spirit),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  height: 20,
-                  width: 1,
-                  color: Colors.grey.withValues(alpha: 0.3),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                ),
-                const SizedBox(width: 8),
-
-                // Sort Selector Menu
-                PopupMenuButton<CellarSortBy>(
-                  tooltip: 'Trier les vins',
-                  initialValue: _sortBy,
-                  onSelected: _setSortBy,
-                  itemBuilder: (context) => CellarSortBy.values.map((sb) {
-                    final isSelected = _sortBy == sb;
-                    return PopupMenuItem<CellarSortBy>(
-                      value: sb,
-                      child: Row(
-                        children: [
-                          Icon(sb.icon, size: 18, color: isSelected ? const Color(0xFFD4AF37) : null),
-                          const SizedBox(width: 10),
-                          Text(
-                            sb.label,
-                            style: TextStyle(
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? const Color(0xFFD4AF37) : null,
-                            ),
-                          ),
-                          if (isSelected) ...[
-                            const Spacer(),
-                            const Icon(Icons.check, size: 16, color: Color(0xFFD4AF37)),
-                          ]
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: _sortBy != CellarSortBy.recentlyAdded
-                          ? const Color(0xFFD4AF37).withValues(alpha: 0.18)
-                          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: _sortBy != CellarSortBy.recentlyAdded
-                            ? const Color(0xFFD4AF37)
-                            : theme.dividerColor.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _sortBy.icon,
-                          size: 15,
-                          color: _sortBy != CellarSortBy.recentlyAdded ? const Color(0xFFD4AF37) : theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _sortBy != CellarSortBy.recentlyAdded ? 'Tri: ${_sortBy.label}' : 'Trier',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: _sortBy != CellarSortBy.recentlyAdded ? FontWeight.bold : FontWeight.w500,
-                            color: _sortBy != CellarSortBy.recentlyAdded ? const Color(0xFFD4AF37) : theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          size: 16,
-                          color: _sortBy != CellarSortBy.recentlyAdded ? const Color(0xFFD4AF37) : theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // Grouping Selector Menu
-                PopupMenuButton<CellarGroupBy>(
-                  tooltip: 'Regrouper les vins',
-                  initialValue: _groupBy,
-                  onSelected: _setGroupBy,
-                  itemBuilder: (context) => CellarGroupBy.values.map((gb) {
-                    final isSelected = _groupBy == gb;
-                    return PopupMenuItem<CellarGroupBy>(
-                      value: gb,
-                      child: Row(
-                        children: [
-                          Icon(gb.icon, size: 18, color: isSelected ? const Color(0xFF8B1E3F) : null),
-                          const SizedBox(width: 10),
-                          Text(
-                            gb.label,
-                            style: TextStyle(
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? const Color(0xFF8B1E3F) : null,
-                            ),
-                          ),
-                          if (isSelected) ...[
-                            const Spacer(),
-                            const Icon(Icons.check, size: 16, color: Color(0xFF8B1E3F)),
-                          ]
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: _groupBy != CellarGroupBy.none
-                          ? const Color(0xFF8B1E3F).withValues(alpha: 0.15)
-                          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: _groupBy != CellarGroupBy.none
-                            ? const Color(0xFF8B1E3F)
-                            : theme.dividerColor.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _groupBy != CellarGroupBy.none ? _groupBy.icon : Icons.folder_copy_outlined,
-                          size: 15,
-                          color: _groupBy != CellarGroupBy.none ? const Color(0xFF8B1E3F) : theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _groupBy != CellarGroupBy.none ? 'Par ${_groupBy.label}' : 'Regrouper',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: _groupBy != CellarGroupBy.none ? FontWeight.bold : FontWeight.w500,
-                            color: _groupBy != CellarGroupBy.none ? const Color(0xFF8B1E3F) : theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          size: 16,
-                          color: _groupBy != CellarGroupBy.none ? const Color(0xFF8B1E3F) : theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // Food Pairing Sommelier Matcher Shortcut
-                ActionChip(
-                  avatar: const Text('🍽️', style: TextStyle(fontSize: 14)),
-                  label: const Text(
-                    'Quel vin pour mon plat ?',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4AF37)),
-                  ),
-                  backgroundColor: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF2B221E)
-                      : const Color(0xFFFAF0E6),
-                  side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                  onPressed: () {
-                    HapticFeedback.mediumImpact();
-                    final bottleList = bottles.value ?? <Bottle>[];
-                    CellarFoodPairingSheet.show(
-                      context,
-                      bottles: bottleList,
-                      cellarName: currentDisplayName,
-                    );
-                  },
-                ),
-                const SizedBox(width: 8),
-
-                // All Types
-                FilterChip(
-                  label: Text(l10n?.filterAll ?? 'Tous'),
-                  selected: _filter.wineType == null,
-                  selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
-                  checkmarkColor: const Color(0xFF8B1E3F),
-                  onSelected: (selected) {
-                    HapticFeedback.selectionClick();
-                    if (selected) {
-                      setState(() => _filter = _filter.copyWith(wineType: () => null));
-                    }
-                  },
-                ),
-                const SizedBox(width: 6),
-
-                // Red
-                FilterChip(
-                  avatar: const Text('🔴', style: TextStyle(fontSize: 12)),
-                  label: Text(l10n?.filterRed ?? 'Rouge'),
-                  selected: _filter.wineType == 'red',
-                  selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
-                  checkmarkColor: const Color(0xFF8B1E3F),
-                  onSelected: (selected) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'red' : null));
-                  },
-                ),
-                const SizedBox(width: 6),
-
-                // White
-                FilterChip(
-                  avatar: const Text('⚪', style: TextStyle(fontSize: 12)),
-                  label: Text(l10n?.filterWhite ?? 'Blanc'),
-                  selected: _filter.wineType == 'white',
-                  selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
-                  checkmarkColor: const Color(0xFF8B1E3F),
-                  onSelected: (selected) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'white' : null));
-                  },
-                ),
-                const SizedBox(width: 6),
-
-                // Rosé
-                FilterChip(
-                  avatar: const Text('🌸', style: TextStyle(fontSize: 12)),
-                  label: Text(l10n?.filterRose ?? 'Rosé'),
-                  selected: _filter.wineType == 'rose',
-                  selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
-                  checkmarkColor: const Color(0xFF8B1E3F),
-                  onSelected: (selected) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'rose' : null));
-                  },
-                ),
-                const SizedBox(width: 6),
-
-                // Sparkling
-                FilterChip(
-                  avatar: const Text('🍾', style: TextStyle(fontSize: 12)),
-                  label: Text(l10n?.filterSparkling ?? 'Bulles'),
-                  selected: _filter.wineType == 'sparkling',
-                  selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
-                  checkmarkColor: const Color(0xFF8B1E3F),
-                  onSelected: (selected) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'sparkling' : null));
-                  },
-                ),
-                const SizedBox(width: 8),
-
-                // More filters (Continent, Country, Grape, Appellation, Maturity)
-                ActionChip(
-                  avatar: Badge(
-                    isLabelVisible: _filter.activeFilterCount > 0,
-                    label: Text('${_filter.activeFilterCount}'),
-                    child: const Icon(Icons.tune, size: 16),
-                  ),
-                  label: Text(_filter.activeFilterCount > 0 ? '${l10n?.filterSheetTitle ?? "Filtres"} (${_filter.activeFilterCount})' : (l10n?.filterSheetTitle ?? 'Plus de filtres')),
-                  onPressed: () {
-                    HapticFeedback.selectionClick();
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (_) => CellarFilterSheet(
-                        initialFilter: _filter,
-                        bottles: bottles.value ?? <Bottle>[],
-                        onApply: (newFilter) => setState(() => _filter = newFilter),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // Bottle grid or list
+          // Bottle grid, list or empty state
           if (cellarsList.isEmpty)
             Expanded(
               child: Center(
@@ -1108,121 +780,238 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                       title: 'Aucune bouteille',
                       subtitle: isViewOnly
                           ? 'Cette cave est vide'
-                          : 'Touchez Actions Cave pour ajouter votre première bouteille !',
-                    );
-                  }
-
-                  final filteredList = _filterBottles(bottleList);
-
-                  if (filteredList.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.filter_alt_off, size: 48, color: theme.colorScheme.onSurfaceVariant.withAlpha(120)),
-                        const SizedBox(height: 12),
-                        const Text('Aucune bouteille ne correspond à ces critères', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () => setState(() => _filter = const CellarFilterState()),
-                          child: const Text('Effacer les filtres'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                  final sortedList = _sortBy.sort(filteredList);
-                  final totalBottles = sortedList.fold<int>(0, (sum, b) => sum + b.quantity);
-
-                  Widget mainContent;
-
-                  if (_groupBy != CellarGroupBy.none) {
-                    final sections = CellarGroupEngine.partitionBottles(
-                      sortedList,
-                      _groupBy,
-                      sortBy: _sortBy,
-                    );
-                    mainContent = _buildGroupedBottleView(
-                      theme: theme,
-                      sections: sections,
-                      activeCellarId: activeCellarId ?? '',
-                      totalBottles: totalBottles,
-                      totalReferences: sortedList.length,
-                    );
-                  } else {
-                    mainContent = _viewMode == CellarViewMode.grid
-                        ? GridView.builder(
-                            padding: const EdgeInsets.all(12),
-                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 260,
-                              mainAxisExtent: 295,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                            ),
-                            itemCount: sortedList.length,
-                            itemBuilder: (context, index) {
-                              final bottle = sortedList[index];
-                              return BottleCard(
-                                bottle: bottle,
-                                onTap: () => context.push('/cellar/${bottle.id}'),
-                                onLongPress: () => BottleContextSheet.show(
-                                  context,
-                                  bottle: bottle,
-                                  cellarId: activeCellarId ?? '',
-                                ),
-                              ).animate()
-                                .fadeIn(delay: Duration(milliseconds: index * 40))
-                                .slideY(begin: 0.08, end: 0);
-                            },
-                          )
-                        : ResponsiveContentWrapper(
-                            maxWidth: 1000,
-                            child: ListView.builder(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: _viewMode == CellarViewMode.compact ? 8 : 12,
-                                vertical: _viewMode == CellarViewMode.compact ? 4 : 12,
+                          : 'Touchez Actions Cave pour ajouter une bouteille ou importez directement votre fichier Excel / CSV !',
+                      action: isViewOnly
+                          ? null
+                          : ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1B5E20),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
-                              itemCount: sortedList.length,
-                              itemBuilder: (context, index) {
-                                final bottle = sortedList[index];
-                                return BottleListItem(
-                                  bottle: bottle,
-                                  isUltraCompact: _viewMode == CellarViewMode.compact,
-                                  onTap: () => context.push('/cellar/${bottle.id}'),
-                                  onLongPress: () => BottleContextSheet.show(
-                                    context,
-                                    bottle: bottle,
-                                    cellarId: activeCellarId ?? '',
-                                  ),
-                                ).animate()
-                                  .fadeIn(delay: Duration(milliseconds: index * 25));
+                              icon: const Icon(Icons.table_chart_outlined),
+                              label: const Text('Importer un fichier Excel / CSV'),
+                              onPressed: () {
+                                context.push('/cellar/import-excel?cellarId=${currentCellarId ?? ""}');
                               },
                             ),
-                          );
+                    );
                   }
 
-                  final totalValue = sortedList.fold<double>(0.0, (sum, b) {
-                    final val = b.wine?.estimatedMarketValue ?? b.purchasePrice ?? 0.0;
-                    return sum + (val * b.quantity);
-                  });
+                  final wineBottles = bottleList.where((b) => !(b.wine?.isSpirit ?? false)).toList();
+                  final spiritBottles = bottleList.where((b) => (b.wine?.isSpirit ?? false)).toList();
+                  final hasWines = wineBottles.isNotEmpty;
+                  final hasSpirits = spiritBottles.isNotEmpty;
+                  final hasBoth = hasWines && hasSpirits;
 
-                  Widget finalView = Column(
+                  _updateTabController(hasBoth ? 2 : 1);
+                  final isSpiritsView = hasBoth ? (_activeTabIndex == 1) : (!hasWines && hasSpirits);
+                  final displayedBottles = isSpiritsView ? spiritBottles : wineBottles;
+
+                  return Column(
                     children: [
-                      if (_searchQuery.isNotEmpty)
-                        _buildLocationSummaryHeader(theme, sortedList)
-                      else if (_showTotalCosts && _groupBy == CellarGroupBy.none && totalValue > 0)
-                        _buildTotalCostsBanner(theme, totalBottles, sortedList.length, totalValue),
-                      Expanded(child: mainContent),
-                    ],
-                  );
+                      // Search button to the left of the Vins / Spiritueux selector
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+                        child: Row(
+                          children: [
+                            // Search toggle button
+                            Material(
+                              color: _showSearchBar
+                                  ? const Color(0xFF8B1E3F)
+                                  : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(12),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(12),
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  setState(() {
+                                    _showSearchBar = !_showSearchBar;
+                                    if (!_showSearchBar) {
+                                      _searchQuery = '';
+                                      _searchController.clear();
+                                    }
+                                  });
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        _showSearchBar ? Icons.search_off : Icons.search,
+                                        size: 20,
+                                        color: _showSearchBar ? Colors.white : theme.colorScheme.onSurface,
+                                      ),
+                                      if (_searchQuery.isNotEmpty) ...[
+                                        const SizedBox(width: 4),
+                                        Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xFFD4AF37),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
 
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      notifyCellarChanged(ref, activeCellarId);
-                      await Future.delayed(const Duration(milliseconds: 200));
-                    },
-                    child: finalView,
+                            // Swipeable category tabs or single view header
+                            if (hasBoth)
+                              Expanded(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: TabBar(
+                                    controller: _tabController,
+                                    indicator: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: const Color(0xFF8B1E3F),
+                                    ),
+                                    labelColor: Colors.white,
+                                    unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+                                    indicatorSize: TabBarIndicatorSize.tab,
+                                    dividerColor: Colors.transparent,
+                                    tabs: [
+                                      Tab(
+                                        height: 38,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Text('🍷 Vins', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: _activeTabIndex == 0
+                                                    ? Colors.white.withValues(alpha: 0.25)
+                                                    : const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Text(
+                                                '${wineBottles.fold<int>(0, (sum, b) => sum + b.quantity)}',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: _activeTabIndex == 0 ? Colors.white : const Color(0xFF8B1E3F),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Tab(
+                                        height: 38,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Text('🥃 Spiritueux', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: _activeTabIndex == 1
+                                                    ? Colors.white.withValues(alpha: 0.25)
+                                                    : const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Text(
+                                                '${spiritBottles.fold<int>(0, (sum, b) => sum + b.quantity)}',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: _activeTabIndex == 1 ? Colors.white : const Color(0xFF8B1E3F),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            else
+                              Expanded(
+                                child: Container(
+                                  height: 38,
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                                  alignment: Alignment.centerLeft,
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        isSpiritsView ? '🥃 Spiritueux' : '🍷 Vins',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF8B1E3F).withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          '${displayedBottles.fold<int>(0, (sum, b) => sum + b.quantity)}',
+                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+
+                      // Filter chips row
+                      _buildFilterRow(
+                        theme: theme,
+                        l10n: l10n,
+                        isSpiritsView: isSpiritsView,
+                        displayedBottles: displayedBottles,
+                        currentDisplayName: currentDisplayName,
+                      ),
+
+                      // Swipeable or single bottle view
+                      Expanded(
+                        child: hasBoth
+                            ? TabBarView(
+                                controller: _tabController,
+                                children: [
+                                  _buildBottleView(
+                                    theme: theme,
+                                    sourceBottles: wineBottles,
+                                    activeCellarId: activeCellarId ?? '',
+                                    isViewOnly: isViewOnly,
+                                  ),
+                                  _buildBottleView(
+                                    theme: theme,
+                                    sourceBottles: spiritBottles,
+                                    activeCellarId: activeCellarId ?? '',
+                                    isViewOnly: isViewOnly,
+                                  ),
+                                ],
+                              )
+                            : _buildBottleView(
+                                theme: theme,
+                                sourceBottles: isSpiritsView ? spiritBottles : wineBottles,
+                                activeCellarId: activeCellarId ?? '',
+                                isViewOnly: isViewOnly,
+                              ),
+                      ),
+                    ],
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -1231,8 +1020,634 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFilterRow({
+    required ThemeData theme,
+    required AppLocalizations? l10n,
+    required bool isSpiritsView,
+    required List<Bottle> displayedBottles,
+    required String currentDisplayName,
+  }) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        children: [
+          // 1. Prominent unnamed filter icon button with badge
+          InkWell(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => CellarFilterSheet(
+                  initialFilter: _filter,
+                  bottles: displayedBottles,
+                  onApply: (newFilter) => setState(() => _filter = newFilter),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: _filter.activeFilterCount > 0
+                    ? const Color(0xFF8B1E3F).withValues(alpha: 0.18)
+                    : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _filter.activeFilterCount > 0
+                      ? const Color(0xFF8B1E3F)
+                      : theme.dividerColor.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+              ),
+              child: Badge(
+                isLabelVisible: _filter.activeFilterCount > 0,
+                backgroundColor: const Color(0xFFD4AF37),
+                textColor: Colors.black,
+                label: Text(
+                  '${_filter.activeFilterCount}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                ),
+                child: Icon(
+                  Icons.tune,
+                  size: 20,
+                  color: _filter.activeFilterCount > 0
+                      ? const Color(0xFF8B1E3F)
+                      : theme.colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // 2. Adaptive filter chips: Wines vs Spirits
+          if (!isSpiritsView) ...[
+            // Food Pairing Sommelier Matcher Shortcut - prominent at the very front!
+            ActionChip(
+              avatar: const Text('🍽️', style: TextStyle(fontSize: 14)),
+              label: const Text(
+                'Quel vin pour mon plat ?',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4AF37)),
+              ),
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF2B221E)
+                  : const Color(0xFFFAF0E6),
+              side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+              onPressed: () {
+                HapticFeedback.mediumImpact();
+                CellarFoodPairingSheet.show(
+                  context,
+                  bottles: displayedBottles,
+                  cellarName: currentDisplayName,
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+
+            // All Wine Types
+            FilterChip(
+              label: Text(l10n?.filterAll ?? 'Tous'),
+              selected: _filter.wineType == null && !_filter.onlyFavorites,
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                if (selected) {
+                  setState(() => _filter = _filter.copyWith(wineType: () => null, onlyFavorites: false));
+                }
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Favoris FilterChip
+            FilterChip(
+              avatar: const Text('❤️', style: TextStyle(fontSize: 12)),
+              label: const Text('Favoris'),
+              selected: _filter.onlyFavorites,
+              selectedColor: Colors.pink.withValues(alpha: 0.18),
+              checkmarkColor: Colors.pink,
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(onlyFavorites: selected));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Red
+            FilterChip(
+              avatar: const Text('🔴', style: TextStyle(fontSize: 12)),
+              label: Text(l10n?.filterRed ?? 'Rouge'),
+              selected: _filter.wineType == 'red',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'red' : null));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // White
+            FilterChip(
+              avatar: const Text('⚪', style: TextStyle(fontSize: 12)),
+              label: Text(l10n?.filterWhite ?? 'Blanc'),
+              selected: _filter.wineType == 'white',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'white' : null));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Rosé
+            FilterChip(
+              avatar: const Text('🌸', style: TextStyle(fontSize: 12)),
+              label: Text(l10n?.filterRose ?? 'Rosé'),
+              selected: _filter.wineType == 'rose',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'rose' : null));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Sparkling
+            FilterChip(
+              avatar: const Text('🍾', style: TextStyle(fontSize: 12)),
+              label: Text(l10n?.filterSparkling ?? 'Bulles'),
+              selected: _filter.wineType == 'sparkling',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'sparkling' : null));
+              },
+            ),
+          ] else ...[
+            // All Spirits
+            FilterChip(
+              label: Text(l10n?.filterAll ?? 'Tous'),
+              selected: _filter.wineType == null,
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                if (selected) {
+                  setState(() => _filter = _filter.copyWith(wineType: () => null, onlyFavorites: false));
+                }
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Favoris FilterChip
+            FilterChip(
+              avatar: const Text('❤️', style: TextStyle(fontSize: 12)),
+              label: const Text('Favoris'),
+              selected: _filter.onlyFavorites,
+              selectedColor: Colors.pink.withValues(alpha: 0.18),
+              checkmarkColor: Colors.pink,
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(onlyFavorites: selected));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Gin
+            FilterChip(
+              avatar: const Text('🍸', style: TextStyle(fontSize: 12)),
+              label: const Text('Gin'),
+              selected: _filter.wineType == 'gin',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'gin' : null));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Whisky
+            FilterChip(
+              avatar: const Text('🥃', style: TextStyle(fontSize: 12)),
+              label: const Text('Whisky'),
+              selected: _filter.wineType == 'whisky',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'whisky' : null));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Rhum
+            FilterChip(
+              avatar: const Text('🍹', style: TextStyle(fontSize: 12)),
+              label: const Text('Rhum'),
+              selected: _filter.wineType == 'rum',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'rum' : null));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Vodka
+            FilterChip(
+              avatar: const Text('🧊', style: TextStyle(fontSize: 12)),
+              label: const Text('Vodka'),
+              selected: _filter.wineType == 'vodka',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'vodka' : null));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Liqueur
+            FilterChip(
+              avatar: const Text('🌿', style: TextStyle(fontSize: 12)),
+              label: const Text('Liqueur'),
+              selected: _filter.wineType == 'liqueur',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'liqueur' : null));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Grappa / Eau-de-vie
+            FilterChip(
+              avatar: const Text('🍇', style: TextStyle(fontSize: 12)),
+              label: const Text('Grappa / Eau-de-vie'),
+              selected: _filter.wineType == 'grappa',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'grappa' : null));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Tequila
+            FilterChip(
+              avatar: const Text('🌵', style: TextStyle(fontSize: 12)),
+              label: const Text('Tequila'),
+              selected: _filter.wineType == 'tequila',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'tequila' : null));
+              },
+            ),
+            const SizedBox(width: 6),
+
+            // Cognac / Armagnac
+            FilterChip(
+              avatar: const Text('🍷', style: TextStyle(fontSize: 12)),
+              label: const Text('Cognac / Armagnac'),
+              selected: _filter.wineType == 'cognac',
+              selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
+              checkmarkColor: const Color(0xFF8B1E3F),
+              onSelected: (selected) {
+                HapticFeedback.selectionClick();
+                setState(() => _filter = _filter.copyWith(wineType: () => selected ? 'cognac' : null));
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSortButton(ThemeData theme) {
+    return PopupMenuButton<CellarSortBy>(
+      tooltip: 'Trier',
+      initialValue: _sortBy,
+      onSelected: _setSortBy,
+      itemBuilder: (context) => CellarSortBy.values.map((sb) {
+        final isSelected = _sortBy == sb;
+        return PopupMenuItem<CellarSortBy>(
+          value: sb,
+          child: Row(
+            children: [
+              Icon(sb.icon, size: 18, color: isSelected ? const Color(0xFFD4AF37) : null),
+              const SizedBox(width: 10),
+              Text(
+                sb.label,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? const Color(0xFFD4AF37) : null,
+                ),
+              ),
+              if (isSelected) ...[
+                const Spacer(),
+                const Icon(Icons.check, size: 16, color: Color(0xFFD4AF37)),
+              ]
+            ],
+          ),
+        );
+      }).toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          color: _sortBy != CellarSortBy.recentlyAdded
+              ? const Color(0xFFD4AF37).withValues(alpha: 0.18)
+              : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: _sortBy != CellarSortBy.recentlyAdded
+                ? const Color(0xFFD4AF37)
+                : theme.dividerColor.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _sortBy.icon,
+              size: 14,
+              color: _sortBy != CellarSortBy.recentlyAdded ? const Color(0xFFD4AF37) : theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Trier',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: _sortBy != CellarSortBy.recentlyAdded ? FontWeight.bold : FontWeight.w500,
+                color: _sortBy != CellarSortBy.recentlyAdded ? const Color(0xFFD4AF37) : theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 14,
+              color: _sortBy != CellarSortBy.recentlyAdded ? const Color(0xFFD4AF37) : theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGroupByButton(ThemeData theme) {
+    return PopupMenuButton<CellarGroupBy>(
+      tooltip: 'Catégories',
+      initialValue: _groupBy,
+      onSelected: _setGroupBy,
+      itemBuilder: (context) => CellarGroupBy.values.map((gb) {
+        final isSelected = _groupBy == gb;
+        return PopupMenuItem<CellarGroupBy>(
+          value: gb,
+          child: Row(
+            children: [
+              Icon(gb.icon, size: 18, color: isSelected ? const Color(0xFF8B1E3F) : null),
+              const SizedBox(width: 10),
+              Text(
+                gb.label,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? const Color(0xFF8B1E3F) : null,
+                ),
+              ),
+              if (isSelected) ...[
+                const Spacer(),
+                const Icon(Icons.check, size: 16, color: Color(0xFF8B1E3F)),
+              ]
+            ],
+          ),
+        );
+      }).toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          color: _groupBy != CellarGroupBy.none
+              ? const Color(0xFF8B1E3F).withValues(alpha: 0.15)
+              : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: _groupBy != CellarGroupBy.none
+                ? const Color(0xFF8B1E3F)
+                : theme.dividerColor.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _groupBy != CellarGroupBy.none ? _groupBy.icon : Icons.folder_copy_outlined,
+              size: 14,
+              color: _groupBy != CellarGroupBy.none ? const Color(0xFF8B1E3F) : theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Catégories',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: _groupBy != CellarGroupBy.none ? FontWeight.bold : FontWeight.w500,
+                color: _groupBy != CellarGroupBy.none ? const Color(0xFF8B1E3F) : theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 14,
+              color: _groupBy != CellarGroupBy.none ? const Color(0xFF8B1E3F) : theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottleView({
+    required ThemeData theme,
+    required List<Bottle> sourceBottles,
+    required String activeCellarId,
+    required bool isViewOnly,
+  }) {
+    final filteredList = _filterBottles(sourceBottles);
+
+    if (filteredList.isEmpty) {
+      if (sourceBottles.isEmpty) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'Aucune bouteille dans cette catégorie',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+        );
+      }
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.filter_alt_off, size: 48, color: theme.colorScheme.onSurfaceVariant.withAlpha(120)),
+            const SizedBox(height: 12),
+            const Text('Aucune bouteille ne correspond à ces critères', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => setState(() => _filter = const CellarFilterState()),
+              child: const Text('Effacer les filtres'),
+            ),
+          ],
+        ),
       );
     }
+
+    final sortedList = _sortBy.sort(filteredList);
+    final totalBottles = sortedList.fold<int>(0, (sum, b) => sum + b.quantity);
+    final totalValue = sortedList.fold<double>(0.0, (sum, b) {
+      final val = b.wine?.estimatedMarketValue ?? b.purchasePrice ?? 0.0;
+      return sum + (val * b.quantity);
+    });
+
+    Widget mainContent;
+
+    if (_groupBy != CellarGroupBy.none) {
+      final sections = CellarGroupEngine.partitionBottles(
+        sortedList,
+        _groupBy,
+        sortBy: _sortBy,
+      );
+      mainContent = _buildGroupedBottleView(
+        theme: theme,
+        sections: sections,
+        activeCellarId: activeCellarId,
+        totalBottles: totalBottles,
+        totalReferences: sortedList.length,
+      );
+    } else {
+      mainContent = Column(
+        children: [
+          // Toolbar for ungrouped mode: 2-line summary on left, Trier & Catégories on right
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${sortedList.length} référence${sortedList.length > 1 ? "s" : ""}',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF8B1E3F),
+                        ),
+                      ),
+                      Text(
+                        '$totalBottles btl',
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF8B1E3F).withValues(alpha: 0.85),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                _buildSortButton(theme),
+                const SizedBox(width: 6),
+                _buildGroupByButton(theme),
+              ],
+            ),
+          ),
+          if (_searchQuery.isNotEmpty)
+            _buildLocationSummaryHeader(theme, sortedList)
+          else if (!isViewOnly && _showTotalCosts && totalValue > 0)
+            _buildTotalCostsBanner(theme, totalBottles, sortedList.length, totalValue),
+          Expanded(
+            child: _viewMode == CellarViewMode.grid
+                ? GridView.builder(
+                    padding: const EdgeInsets.all(12),
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 260,
+                      mainAxisExtent: 295,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemCount: sortedList.length,
+                    itemBuilder: (context, index) {
+                      final bottle = sortedList[index];
+                      return BottleCard(
+                        bottle: bottle,
+                        onTap: () => context.push('/cellar/${bottle.id}'),
+                        onLongPress: () => BottleContextSheet.show(
+                          context,
+                          bottle: bottle,
+                          cellarId: activeCellarId,
+                        ),
+                      ).animate()
+                        .fadeIn(delay: Duration(milliseconds: index * 40))
+                        .slideY(begin: 0.08, end: 0);
+                    },
+                  )
+                : ResponsiveContentWrapper(
+                    maxWidth: 1000,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      itemCount: sortedList.length,
+                      itemBuilder: (context, index) {
+                        final bottle = sortedList[index];
+                        return BottleListItem(
+                          bottle: bottle,
+                          isUltraCompact: true,
+                          onTap: () => context.push('/cellar/${bottle.id}'),
+                          onLongPress: () => BottleContextSheet.show(
+                            context,
+                            bottle: bottle,
+                            cellarId: activeCellarId,
+                          ),
+                        ).animate()
+                          .fadeIn(delay: Duration(milliseconds: index * 25));
+                      },
+                    ),
+                  ),
+          ),
+        ],
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        notifyCellarChanged(ref, activeCellarId);
+        await Future.delayed(const Duration(milliseconds: 200));
+      },
+      child: mainContent,
+    );
+  }
 
   Widget _buildTotalCostsBanner(ThemeData theme, int totalBottles, int totalReferences, double totalValue) {
     return Container(
@@ -1282,7 +1697,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
 
     return Column(
       children: [
-        // Group summary & Global Collapse / Expand controls
+        // Group summary on 2 lines & controls: Tout replier, Trier, Catégories
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           child: Row(
@@ -1291,34 +1706,48 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF8B1E3F).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(
-                  '${sections.length} groupe${sections.length > 1 ? "s" : ""} • $totalBottles btl',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF8B1E3F),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${sections.length} groupe${sections.length > 1 ? "s" : ""}',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF8B1E3F),
+                      ),
+                    ),
+                    Text(
+                      '$totalBottles btl',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF8B1E3F).withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              if (_showTotalCosts && grandTotalValue > 0) ...[
+              if (!_isViewOnly && _showTotalCosts && grandTotalValue > 0) ...[
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.account_balance_wallet_outlined, size: 14, color: Color(0xFFD4AF37)),
-                      const SizedBox(width: 4),
+                      const Icon(Icons.account_balance_wallet_outlined, size: 13, color: Color(0xFFD4AF37)),
+                      const SizedBox(width: 3),
                       Text(
-                        'Total: ${grandTotalValue.toStringAsFixed(0)} €',
+                        '${grandTotalValue.toStringAsFixed(0)} €',
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFFD4AF37),
                         ),
@@ -1331,17 +1760,17 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
               TextButton.icon(
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                 ),
                 icon: Icon(
                   allCollapsed ? Icons.unfold_more : Icons.unfold_less,
-                  size: 16,
+                  size: 15,
                   color: const Color(0xFFD4AF37),
                 ),
                 label: Text(
                   allCollapsed ? 'Tout déplier' : 'Tout replier',
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFD4AF37),
                   ),
@@ -1354,6 +1783,10 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                   }
                 },
               ),
+              const SizedBox(width: 4),
+              _buildSortButton(theme),
+              const SizedBox(width: 6),
+              _buildGroupByButton(theme),
             ],
           ),
         ),
@@ -1438,7 +1871,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                                 ),
                               ),
                             ),
-                            if (_showTotalCosts && section.totalEstimatedValue > 0) ...[
+                            if (!_isViewOnly && _showTotalCosts && section.totalEstimatedValue > 0) ...[
                               const SizedBox(width: 6),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
@@ -1471,7 +1904,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                     if (!isCollapsed) ...[
                       const Divider(height: 1, thickness: 0.8),
                       Padding(
-                        padding: EdgeInsets.all(_viewMode == CellarViewMode.compact ? 6 : 10),
+                        padding: const EdgeInsets.all(6),
                         child: Builder(
                           builder: (context) {
                             final sortedSectionBottles = _sortBy.sort(section.bottles);
@@ -1504,12 +1937,12 @@ class _CellarScreenState extends ConsumerState<CellarScreen> {
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 itemCount: sortedSectionBottles.length,
-                                separatorBuilder: (_, __) => SizedBox(height: _viewMode == CellarViewMode.compact ? 3 : 6),
+                                separatorBuilder: (_, __) => const SizedBox(height: 3),
                                 itemBuilder: (context, bIdx) {
                                   final bottle = sortedSectionBottles[bIdx];
                                   return BottleListItem(
                                     bottle: bottle,
-                                    isUltraCompact: _viewMode == CellarViewMode.compact,
+                                    isUltraCompact: true,
                                     onTap: () => context.push('/cellar/${bottle.id}'),
                                     onLongPress: () => BottleContextSheet.show(
                                       context,

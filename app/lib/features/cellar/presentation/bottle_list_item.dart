@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../domain/bottle.dart';
 import '../domain/wine.dart';
+import '../domain/wine_image_service.dart';
+import '../data/favorite_wines_service.dart';
 import '../../../shared/widgets/bottle_image_view.dart';
 
 class BottleListItem extends StatelessWidget {
@@ -54,7 +56,7 @@ class BottleListItem extends StatelessWidget {
     final isFr = Localizations.localeOf(context).languageCode != 'en';
     final wine = bottle.wine;
     final vintageStr = wine?.vintage != null ? '${wine!.vintage}' : (isFr ? 'NM' : 'NV');
-    final photo = bottle.photoUrl ?? wine?.imageUrl;
+    final photo = WineImageService.resolveBottleDisplayImage(bottle, wine);
     final status = wine?.windowStatus ?? DrinkWindowStatus.inPeak;
     final maturityColor = _getMaturityColor(status);
     final maturityText = _getMaturityLabel(status, isFr);
@@ -134,6 +136,25 @@ class BottleListItem extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (!bottle.isStandardSize) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.4), width: 0.8),
+                            ),
+                            child: Text(
+                              bottle.sizeBadgeLabel,
+                              style: TextStyle(
+                                fontSize: isUltraCompact ? 9.5 : 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 2),
@@ -212,12 +233,12 @@ class BottleListItem extends StatelessWidget {
                             ),
                           ),
                         ],
-                        if (bottle.rack != null && bottle.rack!.isNotEmpty) ...[
+                        if (bottle.hasLocation) ...[
                           const SizedBox(width: 8),
                           Icon(Icons.location_on, size: 11, color: Colors.grey.shade600),
                           const SizedBox(width: 1),
                           Text(
-                            bottle.rack! + (bottle.shelf != null ? ' - ${bottle.shelf}' : ''),
+                            bottle.locationSummary,
                             style: TextStyle(
                               fontSize: isUltraCompact ? 10 : 11,
                               color: Colors.grey.shade600,
@@ -232,40 +253,51 @@ class BottleListItem extends StatelessWidget {
               ),
               const SizedBox(width: 8),
 
-              // 3. Right: Quantity Badge + Price
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              // 3. Right: Favorite Heart + Quantity Badge + Price
+              Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isUltraCompact ? 6 : 8,
-                      vertical: isUltraCompact ? 2 : 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8B1E3F),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'x${bottle.quantity}',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: isUltraCompact ? 11 : 12,
-                      ),
-                    ),
+                  FavoriteHeartButton(
+                    wineOrBottleId: wine?.id ?? bottle.id,
+                    size: 19,
+                    inactiveColor: isDark ? Colors.white38 : Colors.black26,
                   ),
-                  if (displayPrice != null && displayPrice > 0) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      '${displayPrice.toStringAsFixed(displayPrice.truncateToDouble() == displayPrice ? 0 : 2)} $currencySymbol',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: isUltraCompact ? 10 : 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade600,
+                  const SizedBox(width: 4),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isUltraCompact ? 6 : 8,
+                          vertical: isUltraCompact ? 2 : 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF8B1E3F),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'x${bottle.quantity}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: isUltraCompact ? 11 : 12,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                      if (displayPrice != null && displayPrice > 0) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          '${displayPrice.toStringAsFixed(displayPrice.truncateToDouble() == displayPrice ? 0 : 2)} $currencySymbol',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: isUltraCompact ? 10 : 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
               ),
             ],

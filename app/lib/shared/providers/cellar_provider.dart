@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/cellar/data/cellar_repository.dart';
 import '../../features/cellar/domain/bottle.dart';
+import '../../features/cellar/domain/cellar_furniture.dart';
 import '../../features/offline/presentation/sync_provider.dart';
 import '../../features/offline/data/offline_storage_service.dart';
 import 'supabase_provider.dart';
@@ -31,7 +32,30 @@ final currentCellarIdProvider = StateNotifierProvider<CurrentCellarNotifier, Str
   final storage = ref.watch(offlineStorageServiceProvider);
   return CurrentCellarNotifier(storage);
 });
-final currentCellarRoleProvider = StateProvider<String>((ref) => 'admin');
+final currentCellarRoleProvider = Provider<String>((ref) {
+  final currentCellarId = ref.watch(currentCellarIdProvider);
+  final cellars = ref.watch(userCellarsProvider).value;
+
+  if (cellars == null || cellars.isEmpty) {
+    return 'admin';
+  }
+
+  if (currentCellarId != null && currentCellarId.isNotEmpty) {
+    for (final item in cellars) {
+      final cMap = item['cellars'];
+      final id = cMap is Map ? cMap['id']?.toString() : item['cellar_id']?.toString();
+      if (id == currentCellarId) {
+        final role = item['role']?.toString().toLowerCase();
+        if (role != null && role.isNotEmpty) {
+          return role;
+        }
+      }
+    }
+  }
+
+  final firstRole = cellars.first['role']?.toString().toLowerCase();
+  return firstRole ?? 'admin';
+});
 
 final userCellarsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final repo = ref.watch(cellarRepositoryProvider);
@@ -45,10 +69,17 @@ void notifyCellarChanged(WidgetRef ref, [String? cellarId]) {
   ref.read(cellarVersionProvider.notifier).state++;
   if (cellarId != null) {
     ref.invalidate(bottlesProvider(cellarId));
+    ref.invalidate(cellarFurnitureProvider(cellarId));
   }
   ref.invalidate(bottlesProvider(null));
   ref.invalidate(userCellarsProvider);
 }
+
+final cellarFurnitureProvider = FutureProvider.family<List<CellarFurniture>, String>((ref, cellarId) async {
+  ref.watch(cellarVersionProvider);
+  final repo = ref.watch(cellarRepositoryProvider);
+  return repo.getCellarFurniture(cellarId);
+});
 
 final bottlesProvider = FutureProvider.family<List<Bottle>, String?>((ref, cellarId) async {
   // Automatically reload whenever cellarVersion changes

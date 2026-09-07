@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
 import 'taste_profile_radar_screen.dart';
+import '../../../shared/providers/supabase_provider.dart';
 
 class TasteProfilesDialog extends ConsumerStatefulWidget {
   const TasteProfilesDialog({super.key});
@@ -26,6 +27,12 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final profilesAsync = ref.watch(tasteProfilesListProvider);
+    String? rawName;
+    try {
+      final user = ref.watch(supabaseProvider).auth.currentUser;
+      rawName = (user?.userMetadata?['display_name'] as String?)?.trim();
+    } catch (_) {}
+    final userDisplayName = (rawName != null && rawName.isNotEmpty) ? rawName : 'Flavien';
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
@@ -139,7 +146,9 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                                       : const Color(0xFFD4AF37),
                                   radius: 18,
                                   child: Text(
-                                    profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?',
+                                    profile.isPrimary && userDisplayName.isNotEmpty
+                                        ? userDisplayName[0].toUpperCase()
+                                        : (profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?'),
                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -151,7 +160,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                                       Row(
                                         children: [
                                           Text(
-                                            profile.name,
+                                            profile.isPrimary ? 'Moi ($userDisplayName)' : profile.name,
                                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                           ),
                                           if (profile.isPrimary) ...[

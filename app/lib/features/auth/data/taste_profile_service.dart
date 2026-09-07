@@ -27,8 +27,18 @@ class TasteProfileService {
       if (raw != null) {
         final List<dynamic> list = jsonDecode(raw);
         final loaded = list.map((j) => TasteProfile.fromJson(j as Map<String, dynamic>)).toList();
-        // Filter out any legacy hardcoded mock profiles by specific IDs
-        final clean = loaded.where((p) => p.id != 'flavien_main' && p.id != 'caro_profile' && (p.id != 'primary_user' || p.isPrimary)).toList();
+        // Filter out any legacy hardcoded mock profiles or erroneously created "primary" guest profiles
+        final clean = loaded.where((p) {
+          final idLower = p.id.toLowerCase();
+          final nameLower = p.name.trim().toLowerCase();
+          if (idLower == 'flavien_main' || idLower == 'caro_profile') return false;
+          if (idLower == 'primary' || nameLower == 'primary') return false;
+          if (idLower == 'primary_user' && !p.isPrimary) return false;
+          return true;
+        }).toList();
+        if (clean.length != loaded.length) {
+          await saveProfiles(clean);
+        }
         if (clean.isNotEmpty) {
           return clean;
         }
@@ -160,14 +170,17 @@ class TasteProfileService {
   }) async {
     try {
       final profiles = await getProfiles();
-      int idx = profiles.indexWhere((p) => p.id == nameOrId || p.name.trim().toLowerCase() == nameOrId.trim().toLowerCase());
+      final cleanQuery = nameOrId.trim().toLowerCase();
       TasteProfile profile;
-      if (idx == -1) {
-        profile = await addOrGetProfileByName(nameOrId);
-        final freshProfiles = await getProfiles();
-        idx = freshProfiles.indexWhere((p) => p.id == profile.id);
+      if (cleanQuery == 'primary' || cleanQuery == 'primary_user' || cleanQuery.isEmpty || cleanQuery == 'moi') {
+        profile = await getPrimaryProfile();
       } else {
-        profile = profiles[idx];
+        int idx = profiles.indexWhere((p) => p.id.toLowerCase() == cleanQuery || p.name.trim().toLowerCase() == cleanQuery);
+        if (idx == -1) {
+          profile = await addOrGetProfileByName(nameOrId);
+        } else {
+          profile = profiles[idx];
+        }
       }
 
       // If user loved the wine (rating >= 7.5), reinforce preferred regions, types, and grapes
@@ -257,9 +270,11 @@ class TasteProfileService {
         avgAcidityPreference: _runningAvg(profile.avgAcidityPreference, result.acidity, n),
         avgBodyPreference: _runningAvg(profile.avgBodyPreference, result.body, n),
       );
-      if (result.tannins > 0) {
+      final cleanType = (wineType ?? '').toLowerCase();
+      final isRedWine = cleanType.contains('rouge') || cleanType == 'red';
+      if (isRedWine && result.tannins != null && result.tannins! > 0) {
         profile = profile.copyWith(
-          avgTanninPreference: _runningAvg(profile.avgTanninPreference, result.tannins, n),
+          avgTanninPreference: _runningAvg(profile.avgTanninPreference, result.tannins!, n),
         );
       }
     }
@@ -340,7 +355,7 @@ class TasteProfileService {
 
       // Learned palate profile
       if (p.questionnairesCompleted > 0) {
-        buffer.writeln('  * Profil palais (basé sur ${p.questionnairesCompleted} dégustations):');
+        buffer.writeln('  * Profil palais (basé sur ${p.questionnairesCompleted} dégustation${p.questionnairesCompleted > 1 ? "s" : ""}):');
         if (p.avgAcidityPreference != null) buffer.writeln('    - Acidité préférée: ${_axisLabel(p.avgAcidityPreference!, "mou", "vif")}');
         if (p.avgTanninPreference != null) buffer.writeln('    - Tanins préférés: ${_axisLabel(p.avgTanninPreference!, "fondus", "puissants")}');
         if (p.avgBodyPreference != null) buffer.writeln('    - Corps préféré: ${_axisLabel(p.avgBodyPreference!, "léger", "puissant")}');
@@ -358,6 +373,12 @@ class TasteProfileService {
           final top = sorted.take(4).map((e) => _likedIdToLabel(e.key)).join(', ');
           buffer.writeln('    - Ce qu\'il/elle apprécie le plus: $top');
         }
+      }
+
+      // Strict anti-hallucination guard for sparse profiles
+      final isSparse = (p.favoriteTypes.isEmpty && p.favoriteRegions.isEmpty && p.favoriteGrapes.isEmpty) || p.questionnairesCompleted <= 1;
+      if (isSparse && !p.isPrimary) {
+        buffer.writeln('  * STATUT STRICT SOMMELIER: Données très limitées pour ${p.name}. INTERDICTION FORMELLE d\'extrapoler des préférences pour les vins rouges ou des terroirs comme la Galice ! Si l\'utilisateur demande ce qu\'aime ${p.name}, indique factuellement qu\'elle n\'a dégusté qu\'un seul vin (un blanc) et que ses goûts sont encore en cours de découverte.');
       }
     }
     return buffer.toString();
@@ -386,6 +407,11 @@ class TasteProfileService {
           final top = sorted.take(4).map((e) => e.key.replaceAll('_', ' ')).join(', ');
           buffer.writeln('    - Arômes préférés: $top');
         }
+      }
+
+      final isSparse = (p.favoriteTypes.isEmpty && p.favoriteRegions.isEmpty && p.favoriteGrapes.isEmpty) || p.questionnairesCompleted <= 1;
+      if (isSparse) {
+        buffer.writeln('  * STATUT STRICT SOMMELIER: Données très limitées pour ${f.displayName}. INTERDICTION FORMELLE d\'inventer des goûts pour les vins rouges ou terroirs non prouvés ! Expliquer factuellement que son profil se construit progressivement.');
       }
     }
     return buffer.toString();
@@ -443,6 +469,17 @@ class TasteProfileService {
       case 'accord_plat': return 'les accords mets-vins';
       case 'minerale': return 'la minéralité';
       case 'longueur': return 'la longueur en bouche';
+      default: return id.replaceAll('_', ' ');
+    }
+  }
+
+  String momentIdToLabel(String id) {
+    switch (id) {
+      case 'apero': return 'Apéritif';
+      case 'repas': return 'Repas du quotidien';
+      case 'grand_diner': return 'Grand dîner';
+      case 'diner_romantique': return 'Dîner romantique';
+      case 'solo': return 'Solo / Méditation';
       default: return id.replaceAll('_', ' ');
     }
   }

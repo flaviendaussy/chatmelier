@@ -90,8 +90,13 @@ class ScanResult {
         combinedLower.contains('fleur de lavande') ||
         combinedLower.contains('liqueur')) {
       resolvedType = 'liqueur';
+    } else if (combinedLower.contains('grappa') ||
+        combinedLower.contains('vinaccia') ||
+        combinedLower.contains('acquavite') ||
+        combinedLower.contains('marc de ') ||
+        combinedLower.contains('fine de ')) {
+      resolvedType = 'grappa';
     } else if (combinedLower.contains('pisco') ||
-        combinedLower.contains('grappa') ||
         combinedLower.contains('aguardente') ||
         combinedLower.contains('eau de vie') ||
         combinedLower.contains('eau-de-vie') ||

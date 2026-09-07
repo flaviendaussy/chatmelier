@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/utils/currency_helper.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../domain/menu_wine.dart';
 
@@ -30,7 +31,6 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
     Color(0xFF8E24AA), // Purple
   ];
 
-  String _selectedPriceFormat = 'bottle'; // 'bottle', '125ml', '175ml', 'glass'
   String _currentColorTab = 'red'; // 'red' or 'white'
 
   @override
@@ -58,16 +58,16 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
     final activeWines = _currentColorTab == 'red' ? reds : whites;
     final isWhiteMode = _currentColorTab == 'white';
 
-    // Build Spider Datasets
+    // Build Spider Datasets with colour-specific fields (Beurre for whites, Tannins for reds)
     final datasets = <RadarChartDataset>[];
     for (int i = 0; i < activeWines.length; i++) {
       final wine = activeWines[i];
       final color = _palette[i % _palette.length];
-      final metrics = isWhiteMode ? wine.metrics.toWhiteRadarMetrics() : wine.metrics.toRedRadarMetrics();
+      final values = isWhiteMode ? wine.metrics.toWhiteValues() : wine.metrics.toRedValues();
 
       datasets.add(RadarChartDataset(
         label: wine.vintage != null ? '${wine.name} (${wine.vintage})' : wine.name,
-        metrics: metrics,
+        customValues: values,
         color: color,
       ));
     }
@@ -117,8 +117,8 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                       ),
                       Text(
                         isWhiteMode
-                            ? 'Comparaison Blancs (Minéralité, Beurré, Vivacité...)'
-                            : 'Comparaison Rouges (Tannins, Puissance, Fruit...)',
+                            ? 'Profil Blancs (Beurré, Minéralité, Vivacité, Douceur...)'
+                            : 'Profil Rouges (Tannins, Puissance, Baies, Élevage...)',
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
@@ -156,40 +156,6 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
               ),
             ),
 
-          // Pricing Selector (Bouteille vs Verre 125ml vs Verre 175ml)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Format de prix :',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                Wrap(
-                  spacing: 6,
-                  children: [
-                    ChoiceChip(
-                      label: const Text('Bouteille'),
-                      selected: _selectedPriceFormat == 'bottle',
-                      onSelected: (v) => setState(() => _selectedPriceFormat = 'bottle'),
-                    ),
-                    ChoiceChip(
-                      label: const Text('Verre 125ml'),
-                      selected: _selectedPriceFormat == '125ml',
-                      onSelected: (v) => setState(() => _selectedPriceFormat = '125ml'),
-                    ),
-                    ChoiceChip(
-                      label: const Text('Verre 175ml'),
-                      selected: _selectedPriceFormat == '175ml',
-                      onSelected: (v) => setState(() => _selectedPriceFormat = '175ml'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
           const Divider(height: 1),
 
           // Scrollable Content: Spider Chart + Wine Cards with Prices & Match Scores
@@ -202,11 +168,14 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        // Radar Chart
+                        // Radar Chart with 7 dynamic colour-specific axes
                         SizedBox(
                           height: 270,
                           child: WineTasteRadarChart(
                             datasets: datasets,
+                            customAxisLabels: isWhiteMode
+                                ? MenuWineRadarMetrics.whiteAxisLabels
+                                : MenuWineRadarMetrics.redAxisLabels,
                             size: 260,
                             showLabels: true,
                           ),
@@ -217,8 +186,8 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Text(
                             isWhiteMode
-                                ? 'Axes Blancs : Minéralité • Vivacité • Fruit • Beurré & Rondeur • Boisé • Corps'
-                                : 'Axes Rouges : Tannins • Puissance • Acidité • Fruit • Boisé • Minéralité',
+                                ? 'Axes Blancs : Minéralité • Vivacité • Fleurs • Beurré & Rondeur • Boisé • Douceur • Puissance'
+                                : 'Axes Rouges : Tannins • Puissance • Acidité • Baies • Élevage • Minéralité • Persistance',
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.grey),
                           ),
@@ -231,23 +200,17 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                           final wine = activeWines[idx];
                           final color = _palette[idx % _palette.length];
 
-                          // Resolve price according to selected format
+                          // Resolve price automatically without format selector
                           String priceLabel = '';
-                          if (_selectedPriceFormat == 'bottle') {
-                            priceLabel = wine.bottlePrice != null
-                                ? '${wine.bottlePrice!.toStringAsFixed(wine.bottlePrice! % 1 == 0 ? 0 : 2)} €'
-                                : 'Non dispo';
-                          } else {
-                            final matchGlass = wine.glassPrices.firstWhere(
-                              (g) => g.format.toLowerCase().contains(_selectedPriceFormat),
-                              orElse: () => wine.glassPrices.isNotEmpty
-                                  ? wine.glassPrices.first
-                                  : const MenuWineGlassPrice(format: '', price: 0),
-                            );
-                            priceLabel = matchGlass.price > 0
-                                ? '${matchGlass.price.toStringAsFixed(matchGlass.price % 1 == 0 ? 0 : 2)} € (${matchGlass.format})'
-                                : (wine.bottlePrice != null ? '${wine.bottlePrice!.toStringAsFixed(0)} € (bt)' : 'N/A');
+                          if (wine.bottlePrice != null && wine.bottlePrice! > 0) {
+                            priceLabel = '${CurrencyHelper.formatPrice(wine.bottlePrice!)} / bt';
                           }
+                          if (wine.glassPrices.isNotEmpty) {
+                            final g = wine.glassPrices.first;
+                            final gStr = '${CurrencyHelper.formatPrice(g.price)} (${g.format})';
+                            priceLabel = priceLabel.isNotEmpty ? '$priceLabel • $gStr' : gStr;
+                          }
+                          if (priceLabel.isEmpty) priceLabel = 'Prix non indiqué';
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),

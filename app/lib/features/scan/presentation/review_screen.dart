@@ -11,6 +11,7 @@ import '../../../shared/utils/app_logger.dart';
 import '../../../shared/services/cellar_location_service.dart';
 import '../../cellar/domain/cellar.dart';
 import '../../cellar/domain/bottle.dart';
+import '../../cellar/domain/bottle_size.dart';
 import '../../cellar/domain/wine_service_advisor.dart';
 import '../data/scan_service.dart';
 import '../domain/scan_result.dart';
@@ -21,7 +22,6 @@ import '../../offline/presentation/sync_provider.dart';
 import '../../offline/data/connectivity_service.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../monetization/admob_service.dart';
-import 'rewarded_video_ad_sheet.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
   final String imagePath;
@@ -47,8 +47,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   final _rackCtrl = TextEditingController();
   final _shelfCtrl = TextEditingController();
   final _alcoholPctCtrl = TextEditingController();
+  final _quantityCtrl = TextEditingController(text: '1');
 
   String _wineType = 'red';
+  String _bottleSize = '75cl';
   int _quantity = 1;
   String _selectedCurrency = 'EUR';
   bool _isSaving = false;
@@ -90,42 +92,58 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   void _checkAndTriggerAnalysis() async {
     final isPremium = ref.read(premiumProvider);
     if (isPremium) {
-      _analyzeImage();
+      await _analyzeImage(runPrompts: true);
       return;
     }
+
+    // 🚀 UX Optimization: Parallelize AI image analysis in background WHILE the ad plays
+    // User experiences ~0 seconds perceived waiting time after closing the video!
+    bool rewardEarned = false;
+    ScanResult? analysisResult;
+    final analysisFuture = _analyzeImage(runPrompts: false).then((res) {
+      analysisResult = res;
+      return res;
+    });
 
     // Try showing real Google AdMob Rewarded Video Ad first (on Android/iOS)
     final showedAdMob = await AdMobService().showRewardedAd(
       onRewardEarned: () {
-        if (mounted) _analyzeImage();
+        rewardEarned = true;
       },
-      onAdDismissed: () {
-        if (mounted) {
+      onAdDismissed: () async {
+        if (!mounted) return;
+        if (rewardEarned) {
+          final res = analysisResult ?? await analysisFuture;
+          if (res != null && mounted) {
+            await _runPostAnalysisPrompts(res);
+          }
+        } else {
+          debugPrint('[ReviewScreen] Rewarded ad dismissed without reward. Discarding analysis.');
           setState(() {
+            _scanResult = null;
+            _nameCtrl.clear();
+            _producerCtrl.clear();
+            _vintageCtrl.clear();
             _isAnalyzing = false;
             _ignoreUndetected = true;
           });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Vidéo interrompue. Regardez la vidéo jusqu\'au bout pour débloquer l\'analyse IA.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
         }
       },
     );
 
-    // If AdMob is not supported (Web) or ad was not ready yet,
-    // fallback cleanly to the interactive sponsor video sheet
+    // If AdMob did not show (no fill, offline, web, or ad not ready yet):
+    // "Juste de l'admob ou rien": directly unlock the scan without fake ads!
     if (!showedAdMob && mounted) {
-      RewardedVideoAdSheet.show(
-        context,
-        onRewardEarned: () {
-          if (mounted) _analyzeImage();
-        },
-        onCancel: () {
-          if (mounted) {
-            setState(() {
-              _isAnalyzing = false;
-              _ignoreUndetected = true;
-            });
-          }
-        },
-      );
+      final res = analysisResult ?? await analysisFuture;
+      if (res != null && mounted) {
+        await _runPostAnalysisPrompts(res);
+      }
     }
   }
 
@@ -146,19 +164,20 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     _rackCtrl.text = b.rack ?? '';
     _shelfCtrl.text = b.shelf ?? '';
     _notesCtrl.text = b.notes ?? '';
+    _bottleSize = b.bottleSize;
     if (w?.alcoholPct != null) {
       _alcoholPctCtrl.text = w!.alcoholPct!.toStringAsFixed(w.alcoholPct! % 1 == 0 ? 0 : 1);
     }
   }
 
-  Future<void> _analyzeImage() async {
+  Future<ScanResult?> _analyzeImage({bool runPrompts = true}) async {
     final isOnline = ref.read(isOnlineProvider);
     if (!isOnline) {
       setState(() {
         _isAnalyzing = false;
         _analysisError = 'offline';
       });
-      return;
+      return null;
     }
 
     setState(() {
@@ -168,9 +187,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
     try {
       final scanService = ScanService(ref.read(supabaseProvider));
+      final currentLang = Localizations.localeOf(context).languageCode;
       final result = await scanService.analyzeBottleImage(
         imagePath: widget.imagePath,
         imageBytes: widget.imageBytes,
+        languageCode: currentLang,
       );
       
       if (mounted) {
@@ -193,17 +214,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           }
         });
 
-        // 1. Multi-Bottle detection check
-        if (result.detectedQuantity > 1) {
-          await _promptMultiBottleConfirmation(result.detectedQuantity, result.packagingType);
+        if (runPrompts) {
+          await _runPostAnalysisPrompts(result);
         }
-
-        // 2. Prompt vintage confirmation
-        await _promptVintageConfirmation(result.vintage);
-
-        // 3. Check duplicate in cellar
-        _checkDuplicateInCellar();
       }
+      return result;
     } catch (e, stack) {
       AppLogger.error('REVIEW_SCREEN', 'Image scan failed', e, stack);
       if (mounted) {
@@ -211,11 +226,26 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           _analysisError = 'L\'analyse automatique a rencontré une difficulté ($e). Vous pouvez réessayer ou remplir manuellement.';
         });
       }
+      return null;
     } finally {
       if (mounted) {
         setState(() => _isAnalyzing = false);
       }
     }
+  }
+
+  Future<void> _runPostAnalysisPrompts(ScanResult result) async {
+    if (!mounted) return;
+    // 1. Multi-Bottle detection check
+    if (result.detectedQuantity > 1) {
+      await _promptMultiBottleConfirmation(result.detectedQuantity, result.packagingType);
+    }
+
+    // 2. Prompt vintage confirmation
+    await _promptVintageConfirmation(result.vintage);
+
+    // 3. Check duplicate in cellar
+    _checkDuplicateInCellar();
   }
 
   Future<void> _promptMultiBottleConfirmation(int detectedQty, String? pkgType) async {
@@ -241,14 +271,20 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              setState(() => _quantity = 1);
+              setState(() {
+                _quantity = 1;
+                _quantityCtrl.text = '1';
+              });
               Navigator.pop(ctx);
             },
             child: const Text('Non, 1 seule bouteille'),
           ),
           FilledButton(
             onPressed: () {
-              setState(() => _quantity = detectedQty);
+              setState(() {
+                _quantity = detectedQty;
+                _quantityCtrl.text = '$detectedQty';
+              });
               Navigator.pop(ctx);
             },
             style: FilledButton.styleFrom(
@@ -284,11 +320,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         t.contains('liqueur')) {
       return 'liqueur';
     }
+    if (t.contains('grappa') || t.contains('vinaccia') || t.contains('acquavite')) return 'grappa';
+    if (t.contains('eau de vie') || t.contains('eau-de-vie') || t.contains('marc de ')) return 'eau-de-vie';
     if (t.contains('pisco') ||
-        t.contains('grappa') ||
         t.contains('aguardente') ||
-        t.contains('eau de vie') ||
-        t.contains('eau-de-vie') ||
         t.contains('pastis') ||
         t.contains('ricard') ||
         t.contains('absinthe') ||
@@ -373,6 +408,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       // 2. Check Color / Type (Couleur)
       final bColor = _normalizeColor(bw.type);
       if (color != bColor) continue;
+
+      // 2.5. Check Bottle Size / Format (e.g. 75cl vs 1.5L)
+      if (b.bottleSize != _bottleSize) continue;
 
       // 3. Check Domaine / Producteur
       final bProducer = (bw.producer ?? '').trim();
@@ -477,6 +515,22 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   Future<void> _promptVintageConfirmation(int? detectedVintage) async {
     // Only prompt the user if vintage was NOT detected by AI
     if (detectedVintage != null && detectedVintage > 0) return;
+
+    // Do NOT prompt for spirits, fortified/mutés, or non-vintage categories
+    final typeLower = _wineType.toLowerCase();
+    final isSpiritOrFortified = typeLower == 'spirit' ||
+        typeLower == 'spiritueux' ||
+        typeLower == 'fortified' ||
+        typeLower == 'muté' ||
+        typeLower == 'mute' ||
+        typeLower == 'liqueur' ||
+        typeLower == 'cocktail' ||
+        typeLower == 'beer' ||
+        typeLower == 'biere' ||
+        typeLower == 'cider' ||
+        typeLower == 'cidre';
+    if (isSpiritOrFortified) return;
+
     if (!mounted) return;
     final tempVintageCtrl = TextEditingController();
 
@@ -595,6 +649,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     _notesCtrl.dispose();
     _rackCtrl.dispose();
     _shelfCtrl.dispose();
+    _quantityCtrl.dispose();
     super.dispose();
   }
 
@@ -755,6 +810,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         peakDrinkingEnd: peakEnd,
         estimatedMarketValue: _scanResult?.estimatedMarketValue,
         localPhotoPath: widget.imagePath.isNotEmpty ? widget.imagePath : null,
+        bottleSize: _bottleSize,
       );
 
       // Upload photo to Supabase storage in background if present
@@ -1087,8 +1143,44 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
+    final hasUnsavedData = _nameCtrl.text.trim().isNotEmpty ||
+        _producerCtrl.text.trim().isNotEmpty ||
+        _vintageCtrl.text.trim().isNotEmpty ||
+        _priceCtrl.text.trim().isNotEmpty;
+
+    return PopScope(
+      canPop: !hasUnsavedData,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldLeave = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Abandonner la saisie ?'),
+            content: const Text(
+              'Vous avez des informations non enregistrées sur cette bouteille. Souhaitez-vous vraiment quitter sans sauvegarder ?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Continuer la saisie'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B1E3F),
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Quitter sans enregistrer'),
+              ),
+            ],
+          ),
+        );
+        if (shouldLeave == true && context.mounted) {
+          context.pop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
         title: const Text('Fiche de la Bouteille'),
         actions: [
           if (_isSaving)
@@ -1141,57 +1233,155 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           children: [
             // DUPLICATE SUGGESTION BANNER
             if (_duplicateBottle != null && !_dismissDuplicate) ...[
-              Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFD4AF37), width: 1.5),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              Builder(
+                builder: (context) {
+                  final dupStock = _duplicateBottle!.quantity;
+                  final totalStock = dupStock + _quantity;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFD4AF37), width: 1.5),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.inventory_2_outlined, color: Color(0xFFD4AF37), size: 24),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Vin déjà présent dans votre cave ! (${_duplicateBottle!.quantity} en stock)',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        Row(
+                          children: [
+                            const Icon(Icons.inventory_2_outlined, color: Color(0xFFD4AF37), size: 24),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Vin déjà présent dans votre cave ! ($dupStock en stock)',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Ce vin existe déjà (${_duplicateBottle!.wine?.name ?? ""} ${_duplicateBottle!.wine?.vintage != null ? "${_duplicateBottle!.wine!.vintage}" : ""}). Que souhaitez-vous faire ?',
+                          style: const TextStyle(fontSize: 12.5),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Calculation formula card
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Column(
+                                children: [
+                                  Text('Stock en cave', style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant)),
+                                  const SizedBox(height: 2),
+                                  Text('$dupStock', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              const Icon(Icons.add, size: 16, color: Colors.grey),
+                              Column(
+                                children: [
+                                  const Text('Ajout', style: TextStyle(fontSize: 11, color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 2),
+                                  Text('+$_quantity', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
+                                ],
+                              ),
+                              const Text('=', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
+                              Column(
+                                children: [
+                                  const Text('Nouveau total', style: TextStyle(fontSize: 11, color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 2),
+                                  Text('$totalStock', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F))),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Stepper row in duplicate banner
+                        Row(
+                          children: [
+                            const Text('Quantité à ajouter :', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                            const Spacer(),
+                            IconButton.filledTonal(
+                              visualDensity: VisualDensity.compact,
+                              onPressed: _quantity > 1
+                                  ? () {
+                                      setState(() {
+                                        _quantity--;
+                                        _quantityCtrl.text = '$_quantity';
+                                      });
+                                    }
+                                  : null,
+                              icon: const Icon(Icons.remove, size: 16),
+                            ),
+                            Container(
+                              width: 50,
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              child: TextFormField(
+                                controller: _quantityCtrl,
+                                keyboardType: TextInputType.number,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                                onChanged: (val) {
+                                  final p = int.tryParse(val);
+                                  if (p != null && p > 0) {
+                                    setState(() => _quantity = p);
+                                  }
+                                },
+                              ),
+                            ),
+                            IconButton.filledTonal(
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () {
+                                setState(() {
+                                  _quantity++;
+                                  _quantityCtrl.text = '$_quantity';
+                                });
+                              },
+                              icon: const Icon(Icons.add, size: 16),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        FilledButton.icon(
+                          onPressed: _increaseExistingBottleStock,
+                          icon: const Icon(Icons.add_circle_outline, size: 18, color: Colors.white),
+                          label: Text(
+                            'Augmenter le stock existant ($totalStock btl au total)',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF8B1E3F),
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(46),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Center(
+                          child: TextButton(
+                            onPressed: () => setState(() => _dismissDuplicate = true),
+                            child: const Text('Créer une entrée distincte (autre casier / prix)'),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Ce vin existe déjà (${_duplicateBottle!.wine?.name ?? ""} ${_duplicateBottle!.wine?.vintage != null ? "${_duplicateBottle!.wine!.vintage}" : ""}). Que souhaitez-vous faire ?',
-                      style: const TextStyle(fontSize: 12.5),
-                    ),
-                    const SizedBox(height: 12),
-                    FilledButton.icon(
-                      onPressed: _increaseExistingBottleStock,
-                      icon: const Icon(Icons.add_circle_outline, size: 18, color: Colors.white),
-                      label: Text(
-                        'Augmenter le stock existant (+$_quantity)',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF8B1E3F),
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(46),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Center(
-                      child: TextButton(
-                        onPressed: () => setState(() => _dismissDuplicate = true),
-                        child: const Text('Créer une entrée distincte (autre casier / prix)'),
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ],
 
@@ -1434,6 +1624,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                               DropdownMenuItem(value: 'dessert', child: Text('Moelleux 🍯')),
                               DropdownMenuItem(value: 'liqueur', child: Text('Liqueur 🍯')),
                               DropdownMenuItem(value: 'spirit', child: Text('Spiritueux 🥃')),
+                              DropdownMenuItem(value: 'grappa', child: Text('Grappa 🍇')),
+                              DropdownMenuItem(value: 'eau-de-vie', child: Text('Eau-de-vie 🍐')),
                               DropdownMenuItem(value: 'whisky', child: Text('Whisky 🥃')),
                               DropdownMenuItem(value: 'rhum', child: Text('Rhum 🏴‍☠️')),
                               DropdownMenuItem(value: 'gin', child: Text('Gin 🍸')),
@@ -1576,21 +1768,95 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   children: [
                     Text('Quantité & Achat', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Format / Contenance',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            ...['37.5cl', '75cl', '1.5L', '3L'].map((sizeCode) {
+                              final sizeObj = BottleSize.fromCode(sizeCode);
+                              final isSelected = _bottleSize == sizeCode;
+                              return ChoiceChip(
+                                label: Text(sizeObj.shortName),
+                                selected: isSelected,
+                                onSelected: (selected) {
+                                  if (selected) {
+                                    setState(() => _bottleSize = sizeCode);
+                                    _checkDuplicateInCellar();
+                                  }
+                                },
+                                selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.25),
+                                labelStyle: TextStyle(
+                                  color: isSelected ? const Color(0xFF8B1E3F) : null,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              );
+                            }),
+                            ActionChip(
+                              avatar: const Icon(Icons.more_horiz, size: 16),
+                              label: Text(!['37.5cl', '75cl', '1.5L', '3L'].contains(_bottleSize)
+                                  ? BottleSize.fromCode(_bottleSize).shortName
+                                  : 'Autre format...'),
+                              onPressed: _showAllBottleSizesPicker,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         const Text('Quantité :', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                         const Spacer(),
                         IconButton.filledTonal(
-                          onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
-                          icon: const Icon(Icons.remove),
+                          visualDensity: VisualDensity.compact,
+                          onPressed: _quantity > 1
+                              ? () {
+                                  setState(() {
+                                    _quantity--;
+                                    _quantityCtrl.text = '$_quantity';
+                                  });
+                                }
+                              : null,
+                          icon: const Icon(Icons.remove, size: 18),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('$_quantity', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Container(
+                          width: 56,
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          child: TextFormField(
+                            controller: _quantityCtrl,
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onChanged: (val) {
+                              final p = int.tryParse(val);
+                              if (p != null && p > 0) {
+                                setState(() => _quantity = p);
+                              }
+                            },
+                          ),
                         ),
                         IconButton.filledTonal(
-                          onPressed: () => setState(() => _quantity++),
-                          icon: const Icon(Icons.add),
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () {
+                            setState(() {
+                              _quantity++;
+                              _quantityCtrl.text = '$_quantity';
+                            });
+                          },
+                          icon: const Icon(Icons.add, size: 18),
                         ),
                       ],
                     ),
@@ -1753,6 +2019,58 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               ),
             ),
             const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    ),
+  );
+  }
+
+  void _showAllBottleSizesPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (_, scrollController) => Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Choisir un format de bouteille',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            const Divider(),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: BottleSize.standardSizes.length,
+                itemBuilder: (ctx, i) {
+                  final s = BottleSize.standardSizes[i];
+                  final isSelected = _bottleSize == s.code;
+                  return ListTile(
+                    leading: Icon(
+                      Icons.wine_bar,
+                      color: isSelected ? const Color(0xFF8B1E3F) : Colors.grey,
+                    ),
+                    title: Text(s.label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                    trailing: isSelected ? const Icon(Icons.check, color: Color(0xFF8B1E3F)) : null,
+                    onTap: () {
+                      setState(() => _bottleSize = s.code);
+                      _checkDuplicateInCellar();
+                      Navigator.pop(ctx);
+                    },
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),

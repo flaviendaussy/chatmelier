@@ -42,6 +42,24 @@ class CurrencyHelper {
     return getOption(currencyCode).symbol;
   }
 
+  static String getCurrencyForLocale(dynamic locale) {
+    if (locale == null) return defaultCurrency;
+    final country = locale.countryCode?.toString().toUpperCase();
+    if (country != null) {
+      if (country == 'US') return 'USD';
+      if (country == 'GB') return 'GBP';
+      if (country == 'CH') return 'CHF';
+      if (country == 'CA') return 'CAD';
+      if (country == 'AU') return 'AUD';
+      if (country == 'JP') return 'JPY';
+    }
+    final lang = locale.languageCode?.toString().toLowerCase();
+    if (lang == 'ja') return 'JPY';
+    if (lang == 'en') return 'USD';
+    if (lang == 'zh') return 'CNY';
+    return defaultCurrency;
+  }
+
   static String formatPrice(num? amount, {String? currency, int decimals = 0}) {
     if (amount == null) return '';
     final opt = getOption(currency);

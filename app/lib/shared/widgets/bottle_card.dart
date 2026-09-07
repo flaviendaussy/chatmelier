@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/cellar/domain/bottle.dart';
+import '../../features/cellar/domain/cellar_furniture.dart';
 import '../../features/cellar/domain/wine.dart';
+import '../../features/cellar/domain/wine_image_service.dart';
+import '../../features/cellar/data/favorite_wines_service.dart';
 import '../utils/currency_helper.dart';
 import 'wine_type_badge.dart';
 import 'maturity_colorbar.dart';
@@ -58,7 +61,7 @@ class BottleCard extends StatelessWidget {
     final wineName = wine?.name ?? (isFr ? 'Vin' : 'Wine');
     final vintageStr = wine?.vintage != null ? '${wine!.vintage}' : (isFr ? 'NM' : 'NV');
     final producer = wine?.producer;
-    final photo = bottle.photoUrl ?? wine?.imageUrl;
+    final photo = WineImageService.resolveBottleDisplayImage(bottle, wine);
     final status = wine?.windowStatus ?? DrinkWindowStatus.inPeak;
     final maturityColor = _getMaturityColor(status);
     final maturityText = _getMaturityLabel(status, isFr);
@@ -66,7 +69,8 @@ class BottleCard extends StatelessWidget {
     final hasAppellation = wine != null && (wine.appellation?.isNotEmpty ?? false);
     final hasRegion = wine != null && wine.region.isNotEmpty;
     final hasRack = bottle.rack != null && bottle.rack!.isNotEmpty;
-    final hasLocationInfo = hasAppellation || hasRegion || hasRack;
+    final hasSlot = bottle.furnitureSlot != null && bottle.furnitureSlot!.isNotEmpty;
+    final hasLocationInfo = hasAppellation || hasRegion || hasRack || hasSlot || bottle.hasLocation;
 
     return Card(
       elevation: 2,
@@ -197,6 +201,21 @@ class BottleCard extends StatelessWidget {
                           ),
                         ),
                 ),
+                // Bottom-Left: Favorite Heart Toggle Button
+                Positioned(
+                  bottom: 6,
+                  left: 6,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      shape: BoxShape.circle,
+                    ),
+                    child: FavoriteHeartButton(
+                      wineOrBottleId: wine?.id ?? bottle.id,
+                      size: 18,
+                    ),
+                  ),
+                ),
                 // Bottom-Right: Quantity Capsule
                 Positioned(
                   bottom: 8,
@@ -276,8 +295,12 @@ class BottleCard extends StatelessWidget {
                                   wine.appellation!
                                 else if (hasRegion)
                                   wine.region,
-                                if (hasRack)
-                                  'Casier ${bottle.rack}',
+                                if (hasSlot)
+                                  CellarFurniture.describeSlotCode(bottle.furnitureSlot!)
+                                else if (hasRack)
+                                  'Casier ${bottle.rack}'
+                                else if (bottle.furnitureId != null && bottle.furnitureId!.isNotEmpty)
+                                  'En meuble',
                               ].join(' • '),
                               style: TextStyle(
                                 fontSize: 11,

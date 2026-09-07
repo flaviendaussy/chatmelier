@@ -10,6 +10,7 @@ import '../../../shared/services/gemini_model_registry.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../auth/data/ai_cost_tracker_service.dart';
 import '../../auth/domain/taste_profile.dart';
+import '../domain/menu_flagging_engine.dart';
 import '../domain/menu_wine.dart';
 import 'wine_knowledge_cache_service.dart';
 
@@ -55,11 +56,13 @@ class MenuScanService {
     List<Uint8List>? imageBytesList,
     String? restaurantNameHint,
     TasteProfile? userTasteProfile,
+    String languageCode = 'fr',
     void Function(String step)? onStepUpdate,
   }) async {
     final startTime = DateTime.now();
-    AppLogger.info('MENU_SCAN', 'Starting multi-page restaurant menu analysis (${imagePaths.length} pages)');
-    onStepUpdate?.call('Chatmelier analyse le menu...');
+    AppLogger.info('MENU_SCAN', 'Starting multi-page restaurant menu analysis (${imagePaths.length} pages, lang=$languageCode)');
+    final isEn = languageCode.toLowerCase().startsWith('en');
+    onStepUpdate?.call(isEn ? 'Chatmelier is analyzing the wine menu...' : 'Chatmelier analyse le menu...');
 
     GeminiModelRegistry.refreshAvailableModels();
 
@@ -92,7 +95,23 @@ class MenuScanService {
       });
     }
 
-    const systemPrompt = '''You are Chatmelier, the world's most capable sommelier and OCR wine recognition AI.
+    final langInstructions = isEn
+        ? '''- "tags": Array of relevant keywords in English from: ["mineral", "buttery", "tannic", "fruity", "light", "bold", "oaky", "floral", "spicy", "fresh", "round", "savory"].
+- "sommelier_comment": 1 sharp sentence in English describing the style and dining occasion.
+- "food_pairings": Array of 3 specific restaurant dish pairings in English (e.g. ["Grilled ribeye steak", "Roasted sea bass with fennel", "Aged artisan cheese board"]).
+- "is_gem": boolean. True if this wine is from an acclaimed artisan domain, biodynamic star, cult producer, or exceptional hidden gem.
+- "gem_reason": Short reason in English why this is a gem (e.g. "Biodynamic cult superstar", "Rare sought-after parcel"), or null.
+- "is_deal": boolean. True if this bottle represents an outstanding value / bargain (unusually low restaurant markup or exceptional price-to-pleasure ratio).
+- "deal_reason": Short reason in English why this is a deal (e.g. "Outstanding price very close to cellar door cost", "Exceptional markup advantage"), or null.'''
+        : '''- "tags": Array of relevant keywords in French from: ["minéral", "beurré", "tannique", "fruité", "léger", "puissant", "boisé", "floral", "épicé", "frais", "rond", "gourmand"].
+- "sommelier_comment": 1 sharp sentence in French describing the style and dining occasion.
+- "food_pairings": Array of 3 specific restaurant dish pairings (e.g. ["Côte de bœuf grillée", "Bar rôti au fenouil", "Plateau de fromages affinés"]).
+- "is_gem": boolean. True if this wine is from an acclaimed artisan domain, biodynamic star, cult producer, or exceptional hidden gem.
+- "gem_reason": Short reason in French why this is a gem (e.g. "Vigneron star en biodynamie", "Domaine confidentiel très recherché"), or null.
+- "is_deal": boolean. True if this bottle represents an outstanding value / bargain / "grosse affaire" (unusually low restaurant markup or great quality-to-price ratio).
+- "deal_reason": Short reason in French why this is a deal (e.g. "Tarif exceptionnel très proche du prix domaine", "Superbe rapport prix/plaisir", "Coefficient multiplicateur très avantageux"), or null.''';
+
+    final systemPrompt = '''You are Chatmelier, the world's most capable sommelier and OCR wine recognition AI.
 You are given one or multiple photos of pages from a restaurant's wine menu (carte des vins).
 Extract EVERY single wine listed across all provided pages.
 
@@ -116,9 +135,8 @@ For each wine, output a JSON object with:
     - "minerality": 1.0 to 10.0 (flinty, chalky, saline terroir character).
     - "butteriness": 0.0 to 10.0 (brioche/buttery lactic notes, typical in oaked Chardonnay).
     - "sweetness": 1.0 to 10.0 (residual sugar).
-- "tags": Array of relevant keywords in French from: ["minéral", "beurré", "tannique", "fruité", "léger", "puissant", "boisé", "floral", "épicé", "frais", "rond", "gourmand"].
-- "sommelier_comment": 1 sharp sentence in French describing the style and dining occasion.
-- "food_pairings": Array of 3 specific restaurant dish pairings (e.g. ["Côte de bœuf grillée", "Bar rôti au fenouil", "Plateau de fromages affinés"]).
+$langInstructions
+- "estimated_retail_price": Estimated typical retail/merchant price in euros (e.g. 18.0) or null.
 
 Also extract the restaurant name if visible on headers/cover, else return null.
 Return STRICTLY a JSON object with:
@@ -244,6 +262,11 @@ Return STRICTLY a JSON object with:
           [];
 
       final bottlePrice = (map['bottle_price'] as num?)?.toDouble();
+      final isGem = (map['is_gem'] as bool?) ?? false;
+      final gemReason = map['gem_reason'] as String?;
+      final isDeal = (map['is_deal'] as bool?) ?? false;
+      final dealReason = map['deal_reason'] as String?;
+      final estimatedRetailPrice = (map['estimated_retail_price'] as num?)?.toDouble();
 
       var wine = MenuWine(
         id: id,
@@ -261,6 +284,11 @@ Return STRICTLY a JSON object with:
         tags: tags,
         sommelierComment: sommelierComment,
         foodPairings: foodPairings,
+        isGem: isGem,
+        gemReason: gemReason,
+        isDeal: isDeal,
+        dealReason: dealReason,
+        estimatedRetailPrice: estimatedRetailPrice,
       );
 
       // If user has a taste profile, compute personalized match score!
@@ -272,18 +300,21 @@ Return STRICTLY a JSON object with:
       extractedWines.add(wine);
     }
 
+    // Apply smart sommelier highlight flags (Deals, Gems, Taste Matches) with quota
+    final flaggedWines = MenuFlaggingEngine.applyFlags(extractedWines, userTasteProfile);
+
     // Persist all recognized wines into the persistent database
-    await _knowledgeCache.bulkCache(extractedWines);
+    await _knowledgeCache.bulkCache(flaggedWines);
 
     final duration = DateTime.now().difference(startTime).inMilliseconds;
-    AppLogger.info('MENU_SCAN', 'Menu analysis finished in ${duration}ms via $usedModel! Extracted ${extractedWines.length} wines.');
+    AppLogger.info('MENU_SCAN', 'Menu analysis finished in ${duration}ms via $usedModel! Extracted ${flaggedWines.length} wines.');
 
     return ScannedMenu(
       id: uuid.v4(),
       restaurantName: detectedRestaurant,
       scannedAt: DateTime.now(),
       pagePhotoPaths: imagePaths,
-      wines: extractedWines,
+      wines: flaggedWines,
     );
   }
 

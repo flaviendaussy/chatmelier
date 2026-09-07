@@ -1,5 +1,6 @@
 import 'wine.dart';
 import 'wine_image_service.dart';
+import 'bottle_size.dart';
 
 enum BottleStatus { inCellar, consumed, gifted, sold }
 
@@ -27,6 +28,9 @@ class Bottle {
   final String? ownerName;
   final String? photoUrl;
   final int fillLevel; // 0 to 100 %, default 100
+  final String bottleSize; // '75cl', '1.5L', '37.5cl', etc.
+  final String? furnitureId; // Meuble ID
+  final String? furnitureSlot; // Coordonnée e.g. 'A7'
 
   const Bottle({
     required this.id,
@@ -52,6 +56,9 @@ class Bottle {
     this.ownerName,
     this.photoUrl,
     this.fillLevel = 100,
+    this.bottleSize = '75cl',
+    this.furnitureId,
+    this.furnitureSlot,
   });
 
   factory Bottle.fromJson(Map<String, dynamic> json) {
@@ -128,6 +135,9 @@ class Bottle {
       ownerName: (json['profiles'] as Map<String, dynamic>?)?['display_name'] as String?,
       photoUrl: resolvedPhoto,
       fillLevel: (json['fill_level'] ?? json['fillLevel'] as num?)?.toInt() ?? 100,
+      bottleSize: (json['bottle_size'] ?? json['bottleSize'])?.toString() ?? '75cl',
+      furnitureId: (json['furniture_id'] ?? json['furnitureId'])?.toString(),
+      furnitureSlot: (json['furniture_slot'] ?? json['furnitureSlot'])?.toString(),
     );
   }
 
@@ -155,6 +165,9 @@ class Bottle {
         if (ownerName != null) 'profiles': {'display_name': ownerName},
         if (photoUrl != null) 'photo_url': photoUrl,
         'fill_level': fillLevel,
+        'bottle_size': bottleSize,
+        if (furnitureId != null) 'furniture_id': furnitureId,
+        if (furnitureSlot != null) 'furniture_slot': furnitureSlot,
       };
 
   bool get isInCellar => status == 'in_cellar';
@@ -163,12 +176,37 @@ class Bottle {
   bool get isSpiritBottle => wine?.isSpirit ?? false;
   bool get tracksFillLevel => (wine?.tracksFillLevel ?? false) || isSpiritBottle;
 
+  /// Whether this bottle has any physical location defined in the cellar
+  /// (either in a modeled furniture, a slot, or via traditional rack/shelf/position fields).
+  bool get hasLocation =>
+      (furnitureId != null && furnitureId!.trim().isNotEmpty) ||
+      (furnitureSlot != null && furnitureSlot!.trim().isNotEmpty) ||
+      (rack != null && rack!.trim().isNotEmpty) ||
+      (shelf != null && shelf!.trim().isNotEmpty) ||
+      (position != null && position!.trim().isNotEmpty);
+
+  /// Returns a clean, concise location summary description.
+  String get locationSummary {
+    if (furnitureSlot != null && furnitureSlot!.trim().isNotEmpty) {
+      return furnitureSlot!.trim();
+    }
+    final parts = <String>[];
+    if (rack != null && rack!.trim().isNotEmpty) parts.add('Casier ${rack!.trim()}');
+    if (shelf != null && shelf!.trim().isNotEmpty) parts.add('Tablette ${shelf!.trim()}');
+    if (position != null && position!.trim().isNotEmpty) parts.add('Pos ${position!.trim()}');
+    if (parts.isNotEmpty) return parts.join(' • ');
+    if (furnitureId != null && furnitureId!.trim().isNotEmpty) {
+      return 'Dans le meuble (Rangement libre)';
+    }
+    return 'Emplacement non défini';
+  }
+
   /// Returns user-facing sommelier display text for bottle origin
   String get provenanceDisplay {
     final details = sourceDetails?.trim();
     switch (sourceType) {
       case 'estate':
-        return '🏰 Acheté au domaine';
+        return details != null && details.isNotEmpty ? '🏰 Acheté au domaine ($details)' : '🏰 Acheté au domaine';
       case 'merchant':
         return details != null && details.isNotEmpty ? '🏪 Caviste : $details' : '🏪 Chez un caviste';
       case 'gift':
@@ -186,6 +224,10 @@ class Bottle {
         return '📦 Stock cave';
     }
   }
+
+  BottleSize get sizeObject => BottleSize.fromCode(bottleSize);
+  bool get isStandardSize => sizeObject.isStandard75cl;
+  String get sizeBadgeLabel => sizeObject.shortName;
 
   Bottle copyWith({
     String? id,
@@ -211,6 +253,9 @@ class Bottle {
     String? ownerName,
     String? photoUrl,
     int? fillLevel,
+    String? bottleSize,
+    String? furnitureId,
+    String? furnitureSlot,
   }) {
     return Bottle(
       id: id ?? this.id,
@@ -236,6 +281,9 @@ class Bottle {
       ownerName: ownerName ?? this.ownerName,
       photoUrl: photoUrl ?? this.photoUrl,
       fillLevel: fillLevel ?? this.fillLevel,
+      bottleSize: bottleSize ?? this.bottleSize,
+      furnitureId: furnitureId ?? this.furnitureId,
+      furnitureSlot: furnitureSlot ?? this.furnitureSlot,
     );
   }
 }

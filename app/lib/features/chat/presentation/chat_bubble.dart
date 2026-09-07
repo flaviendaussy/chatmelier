@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import '../data/chat_service.dart';
 import 'chat_wine_card.dart';
 import 'chat_cocktail_card.dart';
 
@@ -181,7 +182,14 @@ class ChatBubble extends StatelessWidget {
         } catch (_) {}
       }
       return '';
-    }).trim();
+    });
+
+    // 3. Clean any partial/malformed card tags or leftovers
+    cleaned = cleaned.replaceAll(RegExp(r'\[WINE_CARD:[^\]]*\]?', dotAll: true), '');
+    cleaned = cleaned.replaceAll(RegExp(r'\[COCKTAIL_CARD:[^\]]*\]?', dotAll: true), '');
+
+    // 4. Scrub any customer-facing UUIDs from the text body
+    cleaned = ChatService.sanitizeCustomerFacingText(cleaned).trim();
 
     return _ParsedContent(
       cleanedText: cleaned,

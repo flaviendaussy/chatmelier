@@ -10,6 +10,10 @@ class AdMobConfig {
   /// Set to false to serve real production AdMob ads.
   static bool useTestAds = false;
 
+  /// Whether to fallback to the internal mock/sponsor video player when AdMob is unavailable.
+  /// Set to false per user preference: only real AdMob ads or nothing (no fake ads).
+  static bool fallbackToMockVideo = false;
+
   // --- Official Google AdMob Sample Test IDs ---
   // https://developers.google.com/admob/android/test-ads#sample_ad_units
   static const String testAndroidRewardedUnitId =
@@ -60,5 +64,41 @@ class AdMobConfig {
       return productionAndroidRewardedUnitId!;
     }
     return testAndroidRewardedUnitId;
+  }
+
+  // --- Official Google AdMob App Open Test IDs ---
+  // https://developers.google.com/admob/android/test-ads#sample_ad_units
+  static const String testAndroidAppOpenUnitId =
+      'ca-app-pub-3940256099942544/9257395921';
+  static const String testIosAppOpenUnitId =
+      'ca-app-pub-3940256099942544/5575463023';
+
+  // --- Production IDs for App Open Ads ---
+  static String? productionAndroidAppOpenUnitId =
+      'ca-app-pub-6095914862192850/1658916157';
+  static String? productionIosAppOpenUnitId;
+
+  /// Returns the appropriate App Open Ad Unit ID for the current platform and mode.
+  static String get appOpenAdUnitId {
+    if (kIsWeb) return '';
+
+    try {
+      if (Platform.isIOS) {
+        if (!useTestAds &&
+            productionIosAppOpenUnitId != null &&
+            productionIosAppOpenUnitId!.isNotEmpty) {
+          return productionIosAppOpenUnitId!;
+        }
+        return testIosAppOpenUnitId;
+      }
+    } catch (_) {}
+
+    // Default to Android ad unit
+    if (!useTestAds &&
+        productionAndroidAppOpenUnitId != null &&
+        productionAndroidAppOpenUnitId!.isNotEmpty) {
+      return productionAndroidAppOpenUnitId!;
+    }
+    return testAndroidAppOpenUnitId;
   }
 }

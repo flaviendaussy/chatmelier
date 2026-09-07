@@ -213,9 +213,11 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
 
       // 1. Automatic Gemini Vision OCR & Enology Extraction
       try {
+        final currentLang = Localizations.localeOf(context).languageCode;
         final result = await scanService.analyzeBottleImage(
           imagePath: picked.path,
           imageBytes: bytes,
+          languageCode: currentLang,
         );
         if (mounted) {
           setState(() {
@@ -463,8 +465,39 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           });
           savedOnline = true;
         } catch (e) {
-          AppLogger.warning('EXTERNAL_TASTING', 'Could not save online, queueing offline: $e');
-          savedOnline = false;
+          AppLogger.warning('EXTERNAL_TASTING', 'Could not save full tasting_log online ($e), retrying with core schema...');
+          try {
+            await supabase.from('tasting_log').insert({
+              'id': tastingId,
+              'wine_id': wineId,
+              'user_id': user.id,
+              'rating': effectiveRating,
+              'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
+              'food_paired': food.isNotEmpty ? food : null,
+              'tasting_notes': notes.isNotEmpty ? notes : null,
+              'photo_url': _photoUrl,
+              'consumed_at': DateTime.now().toIso8601String(),
+            });
+            savedOnline = true;
+          } catch (e2) {
+            try {
+              await supabase.from('tasting_log').insert({
+                'id': tastingId,
+                'wine_id': wineId,
+                'user_id': user.id,
+                'rating': (effectiveRating / 2.0).clamp(0.0, 5.0),
+                'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
+                'food_paired': food.isNotEmpty ? food : null,
+                'tasting_notes': notes.isNotEmpty ? notes : null,
+                'photo_url': _photoUrl,
+                'consumed_at': DateTime.now().toIso8601String(),
+              });
+              savedOnline = true;
+            } catch (e3) {
+              AppLogger.warning('EXTERNAL_TASTING', 'Could not save online, queueing offline: $e3');
+              savedOnline = false;
+            }
+          }
         }
       }
 
@@ -495,6 +528,31 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
       ));
     }
 
+      // Cache immediately locally for instant display and persistence
+      await offlineStorage.addCachedTasting({
+        'id': tastingId,
+        'wine_id': wineId,
+        'user_id': user?.id,
+        'rating': effectiveRating,
+        'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
+        'food_paired': food.isNotEmpty ? food : null,
+        'tasting_notes': notes.isNotEmpty ? notes : null,
+        'photo_url': _photoUrl,
+        'co_tasters': _selectedCoTasters.toList(),
+        'location_name': occasion.isNotEmpty ? occasion : null,
+        'is_external': true,
+        'consumed_at': DateTime.now().toIso8601String(),
+        'wines': {
+          'id': wineId,
+          'name': wineName,
+          'producer': producer.isNotEmpty ? producer : null,
+          'vintage': vintage,
+          'type': _wineType,
+          'region': region.isNotEmpty ? region : 'Autre',
+          'image_url': _photoUrl,
+        },
+      });
+
       // Invalidate tasting log
       ref.invalidate(tastingLogProvider);
 
@@ -511,8 +569,9 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           imageUrl: _photoUrl,
         );
         final tasteService = ref.read(tasteProfileServiceProvider);
+        final primaryProfile = await tasteService.getPrimaryProfile();
         await tasteService.recordTastingExperience(
-          nameOrId: 'primary',
+          nameOrId: primaryProfile.id,
           wine: standaloneWine,
           rating: effectiveRating,
         );

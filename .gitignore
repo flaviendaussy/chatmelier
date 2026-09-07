@@ -27,3 +27,4 @@ package*.json
 test_assets/
 iphone_test_results/
 iphone_*.png
+*.apk

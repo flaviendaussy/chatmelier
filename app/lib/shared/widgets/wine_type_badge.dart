@@ -69,6 +69,11 @@ class WineTypeBadge extends StatelessWidget {
       case 'spirit':
       case 'spiritueux':
         return const Color(0xFF5D4037); // Deep Spirit Brown
+      case 'grappa':
+      case 'eau_de_vie':
+      case 'eau-de-vie':
+      case 'marc':
+        return const Color(0xFF6D4C41); // Distillate Bronze
       default:
         return Colors.grey.shade700;
     }
@@ -139,6 +144,12 @@ class WineTypeBadge extends StatelessWidget {
       case 'spirit':
       case 'spiritueux':
         return 'SPIRITUEUX';
+      case 'grappa':
+        return 'GRAPPA';
+      case 'eau_de_vie':
+      case 'eau-de-vie':
+      case 'marc':
+        return 'EAU-DE-VIE';
       default:
         return type.toUpperCase();
     }

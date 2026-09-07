@@ -51,10 +51,29 @@ class TastingEntry {
       }
       return 'Hors-cave (Restaurant / Bar / Amis)';
     }
-    if (bottleOwnerName != null && bottleOwnerName!.isNotEmpty) {
-      return 'Cave de $bottleOwnerName';
+    final cleanOwnerName = bottleOwnerName?.trim();
+    if (cleanOwnerName != null &&
+        cleanOwnerName.isNotEmpty &&
+        cleanOwnerName.toLowerCase() != 'moi' &&
+        cleanOwnerName.toLowerCase() != 'primary' &&
+        cleanOwnerName.toLowerCase() != 'primary_user') {
+      return 'Cave de $cleanOwnerName';
     }
     return 'Ma Cave';
+  }
+
+  /// Normalized rating on a 0..10 scale (legacy ratings stored out of 5 are scaled by 2).
+  double? get displayRating {
+    if (rating == null) return null;
+    if (rating! <= 5.0 && rating! > 0) return rating! * 2;
+    return rating;
+  }
+
+  /// Formatted rating string, e.g. "10/10" or "9.5/10"
+  String get formattedRating {
+    final r = displayRating;
+    if (r == null) return 'Non noté';
+    return r % 1 == 0 ? '${r.toInt()}/10' : '${r.toStringAsFixed(1)}/10';
   }
 
   factory TastingEntry.fromJson(Map<String, dynamic> json) {
@@ -70,17 +89,17 @@ class TastingEntry {
       id: json['id'] as String? ?? '',
       bottleId: json['bottle_id'] as String?,
       wineId: json['wine_id'] as String? ?? '',
-      wineName: wineMap?['name'] as String?,
-      vintage: (wineMap?['vintage'] as num?)?.toInt(),
-      region: wineMap?['region'] as String?,
-      country: wineMap?['country'] as String?,
-      appellation: wineMap?['appellation'] as String?,
-      wineType: wineMap?['type'] as String?,
+      wineName: wineMap?['name'] as String? ?? json['wine_name'] as String? ?? json['name'] as String?,
+      vintage: (wineMap?['vintage'] as num?)?.toInt() ?? (json['vintage'] as num?)?.toInt() ?? int.tryParse(json['vintage']?.toString() ?? ''),
+      region: wineMap?['region'] as String? ?? json['region'] as String?,
+      country: wineMap?['country'] as String? ?? json['country'] as String?,
+      appellation: wineMap?['appellation'] as String? ?? json['appellation'] as String?,
+      wineType: wineMap?['type'] as String? ?? json['wine_type'] as String? ?? json['type'] as String?,
       rating: (json['rating'] as num?)?.toDouble(),
       occasion: json['occasion'] as String?,
-      foodPaired: json['food_paired'] as String?,
-      tastingNotes: json['tasting_notes'] as String?,
-      photoUrl: json['photo_url'] as String?,
+      foodPaired: json['food_paired'] as String? ?? json['paired'] as String?,
+      tastingNotes: json['tasting_notes'] as String? ?? json['notes'] as String?,
+      photoUrl: json['photo_url'] as String? ?? json['image_url'] as String?,
       coTasters: parsedCoTasters,
       bottleOwnerId: json['bottle_owner_id'] as String?,
       bottleOwnerName: json['bottle_owner_name'] as String?,

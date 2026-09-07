@@ -1,0 +1,110 @@
+# Journal des Modifications (CHANGELOG) — Chatmelier
+
+Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
+
+## [v1.2.1+46] — 2026-09-07
+
+### 🍷 Ce qui change pour vous
+- **Placard & Étagères libres sans largeur ni contrainte** : Le mode « Placard / Rangement libre » n'impose plus aucune largeur ni nombre de colonnes ni de min/max de bouteilles. Vous choisissez uniquement votre nombre d'étagères/niveaux, et chaque niveau accueille vos bouteilles en toute liberté et sans limite de quantité.
+- **Aperçu visuel épuré du placard** : L'éditeur de meuble affiche directement des étagères ouvertes en bois sans alvéoles rigides, illustrant parfaitement le rangement en vrac de style placard de cuisine.
+- **Emplacement visible en vue liste** : Dans la liste de vos bouteilles, l'emplacement en meuble ou étagère s'affiche désormais instantanément avec l'icône de repère géographique.
+- **Synchronisation & Déploiement Web App** : Recompilation complète de la Web App et synchronisation directe des fichiers de déploiement en ligne.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Éditeur de Meuble (`furniture_editor_dialog.dart`)* :
+  - Masquage intégral des contrôles de largeur/colonnes pour le type `cupboard`. Colonne fixée à 1 et étagères configurables de 1 à 14.
+  - Suppression de l'affichage de capacité par case ; affichage de la mention « Capacité libre & indéfinie ».
+  - Rendu d'aperçu spécifique en étagères horizontales ouvertes sans colonnes A/B/C ni grilles de cases.
+- *Vue Liste Bouteille (`bottle_list_item.dart`)* :
+  - Utilisation de `bottle.hasLocation` et de `bottle.locationSummary` pour garantir la visibilité des rangements meubles et étagères au même titre que les coordonnées manuelles.
+
+---
+
+## [v1.2.1+45] — 2026-09-07
+
+### 🍷 Ce qui change pour vous
+- **Correction de l'import Excel / CSV** : Résolution de l'erreur SQL `invalid input syntax for type uuid: "import-excel"` qui empêchait l'accès à l'outil d'importation.
+- **Affichage fiable de l'emplacement et du meuble** : Vos bouteilles rangées affichent immédiatement et sans délai leur meuble, leur étagère ou case ainsi que le schéma visuel dès l'attribution.
+- **Bouton « Retirer du meuble » & « Déplacer » fluides** : Possibilité de retirer une bouteille d'un meuble en un clic pour la remettre en stockage libre, ou de la déplacer instantanément vers un autre meuble.
+- **Repères de cave dans la liste de vos vins** : Vos cartes de vins dans la vue principale indiquent désormais aussi l'étagère ou l'alvéole de chaque bouteille.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Routing (`router.dart`)* :
+  - Déplacement de la route `/cellar/import-excel` avant `/cellar/:id` pour éviter la capture erronée du chemin littéral par le paramètre d'URL dynamique. Ajout de l'alias direct `/cellar-import-excel`.
+- *Fiche Bouteille (`bottle_detail_screen.dart`)* :
+  - Injection des attributs `furnitureId`, `furnitureSlot`, `purchaseLocation`, `sourceType`, `sourceDetails`, `bottleSize`, etc., lors de la reconstruction de `bottleObj` et dans le repli hors-ligne.
+  - Rafraîchissement automatique de la vue via `await _loadBottleDetails()` dès la fermeture de `ShelfGridViewSheet`.
+  - Intégration du bouton et dialogue de désassignation (`onUnassignRequested`).
+- *Composants UI (`furniture_graphic_card.dart`, `bottle_card.dart`)* :
+  - `FurnitureGraphicCard` gère élégamment le cas où le meuble est en cours de chargement avec un repli textuel enrichi.
+  - `BottleCard` affiche la localisation (étagère ou slot) sur chaque carte de la grille de cave.
+
+---
+
+## [v1.2.1+44] — 2026-09-07
+
+### 🍷 Ce qui change pour vous
+- **Nouveau meuble « Placard / Rangement libre »** : Vous pouvez désormais créer des meubles sans alvéoles strictes (comme un placard de cuisine ou une étagère verticale) où les bouteilles se déplacent librement et coexistent sur chaque niveau sans conflit de place ni alerte de collision.
+- **Graphique visuel du meuble dans la fiche vin** : Chaque fiche de vin affiche désormais un rendu graphique immersif de son meuble (armoire avec étagères en bois ou casier matriciel avec halo doré sur l'emplacement) accompagné du détail sommelier textuel clair.
+- **Correction d'affichage de l'emplacement** : Finie l'invitation permanente *"Ranger dans un meuble"* qui s'affichait même lorsque votre bouteille avait déjà un emplacement défini.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Cellar Furniture & Domain (`cellar_furniture.dart`, `bottle.dart`)* :
+  - Ajout du type de forme `shapeCupboard = 'cupboard'` et du getter `isCupboard`.
+  - Prise en charge des codes d'étagères sans collision et description sommelier des rangements libres.
+  - Ajout des getters unifiés `hasLocation` et `locationSummary` sur `Bottle`.
+- *UI (`furniture_graphic_card.dart`, `bottle_detail_screen.dart`, `shelf_grid_view_sheet.dart`)* :
+  - Création du widget dédié `FurnitureGraphicCard` avec visualisation adaptative (étagères de placard avec capsules colorées ou grille 2D avec alvéole pulsante).
+  - Conditionnement de l'état vide dans `BottleDetailScreen` par `bottleObj.hasLocation`.
+  - Vue `_buildCupboardView` avec dépôt direct par étagère sans modale de Swap.
+
+---
+
+## [v1.2.0+43] — 2026-09-06
+
+### 🍷 Ce qui change pour vous
+- **Médailles & Badges Chatmelier illustrés** : 31 de vos plus beaux badges arborent désormais leur illustration exclusive réalisée sur-mesure dans l'univers visuel du Chatmelier (médaillons ciselés de pampres de vigne, tenue de sommelier et verres de dégustation dédiés).
+- **Attribution des badges 100% fidèle à votre cave** : Fini les faux déblocages ! Le calcul des badges distingue désormais rigoureusement vos vins authentiques de vos spiritueux et liqueurs, élimine les doublons de comptage et valide avec une précision œnologique chaque région, cépage et palier d'apogée.
+- **Historique et dégustations harmonisés** : Vos notes de dégustation alimentent désormais avec une parfaite justesse votre profil œnologique et vos succès de dégustateur.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Badges System (`badge_evaluator.dart`, `badge_catalog.dart`)* :
+  - Implémentation du discriminateur strict `_isWine` éliminant les faux positifs sur les spiritueux et liqueurs (e.g. Gin, Vodka, Pisco, Liqueurs de plantes, Crèmes de fruits enregistrées en vin fortifié).
+  - Déduplication rigoureuse des bouteilles et dégustations par `matchedWineIds` et `matchedWineNames` pour éviter tout double-comptage.
+  - Remplacement des recherches par sous-chaîne (`cot` pour Malbec, `voile` pour l'élevage sous voile, `nature` pour Pasteur) par des expressions complètes et rigoureuses.
+  - Intégration de 31 illustrations haute résolution WebP 512x512 dans `assets/badges/` et enregistrement dans `BadgeCatalog`.
+- *Qualité & Tests* :
+  - 353 tests unitaires et d'intégration validés avec succès (`flutter test`).
+
+---
+
+## [v1.2.0+42] — 2026-09-05
+
+### 🍷 Ce qui change pour vous
+- **Journal de Dégustation fidèle** : Vos dégustations enregistrées (comme votre dernière bouteille dégustée hier soir) s'affichent désormais immédiatement dans votre historique, avec leur note exacte sur 10/10 (fini le 5/10 par erreur pour un 10/10 mérité !).
+- **Interface de Cave épurée et aérée** : L'accès "Quel vin pour mon plat ?" est désormais direct en haut de cave. Les boutons redondants ont été retirés pour laisser tout l'espace nécessaire au nom de vos caves (comme "Londres" visible en entier).
+- **Onglet "Degust." et recherche optimisée** : L'onglet de l'historique s'appelle désormais "Degust." et la loupe de recherche se place idéalement à gauche des sélecteurs pour les vins, spiritueux et cocktails.
+- **Fluidité des annonces** : L'annonce d'ouverture s'affiche désormais proprement au lancement de l'application et ne vous interrompt plus lorsque vous déverrouillez simplement votre téléphone.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Monetization (`admob_service.dart`, `app.dart`)* :
+  - `preloadAppOpenAd` retourne désormais un `Future<bool>` piloté par un `Completer<bool>` pour permettre un `await` sécurisé.
+  - Implémentation de `showAppOpenAdOnLaunch(timeout: 2.5s)` évitant l'échec de la vérification initiale de 50ms sur démarrage à froid.
+  - Ajout des écouteurs `onPause` et `onHide` avec enregistrement de `_lastPausedTime`. Conditionnement de `onResume` à une absence en arrière-plan d'au moins 30 secondes pour bloquer l'affichage au simple verrouillage/déverrouillage d'écran.
+- *Journal & Tasting (`tasting_entry.dart`, `journal_screen.dart`, `sync_service.dart`)* :
+  - Normalisation unifiée de la note via les getters `displayRating` (remise à l'échelle 0..10 si <= 5.0) et `formattedRating`.
+  - Intégration de la lecture de secours des colonnes plates (`wine_name`, `vintage`, `region`, etc.) dans `TastingEntry.fromJson` pour le parsing direct de la file hors-ligne.
+  - Fallback automatique dans `_resilientInsertTastingLog` en cas d'erreur de schéma `PGRST204` sur les colonnes étendues (`bottle_owner_id`), avec sauvegarde immédiate dans le cache local `addCachedTasting`.
+- *UI & Navigation (`cellar_screen.dart`, `cocktails_screen.dart`, `main_screen.dart`)* :
+  - Suppression de l'AppBar supérieure de cave : retrait de l'icône profil, des 3 points et du bouton de statistiques redondant avec la barre inférieure.
+  - Sélecteur de cave agrandi en largeur dynamique sans contrainte de troncature.
+  - Bouton "Quel vin pour mon plat ?" placé en bannière d'accès direct en haut de cave.
+  - Raccourci recherche positionné à gauche du toggle "Vins / Spiritueux" et ajusté dans le module cocktails.
+  - Renommage de l'onglet de navigation en "Degust.".
+- *Tests & Qualité* :
+  - 353 tests unitaires et widgets validés sans aucune régression (`flutter test`).
+
+---
+
+## [v1.2.0+41] — 2026-09-05
+- Refonte des filtres de cave, ajout du système de badges de dégustation, support de l'export d'accords mets-vins et intégration initiale AdMob UMP.

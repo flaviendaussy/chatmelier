@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../features/cellar/presentation/cellar_switcher_sheet.dart';
+import '../../features/cellar/presentation/cellar_food_pairing_sheet.dart';
+import '../../features/cellar/domain/bottle.dart';
 import '../../features/journal/presentation/external_tasting_dialog.dart';
 import '../../features/voice/presentation/voice_dictation_sheet.dart';
 import '../providers/cellar_provider.dart';
 import '../providers/supabase_provider.dart';
 import '../utils/responsive_layout.dart';
+import '../../config/navigator_keys.dart';
 
 class AdaptiveAppShell extends ConsumerWidget {
   final Widget child;
@@ -16,38 +19,52 @@ class AdaptiveAppShell extends ConsumerWidget {
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/chat')) {
+    if (location.startsWith('/bar') || location.startsWith('/cocktails')) {
       return 1;
+    }
+    if (location.startsWith('/chat')) {
+      return 2;
     }
     if (location.startsWith('/journal') ||
         location.startsWith('/history') ||
         location.startsWith('/historique')) {
-      return 2;
-    }
-    if (location.startsWith('/stats')) {
       return 3;
     }
-    if (location.startsWith('/profile')) {
+    if (location.startsWith('/stats')) {
       return 4;
+    }
+    if (location.startsWith('/profile') || location.startsWith('/badges')) {
+      return 5;
     }
     return 0;
   }
 
   void _onNavigate(BuildContext context, int index) {
+    // Pop any open modal bottom sheets, dialogs or pushed routes first
+    while (shellNavigatorKey.currentState?.canPop() ?? false) {
+      shellNavigatorKey.currentState?.pop();
+    }
+    while (rootNavigatorKey.currentState?.canPop() ?? false) {
+      rootNavigatorKey.currentState?.pop();
+    }
+
     switch (index) {
       case 0:
         context.go('/');
         break;
       case 1:
-        context.go('/chat');
+        context.go('/bar');
         break;
       case 2:
-        context.go('/history');
+        context.go('/chat');
         break;
       case 3:
-        context.go('/stats');
+        context.go('/history');
         break;
       case 4:
+        context.go('/stats');
+        break;
+      case 5:
         context.go('/profile');
         break;
     }
@@ -56,33 +73,55 @@ class AdaptiveAppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formFactor = Responsive.formFactor(context);
+    final currentIndex = _currentIndex(context);
 
+    final Widget shell;
     if (formFactor == FormFactor.desktop) {
-      return _DesktopAppShell(
-        currentIndex: _currentIndex(context),
+      shell = _DesktopAppShell(
+        currentIndex: currentIndex,
+        onNavigate: (i) => _onNavigate(context, i),
+        child: child,
+      );
+    } else if (formFactor == FormFactor.tablet) {
+      shell = _TabletAppShell(
+        currentIndex: currentIndex,
+        onNavigate: (i) => _onNavigate(context, i),
+        child: child,
+      );
+    } else {
+      shell = _MobileAppShell(
+        currentIndex: currentIndex,
         onNavigate: (i) => _onNavigate(context, i),
         child: child,
       );
     }
 
-    if (formFactor == FormFactor.tablet) {
-      return _TabletAppShell(
-        currentIndex: _currentIndex(context),
-        onNavigate: (i) => _onNavigate(context, i),
-        child: child,
-      );
-    }
+    final isRootCellar = currentIndex == 0;
+    final canPopShell = shellNavigatorKey.currentState?.canPop() ?? false;
 
-    return _MobileAppShell(
-      currentIndex: _currentIndex(context),
-      onNavigate: (i) => _onNavigate(context, i),
-      child: child,
+    return PopScope(
+      canPop: isRootCellar && !canPopShell,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        // 1. If an inner modal/sheet is open in the shell navigator, close it first
+        if (shellNavigatorKey.currentState?.canPop() ?? false) {
+          shellNavigatorKey.currentState?.maybePop();
+          return;
+        }
+        // 2. If anywhere other than the Cave, return to the Cave (accueil)
+        if (!isRootCellar) {
+          if (context.mounted) {
+            context.go('/');
+          }
+        }
+      },
+      child: shell,
     );
   }
 }
 
 /// 📱 Mobile Layout: Bottom Navigation Bar + FAB
-class _MobileAppShell extends StatelessWidget {
+class _MobileAppShell extends ConsumerWidget {
   final int currentIndex;
   final ValueChanged<int> onNavigate;
   final Widget child;
@@ -94,34 +133,40 @@ class _MobileAppShell extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final canEdit = ref.watch(currentCellarRoleProvider) != 'viewer';
 
     final tabs = [
       (
         icon: Icons.wine_bar_outlined,
         activeIcon: Icons.wine_bar,
-        label: l10n?.navCellar ?? 'Ma Cave'
+        label: l10n?.navCellar ?? 'Cave'
+      ),
+      (
+        icon: Icons.local_bar_outlined,
+        activeIcon: Icons.local_bar,
+        label: l10n?.navBar ?? 'Bar',
       ),
       (
         icon: Icons.auto_awesome_outlined,
         activeIcon: Icons.auto_awesome,
-        label: l10n?.navChat ?? 'Chatmelier'
+        label: l10n?.navChat ?? 'Chat'
       ),
       (
-        icon: Icons.history_outlined,
-        activeIcon: Icons.history,
-        label: l10n?.navJournal ?? 'Historique'
+        icon: Icons.restaurant_menu_outlined,
+        activeIcon: Icons.restaurant_menu,
+        label: l10n?.navJournal ?? 'Degust.',
       ),
       (
         icon: Icons.insights_outlined,
         activeIcon: Icons.insights,
-        label: l10n?.navStats ?? 'Statistiques'
+        label: l10n?.navStats ?? 'Stats'
       ),
       (
         icon: Icons.person_outline,
         activeIcon: Icons.person,
-        label: 'Profil'
+        label: l10n?.navProfile ?? 'Profil',
       ),
     ];
 
@@ -138,9 +183,9 @@ class _MobileAppShell extends StatelessWidget {
                 ))
             .toList(),
       ),
-      floatingActionButton: currentIndex == 0
+      floatingActionButton: (currentIndex == 0 && canEdit)
           ? FloatingActionButton(
-              onPressed: () => _showCellarActionMenu(context),
+              onPressed: () => _showCellarActionMenu(context, ref),
               backgroundColor: const Color(0xFF8B1E3F),
               foregroundColor: Colors.white,
               elevation: 4,
@@ -150,7 +195,7 @@ class _MobileAppShell extends StatelessWidget {
     );
   }
 
-  void _showCellarActionMenu(BuildContext context) {
+  void _showCellarActionMenu(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -233,6 +278,49 @@ class _MobileAppShell extends StatelessWidget {
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/checkout');
+              },
+            ),
+            const SizedBox(height: 8),
+            _ActionMenuItem(
+              icon: Icons.table_chart_outlined,
+              color: const Color(0xFF1B5E20),
+              title: 'Importer un fichier (Excel / CSV)',
+              subtitle: 'Importez toute votre cave en quelques secondes par IA',
+              onTap: () {
+                Navigator.pop(ctx);
+                final currentCellarId = ref.read(currentCellarIdProvider);
+                context.push('/cellar/import-excel?cellarId=${currentCellarId ?? ""}');
+              },
+            ),
+            const SizedBox(height: 8),
+            _ActionMenuItem(
+              icon: Icons.restaurant_menu_rounded,
+              color: const Color(0xFFD4AF37),
+              title: 'Quel vin pour mon plat ? (Accords Mets & Vins)',
+              subtitle: 'L\'IA sommelier trouve les meilleurs accords dans votre cave',
+              onTap: () {
+                Navigator.pop(ctx);
+                final currentCellarId = ref.read(currentCellarIdProvider);
+                final bottles = (ref.read(bottlesProvider(currentCellarId)).valueOrNull ?? []);
+                final cellars = ref.read(userCellarsProvider).valueOrNull ?? [];
+                String cellarName = Localizations.localeOf(context).languageCode == 'fr' ? 'Ma Cave' : 'My Cellar';
+                for (final item in cellars) {
+                  final cMap = item['cellars'];
+                  if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
+                    final raw = cMap['name']?.toString() ?? '';
+                    if (raw.isEmpty || raw == 'Ma Cave' || raw == 'My Cellar') {
+                      cellarName = Localizations.localeOf(context).languageCode == 'fr' ? 'Ma Cave' : 'My Cellar';
+                    } else {
+                      cellarName = raw;
+                    }
+                    break;
+                  }
+                }
+                CellarFoodPairingSheet.show(
+                  context,
+                  bottles: bottles,
+                  cellarName: cellarName,
+                );
               },
             ),
             const SizedBox(height: 8),
@@ -349,27 +437,32 @@ class _TabletAppShell extends ConsumerWidget {
               NavigationRailDestination(
                 icon: const Icon(Icons.wine_bar_outlined),
                 selectedIcon: const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navCellar ?? 'Ma Cave'),
+                label: Text(l10n?.navCellar ?? 'Cave'),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.local_bar_outlined),
+                selectedIcon: const Icon(Icons.local_bar, color: Color(0xFF8B1E3F)),
+                label: Text(l10n?.navBar ?? 'Bar'),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.auto_awesome_outlined),
                 selectedIcon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
-                label: Text(l10n?.navChat ?? 'Chatmelier'),
+                label: Text(l10n?.navChat ?? 'Chat'),
               ),
               NavigationRailDestination(
-                icon: const Icon(Icons.history_outlined),
-                selectedIcon: const Icon(Icons.history, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navJournal ?? 'Historique'),
+                icon: const Icon(Icons.restaurant_menu_outlined),
+                selectedIcon: const Icon(Icons.restaurant_menu, color: Color(0xFF8B1E3F)),
+                label: Text(l10n?.navJournal ?? 'Degust.'),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.insights_outlined),
                 selectedIcon: const Icon(Icons.insights, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navStats ?? 'Statistiques'),
+                label: Text(l10n?.navStats ?? 'Stats'),
               ),
-              const NavigationRailDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person, color: Color(0xFF8B1E3F)),
-                label: Text('Profil'),
+              NavigationRailDestination(
+                icon: const Icon(Icons.person_outline),
+                selectedIcon: const Icon(Icons.person, color: Color(0xFF8B1E3F)),
+                label: Text(l10n?.navProfile ?? 'Profil'),
               ),
             ],
           ),
@@ -404,12 +497,17 @@ class _DesktopAppShell extends ConsumerWidget {
     final supabase = ref.watch(supabaseProvider);
     final user = supabase.auth.currentUser;
 
-    String currentCellarName = 'Ma Cave';
+    String currentCellarName = Localizations.localeOf(context).languageCode == 'fr' ? 'Ma Cave' : 'My Cellar';
     final cellarsList = cellarsAsync.value ?? const [];
     for (final item in cellarsList) {
       final cMap = item['cellars'];
       if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
-        currentCellarName = cMap['name']?.toString() ?? 'Ma Cave';
+        final raw = cMap['name']?.toString() ?? '';
+        if (raw.isEmpty || raw == 'Ma Cave' || raw == 'My Cellar') {
+          currentCellarName = Localizations.localeOf(context).languageCode == 'fr' ? 'Ma Cave' : 'My Cellar';
+        } else {
+          currentCellarName = raw;
+        }
         break;
       }
     }
@@ -473,7 +571,7 @@ class _DesktopAppShell extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              'Sommelier & Cave à Vin',
+                              l10n?.appSubtitle ?? 'Sommelier & Cave à Vin',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontSize: 11,
@@ -531,42 +629,51 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.wine_bar_outlined,
                         activeIcon: Icons.wine_bar,
-                        label: l10n?.navCellar ?? 'Ma Cave',
+                        label: l10n?.navCellar ?? 'Cave',
                         isSelected: currentIndex == 0,
                         onTap: () => onNavigate(0),
                       ),
                       const SizedBox(height: 4),
                       _SidebarNavItem(
-                        icon: Icons.auto_awesome_outlined,
-                        activeIcon: Icons.auto_awesome,
-                        label: l10n?.navChat ?? 'Chatmelier IA',
+                        icon: Icons.local_bar_outlined,
+                        activeIcon: Icons.local_bar,
+                        label: l10n?.navBar ?? 'Bar',
                         isSelected: currentIndex == 1,
                         activeColor: const Color(0xFFD4AF37),
                         onTap: () => onNavigate(1),
                       ),
                       const SizedBox(height: 4),
                       _SidebarNavItem(
-                        icon: Icons.history_outlined,
-                        activeIcon: Icons.history,
-                        label: l10n?.navJournal ?? 'Historique',
+                        icon: Icons.auto_awesome_outlined,
+                        activeIcon: Icons.auto_awesome,
+                        label: l10n?.navChat ?? 'Chat',
                         isSelected: currentIndex == 2,
+                        activeColor: const Color(0xFFD4AF37),
                         onTap: () => onNavigate(2),
                       ),
                       const SizedBox(height: 4),
                       _SidebarNavItem(
-                        icon: Icons.insights_outlined,
-                        activeIcon: Icons.insights,
-                        label: l10n?.navStats ?? 'Statistiques',
+                        icon: Icons.restaurant_menu_outlined,
+                        activeIcon: Icons.restaurant_menu,
+                        label: l10n?.navJournal ?? 'Degust.',
                         isSelected: currentIndex == 3,
                         onTap: () => onNavigate(3),
                       ),
                       const SizedBox(height: 4),
                       _SidebarNavItem(
-                        icon: Icons.person_outline,
-                        activeIcon: Icons.person,
-                        label: 'Profil & Goûts',
+                        icon: Icons.insights_outlined,
+                        activeIcon: Icons.insights,
+                        label: l10n?.navStats ?? 'Stats',
                         isSelected: currentIndex == 4,
                         onTap: () => onNavigate(4),
+                      ),
+                      const SizedBox(height: 4),
+                      _SidebarNavItem(
+                        icon: Icons.person_outline,
+                        activeIcon: Icons.person,
+                        label: l10n?.navProfile ?? 'Profil',
+                        isSelected: currentIndex == 5,
+                        onTap: () => onNavigate(5),
                       ),
                     ],
                   ),
@@ -583,7 +690,7 @@ class _DesktopAppShell extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                   child: Text(
-                    'ACTIONS RAPIDES',
+                    l10n?.quickActions ?? 'ACTIONS RAPIDES',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,

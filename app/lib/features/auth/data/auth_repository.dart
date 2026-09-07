@@ -313,7 +313,9 @@ class AuthRepository {
             final matchEmail = (p.email ?? '').toLowerCase().contains(cleanQuery);
             final phoneDigits = (p.phoneNumber ?? '').replaceAll(RegExp(r'[^0-9]'), '');
             final queryDigits = cleanQuery.replaceAll(RegExp(r'[^0-9]'), '');
-            final matchPhone = queryDigits.length >= 3 && phoneDigits.contains(queryDigits);
+            final noLeadingZeroDigits = queryDigits.startsWith('0') ? queryDigits.substring(1) : queryDigits;
+            final matchPhone = (queryDigits.length >= 3 && phoneDigits.contains(queryDigits)) ||
+                (noLeadingZeroDigits.length >= 3 && phoneDigits.contains(noLeadingZeroDigits));
             return matchUser || matchName || matchEmail || matchPhone;
           })
           .toList();

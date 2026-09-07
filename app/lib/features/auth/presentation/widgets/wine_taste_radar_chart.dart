@@ -5,21 +5,27 @@ import '../../domain/wine_taste_radar.dart';
 /// Single Profile Layer for Radar Chart Overlay
 class RadarChartDataset {
   final String label;
-  final WineTasteRadarMetrics metrics;
+  final WineTasteRadarMetrics? metrics;
+  final List<double>? customValues;
   final Color color;
   final bool isVisible;
 
   const RadarChartDataset({
     required this.label,
-    required this.metrics,
+    this.metrics,
+    this.customValues,
     required this.color,
     this.isVisible = true,
   });
+
+  List<double> get values =>
+      customValues ?? metrics?.toList() ?? const [5.0, 5.0, 5.0, 5.0, 5.0, 5.0];
 }
 
 /// 🕸️ Interactive Multi-Layer Spider / Radar Chart for Wine Taste Profiles
 class WineTasteRadarChart extends StatefulWidget {
   final List<RadarChartDataset> datasets;
+  final List<String>? customAxisLabels;
   final double size;
   final bool showLabels;
   final bool isInteractive;
@@ -27,6 +33,7 @@ class WineTasteRadarChart extends StatefulWidget {
   const WineTasteRadarChart({
     super.key,
     required this.datasets,
+    this.customAxisLabels,
     this.size = 280,
     this.showLabels = true,
     this.isInteractive = true,
@@ -80,6 +87,7 @@ class _WineTasteRadarChartState extends State<WineTasteRadarChart> with SingleTi
             size: Size(widget.size, widget.size),
             painter: _RadarChartPainter(
               datasets: widget.datasets.where((d) => d.isVisible).toList(),
+              customAxisLabels: widget.customAxisLabels,
               animProgress: _animation.value,
               isDark: isDark,
               textColor: theme.colorScheme.onSurface,
@@ -95,6 +103,7 @@ class _WineTasteRadarChartState extends State<WineTasteRadarChart> with SingleTi
 
 class _RadarChartPainter extends CustomPainter {
   final List<RadarChartDataset> datasets;
+  final List<String>? customAxisLabels;
   final double animProgress;
   final bool isDark;
   final Color textColor;
@@ -103,6 +112,7 @@ class _RadarChartPainter extends CustomPainter {
 
   _RadarChartPainter({
     required this.datasets,
+    this.customAxisLabels,
     required this.animProgress,
     required this.isDark,
     required this.textColor,
@@ -110,11 +120,12 @@ class _RadarChartPainter extends CustomPainter {
     required this.showLabels,
   });
 
-  static const int numAxes = 6;
   static const double maxVal = 10.0;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final labels = customAxisLabels ?? WineTasteRadarMetrics.axisLabels;
+    final int numAxes = labels.length;
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width / 2) * (showLabels ? 0.70 : 0.90);
 
@@ -146,8 +157,7 @@ class _RadarChartPainter extends CustomPainter {
       canvas.drawPath(gridPath, gridPaint);
     }
 
-    // 2. Draw 6 Spoke Axis Lines & Labels
-    final labels = WineTasteRadarMetrics.axisLabels;
+    // 2. Draw Spoke Axis Lines & Labels
     for (int i = 0; i < numAxes; i++) {
       final angle = (i * 2 * math.pi / numAxes) - (math.pi / 2);
       final endX = center.dx + radius * math.cos(angle);
@@ -186,13 +196,14 @@ class _RadarChartPainter extends CustomPainter {
 
     // 3. Draw Datasets (Polygons & Vertices)
     for (final ds in datasets) {
-      final values = ds.metrics.toList();
+      final values = ds.values;
       final polyPath = Path();
       final points = <Offset>[];
 
       for (int i = 0; i < numAxes; i++) {
         final angle = (i * 2 * math.pi / numAxes) - (math.pi / 2);
-        final clampedVal = values[i].clamp(0.5, maxVal);
+        final rawVal = i < values.length ? values[i] : 5.0;
+        final clampedVal = rawVal.clamp(0.5, maxVal);
         final r = radius * (clampedVal / maxVal) * animProgress;
         final x = center.dx + r * math.cos(angle);
         final y = center.dy + r * math.sin(angle);

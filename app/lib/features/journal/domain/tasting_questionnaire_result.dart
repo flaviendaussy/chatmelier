@@ -10,14 +10,14 @@ class TastingQuestionnaireResult {
 
   // — Step 3: La Bouche (Équilibre) —
   final double acidity; // 0.0 (mou) → 1.0 (vif/tranchant)
-  final double tannins; // 0.0 (fondus) → 1.0 (puissants) — only for reds
+  final double? tannins; // 0.0 (fondus) → 1.0 (puissants) — only for reds, null for whites/sparkling/rosé
   final double body; // 0.0 (léger) → 1.0 (puissant)
   final double length; // 0.0 (courte) → 1.0 (interminable)
   final double? effervescence; // 0.0 (fine) → 1.0 (vive) — only for sparkling
 
   // — Step 4: Verdict —
   final String wouldBuyAgain; // 'yes', 'maybe', 'no'
-  final String idealMoment; // 'apero', 'repas', 'grand_diner', 'solo'
+  final String idealMoment; // 'apero', 'repas', 'grand_diner', 'diner_romantique', 'solo'
   final Set<String> whatLikedMost; // IDs from likedOptions
   final Set<String> whatDislikedMost; // IDs from dislikedOptions
 
@@ -31,7 +31,7 @@ class TastingQuestionnaireResult {
     required this.perceivedAromas,
     required this.aromaIntensity,
     required this.acidity,
-    required this.tannins,
+    this.tannins,
     required this.body,
     required this.length,
     this.effervescence,
@@ -49,7 +49,7 @@ class TastingQuestionnaireResult {
     'aromas': perceivedAromas.toList(),
     'aroma_intensity': aromaIntensity,
     'acidity': acidity,
-    'tannins': tannins,
+    if (tannins != null) 'tannins': tannins,
     'body': body,
     'length': length,
     'effervescence': effervescence,

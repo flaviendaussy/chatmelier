@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
 import 'package:chatmelier/features/menu_scan/data/wine_knowledge_cache_service.dart';
+import 'package:chatmelier/features/menu_scan/presentation/enriched_menu_screen.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 
 void main() {
@@ -142,7 +145,7 @@ void main() {
       expect(radar.sweetness, 4.0); // Axe 6: Minéralité & Épices
 
       final labels = MenuWineRadarMetrics.redAxisLabels;
-      expect(labels.length, 6);
+      expect(labels.length, 7);
       expect(labels[0].contains('Tannins'), true);
       expect(labels[1].contains('Puissance'), true);
     });
@@ -168,7 +171,7 @@ void main() {
       expect(radar.sweetness, 8.0); // Axe 6: Corps & Puissance
 
       final labels = MenuWineRadarMetrics.whiteAxisLabels;
-      expect(labels.length, 6);
+      expect(labels.length, 7);
       expect(labels[0].contains('Minéralité'), true);
       expect(labels[3].contains('Beurré'), true);
     });
@@ -325,12 +328,12 @@ void main() {
       final redScore = MenuWineMatchCalculator.calculateMatch(tannicRedWine, profile);
       final whiteScore = MenuWineMatchCalculator.calculateMatch(sweetWhiteWine, profile);
 
-      expect(redScore, greaterThan(whiteScore));
+      expect(redScore!, greaterThan(whiteScore!));
       expect(redScore, greaterThanOrEqualTo(80.0));
       expect(whiteScore, lessThan(80.0));
     });
 
-    test('Score falls back gracefully when no taste profile exists', () {
+    test('Score returns null indicating incomplete profile when no taste profile exists', () {
       const wine = MenuWine(
         id: 'regular',
         name: 'Côtes du Rhône',
@@ -345,7 +348,87 @@ void main() {
       );
 
       final neutralScore = MenuWineMatchCalculator.calculateMatch(wine, null);
-      expect(neutralScore, inInclusiveRange(35.0, 99.0));
+      expect(neutralScore, isNull);
+    });
+  });
+
+  group('EnrichedMenuScreen Compact View Tests', () {
+    testWidgets('Renders in compact mode by default and toggles between compact and detailed', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+
+      final menu = ScannedMenu(
+        id: 'menu_test_compact',
+        restaurantName: 'Bistrot Étoilé',
+        scannedAt: DateTime.now(),
+        pagePhotoPaths: const [],
+        wines: const [
+          MenuWine(
+            id: 'w1',
+            name: 'Pomerol Clos L\'Église',
+            producer: 'Château Clos L\'Église',
+            vintage: 2016,
+            wineType: 'red',
+            appellation: 'Pomerol',
+            region: 'Bordeaux',
+            bottlePrice: 135.0,
+            tags: ['tannique', 'puissant'],
+            sommelierComment: 'Grand millésime aux tanins veloutés',
+            flag: MenuWineFlag(
+              type: MenuWineFlagType.gem,
+              label: 'Pépite',
+              reason: 'Flacon rare à maturité',
+            ),
+          ),
+          MenuWine(
+            id: 'w2',
+            name: 'Chablis Domaine Billaud-Simon',
+            producer: 'Billaud-Simon',
+            vintage: 2021,
+            wineType: 'white',
+            appellation: 'Chablis',
+            region: 'Bourgogne',
+            bottlePrice: 48.0,
+            glassPrices: [MenuWineGlassPrice(format: '12cl', price: 9.5)],
+            tags: ['minéral', 'frais'],
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: EnrichedMenuScreen(menu: menu),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Check restaurant name
+      expect(find.text('Bistrot Étoilé'), findsOneWidget);
+
+      // Check compact toggle in banner is displayed and defaults to 'Compact'
+      expect(find.text('Compact'), findsOneWidget);
+
+      // Check wine names are visible
+      expect(find.text('Pomerol Clos L\'Église'), findsOneWidget);
+      expect(find.text('Chablis Domaine Billaud-Simon'), findsOneWidget);
+
+      // Check inline flag pill
+      expect(find.text('Pépite'), findsWidgets);
+
+      // Tap on the 'Compact' banner button to toggle to 'Détaillé'
+      await tester.tap(find.text('Compact'));
+      await tester.pumpAndSettle();
+
+      // Now the toggle should say 'Détaillé'
+      expect(find.text('Détaillé'), findsOneWidget);
+
+      // Tap on the AppBar toggle icon to switch back to compact
+      await tester.tap(find.byTooltip('Afficher la vue compacte'));
+      await tester.pumpAndSettle();
+
+      // Back in compact mode
+      expect(find.text('Compact'), findsOneWidget);
     });
   });
 }

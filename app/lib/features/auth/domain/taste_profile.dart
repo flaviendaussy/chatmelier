@@ -6,6 +6,18 @@ class TasteProfile {
   final bool isPrimary;
 
   WineTasteRadarMetrics get radarMetrics => WineTasteRadarCalculator.compute(this);
+
+  /// Whether this profile has sufficient tasting history or depth to reliably flag personalized menu matches.
+  /// Empty or bare profiles return false so UI indicates "Profil à compléter" instead of a flat 70%.
+  bool get isWellProvided {
+    if (questionnairesCompleted >= 3) return true;
+    final totalExplicitPrefs = favoriteTypes.length + favoriteRegions.length + favoriteGrapes.length;
+    if (totalExplicitPrefs >= 3) return true;
+    if (aromaPreferences.length >= 3) return true;
+    if (likedTraits.length >= 3) return true;
+    return false;
+  }
+
   final List<String> favoriteTypes; // e.g. ['Rouge', 'Blanc sec', 'Champagne']
   final List<String> favoriteRegions; // e.g. ['Vallée du Rhône', 'Bourgogne', 'Provence']
   final List<String> favoriteGrapes; // e.g. ['Pinot Noir', 'Syrah', 'Chardonnay']
@@ -21,6 +33,9 @@ class TasteProfile {
   final double? avgBodyPreference; // running average of preferred body (0-1)
   final Map<String, int> idealMoments; // momentId → count
   final int questionnairesCompleted; // total number of questionnaires answered
+  final String? friendUserId; // Set if this profile corresponds to a connected friend who has the app
+
+  bool get hasApp => friendUserId != null && friendUserId!.isNotEmpty;
 
   const TasteProfile({
     required this.id,
@@ -39,6 +54,7 @@ class TasteProfile {
     this.avgBodyPreference,
     this.idealMoments = const {},
     this.questionnairesCompleted = 0,
+    this.friendUserId,
   });
 
   TasteProfile copyWith({
@@ -58,6 +74,8 @@ class TasteProfile {
     double? avgBodyPreference,
     Map<String, int>? idealMoments,
     int? questionnairesCompleted,
+    String? friendUserId,
+    bool clearFriendUserId = false,
   }) {
     return TasteProfile(
       id: id ?? this.id,
@@ -76,6 +94,7 @@ class TasteProfile {
       avgBodyPreference: avgBodyPreference ?? this.avgBodyPreference,
       idealMoments: idealMoments ?? this.idealMoments,
       questionnairesCompleted: questionnairesCompleted ?? this.questionnairesCompleted,
+      friendUserId: clearFriendUserId ? null : (friendUserId ?? this.friendUserId),
     );
   }
 
@@ -96,6 +115,7 @@ class TasteProfile {
         'avg_body_preference': avgBodyPreference,
         'ideal_moments': idealMoments,
         'questionnaires_completed': questionnairesCompleted,
+        if (friendUserId != null) 'friend_user_id': friendUserId,
       };
 
   factory TasteProfile.fromJson(Map<String, dynamic> json) {
@@ -116,6 +136,7 @@ class TasteProfile {
       avgBodyPreference: (json['avg_body_preference'] as num?)?.toDouble(),
       idealMoments: _castIntMap(json['ideal_moments']),
       questionnairesCompleted: ((json['questionnaires_completed'] ?? json['questionnairesCompleted']) as num?)?.toInt() ?? 0,
+      friendUserId: json['friend_user_id']?.toString(),
     );
   }
 

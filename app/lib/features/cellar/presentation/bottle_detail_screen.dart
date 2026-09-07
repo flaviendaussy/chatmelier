@@ -25,6 +25,8 @@ import 'terroir_map_view.dart';
 import 'delete_bottle_dialog.dart';
 import 'sommelier_table_mode_sheet.dart';
 import 'bottle_edit_sheet.dart';
+import 'shelf_grid_view_sheet.dart';
+import 'widgets/furniture_graphic_card.dart';
 import 'wine_enrichment_diff_dialog.dart';
 import 'wine_reverse_food_pairing_sheet.dart';
 import 'spirit_bottle_fill_view.dart';
@@ -140,6 +142,13 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               'profiles': null,
               'cellars': {'name': 'Cave', 'nickname': 'Cave'},
               'fill_level': foundBottle.fillLevel,
+              'furniture_id': foundBottle.furnitureId,
+              'furniture_slot': foundBottle.furnitureSlot,
+              'bottle_size': foundBottle.bottleSize,
+              'purchase_location': foundBottle.purchaseLocation,
+              'source_type': foundBottle.sourceType,
+              'source_details': foundBottle.sourceDetails,
+              'purchase_date': foundBottle.purchaseDate?.toIso8601String(),
             };
             _labelPhotoUrl = resolvedImg;
             _isLoading = false;
@@ -653,6 +662,91 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
     }
   }
 
+  void _showApogeeExplanationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.hourglass_top, color: Color(0xFFD4AF37), size: 24),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Qu\'est-ce que l\'Apogée ?',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'L\'apogée est la période idéale pour déguster un vin. C\'est le moment où il atteint son équilibre parfait entre arômes, tanins et acidité.',
+              style: TextStyle(fontSize: 13.5, height: 1.4),
+            ),
+            SizedBox(height: 14),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('⏳ ', style: TextStyle(fontSize: 16)),
+                Expanded(
+                  child: Text(
+                    'Trop jeune / En garde : le vin gagnera en complexité en vieillissant en cave.',
+                    style: TextStyle(fontSize: 12.5),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('🍷 ', style: TextStyle(fontSize: 16)),
+                Expanded(
+                  child: Text(
+                    'À l\'apogée : le vin est à son sommet gustatif, moment idéal pour l\'ouvrir.',
+                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('⚠️ ', style: TextStyle(fontSize: 16)),
+                Expanded(
+                  child: Text(
+                    'En déclin : le vin approche ou dépasse sa limite de garde, à boire sans tarder.',
+                    style: TextStyle(fontSize: 12.5),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 14),
+            Text(
+              '💡 Chatmelier estime cette fenêtre grâce à l\'IA à partir du domaine, de l\'appellation et du millésime. Vous pouvez la personnaliser à tout moment.',
+              style: TextStyle(fontSize: 11.5, color: Colors.grey, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        actions: [
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF8B1E3F),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Compris !'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _showEditPriceDialog() async {
     final currentPrice = (_bottleData!['purchase_price'] as num?)?.toDouble();
     String currentCurrency = _bottleData!['currency'] as String? ?? 'EUR';
@@ -783,6 +877,15 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       createdAt: DateTime.tryParse(_bottleData!['created_at']?.toString() ?? '') ?? DateTime.now(),
       wine: wine,
       fillLevel: fillLevel,
+      furnitureId: (_bottleData!['furniture_id'] ?? _bottleData!['furnitureId'])?.toString(),
+      furnitureSlot: (_bottleData!['furniture_slot'] ?? _bottleData!['furnitureSlot'])?.toString(),
+      bottleSize: (_bottleData!['bottle_size'] ?? _bottleData!['bottleSize'])?.toString() ?? '75cl',
+      purchaseLocation: (_bottleData!['purchase_location'] ?? _bottleData!['purchaseLocation'])?.toString(),
+      sourceType: (_bottleData!['source_type'] ?? _bottleData!['sourceType'])?.toString(),
+      sourceDetails: (_bottleData!['source_details'] ?? _bottleData!['sourceDetails'])?.toString(),
+      purchaseDate: DateTime.tryParse((_bottleData!['purchase_date'] ?? _bottleData!['purchaseDate'])?.toString() ?? ''),
+      photoUrl: _labelPhotoUrl,
+      ownerName: (_bottleData!['profiles'] as Map<String, dynamic>?)?['display_name'] as String?,
     );
 
     return Scaffold(
@@ -914,77 +1017,109 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                 children: [
                   // Badges Row
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      WineTypeBadge(type: wine.type),
-                      const SizedBox(width: 8),
-                      if (wine.alcoholPct != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.white12 : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isDark ? Colors.white24 : Colors.grey.shade400,
-                            ),
-                          ),
-                          child: Text(
-                            '${wine.alcoholPct!.toStringAsFixed(wine.alcoholPct! % 1 == 0 ? 0 : 1)}% vol',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white70 : Colors.black87,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      if (wine.tracksFillLevel) ...[
-                        Builder(
-                          builder: (context) {
-                            final fillLevel = bottleObj.fillLevel;
-                            final fillColor = fillLevel <= 20
-                                ? Colors.redAccent
-                                : fillLevel <= 50
-                                    ? Colors.orangeAccent
-                                    : Colors.amber.shade400;
-                            final borderColor = fillLevel <= 20
-                                ? Colors.red.shade700
-                                : fillLevel <= 50
-                                    ? Colors.orange.shade700
-                                    : Colors.amber.shade700;
-                            return Container(
+                      Expanded(
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            WineTypeBadge(type: wine.type),
+                            Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF2A2325) : const Color(0xFFFAF0E6),
+                                color: isDark ? const Color(0xFF2C2416) : const Color(0xFFFFF8E7),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: borderColor.withValues(alpha: 0.85), width: 1),
+                                border: Border.all(
+                                  color: const Color(0xFFD4AF37).withValues(alpha: 0.6),
+                                ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.local_bar, size: 12, color: fillColor),
+                                  const Icon(Icons.wine_bar, size: 12, color: Color(0xFFD4AF37)),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '$fillLevel% plein',
+                                    bottleObj.sizeObject.label,
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
-                                      color: fillColor,
+                                      color: isDark ? const Color(0xFFF3E5AB) : const Color(0xFF8C6D05),
                                     ),
                                   ),
                                 ],
                               ),
-                            );
-                          },
+                            ),
+                            if (wine.alcoholPct != null) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.white12 : Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: isDark ? Colors.white24 : Colors.grey.shade400,
+                                  ),
+                                ),
+                                child: Text(
+                                  '${wine.alcoholPct!.toStringAsFixed(wine.alcoholPct! % 1 == 0 ? 0 : 1)}% vol',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white70 : Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            if (wine.tracksFillLevel) ...[
+                              Builder(
+                                builder: (context) {
+                                  final fillLevel = bottleObj.fillLevel;
+                                  final fillColor = fillLevel <= 20
+                                      ? Colors.redAccent
+                                      : fillLevel <= 50
+                                          ? Colors.orangeAccent
+                                          : Colors.amber.shade400;
+                                  final borderColor = fillLevel <= 20
+                                      ? Colors.red.shade700
+                                      : fillLevel <= 50
+                                          ? Colors.orange.shade700
+                                          : Colors.amber.shade700;
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? const Color(0xFF2A2325) : const Color(0xFFFAF0E6),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: borderColor.withValues(alpha: 0.85), width: 1),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.local_bar, size: 12, color: fillColor),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '$fillLevel% plein',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: fillColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ] else ...[
+                              DrinkingWindowBadge(status: wine.windowStatus),
+                            ],
+                          ],
                         ),
+                      ),
+                      if (ownerProfile != null) ...[
                         const SizedBox(width: 8),
-                      ] else ...[
-                        DrinkingWindowBadge(status: wine.windowStatus),
-                        const SizedBox(width: 8),
-                      ],
-                      const Spacer(),
-                      if (ownerProfile != null)
                         Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             OwnerAvatar(
                               displayName: ownerProfile['display_name'] ?? 'User',
@@ -1000,6 +1135,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                             ),
                           ],
                         ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -1218,12 +1354,16 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      purchasePrice != null 
-                                          ? CurrencyHelper.formatPrice(purchasePrice, currency: currency, decimals: 2) 
-                                          : 'Non renseigné',
+                                      isViewOnly
+                                          ? 'Confidentiel'
+                                          : (purchasePrice != null 
+                                              ? CurrencyHelper.formatPrice(purchasePrice, currency: currency, decimals: 2) 
+                                              : 'Non renseigné'),
                                       style: theme.textTheme.titleMedium?.copyWith(
                                         fontWeight: FontWeight.bold,
-                                        color: purchasePrice != null ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
+                                        color: isViewOnly
+                                            ? theme.colorScheme.onSurfaceVariant
+                                            : (purchasePrice != null ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant),
                                       ),
                                     ),
                                   ],
@@ -1247,14 +1387,16 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      wine.estimatedMarketValue != null
-                                          ? CurrencyHelper.formatPrice(wine.estimatedMarketValue, currency: currency, decimals: 2)
-                                          : 'Estimation...',
+                                      isViewOnly
+                                          ? 'Confidentiel'
+                                          : (wine.estimatedMarketValue != null
+                                              ? CurrencyHelper.formatPrice(wine.estimatedMarketValue, currency: currency, decimals: 2)
+                                              : 'Estimation...'),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleMedium?.copyWith(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.green.shade700,
+                                        color: isViewOnly ? theme.colorScheme.onSurfaceVariant : Colors.green.shade700,
                                       ),
                                     ),
                                   ],
@@ -1262,7 +1404,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               ),
                             ],
                           ),
-                          if (wine.lastValuationDate != null) ...[
+                          if (!isViewOnly && wine.lastValuationDate != null) ...[
                             const SizedBox(height: 12),
                             Text(
                               'Indice de marché vérifié • Actualisé semestriellement (${DateFormat.yMMMd().format(wine.lastValuationDate!)})',
@@ -1395,6 +1537,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     ),
                                   ],
                                   const Spacer(),
+                                  IconButton(
+                                    icon: const Icon(Icons.help_outline, size: 18, color: Colors.grey),
+                                    tooltip: 'Qu\'est-ce que l\'apogée ?',
+                                    onPressed: () => _showApogeeExplanationDialog(context),
+                                  ),
                                   if (!isViewOnly)
                                     IconButton(
                                       icon: const Icon(Icons.edit_outlined, size: 18),
@@ -1993,8 +2140,93 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  // ================= PHYSICAL LOCATION =================
-                  if (rack != null || shelf != null || position != null || (bottleObj.purchaseLocation != null && bottleObj.purchaseLocation!.isNotEmpty)) ...[
+                  // ================= PHYSICAL LOCATION & MODE SHELVES =================
+                  if (bottleObj.hasLocation) ...[
+                    FurnitureGraphicCard(
+                      bottle: bottleObj,
+                      onEditRequested: !isViewOnly
+                          ? () async {
+                              await ShelfGridViewSheet.show(
+                                context,
+                                cellarId: bottleObj.cellarId,
+                                bottleToPlace: bottleObj,
+                                initialFurnitureId: bottleObj.furnitureId,
+                              );
+                              if (mounted) {
+                                await _loadBottleDetails();
+                              }
+                            }
+                          : null,
+                      onUnassignRequested: !isViewOnly
+                          ? () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (c) => AlertDialog(
+                                  title: const Text('Retirer du meuble ?'),
+                                  content: const Text(
+                                      'Voulez-vous retirer cette bouteille de son meuble et la replacer en stockage non assigné ?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(c, false),
+                                      child: const Text('Annuler'),
+                                    ),
+                                    FilledButton(
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: Colors.red.shade800,
+                                      ),
+                                      onPressed: () => Navigator.pop(c, true),
+                                      child: const Text('Retirer'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                final repo = ref.read(cellarRepositoryProvider);
+                                await repo.assignBottleToSlot(
+                                  bottleId: bottleObj.id,
+                                  furnitureId: null,
+                                  slot: null,
+                                );
+                                await repo.updateBottle(bottleObj.id, rawUpdates: {
+                                  'rack': null,
+                                  'shelf': null,
+                                  'position': null,
+                                });
+                                notifyCellarChanged(ref, bottleObj.cellarId);
+                                if (mounted) {
+                                  await _loadBottleDetails();
+                                }
+                              }
+                            }
+                          : null,
+                    ),
+                    if (bottleObj.purchaseLocation != null && bottleObj.purchaseLocation!.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.place_outlined, size: 18, color: Color(0xFFD4AF37)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Provenance : ${bottleObj.provenanceDisplay}',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.brightness == Brightness.dark ? const Color(0xFFF3E5AB) : const Color(0xFF722F37),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ] else ...[
                     Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -2005,50 +2237,56 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                           children: [
                             Row(
                               children: [
-                                const Icon(Icons.grid_on, color: Color(0xFF8B1E3F), size: 18),
+                                const Icon(Icons.shelves, color: Color(0xFF8B1E3F), size: 20),
                                 const SizedBox(width: 8),
-                                Text(l10n?.bottleDetailLocation ?? 'Emplacement en cave', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                const Spacer(),
-                                if (!isViewOnly)
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined, size: 18),
-                                    tooltip: 'Modifier l\'emplacement',
-                                    onPressed: () => _showFullEditSheet(wine, bottleObj),
-                                  ),
+                                Text(l10n?.bottleDetailLocation ?? 'Emplacement & Meuble de cave',
+                                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                            if (rack != null || shelf != null || position != null)
-                              Row(
-                                children: [
-                                  const Icon(Icons.grid_on, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text('${l10n?.bottleDetailRack ?? "Casier / Rang"}: ${rack ?? "-"}  |  ${l10n?.bottleDetailShelf ?? "Tablette / Niveau"}: ${shelf ?? "-"}  |  Pos: ${position ?? "-"}'),
-                                ],
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+                              label: const Text('Ranger dans un meuble (Mode Rayonnage)'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF8B1E3F),
+                                side: const BorderSide(color: Color(0xFF8B1E3F)),
                               ),
-                            const SizedBox(height: 10),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(Icons.place_outlined, size: 18, color: Color(0xFFD4AF37)),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Provenance : ${bottleObj.provenanceDisplay}',
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: theme.brightness == Brightness.dark ? const Color(0xFFF3E5AB) : const Color(0xFF722F37),
+                              onPressed: () async {
+                                await ShelfGridViewSheet.show(
+                                  context,
+                                  cellarId: bottleObj.cellarId,
+                                  bottleToPlace: bottleObj,
+                                );
+                                if (mounted) {
+                                  await _loadBottleDetails();
+                                }
+                              },
+                            ),
+                            if (bottleObj.purchaseLocation != null && bottleObj.purchaseLocation!.isNotEmpty) ...[
+                              const SizedBox(height: 10),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.place_outlined, size: 18, color: Color(0xFFD4AF37)),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Provenance : ${bottleObj.provenanceDisplay}',
+                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: theme.brightness == Brightness.dark ? const Color(0xFFF3E5AB) : const Color(0xFF722F37),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
                   ],
+                  const SizedBox(height: 16),
 
                   // ================= USER PERSONAL NOTES =================
                   if (userNotes != null && userNotes.isNotEmpty) ...[
@@ -2396,7 +2634,10 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
 
   void _showAddSiblingOrIncrementSheet(BuildContext context, Bottle bottle) {
     final theme = Theme.of(context);
+    final initialQty = bottle.quantity;
     int extraQty = 1;
+    final addCtrl = TextEditingController(text: '1');
+    final totalCtrl = TextEditingController(text: '${initialQty + 1}');
 
     showModalBottomSheet(
       context: context,
@@ -2405,125 +2646,266 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+        builder: (ctx, setSheetState) {
+          final currentTotal = initialQty + extraQty;
+
+          void updateByDelta(int delta) {
+            setSheetState(() {
+              extraQty = (extraQty + delta).clamp(1, 9999);
+              addCtrl.text = '$extraQty';
+              totalCtrl.text = '${initialQty + extraQty}';
+            });
+          }
+
+          void updateFromTotal(int newTotal) {
+            setSheetState(() {
+              final calculatedExtra = newTotal - initialQty;
+              extraQty = calculatedExtra.clamp(1, 9999);
+              addCtrl.text = '$extraQty';
+              totalCtrl.text = '${initialQty + extraQty}';
+            });
+          }
+
+          return SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.control_point_duplicate, color: Color(0xFFD4AF37), size: 28),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Ajouter un exemplaire de ce vin',
-                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        const Icon(Icons.control_point_duplicate, color: Color(0xFFD4AF37), size: 28),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Ajuster le stock / Exemplaire',
+                            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${bottle.wine?.name ?? ""} (${bottle.wine?.vintage ?? "NV"})',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Option 1: Direct Stock Bump with dual steppers and formula
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '1. Ajuster le stock de cette fiche',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Calculation Summary Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surface,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: theme.dividerColor.withValues(alpha: 0.6)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Column(
+                                  children: [
+                                    Text('Stock actuel', style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant)),
+                                    const SizedBox(height: 2),
+                                    Text('$initialQty', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                const Icon(Icons.add, size: 16, color: Colors.grey),
+                                Column(
+                                  children: [
+                                    const Text('Ajout', style: TextStyle(fontSize: 11, color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 2),
+                                    Text('+$extraQty', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
+                                  ],
+                                ),
+                                const Text('=', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
+                                Column(
+                                  children: [
+                                    const Text('Nouveau total', style: TextStyle(fontSize: 11, color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 2),
+                                    Text('$currentTotal', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F))),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Row 1: Ajout (+/- & direct input)
+                          Row(
+                            children: [
+                              const Expanded(
+                                flex: 3,
+                                child: Text('Quantité ajoutée :', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                              ),
+                              IconButton.filledTonal(
+                                visualDensity: VisualDensity.compact,
+                                onPressed: extraQty > 1 ? () => updateByDelta(-1) : null,
+                                icon: const Icon(Icons.remove, size: 18),
+                              ),
+                              SizedBox(
+                                width: 52,
+                                child: TextFormField(
+                                  controller: addCtrl,
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  onChanged: (val) {
+                                    final p = int.tryParse(val);
+                                    if (p != null && p > 0) {
+                                      setSheetState(() {
+                                        extraQty = p;
+                                        totalCtrl.text = '${initialQty + extraQty}';
+                                      });
+                                    }
+                                  },
+                                ),
+                              ),
+                              IconButton.filledTonal(
+                                visualDensity: VisualDensity.compact,
+                                onPressed: () => updateByDelta(1),
+                                icon: const Icon(Icons.add, size: 18),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Row 2: Nouveau stock total (+/- & direct input)
+                          Row(
+                            children: [
+                              const Expanded(
+                                flex: 3,
+                                child: Text('Nouveau stock total :', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF8B1E3F))),
+                              ),
+                              IconButton.filledTonal(
+                                visualDensity: VisualDensity.compact,
+                                onPressed: extraQty > 1 ? () => updateByDelta(-1) : null,
+                                icon: const Icon(Icons.remove, size: 18),
+                              ),
+                              SizedBox(
+                                width: 52,
+                                child: TextFormField(
+                                  controller: totalCtrl,
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF8B1E3F)),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(color: Color(0xFF8B1E3F)),
+                                    ),
+                                  ),
+                                  onChanged: (val) {
+                                    final p = int.tryParse(val);
+                                    if (p != null) {
+                                      updateFromTotal(p);
+                                    }
+                                  },
+                                ),
+                              ),
+                              IconButton.filledTonal(
+                                visualDensity: VisualDensity.compact,
+                                onPressed: () => updateByDelta(1),
+                                icon: const Icon(Icons.add, size: 18),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Submit Button
+                          FilledButton.icon(
+                            onPressed: () async {
+                              final messenger = ScaffoldMessenger.of(context);
+                              Navigator.pop(ctx);
+                              final repo = ref.read(cellarRepositoryProvider);
+                              final finalTotal = initialQty + extraQty;
+                              await repo.updateBottleQuantity(bottle.id, finalTotal, cellarId: bottle.cellarId);
+                              notifyCellarChanged(ref, bottle.cellarId);
+                              _loadBottleDetails();
+                              HapticFeedback.mediumImpact();
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('🍾 Stock mis à jour : $finalTotal bouteilles en cave !'),
+                                  backgroundColor: const Color(0xFF8B1E3F),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.check, color: Colors.white),
+                            label: Text(
+                              'Valider le stock total ($currentTotal btl • +$extraQty)',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF8B1E3F),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(48),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Option 2: Duplicate as separate bottle entry
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ReviewScreen(
+                              imagePath: '',
+                              prefillBottle: bottle,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.copy),
+                      label: const Text('2. Créer une nouvelle entrée (autre casier / prix)'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'Bouteille : ${bottle.wine?.name ?? ""} (${bottle.wine?.vintage ?? "NV"})\nStock actuel : ${bottle.quantity} bouteille${bottle.quantity > 1 ? "s" : ""}',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                ),
-                const SizedBox(height: 20),
-                
-                // Option 1: Direct Stock Bump
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '1. Augmenter le stock de cette fiche',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          const Text('Quantité à ajouter :'),
-                          const Spacer(),
-                          IconButton.filledTonal(
-                            onPressed: extraQty > 1 ? () => setSheetState(() => extraQty--) : null,
-                            icon: const Icon(Icons.remove, size: 18),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14),
-                            child: Text('+$extraQty', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          ),
-                          IconButton.filledTonal(
-                            onPressed: () => setSheetState(() => extraQty++),
-                            icon: const Icon(Icons.add, size: 18),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      FilledButton.icon(
-                        onPressed: () async {
-                          final messenger = ScaffoldMessenger.of(context);
-                          Navigator.pop(ctx);
-                          final repo = ref.read(cellarRepositoryProvider);
-                          final newTotal = bottle.quantity + extraQty;
-                          await repo.updateBottleQuantity(bottle.id, newTotal, cellarId: bottle.cellarId);
-                          notifyCellarChanged(ref, bottle.cellarId);
-                          _loadBottleDetails();
-                          HapticFeedback.mediumImpact();
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text('🍾 Stock augmenté : $newTotal bouteilles en cave !'),
-                              backgroundColor: const Color(0xFF8B1E3F),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.check, color: Colors.white),
-                        label: Text(
-                          'Valider le nouveau stock (+ $extraQty)',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF8B1E3F),
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size.fromHeight(48),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Option 2: Duplicate as separate bottle entry
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ReviewScreen(
-                          imagePath: '',
-                          prefillBottle: bottle,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.copy),
-                  label: const Text('2. Créer une nouvelle entrée (autre casier / prix)'),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

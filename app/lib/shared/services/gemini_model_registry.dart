@@ -22,8 +22,9 @@ class GeminiModelRegistry {
     defaultValue: 'AQ.Ab8RN6JFZQNPfXmDdjdGT0posCOmn_4wPIFv_TiviorSGL6BDg',
   );
 
-  /// Curated Lite baseline models (Gemini 3.5 / 3.1 Flash-Lite, flash-lite-latest)
+  /// Curated Lite baseline models (Gemini 3.8 / 3.5 / 3.1 Flash-Lite, flash-lite-latest)
   static const List<String> baselineLiteModels = [
+    'gemini-3.8-flash-lite',
     'gemini-3.5-flash-lite',
     'gemini-3.1-flash-lite',
     'gemini-flash-lite-latest',
@@ -31,8 +32,9 @@ class GeminiModelRegistry {
     'gemini-3.6-flash-lite',
   ];
 
-  /// Curated Standard Flash baseline models (Gemini 3.5 / 3.6 / 3.7 Flash, flash-latest)
+  /// Curated Standard Flash baseline models (Gemini 3.8 / 3.5 / 3.6 / 3.7 Flash, flash-latest)
   static const List<String> baselineStandardFlashModels = [
+    'gemini-3.8-flash',
     'gemini-3.5-flash',
     'gemini-3.6-flash',
     'gemini-3.7-flash',

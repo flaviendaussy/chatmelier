@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../domain/bottle.dart';
 import '../domain/cellar.dart';
+import '../domain/cellar_furniture.dart';
 import '../domain/wine.dart';
 import '../../offline/data/offline_storage_service.dart';
 import '../../offline/domain/offline_action.dart';
@@ -431,6 +432,9 @@ class CellarRepository {
     int? peakDrinkingEnd,
     double? estimatedMarketValue,
     String? localPhotoPath,
+    String bottleSize = '75cl',
+    String? furnitureId,
+    String? furnitureSlot,
   }) async {
     final user = _client.auth.currentUser;
     final userId = user?.id ?? const Uuid().v4();
@@ -490,6 +494,9 @@ class CellarRepository {
         'position': position,
         'notes': notes,
         'status': 'in_cellar',
+        'bottle_size': bottleSize,
+        if (furnitureId != null) 'furniture_id': furnitureId,
+        if (furnitureSlot != null) 'furniture_slot': furnitureSlot,
       }).select('*, wines(*)').single();
 
       final bottle = Bottle.fromJson(bottleInsert);
@@ -544,6 +551,9 @@ class CellarRepository {
         status: 'in_cellar',
         createdAt: DateTime.now(),
         wine: offlineWine,
+        bottleSize: bottleSize,
+        furnitureId: furnitureId,
+        furnitureSlot: furnitureSlot,
       );
 
       await _offlineStorage?.applyOfflineAddBottle(cellarId, offlineBottle);
@@ -560,6 +570,9 @@ class CellarRepository {
           'producer': producer,
           'wine_type': wineType,
           'country': country,
+          'bottle_size': bottleSize,
+          if (furnitureId != null) 'furniture_id': furnitureId,
+          if (furnitureSlot != null) 'furniture_slot': furnitureSlot,
           'region': region,
           'sub_region': subRegion,
           'appellation': appellation,
@@ -621,10 +634,14 @@ class CellarRepository {
       }
 
       if (userId != null && bottle.wineId.isNotEmpty) {
+        final targetCellarId = (cellarId != null && cellarId.isNotEmpty)
+            ? cellarId
+            : (bottle.cellarId.isNotEmpty ? bottle.cellarId : null);
         await _client.from('tasting_log').insert({
           'wine_id': bottle.wineId,
           'bottle_id': bottle.id,
           'user_id': userId,
+          if (targetCellarId != null) 'cellar_id': targetCellarId,
           'rating': rating,
           'tasting_notes': notes,
           'food_paired': foodPaired,
@@ -955,6 +972,106 @@ class CellarRepository {
       await _offlineStorage?.removePendingResolutionWine(bottleId);
     } catch (e) {
       debugPrint('Failed to resolve missing vintage: $e');
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cellar Furniture (Mode Shelves)
+  // ---------------------------------------------------------------------------
+
+  Future<List<CellarFurniture>> getCellarFurniture(String cellarId) async {
+    try {
+      final res = await _client
+          .from('cellar_furniture')
+          .select()
+          .eq('cellar_id', cellarId)
+          .order('created_at', ascending: true);
+      return (res as List).map((row) => CellarFurniture.fromJson(row)).toList();
+    } catch (e) {
+      AppLogger.warning('CELLAR', 'getCellarFurniture error: $e');
+      return [];
+    }
+  }
+
+  Future<CellarFurniture> createFurniture({
+    required String cellarId,
+    required String name,
+    String shapeType = 'rectangle',
+    required int columns,
+    required int rows,
+    List<List<bool>>? slotsMatrix,
+  }) async {
+    final matrix = slotsMatrix ?? CellarFurniture.generateMatrix(shapeType: shapeType, columns: columns, rows: rows);
+    final row = {
+      'cellar_id': cellarId,
+      'name': name.trim().isEmpty ? 'Meuble de rangement' : name.trim(),
+      'shape_type': shapeType,
+      'columns': columns,
+      'rows': rows,
+      'slots_matrix': matrix,
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    final res = await _client.from('cellar_furniture').insert(row).select().single();
+    return CellarFurniture.fromJson(res);
+  }
+
+  Future<void> updateFurniture(CellarFurniture furniture) async {
+    try {
+      await _client.from('cellar_furniture').update({
+        'name': furniture.name,
+        'shape_type': furniture.shapeType,
+        'columns': furniture.columns,
+        'rows': furniture.rows,
+        'slots_matrix': furniture.slotsMatrix,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', furniture.id);
+    } catch (e) {
+      AppLogger.error('CELLAR', 'updateFurniture error', e);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteFurniture(String furnitureId) async {
+    try {
+      await _client.from('cellar_furniture').delete().eq('id', furnitureId);
+    } catch (e) {
+      AppLogger.error('CELLAR', 'deleteFurniture error', e);
+      rethrow;
+    }
+  }
+
+  /// Assigns a bottle to a specific slot in a furniture unit.
+  /// Handles collision detection and swap:
+  /// - If the target slot is already occupied by [existingOccupantBottleId] and [allowSwap] is true,
+  ///   the existing bottle is moved to the target bottle's previous location (or unassigned).
+  Future<void> assignBottleToSlot({
+    required String bottleId,
+    required String? furnitureId,
+    required String? slot,
+    String? previousFurnitureId,
+    String? previousSlot,
+    String? existingOccupantBottleId,
+    bool allowSwap = false,
+  }) async {
+    try {
+      if (existingOccupantBottleId != null && allowSwap) {
+        // Swap existing occupant to previous bottle location
+        await _client.from('bottles').update({
+          'furniture_id': previousFurnitureId,
+          'furniture_slot': previousSlot,
+        }).eq('id', existingOccupantBottleId);
+      }
+
+      // Assign target bottle to new slot
+      await _client.from('bottles').update({
+        'furniture_id': furnitureId,
+        'furniture_slot': slot,
+      }).eq('id', bottleId);
+
+      AppLogger.info('CELLAR', 'Assigned bottle $bottleId to $furnitureId slot $slot (swap: $allowSwap)');
+    } catch (e) {
+      AppLogger.error('CELLAR', 'assignBottleToSlot error', e);
+      rethrow;
     }
   }
 }

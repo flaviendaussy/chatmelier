@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/providers/cellar_provider.dart';
@@ -6,6 +7,7 @@ import '../data/bar_pantry_service.dart';
 import '../data/custom_cocktail_service.dart';
 import '../domain/bar_pantry_item.dart';
 import '../domain/cocktail_matcher.dart';
+import 'bar_equipment_sheet.dart';
 import 'cocktail_detail_sheet.dart';
 
 class BarCocktailsHubScreen extends ConsumerStatefulWidget {
@@ -21,10 +23,14 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
 
   // Search & Filters for Pantry
   String _pantrySearch = '';
+  bool _showPantrySearch = false;
+  final TextEditingController _pantrySearchController = TextEditingController();
   PantryCategory? _selectedPantryCategory;
 
   // Search & Filters for Catalog
   String _catalogSearch = '';
+  bool _showCatalogSearch = false;
+  final TextEditingController _catalogSearchController = TextEditingController();
   String _selectedCatalogSpirit = 'Tous';
 
   // Sort for unified Cocktails tab
@@ -35,18 +41,22 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _catalogSearchController.dispose();
+    _pantrySearchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     final currentCellarId = ref.watch(currentCellarIdProvider);
     final bottlesAsync = currentCellarId != null
@@ -89,38 +99,92 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
         ),
         actions: [
           IconButton(
+            tooltip: 'Mon Matériel de Bar',
+            icon: const Icon(Icons.handyman_outlined),
+            onPressed: () => BarEquipmentSheet.show(context),
+          ),
+          IconButton(
             tooltip: 'Demander au Chatmelier Mixologue',
             icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
             onPressed: () => _askChatmelierMixologist(context, readyMatches.length),
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: const Color(0xFF8B1E3F),
-          indicatorWeight: 3,
-          labelColor: const Color(0xFF8B1E3F),
-          unselectedLabelColor: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-          tabs: [
-            Tab(
-              icon: Badge(
-                isLabelVisible: readyMatches.isNotEmpty,
-                backgroundColor: const Color(0xFF2E7D32),
-                label: Text('${readyMatches.length}'),
-                child: const Icon(Icons.local_bar, size: 20),
-              ),
-              text: 'Cocktails',
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(14, 2, 14, 8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+              borderRadius: BorderRadius.circular(12),
             ),
-            Tab(
-              icon: Badge(
-                isLabelVisible: pantry.where((i) => i.inStock).isNotEmpty,
-                backgroundColor: const Color(0xFF8B1E3F),
-                label: Text('${pantry.where((i) => i.inStock).length}'),
-                child: const Icon(Icons.kitchen_outlined, size: 20),
+            child: TabBar(
+              controller: _tabController,
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: const Color(0xFF8B1E3F),
               ),
-              text: 'Mon Bar Pantry',
+              labelColor: Colors.white,
+              unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
+              tabs: [
+                Tab(
+                  height: 38,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('🍸 Cocktails', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _tabController.index == 0
+                              ? Colors.white.withValues(alpha: 0.25)
+                              : const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${readyMatches.length}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: _tabController.index == 0 ? Colors.white : const Color(0xFF8B1E3F),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Tab(
+                  height: 38,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('🥫 Réserve du Bar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _tabController.index == 1
+                              ? Colors.white.withValues(alpha: 0.25)
+                              : const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${pantry.where((i) => i.inStock).length}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: _tabController.index == 1 ? Colors.white : const Color(0xFF8B1E3F),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       body: TabBarView(
@@ -163,55 +227,100 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
       children: [
         // Controls Header
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 4),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Search & Reset
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Rechercher un ingrédient...',
-                        prefixIcon: const Icon(Icons.search, size: 20),
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onChanged: (v) => setState(() => _pantrySearch = v.trim()),
+              // Expandable Search Input
+              if (_showPantrySearch) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: TextField(
+                    controller: _pantrySearchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Rechercher un ingrédient...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      suffixIcon: _pantrySearch.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _pantrySearchController.clear();
+                                setState(() => _pantrySearch = '');
+                              },
+                            )
+                          : null,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
+                    onChanged: (v) => setState(() => _pantrySearch = v.trim()),
                   ),
-                  // Add Custom Item Button
-                  FilledButton.tonalIcon(
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Ajouter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    onPressed: () => _showAddPantryItemDialog(context),
-                  ),
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red.shade700,
-                      side: BorderSide(color: Colors.red.shade300),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text('Reset', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    onPressed: () => _confirmResetAll(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+                ),
+              ],
 
-              // Category Filter Chips
+              // Category Filter Chips with Search on the left + Action Buttons
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
+                    // Search shortcut button on the left
+                    Material(
+                      color: _showPantrySearch
+                          ? const Color(0xFF8B1E3F)
+                          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(() {
+                            _showPantrySearch = !_showPantrySearch;
+                            if (!_showPantrySearch) {
+                              _pantrySearch = '';
+                              _pantrySearchController.clear();
+                            }
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          child: Icon(
+                            _showPantrySearch ? Icons.search_off : Icons.search,
+                            size: 18,
+                            color: _showPantrySearch ? Colors.white : theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+
+                    // Add Custom Item Button
+                    FilledButton.tonalIcon(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text('Ajouter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () => _showAddPantryItemDialog(context),
+                    ),
+                    const SizedBox(width: 6),
+
+                    // Reset Button
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red.shade700,
+                        side: BorderSide(color: Colors.red.shade300),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: const Text('Reset', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () => _confirmResetAll(context),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Tous Chip
                     FilterChip(
                       label: const Text('Tous'),
                       selected: _selectedPantryCategory == null,
@@ -337,6 +446,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
     List<CocktailMatchResult> readyMatches,
     List<CocktailMatchResult> almostMatches,
   ) {
+    final theme = Theme.of(context);
     final filtered = allMatches.where((m) {
       final c = m.cocktail;
 
@@ -396,204 +506,232 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
 
     return Column(
       children: [
-        // Search & Sort bar + Filters
+        // Search bar (if expanded) + compact filters with search icon on the left
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Search input + Sort button
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Rechercher un cocktail, ingrédient...',
-                        prefixIcon: const Icon(Icons.search, size: 20),
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onChanged: (v) => setState(() => _catalogSearch = v.trim()),
+              // Expandable Search Input
+              if (_showCatalogSearch) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: TextField(
+                    controller: _catalogSearchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Rechercher un cocktail, ingrédient...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      suffixIcon: _catalogSearch.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _catalogSearchController.clear();
+                                setState(() => _catalogSearch = '');
+                              },
+                            )
+                          : null,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
+                    onChanged: (v) => setState(() => _catalogSearch = v.trim()),
                   ),
-                  const SizedBox(width: 8),
-                  PopupMenuButton<String>(
-                    tooltip: 'Trier la liste',
-                    initialValue: _sortBy,
-                    onSelected: (val) => setState(() => _sortBy = val),
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'missing',
-                        child: Row(
-                          children: [
-                            Icon(Icons.check_circle_outline, size: 18, color: _sortBy == 'missing' ? const Color(0xFF2E7D32) : null),
-                            const SizedBox(width: 8),
-                            const Text('Les + faisables en 1er (Défaut)'),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'name',
-                        child: Row(
-                          children: [
-                            Icon(Icons.sort_by_alpha, size: 18, color: _sortBy == 'name' ? const Color(0xFF8B1E3F) : null),
-                            const SizedBox(width: 8),
-                            const Text('Nom (A → Z)'),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'spirit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.local_bar, size: 18, color: _sortBy == 'spirit' ? const Color(0xFF8B1E3F) : null),
-                            const SizedBox(width: 8),
-                            const Text('Alcool de base'),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'difficulty',
-                        child: Row(
-                          children: [
-                            Icon(Icons.speed, size: 18, color: _sortBy == 'difficulty' ? const Color(0xFF8B1E3F) : null),
-                            const SizedBox(width: 8),
-                            const Text('Difficulté'),
-                          ],
-                        ),
-                      ),
-                    ],
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF8B1E3F).withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.sort, color: Color(0xFF8B1E3F), size: 18),
-                          const SizedBox(width: 4),
-                          Text(
-                            _getSortLabel(_sortBy),
-                            style: const TextStyle(
-                              color: Color(0xFF8B1E3F),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // Filter Row 1: Readiness Status Chips
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    FilterChip(
-                      label: Text('Tous (${allMatches.length})'),
-                      selected: _filterStatus == 'Tous',
-                      onSelected: (_) => setState(() => _filterStatus = 'Tous'),
-                    ),
-                    const SizedBox(width: 6),
-                    FilterChip(
-                      avatar: const Icon(Icons.check_circle, size: 15, color: Color(0xFF2E7D32)),
-                      label: Text('Prêts à shaker (${readyMatches.length})'),
-                      selected: _filterStatus == 'Prêts',
-                      selectedColor: const Color(0xFF2E7D32).withValues(alpha: 0.2),
-                      onSelected: (_) => setState(() => _filterStatus = 'Prêts'),
-                    ),
-                    const SizedBox(width: 6),
-                    FilterChip(
-                      avatar: Icon(Icons.pending_actions, size: 15, color: Colors.orange.shade800),
-                      label: Text('1 manquant (${almostMatches.length})'),
-                      selected: _filterStatus == '1 manquant',
-                      selectedColor: Colors.orange.withValues(alpha: 0.2),
-                      onSelected: (_) => setState(() => _filterStatus = '1 manquant'),
-                    ),
-                  ],
                 ),
-              ),
-              const SizedBox(height: 6),
+              ],
 
-              // Filter Row 2: Spirits Filter Chips
+              // Single-row horizontal scroll filters with search icon on the left
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    'Tous',
-                    '✨ Mes créations',
-                    'Gin',
-                    'Rhum',
-                    'Whisky',
-                    'Vodka',
-                    'Tequila',
-                    'Apéritifs',
-                  ].map((spirit) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: FilterChip(
-                        label: Text(spirit, style: const TextStyle(fontSize: 12)),
-                        selected: _selectedCatalogSpirit == spirit,
-                        onSelected: (_) => setState(() => _selectedCatalogSpirit = spirit),
+                    // Search shortcut button on the left
+                    Material(
+                      color: _showCatalogSearch
+                          ? const Color(0xFF8B1E3F)
+                          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(() {
+                            _showCatalogSearch = !_showCatalogSearch;
+                            if (!_showCatalogSearch) {
+                              _catalogSearch = '';
+                              _catalogSearchController.clear();
+                            }
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _showCatalogSearch ? Icons.search_off : Icons.search,
+                                size: 18,
+                                color: _showCatalogSearch ? Colors.white : theme.colorScheme.onSurface,
+                              ),
+                              if (_catalogSearch.isNotEmpty) ...[
+                                const SizedBox(width: 4),
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFD4AF37),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    const SizedBox(width: 6),
+
+                    // Sort button
+                    PopupMenuButton<String>(
+                      tooltip: 'Trier la liste',
+                      initialValue: _sortBy,
+                      onSelected: (val) => setState(() => _sortBy = val),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'missing',
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle_outline, size: 18, color: _sortBy == 'missing' ? const Color(0xFF2E7D32) : null),
+                              const SizedBox(width: 8),
+                              const Text('Les + faisables en 1er (Défaut)'),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'name',
+                          child: Row(
+                            children: [
+                              Icon(Icons.sort_by_alpha, size: 18, color: _sortBy == 'name' ? const Color(0xFF8B1E3F) : null),
+                              const SizedBox(width: 8),
+                              const Text('Nom (A → Z)'),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'spirit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.local_bar, size: 18, color: _sortBy == 'spirit' ? const Color(0xFF8B1E3F) : null),
+                              const SizedBox(width: 8),
+                              const Text('Alcool de base'),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'difficulty',
+                          child: Row(
+                            children: [
+                              Icon(Icons.speed, size: 18, color: _sortBy == 'difficulty' ? const Color(0xFF8B1E3F) : null),
+                              const SizedBox(width: 8),
+                              const Text('Difficulté'),
+                            ],
+                          ),
+                        ),
+                      ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF8B1E3F).withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.sort, color: Color(0xFF8B1E3F), size: 18),
+                            const SizedBox(width: 4),
+                            Text(
+                              _getSortLabel(_sortBy),
+                              style: const TextStyle(
+                                color: Color(0xFF8B1E3F),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    FilterChip(
+                      visualDensity: VisualDensity.compact,
+                      label: Text('Tous (${allMatches.length})', style: const TextStyle(fontSize: 12)),
+                      selected: _filterStatus == 'Tous' && _selectedCatalogSpirit == 'Tous',
+                      selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                      checkmarkColor: const Color(0xFF8B1E3F),
+                      onSelected: (_) => setState(() {
+                        _filterStatus = 'Tous';
+                        _selectedCatalogSpirit = 'Tous';
+                      }),
+                    ),
+                    const SizedBox(width: 6),
+                    FilterChip(
+                      visualDensity: VisualDensity.compact,
+                      avatar: const Icon(Icons.check_circle, size: 14, color: Color(0xFF2E7D32)),
+                      label: Text('Prêts (${readyMatches.length})', style: const TextStyle(fontSize: 12)),
+                      selected: _filterStatus == 'Prêts',
+                      selectedColor: const Color(0xFF2E7D32).withValues(alpha: 0.18),
+                      checkmarkColor: const Color(0xFF2E7D32),
+                      onSelected: (_) => setState(() => _filterStatus = _filterStatus == 'Prêts' ? 'Tous' : 'Prêts'),
+                    ),
+                    const SizedBox(width: 6),
+                    FilterChip(
+                      visualDensity: VisualDensity.compact,
+                      avatar: Icon(Icons.pending_actions, size: 14, color: Colors.orange.shade800),
+                      label: Text('1 manquant (${almostMatches.length})', style: const TextStyle(fontSize: 12)),
+                      selected: _filterStatus == '1 manquant',
+                      selectedColor: Colors.orange.withValues(alpha: 0.18),
+                      checkmarkColor: Colors.orange.shade800,
+                      onSelected: (_) => setState(() => _filterStatus = _filterStatus == '1 manquant' ? 'Tous' : '1 manquant'),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      height: 18,
+                      width: 1.2,
+                      color: theme.dividerColor.withValues(alpha: 0.4),
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                    ),
+                    const SizedBox(width: 6),
+                    ...[
+                      '✨ Mes créations',
+                      'Gin',
+                      'Rhum',
+                      'Whisky',
+                      'Vodka',
+                      'Tequila',
+                      'Apéritifs',
+                    ].map((spirit) {
+                      final isSelected = _selectedCatalogSpirit == spirit;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: FilterChip(
+                          visualDensity: VisualDensity.compact,
+                          label: Text(spirit, style: const TextStyle(fontSize: 12)),
+                          selected: isSelected,
+                          selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                          checkmarkColor: const Color(0xFF8B1E3F),
+                          onSelected: (_) => setState(() {
+                            _selectedCatalogSpirit = isSelected ? 'Tous' : spirit;
+                          }),
+                        ),
+                      );
+                    }),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-
-        // Optional Ready Hero Banner when viewing all
-        if (readyMatches.isNotEmpty && _filterStatus == 'Tous' && _catalogSearch.isEmpty) ...[
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2E7D32).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              children: [
-                const Text('🍸', style: TextStyle(fontSize: 20)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    '${readyMatches.length} cocktail${readyMatches.length > 1 ? "s" : ""} 100% prêt${readyMatches.length > 1 ? "s" : ""} à shaker !',
-                    style: const TextStyle(
-                      color: Color(0xFF2E7D32),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12.5,
-                    ),
-                  ),
-                ),
-                InkWell(
-                  onTap: () => setState(() => _filterStatus = 'Prêts'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2E7D32),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Voir seulement les prêts',
-                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
 
         const Divider(height: 1),
 
@@ -623,7 +761,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                         const SizedBox(height: 6),
                         Text(
                           _filterStatus == 'Prêts'
-                              ? 'Allez dans l\'onglet "Mon Bar Pantry" pour cocher vos citrons, glaçons, tonics ou menthe fraîche !'
+                              ? 'Allez dans l\'onglet "Réserve du Bar" pour cocher vos citrons, glaçons, tonics ou menthe fraîche !'
                               : _selectedCatalogSpirit == '✨ Mes créations'
                                   ? 'Demandez au Chatmelier Mixologue de concevoir un cocktail sur-mesure !'
                                   : 'Essayez un autre filtre ou une autre recherche.',
@@ -634,7 +772,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                           const SizedBox(height: 16),
                           OutlinedButton.icon(
                             icon: const Icon(Icons.kitchen_outlined),
-                            label: const Text('Gérer mon Bar Pantry'),
+                            label: const Text('Gérer ma Réserve'),
                             onPressed: () => _tabController.animateTo(1),
                           ),
                         ],
@@ -901,7 +1039,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                     Navigator.pop(dialogCtx);
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text('Ingrédient "$name" ajouté au bar pantry !'),
+                        content: Text('Ingrédient "$name" ajouté à la réserve du bar !'),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -924,7 +1062,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Réinitialiser le Bar Pantry ?'),
+        title: const Text('Réinitialiser la Réserve du Bar ?'),
         content: const Text(
           'Voulez-vous remettre toutes les quantités d\'ingrédients frais, softs et herbes à 0 ?',
         ),
@@ -942,7 +1080,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
               Navigator.pop(ctx);
               ref.read(barPantryProvider.notifier).resetAll();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Bar Pantry réinitialisé à zéro.')),
+                const SnackBar(content: Text('Réserve du bar réinitialisée à zéro.')),
               );
             },
             child: const Text('Tout réinitialiser'),

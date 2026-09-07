@@ -24,13 +24,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final List<ChatMessage> _messages = [];
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
+  final GlobalKey _lastMessageKey = GlobalKey();
   bool _isLoading = false;
   bool _initialized = false;
+  bool _showScrollToBottom = false;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _loadHistory();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final max = _scrollController.position.maxScrollExtent;
+    final current = _scrollController.offset;
+    final isFar = max - current > 120;
+    if (isFar != _showScrollToBottom) {
+      setState(() => _showScrollToBottom = isFar);
+    }
   }
 
   @override
@@ -53,6 +66,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -89,9 +103,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  void _scrollToBottom() {
+  void _scrollToBottom({bool alignToStart = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
+      if (!_scrollController.hasClients) return;
+      if (alignToStart) {
+        if (_lastMessageKey.currentContext != null) {
+          Scrollable.ensureVisible(
+            _lastMessageKey.currentContext!,
+            alignment: 0.0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        } else {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_lastMessageKey.currentContext != null) {
+              Scrollable.ensureVisible(
+                _lastMessageKey.currentContext!,
+                alignment: 0.0,
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeOut,
+              );
+            }
+          });
+        }
+      } else {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
@@ -142,8 +178,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       createdAt: DateTime.now(),
     );
 
+    final assistantMsg = ChatMessage(
+      id: '${DateTime.now().toIso8601String()}_ai',
+      role: 'assistant',
+      content: '',
+      createdAt: DateTime.now(),
+    );
+
     setState(() {
       _messages.add(userMsg);
+      _messages.add(assistantMsg);
       _isLoading = true;
     });
     _scrollToBottom();
@@ -164,37 +208,54 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final langCode = Localizations.localeOf(context).languageCode;
 
     try {
-      final replyText =
-          await service.sendMessage(text, cellarId, languageCode: langCode);
-      if (mounted) {
+      final stream = service.sendMessageStream(text, cellarId, languageCode: langCode);
+      await for (final chunk in stream) {
+        if (!mounted) break;
         setState(() {
-          _messages.add(ChatMessage(
-            id: DateTime.now().toIso8601String(),
-            role: 'assistant',
-            content: replyText,
-            createdAt: DateTime.now(),
-          ));
+          final idx = _messages.indexWhere((m) => m.id == assistantMsg.id);
+          if (idx != -1) {
+            _messages[idx] = ChatMessage(
+              id: assistantMsg.id,
+              role: 'assistant',
+              content: _messages[idx].content + chunk,
+              createdAt: assistantMsg.createdAt,
+            );
+          }
         });
-        _scrollToBottom();
+        if (!_showScrollToBottom) {
+          _scrollToBottom();
+        }
       }
     } catch (e) {
       if (mounted) {
         final isFr = langCode == 'fr';
         setState(() {
-          _messages.add(ChatMessage(
-            id: DateTime.now().toIso8601String(),
-            role: 'assistant',
-            content: isFr
-                ? 'Désolé, une erreur est survenue lors de la communication avec Chatmelier : $e'
-                : 'Sorry, I encountered an issue connecting to the cellar knowledge base: $e',
-            createdAt: DateTime.now(),
-          ));
+          final idx = _messages.indexWhere((m) => m.id == assistantMsg.id);
+          final errorMsg = isFr
+              ? 'Désolé, une erreur est survenue lors de la communication avec Chatmelier : $e'
+              : 'Sorry, I encountered an issue connecting to the cellar knowledge base: $e';
+          if (idx != -1) {
+            if (_messages[idx].content.isEmpty) {
+              _messages[idx] = ChatMessage(
+                id: assistantMsg.id,
+                role: 'assistant',
+                content: errorMsg,
+                createdAt: assistantMsg.createdAt,
+              );
+            }
+          }
         });
         _scrollToBottom();
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          final idx = _messages.indexWhere((m) => m.id == assistantMsg.id);
+          if (idx != -1 && _messages[idx].content.trim().isEmpty) {
+            _messages.removeAt(idx);
+          }
+        });
       }
     }
   }
@@ -264,20 +325,39 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ),
         Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(16),
-            itemCount: _messages.length,
-            itemBuilder: (context, index) {
-              final msg = _messages[index];
-              return ChatBubble(
-                isUser: msg.isUser,
-                text: msg.content,
-              );
-            },
+          child: Stack(
+            children: [
+              ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final msg = _messages[index];
+                  return ChatBubble(
+                    key: index == _messages.length - 1 ? _lastMessageKey : null,
+                    isUser: msg.isUser,
+                    text: msg.content,
+                  );
+                },
+              ),
+              if (_showScrollToBottom)
+                Positioned(
+                  bottom: 12,
+                  right: 16,
+                  child: FloatingActionButton.small(
+                    onPressed: () => _scrollToBottom(alignToStart: true),
+                    backgroundColor: const Color(0xFF8B1E3F),
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    tooltip: 'Aller tout en bas',
+                    child: const Icon(Icons.arrow_downward, size: 20),
+                  ),
+                ),
+            ],
           ),
         ),
-        if (_isLoading) const ChatmelierThinkingIndicator(),
+        if (_isLoading && (_messages.isEmpty || _messages.last.role != 'assistant' || _messages.last.content.isEmpty))
+          const ChatmelierThinkingIndicator(),
         // Suggestion Chips
         SizedBox(
           height: 44,
@@ -339,21 +419,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                 ),
               Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    final msg = _messages[index];
-                    return ChatBubble(
-                      isUser: msg.isUser,
-                      text: msg.content,
-                    );
-                  },
+                child: Stack(
+                  children: [
+                    ListView.builder(
+                      controller: _scrollController,
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        final msg = _messages[index];
+                        return ChatBubble(
+                          key: index == _messages.length - 1 ? _lastMessageKey : null,
+                          isUser: msg.isUser,
+                          text: msg.content,
+                        );
+                      },
+                    ),
+                    if (_showScrollToBottom)
+                      Positioned(
+                        bottom: 16,
+                        right: 24,
+                        child: FloatingActionButton.small(
+                          onPressed: () => _scrollToBottom(alignToStart: true),
+                          backgroundColor: const Color(0xFF8B1E3F),
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          tooltip: 'Aller tout en bas',
+                          child: const Icon(Icons.arrow_downward, size: 20),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              if (_isLoading) const ChatmelierThinkingIndicator(),
+              if (_isLoading && (_messages.isEmpty || _messages.last.role != 'assistant' || _messages.last.content.isEmpty))
+                const ChatmelierThinkingIndicator(),
               const Divider(height: 1),
               _buildInputBar(),
             ],

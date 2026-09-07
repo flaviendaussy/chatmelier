@@ -47,10 +47,11 @@ class ScanService {
     String? imagePath,
     Uint8List? imageBytes,
     File? imageFile,
+    String languageCode = 'fr',
   }) async {
     final startTime = DateTime.now();
     final effectivePath = imagePath ?? imageFile?.path ?? '';
-    AppLogger.info('SCAN_AI', 'Starting label analysis for image: $effectivePath');
+    AppLogger.info('SCAN_AI', 'Starting label analysis for image: $effectivePath (lang=$languageCode)');
 
     // Dynamically refresh newest available Gemini models in background
     GeminiModelRegistry.refreshAvailableModels();
@@ -80,14 +81,25 @@ class ScanService {
         mimeType = 'image/heic';
       }
 
-      const prompt = '''You are Chatmelier, the world-class master sommelier and OCR wine recognition engine.
+      final isEn = languageCode.toLowerCase().startsWith('en');
+      final notesInst = isEn
+          ? 'Expert sommelier aromas, palate, and structure notes in English.'
+          : 'Expert sommelier aromas, palate, and structure notes in French.';
+      final pairingsInst = isEn
+          ? 'Array of 3 to 5 matching food pairings in English.'
+          : 'Array of 3 to 5 matching food pairings in French.';
+      final summaryInst = isEn
+          ? 'Brief 1-2 sentence sommelier overview in English, systematically mentioning the grape varieties (e.g. "Grapes: 85% Mourvèdre, 10% Grenache, 5% Cinsault").'
+          : 'Brief 1-2 sentence sommelier overview in French, systematically mentioning the grape varieties / cépages (e.g. "Cépage : Mourvèdre 85%, Grenache 10%, Cinsault 5%").';
+
+      final prompt = '''You are Chatmelier, the world-class master sommelier and OCR wine recognition engine.
 Analyze this wine bottle label photo with maximum precision.
 Extract or infer the following factual beverage properties:
 1. "name": The wine or spirit name / cuvée (e.g. "Château Margaux", "Bénédictine D.O.M.", "Chartreuse Verte", "Lagavulin 16").
 2. "producer": The winery, estate, domain, distillery or house name (e.g. "Bénédictine", "Domaine de Terrebrune", "Antinori").
 3. "vintage": Year as integer (e.g. 2018, 2019) or null if non-vintage / not visible / spirit.
 4. "cuvee_parcel": Specific cuvée, parcel, or cask/expression name if indicated, else null.
-5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits, aperitifs, gins, and herbal liqueurs (e.g. Italicus, Rosolio, Bénédictine, Chartreuse, Cointreau, Amaretto, Disaronno, Gin, Pisco, Grappa, Aguardente, Rum, Whisky, Vodka, Pastis) must be classified as their specific spirit type ("gin", "whisky", "rum", "vodka", "tequila", "cognac") or as "liqueur" or "spirit". NEVER classify any spirit, gin, or liqueur as "fortified", "dessert", or "wine"! "fortified" is STRICTLY reserved for true fortified wines (Porto, Sherry/Xérès, Banyuls, Madeira, Marsala).
+5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "grappa", "eau-de-vie", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits, grappas, digestifs, aperitifs, gins, and herbal liqueurs (e.g. Grappa, Acquavite, Marc, Italicus, Rosolio, Bénédictine, Chartreuse, Cointreau, Amaretto, Disaronno, Gin, Pisco, Aguardente, Rum, Whisky, Vodka, Pastis) must be classified as their specific spirit type ("grappa", "eau-de-vie", "gin", "whisky", "rum", "vodka", "tequila", "cognac") or as "liqueur" or "spirit". NEVER classify any grappa, spirit, gin, or liqueur as "red", "white", "wine", "fortified", or "dessert"! "fortified" is STRICTLY reserved for true fortified wines (Porto, Sherry/Xérès, Banyuls, Madeira, Marsala).
 6. "country": Country of origin (e.g. "France", "Italy", "Scotland", "United States").
 7. "region": Region (e.g. "Normandie", "Bordeaux", "Bourgogne", "Islay").
 8. "sub_region": Sub-region if applicable, else null.
@@ -95,15 +107,15 @@ Extract or infer the following factual beverage properties:
 10. "classification": Official classification if applicable (e.g. "Liqueur de plantes", "Grand Cru Classé", "Single Malt"), else null.
 11. "alcohol_pct": Alcohol percentage (% vol / ABV) as number (e.g. 40.0 for Bénédictine, 55.0 for Chartreuse Verte, 13.5 for wine). Look closely for % vol on label or provide the verified standard ABV. Do not leave null if known.
 12. "grapes": Array of objects [{"name": "Grape Variety Name", "pct": percentage_number or null}]. YOU MUST strictly extract or deduce the exact grape variety composition (e.g., Bandol Rouge Terrebrune = 85% Mourvèdre, 10% Grenache, 5% Cinsault; Châteauneuf-du-Pape = Grenache, Syrah, Mourvèdre, Cinsault; Bordeaux = Cabernet Sauvignon, Merlot, etc.).
-13. "tasting_notes": Expert sommelier aromas, palate, and structure notes.
-14. "food_pairings": Array of 3 to 5 matching food pairings.
+13. "tasting_notes": $notesInst
+14. "food_pairings": $pairingsInst
 15. "ideal_drinking_start": Recommended start year for drinking window or null.
 16. "ideal_drinking_end": Recommended end year for drinking window or null.
 17. "peak_drinking_start": Peak maturity start year (apogée) or null.
 18. "peak_drinking_end": Peak maturity end year (apogée) or null.
 19. "estimated_market_value": Approximate retail market price estimation in EUR as number (e.g. 45.0, 120.0) or null.
 20. "estimated_value_currency": "EUR".
-21. "ai_summary": Brief 1-2 sentence sommelier overview in French, systematically mentioning the grape varieties / cépages (e.g. "Cépage : Mourvèdre 85%, Grenache 10%, Cinsault 5%").
+21. "ai_summary": $summaryInst
 22. "detected_quantity": Integer count of bottles represented in this photo. If the image shows a carton/box of 6, return 6. If a wooden case of 12, return 12. If multiple identical bottles are visible side-by-side, count them. If a single bottle, return 1.
 23. "packaging_type": One of ["single", "carton_6", "crate_12", "multi_bottles"].
 
@@ -582,7 +594,7 @@ Extract or deduce the exact factual wine or spirit properties:
 2. "producer": The winery, estate or distillery producer name (e.g. "Bénédictine", "Domaine Laroche", "Domaine de Terrebrune").
 3. "vintage": Year as integer (e.g. 2021, 2022) or null if not indicated / spirit.
 4. "cuvee_parcel": Specific parcel/cuvée name or null.
-5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits, aperitifs, gins, and herbal liqueurs (e.g. Italicus, Rosolio, Bénédictine, Chartreuse, Cointreau, Amaretto, Disaronno, Gin, Pisco, Grappa, Aguardente, Rum, Whisky, Vodka, Pastis) must be classified as their specific spirit type ("gin", "whisky", "rum", "vodka", "tequila", "cognac") or as "liqueur" or "spirit". NEVER classify any spirit, gin, or liqueur as "fortified", "dessert", or "wine"! "fortified" is STRICTLY reserved for true fortified wines (Porto, Sherry/Xérès, Banyuls, Madeira, Marsala).
+5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "grappa", "eau-de-vie", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits, grappas, digestifs, aperitifs, gins, and herbal liqueurs (e.g. Grappa, Acquavite, Marc, Italicus, Rosolio, Bénédictine, Chartreuse, Cointreau, Amaretto, Disaronno, Gin, Pisco, Aguardente, Rum, Whisky, Vodka, Pastis) must be classified as their specific spirit type ("grappa", "eau-de-vie", "gin", "whisky", "rum", "vodka", "tequila", "cognac") or as "liqueur" or "spirit". NEVER classify any grappa, spirit, gin, or liqueur as "red", "white", "wine", "fortified", or "dessert"! "fortified" is STRICTLY reserved for true fortified wines (Porto, Sherry/Xérès, Banyuls, Madeira, Marsala).
 6. "country": Country of origin (default "France" if French appellation or distillery).
 7. "region": Region (e.g. "Normandie", "Vallée du Rhône", "Bourgogne", "Bordeaux").
 8. "sub_region": Sub-region or null.

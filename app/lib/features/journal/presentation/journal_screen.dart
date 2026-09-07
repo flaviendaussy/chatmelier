@@ -10,6 +10,9 @@ import '../domain/tasting_entry.dart';
 import 'external_tasting_dialog.dart';
 import 'tasting_questionnaire_sheet.dart';
 import 'tasting_entry_detail_screen.dart';
+import '../../cellar/data/favorite_wines_service.dart';
+import '../../cellar/presentation/cellar_food_pairing_sheet.dart';
+import '../../../shared/providers/cellar_provider.dart';
 
 import '../../../features/offline/domain/offline_action.dart';
 import '../../../features/offline/presentation/sync_provider.dart';
@@ -21,19 +24,49 @@ final tastingLogProvider = FutureProvider<List<TastingEntry>>((ref) async {
 
   final List<TastingEntry> entries = [];
 
+  // 1. Load from local cache first for instantaneous and reliable offline access
+  final cached = offlineStorage.getCachedTastings();
+  for (final raw in cached) {
+    try {
+      entries.add(TastingEntry.fromJson(raw));
+    } catch (_) {}
+  }
+
+  // 2. Fetch from Supabase if online and update cache
   if (user != null) {
     try {
       final res = await supabase
           .from('tasting_log')
           .select('*, wines(*)')
           .order('consumed_at', ascending: false)
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 5));
 
-      final remote = (res as List<dynamic>)
-          .map((j) => TastingEntry.fromJson(j as Map<String, dynamic>))
+      final remoteMaps = (res as List<dynamic>)
+          .map((j) => Map<String, dynamic>.from(j as Map))
           .toList();
-      entries.addAll(remote);
-    } catch (_) {}
+
+      if (remoteMaps.isNotEmpty) {
+        // Merge remote records with any local-only cached tastings that haven't synced yet
+        final existingCached = offlineStorage.getCachedTastings();
+        final remoteIds = remoteMaps.map((m) => m['id']?.toString()).whereType<String>().toSet();
+        final localOnly = existingCached.where((m) {
+          final id = m['id']?.toString();
+          return id != null && id.isNotEmpty && !remoteIds.contains(id);
+        }).toList();
+
+        final mergedMaps = [...remoteMaps, ...localOnly];
+        await offlineStorage.saveCachedTastings(mergedMaps);
+
+        entries.clear();
+        for (final raw in mergedMaps) {
+          try {
+            entries.add(TastingEntry.fromJson(raw));
+          } catch (_) {}
+        }
+      }
+    } catch (e) {
+      debugPrint('Tasting log remote fetch notice: $e');
+    }
   }
 
   // Fusionner avec les actions hors-ligne de consommation
@@ -41,34 +74,45 @@ final tastingLogProvider = FutureProvider<List<TastingEntry>>((ref) async {
   for (final action in queue) {
     if (action.type == OfflineActionType.consumeBottle) {
       final data = action.data;
-      final wineName = data['wine_name'] as String? ?? data['name'] as String? ?? 'Vin dégusté';
-      final vintage = (data['vintage'] as num?)?.toInt() ?? int.tryParse(data['vintage']?.toString() ?? '');
+      final wineMap = data['wines'] as Map<String, dynamic>?;
+      final wineName = data['wine_name'] as String? ?? data['name'] as String? ?? wineMap?['name'] as String? ?? 'Vin dégusté';
+      final vintage = (data['vintage'] as num?)?.toInt() ?? int.tryParse(data['vintage']?.toString() ?? '') ?? (wineMap?['vintage'] as num?)?.toInt();
       final rating = (data['rating'] as num?)?.toDouble() ?? 5.0;
-      final notes = data['tasting_notes'] as String?;
-      final paired = data['food_paired'] as String?;
-      final region = data['region'] as String?;
-      final country = data['country'] as String?;
-      final appellation = data['appellation'] as String?;
+      final notes = data['tasting_notes'] as String? ?? data['notes'] as String?;
+      final paired = data['food_paired'] as String? ?? data['paired'] as String?;
+      final photoUrl = data['photo_url'] as String? ?? data['image_url'] as String?;
+      final region = data['region'] as String? ?? wineMap?['region'] as String?;
+      final country = data['country'] as String? ?? wineMap?['country'] as String?;
+      final appellation = data['appellation'] as String? ?? wineMap?['appellation'] as String?;
+      final wineType = data['type'] as String? ?? data['wine_type'] as String? ?? wineMap?['type'] as String?;
       final coTasters = (data['co_tasters'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [];
       final bottleOwnerName = data['bottle_owner_name'] as String?;
       final bottleOwnerId = data['bottle_owner_id'] as String?;
       final locationName = data['location_name'] as String?;
       final isExternal = data['is_external'] == true;
+      final rawBottleId = data['bottle_id'] as String?;
 
-      // Éviter les doublons si déjà présent
-      if (!entries.any((e) => e.id == action.id)) {
+      // Éviter les doublons si déjà présent par ID ou par bouteille/timestamp
+      final alreadyPresent = entries.any((e) =>
+        e.id == action.id ||
+        (rawBottleId != null && rawBottleId.isNotEmpty && e.bottleId == rawBottleId && e.consumedAt.difference(action.createdAt).inMinutes.abs() < 5)
+      );
+
+      if (!alreadyPresent) {
         entries.insert(0, TastingEntry(
           id: action.id,
-          bottleId: data['bottle_id'] as String?,
+          bottleId: rawBottleId,
           wineId: data['wine_id'] as String? ?? '',
           wineName: wineName,
           vintage: vintage,
           region: region,
           country: country,
           appellation: appellation,
+          wineType: wineType,
           rating: rating,
           foodPaired: paired,
           tastingNotes: notes,
+          photoUrl: photoUrl,
           coTasters: coTasters,
           bottleOwnerId: bottleOwnerId,
           bottleOwnerName: bottleOwnerName,
@@ -98,6 +142,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
   String? _selectedYear;
   String _selectedOriginFilter = 'all'; // 'all', 'cellar', 'external'
   bool _minRatingOnly = false; // >= 8/10 or >= 4/5
+  bool _onlyFavorites = false;
 
   @override
   void dispose() {
@@ -105,8 +150,16 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     super.dispose();
   }
 
-  List<TastingEntry> _filterEntries(List<TastingEntry> entries) {
+  List<TastingEntry> _filterEntries(List<TastingEntry> entries, Set<String> favoriteWineIds) {
     return entries.where((entry) {
+      // Filter by favorites
+      if (_onlyFavorites) {
+        final isFav = favoriteWineIds.contains(entry.id) ||
+            favoriteWineIds.contains(entry.wineId) ||
+            (entry.bottleId != null && favoriteWineIds.contains(entry.bottleId));
+        if (!isFav) return false;
+      }
+
       // Filter by origin (Cave vs Hors-cave)
       if (_selectedOriginFilter == 'cellar' && entry.isExternal) return false;
       if (_selectedOriginFilter == 'external' && !entry.isExternal) return false;
@@ -116,8 +169,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         return false;
       }
 
-      // Filter by high rating (>= 8/10 or >= 4/5)
-      if (_minRatingOnly && (entry.rating == null || entry.rating! < 8.0)) {
+      // Filter by high rating (>= 8/10)
+      final effRating = entry.displayRating;
+      if (_minRatingOnly && (effRating == null || effRating < 8.0)) {
         return false;
       }
 
@@ -165,10 +219,11 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
+    final favoriteWineIds = ref.watch(favoriteWineIdsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n?.journalTitle ?? 'Historique de Dégustation'),
+        title: const Text('Dégustation'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline, color: Color(0xFF8B1E3F)),
@@ -200,18 +255,26 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         ),
         data: (allEntries) {
           if (allEntries.isEmpty) {
-            return EmptyState(
-              icon: Icons.menu_book,
-              title: l10n?.journalEmpty ?? 'Aucun souvenir de dégustation pour le moment',
-              subtitle: l10n?.journalEmptySub ??
-                  'Dégustez et sortez une bouteille de votre cave ou notez un vin bu au restaurant.',
-              action: FilledButton.icon(
-                icon: const Icon(Icons.restaurant_menu),
-                label: const Text('Noter un vin hors-cave (Restaurant, Amis)'),
-                style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B1E3F),
-                    foregroundColor: Colors.white),
-                onPressed: () => ExternalTastingDialog.show(context),
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildTastingHubActions(context, isDark),
+                  const SizedBox(height: 16),
+                  EmptyState(
+                    icon: Icons.menu_book,
+                    title: l10n?.journalEmpty ?? 'Aucun souvenir de dégustation pour le moment',
+                    subtitle: l10n?.journalEmptySub ??
+                        'Dégustez et sortez une bouteille de votre cave, notez un vin bu au restaurant ou scannez une carte.',
+                    action: FilledButton.icon(
+                      icon: const Icon(Icons.restaurant_menu),
+                      label: const Text('Noter un vin hors-cave (Restaurant, Amis)'),
+                      style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF8B1E3F),
+                          foregroundColor: Colors.white),
+                      onPressed: () => ExternalTastingDialog.show(context),
+                    ),
+                  ),
+                ],
               ),
             );
           }
@@ -223,12 +286,16 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
               .toList()
             ..sort((a, b) => b.compareTo(a));
 
-          final filteredEntries = _filterEntries(allEntries);
+          final filteredEntries = _filterEntries(allEntries, favoriteWineIds);
 
           return RefreshIndicator(
             onRefresh: () async => ref.refresh(tastingLogProvider.future),
             child: CustomScrollView(
               slivers: [
+                // 0. Tasting Hub Actions (Sortir de la cave, Déguster hors-cave, Scanner un menu)
+                SliverToBoxAdapter(
+                  child: _buildTastingHubActions(context, isDark),
+                ),
                 // 1. Search Bar & Multi-fields Search Filter Header
                 SliverToBoxAdapter(
                   child: Padding(
@@ -309,6 +376,20 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                 onSelected: (sel) {
                                   setState(() => _selectedOriginFilter =
                                       sel ? 'external' : 'all');
+                                },
+                              ),
+                              const SizedBox(width: 8),
+
+                              // Favorites Filter Chip
+                              FilterChip(
+                                avatar: const Icon(Icons.favorite,
+                                    size: 13, color: Color(0xFFE91E63)),
+                                label: const Text('Favoris'),
+                                selected: _onlyFavorites,
+                                selectedColor:
+                                    const Color(0xFFE91E63).withValues(alpha: 0.2),
+                                onSelected: (sel) {
+                                  setState(() => _onlyFavorites = sel);
                                 },
                               ),
                               const SizedBox(width: 8),
@@ -418,6 +499,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                   _selectedYear = null;
                                   _selectedOriginFilter = 'all';
                                   _minRatingOnly = false;
+                                  _onlyFavorites = false;
                                 });
                               },
                             ),
@@ -540,6 +622,15 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  // Favorite Heart Button
+                  FavoriteHeartButton(
+                    wineOrBottleId: entry.wineId.isNotEmpty
+                        ? entry.wineId
+                        : (entry.bottleId ?? entry.id),
+                    size: 20,
+                    inactiveColor: isDark ? Colors.white38 : Colors.black26,
+                  ),
+                  const SizedBox(width: 4),
                   // Rating Badge on 10
                   Container(
                     padding:
@@ -557,9 +648,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                             size: 14, color: Color(0xFFD4AF37)),
                         const SizedBox(width: 4),
                         Text(
-                          entry.rating != null
-                              ? '${entry.rating!.toStringAsFixed(1)}/10'
-                              : 'Non noté',
+                          entry.formattedRating,
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -699,6 +788,245 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                     },
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTastingHubActions(BuildContext context, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.07),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.wine_bar, size: 20, color: Color(0xFF8B1E3F)),
+              const SizedBox(width: 8),
+              Text(
+                'Espace Dégustation',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF1F2937),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'Cave & Hors-Cave',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF8B1E3F),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              // 1. Sortir de ma cave
+              Expanded(
+                child: _buildActionTile(
+                  context,
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Sortir de\nma cave',
+                  subtitle: 'Boire un flacon',
+                  badgeColor: const Color(0xFF8B1E3F),
+                  onTap: () => context.push('/checkout'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // 2. Déguster Hors-Cave
+              Expanded(
+                child: _buildActionTile(
+                  context,
+                  icon: Icons.restaurant,
+                  title: 'Déguster\nhors-cave',
+                  subtitle: 'Resto ou amis',
+                  badgeColor: Colors.orange.shade800,
+                  onTap: () => ExternalTastingDialog.show(context),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // 3. Scanner un menu
+              Expanded(
+                child: _buildActionTile(
+                  context,
+                  icon: Icons.document_scanner_outlined,
+                  title: 'Scanner\nun menu',
+                  subtitle: 'Carte des vins',
+                  badgeColor: Colors.teal.shade700,
+                  onTap: () => context.push('/scan/menu'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // 4. Sommelier Accord Mets & Vins Shortcut
+          Material(
+            color: isDark ? const Color(0xFF2B221E) : const Color(0xFFFAF0E6),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                final currentCellarId = ref.read(currentCellarIdProvider);
+                final bottles = (ref.read(bottlesProvider(currentCellarId)).valueOrNull ?? []);
+                final cellars = ref.read(userCellarsProvider).valueOrNull ?? [];
+                String cellarName = 'Ma Cave';
+                for (final item in cellars) {
+                  final cMap = item['cellars'];
+                  if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
+                    cellarName = cMap['name']?.toString() ?? 'Ma Cave';
+                    break;
+                  }
+                }
+                CellarFoodPairingSheet.show(
+                  context,
+                  bottles: bottles,
+                  cellarName: cellarName,
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.6),
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Text('🍽️', style: TextStyle(fontSize: 18)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Quel vin pour mon plat ? (Accords mets & vins)',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFD4AF37),
+                            ),
+                          ),
+                          Text(
+                            'Trouvez le flacon idéal de votre cave pour votre repas',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.white70 : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 14,
+                      color: Color(0xFFD4AF37),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color badgeColor,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      color: isDark
+          ? badgeColor.withValues(alpha: 0.14)
+          : badgeColor.withValues(alpha: 0.07),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: badgeColor.withValues(alpha: 0.25),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: badgeColor.withValues(alpha: 0.18),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 20, color: badgeColor),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  height: 1.15,
+                ),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  color: isDark ? Colors.white54 : Colors.black54,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../../shared/widgets/chatmelier_loader.dart';
 
@@ -354,16 +356,26 @@ class _RewardedVideoAdSheetState extends ConsumerState<RewardedVideoAdSheet> {
               // Upgrade to Premium Shortcut (No Ads)
               OutlinedButton.icon(
                 onPressed: () {
-                  // Toggle or enable premium
-                  ref.read(premiumProvider.notifier).setPremium(true);
-                  Navigator.of(context).pop(true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('👑 Mode Premium activé ! Scans instantanés sans aucune pub.'),
-                      backgroundColor: Color(0xFF2E7D32),
-                    ),
-                  );
-                  widget.onRewardEarned();
+                  final user = ref.read(currentUserProvider);
+                  final isAdmin = kDebugMode || (user?.email?.toLowerCase().contains('flavien') ?? false);
+                  if (isAdmin) {
+                    ref.read(premiumProvider.notifier).setPremium(true);
+                    Navigator.of(context).pop(true);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('👑 [Admin] Mode Premium activé ! Scans instantanés sans aucune pub.'),
+                        backgroundColor: Color(0xFF2E7D32),
+                      ),
+                    );
+                    widget.onRewardEarned();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('👑 L\'abonnement Premium sera disponible sur le store. Regardez la vidéo pour débloquer votre scan gratuit !'),
+                        backgroundColor: Color(0xFF8B1E3F),
+                      ),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.workspace_premium, color: Color(0xFFD97706)),
                 label: const Text(

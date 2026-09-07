@@ -7,6 +7,7 @@ class CellarFilterState {
   final String? maturityStatus;
   final int? vintage;
   final String searchQuery;
+  final bool onlyFavorites;
 
   const CellarFilterState({
     this.wineType,
@@ -17,6 +18,7 @@ class CellarFilterState {
     this.maturityStatus,
     this.vintage,
     this.searchQuery = '',
+    this.onlyFavorites = false,
   });
 
   bool get isActive =>
@@ -27,6 +29,7 @@ class CellarFilterState {
       appellation != null ||
       maturityStatus != null ||
       vintage != null ||
+      onlyFavorites ||
       searchQuery.isNotEmpty;
 
   int get activeFilterCount {
@@ -38,6 +41,7 @@ class CellarFilterState {
     if (appellation != null) count++;
     if (maturityStatus != null) count++;
     if (vintage != null) count++;
+    if (onlyFavorites) count++;
     return count;
   }
 
@@ -50,6 +54,7 @@ class CellarFilterState {
     String? Function()? maturityStatus,
     int? Function()? vintage,
     String? searchQuery,
+    bool? onlyFavorites,
   }) {
     return CellarFilterState(
       wineType: wineType != null ? wineType() : this.wineType,
@@ -60,6 +65,7 @@ class CellarFilterState {
       maturityStatus: maturityStatus != null ? maturityStatus() : this.maturityStatus,
       vintage: vintage != null ? vintage() : this.vintage,
       searchQuery: searchQuery ?? this.searchQuery,
+      onlyFavorites: onlyFavorites ?? this.onlyFavorites,
     );
   }
 

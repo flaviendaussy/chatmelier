@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/providers/supabase_provider.dart';
+import '../../../shared/providers/cellar_provider.dart';
 import '../../offline/presentation/sync_provider.dart';
 import '../domain/bar_pantry_item.dart';
 
@@ -13,8 +14,13 @@ const String _kBarPantryStorageKey = 'chatmelier_bar_pantry_items_v1';
 class BarPantryService {
   final SharedPreferences _prefs;
   final SupabaseClient? _supabase;
+  final String? _cellarId;
 
-  BarPantryService(this._prefs, [this._supabase]);
+  BarPantryService(this._prefs, [this._supabase, this._cellarId]);
+
+  String get _storageKey => _cellarId != null && _cellarId.isNotEmpty
+      ? 'chatmelier_bar_pantry_$_cellarId'
+      : _kBarPantryStorageKey;
 
   static final List<BarPantryItem> defaultTemplate = [
     // 🧊 1. Glace & Glaçons (INDISPENSABLE EN HAUT)
@@ -120,7 +126,10 @@ class BarPantryService {
   ];
 
   List<BarPantryItem> getItems() {
-    final raw = _prefs.getString(_kBarPantryStorageKey);
+    var raw = _prefs.getString(_storageKey);
+    if ((raw == null || raw.isEmpty) && _storageKey != _kBarPantryStorageKey) {
+      raw = _prefs.getString(_kBarPantryStorageKey);
+    }
     if (raw == null || raw.isEmpty) {
       return List<BarPantryItem>.from(defaultTemplate);
     }
@@ -151,23 +160,99 @@ class BarPantryService {
 
   Future<void> saveItems(List<BarPantryItem> items) async {
     final encoded = jsonEncode(items.map((e) => e.toJson()).toList());
-    await _prefs.setString(_kBarPantryStorageKey, encoded);
+    await _prefs.setString(_storageKey, encoded);
 
     // Sync to Supabase in background if user is logged in
     final user = _supabase?.auth.currentUser;
     if (user != null && _supabase != null) {
       try {
-        await _supabase
-            .from('bar_pantry')
-            .upsert({
-              'user_id': user.id,
-              'items': items.where((i) => i.quantity > 0 || i.isCustom).map((e) => e.toJson()).toList(),
-              'updated_at': DateTime.now().toIso8601String(),
-            });
+        final payload = <String, dynamic>{
+          'user_id': user.id,
+          'items': items.where((i) => i.quantity > 0 || i.isCustom).map((e) => e.toJson()).toList(),
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+
+        if (_cellarId != null && _cellarId.isNotEmpty) {
+          payload['cellar_id'] = _cellarId;
+          try {
+            await _supabase
+                .from('bar_pantry')
+                .upsert(payload, onConflict: 'cellar_id');
+          } catch (_) {
+            await _supabase
+                .from('bar_pantry')
+                .upsert(payload, onConflict: 'user_id');
+          }
+        } else {
+          await _supabase
+              .from('bar_pantry')
+              .upsert(payload, onConflict: 'user_id');
+        }
       } catch (e) {
         AppLogger.warning('BAR_PANTRY', 'Background cloud sync failed: $e');
       }
     }
+  }
+
+  /// Synchronizes pantry with latest data from cloud (shared cellar or user record)
+  Future<List<BarPantryItem>> syncFromCloud() async {
+    final user = _supabase?.auth.currentUser;
+    if (user == null || _supabase == null) return getItems();
+
+    try {
+      Map<String, dynamic>? data;
+      if (_cellarId != null && _cellarId.isNotEmpty) {
+        try {
+          final res = await _supabase
+              .from('bar_pantry')
+              .select()
+              .eq('cellar_id', _cellarId)
+              .maybeSingle();
+          data = res;
+        } catch (_) {}
+      }
+
+      if (data == null) {
+        try {
+          final res = await _supabase
+              .from('bar_pantry')
+              .select()
+              .eq('user_id', user.id)
+              .maybeSingle();
+          data = res;
+        } catch (_) {}
+      }
+
+      if (data != null && data['items'] != null) {
+        final rawItems = data['items'];
+        List<dynamic> list;
+        if (rawItems is String) {
+          list = jsonDecode(rawItems);
+        } else if (rawItems is List) {
+          list = rawItems;
+        } else {
+          list = [];
+        }
+        final savedItems = list.map((e) => BarPantryItem.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+        final Map<String, BarPantryItem> savedMap = {for (final item in savedItems) item.id: item};
+        final List<BarPantryItem> result = [];
+        for (final t in defaultTemplate) {
+          if (savedMap.containsKey(t.id)) {
+            final saved = savedMap.remove(t.id)!;
+            result.add(t.copyWith(quantity: saved.quantity));
+          } else {
+            result.add(t);
+          }
+        }
+        result.addAll(savedMap.values.where((item) => item.isCustom));
+        final encoded = jsonEncode(result.map((e) => e.toJson()).toList());
+        await _prefs.setString(_storageKey, encoded);
+        return result;
+      }
+    } catch (e) {
+      AppLogger.warning('BAR_PANTRY', 'Error fetching cloud pantry: $e');
+    }
+    return getItems();
   }
 
   Future<List<BarPantryItem>> updateQuantity(String id, int delta) async {
@@ -233,7 +318,23 @@ class BarPantryService {
 class BarPantryNotifier extends StateNotifier<List<BarPantryItem>> {
   final BarPantryService _service;
 
-  BarPantryNotifier(this._service) : super(_service.getItems());
+  BarPantryNotifier(this._service) : super(_service.getItems()) {
+    _initCloudSync();
+  }
+
+  Future<void> _initCloudSync() async {
+    final synced = await _service.syncFromCloud();
+    if (mounted) {
+      state = synced;
+    }
+  }
+
+  Future<void> refreshFromCloud() async {
+    final synced = await _service.syncFromCloud();
+    if (mounted) {
+      state = synced;
+    }
+  }
 
   Future<void> increment(String id) async {
     state = await _service.updateQuantity(id, 1);
@@ -263,7 +364,8 @@ class BarPantryNotifier extends StateNotifier<List<BarPantryItem>> {
 final barPantryServiceProvider = Provider<BarPantryService>((ref) {
   final prefs = ref.watch(sharedPreferencesInstanceProvider);
   final supabase = ref.watch(supabaseProvider);
-  return BarPantryService(prefs, supabase);
+  final currentCellarId = ref.watch(currentCellarIdProvider);
+  return BarPantryService(prefs, supabase, currentCellarId);
 });
 
 final barPantryProvider = StateNotifierProvider<BarPantryNotifier, List<BarPantryItem>>((ref) {

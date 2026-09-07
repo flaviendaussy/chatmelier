@@ -5,6 +5,7 @@ import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
 import '../domain/wine_taste_radar.dart';
 import 'widgets/wine_taste_radar_chart.dart';
+import '../../../shared/providers/supabase_provider.dart';
 
 /// 🎨 Distinct Vibrant Color Palette for Multi-Guest Overlays
 const List<Color> kRadarPalette = [
@@ -59,6 +60,24 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
   void initState() {
     super.initState();
     _selectedProfileId = widget.initialProfileId;
+  }
+
+  String get _userDisplayName {
+    try {
+      final user = ref.read(supabaseProvider).auth.currentUser;
+      final rawName = (user?.userMetadata?['display_name'] as String?)?.trim();
+      return (rawName != null && rawName.isNotEmpty) ? rawName : 'Flavien';
+    } catch (_) {
+      return 'Flavien';
+    }
+  }
+
+  String _profileLabel(TasteProfile p, [String? userDisplayName]) {
+    if (p.isPrimary) {
+      final name = userDisplayName ?? _userDisplayName;
+      return 'Moi ($name)';
+    }
+    return p.name;
   }
 
   @override
@@ -242,7 +261,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                     style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
                   ),
                 ),
-                label: Text(p.isPrimary ? '${p.name} (Moi)' : p.name),
+                label: Text(_profileLabel(p)),
                 selected: isSelected,
                 selectedColor: color.withAlpha(40),
                 checkmarkColor: color,
@@ -466,7 +485,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                         shape: BoxShape.circle,
                       ),
                     ),
-                    label: Text(p.isPrimary ? '${p.name} (Moi)' : p.name),
+                    label: Text(_profileLabel(p)),
                     selected: isVis,
                     selectedColor: color.withAlpha(35),
                     checkmarkColor: color,
@@ -566,7 +585,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                     items: profiles.map((p) {
                       return DropdownMenuItem(
                         value: p.id,
-                        child: Text(p.name, style: TextStyle(fontWeight: FontWeight.bold, color: color1)),
+                        child: Text(_profileLabel(p), style: TextStyle(fontWeight: FontWeight.bold, color: color1)),
                       );
                     }).toList(),
                     onChanged: (val) {
@@ -595,7 +614,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                     items: profiles.map((p) {
                       return DropdownMenuItem(
                         value: p.id,
-                        child: Text(p.name, style: TextStyle(fontWeight: FontWeight.bold, color: color2)),
+                        child: Text(_profileLabel(p), style: TextStyle(fontWeight: FontWeight.bold, color: color2)),
                       );
                     }).toList(),
                     onChanged: (val) {

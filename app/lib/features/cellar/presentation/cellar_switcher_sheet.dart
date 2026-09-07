@@ -148,7 +148,6 @@ class CellarSwitcherSheet extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                     onTap: () {
                       ref.read(currentCellarIdProvider.notifier).state = cellarId;
-                      ref.read(currentCellarRoleProvider.notifier).state = role;
                       ref.invalidate(bottlesProvider(cellarId));
                       Navigator.of(context).pop();
                     },

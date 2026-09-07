@@ -12,16 +12,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appTitle => 'Chatmelier';
 
   @override
-  String get navCellar => 'Ma Cave';
+  String get defaultCellarName => 'Ma Cave';
 
   @override
-  String get navChat => 'Chatmelier';
+  String get navCellar => 'Cave';
 
   @override
-  String get navJournal => 'Historique';
+  String get navChat => 'Chat';
 
   @override
-  String get navStats => 'Statistiques';
+  String get navJournal => 'Degust.';
+
+  @override
+  String get navStats => 'Stats';
 
   @override
   String get actionMenuTitle => 'Actions Cave';
@@ -469,4 +472,118 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileScratchcard => 'Carte à Gratter des Terroirs';
+
+  @override
+  String get navBar => 'Bar';
+
+  @override
+  String get navProfile => 'Profil';
+
+  @override
+  String get quickActions => 'ACTIONS RAPIDES';
+
+  @override
+  String get appSubtitle => 'Sommelier & Cave à Vin';
+
+  @override
+  String get profileTabPalate => 'Palais';
+
+  @override
+  String get profileTabSettings => 'Réglages';
+
+  @override
+  String get profileTabTools => 'Outils';
+
+  @override
+  String get profileTabAccount => 'Compte';
+
+  @override
+  String get profileTheme => 'Ambiance / Thème';
+
+  @override
+  String get profileThemeLight => 'Lumineux ☀️';
+
+  @override
+  String get profileThemeDark => 'Sombre 🌙';
+
+  @override
+  String get profileThemeSystem => 'Système ⚙️';
+
+  @override
+  String get profileFriends => 'Mes Amis & Cartes des Goûts 🍷';
+
+  @override
+  String get profileExport => 'Exporter ma Cave & Rapport d\'Expertise 📊';
+
+  @override
+  String get profileDeleteAccount => 'Supprimer définitivement mon compte';
+
+  @override
+  String get profileDeleteConfirmTitle => 'Supprimer définitivement';
+
+  @override
+  String get profileDeleteConfirmMsg =>
+      'Cette action est irréversible. Toutes vos données seront effacées.';
+
+  @override
+  String get badgesGalleryTitle => 'Galerie des Trophées';
+
+  @override
+  String badgesGallerySubtitle(Object pct, Object total, Object unlocked) {
+    return '$unlocked / $total débloqués • $pct% accomplis';
+  }
+
+  @override
+  String get badgesFilterAll => 'Tous';
+
+  @override
+  String get badgesEmpty => 'Aucun badge trouvé dans cette catégorie.';
+
+  @override
+  String get badgesUnlockedChip => 'Débloqué ✨';
+
+  @override
+  String get badgesStatusUnlocked => 'Trophée débloqué !';
+
+  @override
+  String get badgesStatusInProgress => 'En cours d\'obtention';
+
+  @override
+  String get badgesObjectiveLabel => 'Objectif :';
+
+  @override
+  String get badgesChatmelierLoreTitle =>
+      'La Science & l\'Histoire du Chatmelier';
+
+  @override
+  String get badgesCloseButton => 'Fermer';
+
+  @override
+  String get badgesTierLabel => 'Rang';
+
+  @override
+  String get badgesShowcaseTitle => 'Trophées & Badges';
+
+  @override
+  String badgesShowcaseCount(Object total, Object unlocked) {
+    return '$unlocked sur $total débloqués';
+  }
+
+  @override
+  String get badgesShowcaseGallery => 'Galerie';
+
+  @override
+  String get cocktailsTitle => 'Bar & Cocktails';
+
+  @override
+  String get cocktailsReadyToShake => 'Prêts à shaker';
+
+  @override
+  String get cocktailsMissingOne => '1 manquant';
+
+  @override
+  String get cocktailsManagePantry => 'Gérer ma Réserve';
+
+  @override
+  String get cocktailsResetPantry => 'Réinitialiser la Réserve';
 }

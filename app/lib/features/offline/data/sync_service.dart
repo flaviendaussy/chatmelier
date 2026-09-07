@@ -325,7 +325,8 @@ class SyncService {
       try {
         final photoFile = File(action.localPhotoPath!);
         if (await photoFile.exists()) {
-          final fileExt = photoFile.path.split('.').last;
+          final rawExt = photoFile.path.split('.').last.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+          final fileExt = ['jpg', 'jpeg', 'png', 'webp'].contains(rawExt) ? (rawExt == 'jpeg' ? 'jpg' : rawExt) : 'jpg';
           final fileName = '$userId/${bottle.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
           final bytes = await photoFile.readAsBytes();
           await _supabase.storage.from('labels').uploadBinary(
@@ -415,7 +416,7 @@ class SyncService {
       }
 
       if (wineId != null) {
-        await _supabase.from('tasting_log').insert({
+        final payload = <String, dynamic>{
           'wine_id': wineId,
           'user_id': userId,
           'rating': rating,
@@ -427,7 +428,21 @@ class SyncService {
           'location_name': locationName,
           'is_external': true,
           'consumed_at': action.createdAt.toIso8601String(),
-        });
+        };
+        final fallback = <String, dynamic>{
+          ...payload,
+          'id': action.id,
+          'wines': {
+            'id': wineId,
+            'name': data['wine_name'] ?? 'Vin dégusté',
+            'vintage': data['vintage'],
+            'region': data['region'],
+            'country': data['country'],
+            'appellation': data['appellation'],
+            'type': data['type'] ?? data['wine_type'],
+          },
+        };
+        await _resilientInsertTastingLog(payload, localFallback: fallback);
       }
       return;
     }
@@ -438,7 +453,7 @@ class SyncService {
       // Offline temporary bottle: record tasting log directly if wine_id is valid
       final wineId = data['wine_id']?.toString();
       if (wineId != null && !wineId.startsWith('temp_')) {
-        await _supabase.from('tasting_log').insert({
+        final payload = <String, dynamic>{
           'wine_id': wineId,
           'user_id': userId,
           'rating': rating,
@@ -450,7 +465,21 @@ class SyncService {
           'location_name': locationName,
           'is_external': false,
           'consumed_at': action.createdAt.toIso8601String(),
-        });
+        };
+        final fallback = <String, dynamic>{
+          ...payload,
+          'id': action.id,
+          'wines': {
+            'id': wineId,
+            'name': data['wine_name'] ?? 'Vin dégusté',
+            'vintage': data['vintage'],
+            'region': data['region'],
+            'country': data['country'],
+            'appellation': data['appellation'],
+            'type': data['type'] ?? data['wine_type'],
+          },
+        };
+        await _resilientInsertTastingLog(payload, localFallback: fallback);
       }
       return;
     }
@@ -480,7 +509,7 @@ class SyncService {
 
       final wineId = bottleRes['wine_id']?.toString() ?? data['wine_id']?.toString();
       if (wineId != null) {
-        await _supabase.from('tasting_log').insert({
+        final payload = <String, dynamic>{
           'wine_id': wineId,
           'bottle_id': bottleId,
           'user_id': userId,
@@ -491,13 +520,123 @@ class SyncService {
           'photo_url': photoUrl,
           'co_tasters': coTasters,
           'location_name': locationName,
-          'bottle_owner_id': data['bottle_owner_id'] ?? bottleRes['owner_id'],
+          if (_isValidUuid((data['bottle_owner_id'] ?? bottleRes['owner_id'])?.toString()))
+            'bottle_owner_id': (data['bottle_owner_id'] ?? bottleRes['owner_id'])?.toString(),
           'bottle_owner_name': data['bottle_owner_name'],
           'is_external': false,
           'consumed_at': action.createdAt.toIso8601String(),
-        });
+        };
+        final fallback = <String, dynamic>{
+          ...payload,
+          'id': action.id,
+          'wines': bottleRes['wines'] ?? {
+            'id': wineId,
+            'name': data['wine_name'] ?? 'Vin dégusté',
+            'vintage': data['vintage'],
+            'region': data['region'],
+            'country': data['country'],
+            'appellation': data['appellation'],
+            'type': data['type'] ?? data['wine_type'],
+          },
+        };
+        await _resilientInsertTastingLog(payload, localFallback: fallback);
+      }
+    } else {
+      // Bottle might have already been marked consumed remotely
+      final wineId = data['wine_id']?.toString();
+      if (wineId != null && !wineId.startsWith('temp_')) {
+        final payload = <String, dynamic>{
+          'wine_id': wineId,
+          'bottle_id': bottleId,
+          'user_id': userId,
+          'rating': rating,
+          'occasion': occasion,
+          'food_paired': foodPaired,
+          'tasting_notes': notes,
+          'photo_url': photoUrl,
+          'co_tasters': coTasters,
+          'location_name': locationName,
+          if (_isValidUuid(data['bottle_owner_id']?.toString()))
+            'bottle_owner_id': data['bottle_owner_id'].toString(),
+          'bottle_owner_name': data['bottle_owner_name'],
+          'is_external': false,
+          'consumed_at': action.createdAt.toIso8601String(),
+        };
+        final fallback = <String, dynamic>{
+          ...payload,
+          'id': action.id,
+          'wines': {
+            'id': wineId,
+            'name': data['wine_name'] ?? 'Vin dégusté',
+            'vintage': data['vintage'],
+            'region': data['region'],
+            'country': data['country'],
+            'appellation': data['appellation'],
+            'type': data['type'] ?? data['wine_type'],
+          },
+        };
+        await _resilientInsertTastingLog(payload, localFallback: fallback);
       }
     }
+  }
+
+  Future<Map<String, dynamic>?> _resilientInsertTastingLog(
+    Map<String, dynamic> payload, {
+    Map<String, dynamic>? localFallback,
+  }) async {
+    // 1. Core fields guaranteed to exist in Supabase schema:
+    final corePayload = <String, dynamic>{
+      'wine_id': payload['wine_id'],
+      'user_id': payload['user_id'],
+      'rating': payload['rating'],
+      if (payload['bottle_id'] != null && _isValidUuid(payload['bottle_id'].toString()))
+        'bottle_id': payload['bottle_id'],
+      if (payload['cellar_id'] != null && _isValidUuid(payload['cellar_id'].toString()))
+        'cellar_id': payload['cellar_id'],
+      if (payload['occasion'] != null) 'occasion': payload['occasion'],
+      if (payload['food_paired'] != null) 'food_paired': payload['food_paired'],
+      if (payload['tasting_notes'] != null) 'tasting_notes': payload['tasting_notes'],
+      if (payload['photo_url'] != null) 'photo_url': payload['photo_url'],
+      if (payload['consumed_at'] != null) 'consumed_at': payload['consumed_at'],
+    };
+
+    Map<String, dynamic>? inserted;
+    try {
+      // Attempt 1: full payload with extended fields
+      inserted = await _supabase
+          .from('tasting_log')
+          .insert(payload)
+          .select('*, wines(*)')
+          .maybeSingle();
+    } catch (e) {
+      AppLogger.warning('SYNC_SERVICE', 'Full tasting_log insert failed ($e), falling back to core schema...');
+      try {
+        // Attempt 2: core columns only
+        inserted = await _supabase
+            .from('tasting_log')
+            .insert(corePayload)
+            .select('*, wines(*)')
+            .maybeSingle();
+      } catch (e2) {
+        // Attempt 3: rating scale normalization if rating check constraint fails (0..5 vs 0..10)
+        final ratingVal = (corePayload['rating'] as num?)?.toDouble() ?? 5.0;
+        corePayload['rating'] = (ratingVal / 2.0).clamp(0.0, 5.0);
+        try {
+          inserted = await _supabase
+              .from('tasting_log')
+              .insert(corePayload)
+              .select('*, wines(*)')
+              .maybeSingle();
+        } catch (e3) {
+          AppLogger.error('SYNC_SERVICE', 'All tasting_log insert attempts failed: $e3');
+        }
+      }
+    }
+
+    // Always update local cache so user sees it in Journal
+    final cacheEntry = inserted ?? localFallback ?? payload;
+    await _offlineStorage.addCachedTasting(cacheEntry);
+    return inserted;
   }
 
   Future<void> _syncUpdateBottle(OfflineAction action) async {
@@ -773,5 +912,11 @@ Réponds UNIQUEMENT avec le JSON strict, sans markdown ni texte additionnel.
         }
       }
     }
+  }
+
+  bool _isValidUuid(String? id) {
+    if (id == null || id.isEmpty) return false;
+    final uuidRegex = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
+    return uuidRegex.hasMatch(id);
   }
 }

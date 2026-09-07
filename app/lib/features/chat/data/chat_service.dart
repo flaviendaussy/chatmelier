@@ -39,13 +39,38 @@ class ChatService {
 
   ChatService(this._client, this._repo, this._offlineStorage, this._tasteProfileService);
 
-  Future<String> sendMessage(String message, String? cellarId, {String languageCode = 'fr'}) async {
-    final startTime = DateTime.now();
-    AppLogger.info('CHAT_AI', 'User asked Chatmelier: "$message" (Cellar: $cellarId)');
+  /// Strips any raw UUIDs or technical identifier fragments from user-facing text
+  static String sanitizeCustomerFacingText(String text) {
+    // 1. Strip raw standard UUIDs (e.g. 489c72e6-81a1-43fd-a144-ec8587d55bfb)
+    final uuidRegex = RegExp(
+      r'\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b',
+    );
+    var cleaned = text.replaceAll(uuidRegex, '');
 
-    // Refresh dynamic models in background
-    GeminiModelRegistry.refreshAvailableModels();
+    // 2. Strip leftover id labels like "(id: )", "(ID: )", "(identifiant: )"
+    cleaned = cleaned.replaceAll(
+      RegExp(r'\(\s*(?:id|ID|identifiant|uuid)\s*:\s*\)', caseSensitive: false),
+      '',
+    );
+    cleaned = cleaned.replaceAll(
+      RegExp(r'\b(?:id|ID|identifiant|uuid)\s*:\s*(?=[,\.\s\)])', caseSensitive: false),
+      '',
+    );
 
+    // 3. Strip non-JSON card tags or malformed tags (e.g. [WINE_CARD: uuid] or [WINE_CARD: ])
+    cleaned = cleaned.replaceAll(
+      RegExp(r'\[(?:WINE_CARD|COCKTAIL_CARD):\s*(?!\{)[^\]]*\]', caseSensitive: false),
+      '',
+    );
+
+    return cleaned;
+  }
+
+  Future<_ChatContext> _preparePromptContext(
+    String message,
+    String? cellarId,
+    String languageCode,
+  ) async {
     final user = _client.auth.currentUser;
 
     // Resolve fallback cellar if null or empty
@@ -154,10 +179,10 @@ class ChatService {
       try {
         final tRes = await _client
             .from('tasting_log')
-            .select('rating, occasion, food_paired, tasting_notes, wines(name, producer, vintage, wine_type, region)')
+            .select('rating, occasion, food_paired, tasting_notes, co_tasters, wines(name, producer, vintage, wine_type, region)')
             .eq('user_id', user.id)
             .order('consumed_at', ascending: false)
-            .limit(10);
+            .limit(15);
         recentTastings = List<Map<String, dynamic>>.from(tRes);
       } catch (e) {
         AppLogger.warning('CHAT_AI', 'Could not fetch remote tasting logs: $e');
@@ -166,7 +191,11 @@ class ChatService {
 
     final tastingLogSummary = recentTastings.map((t) {
       final w = t['wines'] as Map<String, dynamic>?;
-      return '- ${w?['name'] ?? "Vin"} (${w?['vintage'] ?? "NM"}, ${w?['region'] ?? ""}) : Note ${t['rating']}/5, Avis: "${t['tasting_notes'] ?? ""}", Plat: "${t['food_paired'] ?? ""}", Contexte: "${t['occasion'] ?? ""}"';
+      final rawCo = t['co_tasters'];
+      final coList = rawCo is List ? rawCo.map((e) => e.toString()).where((s) => s.isNotEmpty).toList() : <String>[];
+      final coStr = coList.isNotEmpty ? ' [Partagé avec : ${coList.join(", ")}]' : '';
+      final wType = w?['wine_type'] != null ? 'Type: ${w!['wine_type']}, ' : '';
+      return '- ${w?['name'] ?? "Vin"} (${w?['vintage'] ?? "NM"}, $wType${w?['region'] ?? ""}) : Note ${t['rating']}/5$coStr, Avis: "${t['tasting_notes'] ?? ""}", Plat: "${t['food_paired'] ?? ""}", Contexte: "${t['occasion'] ?? ""}"';
     }).join('\n');
 
     final langName = languageCode == 'en' ? 'English' : 'French (Français)';
@@ -218,9 +247,17 @@ SOMMELIER & MIXOLOGIST RULES:
 6. TASTE PROFILE PERSONALIZATION & FRIENDS TASTE CONSULTING:
    - Use individual taste profiles and connected friends' taste cards.
    - When recommending for a couple or group of friends, propose harmonious wines/drinks that reconcile everyone's preferences while strictly avoiding their stated aversions.
+   - STRICT FACTUAL GROUNDING ON CONVIVES / FRIENDS' TASTES:
+     * NEVER invent or assume unrecorded preferences!
+     * If asked about what a co-taster (e.g. Caro) likes, and her profile has very few or no recordings (e.g. she only tasted one white wine), NEVER hallucinate that she loves red wines or terroirs like Galicia!
+     * Honestly and factually state what she actually tasted (mentioning the wine and context), and clarify that her palate is still being discovered with future tastings.
 7. EXPERTISE ŒNOLOGIQUE & MIXOLOGIQUE :
    - Accompagne et explique les vins et cocktails avec passion, précision et profondeur scientifique (molécules aromatiques, terpènes, équilibre des acides, émulsion au shaker, dilution thermique).
-   - Fais preuve d'une pédagogie captivante et élégante, qui émerveille aussi bien le novice que le passionné érudit.''';
+   - Fais preuve d'une pédagogie captivante et élégante, qui émerveille aussi bien le novice que le passionné érudit.
+8. ZERO TECHNICAL IDS / NO UUIDS (STRICT CUSTOMER-FACING RULE):
+   - NEVER output raw database IDs, UUIDs, or internal identifiers in your conversational text to the user!
+   - The bottle "id" MUST ONLY appear inside the hidden [WINE_CARD: {"id": "..."}] JSON tag.
+   - NEVER write phrases like "(id: ...)", "(ID: ...)", "id:", "UUID", or mention any hexadecimal strings in your text. The user must only read vineyard names, cuvées, vintages, and producer names.''';
 
     // Build sanitized alternating conversation history for Gemini API
     final List<Map<String, dynamic>> contents = [];
@@ -261,8 +298,27 @@ SOMMELIER & MIXOLOGIST RULES:
       });
     }
 
+    return _ChatContext(
+      user: user,
+      resolvedCellarId: resolvedCellarId,
+      cellarBottles: cellarBottles,
+      history: history,
+      systemInstruction: systemInstruction,
+      contents: contents,
+    );
+  }
+
+  Future<String> sendMessage(String message, String? cellarId, {String languageCode = 'fr'}) async {
+    final startTime = DateTime.now();
+    AppLogger.info('CHAT_AI', 'User asked Chatmelier: "$message" (Cellar: $cellarId)');
+
+    // Refresh dynamic models in background
+    GeminiModelRegistry.refreshAvailableModels();
+
+    final ctx = await _preparePromptContext(message, cellarId, languageCode);
+
     String reply = '';
-    final tier = GeminiModelRegistry.classifyChatComplexity(message, conversationTurnCount: history.length);
+    final tier = GeminiModelRegistry.classifyChatComplexity(message, conversationTurnCount: ctx.history.length);
     final activeModels = GeminiModelRegistry.getModelsForTier(tier);
     AppLogger.info('CHAT_AI', 'Chat query routed to tier: ${tier.name} (first model: ${activeModels.isNotEmpty ? activeModels.first : "none"})');
 
@@ -277,9 +333,9 @@ SOMMELIER & MIXOLOGIST RULES:
 
         final body = {
           'systemInstruction': {
-            'parts': [{'text': systemInstruction}]
+            'parts': [{'text': ctx.systemInstruction}]
           },
-          'contents': contents,
+          'contents': ctx.contents,
           'generationConfig': {
             'maxOutputTokens': 1500,
             'temperature': 0.6,
@@ -308,7 +364,7 @@ SOMMELIER & MIXOLOGIST RULES:
               promptFallbackText: message,
               candidateFallbackText: reply,
               isSearchGrounded: false,
-              userId: _client.auth.currentUser?.id,
+              userId: ctx.user?.id,
             );
             break;
           }
@@ -332,7 +388,7 @@ SOMMELIER & MIXOLOGIST RULES:
       try {
         final edgeRes = await _client.functions.invoke('chat', body: {
           'message': message,
-          'cellarId': resolvedCellarId ?? '',
+          'cellarId': ctx.resolvedCellarId ?? '',
         });
         if (edgeRes.data is Map<String, dynamic>) {
           reply = edgeRes.data['reply']?.toString() ?? '';
@@ -345,15 +401,17 @@ SOMMELIER & MIXOLOGIST RULES:
     // Offline local intelligence fallback
     if (reply.isEmpty) {
       AppLogger.info('CHAT_AI', 'Using local sommelier heuristic fallback');
-      reply = _generateLocalSommelierAdvice(message, cellarBottles, languageCode);
+      reply = _generateLocalSommelierAdvice(message, ctx.cellarBottles, languageCode);
     }
 
+    reply = sanitizeCustomerFacingText(reply);
+
     // Save assistant response to database if authenticated
-    if (resolvedCellarId != null && resolvedCellarId.isNotEmpty && user != null) {
+    if (ctx.resolvedCellarId != null && ctx.resolvedCellarId!.isNotEmpty && ctx.user != null && reply.isNotEmpty) {
       try {
         await _client.from('chat_messages').insert({
-          'cellar_id': resolvedCellarId,
-          'user_id': user.id,
+          'cellar_id': ctx.resolvedCellarId,
+          'user_id': ctx.user!.id,
           'role': 'assistant',
           'content': reply,
         });
@@ -363,6 +421,125 @@ SOMMELIER & MIXOLOGIST RULES:
     }
 
     return reply;
+  }
+
+  /// Streams Chatmelier response token-by-token using Gemini SSE endpoint
+  Stream<String> sendMessageStream(
+    String message,
+    String? cellarId, {
+    String languageCode = 'fr',
+  }) async* {
+    final startTime = DateTime.now();
+    AppLogger.info('CHAT_AI', 'User asked Chatmelier (streaming): "$message" (Cellar: $cellarId)');
+
+    GeminiModelRegistry.refreshAvailableModels();
+
+    final ctx = await _preparePromptContext(message, cellarId, languageCode);
+    final tier = GeminiModelRegistry.classifyChatComplexity(message, conversationTurnCount: ctx.history.length);
+    final activeModels = GeminiModelRegistry.getModelsForTier(tier);
+
+    final StringBuffer fullReplyBuffer = StringBuffer();
+    bool streamedSuccessfully = false;
+
+    for (final model in activeModels) {
+      try {
+        final url = Uri.parse(
+          'https://generativelanguage.googleapis.com/v1beta/models/$model:streamGenerateContent?alt=sse&key=$_geminiApiKey',
+        );
+
+        final client = http.Client();
+        final request = http.Request('POST', url)
+          ..headers['Content-Type'] = 'application/json'
+          ..headers['Accept'] = 'text/event-stream'
+          ..body = jsonEncode({
+            'systemInstruction': {
+              'parts': [{'text': ctx.systemInstruction}]
+            },
+            'contents': ctx.contents,
+            'generationConfig': {
+              'maxOutputTokens': 1500,
+              'temperature': 0.6,
+            },
+          });
+
+        final streamedResponse = await client.send(request).timeout(const Duration(seconds: 25));
+
+        if (streamedResponse.statusCode == 200) {
+          await for (final line in streamedResponse.stream
+              .toStringStream()
+              .transform(const LineSplitter())) {
+            if (line.startsWith('data: ')) {
+              final jsonStr = line.substring(6).trim();
+              if (jsonStr.isEmpty || jsonStr == '[DONE]') continue;
+              try {
+                final data = jsonDecode(jsonStr);
+                final textChunk = data['candidates']?[0]?['content']?['parts']?[0]?['text'] as String?;
+                if (textChunk != null && textChunk.isNotEmpty) {
+                  final sanitizedChunk = sanitizeCustomerFacingText(textChunk);
+                  fullReplyBuffer.write(textChunk);
+                  yield sanitizedChunk;
+                }
+              } catch (_) {}
+            }
+          }
+
+          if (fullReplyBuffer.isNotEmpty) {
+            streamedSuccessfully = true;
+            final duration = DateTime.now().difference(startTime).inMilliseconds;
+            AppLogger.info('CHAT_AI', 'Streamed chat reply via $model in ${duration}ms');
+            break;
+          }
+        } else if (streamedResponse.statusCode == 429) {
+          GeminiModelRegistry.recordRateLimit(model);
+        } else if (streamedResponse.statusCode == 404) {
+          GeminiModelRegistry.recordDisabledModel(model);
+        }
+      } catch (e) {
+        AppLogger.warning('CHAT_AI', 'Streaming failed for model $model: $e');
+      }
+    }
+
+    // Fallback if direct SSE streaming did not succeed
+    if (!streamedSuccessfully) {
+      String fallbackText = '';
+      try {
+        final edgeRes = await _client.functions.invoke('chat', body: {
+          'message': message,
+          'cellarId': ctx.resolvedCellarId ?? '',
+        });
+        if (edgeRes.data is Map<String, dynamic>) {
+          fallbackText = edgeRes.data['reply']?.toString() ?? '';
+        }
+      } catch (_) {}
+
+      if (fallbackText.isEmpty) {
+        fallbackText = _generateLocalSommelierAdvice(message, ctx.cellarBottles, languageCode);
+      }
+
+      fallbackText = sanitizeCustomerFacingText(fallbackText);
+      fullReplyBuffer.write(fallbackText);
+
+      final words = fallbackText.split(' ');
+      for (int i = 0; i < words.length; i++) {
+        yield words[i] + (i < words.length - 1 ? ' ' : '');
+        await Future.delayed(const Duration(milliseconds: 20));
+      }
+    }
+
+    final finalReply = sanitizeCustomerFacingText(fullReplyBuffer.toString().trim());
+
+    if (ctx.resolvedCellarId != null && ctx.resolvedCellarId!.isNotEmpty && ctx.user != null && finalReply.isNotEmpty) {
+      try {
+        await _client.from('chat_messages').insert({
+          'cellar_id': ctx.resolvedCellarId,
+          'user_id': ctx.user!.id,
+          'role': 'assistant',
+          'content': finalReply,
+        });
+      } catch (e) {
+        debugPrint('Error saving assistant message: $e');
+      }
+    }
   }
 
   String _generateLocalSommelierAdvice(String query, List<Bottle> bottles, String langCode) {
@@ -468,3 +645,22 @@ SOMMELIER & MIXOLOGIST RULES:
     }
   }
 }
+
+class _ChatContext {
+  final User? user;
+  final String? resolvedCellarId;
+  final List<Bottle> cellarBottles;
+  final List<Map<String, dynamic>> history;
+  final String systemInstruction;
+  final List<Map<String, dynamic>> contents;
+
+  _ChatContext({
+    required this.user,
+    required this.resolvedCellarId,
+    required this.cellarBottles,
+    required this.history,
+    required this.systemInstruction,
+    required this.contents,
+  });
+}
+

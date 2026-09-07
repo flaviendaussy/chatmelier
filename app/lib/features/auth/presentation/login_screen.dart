@@ -62,7 +62,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     if (str.contains('rate limit') || str.contains('over_email_send_rate_limit')) {
       return 'Trop de tentatives en peu de temps. Veuillez patienter 60 secondes avant de réessayer.';
     }
-    return 'Erreur d\'authentification : $e';
+    if (str.contains('socketexception') ||
+        str.contains('network') ||
+        str.contains('connection refused') ||
+        str.contains('failed host lookup') ||
+        str.contains('timed out') ||
+        str.contains('offline')) {
+      return 'Impossible de joindre le serveur. Veuillez vérifier votre connexion Internet et réessayer.';
+    }
+    return 'Une erreur est survenue lors de la connexion. Veuillez réessayer.';
   }
 
   Future<void> _sendMagicLink() async {

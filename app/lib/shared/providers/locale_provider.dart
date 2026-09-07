@@ -4,9 +4,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _kLocalePrefKey = 'user_selected_locale';
 
-/// Manages app locale state: defaults to French (Locale('fr')), unless explicitly changed
+/// Supported language codes in Chatmelier
+const kSupportedLanguageCodes = [
+  'fr',
+  'en',
+  'it',
+  'es',
+  'ca',
+  'pt',
+  'nl',
+  'de',
+  'ja',
+  'zh',
+  'ko',
+  'sv',
+];
+
+/// Manages app locale state:
+/// - null: follows the user's phone / device system language
+/// - explicit Locale(code): forces the user-selected language across the entire app
 class LocaleNotifier extends StateNotifier<Locale?> {
-  LocaleNotifier() : super(const Locale('fr')) {
+  LocaleNotifier() : super(null) {
     _loadSavedLocale();
   }
 
@@ -14,15 +32,16 @@ class LocaleNotifier extends StateNotifier<Locale?> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedCode = prefs.getString(_kLocalePrefKey);
-      if (savedCode != null && savedCode.isNotEmpty) {
-        if (savedCode == 'fr' || savedCode == 'en') {
+      if (savedCode != null && savedCode.isNotEmpty && savedCode != 'system') {
+        if (kSupportedLanguageCodes.contains(savedCode)) {
           state = Locale(savedCode);
+          return;
         }
-      } else {
-        state = const Locale('fr');
       }
+      // If null or 'system', leave state as null so MaterialApp automatically uses device locale
+      state = null;
     } catch (_) {
-      state = const Locale('fr');
+      state = null;
     }
   }
 

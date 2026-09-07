@@ -9,7 +9,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../monetization/admob_service.dart';
-import '../../scan/presentation/rewarded_video_ad_sheet.dart';
 import '../data/menu_scan_service.dart';
 
 class MenuPhotoCaptureScreen extends ConsumerStatefulWidget {
@@ -131,16 +130,10 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
         },
       );
 
+      // Si AdMob n'a pas pu être affiché (pas de pub disponible, web ou hors-ligne) :
+      // Pas de fausses pubs, analyse directe !
       if (!showedAdMob && mounted) {
-        RewardedVideoAdSheet.show(
-          context,
-          onRewardEarned: () {
-            if (mounted) _executeAnalysis();
-          },
-          onCancel: () {
-            // Cancelled by user
-          },
-        );
+        _executeAnalysis();
       }
     } else {
       // 2. Mode Supporter / Premium : analyse instantanée directe sans publicité
@@ -164,11 +157,13 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       final profiles = await ref.read(tasteProfilesListProvider.future);
       final activeProfile = profiles.isNotEmpty ? profiles.first : null;
 
+      final currentLang = Localizations.localeOf(context).languageCode;
       final resultMenu = await scanService.analyzeMenuPages(
         imagePaths: paths,
         imageBytesList: bytesList,
         restaurantNameHint: restName,
         userTasteProfile: activeProfile,
+        languageCode: currentLang,
         onStepUpdate: (step) {
           if (mounted) {
             setState(() => _currentStatusStep = step);

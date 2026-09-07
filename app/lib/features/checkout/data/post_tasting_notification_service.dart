@@ -6,6 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../config/router.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../journal/presentation/tasting_questionnaire_sheet.dart';
+import '../../notifications/data/local_notification_service.dart';
+import '../../notifications/data/notification_preferences_service.dart';
+import '../../notifications/domain/notification_anti_spam_policy.dart';
 
 /// A pending post-tasting notification stored in SharedPreferences.
 class PendingTastingNotification {
@@ -63,8 +66,12 @@ class PendingTastingNotification {
 class PostTastingNotificationService {
   static const _storageKey = 'pending_tasting_notifications';
 
+  final LocalNotificationService? localNotifications;
+
   Timer? _checkTimer;
   BuildContext? _appContext;
+
+  PostTastingNotificationService({this.localNotifications});
 
   /// Initialize the service with the app's root context. Call once at app startup.
   void init(BuildContext context) {
@@ -76,7 +83,8 @@ class PostTastingNotificationService {
     _checkTimer?.cancel();
   }
 
-  /// Schedule a notification 1 hour after checkout for a given bottle.
+  /// Schedule a notification after checkout for a given bottle,
+  /// applying quiet hours adjustment and dinner session batching protections.
   Future<void> schedulePostCheckout({
     required String bottleId,
     required String wineName,
@@ -87,6 +95,17 @@ class PostTastingNotificationService {
     Duration delayAfterCheckout = const Duration(hours: 1),
   }) async {
     final now = DateTime.now();
+    final prefs = await SharedPreferences.getInstance();
+    final notifPrefsService = NotificationPreferencesService(prefs);
+    final userPrefs = notifPrefsService.loadPreferences();
+
+    // Compute effective scheduled time taking quiet hours into account
+    final effectiveScheduledAt = NotificationAntiSpamPolicy.computeScheduledTime(
+      from: now,
+      baseDelay: delayAfterCheckout,
+      quietHoursEnabled: userPrefs.quietHoursEnabled,
+    );
+
     final notification = PendingTastingNotification(
       bottleId: bottleId,
       wineName: wineName,
@@ -94,25 +113,117 @@ class PostTastingNotificationService {
       producer: producer,
       region: region,
       wineType: wineType,
-      scheduledAt: now.add(delayAfterCheckout),
+      scheduledAt: effectiveScheduledAt,
       checkedOutAt: now,
     );
 
-    final prefs = await SharedPreferences.getInstance();
     final existing = _loadAll(prefs);
     // Don't duplicate for same bottle
     existing.removeWhere((n) => n.bottleId == bottleId);
     existing.add(notification);
     await _saveAll(prefs, existing);
+
+    // Schedule system on-device notification with anti-spam / session batching
+    if (userPrefs.postTastingEnabled && localNotifications != null) {
+      try {
+        final recentNotifications = existing.where((n) {
+          final diff = now.difference(n.checkedOutAt).abs();
+          return diff <= NotificationAntiSpamPolicy.sessionBatchingWindow;
+        }).toList();
+
+        final effectiveDelay = effectiveScheduledAt.isAfter(now)
+            ? effectiveScheduledAt.difference(now)
+            : const Duration(minutes: 1);
+
+        if (userPrefs.batchMultipleTastingsEnabled && recentNotifications.length > 1) {
+          // Cancel previous single bottle reminders to avoid repetitive alerts
+          for (final prev in recentNotifications) {
+            final prevId = prev.bottleId.hashCode.abs() % 100000;
+            await localNotifications!.cancelReminder(prevId);
+          }
+
+          final wineNames = recentNotifications.map((n) {
+            final v = n.vintage != null ? ' ${n.vintage}' : '';
+            return '${n.wineName}$v';
+          }).toList();
+
+          await localNotifications!.scheduleNotification(
+            id: 77777,
+            title: NotificationAntiSpamPolicy.buildConsolidatedTitle(recentNotifications.length),
+            body: NotificationAntiSpamPolicy.buildConsolidatedBody(wineNames),
+            delay: effectiveDelay,
+            channelId: NotificationChannels.tastingsId,
+            channelName: NotificationChannels.tastingsName,
+            payload: 'batch_tasting_reminder',
+          );
+          AppLogger.info('NOTIF_SPAM', 'Batched ${recentNotifications.length} tastings into a single reminder (delay: ${effectiveDelay.inMinutes}m)');
+        } else {
+          // Single bottle reminder
+          await localNotifications!.scheduleTastingReminder(
+            bottleId: bottleId,
+            wineName: wineName,
+            vintage: vintage,
+            delay: effectiveDelay,
+          );
+        }
+      } catch (e) {
+        AppLogger.warning('NOTIFICATION', 'Could not schedule local notification: $e');
+      }
+    }
   }
 
-  /// Snooze a notification by a given duration.
+  /// Computes the next 11:00 AM target time (today if before 10h, or tomorrow 11h).
+  static DateTime computeNextMorningTarget({DateTime? now}) {
+    final current = now ?? DateTime.now();
+    if (current.hour < 10) {
+      return DateTime(current.year, current.month, current.day, 11, 0);
+    }
+    return DateTime(current.year, current.month, current.day + 1, 11, 0);
+  }
+
+  /// Schedule a notification for next morning at 11:00 AM (for the "Déboucher maintenant, noter plus tard 🌙" flow).
+  Future<DateTime> scheduleNextMorning({
+    required String bottleId,
+    required String wineName,
+    int? vintage,
+    String? producer,
+    String? region,
+    String? wineType,
+  }) async {
+    final now = DateTime.now();
+    final target = computeNextMorningTarget(now: now);
+    final delay = target.difference(now);
+
+    await schedulePostCheckout(
+      bottleId: bottleId,
+      wineName: wineName,
+      vintage: vintage,
+      producer: producer,
+      region: region,
+      wineType: wineType,
+      delayAfterCheckout: delay > const Duration(minutes: 5) ? delay : const Duration(hours: 14),
+    );
+
+    return target;
+  }
+
+  /// Snooze a notification by a given duration, respecting quiet hours.
   Future<void> snooze(String bottleId, Duration duration) async {
     final prefs = await SharedPreferences.getInstance();
+    final notifPrefsService = NotificationPreferencesService(prefs);
+    final userPrefs = notifPrefsService.loadPreferences();
+
     final all = _loadAll(prefs);
     final idx = all.indexWhere((n) => n.bottleId == bottleId);
     if (idx >= 0) {
       final old = all[idx];
+      final now = DateTime.now();
+      final targetDate = NotificationAntiSpamPolicy.computeScheduledTime(
+        from: now,
+        baseDelay: duration,
+        quietHoursEnabled: userPrefs.quietHoursEnabled,
+      );
+
       all[idx] = PendingTastingNotification(
         bottleId: old.bottleId,
         wineName: old.wineName,
@@ -120,10 +231,24 @@ class PostTastingNotificationService {
         producer: old.producer,
         region: old.region,
         wineType: old.wineType,
-        scheduledAt: DateTime.now().add(duration),
+        scheduledAt: targetDate,
         checkedOutAt: old.checkedOutAt,
       );
       await _saveAll(prefs, all);
+
+      // Reschedule system notification
+      if (localNotifications != null && userPrefs.postTastingEnabled) {
+        final effectiveDuration = targetDate.isAfter(now)
+            ? targetDate.difference(now)
+            : const Duration(minutes: 1);
+
+        await localNotifications!.scheduleTastingReminder(
+          bottleId: bottleId,
+          wineName: old.wineName,
+          vintage: old.vintage,
+          delay: effectiveDuration,
+        );
+      }
     }
   }
 
@@ -144,6 +269,12 @@ class PostTastingNotificationService {
     final all = _loadAll(prefs);
     all.removeWhere((n) => n.bottleId == bottleId);
     await _saveAll(prefs, all);
+
+    // Cancel system notification
+    if (localNotifications != null) {
+      final id = bottleId.hashCode.abs() % 100000;
+      await localNotifications!.cancelReminder(id);
+    }
   }
 
   /// Check for due notifications and show a dialog if any are ready.
@@ -392,7 +523,8 @@ class PostTastingNotificationService {
 
 /// Riverpod provider for the PostTastingNotificationService singleton.
 final postTastingNotificationProvider = Provider<PostTastingNotificationService>((ref) {
-  final service = PostTastingNotificationService();
+  final localNotifs = ref.watch(localNotificationServiceProvider);
+  final service = PostTastingNotificationService(localNotifications: localNotifs);
   ref.onDispose(() => service.dispose());
   return service;
 });

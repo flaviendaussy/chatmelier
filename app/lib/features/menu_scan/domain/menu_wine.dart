@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/utils/currency_helper.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../auth/domain/wine_taste_radar.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
@@ -22,6 +23,77 @@ class MenuWineGlassPrice {
     return MenuWineGlassPrice(
       format: (json['format'] ?? 'Verre').toString(),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+/// Flags / Badges for highlighting exceptional wines on restaurant menus
+enum MenuWineFlagType {
+  deal, // Bon plan / Grosse affaire
+  gem, // Vin pépite
+  tasteMatch, // Accord parfait avec le profil utilisateur
+}
+
+class MenuWineFlag {
+  final MenuWineFlagType type;
+  final String label;
+  final String? reason;
+
+  const MenuWineFlag({
+    required this.type,
+    required this.label,
+    this.reason,
+  });
+
+  String get iconEmoji {
+    switch (type) {
+      case MenuWineFlagType.deal:
+        return '💎';
+      case MenuWineFlagType.gem:
+        return '✨';
+      case MenuWineFlagType.tasteMatch:
+        return '🎯';
+    }
+  }
+
+  Color get color {
+    switch (type) {
+      case MenuWineFlagType.deal:
+        return const Color(0xFF00897B); // Emerald / Teal
+      case MenuWineFlagType.gem:
+        return const Color(0xFFD4AF37); // Gold
+      case MenuWineFlagType.tasteMatch:
+        return const Color(0xFF8B1E3F); // Wine Burgundy
+    }
+  }
+
+  Color get backgroundColor {
+    switch (type) {
+      case MenuWineFlagType.deal:
+        return const Color(0xFF00897B).withValues(alpha: 0.12);
+      case MenuWineFlagType.gem:
+        return const Color(0xFFD4AF37).withValues(alpha: 0.16);
+      case MenuWineFlagType.tasteMatch:
+        return const Color(0xFF8B1E3F).withValues(alpha: 0.12);
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+        'type': type.name,
+        'label': label,
+        'reason': reason,
+      };
+
+  factory MenuWineFlag.fromJson(Map<String, dynamic> json) {
+    final typeName = (json['type'] ?? 'gem').toString();
+    final type = MenuWineFlagType.values.firstWhere(
+      (e) => e.name == typeName,
+      orElse: () => MenuWineFlagType.gem,
+    );
+    return MenuWineFlag(
+      type: type,
+      label: (json['label'] ?? '').toString(),
+      reason: json['reason'] as String?,
     );
   }
 }
@@ -72,29 +144,49 @@ class MenuWineRadarMetrics {
     );
   }
 
-  /// Convert to standard 6-axis metrics for Red Wine Comparison
-  /// Axes: Tannicité & Structure, Puissance & Corps, Fraîcheur & Acidité, Fruit & Rondeur, Boisé & Élevage, Minéralité & Épices
+  /// 7-axis dynamic values for Red Wine Comparison
+  List<double> toRedValues() => [
+        tannins.clamp(1.0, 10.0), // Axe 1: Tannins & Structure
+        body.clamp(1.0, 10.0), // Axe 2: Puissance & Corps
+        acidity.clamp(1.0, 10.0), // Axe 3: Fraîcheur & Acidité
+        fruit.clamp(1.0, 10.0), // Axe 4: Fruit & Baies
+        oak.clamp(1.0, 10.0), // Axe 5: Boisé & Élevage
+        minerality.clamp(1.0, 10.0), // Axe 6: Minéralité & Épices
+        sweetness.clamp(1.0, 10.0), // Axe 7: Persistance & Rondeur
+      ];
+
+  /// 7-axis dynamic values for White Wine Comparison
+  List<double> toWhiteValues() => [
+        minerality.clamp(1.0, 10.0), // Axe 1: Minéralité & Tension
+        acidity.clamp(1.0, 10.0), // Axe 2: Fraîcheur & Vivacité
+        fruit.clamp(1.0, 10.0), // Axe 3: Fruit & Fleurs
+        butteriness.clamp(1.0, 10.0), // Axe 4: Beurré & Rondeur
+        oak.clamp(1.0, 10.0), // Axe 5: Boisé & Toasté
+        sweetness.clamp(1.0, 10.0), // Axe 6: Douceur & Sucre
+        body.clamp(1.0, 10.0), // Axe 7: Corps & Puissance
+      ];
+
+  /// Convert to standard 6-axis metrics for Red Wine Comparison (compat)
   WineTasteRadarMetrics toRedRadarMetrics() {
     return WineTasteRadarMetrics(
-      body: tannins.clamp(1.0, 10.0), // Axe 1: Tannins & Structure
-      acidity: body.clamp(1.0, 10.0), // Axe 2: Puissance & Corps
-      fruit: acidity.clamp(1.0, 10.0), // Axe 3: Fraîcheur & Acidité
-      oak: fruit.clamp(1.0, 10.0), // Axe 4: Fruit & Gourmandise
-      minerality: oak.clamp(1.0, 10.0), // Axe 5: Boisé & Élevage
-      sweetness: minerality.clamp(1.0, 10.0), // Axe 6: Minéralité & Épices
+      body: tannins.clamp(1.0, 10.0),
+      acidity: body.clamp(1.0, 10.0),
+      fruit: acidity.clamp(1.0, 10.0),
+      oak: fruit.clamp(1.0, 10.0),
+      minerality: oak.clamp(1.0, 10.0),
+      sweetness: minerality.clamp(1.0, 10.0),
     );
   }
 
-  /// Convert to standard 6-axis metrics for White Wine Comparison
-  /// Axes: Minéralité & Tension, Fraîcheur & Vivacité, Fruit & Arômes, Beurré & Rondeur, Boisé & Élevage, Corps & Puissance
+  /// Convert to standard 6-axis metrics for White Wine Comparison (compat)
   WineTasteRadarMetrics toWhiteRadarMetrics() {
     return WineTasteRadarMetrics(
-      body: minerality.clamp(1.0, 10.0), // Axe 1: Minéralité & Tension
-      acidity: acidity.clamp(1.0, 10.0), // Axe 2: Fraîcheur & Vivacité
-      fruit: fruit.clamp(1.0, 10.0), // Axe 3: Fruit & Arômes
-      oak: butteriness.clamp(1.0, 10.0), // Axe 4: Beurré & Rondeur
-      minerality: oak.clamp(1.0, 10.0), // Axe 5: Boisé & Élevage
-      sweetness: body.clamp(1.0, 10.0), // Axe 6: Corps & Puissance
+      body: minerality.clamp(1.0, 10.0),
+      acidity: acidity.clamp(1.0, 10.0),
+      fruit: fruit.clamp(1.0, 10.0),
+      oak: butteriness.clamp(1.0, 10.0),
+      minerality: oak.clamp(1.0, 10.0),
+      sweetness: body.clamp(1.0, 10.0),
     );
   }
 
@@ -102,17 +194,19 @@ class MenuWineRadarMetrics {
         'Tannins &\nStructure',
         'Puissance\n& Corps',
         'Fraîcheur\n& Acidité',
-        'Fruit &\nGourmandise',
+        'Fruit &\nBaies',
         'Boisé &\nÉlevage',
         'Minéralité\n& Épices',
+        'Persistance\n& Rondeur',
       ];
 
   static List<String> get whiteAxisLabels => [
         'Minéralité\n& Tension',
         'Fraîcheur\n& Vivacité',
-        'Fruit &\nArômes',
+        'Fruit &\nFleurs',
         'Beurré &\nRondeur',
-        'Boisé &\nÉlevage',
+        'Boisé &\nToasté',
+        'Douceur &\nSucre',
         'Corps &\nPuissance',
       ];
 }
@@ -135,6 +229,12 @@ class MenuWine {
   final String? sommelierComment;
   final List<String> foodPairings;
   final double? userMatchScore; // 0 to 100%
+  final bool isGem; // Remarkable wine from cult/artisan star or insider gem
+  final String? gemReason;
+  final bool isDeal; // Outstanding quality-to-price ratio or unusually low markup
+  final String? dealReason;
+  final double? estimatedRetailPrice; // Approx wine merchant/caviste price
+  final MenuWineFlag? flag; // Active badge computed by MenuFlaggingEngine
 
   const MenuWine({
     required this.id,
@@ -153,6 +253,12 @@ class MenuWine {
     this.sommelierComment,
     this.foodPairings = const [],
     this.userMatchScore,
+    this.isGem = false,
+    this.gemReason,
+    this.isDeal = false,
+    this.dealReason,
+    this.estimatedRetailPrice,
+    this.flag,
   });
 
   /// Normalized unique lookup key to prevent re-searching in Gemini
@@ -176,14 +282,40 @@ class MenuWine {
   bool get hasGlassPrice => glassPrices.isNotEmpty;
   double? get primaryGlassPrice => glassPrices.isNotEmpty ? glassPrices.first.price : null;
 
+  String get countryFlag {
+    final c = (country ?? '').toLowerCase().trim();
+    if (c.contains('france') || c == 'fr') return '🇫🇷';
+    if (c.contains('ital') || c == 'it') return '🇮🇹';
+    if (c.contains('espag') || c.contains('spain') || c == 'es') return '🇪🇸';
+    if (c.contains('portug') || c == 'pt') return '🇵🇹';
+    if (c.contains('allemag') || c.contains('german') || c == 'de') return '🇩🇪';
+    if (c.contains('usa') || c.contains('état') || c.contains('etat') || c.contains('state') || c == 'us') return '🇺🇸';
+    if (c.contains('argentin') || c == 'ar') return '🇦🇷';
+    if (c.contains('chili') || c.contains('chile') || c == 'cl') return '🇨🇱';
+    if (c.contains('austral') || c == 'au') return '🇦🇺';
+    if (c.contains('zélande') || c.contains('zealand') || c == 'nz') return '🇳🇿';
+    if (c.contains('afrique') || c.contains('south africa') || c == 'za') return '🇿🇦';
+    if (c.contains('suisse') || c.contains('switzer') || c == 'ch') return '🇨🇭';
+    if (c.contains('autrich') || c.contains('austria') || c == 'at') return '🇦🇹';
+    if (c.contains('grèce') || c.contains('greece') || c == 'gr') return '🇬🇷';
+    if (c.contains('géorgie') || c.contains('georgia') || c == 'ge') return '🇬🇪';
+    if (c.contains('liban') || c.contains('lebanon') || c == 'lb') return '🇱🇧';
+    return '🌍';
+  }
+
+  String get countryWithFlag {
+    if (country == null || country!.trim().isEmpty) return '';
+    return '$countryFlag ${country!.trim()}';
+  }
+
   String get priceDisplay {
     final parts = <String>[];
     if (bottlePrice != null && bottlePrice! > 0) {
-      parts.add('${bottlePrice!.toStringAsFixed(bottlePrice! % 1 == 0 ? 0 : 2)} € / bt');
+      parts.add('${CurrencyHelper.formatPrice(bottlePrice!)} / bt');
     }
     if (glassPrices.isNotEmpty) {
       final g = glassPrices.first;
-      parts.add('${g.price.toStringAsFixed(g.price % 1 == 0 ? 0 : 2)} € (${g.format})');
+      parts.add('${CurrencyHelper.formatPrice(g.price)} (${g.format})');
     }
     if (parts.isEmpty) return 'Prix non indiqué';
     return parts.join(' • ');
@@ -223,6 +355,12 @@ class MenuWine {
     String? sommelierComment,
     List<String>? foodPairings,
     double? userMatchScore,
+    bool? isGem,
+    String? gemReason,
+    bool? isDeal,
+    String? dealReason,
+    double? estimatedRetailPrice,
+    MenuWineFlag? flag,
   }) {
     return MenuWine(
       id: id ?? this.id,
@@ -241,6 +379,12 @@ class MenuWine {
       sommelierComment: sommelierComment ?? this.sommelierComment,
       foodPairings: foodPairings ?? this.foodPairings,
       userMatchScore: userMatchScore ?? this.userMatchScore,
+      isGem: isGem ?? this.isGem,
+      gemReason: gemReason ?? this.gemReason,
+      isDeal: isDeal ?? this.isDeal,
+      dealReason: dealReason ?? this.dealReason,
+      estimatedRetailPrice: estimatedRetailPrice ?? this.estimatedRetailPrice,
+      flag: flag ?? this.flag,
     );
   }
 
@@ -261,6 +405,12 @@ class MenuWine {
         'sommelier_comment': sommelierComment,
         'food_pairings': foodPairings,
         'user_match_score': userMatchScore,
+        'is_gem': isGem,
+        'gem_reason': gemReason,
+        'is_deal': isDeal,
+        'deal_reason': dealReason,
+        'estimated_retail_price': estimatedRetailPrice,
+        'flag': flag?.toJson(),
       };
 
   factory MenuWine.fromJson(Map<String, dynamic> json) {
@@ -286,6 +436,14 @@ class MenuWine {
       sommelierComment: json['sommelier_comment'] as String?,
       foodPairings: (json['food_pairings'] as List?)?.map((e) => e.toString()).toList() ?? [],
       userMatchScore: (json['user_match_score'] as num?)?.toDouble(),
+      isGem: json['is_gem'] as bool? ?? false,
+      gemReason: json['gem_reason'] as String?,
+      isDeal: json['is_deal'] as bool? ?? false,
+      dealReason: json['deal_reason'] as String?,
+      estimatedRetailPrice: (json['estimated_retail_price'] as num?)?.toDouble(),
+      flag: json['flag'] != null
+          ? MenuWineFlag.fromJson(Map<String, dynamic>.from(json['flag'] as Map))
+          : null,
     );
   }
 }
@@ -337,12 +495,12 @@ class ScannedMenu {
 
 /// 🎯 Calculator to compute Affinity Score between a [MenuWine] and a [TasteProfile]
 class MenuWineMatchCalculator {
-  static double calculateMatch(MenuWine wine, TasteProfile? profile) => computeMatchScore(wine, profile);
+  static double? calculateMatch(MenuWine wine, TasteProfile? profile) => computeMatchScore(wine, profile);
 
-  static double computeMatchScore(MenuWine wine, TasteProfile? profile) {
-    if (profile == null) return 72.0;
+  static double? computeMatchScore(MenuWine wine, TasteProfile? profile) {
+    if (profile == null || !profile.isWellProvided) return null;
 
-    double score = 70.0; // Base score
+    double score = 70.0; // Base score for personalized evaluation
 
     // 1. Color / Type affinity (+15 or -25)
     final favTypes = profile.favoriteTypes.map((t) => t.toLowerCase()).toList();

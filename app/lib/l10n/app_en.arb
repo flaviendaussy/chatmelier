@@ -1,11 +1,11 @@
 {
   "@@locale": "en",
   "appTitle": "Chatmelier",
+  "defaultCellarName": "My Cellar",
   "navCellar": "Cellar",
   "navChat": "Chat",
-  "navJournal": "History",
+  "navJournal": "Degust.",
   "navStats": "Stats",
-
   "actionMenuTitle": "Cellar Actions",
   "actionAddBottle": "Add a bottle",
   "actionAddBottleSub": "Scan label or manual entry",
@@ -13,7 +13,6 @@
   "actionCheckoutBottleSub": "Record tasting & decrement stock",
   "actionLookupWine": "Consult / Identify a wine",
   "actionLookupWineSub": "Instant AI wine discovery",
-
   "searchWinePlaceholder": "Search vintage, producer, appellation...",
   "emptyCellarTitle": "Your cellar is empty",
   "emptyCellarSub": "Scan your first bottle to start building your digital collection",
@@ -27,7 +26,6 @@
     }
   },
   "cellarTotalValue": "Total value",
-
   "filterAll": "All",
   "filterRed": "Red",
   "filterWhite": "White",
@@ -46,7 +44,6 @@
   "filterCountries": "Countries",
   "filterGrapes": "Grape Varieties",
   "filterAppellations": "Regions & Appellations",
-
   "bottleDetailInfo": "Information & Terroir",
   "bottleDetailDrinkingWindow": "Drinking Window",
   "bottleDetailTerroirMap": "Terroir & Origin Map",
@@ -78,7 +75,6 @@
   "deleteBottleActionDrinkInstead": "Checkout / Drink instead",
   "cancel": "Cancel",
   "confirm": "Confirm",
-
   "checkoutTitle": "Taste & Checkout from Cellar",
   "checkoutSelectPrompt": "Tap to choose a bottle from your cellar...",
   "checkoutQtyOpened": "Number of bottles opened",
@@ -97,7 +93,6 @@
   "checkoutNotesHint": "Aromas, balance, length, emotions...",
   "checkoutSubmit": "Confirm tasting",
   "checkoutSuccess": "Tasting recorded successfully!",
-
   "chatTitle": "Chatmelier",
   "chatGreeting": "Bonjour ! I am Chatmelier. Ask me for food pairings, drinking advice, or wine cellar recommendations based on what you currently have in stock.",
   "chatAnalyzing": "Chatmelier is analyzing your cellar...",
@@ -106,7 +101,6 @@
   "chatChipSteak": "🥩 Pair a bottle with steak",
   "chatChipSeafood": "🐟 Best white for seafood",
   "chatChipPeak": "⏰ Which bottles are at their peak?",
-
   "journalTitle": "Tasting Journal",
   "journalEmpty": "No tastings recorded yet",
   "journalEmptySub": "Checkout and taste a bottle from your cellar to start your log",
@@ -118,7 +112,6 @@
       }
     }
   },
-
   "statsTitle": "Cellar Statistics",
   "statsTotalBottles": "Bottles in Cellar",
   "statsTotalValue": "Cellar Value",
@@ -127,7 +120,6 @@
   "statsByMaturity": "Distribution by Maturity",
   "statsByRegion": "Top Regions",
   "statsByCountry": "Top Countries",
-
   "profileTitle": "Profile & Settings",
   "profileEmail": "Email",
   "profileDisplayName": "Display Name",
@@ -147,14 +139,12 @@
   "profileLanguageUpdated": "Language updated",
   "profileLogout": "Log out",
   "profileAbout": "About Chatmelier",
-
   "scanTitle": "Scan Wine Label",
   "scanTakePhoto": "Take photo",
   "scanPickGallery": "Choose from gallery",
   "scanAnalyzing": "Chatmelier AI is analyzing the label...",
   "scanIdentified": "Wine identified by Chatmelier ✨",
   "scanSaveToCellar": "Add to my cellar",
-
   "loginTitle": "Login",
   "loginTagline": "Your Shared AI-Powered Wine Cellar",
   "loginTabMagicLink": "✉️ Sign-in Link",
@@ -166,14 +156,12 @@
   "loginOrDivider": "OR",
   "loginGoogleButton": "Continue with Google",
   "loginRegisterLink": "Don't have an account? Create one",
-
   "registerTitle": "Create Account",
   "registerNameLabel": "Display Name / First Name",
   "registerSubmitButton": "Create my account",
   "registerFillAllFields": "Please fill in all fields",
   "registerWelcome": "🎉 Welcome to Chatmelier!",
   "registerErrorGeneric": "Registration error",
-
   "authWelcome": "Welcome to Chatmelier",
   "authSubtitle": "Your smart wine cellar manager & AI companion",
   "authGoogle": "Continue with Google",
@@ -181,10 +169,45 @@
   "authEmail": "Email address",
   "authNoAccount": "Don't have an account? Sign up",
   "authHaveAccount": "Already have an account? Log in",
-
   "changelogTitle": "Changelog & Version Notes",
   "changelogEmpty": "No changelog entries available.",
   "scratchcardTitle": "World Terroirs Scratchcard",
   "profileChangelog": "Version History & Changelog",
-  "profileScratchcard": "World Terroirs Scratchcard"
+  "profileScratchcard": "World Terroirs Scratchcard",
+  "navBar": "Bar",
+  "navProfile": "Profile",
+  "quickActions": "QUICK ACTIONS",
+  "appSubtitle": "Sommelier & Wine Cellar",
+  "profileTabPalate": "Palate",
+  "profileTabSettings": "Settings",
+  "profileTabTools": "Tools",
+  "profileTabAccount": "Account",
+  "profileTheme": "Ambience / Theme",
+  "profileThemeLight": "Light ☀️",
+  "profileThemeDark": "Dark 🌙",
+  "profileThemeSystem": "System ⚙️",
+  "profileFriends": "Friends & Taste Maps 🍷",
+  "profileExport": "Export Cellar & Valuation Report 📊",
+  "profileDeleteAccount": "Permanently Delete My Account",
+  "profileDeleteConfirmTitle": "Delete Permanently",
+  "profileDeleteConfirmMsg": "This action is irreversible. All your data will be deleted.",
+  "badgesGalleryTitle": "Trophy Gallery",
+  "badgesGallerySubtitle": "{unlocked} / {total} unlocked • {pct}% completed",
+  "badgesFilterAll": "All",
+  "badgesEmpty": "No badges found in this category.",
+  "badgesUnlockedChip": "Unlocked ✨",
+  "badgesStatusUnlocked": "Badge Unlocked!",
+  "badgesStatusInProgress": "In Progress",
+  "badgesObjectiveLabel": "Objective:",
+  "badgesChatmelierLoreTitle": "Chatmelier's Science & Lore",
+  "badgesCloseButton": "Close",
+  "badgesTierLabel": "Tier",
+  "badgesShowcaseTitle": "Trophies & Badges",
+  "badgesShowcaseCount": "{unlocked} of {total} unlocked",
+  "badgesShowcaseGallery": "Gallery",
+  "cocktailsTitle": "Bar & Cocktails",
+  "cocktailsReadyToShake": "Ready to Shake",
+  "cocktailsMissingOne": "1 missing",
+  "cocktailsManagePantry": "Manage Bar Pantry",
+  "cocktailsResetPantry": "Reset Bar Pantry"
 }

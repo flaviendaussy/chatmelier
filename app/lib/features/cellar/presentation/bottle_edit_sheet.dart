@@ -5,6 +5,7 @@ import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/utils/currency_helper.dart';
 import '../../../shared/widgets/bottle_image_view.dart';
 import '../domain/bottle.dart';
+import '../domain/bottle_size.dart';
 import '../domain/wine.dart';
 import '../domain/wine_image_service.dart';
 import '../domain/wine_service_advisor.dart';
@@ -85,6 +86,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
   late TextEditingController _positionCtrl;
   late TextEditingController _userNotesCtrl;
   late int _fillLevel;
+  late String _bottleSize;
   String? _imageUrl;
 
   bool _isSaving = false;
@@ -95,6 +97,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
     final tracksFillLevel = widget.wine.tracksFillLevel;
     _tabController = TabController(length: tracksFillLevel ? 3 : 4, vsync: this);
     _fillLevel = widget.bottle.fillLevel;
+    _bottleSize = widget.bottle.bottleSize;
 
     final w = widget.wine;
     final b = widget.bottle;
@@ -178,10 +181,9 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
         lower.contains('liqueur')) {
       return 'liqueur';
     }
+    if (lower.contains('grappa') || lower.contains('vinaccia')) return 'grappa';
+    if (lower.contains('eau de vie') || lower.contains('eau-de-vie') || lower.contains('marc')) return 'eau-de-vie';
     if (lower.contains('pisco') ||
-        lower.contains('grappa') ||
-        lower.contains('eau de vie') ||
-        lower.contains('eau-de-vie') ||
         lower.contains('aguardente') ||
         lower.contains('pastis') ||
         lower.contains('ricard') ||
@@ -406,6 +408,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
           'position': position,
           'notes': userNotes,
           'fill_level': _fillLevel,
+          'bottle_size': _bottleSize,
         },
       );
 
@@ -767,6 +770,9 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                   DropdownMenuItem(value: 'fortified', child: Text('🍷 Fortifié / VDN')),
                   DropdownMenuItem(value: 'orange', child: Text('🍊 Vin Orange')),
                   DropdownMenuItem(value: 'spirit', child: Text('🥃 Spiritueux')),
+                  DropdownMenuItem(value: 'grappa', child: Text('🍇 Grappa')),
+                  DropdownMenuItem(value: 'eau-de-vie', child: Text('🍐 Eau-de-vie / Marc')),
+                  DropdownMenuItem(value: 'liqueur', child: Text('🍸 Liqueur')),
                   DropdownMenuItem(value: 'whisky', child: Text('🥃 Whisky')),
                   DropdownMenuItem(value: 'rhum', child: Text('🏴‍☠️ Rhum')),
                   DropdownMenuItem(value: 'gin', child: Text('🍸 Gin')),
@@ -1143,18 +1149,90 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
           ),
           const SizedBox(height: 16),
         ],
+        // Bottle Size / Format Selector
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Format de la bouteille / Contenance',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                ...['37.5cl', '75cl', '1.5L', '3L'].map((sizeCode) {
+                  final sizeObj = BottleSize.fromCode(sizeCode);
+                  final isSelected = _bottleSize == sizeCode;
+                  return ChoiceChip(
+                    label: Text(sizeObj.shortName),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) setState(() => _bottleSize = sizeCode);
+                    },
+                    selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.25),
+                    labelStyle: TextStyle(
+                      color: isSelected ? const Color(0xFF8B1E3F) : null,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  );
+                }),
+                ActionChip(
+                  avatar: const Icon(Icons.more_horiz, size: 16),
+                  label: Text(!['37.5cl', '75cl', '1.5L', '3L'].contains(_bottleSize)
+                      ? BottleSize.fromCode(_bottleSize).shortName
+                      : 'Autre format...'),
+                  onPressed: _showAllBottleSizesPicker,
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
-              child: TextFormField(
-                controller: _quantityCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Quantité en stock *',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.inventory),
-                ),
-                validator: (v) => (int.tryParse(v ?? '') ?? 0) < 0 ? 'Quantité invalide' : null,
+              child: Row(
+                children: [
+                  IconButton.filledTonal(
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () {
+                      final val = int.tryParse(_quantityCtrl.text) ?? 0;
+                      if (val > 0) {
+                        setState(() {
+                          _quantityCtrl.text = '${val - 1}';
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.remove, size: 18),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _quantityCtrl,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      decoration: const InputDecoration(
+                        labelText: 'Stock *',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+                      ),
+                      validator: (v) => (int.tryParse(v ?? '') ?? -1) < 0 ? 'Invalide' : null,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton.filledTonal(
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () {
+                      final val = int.tryParse(_quantityCtrl.text) ?? 0;
+                      setState(() {
+                        _quantityCtrl.text = '${val + 1}';
+                      });
+                    },
+                    icon: const Icon(Icons.add, size: 18),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 12),
@@ -1282,6 +1360,52 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
           ),
         ),
       ],
+    );
+  }
+
+  void _showAllBottleSizesPicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Choisir un format de bouteille',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            const Divider(),
+            Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: BottleSize.standardSizes.length,
+                itemBuilder: (ctx, i) {
+                  final s = BottleSize.standardSizes[i];
+                  final isSelected = _bottleSize == s.code;
+                  return ListTile(
+                    leading: Icon(
+                      Icons.wine_bar,
+                      color: isSelected ? const Color(0xFF8B1E3F) : Colors.grey,
+                    ),
+                    title: Text(s.label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                    trailing: isSelected ? const Icon(Icons.check, color: Color(0xFF8B1E3F)) : null,
+                    onTap: () {
+                      setState(() => _bottleSize = s.code);
+                      Navigator.pop(ctx);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

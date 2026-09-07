@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/cellar_provider.dart';
+import '../data/bar_equipment_service.dart';
 import '../data/bar_pantry_service.dart';
 import '../data/custom_cocktail_service.dart';
 import '../domain/cocktail.dart';
+import '../domain/cocktail_kitchen_converter.dart';
 import '../domain/cocktail_matcher.dart';
+import 'bar_equipment_sheet.dart';
 import 'save_cocktail_dialog.dart';
 
-class CocktailDetailSheet extends ConsumerWidget {
+class CocktailDetailSheet extends ConsumerStatefulWidget {
   final Cocktail cocktail;
 
   const CocktailDetailSheet({super.key, required this.cocktail});
@@ -22,7 +25,17 @@ class CocktailDetailSheet extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CocktailDetailSheet> createState() => _CocktailDetailSheetState();
+}
+
+class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
+  int _servings = 1;
+  bool? _useDiyShaker;
+
+  Cocktail get cocktail => widget.cocktail;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final currentCellarId = ref.watch(currentCellarIdProvider);
@@ -32,6 +45,7 @@ class CocktailDetailSheet extends ConsumerWidget {
     final bottles = bottlesAsync?.valueOrNull ?? [];
     final pantry = ref.watch(barPantryProvider);
     final customCocktails = ref.watch(customCocktailsProvider);
+    final equipment = ref.watch(barEquipmentProvider);
     final isSaved = customCocktails.any((c) =>
         c.id == cocktail.id || c.name.toLowerCase().trim() == cocktail.name.toLowerCase().trim());
 
@@ -40,6 +54,10 @@ class CocktailDetailSheet extends ConsumerWidget {
       cellarBottles: bottles,
       pantryItems: pantry,
     );
+
+    final isShaken = cocktail.method.toLowerCase().contains('shaker') ||
+        cocktail.instructions.any((s) => s.toLowerCase().contains('shaker'));
+    final useDiy = _useDiyShaker ?? (!equipment.hasShaker);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
@@ -205,11 +223,77 @@ class CocktailDetailSheet extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 8),
+
+                    // Portions Selector
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Portions : ',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                          ),
+                          const SizedBox(width: 4),
+                          ...[1, 2, 4, 6].map((count) {
+                            final isSelected = _servings == count;
+                            final label = count == 6 ? '6 (Pichet)' : '$count ${count > 1 ? "verres" : "verre"}';
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: ChoiceChip(
+                                label: Text(label),
+                                selected: isSelected,
+                                selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.18),
+                                labelStyle: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  color: isSelected ? const Color(0xFF8B1E3F) : null,
+                                ),
+                                onSelected: (_) => setState(() => _servings = count),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                    if (_servings >= 4) ...[
+                      Container(
+                        margin: const EdgeInsets.only(top: 8, bottom: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Text('🍹', style: TextStyle(fontSize: 18)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Astuce grand groupe ($_servings verres) : Préparez les doses directement dans une carafe ou un grand pichet avec de gros glaçons pour régaler tout le monde d\'un coup sans tiédir !',
+                                style: const TextStyle(fontSize: 11.5, height: 1.3),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 10),
 
                     ...cocktail.ingredients.map((ing) {
                       final isAvailable = match.availableIngredients.contains(ing.name);
                       final matchedBottles = ing.spiritType != null ? match.matchedBottles[ing.spiritType] : null;
+
+                      final scaledAmount = ing.amount != null ? (ing.amount! * _servings) : null;
+                      String displayAmount = '';
+                      if (scaledAmount != null) {
+                        final formatted = scaledAmount % 1 == 0 ? scaledAmount.toInt().toString() : scaledAmount.toString();
+                        displayAmount = ing.unit != null ? '$formatted ${ing.unit}' : formatted;
+                      } else if (ing.displayAmount.isNotEmpty) {
+                        displayAmount = ing.displayAmount;
+                      }
+                      final kitchenEquiv = useDiy ? CocktailKitchenConverter.getKitchenEquivalent(scaledAmount, ing.unit) : '';
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -245,32 +329,6 @@ class CocktailDetailSheet extends ConsumerWidget {
                                   ),
                                   if (matchedBottles != null && matchedBottles.isNotEmpty) ...[
                                     const SizedBox(height: 4),
-                                    if (matchedBottles.length > 1) ...[
-                                      Container(
-                                        margin: const EdgeInsets.only(bottom: 6),
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(Icons.touch_app_outlined, size: 12, color: Color(0xFFD4AF37)),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'Au choix : utilisez 1 seule bouteille parmi vos ${matchedBottles.length} disponibles',
-                                              style: const TextStyle(
-                                                fontSize: 10.5,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFFD4AF37),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
                                     ...matchedBottles.asMap().entries.map((entry) {
                                       final optIndex = entry.key + 1;
                                       final bottle = entry.value;
@@ -342,22 +400,37 @@ class CocktailDetailSheet extends ConsumerWidget {
                                     )
                                   else if (!isAvailable && ing.pantryKey != null)
                                     Text(
-                                      'Manquant dans votre Bar Pantry',
+                                      'Manquant dans votre Réserve',
                                       style: TextStyle(fontSize: 11, color: Colors.orange.shade800),
                                     ),
                                 ],
                               ),
                             ),
-                            if (ing.displayAmount.isNotEmpty)
+                            if (displayAmount.isNotEmpty)
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: isDark ? Colors.black26 : Colors.white70,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Text(
-                                  ing.displayAmount,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      displayAmount,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                    if (kitchenEquiv.isNotEmpty)
+                                      Text(
+                                        kitchenEquiv,
+                                        style: const TextStyle(
+                                          fontSize: 9.5,
+                                          color: Colors.orange,
+                                          fontStyle: FontStyle.italic,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                           ],
@@ -368,13 +441,169 @@ class CocktailDetailSheet extends ConsumerWidget {
                     const SizedBox(height: 20),
 
                     // Instructions Section
-                    Text(
-                      'Préparation pas à pas',
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Préparation pas à pas',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        if (isShaken)
+                          GestureDetector(
+                            onTap: () => BarEquipmentSheet.show(context),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.tune,
+                                  size: 14,
+                                  color: useDiy ? Colors.orange.shade800 : const Color(0xFF8B1E3F),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  useDiy ? 'Système D 🫙' : 'Shaker Pro 🍸',
+                                  style: TextStyle(
+                                    color: useDiy ? Colors.orange.shade800 : const Color(0xFF8B1E3F),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 10),
 
-                    ...cocktail.instructions.asMap().entries.map((entry) {
+                    // Shaker vs Système D Selector & Tips
+                    if (isShaken) ...[
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: useDiy
+                                ? Colors.orange.withValues(alpha: 0.4)
+                                : const Color(0xFF8B1E3F).withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(useDiy ? '🫙' : '🍸', style: const TextStyle(fontSize: 22)),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        useDiy ? 'Moyens du bord (Bocal hermétique)' : 'Shaker à cocktail en inox',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                      ),
+                                      Text(
+                                        useDiy
+                                            ? 'Pot de confiture hermétique ou shaker sport'
+                                            : 'Technique pro avec glaçons à ras bord',
+                                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SegmentedButton<bool>(
+                                  showSelectedIcon: false,
+                                  style: const ButtonStyle(
+                                    visualDensity: VisualDensity.compact,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  segments: const [
+                                    ButtonSegment(
+                                      value: false,
+                                      label: Text('🍸 Shaker', style: TextStyle(fontSize: 11)),
+                                    ),
+                                    ButtonSegment(
+                                      value: true,
+                                      label: Text('🫙 Bocal', style: TextStyle(fontSize: 11)),
+                                    ),
+                                  ],
+                                  selected: {useDiy},
+                                  onSelectionChanged: (newSet) {
+                                    setState(() => _useDiyShaker = newSet.first);
+                                  },
+                                ),
+                              ],
+                            ),
+                            if (useDiy) ...[
+                              const SizedBox(height: 10),
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: Colors.orange.withValues(alpha: 0.25)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Row(
+                                      children: [
+                                        Icon(Icons.lightbulb_outline, size: 16, color: Colors.orange),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          'Le mot du mixologue Chatmelier :',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11.5,
+                                            color: Colors.orange,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Le pot de confiture (ou gourde fermée) dépanne très bien pour émulsionner et rafraîchir ! '
+                                      'Toutefois, un shaker en inox reste idéal pour ce cocktail car il provoque un choc thermique immédiat (-5°C en 12s sans fonte excessive) et crée une mousse veloutée bien plus onctueuse.',
+                                      style: TextStyle(fontSize: 11, height: 1.35),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.amber.shade50.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Text('🥄', style: TextStyle(fontSize: 18)),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Pas de shaker requis : ce cocktail se prépare directement dans le verre ou au verre à mélange pour préserver la brillance et la limpidité des spiritueux sans les troubler.',
+                                style: TextStyle(fontSize: 11.5, height: 1.3),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    ...((useDiy && isShaken)
+                            ? CocktailKitchenConverter.adaptShakerInstructionsForKitchenJar(cocktail.instructions)
+                            : cocktail.instructions)
+                        .asMap()
+                        .entries
+                        .map((entry) {
                       final index = entry.key + 1;
                       final step = entry.value;
                       return Padding(

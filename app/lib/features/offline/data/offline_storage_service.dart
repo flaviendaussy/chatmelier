@@ -10,6 +10,7 @@ class OfflineStorageService {
   static const String _kBottlesPrefix = 'chatmelier_cached_bottles_';
   static const String _kPendingResolutionWinesKey = 'chatmelier_pending_resolution_wines';
   static const String _kLastSelectedCellarIdKey = 'chatmelier_last_selected_cellar_id';
+  static const String _kTastingsCacheKey = 'chatmelier_cached_tastings';
 
   final SharedPreferences _prefs;
 
@@ -291,5 +292,35 @@ class OfflineStorageService {
     final list = getPendingResolutionWines();
     list.removeWhere((w) => w['bottle_id'] == bottleId);
     await _prefs.setString(_kPendingResolutionWinesKey, jsonEncode(list));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tasting Log Cache
+  // ---------------------------------------------------------------------------
+
+  List<Map<String, dynamic>> getCachedTastings() {
+    final raw = _prefs.getString(_kTastingsCacheKey);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveCachedTastings(List<Map<String, dynamic>> tastings) async {
+    final raw = jsonEncode(tastings);
+    await _prefs.setString(_kTastingsCacheKey, raw);
+  }
+
+  Future<void> addCachedTasting(Map<String, dynamic> tasting) async {
+    final list = getCachedTastings();
+    final newId = tasting['id']?.toString();
+    if (newId != null && newId.isNotEmpty) {
+      list.removeWhere((t) => t['id']?.toString() == newId);
+    }
+    list.insert(0, tasting);
+    await saveCachedTastings(list);
   }
 }

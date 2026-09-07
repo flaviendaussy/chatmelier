@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../features/cellar/presentation/cellar_switcher_sheet.dart';
 import '../../features/cellar/presentation/cellar_food_pairing_sheet.dart';
-import '../../features/cellar/domain/bottle.dart';
 import '../../features/journal/presentation/external_tasting_dialog.dart';
 import '../../features/voice/presentation/voice_dictation_sheet.dart';
 import '../providers/cellar_provider.dart';
 import '../providers/supabase_provider.dart';
 import '../utils/responsive_layout.dart';
+import '../../features/cellar/presentation/shelf_grid_view_sheet.dart';
 import '../../config/navigator_keys.dart';
 
 class AdaptiveAppShell extends ConsumerWidget {
@@ -708,6 +708,16 @@ class _DesktopAppShell extends ConsumerWidget {
                         label: 'Ajouter une bouteille',
                         color: const Color(0xFF8B1E3F),
                         onTap: () => context.push('/scan'),
+                      ),
+                      _SidebarActionItem(
+                        icon: Icons.shelves,
+                        label: 'Meubles & Rayonnages',
+                        color: const Color(0xFFD4AF37),
+                        onTap: () {
+                          if (currentCellarId != null) {
+                            ShelfGridViewSheet.show(context, cellarId: currentCellarId);
+                          }
+                        },
                       ),
                       _SidebarActionItem(
                         icon: Icons.mic_none,

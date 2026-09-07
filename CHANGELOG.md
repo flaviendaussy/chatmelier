@@ -2,6 +2,25 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.2.1+48] — 2026-09-07
+
+### 🍷 Ce qui change pour vous
+- **Accès direct « Meubles & Rayonnages » sur Ordinateur & Mobile** : Un bouton dédié « Meubles & Rayonnages » est désormais directement accessible dans la barre latérale sur grand écran (ordinateur) et dans la barre de filtres principale de la cave. Plus besoin de chercher dans les sous-menus de l'en-tête !
+- **Synchronisation automatique des deux domaines Web** : Les deux adresses web officielles (`chatmelier.github.io` et `flaviendaussy.github.io`) sont désormais rigoureusement synchronisées à la même version, évitant tout décalage d'affichage selon le lien utilisé.
+- **Purge automatique du cache navigateur** : L'application web invalide et recharge automatiquement ses composants (scripts principaux et cache de service) pour garantir que vous ayez toujours la dernière version sans manipulation manuelle de l'historique du navigateur.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Ergonomie Desktop & Cave (`adaptive_app_shell.dart`, `cellar_screen.dart`)* :
+  - Ajout de `_SidebarActionItem` avec `Icons.shelves` dans les « ACTIONS RAPIDES » du shell Bureau / Desktop.
+  - Ajout d'une `ActionChip` dorée « Meubles & Rayonnages » dans `_buildFilterRow` de `CellarScreen`.
+- *PWA & Cache-Busting (`app/web/index.html`, `build_and_sync_web.sh`)* :
+  - Désenregistrement automatique des anciens Service Workers et purge des caches `CacheStorage` dans l'en-tête HTML.
+  - Injection dynamique d'un suffixe d'invalidation d'URL `main.dart.js?v=${VERSION}-${BUILD_TIME}` dans `flutter_bootstrap.js`.
+- *Déploiement Dual-Domain (`build_and_sync_web.sh`)* :
+  - Déploiement automatique vers `chatmelier.github.io` (`Chatmelier/chatmelier.github.io.git`) et vers `flaviendaussy.github.io` (`user-pages`) à chaque build.
+
+---
+
 ## [v1.2.1+47] — 2026-09-07
 
 ### 🍷 Ce qui change pour vous

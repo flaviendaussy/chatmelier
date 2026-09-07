@@ -20,7 +20,6 @@ import 'bottle_list_item.dart';
 import 'bottle_context_sheet.dart';
 import 'cellar_filter_sheet.dart';
 import 'cellar_switcher_sheet.dart';
-import 'cellar_export_dialog.dart';
 import 'cellar_food_pairing_sheet.dart';
 import 'create_cellar_dialog.dart';
 import 'shelf_grid_view_sheet.dart';
@@ -1117,6 +1116,27 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                 ),
               ),
             ),
+          ),
+          const SizedBox(width: 8),
+
+          // Mode Shelves (Meubles & Rayonnages) Shortcut
+          ActionChip(
+            avatar: const Icon(Icons.shelves, size: 16, color: Color(0xFFD4AF37)),
+            label: const Text(
+              'Meubles & Rayonnages',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4AF37)),
+            ),
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF2B221E)
+                : const Color(0xFFFAF0E6),
+            side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              final cid = ref.read(currentCellarIdProvider);
+              if (cid != null) {
+                ShelfGridViewSheet.show(context, cellarId: cid);
+              }
+            },
           ),
           const SizedBox(width: 8),
 

@@ -96,7 +96,13 @@ serve(async (req) => {
       })
     }
 
-    const apiKey = Deno.env.get('GEMINI_API_KEY') || 'AQ.Ab8RN6JFZQNPfXmDdjdGT0posCOmn_4wPIFv_TiviorSGL6BDg'
+    const apiKey = Deno.env.get('GEMINI_API_KEY')
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: 'GEMINI_API_KEY is not configured' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
+    }
 
     // Step 1: Extract exact label details from image
     const extractPrompt = `Read this wine bottle label very carefully.

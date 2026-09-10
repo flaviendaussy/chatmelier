@@ -21,7 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navChat => 'Chat';
 
   @override
-  String get navJournal => 'Degust.';
+  String get navJournal => 'Tasting';
 
   @override
   String get navStats => 'Stats';
@@ -269,7 +269,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatGreeting =>
-      'Bonjour ! I am Chatmelier. Ask me for food pairings, drinking advice, or wine cellar recommendations based on what you currently have in stock.';
+      'Hello! I am Chatmelier. Ask me for food pairings, drinking advice, or wine cellar recommendations based on what you currently have in stock.';
 
   @override
   String get chatAnalyzing => 'Chatmelier is analyzing your cellar...';

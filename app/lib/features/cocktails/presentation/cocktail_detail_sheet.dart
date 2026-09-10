@@ -38,6 +38,7 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final currentCellarId = ref.watch(currentCellarIdProvider);
     final bottlesAsync = currentCellarId != null
         ? ref.watch(bottlesProvider(currentCellarId))
@@ -112,7 +113,10 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Row(
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -125,7 +129,6 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                   style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                               ),
-                              const SizedBox(width: 8),
                               if (match.isReady)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -133,9 +136,9 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                     color: const Color(0xFF2E7D32),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Text(
-                                    'Prêt à shaker 🟢',
-                                    style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                  child: Text(
+                                    isFr ? 'Prêt à shaker 🟢' : 'Ready to shake 🟢',
+                                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                                   ),
                                 )
                               else if (match.isAlmostReady)
@@ -145,9 +148,9 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                     color: Colors.orange.shade800,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Text(
-                                    'Manque 1 ingrédient 🟡',
-                                    style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                  child: Text(
+                                    isFr ? 'Manque 1 ingrédient 🟡' : 'Missing 1 ingredient 🟡',
+                                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                             ],
@@ -160,7 +163,9 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                         isSaved ? Icons.bookmark : Icons.bookmark_add_outlined,
                         color: isSaved ? const Color(0xFFD4AF37) : null,
                       ),
-                      tooltip: isSaved ? 'Modifier le nom dans mes cocktails' : 'Ajouter à mes cocktails',
+                      tooltip: isSaved
+                          ? (isFr ? 'Modifier le nom dans mes cocktails' : 'Rename in my cocktails')
+                          : (isFr ? 'Ajouter à mes cocktails' : 'Add to my cocktails'),
                       onPressed: () => SaveCocktailDialog.show(context, cocktail: cocktail),
                     ),
                     IconButton(
@@ -182,11 +187,11 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                     // Quick Specs Cards
                     Row(
                       children: [
-                        _buildSpecCard(context, Icons.local_bar, 'Verre', cocktail.glass),
+                        _buildSpecCard(context, Icons.local_bar, isFr ? 'Verre' : 'Glass', cocktail.localizedGlass(isFr)),
                         const SizedBox(width: 8),
-                        _buildSpecCard(context, Icons.science, 'Méthode', cocktail.method),
+                        _buildSpecCard(context, Icons.science, isFr ? 'Méthode' : 'Method', cocktail.localizedMethod(isFr)),
                         const SizedBox(width: 8),
-                        _buildSpecCard(context, Icons.timer, 'Prépa', cocktail.prepTime),
+                        _buildSpecCard(context, Icons.timer, isFr ? 'Prépa' : 'Prep', cocktail.localizedPrepTime(isFr)),
                       ],
                     ),
 
@@ -210,11 +215,11 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Ingrédients & Dosages',
+                          isFr ? 'Ingrédients & Dosages' : 'Ingredients & Measurements',
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          '${match.availableIngredients.length}/${cocktail.ingredients.length} en stock',
+                          '${match.availableIngredients.length}/${cocktail.ingredients.length} ${isFr ? "en stock" : "in stock"}',
                           style: TextStyle(
                             color: match.isReady ? const Color(0xFF2E7D32) : Colors.orange.shade700,
                             fontWeight: FontWeight.bold,
@@ -230,14 +235,16 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          const Text(
-                            'Portions : ',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                          Text(
+                            '${isFr ? "Portions" : "Servings"} : ',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
                           ),
                           const SizedBox(width: 4),
                           ...[1, 2, 4, 6].map((count) {
                             final isSelected = _servings == count;
-                            final label = count == 6 ? '6 (Pichet)' : '$count ${count > 1 ? "verres" : "verre"}';
+                            final label = count == 6
+                                ? (isFr ? '6 (Pichet)' : '6 (Pitcher)')
+                                : '$count ${isFr ? (count > 1 ? "verres" : "verre") : (count > 1 ? "glasses" : "glass")}';
                             return Padding(
                               padding: const EdgeInsets.only(right: 6),
                               child: ChoiceChip(
@@ -271,7 +278,9 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Astuce grand groupe ($_servings verres) : Préparez les doses directement dans une carafe ou un grand pichet avec de gros glaçons pour régaler tout le monde d\'un coup sans tiédir !',
+                                isFr
+                                    ? 'Astuce grand groupe ($_servings verres) : Préparez les doses directement dans une carafe ou un grand pichet avec de gros glaçons pour régaler tout le monde d\'un coup sans tiédir !'
+                                    : 'Large group tip ($_servings glasses): Prepare doses directly in a carafe or pitcher with plenty of ice to serve everyone at once without diluting!',
                                 style: const TextStyle(fontSize: 11.5, height: 1.3),
                               ),
                             ),
@@ -293,7 +302,7 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                       } else if (ing.displayAmount.isNotEmpty) {
                         displayAmount = ing.displayAmount;
                       }
-                      final kitchenEquiv = useDiy ? CocktailKitchenConverter.getKitchenEquivalent(scaledAmount, ing.unit) : '';
+                      final kitchenEquiv = useDiy ? CocktailKitchenConverter.getKitchenEquivalent(scaledAmount, ing.unit, isFr) : '';
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -332,7 +341,7 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                     ...matchedBottles.asMap().entries.map((entry) {
                                       final optIndex = entry.key + 1;
                                       final bottle = entry.value;
-                                      final name = bottle.wine?.name ?? 'Bouteille';
+                                      final name = bottle.wine?.name ?? (isFr ? 'Bouteille' : 'Bottle');
                                       final producer = bottle.wine?.producer;
                                       final displayName = producer != null && producer.isNotEmpty
                                           ? '$producer – $name'
@@ -395,12 +404,12 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                     }),
                                   ] else if (!isAvailable && ing.isSpirit)
                                     Text(
-                                      'Spiritueux manquant dans votre cave',
+                                      isFr ? 'Spiritueux manquant dans votre cave' : 'Missing spirit in your cellar',
                                       style: TextStyle(fontSize: 11, color: Colors.orange.shade800),
                                     )
                                   else if (!isAvailable && ing.pantryKey != null)
                                     Text(
-                                      'Manquant dans votre Réserve',
+                                      isFr ? 'Manquant dans votre Réserve' : 'Missing in your Bar Pantry',
                                       style: TextStyle(fontSize: 11, color: Colors.orange.shade800),
                                     ),
                                 ],
@@ -445,7 +454,7 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Préparation pas à pas',
+                          isFr ? 'Préparation pas à pas' : 'Step-by-step preparation',
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         if (isShaken)
@@ -460,7 +469,7 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  useDiy ? 'Système D 🫙' : 'Shaker Pro 🍸',
+                                  useDiy ? (isFr ? 'Système D 🫙' : 'DIY Jar 🫙') : (isFr ? 'Shaker Pro 🍸' : 'Pro Shaker 🍸'),
                                   style: TextStyle(
                                     color: useDiy ? Colors.orange.shade800 : const Color(0xFF8B1E3F),
                                     fontWeight: FontWeight.bold,
@@ -500,13 +509,15 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        useDiy ? 'Moyens du bord (Bocal hermétique)' : 'Shaker à cocktail en inox',
+                                        useDiy
+                                            ? (isFr ? 'Moyens du bord (Bocal hermétique)' : 'DIY Method (Airtight Jar)')
+                                            : (isFr ? 'Shaker à cocktail en inox' : 'Stainless steel cocktail shaker'),
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                       ),
                                       Text(
                                         useDiy
-                                            ? 'Pot de confiture hermétique ou shaker sport'
-                                            : 'Technique pro avec glaçons à ras bord',
+                                            ? (isFr ? 'Pot de confiture hermétique ou shaker sport' : 'Airtight jam jar or sports shaker bottle')
+                                            : (isFr ? 'Technique pro avec glaçons à ras bord' : 'Pro technique filled to the brim with ice'),
                                         style: const TextStyle(fontSize: 11, color: Colors.grey),
                                       ),
                                     ],
@@ -518,14 +529,14 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                     visualDensity: VisualDensity.compact,
                                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   ),
-                                  segments: const [
+                                  segments: [
                                     ButtonSegment(
                                       value: false,
-                                      label: Text('🍸 Shaker', style: TextStyle(fontSize: 11)),
+                                      label: Text(isFr ? '🍸 Shaker' : '🍸 Shaker', style: const TextStyle(fontSize: 11)),
                                     ),
                                     ButtonSegment(
                                       value: true,
-                                      label: Text('🫙 Bocal', style: TextStyle(fontSize: 11)),
+                                      label: Text(isFr ? '🫙 Bocal' : '🫙 Jar', style: const TextStyle(fontSize: 11)),
                                     ),
                                   ],
                                   selected: {useDiy},
@@ -547,13 +558,13 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Row(
+                                    Row(
                                       children: [
-                                        Icon(Icons.lightbulb_outline, size: 16, color: Colors.orange),
-                                        SizedBox(width: 6),
+                                        const Icon(Icons.lightbulb_outline, size: 16, color: Colors.orange),
+                                        const SizedBox(width: 6),
                                         Text(
-                                          'Le mot du mixologue Chatmelier :',
-                                          style: TextStyle(
+                                          isFr ? 'Le mot du mixologue Chatmelier :' : 'Chatmelier mixologist tip:',
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 11.5,
                                             color: Colors.orange,
@@ -562,10 +573,13 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                       ],
                                     ),
                                     const SizedBox(height: 4),
-                                    const Text(
-                                      'Le pot de confiture (ou gourde fermée) dépanne très bien pour émulsionner et rafraîchir ! '
-                                      'Toutefois, un shaker en inox reste idéal pour ce cocktail car il provoque un choc thermique immédiat (-5°C en 12s sans fonte excessive) et crée une mousse veloutée bien plus onctueuse.',
-                                      style: TextStyle(fontSize: 11, height: 1.35),
+                                    Text(
+                                      isFr
+                                          ? 'Le pot de confiture (ou gourde fermée) dépanne très bien pour émulsionner et rafraîchir ! '
+                                            'Toutefois, un shaker en inox reste idéal pour ce cocktail car il provoque un choc thermique immédiat (-5°C en 12s sans fonte excessive) et crée une mousse veloutée bien plus onctueuse.'
+                                          : 'A jam jar (or sealed sports bottle) works great in a pinch to emulsify and chill! '
+                                            'However, a stainless steel shaker remains ideal for this cocktail as it delivers an instant thermal shock (-5°C in 12s without over-diluting) and creates a much silkier, velvety foam.',
+                                      style: const TextStyle(fontSize: 11, height: 1.35),
                                     ),
                                   ],
                                 ),
@@ -583,14 +597,16 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Text('🥄', style: TextStyle(fontSize: 18)),
-                            SizedBox(width: 10),
+                            const Text('🥄', style: TextStyle(fontSize: 18)),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Pas de shaker requis : ce cocktail se prépare directement dans le verre ou au verre à mélange pour préserver la brillance et la limpidité des spiritueux sans les troubler.',
-                                style: TextStyle(fontSize: 11.5, height: 1.3),
+                                isFr
+                                    ? 'Pas de shaker requis : ce cocktail se prépare directement dans le verre ou au verre à mélange pour préserver la brillance et la limpidité des spiritueux sans les troubler.'
+                                    : 'No shaker required: this cocktail is built directly in the glass or mixing glass to preserve the clarity and brilliance of the spirits without clouding them.',
+                                style: const TextStyle(fontSize: 11.5, height: 1.3),
                               ),
                             ),
                           ],
@@ -599,7 +615,7 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                     ],
 
                     ...((useDiy && isShaken)
-                            ? CocktailKitchenConverter.adaptShakerInstructionsForKitchenJar(cocktail.instructions)
+                            ? CocktailKitchenConverter.adaptShakerInstructionsForKitchenJar(cocktail.instructions, isFr)
                             : cocktail.instructions)
                         .asMap()
                         .entries
@@ -653,16 +669,16 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                 const Icon(Icons.star, size: 18, color: Color(0xFFD4AF37)),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Glaçons & Garniture',
+                                  isFr ? 'Glaçons & Garniture' : 'Ice & Garnish',
                                   style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 6),
                             if (cocktail.ice.isNotEmpty)
-                              Text('• Glace : ${cocktail.ice}', style: theme.textTheme.bodySmall),
+                              Text('• ${isFr ? "Glace" : "Ice"} : ${cocktail.localizedIce(isFr)}', style: theme.textTheme.bodySmall),
                             if (cocktail.garnish.isNotEmpty)
-                              Text('• Décoration : ${cocktail.garnish}', style: theme.textTheme.bodySmall),
+                              Text('• ${isFr ? "Décoration" : "Garnish"} : ${cocktail.garnish}', style: theme.textTheme.bodySmall),
                           ],
                         ),
                       ),
@@ -680,9 +696,9 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
                         icon: const Icon(Icons.bookmark_add, size: 20),
-                        label: const Text(
-                          'Ajouter à mes cocktails',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        label: Text(
+                          isFr ? 'Ajouter à mes cocktails' : 'Add to my cocktails',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                         onPressed: () => SaveCocktailDialog.show(context, cocktail: cocktail),
                       )
@@ -696,7 +712,7 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                               icon: const Icon(Icons.edit_outlined, size: 18),
-                              label: const Text('Renommer le cocktail'),
+                              label: Text(isFr ? 'Renommer le cocktail' : 'Rename cocktail'),
                               onPressed: () => SaveCocktailDialog.show(
                                 context,
                                 cocktail: cocktail,
@@ -712,7 +728,7 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
                               padding: const EdgeInsets.all(12),
                             ),
                             icon: const Icon(Icons.delete_outline, color: Colors.red),
-                            tooltip: 'Retirer de mes cocktails',
+                            tooltip: isFr ? 'Retirer de mes cocktails' : 'Remove from my cocktails',
                             onPressed: () => _confirmDelete(context, ref),
                           ),
                         ],
@@ -728,18 +744,23 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
   }
 
   void _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Retirer ce cocktail ?'),
-        content: Text('Voulez-vous retirer "${cocktail.name}" de vos recettes enregistrées ?'),
+        title: Text(isFr ? 'Retirer ce cocktail ?' : 'Remove this cocktail?'),
+        content: Text(
+          isFr
+              ? 'Voulez-vous retirer "${cocktail.name}" de vos recettes enregistrées ?'
+              : 'Do you want to remove "${cocktail.name}" from your saved recipes?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(isFr ? 'Annuler' : 'Cancel')),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Retirer'),
+            child: Text(isFr ? 'Retirer' : 'Remove'),
           ),
         ],
       ),
@@ -755,7 +776,11 @@ class _CocktailDetailSheetState extends ConsumerState<CocktailDetailSheet> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Cocktail "${cocktail.name}" retiré de vos recettes.'),
+            content: Text(
+              isFr
+                  ? 'Cocktail "${cocktail.name}" retiré de vos recettes.'
+                  : 'Cocktail "${cocktail.name}" removed from your recipes.',
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );

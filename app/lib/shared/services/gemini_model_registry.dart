@@ -19,7 +19,7 @@ enum GeminiTaskTier {
 class GeminiModelRegistry {
   static const String defaultApiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: 'AQ.Ab8RN6JFZQNPfXmDdjdGT0posCOmn_4wPIFv_TiviorSGL6BDg',
+    defaultValue: '',
   );
 
   /// Curated Lite baseline models (Gemini 3.8 / 3.5 / 3.1 Flash-Lite, flash-lite-latest)

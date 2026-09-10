@@ -53,10 +53,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     final displayCurrency = ref.watch(statsDisplayCurrencyProvider);
     final mapMode = ref.watch(statsMapModeProvider);
     final l10n = AppLocalizations.of(context);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n?.statsTitle ?? 'Statistiques de la Cave'),
+        title: Text(l10n?.statsTitle ?? (isFr ? 'Statistiques de la Cave' : 'Cellar Statistics')),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 12),
@@ -94,9 +95,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               children: [
                 const Icon(Icons.wine_bar, size: 18, color: Color(0xFF8B1E3F)),
                 const SizedBox(width: 8),
-                const Text(
-                  'Périmètre :',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                Text(
+                  isFr ? 'Périmètre :' : 'Scope :',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -114,16 +115,16 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                         isDense: true,
                         icon: const Icon(Icons.keyboard_arrow_down, size: 20),
                         items: [
-                          const DropdownMenuItem(
+                          DropdownMenuItem(
                             value: 'overall',
                             child: Row(
                               children: [
-                                Icon(Icons.public, size: 16, color: Color(0xFF8B1E3F)),
-                                SizedBox(width: 8),
+                                const Icon(Icons.public, size: 16, color: Color(0xFF8B1E3F)),
+                                const SizedBox(width: 8),
                                 Flexible(
                                   child: Text(
-                                    'Toutes mes caves (Global / Overall)',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                                    isFr ? 'Toutes mes caves (Global)' : 'All my cellars (Global / Overall)',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -133,7 +134,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                           ...userCellars.map((c) {
                             final cMap = c['cellars'] as Map<String, dynamic>?;
                             final id = cMap?['id']?.toString() ?? c['cellar_id']?.toString() ?? '';
-                            final name = cMap?['name']?.toString() ?? 'Cave $id';
+                            final name = cMap?['name']?.toString() ?? (isFr ? 'Cave $id' : 'Cellar $id');
                             return DropdownMenuItem(
                               value: id,
                               child: Row(
@@ -176,7 +177,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               children: [
                 Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
                 const SizedBox(height: 12),
-                Text('Erreur lors du chargement des statistiques : $err', textAlign: TextAlign.center),
+                Text(
+                  isFr ? 'Erreur lors du chargement des statistiques : $err' : 'Error loading statistics: $err',
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
           ),
@@ -188,12 +192,15 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             return Center(
               child: EmptyState(
                 icon: Icons.bar_chart,
-                title: l10n?.statsTitle ?? 'Statistiques de la Cave',
-                subtitle: l10n?.emptyCellarSub ?? 'Ajoutez votre première bouteille pour débloquer l\'estimation en temps réel, l\'apogée et les statistiques.',
+                title: l10n?.statsTitle ?? (isFr ? 'Statistiques de la Cave' : 'Cellar Statistics'),
+                subtitle: l10n?.emptyCellarSub ??
+                    (isFr
+                        ? 'Ajoutez votre première bouteille pour débloquer l\'estimation en temps réel, l\'apogée et les statistiques.'
+                        : 'Add your first bottle to unlock real-time valuation, drinking windows, and cellar analytics.'),
                 action: FilledButton.icon(
                   onPressed: () => context.push('/scan'),
                   icon: const Icon(Icons.qr_code_scanner),
-                  label: Text(l10n?.actionAddBottle ?? 'Ajouter une bouteille'),
+                  label: Text(l10n?.actionAddBottle ?? (isFr ? 'Ajouter une bouteille' : 'Add a bottle')),
                 ),
               ),
             );
@@ -204,7 +211,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               .where((b) => b.wine?.windowStatus == DrinkWindowStatus.drinkSoon)
               .toList();
 
-          final mapRegions = _buildMapRegions(mapMode, bottles);
+          final mapRegions = _buildMapRegions(mapMode, bottles, isFr);
 
           final isLarge = Responsive.isTabletOrDesktop(context);
 
@@ -218,23 +225,23 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                       children: [
                         Expanded(
                           flex: 5,
-                          child: _buildValuationCard(context, theme, stats, displayCurrency, l10n),
+                          child: _buildValuationCard(context, theme, stats, displayCurrency, l10n, isFr),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           flex: 6,
-                          child: _buildKpiGrid(context, theme, stats, l10n),
+                          child: _buildKpiGrid(context, theme, stats, l10n, isFr),
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
 
                     // Sommelier Insight
-                    _buildSommelierInsightCard(context, theme, stats, isDark),
+                    _buildSommelierInsightCard(context, theme, stats, isDark, isFr),
                     const SizedBox(height: 20),
 
                     // Embedded Terroirs Map Full Width
-                    _buildScratchMapCard(context, theme, isDark, mapMode, mapRegions),
+                    _buildScratchMapCard(context, theme, isDark, mapMode, mapRegions, isFr),
                     const SizedBox(height: 20),
 
                     // Charts Row 1: Wine Colors + Drinking Window
@@ -243,13 +250,13 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                       children: [
                         Expanded(
                           child: stats.byType.isNotEmpty
-                              ? _buildWineTypePieChartCard(theme, isDark, stats)
+                              ? _buildWineTypePieChartCard(theme, isDark, stats, isFr)
                               : const SizedBox.shrink(),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: stats.byWindowStatus.isNotEmpty
-                              ? _buildDrinkingWindowCard(theme, isDark, stats)
+                              ? _buildDrinkingWindowCard(theme, isDark, stats, isFr)
                               : const SizedBox.shrink(),
                         ),
                       ],
@@ -262,13 +269,13 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                       children: [
                         Expanded(
                           child: stats.byRegion.isNotEmpty
-                              ? _buildRegionPieChartCard(theme, isDark, stats)
+                              ? _buildRegionPieChartCard(theme, isDark, stats, isFr)
                               : const SizedBox.shrink(),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: stats.byVintage.isNotEmpty
-                              ? _buildVintageHistogramCard(theme, isDark, stats)
+                              ? _buildVintageHistogramCard(theme, isDark, stats, isFr)
                               : const SizedBox.shrink(),
                         ),
                       ],
@@ -281,7 +288,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                       children: [
                         Expanded(
                           child: stats.byPriceRange.isNotEmpty
-                              ? _buildPriceTierCard(theme, isDark, stats)
+                              ? _buildPriceTierCard(theme, isDark, stats, isFr)
                               : const SizedBox.shrink(),
                         ),
                         const SizedBox(width: 16),
@@ -299,7 +306,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                                             const Icon(Icons.alarm, color: Colors.orange),
                                             const SizedBox(width: 8),
                                             Text(
-                                              'Prêtes à boire rapidement (${drinkSoonBottles.length})',
+                                              isFr
+                                                  ? 'Prêtes à boire rapidement (${drinkSoonBottles.length})'
+                                                  : 'Ready to drink soon (${drinkSoonBottles.length})',
                                               style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                             ),
                                           ],
@@ -310,8 +319,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                                           return ListTile(
                                             dense: true,
                                             contentPadding: EdgeInsets.zero,
-                                            title: Text(wine?.name ?? 'Vin', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                            subtitle: Text('${wine?.producer ?? ""} • Qté: ${b.quantity}'),
+                                            title: Text(wine?.name ?? (isFr ? 'Vin' : 'Wine'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                            subtitle: Text('${wine?.producer ?? ""} • ${isFr ? "Qté" : "Qty"}: ${b.quantity}'),
                                             trailing: wine != null ? DrinkingWindowBadge(status: wine.windowStatus) : null,
                                             onTap: () => context.push('/cellar/bottle/${b.id}'),
                                           );
@@ -331,48 +340,48 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   padding: const EdgeInsets.all(16),
                   children: [
                     // 1. Valuation & Financial Overview Card
-                    _buildValuationCard(context, theme, stats, displayCurrency, l10n),
+                    _buildValuationCard(context, theme, stats, displayCurrency, l10n, isFr),
                     const SizedBox(height: 16),
 
                     // 2. EMBEDDED INTERACTIVE SCRATCH MAP
-                    _buildScratchMapCard(context, theme, isDark, mapMode, mapRegions),
+                    _buildScratchMapCard(context, theme, isDark, mapMode, mapRegions, isFr),
                     const SizedBox(height: 16),
 
                     // 3. Sommelier KPI Counters Grid
-                    _buildKpiGrid(context, theme, stats, l10n),
+                    _buildKpiGrid(context, theme, stats, l10n, isFr),
                     const SizedBox(height: 20),
 
                     // 4. Sommelier Recommendation & Insight Card
-                    _buildSommelierInsightCard(context, theme, stats, isDark),
+                    _buildSommelierInsightCard(context, theme, stats, isDark, isFr),
                     const SizedBox(height: 20),
 
                     // 5. Pie Chart: Wine Colors & Types
                     if (stats.byType.isNotEmpty) ...[
-                      _buildWineTypePieChartCard(theme, isDark, stats),
+                      _buildWineTypePieChartCard(theme, isDark, stats, isFr),
                       const SizedBox(height: 20),
                     ],
 
                     // 6. Pie Chart: Wine Terroirs & Regions
                     if (stats.byRegion.isNotEmpty) ...[
-                      _buildRegionPieChartCard(theme, isDark, stats),
+                      _buildRegionPieChartCard(theme, isDark, stats, isFr),
                       const SizedBox(height: 20),
                     ],
 
                     // 7. Bar Chart: Vintages Histogram (Millésimes)
                     if (stats.byVintage.isNotEmpty) ...[
-                      _buildVintageHistogramCard(theme, isDark, stats),
+                      _buildVintageHistogramCard(theme, isDark, stats, isFr),
                       const SizedBox(height: 20),
                     ],
 
                     // 8. Bar Chart: Drinking Window Maturity
                     if (stats.byWindowStatus.isNotEmpty) ...[
-                      _buildDrinkingWindowCard(theme, isDark, stats),
+                      _buildDrinkingWindowCard(theme, isDark, stats, isFr),
                       const SizedBox(height: 20),
                     ],
 
                     // 9. Bar Chart: Price Tiers Histogram
                     if (stats.byPriceRange.isNotEmpty) ...[
-                      _buildPriceTierCard(theme, isDark, stats),
+                      _buildPriceTierCard(theme, isDark, stats, isFr),
                       const SizedBox(height: 20),
                     ],
 
@@ -383,7 +392,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                           const Icon(Icons.alarm, color: Colors.orange),
                           const SizedBox(width: 8),
                           Text(
-                            'Prêtes à boire rapidement (${drinkSoonBottles.length})',
+                            isFr
+                                ? 'Prêtes à boire rapidement (${drinkSoonBottles.length})'
+                                : 'Ready to drink soon (${drinkSoonBottles.length})',
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -394,8 +405,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           child: ListTile(
-                            title: Text(wine?.name ?? 'Vin', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('${wine?.producer ?? ""} • Qté: ${b.quantity}'),
+                            title: Text(wine?.name ?? (isFr ? 'Vin' : 'Wine'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('${wine?.producer ?? ""} • ${isFr ? "Qté" : "Qty"}: ${b.quantity}'),
                             trailing: wine != null ? DrinkingWindowBadge(status: wine.windowStatus) : null,
                             onTap: () => context.push('/cellar/bottle/${b.id}'),
                           ),
@@ -416,7 +427,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= 1. VALUATION CARD =================
-  Widget _buildValuationCard(BuildContext context, ThemeData theme, CellarStats stats, String currency, AppLocalizations? l10n) {
+  Widget _buildValuationCard(BuildContext context, ThemeData theme, CellarStats stats, String currency, AppLocalizations? l10n, bool isFr) {
     final isGain = stats.unrealizedGainAmount >= 0;
     final gainColor = isGain ? const Color(0xFF2E7D32) : const Color(0xFFC62828);
 
@@ -437,7 +448,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     Icon(Icons.account_balance_wallet_outlined, color: theme.colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(
-                      '${l10n?.statsTotalValue ?? "Valeur Totale Estimée"} ($currency)',
+                      '${l10n?.statsTotalValue ?? (isFr ? "Valeur Totale Estimée" : "Total Estimated Value")} ($currency)',
                       style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -468,7 +479,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             const SizedBox(height: 6),
             if (stats.totalPaidValue > 0)
               Text(
-                '${l10n?.bottleDetailPurchasePrice ?? "Coût d'achat total"}: ${CurrencyHelper.formatPrice(stats.totalPaidValue, currency: currency)} (${stats.bottlesWithPriceCount}/${stats.totalBottles} bouteilles renseignées)',
+                '${l10n?.bottleDetailPurchasePrice ?? (isFr ? "Coût d'achat total" : "Total purchase cost")}: ${CurrencyHelper.formatPrice(stats.totalPaidValue, currency: currency)} (${stats.bottlesWithPriceCount}/${stats.totalBottles} ${isFr ? "bouteilles renseignées" : "bottles specified"})',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
@@ -476,7 +487,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               )
             else
               Text(
-                'Prix d\'achat non renseigné pour vos bouteilles',
+                isFr
+                    ? 'Prix d\'achat non renseigné pour vos bouteilles'
+                    : 'Purchase price not specified for your bottles',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: Colors.grey.shade600,
                   fontStyle: FontStyle.italic,
@@ -487,7 +500,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               const Divider(height: 12),
               const SizedBox(height: 4),
               Text(
-                'Devises d\'achat déclarées :',
+                isFr ? 'Devises d\'achat déclarées :' : 'Declared purchase currencies:',
                 style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
@@ -514,7 +527,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= 2. EMBEDDED SCRATCH MAP CARD =================
-  Widget _buildScratchMapCard(BuildContext context, ThemeData theme, bool isDark, String mapMode, List<MapRegionData> regions) {
+  Widget _buildScratchMapCard(BuildContext context, ThemeData theme, bool isDark, String mapMode, List<MapRegionData> regions, bool isFr) {
     final unlockedCount = regions.where((r) => r.isUnlocked).length;
     final totalCount = regions.length;
     final pct = totalCount > 0 ? (unlockedCount / totalCount * 100).round() : 0;
@@ -547,12 +560,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Carte des Terroirs & Découvertes',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      Text(
+                        isFr ? 'Carte des Terroirs & Découvertes' : 'Terroirs & Discoveries Map',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       Text(
-                        '$unlockedCount / $totalCount terroirs explorés ($pct%)',
+                        isFr
+                            ? '$unlockedCount / $totalCount terroirs explorés ($pct%)'
+                            : '$unlockedCount / $totalCount terroirs explored ($pct%)',
                         style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],
@@ -571,7 +586,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  tooltip: 'Plein écran',
+                  tooltip: isFr ? 'Plein écran' : 'Fullscreen',
                   icon: const Icon(Icons.fullscreen, color: Color(0xFFD4AF37)),
                   onPressed: () => context.push('/scratchcard'),
                 ),
@@ -583,7 +598,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             child: ScratchMapCanvas(
               mapMode: mapMode,
               regions: regions,
-              onRegionTapped: (region) => _showRegionModal(context, region),
+              onRegionTapped: (region) => _showRegionModal(context, region, isFr),
             ),
           ),
         ],
@@ -592,14 +607,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= 3. KPI COUNTERS GRID =================
-  Widget _buildKpiGrid(BuildContext context, ThemeData theme, CellarStats stats, AppLocalizations? l10n) {
+  Widget _buildKpiGrid(BuildContext context, ThemeData theme, CellarStats stats, AppLocalizations? l10n, bool isFr) {
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _StatKpiCard(
-                title: l10n?.statsTotalBottles ?? 'Total Bouteilles',
+                title: l10n?.statsTotalBottles ?? (isFr ? 'Total Bouteilles' : 'Total Bottles'),
                 value: '${stats.totalBottles}',
                 icon: Icons.wine_bar,
                 color: theme.colorScheme.primary,
@@ -608,7 +623,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _StatKpiCard(
-                title: l10n?.statsBottlesEnjoyed ?? 'Dégustées',
+                title: l10n?.statsBottlesEnjoyed ?? (isFr ? 'Dégustées' : 'Enjoyed'),
                 value: '${stats.totalConsumed}',
                 icon: Icons.check_circle_outline,
                 color: Colors.teal.shade700,
@@ -621,7 +636,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           children: [
             Expanded(
               child: _StatKpiCard(
-                title: l10n?.maturityDrinkSoon ?? 'À boire vite',
+                title: l10n?.maturityDrinkSoon ?? (isFr ? 'À boire vite' : 'Drink Soon'),
                 value: '${stats.drinkSoonCount}',
                 icon: Icons.alarm,
                 color: Colors.orange.shade800,
@@ -630,7 +645,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _StatKpiCard(
-                title: l10n?.maturityAtPeak ?? 'À l\'apogée',
+                title: l10n?.maturityAtPeak ?? (isFr ? 'À l\'apogée' : 'At Peak'),
                 value: '${stats.atPeakCount}',
                 icon: Icons.auto_awesome,
                 color: Colors.green.shade700,
@@ -643,7 +658,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           children: [
             Expanded(
               child: _StatKpiCard(
-                title: 'Prix moyen / btl',
+                title: isFr ? 'Prix moyen / btl' : 'Avg price / btl',
                 value: CurrencyHelper.formatPrice(stats.averageBottlePrice, decimals: 0),
                 icon: Icons.euro,
                 color: const Color(0xFFD4AF37),
@@ -652,7 +667,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _StatKpiCard(
-                title: 'Doyenne de la cave',
+                title: isFr ? 'Doyenne de la cave' : 'Oldest vintage',
                 value: stats.oldestVintage != null ? '${stats.oldestVintage}' : 'N/A',
                 icon: Icons.history_edu,
                 color: const Color(0xFF9333EA),
@@ -665,16 +680,22 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= 4. SOMMELIER INSIGHT CARD =================
-  Widget _buildSommelierInsightCard(BuildContext context, ThemeData theme, CellarStats stats, bool isDark) {
+  Widget _buildSommelierInsightCard(BuildContext context, ThemeData theme, CellarStats stats, bool isDark, bool isFr) {
     final readyPct = stats.totalBottles > 0
         ? ((stats.atPeakCount + stats.drinkSoonCount) / stats.totalBottles * 100).round()
         : 0;
 
-    String advice = 'Votre cave est équilibrée avec un bel étalement de millésimes.';
+    String advice = isFr
+        ? 'Votre cave est équilibrée avec un bel étalement de millésimes.'
+        : 'Your cellar is well-balanced with a great spread of vintages.';
     if (stats.drinkSoonCount > 3) {
-      advice = 'Attention : ${stats.drinkSoonCount} bouteilles arrivent en fin d\'apogée et devraient être ouvertes prochainement.';
+      advice = isFr
+          ? 'Attention : ${stats.drinkSoonCount} bouteilles arrivent en fin d\'apogée et devraient être ouvertes prochainement.'
+          : 'Warning: ${stats.drinkSoonCount} bottles are reaching the end of their peak and should be enjoyed soon.';
     } else if (readyPct < 25 && stats.totalBottles > 5) {
-      advice = 'Une grande majorité de vos bouteilles sont encore en phase de vieillissement. Laissez-les reposer !';
+      advice = isFr
+          ? 'Une grande majorité de vos bouteilles sont encore en phase de vieillissement. Laissez-les reposer !'
+          : 'A large majority of your bottles are still aging. Let them rest!';
     }
 
     return Card(
@@ -693,7 +714,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Analyse & Conseil du Sommelier',
+                    isFr ? 'Analyse & Conseil du Sommelier' : 'Sommelier Insight & Advice',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -708,7 +729,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   if (stats.topRegion != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      '🏰 Terroir de prédilection : ${stats.topRegion} (${stats.byRegion[stats.topRegion]} btl)',
+                      isFr
+                          ? '🏰 Terroir de prédilection : ${stats.topRegion} (${stats.byRegion[stats.topRegion]} btl)'
+                          : '🏰 Favorite terroir: ${stats.topRegion} (${stats.byRegion[stats.topRegion]} btl)',
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFD4AF37)),
                     ),
                   ],
@@ -722,7 +745,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= 5. PIE CHART: WINE TYPES =================
-  Widget _buildWineTypePieChartCard(ThemeData theme, bool isDark, CellarStats stats) {
+  Widget _buildWineTypePieChartCard(ThemeData theme, bool isDark, CellarStats stats, bool isFr) {
     final entries = stats.byType.entries.toList();
 
     return Card(
@@ -738,7 +761,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.pie_chart, size: 20, color: Color(0xFF722F37)),
                 const SizedBox(width: 8),
                 Text(
-                  'Répartition par Couleur & Type de Vin',
+                  isFr ? 'Répartition par Couleur & Type de Vin' : 'Breakdown by Wine Color & Type',
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -823,7 +846,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= 6. PIE CHART: REGIONS =================
-  Widget _buildRegionPieChartCard(ThemeData theme, bool isDark, CellarStats stats) {
+  Widget _buildRegionPieChartCard(ThemeData theme, bool isDark, CellarStats stats, bool isFr) {
     final entries = stats.byRegion.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final topEntries = entries.take(6).toList();
@@ -841,7 +864,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.terrain_outlined, size: 20, color: Color(0xFF10B981)),
                 const SizedBox(width: 8),
                 Text(
-                  'Répartition par Grand Vignoble',
+                  isFr ? 'Répartition par Grand Vignoble' : 'Breakdown by Wine Region',
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -930,7 +953,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= 7. BAR CHART: VINTAGES HISTOGRAM =================
-  Widget _buildVintageHistogramCard(ThemeData theme, bool isDark, CellarStats stats) {
+  Widget _buildVintageHistogramCard(ThemeData theme, bool isDark, CellarStats stats, bool isFr) {
     final sortedVintages = stats.byVintage.keys.toList()..sort();
     final maxCount = stats.byVintage.values.fold<int>(0, (prev, elem) => elem > prev ? elem : prev);
 
@@ -947,7 +970,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.bar_chart, size: 20, color: Color(0xFFD4AF37)),
                 const SizedBox(width: 8),
                 Text(
-                  'Histogramme des Millésimes',
+                  isFr ? 'Histogramme des Millésimes' : 'Vintage Distribution',
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -1022,12 +1045,12 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= 8. BAR CHART: DRINKING WINDOW MATURITY =================
-  Widget _buildDrinkingWindowCard(ThemeData theme, bool isDark, CellarStats stats) {
+  Widget _buildDrinkingWindowCard(ThemeData theme, bool isDark, CellarStats stats, bool isFr) {
     final statusData = [
-      {'label': 'En garde & Jeune ⏳', 'count': (stats.byWindowStatus[DrinkWindowStatus.aging] ?? 0) + (stats.byWindowStatus[DrinkWindowStatus.tooYoung] ?? 0), 'color': const Color(0xFF38BDF8)},
-      {'label': 'À l\'apogée ✨', 'count': stats.byWindowStatus[DrinkWindowStatus.inPeak] ?? 0, 'color': const Color(0xFF10B981)},
-      {'label': 'À boire rapidement ⏰', 'count': stats.byWindowStatus[DrinkWindowStatus.drinkSoon] ?? 0, 'color': const Color(0xFFF59E0B)},
-      {'label': 'Passé l\'apogée ⚠️', 'count': stats.byWindowStatus[DrinkWindowStatus.pastPeak] ?? 0, 'color': const Color(0xFFE11D48)},
+      {'label': isFr ? 'En garde & Jeune ⏳' : 'Aging & Young ⏳', 'count': (stats.byWindowStatus[DrinkWindowStatus.aging] ?? 0) + (stats.byWindowStatus[DrinkWindowStatus.tooYoung] ?? 0), 'color': const Color(0xFF38BDF8)},
+      {'label': isFr ? 'À l\'apogée ✨' : 'At Peak ✨', 'count': stats.byWindowStatus[DrinkWindowStatus.inPeak] ?? 0, 'color': const Color(0xFF10B981)},
+      {'label': isFr ? 'À boire rapidement ⏰' : 'Drink Soon ⏰', 'count': stats.byWindowStatus[DrinkWindowStatus.drinkSoon] ?? 0, 'color': const Color(0xFFF59E0B)},
+      {'label': isFr ? 'Passé l\'apogée ⚠️' : 'Past Peak ⚠️', 'count': stats.byWindowStatus[DrinkWindowStatus.pastPeak] ?? 0, 'color': const Color(0xFFE11D48)},
     ];
 
     return Card(
@@ -1043,7 +1066,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.hourglass_bottom, size: 20, color: Color(0xFF38BDF8)),
                 const SizedBox(width: 8),
                 Text(
-                  'Maturité & Fenêtres d\'Apogée',
+                  isFr ? 'Maturité & Fenêtres d\'Apogée' : 'Maturity & Drinking Windows',
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -1088,7 +1111,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= 9. BAR CHART: PRICE TIERS =================
-  Widget _buildPriceTierCard(ThemeData theme, bool isDark, CellarStats stats) {
+  Widget _buildPriceTierCard(ThemeData theme, bool isDark, CellarStats stats, bool isFr) {
     final entries = stats.byPriceRange.entries.toList();
 
     return Card(
@@ -1104,7 +1127,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.sell_outlined, size: 20, color: Color(0xFF10B981)),
                 const SizedBox(width: 8),
                 Text(
-                  'Gammes de Valeur / Prix',
+                  isFr ? 'Gammes de Valeur / Prix' : 'Value & Price Tiers',
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -1148,7 +1171,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= REGION EXTRACTION & MODAL =================
-  List<MapRegionData> _buildMapRegions(String mode, List<Bottle> bottles) {
+  List<MapRegionData> _buildMapRegions(String mode, List<Bottle> bottles, bool isFr) {
     if (mode == 'france') {
       final bdxKeys = ['bordeaux', 'margaux', 'pauillac', 'pomerol', 'saint-émilion', 'saint-emilion', 'saint-julien', 'pessac', 'grave', 'médoc', 'medoc', 'sauternes'];
       final bouKeys = ['bourgogne', 'burgundy', 'chablis', 'meursault', 'beaune', 'nuits', 'vosne', 'pommard', 'volnay', 'gevrey', 'mâcon'];
@@ -1164,27 +1187,27 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       final corKeys = ['corse', 'corsica', 'patrimonio', 'ajaccio'];
 
       return [
-        _createRegion('champagne', 'Champagne', 'France', '🇫🇷', const Rect.fromLTWH(0.44, 0.14, 0.22, 0.14), chaKeys, bottles, 'Effervescents de craie et de renommée mondiale.'),
-        _createRegion('alsace', 'Alsace', 'France', '🇫🇷', const Rect.fromLTWH(0.72, 0.20, 0.16, 0.18), alsKeys, bottles, 'Rieslings et cépages nobles sur coteaux vosgiens.'),
-        _createRegion('bourgogne', 'Bourgogne', 'France', '🇫🇷', const Rect.fromLTWH(0.55, 0.31, 0.20, 0.18), bouKeys, bottles, 'Pinot Noir et Chardonnay sur terroirs classés UNESCO.'),
-        _createRegion('beaujolais', 'Beaujolais', 'France', '🇫🇷', const Rect.fromLTWH(0.57, 0.48, 0.10, 0.08), beauKeys, bottles, 'Gamay sublime sur granites et schistes bleus.'),
-        _createRegion('jura_savoie', 'Jura & Savoie', 'France', '🇫🇷', const Rect.fromLTWH(0.70, 0.46, 0.12, 0.14), juraKeys, bottles, 'Vins de voile oxydatifs et terroirs d\'altitude.'),
-        _createRegion('loire', 'Vallée de la Loire', 'France', '🇫🇷', const Rect.fromLTWH(0.24, 0.28, 0.28, 0.15), loiKeys, bottles, 'Chenin Blanc, Sauvignon et Cabernet Franc.'),
-        _createRegion('bordeaux', 'Bordeaux', 'France', '🇫🇷', const Rect.fromLTWH(0.18, 0.52, 0.24, 0.18), bdxKeys, bottles, 'Grands Crus Classés de la rive gauche et rive droite.'),
-        _createRegion('sud_ouest', 'Sud-Ouest', 'France', '🇫🇷', const Rect.fromLTWH(0.20, 0.68, 0.22, 0.18), sudOuestKeys, bottles, 'Cahors Tannat, Madiran et pépites authentiques.'),
-        _createRegion('rhone', 'Vallée du Rhône', 'France', '🇫🇷', const Rect.fromLTWH(0.54, 0.58, 0.18, 0.20), rhoKeys, bottles, 'Syrah septentrionale et Grenache méridional.'),
-        _createRegion('languedoc_roussillon', 'Languedoc-Roussillon', 'France', '🇫🇷', const Rect.fromLTWH(0.40, 0.76, 0.24, 0.16), langKeys, bottles, 'Vignoble solaire méditerranéen.'),
-        _createRegion('provence', 'Provence', 'France', '🇫🇷', const Rect.fromLTWH(0.64, 0.76, 0.20, 0.14), proKeys, bottles, 'Rosés gastronomiques et Bandols d\'anthologie.'),
-        _createRegion('corse', 'Corse', 'France', '🇫🇷', const Rect.fromLTWH(0.86, 0.80, 0.12, 0.18), corKeys, bottles, 'Niellucciu, Sciaccarellu et Vermentinu sur l\'Île de Beauté.'),
+        _createRegion('champagne', 'Champagne', 'France', '🇫🇷', const Rect.fromLTWH(0.44, 0.14, 0.22, 0.14), chaKeys, bottles, isFr ? 'Effervescents de craie et de renommée mondiale.' : 'World-renowned chalky sparkling wines.'),
+        _createRegion('alsace', 'Alsace', 'France', '🇫🇷', const Rect.fromLTWH(0.72, 0.20, 0.16, 0.18), alsKeys, bottles, isFr ? 'Rieslings et cépages nobles sur coteaux vosgiens.' : 'Riesling and noble varietals on Vosges hillsides.'),
+        _createRegion('bourgogne', 'Bourgogne', 'France', '🇫🇷', const Rect.fromLTWH(0.55, 0.31, 0.20, 0.18), bouKeys, bottles, isFr ? 'Pinot Noir et Chardonnay sur terroirs classés UNESCO.' : 'Pinot Noir and Chardonnay on UNESCO-classified terroirs.'),
+        _createRegion('beaujolais', 'Beaujolais', 'France', '🇫🇷', const Rect.fromLTWH(0.57, 0.48, 0.10, 0.08), beauKeys, bottles, isFr ? 'Gamay sublime sur granites et schistes bleus.' : 'Sublime Gamay on granites and blue schist soils.'),
+        _createRegion('jura_savoie', 'Jura & Savoie', 'France', '🇫🇷', const Rect.fromLTWH(0.70, 0.46, 0.12, 0.14), juraKeys, bottles, isFr ? 'Vins de voile oxydatifs et terroirs d\'altitude.' : 'Oxidative flor wines and alpine terroirs.'),
+        _createRegion('loire', isFr ? 'Vallée de la Loire' : 'Loire Valley', 'France', '🇫🇷', const Rect.fromLTWH(0.24, 0.28, 0.28, 0.15), loiKeys, bottles, isFr ? 'Chenin Blanc, Sauvignon et Cabernet Franc.' : 'Chenin Blanc, Sauvignon Blanc, and Cabernet Franc.'),
+        _createRegion('bordeaux', 'Bordeaux', 'France', '🇫🇷', const Rect.fromLTWH(0.18, 0.52, 0.24, 0.18), bdxKeys, bottles, isFr ? 'Grands Crus Classés de la rive gauche et rive droite.' : 'Left and right bank classified Grands Crus.'),
+        _createRegion('sud_ouest', isFr ? 'Sud-Ouest' : 'South-West', 'France', '🇫🇷', const Rect.fromLTWH(0.20, 0.68, 0.22, 0.18), sudOuestKeys, bottles, isFr ? 'Cahors Tannat, Madiran et pépites authentiques.' : 'Cahors Tannat, Madiran, and authentic hidden gems.'),
+        _createRegion('rhone', isFr ? 'Vallée du Rhône' : 'Rhône Valley', 'France', '🇫🇷', const Rect.fromLTWH(0.54, 0.58, 0.18, 0.20), rhoKeys, bottles, isFr ? 'Syrah septentrionale et Grenache méridional.' : 'Northern Syrah and Southern Grenache blends.'),
+        _createRegion('languedoc_roussillon', 'Languedoc-Roussillon', 'France', '🇫🇷', const Rect.fromLTWH(0.40, 0.76, 0.24, 0.16), langKeys, bottles, isFr ? 'Vignoble solaire méditerranéen.' : 'Sunny Mediterranean terroirs and expressive crus.'),
+        _createRegion('provence', 'Provence', 'France', '🇫🇷', const Rect.fromLTWH(0.64, 0.76, 0.20, 0.14), proKeys, bottles, isFr ? 'Rosés gastronomiques et Bandols d\'anthologie.' : 'Gastronomic rosés and legendary Bandol reds.'),
+        _createRegion('corse', isFr ? 'Corse' : 'Corsica', 'France', '🇫🇷', const Rect.fromLTWH(0.86, 0.80, 0.12, 0.18), corKeys, bottles, isFr ? 'Niellucciu, Sciaccarellu et Vermentinu sur l\'Île de Beauté.' : 'Niellucciu, Sciaccarellu, and Vermentinu on the Isle of Beauty.'),
       ];
     } else {
       // International countries
       return [
-        _createRegion('italy', 'Italie', 'Italie', '🇮🇹', const Rect.fromLTWH(0.50, 0.28, 0.05, 0.07), ['ital', 'barolo', 'chianti', 'brunello'], bottles, 'Barolo, Brunello et diversité des DOCG.'),
-        _createRegion('spain', 'Espagne', 'Espagne', '🇪🇸', const Rect.fromLTWH(0.45, 0.30, 0.05, 0.06), ['spain', 'espag', 'rioja', 'ribera', 'priorat'], bottles, 'Tempranillo, Grenache et grands élevages.'),
-        _createRegion('usa', 'États-Unis', 'USA', '🇺🇸', const Rect.fromLTWH(0.12, 0.28, 0.14, 0.12), ['usa', 'calif', 'napa', 'oregon', 'sonoma'], bottles, 'Napa Valley Cabernet et Pinots d\'Oregon.'),
-        _createRegion('argentina', 'Argentine', 'Argentine', '🇦🇷', const Rect.fromLTWH(0.28, 0.68, 0.06, 0.14), ['argentin', 'mendoza', 'malbec'], bottles, 'Malbec d\'altitude au pied des Andes.'),
-        _createRegion('chile', 'Chili', 'Chili', '🇨🇱', const Rect.fromLTWH(0.26, 0.66, 0.04, 0.16), ['chili', 'chile', 'carmenere', 'colchagua'], bottles, 'Carmenère et vallées côtières pacifiques.'),
+        _createRegion('italy', isFr ? 'Italie' : 'Italy', isFr ? 'Italie' : 'Italy', '🇮🇹', const Rect.fromLTWH(0.50, 0.28, 0.05, 0.07), ['ital', 'barolo', 'chianti', 'brunello'], bottles, isFr ? 'Barolo, Brunello et diversité des DOCG.' : 'Barolo, Brunello, and the rich diversity of DOCG appellations.'),
+        _createRegion('spain', isFr ? 'Espagne' : 'Spain', isFr ? 'Espagne' : 'Spain', '🇪🇸', const Rect.fromLTWH(0.45, 0.30, 0.05, 0.06), ['spain', 'espag', 'rioja', 'ribera', 'priorat'], bottles, isFr ? 'Tempranillo, Grenache et grands élevages.' : 'Tempranillo, Garnacha, and celebrated aged reserves.'),
+        _createRegion('usa', isFr ? 'États-Unis' : 'United States', 'USA', '🇺🇸', const Rect.fromLTWH(0.12, 0.28, 0.14, 0.12), ['usa', 'calif', 'napa', 'oregon', 'sonoma'], bottles, isFr ? 'Napa Valley Cabernet et Pinots d\'Oregon.' : 'Napa Valley Cabernet and expressive Oregon Pinots.'),
+        _createRegion('argentina', isFr ? 'Argentine' : 'Argentina', isFr ? 'Argentine' : 'Argentina', '🇦🇷', const Rect.fromLTWH(0.28, 0.68, 0.06, 0.14), ['argentin', 'mendoza', 'malbec'], bottles, isFr ? 'Malbec d\'altitude au pied des Andes.' : 'High-altitude Malbec grown at the foot of the Andes.'),
+        _createRegion('chile', isFr ? 'Chili' : 'Chile', isFr ? 'Chili' : 'Chile', '🇨🇱', const Rect.fromLTWH(0.26, 0.66, 0.04, 0.16), ['chili', 'chile', 'carmenere', 'colchagua'], bottles, isFr ? 'Carmenère et vallées côtières pacifiques.' : 'Carmenère and cool-climate Pacific coastal valleys.'),
       ];
     }
   }
@@ -1242,7 +1265,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
-  void _showRegionModal(BuildContext context, MapRegionData region) {
+  void _showRegionModal(BuildContext context, MapRegionData region, bool isFr) {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
@@ -1267,7 +1290,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   ),
                 ),
                 Chip(
-                  label: Text(region.isUnlocked ? 'Exploré ✨' : 'À découvrir 🔒'),
+                  label: Text(region.isUnlocked ? (isFr ? 'Exploré ✨' : 'Explored ✨') : (isFr ? 'À découvrir 🔒' : 'To discover 🔒')),
                   backgroundColor: region.isUnlocked ? const Color(0xFFD4AF37).withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2),
                 ),
               ],
@@ -1278,8 +1301,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _ModalStatTile(label: 'En cave', value: '${region.ownedCount} btl', icon: Icons.inventory_2),
-                _ModalStatTile(label: 'Dégustées', value: '${region.drunkCount}', icon: Icons.wine_bar),
+                _ModalStatTile(label: isFr ? 'En cave' : 'In cellar', value: '${region.ownedCount} btl', icon: Icons.inventory_2),
+                _ModalStatTile(label: isFr ? 'Dégustées' : 'Tasted', value: '${region.drunkCount}', icon: Icons.wine_bar),
               ],
             ),
           ],

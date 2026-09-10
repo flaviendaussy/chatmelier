@@ -24,24 +24,24 @@ class PendingActionsSheet extends ConsumerStatefulWidget {
 class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
   bool _isProcessing = false;
 
-  String _formatActionType(OfflineActionType type) {
+  String _formatActionType(OfflineActionType type, [bool isFr = true]) {
     switch (type) {
       case OfflineActionType.addBottle:
-        return 'Ajout de bouteille';
+        return isFr ? 'Ajout de bouteille' : 'Add bottle';
       case OfflineActionType.consumeBottle:
-        return 'Dégustation / Sortie';
+        return isFr ? 'Dégustation / Sortie' : 'Tasting / Checkout';
       case OfflineActionType.updateBottle:
-        return 'Modification bouteille';
+        return isFr ? 'Modification bouteille' : 'Edit bottle';
       case OfflineActionType.updateWine:
-        return 'Modification fiche vin';
+        return isFr ? 'Modification fiche vin' : 'Edit wine details';
       case OfflineActionType.deleteBottle:
-        return 'Suppression bouteille';
+        return isFr ? 'Suppression bouteille' : 'Delete bottle';
       case OfflineActionType.createCellar:
-        return 'Création de cave';
+        return isFr ? 'Création de cave' : 'Create cellar';
       case OfflineActionType.updateCellar:
-        return 'Modification cave';
+        return isFr ? 'Modification cave' : 'Edit cellar';
       case OfflineActionType.moveBottle:
-        return 'Déplacement de cave';
+        return isFr ? 'Déplacement de cave' : 'Move bottle';
     }
   }
 
@@ -64,12 +64,12 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
     }
   }
 
-  String _getActionDescription(OfflineAction action) {
+  String _getActionDescription(OfflineAction action, [bool isFr = true]) {
     final data = action.data;
     if (data.containsKey('wine_name')) return data['wine_name'].toString();
     if (data.containsKey('name')) return data['name'].toString();
-    if (data.containsKey('bottle_id')) return 'Bouteille ID: ${data['bottle_id']}';
-    return 'Action locale enregistrée';
+    if (data.containsKey('bottle_id')) return '${isFr ? "Bouteille ID" : "Bottle ID"}: ${data['bottle_id']}';
+    return isFr ? 'Action locale enregistrée' : 'Local action recorded';
   }
 
   Future<void> _syncAll() async {
@@ -93,17 +93,26 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
     if (!mounted) return;
     setState(() => _isProcessing = false);
 
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     if (result.errors.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('⚠️ ${result.errors.length} erreur(s) lors de la synchronisation'),
+          content: Text(
+            isFr
+                ? '⚠️ ${result.errors.length} erreur(s) lors de la synchronisation'
+                : '⚠️ ${result.errors.length} error(s) during synchronization',
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
     } else if (result.succeeded > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('✨ ${result.succeeded} action(s) synchronisée(s) !'),
+          content: Text(
+            isFr
+                ? '✨ ${result.succeeded} action(s) synchronisée(s) !'
+                : '✨ ${result.succeeded} action(s) synced!',
+          ),
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
@@ -126,22 +135,25 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
   }
 
   Future<void> _clearAll() async {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Vider la file d\'attente ?'),
-        content: const Text(
-          'Les actions hors-ligne non synchronisées seront définitivement supprimées de la mémoire locale.',
+        title: Text(isFr ? 'Vider la file d\'attente ?' : 'Clear pending queue?'),
+        content: Text(
+          isFr
+              ? 'Les actions hors-ligne non synchronisées seront définitivement supprimées de la mémoire locale.'
+              : 'Unsynchronized offline actions will be permanently deleted from local memory.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annuler'),
+            child: Text(isFr ? 'Annuler' : 'Cancel'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
-            child: const Text('Vider'),
+            child: Text(isFr ? 'Vider' : 'Clear'),
           ),
         ],
       ),
@@ -167,6 +179,7 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
     final isDark = theme.brightness == Brightness.dark;
     final storage = ref.watch(offlineStorageServiceProvider);
     final queue = storage.getQueue();
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     return Container(
       constraints: BoxConstraints(
@@ -211,11 +224,13 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Actions en attente',
+                        isFr ? 'Actions en attente' : 'Pending actions',
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '${queue.length} action${queue.length > 1 ? 's' : ''} dans la file locale',
+                        isFr
+                            ? '${queue.length} action${queue.length > 1 ? 's' : ''} dans la file locale'
+                            : '${queue.length} action${queue.length > 1 ? 's' : ''} in local queue',
                         style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                       ),
                     ],
@@ -225,7 +240,7 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
                   TextButton.icon(
                     onPressed: _clearAll,
                     icon: const Icon(Icons.delete_sweep, size: 18, color: Colors.redAccent),
-                    label: const Text('Vider', style: TextStyle(color: Colors.redAccent)),
+                    label: Text(isFr ? 'Vider' : 'Clear', style: const TextStyle(color: Colors.redAccent)),
                   ),
               ],
             ),
@@ -249,7 +264,9 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${queue.where((a) => a.status == OfflineActionStatus.failed).length} action(s) en échec',
+                      isFr
+                          ? '${queue.where((a) => a.status == OfflineActionStatus.failed).length} action(s) en échec'
+                          : '${queue.where((a) => a.status == OfflineActionStatus.failed).length} failed action(s)',
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent),
                     ),
                   ),
@@ -260,9 +277,9 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text(
-                      'Effacer les erreurs',
-                      style: TextStyle(fontSize: 12, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                    child: Text(
+                      isFr ? 'Effacer les erreurs' : 'Clear errors',
+                      style: const TextStyle(fontSize: 12, color: Colors.redAccent, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -278,14 +295,16 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
                   const Icon(Icons.check_circle_outline, size: 48, color: Color(0xFF10B981)),
                   const SizedBox(height: 12),
                   Text(
-                    'File de synchronisation vide',
+                    isFr ? 'File de synchronisation vide' : 'Sync queue empty',
                     style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Toutes vos modifications sont à jour sur le serveur.',
+                  Text(
+                    isFr
+                        ? 'Toutes vos modifications sont à jour sur le serveur.'
+                        : 'All your changes are up to date on the server.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                 ],
               ),
@@ -331,19 +350,19 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
                               Row(
                                 children: [
                                   Text(
-                                    _formatActionType(action.type),
+                                    _formatActionType(action.type, isFr),
                                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                   ),
                                   const Spacer(),
                                   Text(
-                                    DateFormat('HH:mm - d MMM', 'fr_FR').format(action.createdAt),
+                                    DateFormat('HH:mm - d MMM', isFr ? 'fr_FR' : 'en_US').format(action.createdAt),
                                     style: const TextStyle(fontSize: 11, color: Colors.grey),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 3),
                               Text(
-                                _getActionDescription(action),
+                                _getActionDescription(action, isFr),
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: isDark ? Colors.white70 : Colors.black87,
@@ -386,7 +405,7 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
                         else
                           IconButton(
                             icon: const Icon(Icons.close, size: 18, color: Colors.grey),
-                            tooltip: 'Supprimer cette action',
+                            tooltip: isFr ? 'Supprimer cette action' : 'Delete this action',
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                             onPressed: () => _deleteAction(action.id),
@@ -416,7 +435,9 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
                           )
                         : const Icon(Icons.sync),
                     label: Text(
-                      _isProcessing ? 'Synchronisation en cours...' : 'Synchroniser maintenant (${queue.length})',
+                      _isProcessing
+                          ? (isFr ? 'Synchronisation en cours...' : 'Syncing in progress...')
+                          : (isFr ? 'Synchroniser maintenant (${queue.length})' : 'Sync now (${queue.length})'),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     style: ElevatedButton.styleFrom(

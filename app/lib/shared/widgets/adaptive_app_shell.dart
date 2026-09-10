@@ -380,6 +380,7 @@ class _TabletAppShell extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     return Scaffold(
       body: Row(
@@ -419,7 +420,7 @@ class _TabletAppShell extends ConsumerWidget {
                   const SizedBox(height: 14),
                   IconButton.filledTonal(
                     icon: const Icon(Icons.add, size: 22),
-                    tooltip: 'Ajouter une bouteille',
+                    tooltip: isFr ? 'Ajouter une bouteille' : 'Add a bottle',
                     style: IconButton.styleFrom(
                       backgroundColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
                       foregroundColor: const Color(0xFF8B1E3F),
@@ -436,7 +437,7 @@ class _TabletAppShell extends ConsumerWidget {
                   padding: const EdgeInsets.only(bottom: 16),
                   child: IconButton(
                     icon: const Icon(Icons.person_outline),
-                    tooltip: 'Mon Profil & Paramètres',
+                    tooltip: isFr ? 'Mon Profil & Paramètres' : 'My Profile & Settings',
                     onPressed: () => context.push('/profile'),
                   ),
                 ),
@@ -446,32 +447,32 @@ class _TabletAppShell extends ConsumerWidget {
               NavigationRailDestination(
                 icon: const Icon(Icons.wine_bar_outlined),
                 selectedIcon: const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navCellar ?? 'Cave'),
+                label: Text(l10n?.navCellar ?? (isFr ? 'Cave' : 'Cellar')),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.local_bar_outlined),
                 selectedIcon: const Icon(Icons.local_bar, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navBar ?? 'Bar'),
+                label: Text(l10n?.navBar ?? (isFr ? 'Bar' : 'Bar')),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.auto_awesome_outlined),
                 selectedIcon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
-                label: Text(l10n?.navChat ?? 'Chat'),
+                label: Text(l10n?.navChat ?? (isFr ? 'Chat' : 'Chat')),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.restaurant_menu_outlined),
                 selectedIcon: const Icon(Icons.restaurant_menu, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navJournal ?? 'Degust.'),
+                label: Text(l10n?.navJournal ?? (isFr ? 'Dégust.' : 'Tasting')),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.insights_outlined),
                 selectedIcon: const Icon(Icons.insights, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navStats ?? 'Stats'),
+                label: Text(l10n?.navStats ?? (isFr ? 'Stats' : 'Stats')),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.person_outline),
                 selectedIcon: const Icon(Icons.person, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navProfile ?? 'Profil'),
+                label: Text(l10n?.navProfile ?? (isFr ? 'Profil' : 'Profile')),
               ),
             ],
           ),
@@ -581,7 +582,7 @@ class _DesktopAppShell extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              l10n?.appSubtitle ?? 'Sommelier & Cave à Vin',
+                              l10n?.appSubtitle ?? (isFr ? 'Sommelier & Cave à Vin' : 'Sommelier & Wine Cellar'),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontSize: 11,
@@ -639,7 +640,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.wine_bar_outlined,
                         activeIcon: Icons.wine_bar,
-                        label: l10n?.navCellar ?? 'Cave',
+                        label: l10n?.navCellar ?? (isFr ? 'Cave' : 'Cellar'),
                         isSelected: currentIndex == 0,
                         onTap: () => onNavigate(0),
                       ),
@@ -647,7 +648,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.local_bar_outlined,
                         activeIcon: Icons.local_bar,
-                        label: l10n?.navBar ?? 'Bar',
+                        label: l10n?.navBar ?? (isFr ? 'Bar' : 'Bar'),
                         isSelected: currentIndex == 1,
                         activeColor: const Color(0xFFD4AF37),
                         onTap: () => onNavigate(1),
@@ -656,7 +657,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.auto_awesome_outlined,
                         activeIcon: Icons.auto_awesome,
-                        label: l10n?.navChat ?? 'Chat',
+                        label: l10n?.navChat ?? (isFr ? 'Chat' : 'Chat'),
                         isSelected: currentIndex == 2,
                         activeColor: const Color(0xFFD4AF37),
                         onTap: () => onNavigate(2),
@@ -665,7 +666,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.restaurant_menu_outlined,
                         activeIcon: Icons.restaurant_menu,
-                        label: l10n?.navJournal ?? 'Degust.',
+                        label: l10n?.navJournal ?? (isFr ? 'Dégust.' : 'Tasting'),
                         isSelected: currentIndex == 3,
                         onTap: () => onNavigate(3),
                       ),
@@ -673,7 +674,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.insights_outlined,
                         activeIcon: Icons.insights,
-                        label: l10n?.navStats ?? 'Stats',
+                        label: l10n?.navStats ?? (isFr ? 'Stats' : 'Stats'),
                         isSelected: currentIndex == 4,
                         onTap: () => onNavigate(4),
                       ),
@@ -681,7 +682,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.person_outline,
                         activeIcon: Icons.person,
-                        label: l10n?.navProfile ?? 'Profil',
+                        label: l10n?.navProfile ?? (isFr ? 'Profil' : 'Profile'),
                         isSelected: currentIndex == 5,
                         onTap: () => onNavigate(5),
                       ),
@@ -700,7 +701,7 @@ class _DesktopAppShell extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                   child: Text(
-                    l10n?.quickActions ?? 'ACTIONS RAPIDES',
+                    l10n?.quickActions ?? (isFr ? 'ACTIONS RAPIDES' : 'QUICK ACTIONS'),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,

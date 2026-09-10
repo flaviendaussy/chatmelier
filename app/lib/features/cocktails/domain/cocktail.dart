@@ -79,6 +79,54 @@ class Cocktail {
     this.isCustom = false,
   });
 
+  String localizedGlass([bool isFr = true]) {
+    if (isFr) return glass;
+    final g = glass.toLowerCase();
+    if (g.contains('coupe') || g.contains('martini')) return 'Coupe / Martini';
+    if (g.contains('highball') || g.contains('tumbler') || g.contains('collins')) return 'Highball / Collins';
+    if (g.contains('old fashioned') || g.contains('rocks')) return 'Old Fashioned / Rocks';
+    if (g.contains('flûte') || g.contains('flute')) return 'Champagne Flute';
+    if (g.contains('mule') || g.contains('cuivre')) return 'Copper Mug';
+    if (g.contains('verre à vin') || g.contains('ballon')) return 'Wine Glass';
+    if (g.contains('verre à mélange')) return 'Mixing Glass';
+    return glass;
+  }
+
+  String localizedMethod([bool isFr = true]) {
+    if (isFr) return method;
+    final m = method.toLowerCase();
+    if (m.contains('shak')) return 'Shaken';
+    if (m.contains('mélang') || m.contains('stir')) return 'Stirred';
+    if (m.contains('direct') || m.contains('build')) return 'Built in glass';
+    if (m.contains('pil') || m.contains('muddle')) return 'Muddled';
+    if (m.contains('mix') || m.contains('blend')) return 'Blended';
+    return method;
+  }
+
+  String localizedDifficulty([bool isFr = true]) {
+    if (isFr) return difficulty;
+    final d = difficulty.toLowerCase();
+    if (d.contains('facil') || d.contains('easy')) return 'Easy';
+    if (d.contains('moyen') || d.contains('medium')) return 'Medium';
+    if (d.contains('diffic') || d.contains('hard')) return 'Advanced';
+    return difficulty;
+  }
+
+  String localizedIce([bool isFr = true]) {
+    if (isFr) return ice;
+    final i = ice.toLowerCase();
+    if (i.contains('glaçon') || i.contains('cubes')) return 'Ice Cubes';
+    if (i.contains('pil') || i.contains('crush')) return 'Crushed Ice';
+    if (i.contains('sphèr') || i.contains('sphere')) return 'Ice Sphere';
+    if (i.contains('sans') || i.contains('aucun') || i.contains('no ice')) return 'No Ice';
+    return ice;
+  }
+
+  String localizedPrepTime([bool isFr = true]) {
+    if (isFr) return prepTime;
+    return prepTime.replaceAll('min', 'mins');
+  }
+
   Cocktail copyWith({
     String? id,
     String? name,

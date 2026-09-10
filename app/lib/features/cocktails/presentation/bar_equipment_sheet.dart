@@ -18,7 +18,7 @@ class BarEquipmentSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final equipment = ref.watch(barEquipmentProvider);
     final notifier = ref.read(barEquipmentProvider.notifier);
 

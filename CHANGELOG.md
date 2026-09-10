@@ -2,6 +2,29 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.2.1+50] — 2026-09-11
+
+### 🍷 Ce qui change pour vous / What's New for You
+- **Finalisation de la Localisation Anglaise Complète (Complete English Experience)** :
+  - **Bar & Cocktails** : Traduction intégrale de la fiche détaillée des cocktails (verrerie, méthode, glaçons, portions, dosages cuisine maison, shaker vs bocal hermétique, conseils du mixologue, garnitures), du dialogue de personnalisation de recettes, et du garde-manger du bar (tous les ingrédients et unités de mesure).
+  - **Statistiques & Valorisation** : Traduction des sélecteurs de périmètre (« All my cellars (Overall) »), graphiques de répartition par couleur/région/millésime, barres de progression de maturité (« Aging & Young », « At Peak », « Drink Soon », « Past Peak »), conseils et insights du sommelier, tranches de valorisation, et carte interactive des terroirs.
+  - **Navigation & Barre d'Actions Web/Desktop** : Actions rapides (« Furniture & Shelves », « Voice Sommelier », « Taste / Checkout wine », « Taste Out of Cellar », « World Terroirs Map »), sélecteur de cave (« My Wine Cellars »), gestion des accès (« Owner », « Read & Write », « Read-only »), menus d'options et boîtes de confirmation.
+  - **File d'attente hors-ligne & Synchronisation** : Écran « Pending actions » entièrement bilingue (types d'actions, statut de synchronisation, messages d'erreurs et purge).
+- **Sécurisation Maximale de l'API Gemini** :
+  - Éradication absolue de toute clé API codée en dur dans le code source client et les fonctions Cloud.
+  - Toutes les requêtes AI passent exclusivement par les variables d'environnement / secrets Supabase sans fuite sur le bundle public JavaScript.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Localisation (`cocktail_detail_sheet.dart`, `save_cocktail_dialog.dart`, `bar_cocktails_hub_screen.dart`, `stats_screen.dart`, `adaptive_app_shell.dart`, `cellar_switcher_sheet.dart`, `pending_actions_sheet.dart`)* :
+  - Conditionnement dynamique précis basé sur `isFr = Localizations.localeOf(context).languageCode == 'fr'`.
+  - Passage en `Wrap` adaptatif sur l'en-tête cocktail pour éliminer tout débordement de mise en page.
+- *Résilience & Parsing Hors-Ligne (`tasting_ai_assistant_service.dart`)* :
+  - Extraction automatique par expression régulière des notes dictées (ex: « 8.5 sur 10 ») en mode hors-ligne sans dépendance à l'API externe.
+- *Sécurité API (`constants.dart`, `gemini_model_registry.dart`, `scan-label/index.ts`)* :
+  - Purge des clés compromises et bascule sur des valeurs par défaut vides.
+
+---
+
 ## [v1.2.1+49] — 2026-09-07
 
 ### 🍷 Ce qui change pour vous / What's New for You

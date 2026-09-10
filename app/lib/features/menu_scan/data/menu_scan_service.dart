@@ -23,7 +23,7 @@ class MenuScanService {
   final WineKnowledgeCacheService _knowledgeCache;
   static const String _geminiApiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: 'AQ.Ab8RN6JFZQNPfXmDdjdGT0posCOmn_4wPIFv_TiviorSGL6BDg',
+    defaultValue: '',
   );
 
   MenuScanService(this._knowledgeCache);

@@ -53,6 +53,7 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final suggestedName = widget.cocktail.name;
 
     return AlertDialog(
@@ -68,10 +69,10 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
             child: const Icon(Icons.bookmark_add, color: Color(0xFF8B1E3F), size: 24),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Enregistrer le cocktail',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              isFr ? 'Enregistrer le cocktail' : 'Save cocktail',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
           ),
         ],
@@ -84,7 +85,9 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Ajoutez cette création à vos recettes pour la retrouver dans votre catalogue de cocktails.',
+                isFr
+                    ? 'Ajoutez cette création à vos recettes pour la retrouver dans votre catalogue de cocktails.'
+                    : 'Add this creation to your recipes to find it in your cocktail catalog.',
                 style: TextStyle(
                   fontSize: 13,
                   color: isDark ? Colors.white70 : Colors.black87,
@@ -92,7 +95,7 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Nom de la recette :',
+                isFr ? 'Nom de la recette :' : 'Recipe name:',
                 style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
@@ -100,13 +103,13 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
                 controller: _nameController,
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: 'Ex: Mon Negroni Parfumé',
+                  hintText: isFr ? 'Ex: Mon Negroni Parfumé' : 'e.g. My Fragrant Negroni',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   prefixIcon: const Icon(Icons.edit_outlined, size: 20),
                   suffixIcon: _nameController.text != suggestedName
                       ? IconButton(
                           icon: const Icon(Icons.restore, size: 20),
-                          tooltip: 'Rétablir le nom suggéré par Chatmelier',
+                          tooltip: isFr ? 'Rétablir le nom suggéré par Chatmelier' : 'Restore name suggested by Chatmelier',
                           onPressed: () {
                             setState(() {
                               _nameController.text = suggestedName;
@@ -118,7 +121,7 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
                 onChanged: (_) => setState(() {}),
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) {
-                    return 'Veuillez saisir un nom pour ce cocktail';
+                    return isFr ? 'Veuillez saisir un nom pour ce cocktail' : 'Please enter a name for this cocktail';
                   }
                   return null;
                 },
@@ -148,7 +151,7 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
-                            'Nom suggéré : "$suggestedName"',
+                            isFr ? 'Nom suggéré : "$suggestedName"' : 'Suggested name: "$suggestedName"',
                             style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -177,14 +180,14 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
                         ),
                         const Spacer(),
                         Text(
-                          widget.cocktail.glass,
+                          widget.cocktail.localizedGlass(isFr),
                           style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${widget.cocktail.ingredients.length} ingrédients • ${widget.cocktail.method}',
+                      '${widget.cocktail.ingredients.length} ${isFr ? "ingrédients" : "ingredients"} • ${widget.cocktail.localizedMethod(isFr)}',
                       style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                     ),
                   ],
@@ -197,7 +200,7 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Annuler'),
+          child: Text(isFr ? 'Annuler' : 'Cancel'),
         ),
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
@@ -206,14 +209,14 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           icon: const Icon(Icons.check, size: 18),
-          label: const Text('Enregistrer la recette'),
-          onPressed: _save,
+          label: Text(isFr ? 'Enregistrer la recette' : 'Save recipe'),
+          onPressed: () => _save(isFr),
         ),
       ],
     );
   }
 
-  void _save() async {
+  void _save(bool isFr) async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final chosenName = _nameController.text.trim();
@@ -225,7 +228,11 @@ class _SaveCocktailDialogState extends ConsumerState<SaveCocktailDialog> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Cocktail "$chosenName" enregistré dans votre bar ! 🍸'),
+          content: Text(
+            isFr
+                ? 'Cocktail "$chosenName" enregistré dans votre bar ! 🍸'
+                : 'Cocktail "$chosenName" saved to your bar! 🍸',
+          ),
           backgroundColor: const Color(0xFF2E7D32),
           behavior: SnackBarBehavior.floating,
         ),

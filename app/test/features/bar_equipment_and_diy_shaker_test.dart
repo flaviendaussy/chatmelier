@@ -10,6 +10,7 @@ import 'package:chatmelier/features/cocktails/data/bar_pantry_service.dart';
 import 'package:chatmelier/features/cocktails/data/custom_cocktail_service.dart';
 import 'package:chatmelier/features/offline/presentation/sync_provider.dart';
 import 'package:chatmelier/features/cocktails/presentation/cocktail_detail_sheet.dart';
+import 'package:chatmelier/l10n/app_localizations.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -125,6 +126,9 @@ void main() {
             customCocktailServiceProvider.overrideWithValue(CustomCocktailService(prefs)),
           ],
           child: MaterialApp(
+            locale: const Locale('fr'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: Builder(
                 builder: (context) => ElevatedButton(

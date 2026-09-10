@@ -13,7 +13,7 @@ class ScanService {
   final SupabaseClient _client;
   static const String _geminiApiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: 'AQ.Ab8RN6JFZQNPfXmDdjdGT0posCOmn_4wPIFv_TiviorSGL6BDg',
+    defaultValue: '',
   );
 
   ScanService(this._client);

@@ -100,7 +100,7 @@ class BlindQuizData {
 class TastingAiAssistantService {
   static const String _geminiApiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: 'AQ.Ab8RN6JFZQNPfXmDdjdGT0posCOmn_4wPIFv_TiviorSGL6BDg',
+    defaultValue: '',
   );
 
   static const List<String> _candidateModels = [
@@ -498,7 +498,13 @@ Reste concis, chaleureux et convivial. Pas de puces, pas de JSON, juste le texte
     final primaryName = tasterNames.isNotEmpty ? tasterNames.first : 'Moi';
 
     double note = 7.0;
-    if (lower.contains('adoré') || lower.contains('excellent') || lower.contains('coup de coeur') || lower.contains('incroyable')) {
+    final scoreMatch = RegExp(r'(\d+(?:[.,]\d+)?)\s*(?:/|sur)\s*10', caseSensitive: false).firstMatch(lower);
+    if (scoreMatch != null) {
+      final parsed = double.tryParse(scoreMatch.group(1)!.replaceAll(',', '.'));
+      if (parsed != null) {
+        note = parsed.clamp(1.0, 10.0);
+      }
+    } else if (lower.contains('adoré') || lower.contains('régal') || lower.contains('excellent') || lower.contains('coup de coeur') || lower.contains('incroyable')) {
       note = 9.0;
     } else if (lower.contains('très bon') || lower.contains('super') || lower.contains('remarquable')) {
       note = 8.0;

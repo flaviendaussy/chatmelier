@@ -40,7 +40,7 @@ class DetectedFurnitureLayout {
 class FurnitureVisionService {
   static const String _geminiApiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: 'AQ.Ab8RN6JFZQNPfXmDdjdGT0posCOmn_4wPIFv_TiviorSGL6BDg',
+    defaultValue: '',
   );
 
   static Future<Uint8List> _readImageBytes(String imagePath) async {

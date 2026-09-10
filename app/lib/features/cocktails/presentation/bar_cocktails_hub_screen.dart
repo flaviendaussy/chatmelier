@@ -57,7 +57,7 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     final currentCellarId = ref.watch(currentCellarIdProvider);
     final bottlesAsync = currentCellarId != null
@@ -214,7 +214,9 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
       }
       if (_pantrySearch.isNotEmpty) {
         final q = _pantrySearch.toLowerCase();
-        return item.name.toLowerCase().contains(q) || item.category.label(isFr).toLowerCase().contains(q);
+        return item.localizedName(isFr).toLowerCase().contains(q) ||
+            item.name.toLowerCase().contains(q) ||
+            item.category.label(isFr).toLowerCase().contains(q);
       }
       return true;
     }).toList();
@@ -374,14 +376,14 @@ class _BarCocktailsHubScreenState extends ConsumerState<BarCocktailsHubScreen>
                   ),
                 ),
                 title: Text(
-                  item.name,
+                  item.localizedName(isFr),
                   style: TextStyle(
                     fontWeight: inStock ? FontWeight.bold : FontWeight.normal,
                     color: inStock ? (isDark ? Colors.white : Colors.black87) : Colors.grey.shade600,
                   ),
                 ),
                 subtitle: Text(
-                  '${item.category.label(isFr)} • ${item.unit}',
+                  '${item.category.label(isFr)} • ${item.localizedUnit(isFr)}',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
                 trailing: Row(

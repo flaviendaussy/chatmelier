@@ -145,7 +145,7 @@ abstract class AppLocalizations {
   /// No description provided for @navJournal.
   ///
   /// In en, this message translates to:
-  /// **'Degust.'**
+  /// **'Tasting'**
   String get navJournal;
 
   /// No description provided for @navStats.
@@ -601,7 +601,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatGreeting.
   ///
   /// In en, this message translates to:
-  /// **'Bonjour ! I am Chatmelier. Ask me for food pairings, drinking advice, or wine cellar recommendations based on what you currently have in stock.'**
+  /// **'Hello! I am Chatmelier. Ask me for food pairings, drinking advice, or wine cellar recommendations based on what you currently have in stock.'**
   String get chatGreeting;
 
   /// No description provided for @chatAnalyzing.

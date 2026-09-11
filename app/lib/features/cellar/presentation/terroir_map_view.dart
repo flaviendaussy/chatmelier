@@ -1,8 +1,13 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../scratchcard/presentation/france_geo_data.dart';
-import '../../scratchcard/presentation/world_geo_data.dart';
-import '../../scratchcard/presentation/svg_path_parser.dart';
+import 'package:flutter_map/flutter_map.dart';
+import '../domain/terroir_geo_data.dart';
+
+enum TerroirMapTheme {
+  darkMatter,
+  openStreetMap,
+  satellite,
+  topoRelief,
+}
 
 class TerroirMapView extends StatefulWidget {
   final String country;
@@ -22,144 +27,447 @@ class TerroirMapView extends StatefulWidget {
   State<TerroirMapView> createState() => _TerroirMapViewState();
 }
 
-class _TerroirMapViewState extends State<TerroirMapView> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _TerroirMapViewState extends State<TerroirMapView> {
+  final MapController _mapController = MapController();
+  TerroirMapTheme _mapTheme = TerroirMapTheme.darkMatter;
+  bool _showHexagons = true;
+
+  late TerroirGeoProfile _profile;
+  late List<TerroirHexPolygon> _hexagons;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this, initialIndex: 2); // default to Vignoble
+    _resolveTerroir();
   }
 
   @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  void didUpdateWidget(covariant TerroirMapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.country != widget.country ||
+        oldWidget.region != widget.region ||
+        oldWidget.subRegion != widget.subRegion ||
+        oldWidget.appellation != widget.appellation) {
+      _resolveTerroir();
+      _mapController.move(_profile.center, _profile.defaultZoom);
+    }
   }
 
-  String _getContinent(String country) {
-    final c = country.toLowerCase();
-    if (c.contains('france') || c.contains('ital') || c.contains('spain') || c.contains('espag') || c.contains('portug') || c.contains('german') || c.contains('allemag')) {
-      return 'Europe';
+  void _resolveTerroir() {
+    _profile = TerroirGeoResolver.resolve(
+      country: widget.country,
+      region: widget.region,
+      subRegion: widget.subRegion,
+      appellation: widget.appellation,
+    );
+    _hexagons = _profile.generateHexagons();
+  }
+
+  String _getTileUrl(TerroirMapTheme theme) {
+    switch (theme) {
+      case TerroirMapTheme.darkMatter:
+        return 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
+      case TerroirMapTheme.openStreetMap:
+        return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+      case TerroirMapTheme.satellite:
+        return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}';
+      case TerroirMapTheme.topoRelief:
+        return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
     }
-    if (c.contains('state') || c.contains('unis') || c.contains('usa') || c.contains('calif') || c.contains('argentin') || c.contains('chili') || c.contains('canada')) {
-      return 'Amériques';
+  }
+
+  List<String> _getTileSubdomains(TerroirMapTheme theme) {
+    switch (theme) {
+      case TerroirMapTheme.darkMatter:
+        return const ['a', 'b', 'c', 'd'];
+      case TerroirMapTheme.openStreetMap:
+        return const [];
+      case TerroirMapTheme.satellite:
+        return const [];
+      case TerroirMapTheme.topoRelief:
+        return const ['a', 'b', 'c'];
     }
-    if (c.contains('austral') || c.contains('zealand') || c.contains('zélande')) {
-      return 'Océanie';
+  }
+
+  String _getThemeName(TerroirMapTheme theme) {
+    switch (theme) {
+      case TerroirMapTheme.darkMatter:
+        return 'Dark';
+      case TerroirMapTheme.openStreetMap:
+        return 'OSM';
+      case TerroirMapTheme.satellite:
+        return 'Satellite';
+      case TerroirMapTheme.topoRelief:
+        return 'Relief';
     }
-    if (c.contains('south africa') || c.contains('afrique')) {
-      return 'Afrique';
+  }
+
+  IconData _getThemeIcon(TerroirMapTheme theme) {
+    switch (theme) {
+      case TerroirMapTheme.darkMatter:
+        return Icons.dark_mode_outlined;
+      case TerroirMapTheme.openStreetMap:
+        return Icons.map_outlined;
+      case TerroirMapTheme.satellite:
+        return Icons.satellite_alt_outlined;
+      case TerroirMapTheme.topoRelief:
+        return Icons.terrain_outlined;
     }
-    return 'Monde';
+  }
+
+  void _cycleTheme() {
+    setState(() {
+      const values = TerroirMapTheme.values;
+      final nextIndex = (_mapTheme.index + 1) % values.length;
+      _mapTheme = values[nextIndex];
+    });
+  }
+
+  void _zoomIn() {
+    final currentZoom = _mapController.camera.zoom;
+    _mapController.move(_mapController.camera.center, currentZoom + 1.0);
+  }
+
+  void _zoomOut() {
+    final currentZoom = _mapController.camera.zoom;
+    _mapController.move(_mapController.camera.center, currentZoom - 1.0);
+  }
+
+  void _recenter() {
+    _mapController.move(_profile.center, _profile.defaultZoom);
+  }
+
+  void _openFullscreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => _TerroirMapFullscreenScreen(
+          profile: _profile,
+          hexagons: _hexagons,
+          initialTheme: _mapTheme,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final continent = _getContinent(widget.country);
-    final country = widget.country.isNotEmpty ? widget.country : 'France';
-    final region = widget.region.isNotEmpty ? widget.region : 'Bordeaux';
-    final appellation = widget.appellation != null && widget.appellation!.isNotEmpty ? widget.appellation! : region;
 
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.black12,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF18151E) : const Color(0xFFF7F3EE),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: Row(
+          // ===================================================================
+          // MAP CANVAS (280px tall, completely clear of text banners)
+          // ===================================================================
+          SizedBox(
+            height: 280,
+            child: Stack(
               children: [
-                Expanded(
-                  child: TabBar(
-                    controller: _tabController,
-                    isScrollable: true,
-                    tabAlignment: TabAlignment.start,
-                    labelColor: const Color(0xFFD4AF37),
-                    unselectedLabelColor: isDark ? Colors.white60 : Colors.black54,
-                    indicatorColor: const Color(0xFFD4AF37),
-                    labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                    tabs: const [
-                      Tab(icon: Icon(Icons.public, size: 16), text: '1. Continent'),
-                      Tab(icon: Icon(Icons.flag_outlined, size: 16), text: '2. Pays'),
-                      Tab(icon: Icon(Icons.map_outlined, size: 16), text: '3. Vignoble'),
-                      Tab(icon: Icon(Icons.terrain_outlined, size: 16), text: '4. Terroir & Cru'),
-                    ],
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: _profile.center,
+                    initialZoom: _profile.defaultZoom,
+                    minZoom: 3.0,
+                    maxZoom: 18.0,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.all,
+                    ),
+                  ),
+                  children: [
+                    // Dynamic Base Tile Layer
+                    TileLayer(
+                      key: ValueKey(_mapTheme),
+                      urlTemplate: _getTileUrl(_mapTheme),
+                      subdomains: _getTileSubdomains(_mapTheme),
+                      userAgentPackageName: 'com.chatmelier.app',
+                      maxZoom: 19,
+                    ),
+
+                    // Hexbin Cartography Layer (Parcels & Terroir Zones)
+                    if (_showHexagons)
+                      PolygonLayer(
+                        polygons: _hexagons.map((hex) {
+                          return Polygon(
+                            points: hex.points,
+                            color: hex.color,
+                            borderColor: hex.borderColor,
+                            borderStrokeWidth: hex.borderWidth,
+                          );
+                        }).toList(),
+                      ),
+
+                    // Sommelier Terroir Center Pin Marker
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: _profile.center,
+                          width: 44,
+                          height: 44,
+                          child: _buildTerroirPin(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                // Top-Left: Mini Theme Switcher Pill
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: InkWell(
+                    onTap: _cycleTheme,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFFD4AF37).withValues(alpha: 0.6),
+                          width: 1.0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _getThemeIcon(_mapTheme),
+                            size: 14,
+                            color: const Color(0xFFD4AF37),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            _getThemeName(_mapTheme),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.fullscreen, color: Color(0xFFD4AF37)),
-                  tooltip: 'Agrandir en plein écran (Zoom interactif)',
-                  onPressed: () => _openFullscreen(context, isDark, continent, country, region, appellation),
+
+                // Top-Right: Discreet Floating Map Controls Bar
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.white24,
+                        width: 1.0,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildMiniMapBtn(
+                          icon: Icons.add,
+                          tooltip: 'Zoom avant',
+                          onPressed: _zoomIn,
+                        ),
+                        _buildDivider(),
+                        _buildMiniMapBtn(
+                          icon: Icons.remove,
+                          tooltip: 'Zoom arrière',
+                          onPressed: _zoomOut,
+                        ),
+                        _buildDivider(),
+                        _buildMiniMapBtn(
+                          icon: Icons.my_location,
+                          tooltip: 'Recadrer sur le terroir',
+                          onPressed: _recenter,
+                        ),
+                        _buildDivider(),
+                        _buildMiniMapBtn(
+                          icon: _showHexagons ? Icons.hexagon : Icons.hexagon_outlined,
+                          tooltip: _showHexagons ? 'Masquer hexagones' : 'Afficher hexagones',
+                          iconColor: _showHexagons ? const Color(0xFFD4AF37) : Colors.white70,
+                          onPressed: () {
+                            setState(() {
+                              _showHexagons = !_showHexagons;
+                            });
+                          },
+                        ),
+                        _buildDivider(),
+                        _buildMiniMapBtn(
+                          icon: Icons.fullscreen,
+                          tooltip: 'Plein écran',
+                          iconColor: const Color(0xFFD4AF37),
+                          onPressed: () => _openFullscreen(context),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
 
-          SizedBox(
-            height: 250,
-            child: TabBarView(
-              controller: _tabController,
+          // ===================================================================
+          // TERROIR & CRU PROFILE DETAILS (Strictly BELOW the map canvas)
+          // ===================================================================
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildMapTab(
-                  painter: _RealContinentMapPainter(
-                    country: country,
-                    isDark: isDark,
-                  ),
-                  level: 'Continent • $continent',
-                  title: '$country ($continent)',
-                  subtitle: 'Bassin viticole tempéré - Natural Earth Data',
-                  highlightTag: 'Origine : $country',
-                  accentColor: const Color(0xFF38BDF8),
+                // Header: Flag, Appellation Name & Classification
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _profile.flag,
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _profile.name,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${_profile.region}${_profile.subRegion != null ? ' • ${_profile.subRegion}' : ''} (${_profile.country})',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFD4AF37).withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: Text(
+                        _profile.classification.split('(').first.trim(),
+                        style: const TextStyle(
+                          color: Color(0xFFD4AF37),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 14),
 
-                _buildMapTab(
-                  painter: _RealCountryMapPainter(
-                    country: country,
-                    region: region,
-                    isDark: isDark,
-                  ),
-                  level: 'Pays • $country',
-                  title: '$country ➔ Vignoble de $region',
-                  subtitle: 'Contours officiels IGN Lambert-93 & Réseau fluvial',
-                  highlightTag: 'Vignoble : $region',
-                  accentColor: const Color(0xFFD4AF37),
+                // Terroir Attribute Chips (Soil, Climate, Exposure/Altitude, Grapes)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildTerroirChip(
+                      icon: Icons.layers_outlined,
+                      label: 'Sol',
+                      value: _profile.soilType,
+                      theme: theme,
+                    ),
+                    _buildTerroirChip(
+                      icon: Icons.wb_sunny_outlined,
+                      label: 'Climat',
+                      value: _profile.climate,
+                      theme: theme,
+                    ),
+                    _buildTerroirChip(
+                      icon: Icons.landscape_outlined,
+                      label: 'Relief',
+                      value: '${_profile.exposure} • ${_profile.elevation}',
+                      theme: theme,
+                    ),
+                    _buildTerroirChip(
+                      icon: Icons.bubble_chart_outlined,
+                      label: 'Cépages',
+                      value: _profile.keyGrapes,
+                      theme: theme,
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 14),
 
-                _buildMapTab(
-                  painter: _RealWineRegionMapPainter(
-                    region: region,
-                    subRegion: widget.subRegion,
-                    appellation: appellation,
-                    isDark: isDark,
+                // Sommelier Geological Notes Card
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF1E1B24)
+                        : const Color(0xFFFBF8F3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? Colors.white10 : Colors.black12,
+                    ),
                   ),
-                  level: 'Vignoble • $region',
-                  title: '$region (${widget.subRegion ?? "Sous-région"})',
-                  subtitle: 'Limites A.O.C. géoréférencées & Vallées fluviales',
-                  highlightTag: 'Zone : ${widget.subRegion ?? appellation}',
-                  accentColor: const Color(0xFF10B981),
-                ),
-
-                _buildMapTab(
-                  painter: _RealAppellationTerroirPainter(
-                    region: region,
-                    appellation: appellation,
-                    isDark: isDark,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.format_quote,
+                        size: 20,
+                        color: Color(0xFFD4AF37),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _profile.sommelierNotes,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontStyle: FontStyle.italic,
+                            height: 1.35,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  level: 'Cru & Terroir • $appellation',
-                  title: 'AOC / Climat : $appellation',
-                  subtitle: 'Courbes de niveau, exposition solaire & géologie',
-                  highlightTag: 'Parcelle & Climat AOC',
-                  accentColor: const Color(0xFFE11D48),
                 ),
               ],
             ),
@@ -169,600 +477,386 @@ class _TerroirMapViewState extends State<TerroirMapView> with SingleTickerProvid
     );
   }
 
-  void _openFullscreen(
-    BuildContext context,
-    bool isDark,
-    String continent,
-    String country,
-    String region,
-    String appellation,
-  ) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (ctx) => Scaffold(
-          appBar: AppBar(
-            title: Text('$appellation ($region) • Carte'),
-            bottom: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              labelColor: const Color(0xFFD4AF37),
-              indicatorColor: const Color(0xFFD4AF37),
-              tabs: const [
-                Tab(icon: Icon(Icons.public, size: 16), text: '1. Continent'),
-                Tab(icon: Icon(Icons.flag_outlined, size: 16), text: '2. Pays'),
-                Tab(icon: Icon(Icons.map_outlined, size: 16), text: '3. Vignoble'),
-                Tab(icon: Icon(Icons.terrain_outlined, size: 16), text: '4. Terroir & Cru'),
-              ],
-            ),
+  Widget _buildTerroirPin() {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Outer glowing pulse ring
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
           ),
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildMapTab(
-                painter: _RealContinentMapPainter(country: country, isDark: isDark),
-                level: 'Continent • $continent',
-                title: '$country ($continent)',
-                subtitle: 'Bassin viticole mondial - Natural Earth Data',
-                highlightTag: 'Origine : $country',
-                accentColor: const Color(0xFF38BDF8),
-                isFullscreen: true,
-              ),
-              _buildMapTab(
-                painter: _RealCountryMapPainter(country: country, region: region, isDark: isDark),
-                level: 'Pays • $country',
-                title: '$country ➔ Vignoble de $region',
-                subtitle: 'Contours géographiques & Bassins fluviaux',
-                highlightTag: 'Vignoble : $region',
-                accentColor: const Color(0xFFD4AF37),
-                isFullscreen: true,
-              ),
-              _buildMapTab(
-                painter: _RealWineRegionMapPainter(region: region, subRegion: widget.subRegion, appellation: appellation, isDark: isDark),
-                level: 'Vignoble • $region',
-                title: '$region (${widget.subRegion ?? "Sous-région"})',
-                subtitle: 'Limites A.O.C. géoréférencées & Reliefs',
-                highlightTag: 'Zone : ${widget.subRegion ?? appellation}',
-                accentColor: const Color(0xFF10B981),
-                isFullscreen: true,
-              ),
-              _buildMapTab(
-                painter: _RealAppellationTerroirPainter(region: region, appellation: appellation, isDark: isDark),
-                level: 'Cru & Terroir • $appellation',
-                title: 'AOC / Climat : $appellation',
-                subtitle: 'Courbes de niveau, exposition solaire & géologie',
-                highlightTag: 'Parcelle & Climat AOC',
-                accentColor: const Color(0xFFE11D48),
-                isFullscreen: true,
+        ),
+        // Center Pin
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFFDF70), Color(0xFFD4AF37), Color(0xFF8A6D1C)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMapTab({
-    required CustomPainter painter,
-    required String level,
-    required String title,
-    required String subtitle,
-    required String highlightTag,
-    required Color accentColor,
-    bool isFullscreen = false,
-  }) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: InteractiveViewer(
-            minScale: 0.8,
-            maxScale: 10.0,
-            boundaryMargin: const EdgeInsets.all(100),
-            child: CustomPaint(
-              painter: painter,
-            ),
-          ),
-        ),
-
-        Positioned(
-          left: 12,
-          top: 12,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.82),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: accentColor.withValues(alpha: 0.7), width: 1.2),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 6),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: accentColor,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(color: accentColor.withValues(alpha: 0.7), blurRadius: 6),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  level,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        Positioned(
-          left: 12,
-          right: 12,
-          bottom: 12,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.82),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white12),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 8),
-              ],
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.location_pin, color: accentColor, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 10.5,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+          child: const Center(
+            child: Icon(
+              Icons.wine_bar,
+              size: 16,
+              color: Color(0xFF18151E),
             ),
           ),
         ),
       ],
     );
   }
-}
 
-class _RealContinentMapPainter extends CustomPainter {
-  final String country;
-  final bool isDark;
-
-  _RealContinentMapPainter({required this.country, required this.isDark});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    final seaPaint = Paint()..color = isDark ? const Color(0xFF0C1017) : const Color(0xFFE2ECF7);
-    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), seaPaint);
-
-    final gridPaint = Paint()
-      ..color = (isDark ? Colors.white : const Color(0xFF1E3A8A)).withValues(alpha: 0.08)
-      ..strokeWidth = 0.8;
-    for (double x = 0; x < w; x += 40) {
-      canvas.drawLine(Offset(x, 0), Offset(x, h), gridPaint);
-    }
-    for (double y = 0; y < h; y += 40) {
-      canvas.drawLine(Offset(0, y), Offset(w, y), gridPaint);
-    }
-
-    final mapRect = computeFittingRect(size, const Size(2000, 1000));
-    const viewBox = Rect.fromLTWH(0, 0, 2000, 1000);
-
-    final worldPath = SvgPathParser.parse(
-      WorldGeoData.worldAllSvg,
-      viewBox: viewBox,
-      targetRect: mapRect,
-    );
-
-    final landPaint = Paint()
-      ..color = isDark ? const Color(0xFF1B2433) : const Color(0xFFF1EBE1)
-      ..style = PaintingStyle.fill;
-    final landBorder = Paint()
-      ..color = isDark ? const Color(0xFF37475E) : const Color(0xFFC7BCAB)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    canvas.drawPath(worldPath, landPaint);
-    canvas.drawPath(worldPath, landBorder);
-
-    // Highlight European & French / Origin Wine Area
-    Offset pinPos = Offset(mapRect.left + mapRect.width * 0.49, mapRect.top + mapRect.height * 0.26);
-    final c = country.toLowerCase();
-    if (c.contains('ital')) {
-      pinPos = Offset(mapRect.left + mapRect.width * 0.52, mapRect.top + mapRect.height * 0.28);
-    } else if (c.contains('espag') || c.contains('spain')) {
-      pinPos = Offset(mapRect.left + mapRect.width * 0.47, mapRect.top + mapRect.height * 0.30);
-    } else if (c.contains('usa') || c.contains('calif')) {
-      pinPos = Offset(mapRect.left + mapRect.width * 0.15, mapRect.top + mapRect.height * 0.30);
-    } else if (c.contains('argentin') || c.contains('chili')) {
-      pinPos = Offset(mapRect.left + mapRect.width * 0.29, mapRect.top + mapRect.height * 0.74);
-    }
-
-    _drawGlowingPin(canvas, pinPos, const Color(0xFF38BDF8), country);
-  }
-
-  static Rect computeFittingRect(Size container, Size content) {
-    final scale = math.min(container.width / content.width, container.height / content.height) * 1.1;
-    final targetW = content.width * scale;
-    final targetH = content.height * scale;
-    final left = (container.width - targetW) / 2;
-    final top = (container.height - targetH) / 2;
-    return Rect.fromLTWH(left, top, targetW, targetH);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ================= 2. REAL COUNTRY MAP PAINTER (IGN LAMBERT-93 DATA) =================
-class _RealCountryMapPainter extends CustomPainter {
-  final String country;
-  final String region;
-  final bool isDark;
-
-  _RealCountryMapPainter({required this.country, required this.region, required this.isDark});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    final bgPaint = Paint()..color = isDark ? const Color(0xFF100E17) : const Color(0xFFF3ECE1);
-    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bgPaint);
-
-    final mapRect = _computeFittingRect(size, const Size(1000, 1000));
-    const viewBox = Rect.fromLTWH(0, 0, 1000, 1000);
-
-    // 1. Real IGN Mainland France Silhouette
-    final francePath = SvgPathParser.parse(
-      FranceGeoData.franceMainlandSvg,
-      viewBox: viewBox,
-      targetRect: mapRect,
-    );
-    final corsePath = SvgPathParser.parse(
-      FranceGeoData.corseSvg,
-      viewBox: viewBox,
-      targetRect: mapRect,
-    );
-
-    final landFill = Paint()
-      ..color = isDark ? const Color(0xFF1F1B2A) : const Color(0xFFEDE2D0)
-      ..style = PaintingStyle.fill;
-    final landBorder = Paint()
-      ..color = isDark ? const Color(0xFF5D516B) : const Color(0xFFAFA089)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6;
-
-    canvas.drawPath(francePath, landFill);
-    canvas.drawPath(francePath, landBorder);
-    canvas.drawPath(corsePath, landFill);
-    canvas.drawPath(corsePath, landBorder);
-
-    // 2. Real French River Network (IGN / OSM)
-    final riverPaint = Paint()
-      ..color = (isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB)).withValues(alpha: 0.50)
-      ..strokeWidth = 1.4
-      ..style = PaintingStyle.stroke;
-
-    final riversPath = SvgPathParser.parse(
-      FranceGeoData.riversSvg,
-      viewBox: viewBox,
-      targetRect: mapRect,
-    );
-    canvas.drawPath(riversPath, riverPaint);
-
-    // 3. Highlight exact wine region with real AOC polygon
-    final regionSvg = _getRegionSvg(region);
-    if (regionSvg.isNotEmpty) {
-      final regPath = SvgPathParser.parse(
-        regionSvg,
-        viewBox: viewBox,
-        targetRect: mapRect,
-      );
-
-      final highlightGlow = Paint()
-        ..color = const Color(0xFFD4AF37).withValues(alpha: 0.40)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-      canvas.drawPath(regPath, highlightGlow);
-
-      final highlightFill = Paint()
-        ..color = const Color(0xFFD4AF37).withValues(alpha: 0.80)
-        ..style = PaintingStyle.fill;
-      canvas.drawPath(regPath, highlightFill);
-
-      final highlightBorder = Paint()
-        ..color = const Color(0xFFFFD700)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0;
-      canvas.drawPath(regPath, highlightBorder);
-
-      final pinCenter = regPath.getBounds().center;
-      _drawGlowingPin(canvas, pinCenter, const Color(0xFFFFD700), region);
-    }
-  }
-
-  String _getRegionSvg(String reg) {
-    final r = reg.toLowerCase();
-    if (r.contains('bordeaux') || r.contains('margaux') || r.contains('pauillac') || r.contains('pessac')) return FranceGeoData.bordeauxSvg;
-    if (r.contains('bourgogne') || r.contains('chablis') || r.contains('beaune') || r.contains('nuits')) return FranceGeoData.bourgogneSvg;
-    if (r.contains('champagne')) return FranceGeoData.champagneSvg;
-    if (r.contains('loire') || r.contains('sancerre') || r.contains('chinon')) return FranceGeoData.loireSvg;
-    if (r.contains('rhone') || r.contains('rhône') || r.contains('hermitage')) return FranceGeoData.rhoneSvg;
-    if (r.contains('alsace') || r.contains('riesling')) return FranceGeoData.alsaceSvg;
-    if (r.contains('corse') || r.contains('patrimonio') || r.contains('ajaccio')) return FranceGeoData.corseSvg;
-    if (r.contains('provence') || r.contains('bandol')) return FranceGeoData.provenceSvg;
-    if (r.contains('jura') || r.contains('savoie')) return FranceGeoData.juraSavoieSvg;
-    if (r.contains('languedoc') || r.contains('roussillon')) return FranceGeoData.languedocRoussillonSvg;
-    if (r.contains('sud-ouest') || r.contains('cahors') || r.contains('madiran')) return FranceGeoData.sudOuestSvg;
-    if (r.contains('beaujolais') || r.contains('morgon')) return FranceGeoData.beaujolaisSvg;
-    return FranceGeoData.bordeauxSvg;
-  }
-
-  static Rect _computeFittingRect(Size container, Size content) {
-    final scale = math.min(container.width / content.width, container.height / content.height) * 0.95;
-    final targetW = content.width * scale;
-    final targetH = content.height * scale;
-    final left = (container.width - targetW) / 2;
-    final top = (container.height - targetH) / 2;
-    return Rect.fromLTWH(left, top, targetW, targetH);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ================= 3. REAL WINE REGION MAP PAINTER =================
-class _RealWineRegionMapPainter extends CustomPainter {
-  final String region;
-  final String? subRegion;
-  final String? appellation;
-  final bool isDark;
-
-  _RealWineRegionMapPainter({
-    required this.region,
-    this.subRegion,
-    this.appellation,
-    required this.isDark,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    final bgPaint = Paint()..color = isDark ? const Color(0xFF14121B) : const Color(0xFFF0EBE0);
-    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bgPaint);
-
-    final topoPaint = Paint()
-      ..color = (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    for (double r = 40; r < w; r += 35) {
-      canvas.drawCircle(Offset(w * 0.45, h * 0.5), r, topoPaint);
-    }
-
-    final mapRect = Rect.fromLTWH(w * 0.08, h * 0.08, w * 0.84, h * 0.84);
-    const viewBox = Rect.fromLTWH(0, 0, 1000, 1000);
-
-    final svg = _getRegionSvg(region);
-    final regionPath = SvgPathParser.parse(svg, viewBox: viewBox, targetRect: mapRect);
-
-    final fillPaint = Paint()
-      ..color = const Color(0xFF10B981).withValues(alpha: 0.25)
-      ..style = PaintingStyle.fill;
-    final borderPaint = Paint()
-      ..color = const Color(0xFF10B981)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2;
-
-    canvas.drawPath(regionPath, fillPaint);
-    canvas.drawPath(regionPath, borderPaint);
-
-    final riverPaint = Paint()
-      ..color = (isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB)).withValues(alpha: 0.6)
-      ..strokeWidth = 3.0
-      ..style = PaintingStyle.stroke;
-    
-    final riverPath = Path();
-    riverPath.moveTo(w * 0.2, h * 0.2);
-    riverPath.quadraticBezierTo(w * 0.45, h * 0.5, w * 0.8, h * 0.8);
-    canvas.drawPath(riverPath, riverPaint);
-
-    final pin = regionPath.getBounds().center;
-    _drawGlowingPin(canvas, pin, const Color(0xFF10B981), appellation ?? region);
-  }
-
-  String _getRegionSvg(String reg) {
-    final r = reg.toLowerCase();
-    if (r.contains('bordeaux') || r.contains('margaux') || r.contains('pauillac')) return FranceGeoData.bordeauxSvg;
-    if (r.contains('bourgogne') || r.contains('chablis') || r.contains('beaune')) return FranceGeoData.bourgogneSvg;
-    if (r.contains('champagne')) return FranceGeoData.champagneSvg;
-    if (r.contains('loire') || r.contains('sancerre')) return FranceGeoData.loireSvg;
-    if (r.contains('rhone') || r.contains('rhône')) return FranceGeoData.rhoneSvg;
-    if (r.contains('alsace')) return FranceGeoData.alsaceSvg;
-    if (r.contains('corse')) return FranceGeoData.corseSvg;
-    if (r.contains('provence')) return FranceGeoData.provenceSvg;
-    if (r.contains('jura')) return FranceGeoData.juraSavoieSvg;
-    if (r.contains('languedoc')) return FranceGeoData.languedocRoussillonSvg;
-    if (r.contains('sud-ouest')) return FranceGeoData.sudOuestSvg;
-    if (r.contains('beaujolais')) return FranceGeoData.beaujolaisSvg;
-    return FranceGeoData.bordeauxSvg;
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ================= 4. REAL PARCEL & TOPOGRAPHIC TERROIR PAINTER =================
-class _RealAppellationTerroirPainter extends CustomPainter {
-  final String region;
-  final String appellation;
-  final bool isDark;
-
-  _RealAppellationTerroirPainter({
-    required this.region,
-    required this.appellation,
-    required this.isDark,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    final bgPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: isDark
-            ? [const Color(0xFF23141E), const Color(0xFF120E17)]
-            : [const Color(0xFFFFF7ED), const Color(0xFFF1E6D4)],
-      ).createShader(Rect.fromLTWH(0, 0, w, h));
-    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bgPaint);
-
-    final contourPaint = Paint()
-      ..color = (isDark ? Colors.white : Colors.brown).withValues(alpha: 0.12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-
-    for (double y = 40; y < h - 20; y += 30) {
-      final p = Path();
-      p.moveTo(0, y);
-      p.cubicTo(w * 0.3, y - 15, w * 0.7, y + 20, w, y);
-      canvas.drawPath(p, contourPaint);
-    }
-
-    final parcelRect = Rect.fromCenter(center: Offset(w * 0.5, h * 0.45), width: w * 0.55, height: h * 0.45);
-    final parcelPath = Path()
-      ..moveTo(parcelRect.left, parcelRect.top + 20)
-      ..lineTo(parcelRect.right - 20, parcelRect.top)
-      ..lineTo(parcelRect.right, parcelRect.bottom - 10)
-      ..lineTo(parcelRect.left + 20, parcelRect.bottom)
-      ..close();
-
-    final parcelFill = Paint()
-      ..color = const Color(0xFFE11D48).withValues(alpha: 0.28)
-      ..style = PaintingStyle.fill;
-    final parcelBorder = Paint()
-      ..color = const Color(0xFFE11D48)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4;
-
-    canvas.drawPath(parcelPath, parcelFill);
-    canvas.drawPath(parcelPath, parcelBorder);
-
-    final rowPaint = Paint()
-      ..color = const Color(0xFFE11D48).withValues(alpha: 0.45)
-      ..strokeWidth = 1.5;
-    for (double i = parcelRect.left + 25; i < parcelRect.right - 25; i += 18) {
-      canvas.drawLine(
-        Offset(i, parcelRect.top + 25),
-        Offset(i + 15, parcelRect.bottom - 25),
-        rowPaint,
-      );
-    }
-
-    final sunCenter = Offset(w * 0.85, h * 0.22);
-    final sunGlow = Paint()
-      ..color = const Color(0xFFFFB703).withValues(alpha: 0.35)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
-    canvas.drawCircle(sunCenter, 18, sunGlow);
-
-    final sunFill = Paint()..color = const Color(0xFFFFB703);
-    canvas.drawCircle(sunCenter, 9, sunFill);
-
-    _drawGlowingPin(canvas, parcelRect.center, const Color(0xFFE11D48), appellation);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// Global Glowing Pin Helper
-void _drawGlowingPin(Canvas canvas, Offset center, Color color, [String? label]) {
-  final glow = Paint()
-    ..color = color.withValues(alpha: 0.45)
-    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-  canvas.drawCircle(center, 14, glow);
-
-  final fill = Paint()..color = color;
-  canvas.drawCircle(center, 7, fill);
-
-  final border = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 2.0;
-  canvas.drawCircle(center, 7, border);
-
-  if (label != null && label.isNotEmpty) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          shadows: [
-            Shadow(color: Colors.black87, blurRadius: 4),
-          ],
+  Widget _buildMiniMapBtn({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+    Color iconColor = Colors.white,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.all(7.0),
+          child: Icon(icon, size: 18, color: iconColor),
         ),
       ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final tagX = center.dx - painter.width / 2;
-    final tagY = center.dy - 24;
-    final tagRect = Rect.fromLTWH(tagX - 6, tagY - 2, painter.width + 12, painter.height + 4);
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(tagRect, const Radius.circular(4)),
-      Paint()..color = Colors.black.withValues(alpha: 0.85),
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(tagRect, const Radius.circular(4)),
-      Paint()
-        ..color = color.withValues(alpha: 0.65)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1,
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      width: 20,
+      height: 1,
+      color: Colors.white12,
     );
-    painter.paint(canvas, Offset(tagX, tagY));
+  }
+
+  Widget _buildTerroirChip({
+    required IconData icon,
+    required String label,
+    required String value,
+    required ThemeData theme,
+  }) {
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1A26) : const Color(0xFFF2EFE9),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.black12,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: const Color(0xFFD4AF37)),
+          const SizedBox(width: 6),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 260),
+            child: RichText(
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+              text: TextSpan(
+                style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                children: [
+                  TextSpan(
+                    text: '$label : ',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: value,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// FULLSCREEN INTERACTIVE TERROIR VIEWER
+// =============================================================================
+class _TerroirMapFullscreenScreen extends StatefulWidget {
+  final TerroirGeoProfile profile;
+  final List<TerroirHexPolygon> hexagons;
+  final TerroirMapTheme initialTheme;
+
+  const _TerroirMapFullscreenScreen({
+    required this.profile,
+    required this.hexagons,
+    required this.initialTheme,
+  });
+
+  @override
+  State<_TerroirMapFullscreenScreen> createState() =>
+      _TerroirMapFullscreenScreenState();
+}
+
+class _TerroirMapFullscreenScreenState
+    extends State<_TerroirMapFullscreenScreen> {
+  final MapController _mapController = MapController();
+  late TerroirMapTheme _theme;
+  bool _showHexagons = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _theme = widget.initialTheme;
+  }
+
+  String _getTileUrl(TerroirMapTheme theme) {
+    switch (theme) {
+      case TerroirMapTheme.darkMatter:
+        return 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
+      case TerroirMapTheme.openStreetMap:
+        return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+      case TerroirMapTheme.satellite:
+        return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}';
+      case TerroirMapTheme.topoRelief:
+        return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+    }
+  }
+
+  List<String> _getTileSubdomains(TerroirMapTheme theme) {
+    switch (theme) {
+      case TerroirMapTheme.darkMatter:
+        return const ['a', 'b', 'c', 'd'];
+      case TerroirMapTheme.openStreetMap:
+        return const [];
+      case TerroirMapTheme.satellite:
+        return const [];
+      case TerroirMapTheme.topoRelief:
+        return const ['a', 'b', 'c'];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          '${widget.profile.flag} ${widget.profile.name}',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _showHexagons ? Icons.hexagon : Icons.hexagon_outlined,
+              color: const Color(0xFFD4AF37),
+            ),
+            tooltip: 'Afficher/Masquer Hexagones Terroir',
+            onPressed: () {
+              setState(() {
+                _showHexagons = !_showHexagons;
+              });
+            },
+          ),
+          PopupMenuButton<TerroirMapTheme>(
+            icon: const Icon(Icons.layers_outlined, color: Color(0xFFD4AF37)),
+            tooltip: 'Fond de carte',
+            initialValue: _theme,
+            onSelected: (t) => setState(() => _theme = t),
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(
+                value: TerroirMapTheme.darkMatter,
+                child: Text('🌌 Sommelier Dark (CartoDB)'),
+              ),
+              const PopupMenuItem(
+                value: TerroirMapTheme.openStreetMap,
+                child: Text('🗺️ OpenStreetMap (OSM)'),
+              ),
+              const PopupMenuItem(
+                value: TerroirMapTheme.satellite,
+                child: Text('🛰️ Vue Satellite (Esri)'),
+              ),
+              const PopupMenuItem(
+                value: TerroirMapTheme.topoRelief,
+                child: Text('⛰️ Relief Topographique'),
+              ),
+            ],
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: widget.profile.center,
+              initialZoom: widget.profile.defaultZoom,
+              minZoom: 2.5,
+              maxZoom: 18.5,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all,
+              ),
+            ),
+            children: [
+              TileLayer(
+                key: ValueKey(_theme),
+                urlTemplate: _getTileUrl(_theme),
+                subdomains: _getTileSubdomains(_theme),
+                userAgentPackageName: 'com.chatmelier.app',
+                maxZoom: 19,
+              ),
+              if (_showHexagons)
+                PolygonLayer(
+                  polygons: widget.hexagons.map((hex) {
+                    return Polygon(
+                      points: hex.points,
+                      color: hex.color,
+                      borderColor: hex.borderColor,
+                      borderStrokeWidth: hex.borderWidth,
+                    );
+                  }).toList(),
+                ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: widget.profile.center,
+                    width: 48,
+                    height: 48,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
+                          ),
+                        ),
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFFD4AF37),
+                          ),
+                          child: const Icon(
+                            Icons.wine_bar,
+                            size: 18,
+                            color: Color(0xFF18151E),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Draggable Bottom Terroir Details Sheet
+          DraggableScrollableSheet(
+            initialChildSize: 0.22,
+            minChildSize: 0.10,
+            maxChildSize: 0.60,
+            builder: (ctx, scrollController) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 12,
+                      offset: const Offset(0, -3),
+                    ),
+                  ],
+                ),
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      widget.profile.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                    Text(
+                      '${widget.profile.classification} • ${widget.profile.region}',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildRowItem('🪨 Sol', widget.profile.soilType),
+                    _buildRowItem('☀️ Climat', widget.profile.climate),
+                    _buildRowItem('📐 Relief & Exposition', '${widget.profile.exposure} (${widget.profile.elevation})'),
+                    _buildRowItem('🍇 Cépages Phares', widget.profile.keyGrapes),
+                    const SizedBox(height: 10),
+                    Text(
+                      widget.profile.sommelierNotes,
+                      style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 13, height: 1.4),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRowItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

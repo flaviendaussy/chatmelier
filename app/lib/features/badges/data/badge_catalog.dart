@@ -134,6 +134,7 @@ class BadgeCatalog {
       id: 'continent_old_world',
       title: 'Le Vieux Monde',
       emoji: '🏰',
+      assetImagePath: 'assets/badges/continent_old_world.webp',
       category: BadgeCategory.continents,
       tier: BadgeTier.bronze,
       description: 'Déguster au moins 3 vins européens (France, Italie, Espagne, Portugal, etc.).',
@@ -145,6 +146,7 @@ class BadgeCatalog {
       id: 'continent_new_world',
       title: 'Le Nouveau Monde',
       emoji: '🌎',
+      assetImagePath: 'assets/badges/continent_new_world.webp',
       category: BadgeCategory.continents,
       tier: BadgeTier.silver,
       description: 'Déguster au moins 2 vins hors-Europe (USA, Chili, Argentine, Australie, Afrique du Sud...).',
@@ -156,6 +158,7 @@ class BadgeCatalog {
       id: 'continent_globe_trotter',
       title: 'Tour du Monde en 80 Verres',
       emoji: '✈️',
+      assetImagePath: 'assets/badges/continent_globe_trotter.webp',
       category: BadgeCategory.continents,
       tier: BadgeTier.silver,
       description: 'Avoir dégusté des vins provenant d\'au moins 5 pays différents.',
@@ -167,6 +170,7 @@ class BadgeCatalog {
       id: 'continent_explorer',
       title: 'Explorateur des Terroirs',
       emoji: '🧭',
+      assetImagePath: 'assets/badges/continent_explorer.webp',
       category: BadgeCategory.continents,
       tier: BadgeTier.gold,
       description: 'Avoir dégusté des vins provenant d\'au moins 10 pays différents.',
@@ -178,6 +182,7 @@ class BadgeCatalog {
       id: 'continent_universal',
       title: 'Atlas Universel des Vins',
       emoji: '🌌',
+      assetImagePath: 'assets/badges/continent_universal.webp',
       category: BadgeCategory.continents,
       tier: BadgeTier.diamond,
       description: 'Avoir dégusté des vins issus d\'au moins 20 pays différents.',
@@ -205,6 +210,7 @@ class BadgeCatalog {
       id: 'country_italy',
       title: 'La Dolce Vita',
       emoji: '🇮🇹',
+      assetImagePath: 'assets/badges/country_italy.webp',
       category: BadgeCategory.countries,
       tier: BadgeTier.silver,
       description: 'Avoir dégusté ou possédé au moins 2 vins d\'Italie (Chianti, Barolo, Prosecco...).',
@@ -216,6 +222,7 @@ class BadgeCatalog {
       id: 'country_spain',
       title: 'Ferveur Ibérique',
       emoji: '🇪🇸',
+      assetImagePath: 'assets/badges/country_spain.webp',
       category: BadgeCategory.countries,
       tier: BadgeTier.silver,
       description: 'Avoir dégusté ou possédé au moins 2 vins espagnols (Rioja, Priorat, Ribera del Duero...).',
@@ -227,6 +234,7 @@ class BadgeCatalog {
       id: 'country_usa',
       title: 'Rêve Californien',
       emoji: '🇺🇸',
+      assetImagePath: 'assets/badges/country_usa.webp',
       category: BadgeCategory.countries,
       tier: BadgeTier.silver,
       description: 'Avoir dégusté ou possédé au moins 1 vin des États-Unis (Napa, Sonoma, Oregon, Washington...).',
@@ -238,6 +246,7 @@ class BadgeCatalog {
       id: 'country_portugal',
       title: 'Légende du Douro',
       emoji: '🇵🇹',
+      assetImagePath: 'assets/badges/country_portugal.webp',
       category: BadgeCategory.countries,
       tier: BadgeTier.silver,
       description: 'Avoir dégusté ou possédé au moins 1 vin du Portugal (Douro, Alentejo, Porto, Dão...).',
@@ -875,6 +884,7 @@ class BadgeCatalog {
       title: 'Maître du Rhin & Moselle',
       titleEn: 'Master of Rhine & Mosel',
       emoji: '🇩🇪',
+      assetImagePath: 'assets/badges/country_germany.webp',
       category: BadgeCategory.countries,
       tier: BadgeTier.silver,
       description: 'Posséder ou avoir dégusté au moins 2 vins d\'Allemagne (Mosel, Rheingau...).',
@@ -1379,6 +1389,34 @@ class BadgeCatalog {
           'En fût non ouillé, un voile protecteur de levures vivantes (Saccharomyces beticus) se forme à la surface du vin. Il bloque l\'oxydation brutale tout en créant la molécule de sotolon aux arômes fascinants de noix fraîche, curry doux, amande amère et pomme verte séchée.\n\n'
           '🍷 LE MOT DU CHATMELIER :\n'
           'L\'une des plus grandes énigmes œnologiques : confier le vin au temps et à l\'air pour engendrer un chef-d\'œuvre immortel. »',
+      requiredCount: 1,
+    ),
+    WineBadge(
+      id: 'savant_sanguis_christi',
+      title: 'Sanguis Christi (In Vino Veritas) ✝️',
+      titleEn: 'Sanguis Christi (In Vino Veritas) ✝️',
+      titleLa: 'Sanguis Christi (In Vino Veritas) ✝️',
+      emoji: '✝️',
+      category: BadgeCategory.chatmelierSavant,
+      tier: BadgeTier.diamond,
+      description: 'Activer la langue latine dans l\'application pour communier avec les anciens.',
+      descriptionEn: 'Activate Latin language in the app to commune with ancient scholars.',
+      descriptionLa: 'Linguam Latinam in apposito adhibe ut cum antiquis communices.',
+      chatmelierLore:
+          '« ✝️ IN VINO VERITAS, IN AQUA SANITAS :\n\n'
+          'Depuis les monastères médiévaux jusqu\'aux liturgies sacrées, le vin a toujours été honoré comme le nectar de la vie et le symbole du sacrifice divin. En activant la langue de Cicéron et de saint Benoît, vous pénétrez dans le saint des saints de l\'érudition œnologique.\n\n'
+          '🍷 LE MOT DU CHATMELIER :\n'
+          'Fructus vitis et operis manuum hominum. »',
+      chatmelierLoreEn:
+          '« ✝️ IN VINO VERITAS, IN AQUA SANITAS :\n\n'
+          'From medieval monastic orders to sacred liturgy, wine was venerated as the nectar of divine contemplation and life. By choosing Latin, you enter the sanctum of historical viticulture.\n\n'
+          '🍷 CHATMELIER\'S WORDS :\n'
+          'Fructus vitis et operis manuum hominum. »',
+      chatmelierLoreLa:
+          '« ✝️ IN VINO VERITAS, IN AQUA SANITAS :\n\n'
+          'Ex monasteriis mediaevalibus usque ad sacras liturgias, vinum semper ut vitae nectar et divini mysterii signum colitur. Lingua Latina electa, in adytum sanctissimum eruditionis oenologicae intras.\n\n'
+          '🍷 VERBUM CHATMELIER :\n'
+          'Fructus vitis et operis manuum hominum. »',
       requiredCount: 1,
     ),
   ];

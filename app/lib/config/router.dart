@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'web_redirect.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
@@ -65,6 +67,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
       final isInviteRoute = state.matchedLocation.startsWith('/invite/');
+      final isAdminRoute = state.matchedLocation.startsWith('/admin');
+
+      if (isAdminRoute) return null;
 
       if (kIsWeb) {
         final uri = Uri.base;
@@ -187,14 +192,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/bottle/:id',
+        redirect: (context, state) {
+          final rawId = state.pathParameters['id']?.replaceAll(' ', '').trim() ?? '';
+          return '/cellar/bottle/$rawId';
+        },
+      ),
+      GoRoute(
         path: '/cellar/:id',
-        builder: (context, state) =>
-            BottleDetailScreen(id: state.pathParameters['id']!),
+        builder: (context, state) {
+          final id = state.pathParameters['id']?.replaceAll(' ', '').trim() ?? '';
+          return BottleDetailScreen(id: id);
+        },
       ),
       GoRoute(
         path: '/cellar/bottle/:id',
-        builder: (context, state) =>
-            BottleDetailScreen(id: state.pathParameters['id']!),
+        builder: (context, state) {
+          final id = state.pathParameters['id']?.replaceAll(' ', '').trim() ?? '';
+          return BottleDetailScreen(id: id);
+        },
       ),
       GoRoute(
         path: '/scan',
@@ -280,7 +296,85 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/friends',
         builder: (context, state) => const FriendsScreen(),
       ),
+      GoRoute(
+        path: '/admin_console',
+        pageBuilder: (context, state) => const MaterialPage(
+          child: _AdminConsoleBridgeScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/admin',
+        pageBuilder: (context, state) => const MaterialPage(
+          child: _AdminConsoleBridgeScreen(),
+        ),
+      ),
     ],
   );
 });
+
+class _AdminConsoleBridgeScreen extends StatefulWidget {
+  const _AdminConsoleBridgeScreen();
+
+  @override
+  State<_AdminConsoleBridgeScreen> createState() => _AdminConsoleBridgeScreenState();
+}
+
+class _AdminConsoleBridgeScreenState extends State<_AdminConsoleBridgeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        openAdminConsole();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF020617),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.shield_outlined, size: 64, color: Color(0xFFE11D48)),
+              const SizedBox(height: 16),
+              const Text(
+                'Console Flavien • Chatmelier',
+                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Redirection en cours vers la console de supervision...',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE11D48),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  if (kIsWeb) {
+                    openAdminConsole();
+                  }
+                },
+                icon: const Icon(Icons.open_in_browser),
+                label: const Text('Ouvrir la Console Admin'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 

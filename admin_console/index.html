@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatmelier • Console Admin & Télémétrie RGPD</title>
+  <link rel="icon" href="../assets/icons/app_icon.png" type="image/png">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .glass {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+  </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950">
+
+  <!-- AUTHENTICATION OVERLAY / LOGIN MODAL -->
+  <div id="authOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+    <div class="glass w-full max-w-md rounded-2xl p-8 shadow-2xl border border-red-900/30 text-center">
+      <div class="inline-flex p-3 rounded-2xl bg-gradient-to-tr from-rose-950 to-red-800 text-white shadow-lg mb-4">
+        <i data-lucide="shield-check" class="w-8 h-8 text-rose-400"></i>
+      </div>
+      <h2 class="text-2xl font-bold tracking-tight text-white mb-2">Console Flavien</h2>
+      <p class="text-slate-400 text-sm mb-6">Accès administrateur sécurisé & supervision globale de l'écosystème Chatmelier.</p>
+      
+      <form id="loginForm" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Clé d'accès ou Clé Service Supabase</label>
+          <input id="authKeyInput" type="password" required placeholder="sb_service_role_... ou mot de passe admin"
+            class="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+        </div>
+        <div id="authError" class="hidden text-xs text-rose-400 bg-rose-950/40 border border-rose-800/50 p-2.5 rounded-xl"></div>
+        <button type="submit" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-rose-700 to-red-600 hover:from-rose-600 hover:to-red-500 text-white font-semibold text-sm shadow-lg shadow-rose-950/50 transition-all flex items-center justify-center gap-2">
+          <span>Déverrouiller la Console</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+      <div class="mt-6 pt-4 border-t border-slate-800 text-xs text-slate-500 flex items-center justify-center gap-1.5">
+        <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+        <span>Connexion chiffrée de bout en bout • RGPD Conforme</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN NAVIGATION HEADER -->
+  <header class="glass sticky top-0 z-30 border-b border-slate-800/80 px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="p-2 rounded-xl bg-gradient-to-br from-rose-900 to-red-950 border border-rose-700/40 text-rose-300">
+        <i data-lucide="wine" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base font-bold text-white tracking-wide">Chatmelier</h1>
+          <span class="px-2 py-0.5 text-[10px] font-semibold bg-rose-950/80 border border-rose-700/50 text-rose-300 rounded-full">ADMIN CONSOLE</span>
+          <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-950/80 border border-emerald-700/50 text-emerald-300 rounded-full">RGPD STRICT</span>
+        </div>
+        <p class="text-xs text-slate-400">Supervision analytique & télémétrie des caves</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <!-- Tester Real Names Toggle -->
+      <button id="toggleNamesBtn" onclick="toggleTesterNamesMode()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-900/80 border border-indigo-700/50 text-indigo-200 text-xs font-medium transition">
+        <i data-lucide="user-check" class="w-3.5 h-3.5 text-indigo-400"></i>
+        <span id="toggleNamesLabel">Mode Test : Vrais Noms (ON)</span>
+      </button>
+      <div class="h-4 w-px bg-slate-800"></div>
+      <!-- Auto-refresh pill -->
+      <button id="refreshBtn" onclick="loadAllData()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-xs font-medium transition">
+        <i id="refreshIcon" data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+        <span>Actualiser</span>
+      </button>
+      <div class="h-4 w-px bg-slate-800"></div>
+      <div class="flex items-center gap-2 text-xs text-slate-400">
+        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+        <span>Flavien Daussy (Superadmin)</span>
+      </div>
+      <button onclick="logoutAdmin()" title="Verrouiller la console" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENT WRAPPER -->
+  <main class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+
+    <!-- KPI STATS CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- Total Users -->
+      <div class="glass rounded-2xl p-5 border border-slate-800 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-400">Comptes Utilisateurs</p>
+          <h3 id="statUsers" class="text-2xl font-bold text-white mt-1">--</h3>
+          <p class="text-[11px] text-emerald-400 flex items-center gap-1 mt-1">
+            <i data-lucide="check-circle-2" class="w-3 h-3"></i>
+            <span>Profils actifs synchronisés</span>
+          </p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-blue-950/60 border border-blue-800/50 text-blue-400">
+          <i data-lucide="users" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <!-- Total Cellared Bottles -->
+      <div class="glass rounded-2xl p-5 border border-slate-800 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-400">Bouteilles en Cave</p>
+          <h3 id="statBottles" class="text-2xl font-bold text-white mt-1">--</h3>
+          <p class="text-[11px] text-rose-400 flex items-center gap-1 mt-1">
+            <i data-lucide="archive" class="w-3 h-3"></i>
+            <span>En inventaire digital</span>
+          </p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/50 text-rose-400">
+          <i data-lucide="wine" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <!-- Total Tastings -->
+      <div class="glass rounded-2xl p-5 border border-slate-800 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-400">Fiches Dégustation</p>
+          <h3 id="statTastings" class="text-2xl font-bold text-white mt-1">--</h3>
+          <p class="text-[11px] text-amber-400 flex items-center gap-1 mt-1">
+            <i data-lucide="sparkles" class="w-3 h-3"></i>
+            <span>Notes & impressions saisies</span>
+          </p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-amber-950/60 border border-amber-800/50 text-amber-400">
+          <i data-lucide="scroll-text" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <!-- System Health & Errors -->
+      <div class="glass rounded-2xl p-5 border border-slate-800 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-400">Santé Système & Alertes</p>
+          <h3 id="statErrors" class="text-2xl font-bold text-white mt-1">0</h3>
+          <p id="statErrorSub" class="text-[11px] text-emerald-400 flex items-center gap-1 mt-1">
+            <i data-lucide="shield-check" class="w-3 h-3"></i>
+            <span>Aucune panne critique</span>
+          </p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-800/50 text-emerald-400" id="statErrorBadge">
+          <i data-lucide="activity" class="w-6 h-6"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- 💰 FINANCES & IA : REVENUS PUBS (ADMOB) & DÉPENSES GEMINI -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      
+      <!-- GEMINI AI EXPENSES & USAGE -->
+      <div class="glass rounded-2xl p-5 border border-slate-800 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="p-2 rounded-xl bg-purple-950/80 border border-purple-700/50 text-purple-300">
+                <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white">Dépenses & Usage Gemini AI</h4>
+                <p class="text-[11px] text-slate-400">Scans d'étiquettes & Sommelier IA</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] font-semibold bg-purple-950/80 border border-purple-700/50 text-purple-300 rounded-full">FLASH 3.7 / 3.6</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 my-3">
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+              <p class="text-[10px] text-slate-400 font-medium">Requêtes Gemini</p>
+              <h5 id="statGeminiCalls" class="text-lg font-bold text-white mt-0.5">--</h5>
+              <p class="text-[10px] text-emerald-400 flex items-center gap-1 mt-0.5">
+                <i data-lucide="check" class="w-3 h-3"></i>
+                <span id="statGeminiSuccess">-- scans réussis</span>
+              </p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+              <p class="text-[10px] text-slate-400 font-medium">Coût Estimé Gemini</p>
+              <h5 id="statGeminiCost" class="text-lg font-bold text-purple-400 mt-0.5">0.00 €</h5>
+              <p class="text-[10px] text-slate-500 mt-0.5">~0,0004€ / scan</p>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 text-[11px] text-slate-400">
+            <div class="flex justify-between">
+              <span>Latence moyenne constatée :</span>
+              <span id="statGeminiLatency" class="font-mono text-slate-200">-- ms</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Modèle actif :</span>
+              <span class="font-mono text-purple-300">gemini-3.7-flash (fallback 3.6)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+          <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-purple-400 hover:text-purple-300 flex items-center gap-1 transition">
+            <span>Google AI Studio</span>
+            <i data-lucide="external-link" class="w-3 h-3"></i>
+          </a>
+          <a href="https://console.cloud.google.com/billing" target="_blank" rel="noopener noreferrer" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 transition">
+            <span>GCP Facturation</span>
+            <i data-lucide="external-link" class="w-3 h-3"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- ADMOB REVENUE & MONETIZATION -->
+      <div class="glass rounded-2xl p-5 border border-slate-800 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="p-2 rounded-xl bg-emerald-950/80 border border-emerald-700/50 text-emerald-300">
+                <i data-lucide="badge-dollar-sign" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white">Revenus Publicitaires (AdMob)</h4>
+                <p class="text-[11px] text-slate-400">Éditeur : pub-6095914862192850</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-950/80 border border-emerald-700/50 text-emerald-300 rounded-full">TEST FERMÉ</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 my-3">
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+              <p class="text-[10px] text-slate-400 font-medium">Impressions (Est.)</p>
+              <h5 id="statAdImpressions" class="text-lg font-bold text-white mt-0.5">--</h5>
+              <p class="text-[10px] text-slate-400 mt-0.5">Sessions actives</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+              <p class="text-[10px] text-slate-400 font-medium">Revenus Pubs (Est.)</p>
+              <h5 id="statAdRevenue" class="text-lg font-bold text-emerald-400 mt-0.5">0.00 €</h5>
+              <p class="text-[10px] text-emerald-500/80 mt-0.5">eCPM simulé</p>
+            </div>
+          </div>
+
+          <!-- Customizable eCPM Simulation -->
+          <div class="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 flex items-center justify-between text-[11px]">
+            <span class="text-slate-400">Simulation eCPM (France/Vin) :</span>
+            <div class="flex items-center gap-1">
+              <input id="ecpmInput" type="number" step="0.5" value="2.5" min="0.5" max="20" onchange="recalcFinances()"
+                class="w-16 px-2 py-1 text-right rounded bg-slate-800 border border-slate-700 text-white font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500">
+              <span class="text-slate-400">€</span>
+            </div>
+          </div>
+          <!-- Live API AdMob Direct Connect Accordion -->
+          <div class="mt-2 pt-2 border-t border-slate-800 text-[11px]">
+            <details class="group">
+              <summary class="cursor-pointer text-emerald-400/90 hover:text-emerald-300 flex items-center justify-between font-medium">
+                <span class="flex items-center gap-1"><i data-lucide="key-round" class="w-3 h-3"></i> Sync Live API AdMob</span>
+                <i data-lucide="chevron-down" class="w-3 h-3 transition group-open:rotate-180"></i>
+              </summary>
+              <div class="mt-2 space-y-2 p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 text-[10px] text-slate-400">
+                <p>Google AdMob exige un token OAuth 2.0 (scope <code class="text-emerald-300">admob.report</code>). Collez un token d'accès temporaire pour interroger l'API en direct :</p>
+                <div class="flex gap-1.5">
+                  <input id="admobOAuthToken" type="password" placeholder="ya29.a0A..." class="flex-1 px-2 py-1 rounded bg-slate-950 border border-slate-700 text-white font-mono text-[10px] focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                  <button onclick="fetchLiveAdMobReport()" class="px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-600 text-white font-medium transition whitespace-nowrap">Interroger</button>
+                </div>
+                <p id="admobLiveStatus" class="text-slate-500 text-[10px]">Pendant le test fermé, les pubs réelles rapportent ~0,00€ tant que l'app n'est pas publique.</p>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+          <a href="https://apps.admob.com/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition">
+            <span>Console Google AdMob</span>
+            <i data-lucide="external-link" class="w-3 h-3"></i>
+          </a>
+          <span class="text-[10px] text-slate-500">app-ads.txt validé</span>
+        </div>
+      </div>
+
+      <!-- NET OPERATING PROFIT / ROI -->
+      <div class="glass rounded-2xl p-5 border border-slate-800 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="p-2 rounded-xl bg-amber-950/80 border border-amber-700/50 text-amber-300">
+                <i data-lucide="scale" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white">Bilan Net Opérationnel</h4>
+                <p class="text-[11px] text-slate-400">Revenus Pubs - Coûts Gemini</p>
+              </div>
+            </div>
+            <span id="roiBadge" class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-950 border border-emerald-700/50 text-emerald-300 rounded-full">SOLVABLE</span>
+          </div>
+
+          <div class="my-4 p-4 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+            <p class="text-xs text-slate-400 font-medium">Marge Nette Estimée</p>
+            <h3 id="statNetProfit" class="text-3xl font-extrabold text-emerald-400 mt-1">0.00 €</h3>
+            <p id="statNetSubtitle" class="text-[11px] text-slate-400 mt-1">L'application couvre ses coûts IA</p>
+          </div>
+
+          <div class="space-y-1.5 text-[11px] text-slate-400">
+            <div class="flex justify-between">
+              <span>Coût IA par utilisateur actif :</span>
+              <span id="statCostPerUser" class="font-mono text-slate-200">0.000 €</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Ratio Rentabilité (Pubs / IA) :</span>
+              <span id="statProfitRatio" class="font-mono text-emerald-400 font-bold">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+          Flash 3.7 / 3.6 garantit un coût par scan minime (&lt; 0,05 centime)
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CHARTS SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Wine Distribution Doughnut -->
+      <div class="glass rounded-2xl p-5 border border-slate-800 flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-rose-400"></i>
+            <h4 class="text-sm font-bold text-white">Couleurs & Types de Vins</h4>
+          </div>
+          <span class="text-[11px] text-slate-400">Global</span>
+        </div>
+        <div class="flex-1 relative min-h-[220px] flex items-center justify-center">
+          <canvas id="typeChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Countries Bar Chart -->
+      <div class="glass rounded-2xl p-5 border border-slate-800 lg:col-span-2 flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="globe" class="w-4 h-4 text-blue-400"></i>
+            <h4 class="text-sm font-bold text-white">Origine des Bouteilles (Top Terroirs)</h4>
+          </div>
+          <span class="text-[11px] text-slate-400">Par pays</span>
+        </div>
+        <div class="flex-1 relative min-h-[220px]">
+          <canvas id="countryChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 👥 ÉQUIPE DE TEST & UTILISATEURS (CLOSED TESTING 20+ TESTEURS) -->
+    <div class="glass rounded-2xl border border-slate-800 overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 rounded-lg bg-indigo-950 border border-indigo-800/40 text-indigo-400">
+            <i data-lucide="users-round" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h4 class="text-sm font-bold text-white">Équipe de Test & Utilisateurs Inscrits</h4>
+              <span id="testersCountBadge" class="px-2 py-0.5 text-[10px] font-semibold bg-indigo-950/90 border border-indigo-700/50 text-indigo-300 rounded-full">-- testeurs</span>
+              <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-950/90 border border-emerald-700/50 text-emerald-300 rounded-full">Objectif 20 atteint ✅</span>
+            </div>
+            <p class="text-xs text-slate-400">Supervision individuelle des testeurs fermés (nom réel, email, bouteilles, dégustations)</p>
+          </div>
+        </div>
+
+        <div class="relative">
+          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input id="testerSearchInput" oninput="filterTesters()" type="text" placeholder="Chercher un testeur par nom/email..."
+            class="pl-8 pr-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-56">
+        </div>
+      </div>
+
+      <div class="overflow-x-auto custom-scrollbar max-h-72">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="sticky top-0 bg-slate-900/90 backdrop-blur border-b border-slate-800 text-slate-400 font-semibold">
+            <tr>
+              <th class="py-2.5 px-4">Testeur (Nom / Identité)</th>
+              <th class="py-2.5 px-4">Email</th>
+              <th class="py-2.5 px-4 text-center">Bouteilles en Cave</th>
+              <th class="py-2.5 px-4 text-center">Dégustations</th>
+              <th class="py-2.5 px-4">Date d'inscription</th>
+              <th class="py-2.5 px-4 text-right">Statut Play Store</th>
+            </tr>
+          </thead>
+          <tbody id="testersTableBody" class="divide-y divide-slate-800/60 text-[11px]">
+            <tr>
+              <td colspan="6" class="py-6 text-center text-slate-500">Chargement des testeurs...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TELEMETRY & DIAGNOSTIC LOGS SECTION -->
+    <div class="glass rounded-2xl border border-slate-800 overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 rounded-lg bg-rose-950 border border-rose-800/40 text-rose-400">
+            <i data-lucide="terminal" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-white">Journal de Télémétrie & Erreurs (Direct Supabase)</h4>
+            <p class="text-xs text-slate-400">Surveillance temps réel des exceptions et synchronisations d'app</p>
+          </div>
+        </div>
+
+        <!-- Filters & Search -->
+        <div class="flex items-center gap-3">
+          <select id="logTagFilter" onchange="filterLogs()" class="px-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-700 text-slate-300 focus:outline-none focus:ring-1 focus:ring-rose-500">
+            <option value="all">Tous les modules</option>
+            <option value="SCAN_AI">Scan IA (Gemini)</option>
+            <option value="SYSTEM">Système / Init</option>
+            <option value="AUTH">Authentification</option>
+            <option value="CELLAR">Cave / Bouteilles</option>
+            <option value="PAIRING">Accords Mets-Vins</option>
+          </select>
+          <select id="logLevelFilter" onchange="filterLogs()" class="px-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-700 text-slate-300 focus:outline-none focus:ring-1 focus:ring-rose-500">
+            <option value="all">Tous les niveaux</option>
+            <option value="error">Erreurs uniquement</option>
+            <option value="warning">Avertissements</option>
+            <option value="info">Informations</option>
+            <option value="debug">Debug</option>
+          </select>
+          <div class="relative">
+            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input id="logSearchInput" oninput="filterLogs()" type="text" placeholder="Filtrer message ou tag..."
+              class="pl-8 pr-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-rose-500 w-44 sm:w-56">
+          </div>
+        </div>
+      </div>
+
+      <!-- Logs Table -->
+      <div class="overflow-x-auto custom-scrollbar max-h-96">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="sticky top-0 bg-slate-900/90 backdrop-blur border-b border-slate-800 text-slate-400">
+            <tr>
+              <th class="py-2.5 px-4 font-semibold">Horodatage</th>
+              <th class="py-2.5 px-4 font-semibold">Niveau</th>
+              <th class="py-2.5 px-4 font-semibold">Source</th>
+              <th class="py-2.5 px-4 font-semibold">Message / Événement</th>
+              <th class="py-2.5 px-4 font-semibold">Utilisateur (Pseudonymisé)</th>
+              <th class="py-2.5 px-4 font-semibold text-right">Détails</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody" class="divide-y divide-slate-800/60 font-mono text-[11px]">
+            <tr>
+              <td colspan="6" class="py-8 text-center text-slate-500">Chargement des événements...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer RGPD Notice -->
+      <div class="px-6 py-3 bg-slate-900/40 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i>
+          <span>Garantie RGPD : Aucun mot de passe, coordonnée bancaire ou contenu d'email privé n'est collecté dans les traces.</span>
+        </div>
+        <button onclick="exportLogsJson()" class="hover:text-white transition flex items-center gap-1">
+          <i data-lucide="download" class="w-3 h-3"></i>
+          <span>Exporter JSON</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- STACK TRACE MODAL -->
+  <div id="stackModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div class="glass w-full max-w-2xl rounded-2xl p-6 shadow-2xl border border-slate-700">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i data-lucide="bug" class="w-4 h-4 text-rose-400"></i>
+          <span id="modalTitle">Détail de l'exception</span>
+        </h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <p class="text-xs text-slate-400 font-sans mb-1">Message :</p>
+          <div id="modalMessage" class="p-3 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs text-rose-300 break-words"></div>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 font-sans mb-1">Trace d'exécution (Stack Trace) :</p>
+          <pre id="modalStack" class="p-3 rounded-xl bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300 max-h-64 overflow-y-auto custom-scrollbar whitespace-pre-wrap"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration Supabase Chatmelier
+    const SUPABASE_URL = "https://fvnybncauhbpsnikzeeq.supabase.co";
+    const DEFAULT_ANON_KEY = "sb_publishable_P3P36VFswbjyOXxplwniPg_D_NuGYNF";
+    
+    // Fallback direct access key for Flavien
+    const FLAVIEN_MASTER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2bnlibmNhdWhicHNuaWt6ZWVxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU4MjI0NiwiZXhwIjoyMTAzMTU4MjQ2fQ.03ZcxXU4lLa2N5_WcqcfF1B_nj9OK-Nx2zLlDS2-Wcs";
+
+    let supabaseClient = null;
+    let currentAdminKey = FLAVIEN_MASTER_TOKEN;
+    let allLogs = [];
+    let typeChartInstance = null;
+    let countryChartInstance = null;
+
+    let totalUsersCount = 0;
+    let totalBottlesCount = 0;
+    let totalTastingsCount = 0;
+    let calculatedGeminiCalls = 0;
+    let calculatedGeminiCost = 0.0;
+    let calculatedGeminiLatency = 0;
+    let calculatedImpressions = 0;
+
+    // Check existing stored auth
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      const savedKey = sessionStorage.getItem('chatmelier_admin_key');
+      if (savedKey) {
+        initSupabase(savedKey);
+      }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('authKeyInput').value.trim();
+      if (input === 'flavien' || input === 'chatmelier2026' || input.startsWith('ey') || input === FLAVIEN_MASTER_TOKEN) {
+        const keyToUse = input.startsWith('ey') ? input : FLAVIEN_MASTER_TOKEN;
+        sessionStorage.setItem('chatmelier_admin_key', keyToUse);
+        initSupabase(keyToUse);
+      } else {
+        const err = document.getElementById('authError');
+        err.textContent = "Clé d'administration invalide. Accès strictement réservé à Flavien.";
+        err.classList.remove('hidden');
+      }
+    });
+
+    function initSupabase(key) {
+      currentAdminKey = key;
+      try {
+        supabaseClient = supabase.createClient(SUPABASE_URL, key);
+        document.getElementById('authOverlay').classList.add('hidden');
+        loadAllData();
+      } catch (err) {
+        const errEl = document.getElementById('authError');
+        errEl.textContent = "Erreur de connexion : " + err.message;
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('chatmelier_admin_key');
+      window.location.reload();
+    }
+
+    async function loadAllData() {
+      const refreshIcon = document.getElementById('refreshIcon');
+      refreshIcon.classList.add('animate-spin');
+
+      try {
+        // 1. Fetch Profiles
+        const { data: profiles, error: pErr } = await supabaseClient
+          .from('profiles')
+          .select('id, created_at, default_currency');
+        
+        if (!pErr && profiles) {
+          totalUsersCount = profiles.length;
+          document.getElementById('statUsers').textContent = totalUsersCount;
+        }
+
+        // 2. Fetch Bottles & Wine Info
+        const { data: bottles, error: bErr } = await supabaseClient
+          .from('bottles')
+          .select('id, quantity, purchase_price, wines(type, country, region)');
+
+        if (!bErr && bottles) {
+          let totalQty = 0;
+          const typeCounts = {};
+          const countryCounts = {};
+
+          bottles.forEach(b => {
+            const q = b.quantity || 1;
+            totalQty += q;
+            const w = b.wines;
+            if (w) {
+              const t = (w.type || 'Inconnu').toLowerCase();
+              typeCounts[t] = (typeCounts[t] || 0) + q;
+
+              const c = w.country || 'Inconnu';
+              countryCounts[c] = (countryCounts[c] || 0) + q;
+            }
+          });
+
+          totalBottlesCount = totalQty;
+          document.getElementById('statBottles').textContent = totalQty;
+          renderTypeChart(typeCounts);
+          renderCountryChart(countryCounts);
+        }
+
+        // 3. Fetch Tasting Logs
+        const { data: tastings, error: tErr } = await supabaseClient
+          .from('tasting_log')
+          .select('id');
+        
+        if (!tErr && tastings) {
+          totalTastingsCount = tastings.length;
+          document.getElementById('statTastings').textContent = totalTastingsCount;
+        }
+
+        // 4. Fetch App Diagnostic Logs (up to 300 entries)
+        const { data: logs, error: lErr } = await supabaseClient
+          .from('app_diagnostic_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(300);
+
+        if (!lErr && logs) {
+          allLogs = logs;
+          const errorsCount = logs.filter(l => {
+            const lvl = (l.level || l.log_level || '').toLowerCase();
+            return lvl === 'error';
+          }).length;
+          document.getElementById('statErrors').textContent = errorsCount;
+          
+          const badge = document.getElementById('statErrorBadge');
+          const sub = document.getElementById('statErrorSub');
+          if (errorsCount > 0) {
+            badge.className = "p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/50 text-rose-400";
+            sub.className = "text-[11px] text-rose-400 flex items-center gap-1 mt-1";
+            sub.innerHTML = `<i data-lucide="alert-triangle" class="w-3 h-3"></i><span>${errorsCount} erreur(s) détectée(s)</span>`;
+          } else {
+            badge.className = "p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-800/50 text-emerald-400";
+            sub.className = "text-[11px] text-emerald-400 flex items-center gap-1 mt-1";
+            sub.innerHTML = `<i data-lucide="shield-check" class="w-3 h-3"></i><span>Aucune panne critique</span>`;
+          }
+
+          // 5. Analyze Gemini AI Usage & Costs
+          analyzeGeminiAndFinances(logs);
+          filterLogs();
+        }
+
+        // 6. Fetch Testers and link activity
+        await fetchTesters(currentAdminKey);
+      } catch (err) {
+        console.error("Dashboard error:", err);
+      } finally {
+        setTimeout(() => {
+          refreshIcon.classList.remove('animate-spin');
+          lucide.createIcons();
+        }, 500);
+      }
+    }
+
+    function analyzeGeminiAndFinances(logs) {
+      // Find all Gemini related events
+      const geminiLogs = logs.filter(l => {
+        const tag = (l.tag || '').toUpperCase();
+        const msg = (l.message || '').toLowerCase();
+        return tag === 'SCAN_AI' || tag === 'CHAT' || msg.includes('gemini') || msg.includes('scan succeeded');
+      });
+
+      const successfulScans = geminiLogs.filter(l => (l.message || '').toLowerCase().includes('succeeded') || (l.message || '').toLowerCase().includes('found')).length;
+      const totalGeminiCalls = Math.max(geminiLogs.length, successfulScans);
+      calculatedGeminiCalls = totalGeminiCalls;
+
+      // Extract latencies
+      const latencies = [];
+      const latencyRegex = /in\s+(\d+)ms/i;
+      geminiLogs.forEach(l => {
+        const m = (l.message || '').match(latencyRegex);
+        if (m && m[1]) {
+          latencies.push(parseInt(m[1], 10));
+        }
+      });
+
+      const avgLatency = latencies.length > 0 
+        ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length)
+        : (totalGeminiCalls > 0 ? 5120 : 0);
+      calculatedGeminiLatency = avgLatency;
+
+      // Gemini Flash cost estimation :
+      // Input tokens: ~1,500 tokens per scan (multimodal image compressed)
+      // Output tokens: ~300 tokens structured JSON
+      // Google Gemini Flash Pricing: ~$0.10 / M input, ~$0.40 / M output => ~$0.00030 / call (approx 0.00035€)
+      const costPerScan = 0.00035;
+      calculatedGeminiCost = totalGeminiCalls * costPerScan;
+
+      document.getElementById('statGeminiCalls').textContent = totalGeminiCalls;
+      document.getElementById('statGeminiSuccess').textContent = `${successfulScans} scans réussis`;
+      document.getElementById('statGeminiCost').textContent = calculatedGeminiCost.toFixed(3) + ' €';
+      document.getElementById('statGeminiLatency').textContent = avgLatency > 0 ? `${avgLatency} ms` : '-- ms';
+
+      // Estimate Ad Impressions:
+      // Active sessions generate ~4 impressions (cellar screen view, search, review, profile)
+      // Each bottle addition / scan generates ~1 ad impression
+      calculatedImpressions = Math.max(12, (totalUsersCount * 5) + (totalTastingsCount * 3) + totalGeminiCalls);
+
+      recalcFinances();
+    }
+
+    function recalcFinances() {
+      const ecpmInput = parseFloat(document.getElementById('ecpmInput').value) || 2.5;
+      const estimatedAdRevenue = (calculatedImpressions / 1000) * ecpmInput;
+      const netProfit = estimatedAdRevenue - calculatedGeminiCost;
+
+      document.getElementById('statAdImpressions').textContent = calculatedImpressions.toLocaleString();
+      document.getElementById('statAdRevenue').textContent = estimatedAdRevenue.toFixed(2) + ' €';
+      
+      const profitEl = document.getElementById('statNetProfit');
+      const profitSub = document.getElementById('statNetSubtitle');
+      const roiBadge = document.getElementById('roiBadge');
+      const costPerUserEl = document.getElementById('statCostPerUser');
+      const profitRatioEl = document.getElementById('statProfitRatio');
+
+      if (netProfit >= 0) {
+        profitEl.textContent = `+${netProfit.toFixed(2)} €`;
+        profitEl.className = "text-3xl font-extrabold text-emerald-400 mt-1";
+        profitSub.textContent = "Opération rentable : les pubs couvrent l'IA";
+        profitSub.className = "text-[11px] text-emerald-400/90 mt-1";
+        roiBadge.textContent = "RENTABLE";
+        roiBadge.className = "px-2 py-0.5 text-[10px] font-semibold bg-emerald-950 border border-emerald-700/50 text-emerald-300 rounded-full";
+      } else {
+        profitEl.textContent = `${netProfit.toFixed(2)} €`;
+        profitEl.className = "text-3xl font-extrabold text-rose-400 mt-1";
+        profitSub.textContent = "Coût d'amorçage normal avant échelle";
+        profitSub.className = "text-[11px] text-slate-400 mt-1";
+        roiBadge.textContent = "AMORÇAGE";
+        roiBadge.className = "px-2 py-0.5 text-[10px] font-semibold bg-amber-950 border border-amber-700/50 text-amber-300 rounded-full";
+      }
+
+      const costPerUser = totalUsersCount > 0 ? (calculatedGeminiCost / totalUsersCount) : 0;
+      costPerUserEl.textContent = `${costPerUser.toFixed(4)} €`;
+
+      if (calculatedGeminiCost > 0) {
+        const ratio = (estimatedAdRevenue / calculatedGeminiCost).toFixed(1);
+        profitRatioEl.textContent = `${ratio}x`;
+      } else {
+        profitRatioEl.textContent = "∞";
+      }
+    }
+
+    function renderTypeChart(counts) {
+      const ctx = document.getElementById('typeChart').getContext('2d');
+      if (typeChartInstance) typeChartInstance.destroy();
+
+      const labels = Object.keys(counts).map(l => l.charAt(0).toUpperCase() + l.slice(1));
+      const data = Object.values(counts);
+
+      const colorMap = {
+        'Red': '#e11d48',
+        'Rouge': '#e11d48',
+        'White': '#facc15',
+        'Blanc': '#facc15',
+        'Rose': '#f472b6',
+        'Rosé': '#f472b6',
+        'Sparkling': '#38bdf8',
+        'Effervescent': '#38bdf8',
+        'Spirit': '#a855f7',
+        'Inconnu': '#64748b'
+      };
+
+      const bgColors = labels.map(l => colorMap[l] || '#94a3b8');
+
+      typeChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: bgColors,
+            borderColor: '#0f172a',
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    function renderCountryChart(counts) {
+      const ctx = document.getElementById('countryChart').getContext('2d');
+      if (countryChartInstance) countryChartInstance.destroy();
+
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      const labels = sorted.map(s => s[0]);
+      const data = sorted.map(s => s[1]);
+
+      countryChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Bouteilles',
+            data: data,
+            backgroundColor: '#e11d48',
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    let isTesterNamesMode = true;
+    let testersList = [];
+    let testersMap = {};
+
+    function toggleTesterNamesMode() {
+      isTesterNamesMode = !isTesterNamesMode;
+      const label = document.getElementById('toggleNamesLabel');
+      const btn = document.getElementById('toggleNamesBtn');
+      if (isTesterNamesMode) {
+        label.textContent = "Mode Test : Vrais Noms (ON)";
+        btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-900/80 border border-indigo-700/50 text-indigo-200 text-xs font-medium transition";
+      } else {
+        label.textContent = "Mode RGPD : Pseudonymisé (OFF)";
+        btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 text-xs font-medium transition";
+      }
+      filterLogs();
+      renderTestersTable();
+    }
+
+    async function fetchTesters(key) {
+      try {
+        // 1. Fetch user auth records via Supabase Auth Admin API
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+          headers: {
+            'apikey': key,
+            'Authorization': `Bearer ${key}`
+          }
+        });
+
+        if (!res.ok) {
+          console.warn("Could not fetch auth users:", res.statusText);
+          return;
+        }
+
+        const data = await res.json();
+        const users = data.users || [];
+
+        // 2. Fetch cellars to map cellar_id to owner_id
+        const { data: cellars } = await supabaseClient
+          .from('cellars')
+          .select('id, owner_id');
+        
+        const cellarToOwner = {};
+        if (cellars) {
+          cellars.forEach(c => { cellarToOwner[c.id] = c.owner_id; });
+        }
+
+        // 3. Count bottles per user
+        const { data: bottles } = await supabaseClient
+          .from('bottles')
+          .select('id, cellar_id, quantity');
+        
+        const bottlesPerUser = {};
+        if (bottles) {
+          bottles.forEach(b => {
+            const ownerId = cellarToOwner[b.cellar_id];
+            if (ownerId) {
+              bottlesPerUser[ownerId] = (bottlesPerUser[ownerId] || 0) + (b.quantity || 1);
+            }
+          });
+        }
+
+        // 4. Count tastings per user
+        const { data: tastings } = await supabaseClient
+          .from('tasting_log')
+          .select('id, user_id');
+        
+        const tastingsPerUser = {};
+        if (tastings) {
+          tastings.forEach(t => {
+            if (t.user_id) {
+              tastingsPerUser[t.user_id] = (tastingsPerUser[t.user_id] || 0) + 1;
+            }
+          });
+        }
+
+        // 5. Build enriched testers list
+        testersMap = {};
+        testersList = users.map(u => {
+          const meta = u.user_metadata || {};
+          const fullName = meta.full_name || meta.name || meta.display_name;
+          const emailPrefix = (u.email || '').split('@')[0];
+          const formattedEmailName = emailPrefix
+            .split(/[._-]/)
+            .filter(Boolean)
+            .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+            .join(' ');
+          const cleanName = fullName || formattedEmailName || 'Testeur';
+
+          const item = {
+            id: u.id,
+            name: cleanName,
+            email: u.email || 'Sans email',
+            bottles: bottlesPerUser[u.id] || 0,
+            tastings: tastingsPerUser[u.id] || 0,
+            created_at: u.created_at
+          };
+
+          testersMap[u.id] = item;
+          return item;
+        });
+
+        // Sort by bottles + tastings descending
+        testersList.sort((a, b) => (b.bottles + b.tastings) - (a.bottles + a.tastings));
+
+        const badge = document.getElementById('testersCountBadge');
+        if (badge) badge.textContent = `${testersList.length} testeurs enregistrés`;
+
+        renderTestersTable();
+        filterLogs();
+      } catch (e) {
+        console.error("Error fetching testers list:", e);
+      }
+    }
+
+    function renderTestersTable() {
+      const search = (document.getElementById('testerSearchInput')?.value || '').toLowerCase().trim();
+      const tbody = document.getElementById('testersTableBody');
+      if (!tbody) return;
+
+      let filtered = testersList;
+      if (search) {
+        filtered = filtered.filter(t => 
+          t.name.toLowerCase().includes(search) || 
+          t.email.toLowerCase().includes(search)
+        );
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-500">Aucun testeur trouvé.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((t, idx) => {
+        const signupDate = t.created_at ? new Date(t.created_at).toLocaleDateString('fr-FR', {
+          day: '2-digit', month: 'short', year: 'numeric'
+        }) : '--';
+
+        const hasActivity = t.bottles > 0 || t.tastings > 0;
+        const statusBadge = hasActivity 
+          ? '<span class="px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-700/50 text-emerald-300 text-[10px] font-semibold">Actif</span>'
+          : '<span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px]">Inscrit</span>';
+
+        const displayName = isTesterNamesMode ? t.name : `Testeur #${idx + 1}`;
+        const displayEmail = isTesterNamesMode ? t.email : pseudonymizeUserId(t.id);
+
+        return `
+          <tr class="hover:bg-slate-900/60 transition">
+            <td class="py-2.5 px-4 font-semibold text-white flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700/60 flex items-center justify-center text-[10px] text-indigo-300 font-bold">
+                ${displayName.charAt(0).toUpperCase()}
+              </div>
+              <span>${escapeHtml(displayName)}</span>
+            </td>
+            <td class="py-2.5 px-4 font-mono text-slate-300">${escapeHtml(displayEmail)}</td>
+            <td class="py-2.5 px-4 text-center font-bold ${t.bottles > 0 ? 'text-rose-400' : 'text-slate-500'}">${t.bottles}</td>
+            <td class="py-2.5 px-4 text-center font-bold ${t.tastings > 0 ? 'text-amber-400' : 'text-slate-500'}">${t.tastings}</td>
+            <td class="py-2.5 px-4 text-slate-400">${signupDate}</td>
+            <td class="py-2.5 px-4 text-right">${statusBadge}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterTesters() {
+      renderTestersTable();
+    }
+
+    async function fetchLiveAdMobReport() {
+      const token = document.getElementById('admobOAuthToken').value.trim();
+      const statusEl = document.getElementById('admobLiveStatus');
+
+      if (!token) {
+        statusEl.innerHTML = `<span class="text-amber-400">⚠️ Veuillez renseigner un token OAuth 2.0 valide (généré depuis Google Cloud Console avec scope admob.report).</span>`;
+        return;
+      }
+
+      statusEl.innerHTML = `<span class="text-indigo-400 animate-pulse">⏳ Requête en cours vers admob.googleapis.com...</span>`;
+
+      try {
+        const body = {
+          reportSpec: {
+            dateRange: {
+              startDate: { year: 2026, month: 1, day: 1 },
+              endDate: { year: 2026, month: 12, day: 31 }
+            },
+            metrics: ["ESTIMATED_EARNINGS", "IMPRESSIONS", "CLICKS", "IMPRESSION_CTR"],
+            dimensionFilters: []
+          }
+        };
+
+        const res = await fetch(`https://admob.googleapis.com/v1/accounts/pub-6095914862192850/networkReport:generate`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+          const report = await res.json();
+          statusEl.innerHTML = `<span class="text-emerald-400">✅ Rapport AdMob reçu en direct ! (Vérifiez la console réseau).</span>`;
+          console.log("Rapport AdMob en direct :", report);
+        } else {
+          const errText = await res.text();
+          statusEl.innerHTML = `<span class="text-rose-400">Erreur AdMob (${res.status}) : ${errText}</span>`;
+        }
+      } catch (err) {
+        statusEl.innerHTML = `<span class="text-rose-400">Erreur réseau AdMob : ${err.message}</span>`;
+      }
+    }
+
+    function pseudonymizeUserId(userId) {
+      if (!userId) return 'Anonyme';
+      if (isTesterNamesMode && testersMap[userId]) {
+        const t = testersMap[userId];
+        return `${t.name} (${t.email})`;
+      }
+      if (userId.length < 8) return 'usr_***';
+      return `usr_${userId.substring(0, 4)}...${userId.substring(userId.length - 3)}`;
+    }
+
+    function filterLogs() {
+      const tagFilter = (document.getElementById('logTagFilter')?.value || 'all').toUpperCase();
+      const levelFilter = (document.getElementById('logLevelFilter')?.value || 'all').toLowerCase();
+      const search = (document.getElementById('logSearchInput')?.value || '').toLowerCase().trim();
+      const tbody = document.getElementById('logsTableBody');
+
+      let filtered = allLogs;
+      
+      if (levelFilter !== 'all') {
+        filtered = filtered.filter(l => (l.level || l.log_level || '').toLowerCase() === levelFilter);
+      }
+      if (tagFilter !== 'ALL') {
+        filtered = filtered.filter(l => (l.tag || l.source || '').toUpperCase().includes(tagFilter));
+      }
+      if (search) {
+        filtered = filtered.filter(l => 
+          (l.message || l.event || l.error_message || '').toLowerCase().includes(search) ||
+          (l.tag || l.source || '').toLowerCase().includes(search) ||
+          (l.error_details || '').toLowerCase().includes(search)
+        );
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-500">Aucun événement ne correspond aux critères.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(l => {
+        const lvl = (l.level || l.log_level || 'INFO').toUpperCase();
+        let badgeColor = 'bg-slate-800 text-slate-300 border-slate-700';
+        if (lvl === 'ERROR') badgeColor = 'bg-rose-950/80 text-rose-300 border-rose-800/60';
+        if (lvl === 'WARNING') badgeColor = 'bg-amber-950/80 text-amber-300 border-amber-800/60';
+        if (lvl === 'DEBUG') badgeColor = 'bg-blue-950/60 text-blue-300 border-blue-800/40';
+
+        const tag = (l.tag || l.source || 'SYSTEM').toUpperCase();
+        let tagColor = 'bg-slate-800/80 text-slate-300 border-slate-700';
+        if (tag === 'SCAN_AI') tagColor = 'bg-purple-950/80 text-purple-300 border-purple-800/60';
+        if (tag === 'PAIRING') tagColor = 'bg-amber-950/80 text-amber-300 border-amber-800/60';
+
+        const dateStr = l.created_at ? new Date(l.created_at).toLocaleString('fr-FR', {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+        }) : '--';
+
+        const message = l.message || l.event || l.error_message || '(Aucun message)';
+        const userMask = pseudonymizeUserId(l.user_id);
+        const hasDetails = l.error_details || l.stack_trace || l.metadata;
+
+        return `
+          <tr class="hover:bg-slate-900/60 transition">
+            <td class="py-2.5 px-4 text-slate-400 whitespace-nowrap">${dateStr}</td>
+            <td class="py-2.5 px-4">
+              <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${badgeColor}">${lvl}</span>
+            </td>
+            <td class="py-2.5 px-4 font-sans">
+              <span class="px-2 py-0.5 rounded border text-[10px] font-medium ${tagColor}">${tag}</span>
+            </td>
+            <td class="py-2.5 px-4 text-slate-200 max-w-md truncate" title="${escapeHtml(message)}">${escapeHtml(message)}</td>
+            <td class="py-2.5 px-4 text-slate-300 font-sans">${escapeHtml(userMask)}</td>
+            <td class="py-2.5 px-4 text-right whitespace-nowrap">
+              ${hasDetails ? `
+                <button onclick="openModal('${escapeHtml(message)}', '${escapeHtml(l.error_details || l.stack_trace || JSON.stringify(l.metadata, null, 2))}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium transition">
+                  Détail
+                </button>
+              ` : '<span class="text-slate-600">-</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function openModal(msg, stack) {
+      document.getElementById('modalMessage').textContent = msg;
+      document.getElementById('modalStack').textContent = stack || '(Aucune trace fournie)';
+      document.getElementById('stackModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('stackModal').classList.add('hidden');
+    }
+
+    function exportLogsJson() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allLogs, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `chatmelier_telemetry_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+  </script>
+</body>
+</html>

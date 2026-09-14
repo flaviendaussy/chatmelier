@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -1416,8 +1415,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // =========================================================================
   Widget _buildToolsTab(BuildContext context, ThemeData theme, bool isDark, bool isFr) {
     final l10n = AppLocalizations.of(context);
-    final user = ref.watch(currentUserProvider);
-    final isAdmin = kDebugMode || (user?.email?.toLowerCase().contains('flavien') ?? false);
+    // Statut admin décidé par le serveur (profiles.is_admin, migration 029).
+    // Ferme par défaut pendant le chargement et en cas d'erreur.
+    final isAdmin = ref.watch(isAdminProvider).value ?? false;
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1532,7 +1532,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = ref.watch(currentUserProvider);
     final l10n = AppLocalizations.of(context);
     final isPremium = ref.watch(premiumProvider);
-    final isAdmin = kDebugMode || (user?.email?.toLowerCase().contains('flavien') ?? false);
+    // Statut admin décidé par le serveur (profiles.is_admin, migration 029).
+    // Ferme par défaut pendant le chargement et en cas d'erreur.
+    final isAdmin = ref.watch(isAdminProvider).value ?? false;
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/auth_provider.dart';
@@ -368,8 +367,9 @@ class _RewardedVideoAdSheetState extends ConsumerState<RewardedVideoAdSheet> {
               // Upgrade to Premium Shortcut (No Ads)
               OutlinedButton.icon(
                 onPressed: () {
-                  final user = ref.read(currentUserProvider);
-                  final isAdmin = kDebugMode || (user?.email?.toLowerCase().contains('flavien') ?? false);
+                  // Statut admin décidé par le serveur (profiles.is_admin, migration 029).
+                  // Ferme par défaut pendant le chargement et en cas d'erreur.
+                  final isAdmin = ref.read(isAdminProvider).value ?? false;
                   if (isAdmin) {
                     ref.read(premiumProvider.notifier).setPremium(true);
                     Navigator.of(context).pop(true);

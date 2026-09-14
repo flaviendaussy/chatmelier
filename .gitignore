@@ -41,3 +41,7 @@ setup_playstore_keystore.sh
 # La console admin embarque un JWT service_role Supabase en dur.
 # Retirée du suivi git ET du déploiement web ; à reconstruire avec une auth serveur.
 admin_console/
+
+# Artefacts temporaires de la CLI Supabase
+supabase/.temp/
+supabase/supabase/

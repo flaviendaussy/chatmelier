@@ -18,7 +18,7 @@ l'historique : **seule la rotation les neutralise.**
 | Secret | Depuis | Commits | Action |
 |---|---|---|---|
 | **JWT `service_role` Supabase** | **2026-08-30** (15 jours) | `54a3707`, `976f320` | **Faire tourner la clé** dans le dashboard Supabase, puis auditer les journaux d'accès sur la fenêtre |
-| **Clé API Gemini** `AQ.Ab8RN6…` | plus ancien | `df650a5`, `5697356`, `61776d5` | **Révoquer** dans Google AI Studio et regénérer |
+| **Clé API Gemini** (celle de `build_bundle.sh`) | plus ancien | `df650a5`, `5697356`, `61776d5` | **Révoquer** dans Google AI Studio et regénérer |
 | Mot de passe keystore (`storePassword`) | — | `a9febdb` | Changer le mot de passe du keystore |
 
 Portée du `service_role` : contourne **toutes** les règles RLS sur **toutes** les tables, plus
@@ -101,6 +101,14 @@ Séquence : **S0** sécurité → **S1** élagage → **S2** données du goût �
 pour tout le monde (comportement voulu : fail-closed). Après application, s'accorder le rôle
 depuis le SQL Editor Supabase — la requête est en commentaire à la fin du fichier de migration.
 Aucune adresse e-mail n'est en dur : le dépôt est public.
+
+## Dette d'hygiène repérée, non traitée
+
+- **`mcp-server/node_modules/` est suivi par git** : 4 293 fichiers, 2,2 Mo. La règle
+  `node_modules/` du `.gitignore` est arrivée après le commit initial, donc ils restent suivis.
+  `git rm -r --cached mcp-server/node_modules` suffit à les détacher — reporté pour ne pas noyer
+  les commits de S0 dans 4 000 suppressions.
+- **`supabase/supabase/.temp/`** : artefacts de la CLI Supabase, détachés et ignorés dans `18f111e`.
 
 ## Suite prévue
 

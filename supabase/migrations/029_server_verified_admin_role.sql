@@ -27,12 +27,16 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  -- Le service_role (console d'admin, tâches serveur) passe sans contrainte.
-  IF auth.role() = 'service_role' THEN
+  -- Laissent passer : le service_role (tâches serveur via PostgREST) ET les connexions
+  -- directes à la base (SQL Editor du dashboard, psql, migrations), où `auth.role()`
+  -- est NULL faute de JWT — d'où le COALESCE et le test sur current_user.
+  IF COALESCE(auth.role(), '') = 'service_role'
+     OR current_user IN ('postgres', 'supabase_admin', 'supabase_auth_admin') THEN
     RETURN NEW;
   END IF;
 
-  -- Pour tout le reste, is_admin est figé sur sa valeur précédente.
+  -- Pour tout le reste — c'est-à-dire le client authentifié — is_admin est figé
+  -- sur sa valeur précédente, silencieusement.
   IF NEW.is_admin IS DISTINCT FROM OLD.is_admin THEN
     NEW.is_admin := OLD.is_admin;
   END IF;
@@ -55,7 +59,8 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF auth.role() <> 'service_role' THEN
+  IF COALESCE(auth.role(), '') <> 'service_role'
+     AND current_user NOT IN ('postgres', 'supabase_admin', 'supabase_auth_admin') THEN
     NEW.is_admin := FALSE;
   END IF;
   RETURN NEW;

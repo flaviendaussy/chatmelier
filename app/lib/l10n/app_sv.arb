@@ -174,7 +174,7 @@
   "profileChangelog": "Versionshistorik & Ändringar",
   "profileScratchcard": "Världens Terroir-skrapkarta",
   "navBar": "Bar",
-  "navProfile": "Profil",
+  "navProfile": "Min profil",
   "quickActions": "SNABBAKTIONER",
   "appSubtitle": "Sommelier & Vinkällare",
   "profileTabPalate": "Gom",
@@ -209,5 +209,525 @@
   "cocktailsMissingOne": "1 saknas",
   "cocktailsManagePantry": "Hantera Barskafferi",
   "cocktailsResetPantry": "Återställ Barskafferi",
-  "defaultCellarName": "Min Vinkällare"
+  "defaultCellarName": "Min Vinkällare",
+  "save": "Spara",
+  "continueAnyway": "Fortsätt ändå",
+  "cellarDetected": "Vinkällare identifierad: ",
+  "proximityWifi": "Ansluten till Wi-Fi \"{ssid}\"",
+  "@proximityWifi": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      }
+    }
+  },
+  "proximityGps": "GPS-position identifierad ({distance})",
+  "@proximityGps": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "proximitySwitch": "Växla",
+  "proximityIgnore": "Ignorera",
+  "proximitySwitchedSnack": "📍 Växlade automatiskt till \"{cellar}\"",
+  "@proximitySwitchedSnack": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarTitle": "Avlägsen vinkällare identifierad",
+  "distantCellarWifiWarning": "Du är ansluten till Wi-Fi \"{ssid}\" som är kopplat till din andra källare \"{cellar}\".",
+  "@distantCellarWifiWarning": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarGpsWarning": "Du befinner dig cirka {distance} från \"{cellar}\".",
+  "@distantCellarGpsWarning": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarAddConfirm": "{warning}\n\nVill du ändå lägga till denna flaska i källaren \"{cellar}\"?",
+  "@distantCellarAddConfirm": {
+    "placeholders": {
+      "warning": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarCheckoutConfirm": "{warning}\n\nVill du ändå plocka ut denna flaska från källaren \"{cellar}\"?",
+  "@distantCellarCheckoutConfirm": {
+    "placeholders": {
+      "warning": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "ratingExceptional": "🏆 Enastående",
+  "ratingRemarkable": "✨ Anmärkningsvärd",
+  "ratingVeryGood": "🍷 Mycket god",
+  "ratingPleasant": "👍 Trevlig",
+  "ratingPassable": "Godkänd",
+  "checkoutWhoTasted": "Vem provade detta vin med dig?",
+  "checkoutStockRemaining": "{producer} • I lager: {qty} {qty, plural, =1{flaska} other{flaskor}}",
+  "@checkoutStockRemaining": {
+    "placeholders": {
+      "producer": {
+        "type": "String"
+      },
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutAddGuest": "Lägg till gäst",
+  "checkoutAddGuestHint": "Lägg till (Mamma, Pappa...)",
+  "checkoutCloseAndTaste": "Stäng och njut 🍷",
+  "checkoutSommelierThinking": "Sommelieren förbereder provningsberättelser...",
+  "checkoutAerationTimerActive": "⏱️ Luftningstimer aktiv på din låsskärm!",
+  "checkoutStartAerationTimer": "Starta timer ⏱️",
+  "checkoutAerationTimerTitle": "Luftningstimer",
+  "checkoutDelayedTonight": "I kväll kl. 22:00",
+  "checkoutDelayedTonightSub": "Perfekt efter måltiden för att reflektera i lugn och ro",
+  "checkoutDelayedTomorrow": "I morgon förmiddag kl. 11:00",
+  "checkoutDelayedTomorrowSub": "För att skriva ner dina intryck i stillhet",
+  "checkoutDelayedWeekend": "I helgen (Lördag kl. 11:00)",
+  "checkoutDelayedWeekendSub": "Ta god tid på dig under en ledig stund",
+  "checkoutDelayedInTwoHours": "Om 2 timmar ({time})",
+  "@checkoutDelayedInTwoHours": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutDelayedInTwoHoursSub": "Snabb påminnelse när provningen avslutats",
+  "checkoutDelayedCustom": "Välj datum och tid...",
+  "reviewPackagingDetected": "Förpackningsformat identifierat",
+  "reviewSingleBottleOnly": "Nej, endast 1 flaska",
+  "reviewMultipleBottlesConfirm": "Ja, {count} flaskor",
+  "@reviewMultipleBottlesConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewStockUpdatedSuccess": "🍾 Lagret har uppdaterats! ({count} flaskor i källaren)",
+  "@reviewStockUpdatedSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewVintageYear": "Årgång / Skördeår",
+  "reviewNonVintage": "Hoppa över / Utan årgång (NV)",
+  "reviewValidate": "Bekräfta",
+  "reviewBottleAddedSuccess": "🍾 {name} har lagts till i vinkällaren!",
+  "@reviewBottleAddedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewBottleAnalysis": "Flaskanalys",
+  "reviewDiscard": "Avbryt",
+  "reviewDiscardConfirmTitle": "Avbryta registreringen?",
+  "reviewContinueEditing": "Fortsätt redigera",
+  "reviewDiscardWithoutSaving": "Avsluta utan att spara",
+  "reviewBottleDetails": "Flaskdetaljer",
+  "reviewStockInCellar": "Lager i källaren",
+  "reviewStockAddition": "Lägg till",
+  "reviewStockNewTotal": "Nytt totalantal",
+  "reviewQuantityToAdd": "Antal att lägga till:",
+  "reviewSeparateEntry": "Skapa separat post (annan hylla eller inköpspris)",
+  "reviewRetryAi": "Försök igen med AI-analys",
+  "reviewEnlarge": "Förstora",
+  "reviewGeneralInfo": "Allmän information",
+  "reviewOriginTerroir": "Ursprung & Terroir",
+  "reviewQuantityPurchase": "Antal & Köpinformation",
+  "cellarWifiDetectedSuccess": "📡 Wi-Fi identifierat och kopplat: \"{ssid}\"",
+  "@cellarWifiDetectedSuccess": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarWifiDetectionFailed": "Kunde inte hitta Wi-Fi (aktivera platstjänster eller ange manuellt)",
+  "cellarGpsCoordsCaptured": "📍 GPS-koordinater sparade ({lat}, {lon})",
+  "@cellarGpsCoordsCaptured": {
+    "placeholders": {
+      "lat": {
+        "type": "String"
+      },
+      "lon": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarGpsInaccessible": "GPS-position inte tillgänglig. Kontrollera behörigheter.",
+  "cellarCreatedSuccess": "✨ Vinkällaren \"{cellar}\" har skapats!",
+  "@cellarCreatedSuccess": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarCreationError": "Fel vid skapande: {error}",
+  "@cellarCreationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarRadiusPrecise": "100 meter (mycket exakt)",
+  "cellarRadiusRecommended": "300 meter (rekommenderas)",
+  "cellarRadius500m": "500 meter",
+  "cellarRadius1km": "1 kilometer",
+  "cellarRadius3km": "3 kilometer",
+  "cellarCreateButton": "Skapa vinkällare",
+  "cellarUseCurrentGps": "Ange nuvarande GPS-position",
+  "cellarUpdatedSuccess": "✅ Källarinställningar för \"{cellar}\" har uppdaterats",
+  "@cellarUpdatedSuccess": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarUpdateError": "Fel vid uppdatering: {error}",
+  "@cellarUpdateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "wineTypeRed": "Rött Vin 🍷",
+  "wineTypeWhite": "Vitt Vin 🥂",
+  "wineTypeRose": "Rosévin 🌸",
+  "wineTypeSparkling": "Mousserande Vin 🍾",
+  "wineTypeDessert": "Dessertvin / Sött 🍯",
+  "wineTypeLiqueur": "Likör 🍯",
+  "wineTypeSpirit": "Spritdrycker 🥃",
+  "wineTypeGrappa": "Grappa 🍇",
+  "wineTypeEauDeVie": "Fruktsprit / Eau-de-Vie 🍐",
+  "wineTypeWhisky": "Whisky 🥃",
+  "wineTypeRum": "Rom 🏴‍☠️",
+  "wineTypeGin": "Gin 🍸",
+  "wineTypeVodka": "Vodka 🧊",
+  "wineTypeTequila": "Tequila 🌵",
+  "wineTypeCognac": "Cognac 🍷",
+  "cellarCreateTitle": "Skapa en ny vinkällare",
+  "cellarManageTitle": "Hantera vinkällare",
+  "cellarNameLabel": "Källarnamn *",
+  "cellarNameHint": "t.ex. Huvudkällaren, Vinkylen i köket",
+  "cellarNameRequired": "Vänligen ange ett namn",
+  "cellarLocationLabel": "Plats / Stad (valfritt)",
+  "cellarLocationHint": "t.ex. Stockholm, Beaune",
+  "cellarNicknameLabel": "Smeknamn / Rum (valfritt)",
+  "cellarNicknameHint": "t.ex. Källarvalvet, Vardagsrummet",
+  "cellarDescriptionLabel": "Beskrivning (valfritt)",
+  "cellarDescriptionHint": "t.ex. Svalt källarutrymme, 70% luftfuktighet",
+  "cellarWifiLabel": "Kopplat Wi-Fi (valfritt)",
+  "cellarWifiHint": "t.ex. Vinkallare-WiFi",
+  "cellarLinkCurrentWifi": "Koppla till nuvarande Wi-Fi",
+  "cellarCaptureCurrentWifiTooltip": "Hämta nuvarande Wi-Fi",
+  "cellarRadiusLabel": "GPS-radie",
+  "cellarAutoDetectionHeader": "Automatisk identifiering & växling",
+  "cellarAutoDetectionDesc": "Koppla ditt Wi-Fi eller dina GPS-koordinater för att automatiskt växla till denna källare när du är på plats.",
+  "cellarLatitudeLabel": "Latitud",
+  "cellarLongitudeLabel": "Longitud",
+  "checkoutGuidedTasting": "Guidad provning",
+  "checkoutGuidedTastingShared": "Dela intryck i tur och ordning eller tillsammans",
+  "checkoutGuidedTastingSolo": "Analysera utseende, doft och smak och förfina din profil",
+  "checkoutUncorkNowRateLater": "Korka upp nu, betygsätt senare",
+  "checkoutUncorkNowRateLaterSub": "Direkt uttag • Välj tid för påminnelse (i kväll, i morgon...)",
+  "checkoutUncorkAeration": "Korka upp & Luftningstimer",
+  "checkoutUncorkAerationAdvised": "Direkt uttag • {minutes} min luftning rekommenderas",
+  "checkoutUncorkAerationSub": "Direkt uttag • Dekanterings- & luftningstimer",
+  "checkoutSommelierServiceAdvice": "Serveringsråd från sommelieren",
+  "checkoutHistoryAnecdotes": "Berättelser & Anekdoter",
+  "checkoutNoDecanting": "Ingen dekantering krävs",
+  "checkoutStoryTitle": "Berättelsen om denna flaska 📖",
+  "checkoutStorySubtitle": "Fängslande historier att dela vid bordet",
+  "checkoutStoryTerroir": "Terroir & Druvsorter",
+  "checkoutStoryVintage": "Årgångens historia",
+  "checkoutStoryTastingSecret": "Provningshemlighet",
+  "checkoutStoryTableAnecdote": "Bordsanekdot",
+  "checkoutJournalArchivedNotice": "Oroa dig inte: denna flaska arkiveras i din provningsdagbok med foton och anteckningar.",
+  "checkoutBottleUncorkedAerationSuccess": "Flaskan är uppkorkad! Luftningstimer ({minutes} min) aktiv på låsskärmen.",
+  "checkoutAerationDialogPrompt": "Flaskan plockas ut direkt. Bekräfta önskad luftningstid:",
+  "checkoutRateWine": "Betygsätt vinet",
+  "checkoutStartTimerAction": "Starta {minutes}m ⏱️",
+  "checkoutAdviceAerationSnack": "Sommelier-tips: lufta i {minutes} min. Timer på låsskärmen redo.",
+  "checkoutAdviceReminderSnack": "Påminnelse schemalagd efter provningen för att spara dina intryck.",
+  "checkoutBottleRemovedSuccess": "Flaskan har plockats ut ur källaren!",
+  "checkoutBottleRemovedReminder": "Trevlig provning. Påminnelse schemalagd till {date}.",
+  "checkoutWhoTastedSubtitle": "Varje deltagares smakprofil kommer att berikas automatiskt.",
+  "checkoutCellarOf": "Vinkällare tillhörande {name}",
+  "checkoutStockBout": "Lager: {count} fl.",
+  "checkoutAddGuestDialogDesc": "Lägg till en familjemedlem eller vän som deltar i provningen (t.ex. Mamma, Pappa, Erik...).",
+  "checkoutAddGuestNameLabel": "Förnamn / Namn",
+  "checkoutDelayedSheetTitle": "Korka upp och betygsätt senare",
+  "checkoutDelayedSheetSubtitle": "När vill du få en påminnelse för att anteckna dina intryck?",
+  "checkoutDelayedTonightTime": "I kväll om 2 timmar ({time})",
+  "checkoutDelayedTonightFixed": "I kväll kl. 21:00",
+  "checkoutDateTonightLabel": "i kväll kl. {time}",
+  "checkoutDateTomorrowLabel": "i morgon kl. {time}",
+  "checkoutDateCustomLabel": "den {date} kl. {time}",
+  "add": "Lägg till",
+  "cellarWinesTab": "🍷 Viner",
+  "cellarSpiritsTab": "🥃 Spritdrycker",
+  "cellarPairWithDish": "Vilket vin till min maträtt?",
+  "cellarCollapseAll": "Fäll ihop alla",
+  "cellarExpandAll": "Fäll ut alla",
+  "cellarSort": "Sortera",
+  "cellarCategories": "Kategorier",
+  "cellarFavorites": "Favoriter",
+  "cellarGridView": "Rutnät",
+  "cellarListView": "Lista",
+  "cellarClearFilters": "Rensa filter",
+  "cellarNoBottlesCategory": "Inga flaskor i denna kategori",
+  "cellarNoBottlesCriteria": "Inga flaskor matchar dessa kriterier",
+  "feedbackSheetTitle": "Tester-feedback och anteckning",
+  "feedbackStylus": "Penna:",
+  "feedbackUndo": "Ångra senaste streck",
+  "feedbackClear": "Rensa allt",
+  "feedbackHint": "Ringa in området och beskriv feedback eller fel...",
+  "feedbackSubmit": "Skicka rapport",
+  "feedbackSubmitting": "Skickar...",
+  "feedbackNoScreenshot": "Ingen skärmdump tillgänglig",
+  "feedbackEmptyError": "Lägg till en kommentar eller rita på skärmdumpen.",
+  "feedbackSuccess": "Tack för din feedback! 🍷 Rapporten har skickats.",
+  "feedbackError": "Fel vid skickande: {error}",
+  "@feedbackError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutFastExit": "Snabb-uttag utan frågeformulär ⚡",
+  "checkoutFastExitSubmitting": "Uttag pågår...",
+  "checkoutRatingSubtitle": "Ge ditt helhetsbetyg efter provningen",
+  "checkoutRecommendedBadge": "Rekommenderas",
+  "tastingWhoTastedTitle": "👥 Vem provade detta vin?",
+  "tastingWhoTastedSubtitle": "Välj provarna. Smakprofilerna kommer att berikas automatiskt.",
+  "tastingHowToTaste": "Hur vill du prova?",
+  "tastingEachTurn": "I tur och ordning",
+  "tastingEachTurnDesc": "📱 Skicka runt telefonen: var och en svarar separat i sin egen takt.",
+  "tastingTogether": "Tillsammans",
+  "tastingTogetherDesc": "🥂 Ett gemensamt formulär fylls i tillsammans vid bordet.",
+  "tastingBlindMode": "Blindprovningsläge",
+  "tastingBlindModeDesc": "Döljer vinets namn och startar ett roligt bordsquiz med festlig avtäckning!",
+  "tastingPrimaryProfile": "Huvudprofil",
+  "tastingAppInstalled": "App installerad 📱",
+  "tastingStepTastersTitle": "👥 Välj provare",
+  "tastingStepTastersSubtitle": "Välj vilka som delar detta vin i kväll.",
+  "tastingAddTaster": "Lägg till provare",
+  "tastingAddTasterHint": "Smeknamn eller namn",
+  "tastingStepNezTitle": "👃 Doften — Aromuttryck",
+  "tastingStepNezSubtitle": "Snurra glaset och fånga de aromlager som frigörs.",
+  "tastingAromaIntensity": "Aromintensitet:",
+  "tastingAromaDiscreet": "🤫 Subtil / Diskret",
+  "tastingAromaExplosive": "💥 Explosiv / Kraftfull",
+  "tastingStepBoucheTitle": "⚖️ Smaken — Balans & Struktur",
+  "tastingStepBoucheSubtitle": "Beskriv texturen, syran och balansen i munnen.",
+  "tastingAcidity": "Syra:",
+  "tastingAcidityFreshness": "Syra & Friskhet:",
+  "tastingAcidityFlat": "🫠 Flack / Låg syra",
+  "tastingAciditySharp": "⚡ Krispig / Spänstig",
+  "tastingTannins": "Tanniner (Strävhet):",
+  "tastingTanninsSilky": "🧶 Silkeslena / Mjuka",
+  "tastingTanninsGrippy": "💪 Fasta / Strukturerade",
+  "tastingMinerality": "Mineralitet & Skärpa:",
+  "tastingMineralityRound": "🧈 Rund / Smörig",
+  "tastingMineralityCrisp": "🪨 Mineralisk / Ren",
+  "tastingEffervescence": "Mousse (Bubblor):",
+  "tastingEffervescenceDelicate": "🫧 Fin / Delikat",
+  "tastingEffervescenceVibrant": "🎆 Livlig / Krämig",
+  "tastingBody": "Kropp / Fyllighet:",
+  "tastingBodyLight": "🍃 Lätt / Elegant",
+  "tastingBodyFull": "🏋️ Fyllig / Kraftfull",
+  "tastingLength": "Eftersmak / Längd:",
+  "tastingLengthShort": "⏱️ Kort",
+  "tastingLengthLong": "♾️ Mycket lång eftersmak",
+  "tastingStepVerdictTitle": "✅ Slutligt omdöme",
+  "tastingBuyAgain": "Skulle du köpa denna flaska igen?",
+  "tastingBuyAgainYes": "🤩 Absolut!",
+  "tastingBuyAgainMaybe": "🤔 Kanske",
+  "tastingBuyAgainNo": "👎 Nej tack",
+  "tastingIdealMoment": "Passande tillfälle för detta vin?",
+  "tastingMomentApero": "🥂 Till fördrink / Aperitif",
+  "tastingMomentMeal": "🍽️ Vardagsmiddag",
+  "tastingMomentDinner": "🎩 Festmåltid",
+  "tastingMomentRomantic": "🕯️ Romantisk middag",
+  "tastingMomentSolo": "🧘 Egen stund i lugn och ro",
+  "tastingWhatLiked": "Vad du gillade mest:",
+  "tastingWhatDisliked": "Vad du gillade minst:",
+  "tastingOccasionLabel": "Tillfälle / Minne (valfritt) ✨",
+  "tastingOccasionHint": "t.ex. Födelsedag, Middag med levande ljus, Återträff...",
+  "tastingAddPhoto": "Lägg till ett bordsfoto 📸",
+  "tastingPhotoSaved": "Foto sparat 📸",
+  "tastingStepImpressionTitle": "🎯 Slutbetyg & Helhetsintryck",
+  "tastingStepImpressionSubtitle": "Sätt ditt helhetsbetyg efter att ha upplevt doft och smak.",
+  "tastingOverallFeeling": "Ditt allmänna intryck:",
+  "tastingScoreOutOf10": "Betyg från 1 till 10:",
+  "tastingCompletedTitle": "Provningen är slutförd & sparad!",
+  "tastingCompletedSubtitle": "Smakprofilerna har uppdaterats framgångsrikt ✨",
+  "tastingBottleRemoved": "Flaskan har öppnats och plockats ut ur källaren",
+  "tastingConsultDebrief": "Se sommelierens genomgång (Dolda nyanser & Terroir)",
+  "tastingFinishButton": "Avsluta ✨",
+  "tastingNextTaster": "Bekräfta → Nästa provare",
+  "tastingConfirmAndFinish": "Bekräfta & Avsluta ✨",
+  "tastingQuitTitle": "Avbryta frågeformuläret?",
+  "tastingQuitMessage": "Dina svar kommer inte att sparas.",
+  "tastingContinue": "Fortsätt",
+  "tastingQuit": "Avsluta",
+  "tastingStartCount": "Starta ({count})",
+  "tastingProfileSynced": "Synkroniserat med {name}s app ✨",
+  "tastingProfileEnriched": "Smakprofil berikad",
+  "tastingAcuityScoreSummary": "Sensorisk träffsäkerhet: {score}% • {praise}",
+  "tastingFlavorOriginsTitle": "Smakernas ursprung & Vinets hemligheter",
+  "tastingFlavorOriginsSubtitle": "Upptäck varifrån aromer, färg och struktur härstammar",
+  "tastingBlindQuizTitle": "Blindprovnings-quiz vid bordet 🙈",
+  "tastingBlindQuizQ1": "1. Vilken är vinets ursprungsregion? 🌍",
+  "tastingBlindQuizQ2": "2. Vilken är den huvudsakliga druvsorten? 🍇",
+  "tastingBlindQuizQ3": "3. Uppskattad årgång / ålder? 📅",
+  "tastingBlindQuizQ4": "4. Uppskattat prisintervall? 💶",
+  "tastingBlindRevealTitle": "Stor avtäckning av den mystiska flaskan 🍾",
+  "tastingBlindQuizScore": "Quiz-resultat: {score}/4 🎯",
+  "tastingDebriefTitle": "Oenologisk och molekylär genomgång",
+  "tastingSensoryAcuity": "SENSORISK TRÄFFSÄKERHET",
+  "tastingPrecision": "Precision {score}%",
+  "tastingConcordanceTitle": "1. ÖVERENSSTÄMMELSE & CRU-KARAKTÄR",
+  "tastingWhatYouDetected": "VAD DU UPPTÄCKTE:",
+  "tastingArchetypeSignature": "VINETS TYPISKA SIGNATUR:",
+  "tastingHiddenNuancesTitle": "SUBTILA NYANSER ATT SÖKA EFTER I NÄSTA GLAS:",
+  "tastingPillarsTitle": "2. OENOLOGISK VETENSKAP & MOLEKYLER",
+  "tastingPillarsSubtitle": "Varför har detta vin just denna struktur, dessa aromer och denna färg?",
+  "tastingChatWithSommelier": "Fördjupa dig i vinmakningens hemligheter med Chatmelier",
+  "aromaFruitsRouges": "Röda bär (jordgubb, körsbär)",
+  "aromaFruitsNoirs": "Mörka bär (björnbär, svarta vinbär)",
+  "aromaFruitsBlancs": "Ljus frukt (persika, päron, äpple)",
+  "aromaAgrumes": "Citrusfrukter (citron, grapefrukt)",
+  "aromaFloral": "Blommigt (viol, ros)",
+  "aromaVegetal": "Örter och grönska (paprika, undervegetation)",
+  "aromaEpicesDouces": "Söta kryddor (kanel, muskot)",
+  "aromaEpicesVives": "Pikanta kryddor (svartpeppar)",
+  "aromaBoise": "Fatkaraktär & Vanilj (ek)",
+  "aromaBeurre": "Smör & Brioche",
+  "aromaMineral": "Mineralitet (flinta, kalk)",
+  "aromaMiel": "Honung & Sylt",
+  "aromaChocolat": "Mörk choklad & Kaffe",
+  "aromaFumee": "Rökigt & Rostat",
+  "emojiDisliked": "Inte min smak",
+  "emojiMeh": "Sådär",
+  "emojiDecent": "Helt okej",
+  "emojiVeryGood": "Mycket gott",
+  "emojiLoved": "Fantastiskt!",
+  "likedFreshness": "Friskheten",
+  "likedFruitiness": "Fruktigheten",
+  "likedComplexity": "Komplexiteten",
+  "likedElegance": "Elegansen",
+  "likedPower": "Fylligheten och kraften",
+  "likedSilky": "Den silkeslena texturen",
+  "likedOriginality": "Karaktären och särarten",
+  "likedFoodPairing": "Maten och vinets samspel",
+  "likedMinerality": "Mineraliteten",
+  "likedLength": "Den långa eftersmaken",
+  "likedDisappointing": "Inget / En besvikelse 😕",
+  "dislikedTooAcidic": "För hög syra",
+  "dislikedTooTannic": "För strävt / kartiga tanniner",
+  "dislikedTooOaked": "För mycket ekfat / vanilj",
+  "dislikedTooAlcoholic": "För eldigt / alkoholvarmt",
+  "dislikedTooThin": "För tunt / vattnigt",
+  "dislikedLacksFruit": "För lite frukt",
+  "dislikedTooSweet": "För sött",
+  "dislikedTooExpensive": "För dyrt i förhållande till kvalitet",
+  "dislikedNothing": "Inget, vinet var alldeles förträffligt!",
+  "tastingStepTasters": "Provare",
+  "tastingStepNezNav": "Doft",
+  "tastingStepBoucheNav": "Smak",
+  "tastingStepVerdictNav": "Omdöme",
+  "tastingStepRatingNav": "Betyg",
+  "tastingBack": "Tillbaka",
+  "tastingNext": "Nästa",
+  "tastingSaving": "Sparar...",
+  "tastingHeaderTitle": "Provningsformulär",
+  "tastingAnswersOf": "Svar från {name}",
+  "tastingPassPhoneTo": "Ge telefonen vidare till {name} 📱",
+  "tastingAnswersSavedTurn": "Dina svar har sparats.\nNu är det {name}s tur.",
+  "tastingDictateButton": "Diktera intryck från bordet 🎙️",
+  "tastingDictateHint": "Tala eller skriv fritt: Chatmelier AI fyller automatiskt i aromer och smakbalans!",
+  "tastingDictateMicTip": "Tips: tryck på mikrofonen på ditt tangentbord för att diktera!",
+  "tastingTakePhoto": "Ta ett foto vid bordet 📸",
+  "tastingChooseGallery": "Välj från galleriet 🖼️",
+  "tastingConclaveSummary": "Sammanfattning av provningen",
+  "tastingCellarMaster": "Källarmästare",
+  "tastingGuestTaster": "Gästprovare",
+  "tastingProfileTag": "Profil: {type}",
+  "tastingFreeTastingRecorded": "Fri provningsanteckning sparad.",
+  "tastingAppearanceLabel": "Utseende/Färg: {appearance}",
+  "tastingStructureLabel": "Struktur: {structure} ({caudalies} caudalier)",
+  "tastingKeyMolecules": "Nyckelmolekyler: {molecules}",
+  "tastingKeyOrigin": "Avgörande faktor: {key}",
+  "tastingGrapesLabel": "Druvsorter: {grapes}",
+  "tastingAromaAppliedByAI": "Provningsintryck applicerade av Chatmelier AI ✨",
+  "tastingBlindYourPredictions": "Sammanfattning av blindgissningarna:",
+  "tastingBlindGuessCorrect": "Helt rätt! 🎯",
+  "tastingBlindMakePredictionsPrompt": "Gör era gissningar innan etiketten avtäcks!",
+  "tastingStartTaster": "Nu kör vi, {name}! 🍷",
+  "tastingQuizBravo": "🎯 Strålande!",
+  "tastingQuizWas": "(Rätt svar var: {answer})",
+  "tastingDictateInputHint": "t.ex.: Johan älskade vinet och gav 8.5/10, kände toner av björnbär och skog. Anna gav 7/10 och tyckte syran stack ut lite...",
+  "tastingDictateAnalyzing": "Analyserar...",
+  "tastingDictateAnalyzeAndApply": "Analysera och för in i formuläret ✨",
+  "tastingFormatExpress": "Snabbformat (1 sida) ⚡",
+  "tastingFormatExpressDesc": "Betyg, nyckelaromer och snabbt omdöme på 30 sek.",
+  "tastingFormatSommelier": "Sommelierformat (Detaljerat) 🎓",
+  "tastingFormatSommelierDesc": "Djupgående analys av doft, smakbalans, eftersmak och terroir",
+  "tastingCaudalieTooltipTitle": "Vad är en caudalie? ⏱️",
+  "tastingCaudalieTooltipBody": "1 caudalie = 1 sekunds kvarhängande smak efter att vinet svalts eller spottats ut.\n• 1 till 4 caudalier: lätt och friskt vin\n• 5 till 7 caudalier: mycket fin balans\n• 8 till 12+ caudalier: enastående toppvin!",
+  "tastingAddCustomAroma": "+ Egen arom",
+  "tastingCustomAromaDialogTitle": "Lägg till en specifik arom",
+  "tastingCustomAromaHint": "t.ex. Rökt flinta, Vildhallon, Torkad ros...",
+  "tastingFoodSynergyTitle": "Kombination med mat 🍽️",
+  "tastingSynergySublime": "🤩 Sublim",
+  "tastingSynergyHarmonious": "👍 Mycket harmonisk",
+  "tastingSynergyNeutral": "😐 Varken eller / Neutral",
+  "tastingSynergyClashing": "⚡ Skärande",
+  "checkoutFastRatingTitle": "Snabbetyg med 1 tryck (valfritt):",
+  "checkoutActionTastingTitle": "Prova detta vin",
+  "checkoutActionTastingSubtitle": "Snabbformat (1 sida) eller detaljerat sommelierformat",
+  "checkoutActionDeferredRemind": "Påminn mig senare 🌙",
+  "checkoutActionAerationTimer": "Luftningstimer ⏱️",
+  "tastingQuestionnairesCompletedCount": "{count, plural, =0{0 formulär ifyllda} =1{1 formulär ifyllt} other{{count} formulär ifyllda}}"
 }

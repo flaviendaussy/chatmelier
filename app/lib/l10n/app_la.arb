@@ -1,0 +1,733 @@
+{
+  "@@locale": "la",
+  "appTitle": "Chatmelier",
+  "defaultCellarName": "Cella Mea",
+  "navCellar": "Cella",
+  "navChat": "Colloquium",
+  "navJournal": "Gustatio",
+  "navStats": "Statistica",
+  "actionMenuTitle": "Actiones Cellae",
+  "actionAddBottle": "Ampullam adde",
+  "actionAddBottleSub": "Pithema vel manu scribe",
+  "actionCheckoutBottle": "Gusta / Aperias",
+  "actionCheckoutBottleSub": "Adnota & copiam minue",
+  "actionLookupWine": "Vinum consule",
+  "actionLookupWineSub": "Revelatio vinaria per AI",
+  "searchWinePlaceholder": "Quaere annatam, auctorem, regionem...",
+  "emptyCellarTitle": "Cella tua vacua est",
+  "emptyCellarSub": "Scan primam ampullam ut cellam digitalem aedifices",
+  "emptyCellarButton": "Primam ampullam adde",
+  "cellarBottlesCount": "{count, plural, =0{0 ampullae} =1{1 ampulla} other{{count} ampullae}}",
+  "@cellarBottlesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cellarTotalValue": "Pretium totale",
+  "filterAll": "Omnia",
+  "filterRed": "Rubrum",
+  "filterWhite": "Album",
+  "filterRose": "Roseum",
+  "filterSparkling": "Spumans",
+  "filterSheetTitle": "Filtra Cellae",
+  "filterReset": "Restitue",
+  "filterApply": "Applicare filtra",
+  "filterMaturity": "Maturitas / Tempus Bibendi",
+  "maturityAtPeak": "In Fastigio",
+  "maturityDrinkSoon": "Mox Bibendum",
+  "maturityAging": "In Custodia",
+  "maturityTooYoung": "Nimis Iuvenis",
+  "maturityPastPeak": "Post Fastigium",
+  "filterContinents": "Continentes",
+  "filterCountries": "Terrae",
+  "filterGrapes": "Uvae Varietates",
+  "filterAppellations": "Regiones & Appellationes",
+  "bottleDetailInfo": "Notitia & Tellus",
+  "bottleDetailDrinkingWindow": "Tempus Bibendi",
+  "bottleDetailTerroirMap": "Tabula Telluris & Originis",
+  "bottleDetailLabelPhoto": "Pithema Scannatum",
+  "bottleDetailVintage": "Annata",
+  "bottleDetailProducer": "Vinitor",
+  "bottleDetailRegion": "Regio",
+  "bottleDetailCountry": "Terra",
+  "bottleDetailAppellation": "Appellatio",
+  "bottleDetailGrapes": "Uvae",
+  "bottleDetailAlcohol": "Gradus alcoholicus",
+  "bottleDetailStock": "Copia",
+  "bottleDetailLocation": "Locus in Cella",
+  "bottleDetailRack": "Pluteus",
+  "bottleDetailShelf": "Tabula",
+  "bottleDetailPurchasePrice": "Pretium Emptionis",
+  "bottleDetailEstimatedValue": "Pretium Aestimatum",
+  "bottleDetailFoodPairings": "Cibi Accommodati",
+  "bottleDetailTastingNotes": "Dotes Sommelier",
+  "bottleDetailDrinkButton": "Ampullam aperi",
+  "bottleDetailEdit": "Recense",
+  "bottleDetailDelete": "Dele",
+  "bottleDetailDeleteConfirm": "Certusne es hanc ampullam omnino delere velle?",
+  "deleteBottleTitle": "In Perpetuum Dele",
+  "deleteBottleExplanation": "Monitio: deletio omnem memoriam huius ampullae exstinguet.",
+  "deleteBottleDifferenceDrink": "Aperi / Bibe: ampullam in historia gustandi servat.",
+  "deleteBottleDifferenceDelete": "In perpetuum dele: sine vestigio delet.",
+  "deleteBottleActionConfirm": "In Perpetuum Dele",
+  "deleteBottleActionDrinkInstead": "Potius Bibe",
+  "cancel": "Cancella",
+  "confirm": "Confirma",
+  "checkoutTitle": "Gustatio & Ex Cella Sumptio",
+  "checkoutSelectPrompt": "Tange ad ampullam eligendam...",
+  "checkoutQtyOpened": "Ampullae apertae",
+  "checkoutQtyOfTotal": "ex {total} in cella",
+  "@checkoutQtyOfTotal": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutRating": "Aestimatio Gustationis",
+  "checkoutFoodPairing": "Cibi coniuncti (optivum)",
+  "checkoutFoodHint": "e.g., Caro bubula, oryza cum fungis...",
+  "checkoutNotes": "Sensus & Notae",
+  "checkoutNotesHint": "Aromata, aequilibrium, longitudo...",
+  "checkoutSubmit": "Confirmare gustationem",
+  "checkoutSuccess": "Gustatio prospere conscripta!",
+  "chatTitle": "Chatmelier",
+  "chatGreeting": "Salve! Ego sum Chatmelier. Roga me de ciborum vinique concordia, de consiliis bibendi, vel de cella tua.",
+  "chatAnalyzing": "Chatmelier cellam tuam perscrutatur...",
+  "chatInputHint": "Interroga Chatmelier...",
+  "chatChipTonight": "🍷 Quid hac nocte bibam?",
+  "chatChipSteak": "🥩 Vinum pro carne bubula",
+  "chatChipSeafood": "🐟 Album vinum pro piscibus",
+  "chatChipPeak": "⏰ Quae ampullae in fastigio sunt?",
+  "journalTitle": "Ephemeris Gustationum",
+  "journalEmpty": "Nullae gustationes conscriptae",
+  "journalEmptySub": "Aperi et gusta ampullam ad ephemeridem inchoandam",
+  "journalTastedOn": "Gustatum die {date}",
+  "@journalTastedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "statsTitle": "Statistica Cellae",
+  "statsTotalBottles": "Ampullae in Cella",
+  "statsTotalValue": "Pretium Cellae",
+  "statsBottlesEnjoyed": "Ampullae Gustatae",
+  "statsByColor": "Distributio secundum Colorem",
+  "statsByMaturity": "Distributio secundum Maturitatem",
+  "statsByRegion": "Praecipuae Regiones",
+  "statsByCountry": "Praecipuae Terrae",
+  "profileTitle": "Profili & Praecepta",
+  "profileEmail": "Cursus Electronicus",
+  "profileDisplayName": "Nomen Praeferendum",
+  "profileDefaultCurrency": "Moneta Ordinaria",
+  "profileLanguage": "Lingua Appositi",
+  "profileLanguageSystem": "Automatica (Systema)",
+  "profileLanguageFr": "Français",
+  "profileLanguageEn": "English",
+  "profileCurrencyUpdated": "Moneta mutata: {currency}",
+  "@profileCurrencyUpdated": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "profileLanguageUpdated": "Lingua mutata est",
+  "profileLogout": "Egredi",
+  "profileAbout": "De Chatmelier",
+  "scanTitle": "Pithema Vini Scanna",
+  "scanTakePhoto": "Imaginem cape",
+  "scanPickGallery": "Elige ex pinacotheca",
+  "scanAnalyzing": "Chatmelier AI pithema perscrutatur...",
+  "scanIdentified": "Vinum agnitum a Chatmelier ✨",
+  "scanSaveToCellar": "Adde in cellam meam",
+  "loginTitle": "Ingressus",
+  "loginTagline": "Cella Tua Vinaria cum Intelligentia Artificiali",
+  "loginTabMagicLink": "✉️ Vinculum Ingressus",
+  "loginTabPassword": "🔑 Tessera",
+  "loginEmailLabel": "Inscriptio electronica",
+  "loginPasswordLabel": "Tessera",
+  "loginSendMagicLink": "Mitte Vinculum",
+  "loginSignInButton": "Ingredere",
+  "loginOrDivider": "VEL",
+  "loginGoogleButton": "Perge cum Google",
+  "loginRegisterLink": "Nonne rationem habes? Crea novam",
+  "registerTitle": "Creare Rationem",
+  "registerNameLabel": "Nomen / Praenomen",
+  "registerSubmitButton": "Creare rationem meam",
+  "registerFillAllFields": "Omnes campos exple quaeso",
+  "registerWelcome": "🎉 Bene venisti ad Chatmelier!",
+  "registerErrorGeneric": "Error in ratione creando",
+  "authWelcome": "Bene venisti ad Chatmelier",
+  "authSubtitle": "Curator cellae tuae & socius AI",
+  "authGoogle": "Perge cum Google",
+  "authMagicLink": "Ingredere per vinculum electronicum",
+  "authEmail": "Inscriptio electronica",
+  "authNoAccount": "Nonne rationem habes? Inscribe te",
+  "authHaveAccount": "Iam rationem habes? Ingredere",
+  "changelogTitle": "Historia Mutationum",
+  "changelogEmpty": "Nullae mutationes notatae.",
+  "scratchcardTitle": "Tabula Mundi Terroir",
+  "profileChangelog": "Historia & Versio",
+  "profileScratchcard": "Tabula Terroir",
+  "navBar": "Taberna",
+  "navProfile": "Profili",
+  "quickActions": "ACTIONES RAPIDAE",
+  "appSubtitle": "Sommelier & Cella Vinaria",
+  "profileTabPalate": "Palatum",
+  "profileTabSettings": "Praecepta",
+  "profileTabTools": "Instrumenta",
+  "profileTabAccount": "Ratio",
+  "profileTheme": "Modus / Thema",
+  "profileThemeLight": "Clarus ☀️",
+  "profileThemeDark": "Obscurus 🌙",
+  "profileThemeSystem": "Systema ⚙️",
+  "profileFriends": "Amici & Tabulae Palati 🍷",
+  "profileExport": "Exportare Cellam & Aestimationem 📊",
+  "profileDeleteAccount": "In Perpetuum Dele Rationem Meam",
+  "profileDeleteConfirmTitle": "Dele Rationem",
+  "profileDeleteConfirmMsg": "Hoc revocari non potest. Omnia data tua delebuntur.",
+  "badgesGalleryTitle": "Pinacotheca Praemiorum",
+  "badgesGallerySubtitle": "{unlocked} / {total} reserata • {pct}% perfectum",
+  "badgesFilterAll": "Omnia",
+  "badgesEmpty": "Nulla insignia inventa.",
+  "badgesUnlockedChip": "Reseratum ✨",
+  "badgesStatusUnlocked": "Insigne Reseratum!",
+  "badgesStatusInProgress": "In Cursu",
+  "badgesObjectiveLabel": "Propositum:",
+  "badgesChatmelierLoreTitle": "Doctrina & Scientia Chatmelier",
+  "badgesCloseButton": "Claudere",
+  "badgesTierLabel": "Gradus",
+  "badgesShowcaseTitle": "Praemia & Insignia",
+  "badgesShowcaseCount": "{unlocked} ex {total} reserata",
+  "badgesShowcaseGallery": "Pinacotheca",
+  "cocktailsTitle": "Taberna & Mixturae",
+  "cocktailsReadyToShake": "Paratus ad Agitandum",
+  "cocktailsMissingOne": "1 deest",
+  "cocktailsManagePantry": "Cura Promptuarium",
+  "cocktailsResetPantry": "Restitue Promptuarium",
+  "save": "Servare",
+  "continueAnyway": "Nihilominus pergere",
+  "cellarDetected": "Cella vinaria inventa: ",
+  "proximityWifi": "Connexum ad Wi-Fi \"{ssid}\"",
+  "@proximityWifi": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      }
+    }
+  },
+  "proximityGps": "Locus GPS inventus ad {distance}",
+  "@proximityGps": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "proximitySwitch": "Commutare",
+  "proximityIgnore": "Neglegere",
+  "proximitySwitchedSnack": "📍 Automatice commutatum ad \"{cellar}\"",
+  "@proximitySwitchedSnack": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarTitle": "Cella distans inventa",
+  "distantCellarWifiWarning": "Nunc connectaris ad Wi-Fi \"{ssid}\" coniunctum cum altera cella tua \"{cellar}\".",
+  "@distantCellarWifiWarning": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarGpsWarning": "Circiter {distance} distas a cella tua \"{cellar}\".",
+  "@distantCellarGpsWarning": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarAddConfirm": "{warning}\n\nVisne hanc lagunculam cellae \"{cellar}\" addere?",
+  "@distantCellarAddConfirm": {
+    "placeholders": {
+      "warning": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarCheckoutConfirm": "{warning}\n\nVisne hanc lagunculam e cella \"{cellar}\" depromere?",
+  "@distantCellarCheckoutConfirm": {
+    "placeholders": {
+      "warning": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "ratingExceptional": "🏆 Egregium",
+  "ratingRemarkable": "✨ Insigne",
+  "ratingVeryGood": "🍷 Valde bonum",
+  "ratingPleasant": "👍 Iucundum",
+  "ratingPassable": "Tolerabile",
+  "checkoutWhoTasted": "Quicum hoc vinum degustavisti?",
+  "checkoutStockRemaining": "{producer} • In promptu: {qty} {qty, plural, =1{laguncula} other{lagunculae}}",
+  "@checkoutStockRemaining": {
+    "placeholders": {
+      "producer": {
+        "type": "String"
+      },
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutAddGuest": "Convivam addere",
+  "checkoutAddGuestHint": "Nomen adde (Mater, Pater...)",
+  "checkoutCloseAndTaste": "Claudere & Frui 🍷",
+  "checkoutSommelierThinking": "Sommeliers fabulas parat...",
+  "checkoutAerationTimerActive": "⏱️ Aerationis mensura in tegmine operatur!",
+  "checkoutStartAerationTimer": "Incipere mensuram ⏱️",
+  "checkoutAerationTimerTitle": "Aerationis Mensura",
+  "checkoutDelayedTonight": "Hac nocte hora 22:00",
+  "checkoutDelayedTonightSub": "Post cenam optime convenit ad memoriam reficiendam",
+  "checkoutDelayedTomorrow": "Cras mane hora 11:00",
+  "checkoutDelayedTomorrowSub": "In quiete ad sensus annotandos",
+  "checkoutDelayedWeekend": "Hoc fine hebdomadis (Sabbato hora 11:00)",
+  "checkoutDelayedWeekendSub": "Tempus sume in otio tuo",
+  "checkoutDelayedInTwoHours": "Post 2 horas ({time})",
+  "@checkoutDelayedInTwoHours": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutDelayedInTwoHoursSub": "Brevis admonitio post degustationem",
+  "checkoutDelayedCustom": "Diem & horam eligere...",
+  "reviewPackagingDetected": "Forma involucri inventa",
+  "reviewSingleBottleOnly": "Non, 1 tantum laguncula",
+  "reviewMultipleBottlesConfirm": "Ita, {count} lagunculae",
+  "@reviewMultipleBottlesConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewStockUpdatedSuccess": "🍾 Promptuarium feliciter renovatum! ({count} lagunculae in cella)",
+  "@reviewStockUpdatedSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewVintageYear": "Vindemia / Annus",
+  "reviewNonVintage": "Omittere / Sine anno (NV)",
+  "reviewValidate": "Confirmare",
+  "reviewBottleAddedSuccess": "🍾 {name} feliciter cellae addita est!",
+  "@reviewBottleAddedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewBottleAnalysis": "Inspectio lagunculae",
+  "reviewDiscard": "Abicere",
+  "reviewDiscardConfirmTitle": "Abicere inceptum?",
+  "reviewContinueEditing": "Pergere scribere",
+  "reviewDiscardWithoutSaving": "Exire sine servando",
+  "reviewBottleDetails": "Indicia lagunculae",
+  "reviewStockInCellar": "Cellae promptuarium",
+  "reviewStockAddition": "Addere",
+  "reviewStockNewTotal": "Novus numerus",
+  "reviewQuantityToAdd": "Numerus addendus:",
+  "reviewSeparateEntry": "Novam partitionem creare",
+  "reviewRetryAi": "Iterum temptare IA",
+  "reviewEnlarge": "Amplificare",
+  "reviewGeneralInfo": "Communia indicia",
+  "reviewOriginTerroir": "Origo & Solum",
+  "reviewQuantityPurchase": "Numerus & Pretium",
+  "cellarWifiDetectedSuccess": "📡 Wi-Fi inventum & iunctum: \"{ssid}\"",
+  "@cellarWifiDetectedSuccess": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarWifiDetectionFailed": "Wi-Fi non inventum est",
+  "cellarGpsCoordsCaptured": "📍 GPS coordinata capta ({lat}, {lon})",
+  "@cellarGpsCoordsCaptured": {
+    "placeholders": {
+      "lat": {
+        "type": "String"
+      },
+      "lon": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarGpsInaccessible": "GPS locus non patet.",
+  "cellarCreatedSuccess": "✨ Cella \"{cellar}\" feliciter creata est!",
+  "@cellarCreatedSuccess": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarCreationError": "Error in creando: {error}",
+  "@cellarCreationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarRadiusPrecise": "100 metra (curatissimum)",
+  "cellarRadiusRecommended": "300 metra (suasum)",
+  "cellarRadius500m": "500 metra",
+  "cellarRadius1km": "1 chiliometrum",
+  "cellarRadius3km": "3 chiliometra",
+  "cellarCreateButton": "Cellam creare",
+  "cellarUseCurrentGps": "GPS praesentem locum ponere",
+  "cellarUpdatedSuccess": "✅ Cellae \"{cellar}\" ordines renovati sunt",
+  "@cellarUpdatedSuccess": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarUpdateError": "Error in renovando: {error}",
+  "@cellarUpdateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "wineTypeRed": "Vinum Rubrum 🍷",
+  "wineTypeWhite": "Vinum Album 🥂",
+  "wineTypeRose": "Vinum Roseum 🌸",
+  "wineTypeSparkling": "Vinum Spumans 🍾",
+  "wineTypeDessert": "Vinum Dulce 🍯",
+  "wineTypeLiqueur": "Liquor 🍯",
+  "wineTypeSpirit": "Spiritus 🥃",
+  "wineTypeGrappa": "Vinacea / Grappa 🍇",
+  "wineTypeEauDeVie": "Aqua Vitae Pomorum 🍐",
+  "wineTypeWhisky": "Vischium 🥃",
+  "wineTypeRum": "Rhomium 🏴‍☠️",
+  "wineTypeGin": "Iuniperatum 🍸",
+  "wineTypeVodka": "Vodca 🧊",
+  "wineTypeTequila": "Tequila 🌵",
+  "wineTypeCognac": "Coniacum 🍷",
+  "cellarCreateTitle": "Novam cellam creare",
+  "cellarManageTitle": "Cellam curare",
+  "cellarNameLabel": "Nomen cellae *",
+  "cellarNameHint": "v.gr. Cella Domus, Armarium Palatii",
+  "cellarNameRequired": "Nomen quaesumus scribe",
+  "cellarLocationLabel": "Locus / Urbs (liberum)",
+  "cellarLocationHint": "v.gr. Roma, Burdigala",
+  "cellarNicknameLabel": "Cognomen / Conclave (liberum)",
+  "cellarNicknameHint": "v.gr. Hypogeum, Tablinum",
+  "cellarDescriptionLabel": "Descriptio (liberum)",
+  "cellarDescriptionHint": "v.gr. Cella frigida sub terra, umor 70%",
+  "cellarWifiLabel": "Wi-Fi iunctum (liberum)",
+  "cellarWifiHint": "v.gr. Cella-WiFi",
+  "cellarLinkCurrentWifi": "Wi-Fi praesenti iungere",
+  "cellarCaptureCurrentWifiTooltip": "Wi-Fi capere",
+  "cellarRadiusLabel": "GPS spatium",
+  "cellarAutoDetectionHeader": "Automatica Inventio",
+  "cellarAutoDetectionDesc": "Wi-Fi vel GPS coordinata iunge ut automatice haec cella aperiatur.",
+  "cellarLatitudeLabel": "Latitudo",
+  "cellarLongitudeLabel": "Longitudo",
+  "checkoutGuidedTasting": "Ducta degustatio",
+  "checkoutGuidedTastingShared": "Sensus ordine vel simul communicare",
+  "checkoutGuidedTastingSolo": "Aspectum, odorem, saporem perquire",
+  "checkoutUncorkNowRateLater": "Nunc aperire, postea iudicare",
+  "checkoutUncorkNowRateLaterSub": "Statim depromere • Admonitionis tempus selige",
+  "checkoutUncorkAeration": "Aperire & Aeratio",
+  "checkoutUncorkAerationAdvised": "Statim depromere • {minutes} min aeratio suadetur",
+  "checkoutUncorkAerationSub": "Statim depromere • Aerationis mensura",
+  "checkoutSommelierServiceAdvice": "Sommelieris consilia",
+  "checkoutHistoryAnecdotes": "Historiae & Fabulae",
+  "checkoutNoDecanting": "Non opus est diffundere",
+  "checkoutStoryTitle": "Huius lagunculae historia 📖",
+  "checkoutStorySubtitle": "Iucundae fabulae ad convivium",
+  "checkoutStoryTerroir": "Solum & Uvae",
+  "checkoutStoryVintage": "Vindemiae memoria",
+  "checkoutStoryTastingSecret": "Gustus arcanum",
+  "checkoutStoryTableAnecdote": "Mensa fabula",
+  "checkoutJournalArchivedNotice": "Haec laguncula in Ephemeride tua cum imaginibus servabitur.",
+  "checkoutBottleUncorkedAerationSuccess": "Laguncula aperta! Aeratio ({minutes} min) currit.",
+  "checkoutAerationDialogPrompt": "Laguncula statim deprometur. Aerationis tempus confirma:",
+  "checkoutRateWine": "Vinum aestimare",
+  "checkoutStartTimerAction": "Mensura {minutes}m ⏱️",
+  "checkoutAdviceAerationSnack": "Consilium: aeratio per {minutes} min parata est.",
+  "checkoutAdviceReminderSnack": "Admonitio parata est post gustandum.",
+  "checkoutBottleRemovedSuccess": "Laguncula e cella prompta est!",
+  "checkoutBottleRemovedReminder": "Fruaris vino. Admonitio ad diem {date} parata est.",
+  "checkoutWhoTastedSubtitle": "Gustus forma uniuscuiusque augebitur.",
+  "checkoutCellarOf": "Cella {name}",
+  "checkoutStockBout": "Promptuarium: {count} lag.",
+  "checkoutAddGuestDialogDesc": "Adde amicum qui tecum degustat (v.gr. Mater, Pater, Marcus...).",
+  "checkoutAddGuestNameLabel": "Nomen",
+  "checkoutDelayedSheetTitle": "Aperire et postea aestimare",
+  "checkoutDelayedSheetSubtitle": "Quando admoneri vis?",
+  "checkoutDelayedTonightTime": "Hac nocte post 2 horas ({time})",
+  "checkoutDelayedTonightFixed": "Hac nocte hora 21:00",
+  "checkoutDateTonightLabel": "hac nocte hora {time}",
+  "checkoutDateTomorrowLabel": "cras hora {time}",
+  "checkoutDateCustomLabel": "die {date} hora {time}",
+  "add": "Addere",
+  "cellarWinesTab": "🍷 Vina",
+  "cellarSpiritsTab": "🥃 Spiritus",
+  "cellarPairWithDish": "Quod vinum huic cibo?",
+  "cellarCollapseAll": "Omnia complica",
+  "cellarExpandAll": "Omnia explica",
+  "cellarSort": "Ordina",
+  "cellarCategories": "Categoriae",
+  "cellarFavorites": "Dilecta",
+  "cellarGridView": "Cancellata",
+  "cellarListView": "Index",
+  "cellarClearFilters": "Filtra dele",
+  "cellarNoBottlesCategory": "Nulla ampulla in hac categoria",
+  "cellarNoBottlesCriteria": "Nulla ampulla his regulis convenit",
+  "feedbackSheetTitle": "Refert Inspectoris & Adnotatio",
+  "feedbackStylus": "Stilus :",
+  "feedbackUndo": "Priorem lineam dele",
+  "feedbackClear": "Omnia dele",
+  "feedbackHint": "Circumda spatium et describe mendum vel sententiam...",
+  "feedbackSubmit": "Mitte rationem",
+  "feedbackSubmitting": "Mittens...",
+  "feedbackNoScreenshot": "Nulla scaenae imago adest",
+  "feedbackEmptyError": "Quaeso adde notam aut lineam in imagine.",
+  "feedbackSuccess": "Gratias agimus! 🍷 Renuntiatio missa est.",
+  "feedbackError": "Error in mittendo: {error}",
+  "@feedbackError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutFastExit": "Celeris depromptio sine quaestionario ⚡",
+  "checkoutFastExitSubmitting": "Depromitur...",
+  "checkoutRatingSubtitle": "Iudicium generale post degustationem",
+  "checkoutRecommendedBadge": "Suasum",
+  "tastingWhoTastedTitle": "👥 Quis hoc vinum gustavit?",
+  "tastingWhoTastedSubtitle": "Selige convivas. Gustus proprietates adaptabuntur.",
+  "tastingHowToTaste": "Quomodo degustare?",
+  "tastingEachTurn": "Singuli per vices",
+  "tastingEachTurnDesc": "📱 Telephono tradito: quisque suo gradu respondet.",
+  "tastingTogether": "Omnes una",
+  "tastingTogetherDesc": "🥂 Una quaestio pro omnibus convivis solvitur.",
+  "tastingBlindMode": "Caeca Degustatio",
+  "tastingBlindModeDesc": "Nomen vini occultat et ludum mensae incipit!",
+  "tastingPrimaryProfile": "Primum profilum",
+  "tastingAppInstalled": "App paratum 📱",
+  "tastingStepTastersTitle": "👥 Convivas seligere",
+  "tastingStepTastersSubtitle": "Selige eos qui hoc vinum hodie communicant.",
+  "tastingAddTaster": "Degustatorem addere",
+  "tastingAddTasterHint": "Nomen",
+  "tastingStepNezTitle": "👃 Olfactus — Odorum Expressio",
+  "tastingStepNezSubtitle": "Calicem circumage et odores exhalantes percipe.",
+  "tastingAromaIntensity": "Odoris vis:",
+  "tastingAromaDiscreet": "🤫 Tenuis / Subtilis",
+  "tastingAromaExplosive": "💥 Effusa / Vehemens",
+  "tastingStepBoucheTitle": "⚖️ Gustatus — Aequilibrium",
+  "tastingStepBoucheSubtitle": "Texturam, aciditatem et concordiam in palato describe.",
+  "tastingAcidity": "Aciditas:",
+  "tastingAcidityFreshness": "Aciditas & Vigor:",
+  "tastingAcidityFlat": "🫠 Lenta / Iacens",
+  "tastingAciditySharp": "⚡ Acris / Vivida",
+  "tastingTannins": "Tannina:",
+  "tastingTanninsSilky": "🧶 Sericea / Lenia",
+  "tastingTanninsGrippy": "💪 Firma / Firmatum",
+  "tastingMinerality": "Minerale & Sal:",
+  "tastingMineralityRound": "🧈 Rotundum / Pinguis",
+  "tastingMineralityCrisp": "🪨 Silex / Limpidum",
+  "tastingEffervescence": "Spuma (Spumans):",
+  "tastingEffervescenceDelicate": "🫧 Tenuis / Delicata",
+  "tastingEffervescenceVibrant": "🎆 Vivida / Cremosa",
+  "tastingBody": "Corpus / Pondus:",
+  "tastingBodyLight": "🍃 Leve / Agile",
+  "tastingBodyFull": "🏋️ Plenum / Robustum",
+  "tastingLength": "Diuturnitas / Finis:",
+  "tastingLengthShort": "⏱️ Brevis",
+  "tastingLengthLong": "♾️ Diuturna",
+  "tastingStepVerdictTitle": "✅ Decretum",
+  "tastingBuyAgain": "Visne iterum hoc emere?",
+  "tastingBuyAgainYes": "🤩 Certe!",
+  "tastingBuyAgainMaybe": "🤔 Forsitan",
+  "tastingBuyAgainNo": "👎 Minime",
+  "tastingIdealMoment": "Opportunitas optima huic vino?",
+  "tastingMomentApero": "🥂 Ante cenam",
+  "tastingMomentMeal": "🍽️ Cotidiana cena",
+  "tastingMomentDinner": "🎩 Solemnis cena",
+  "tastingMomentRomantic": "🕯️ Amantium cena",
+  "tastingMomentSolo": "🧘 Solitudo et quies",
+  "tastingWhatLiked": "Quod maxime placuit:",
+  "tastingWhatDisliked": "Quod displicuit:",
+  "tastingOccasionLabel": "Occasio / Memoria (liberum) ✨",
+  "tastingOccasionHint": "v.gr. Natalis, Amor, Convivium...",
+  "tastingAddPhoto": "Mensae imaginem addere 📸",
+  "tastingPhotoSaved": "Imago servata est 📸",
+  "tastingStepImpressionTitle": "🎯 Iudicium & Notatio",
+  "tastingStepImpressionSubtitle": "Post odores et sapores, generalem notam impone.",
+  "tastingOverallFeeling": "Tua generalis sententia:",
+  "tastingScoreOutOf10": "Nota ex 10:",
+  "tastingCompletedTitle": "Degustatio perfecta & servata est!",
+  "tastingCompletedSubtitle": "Gustus proprietates renovatae sunt ✨",
+  "tastingBottleRemoved": "Laguncula aperta et e cella prompta",
+  "tastingConsultDebrief": "Sommelieris conspectum inspicere",
+  "tastingFinishButton": "Finire ✨",
+  "tastingNextTaster": "Confirmare → Proximus",
+  "tastingConfirmAndFinish": "Confirmare & Concludere ✨",
+  "tastingQuitTitle": "Relinquere quaestionarium?",
+  "tastingQuitMessage": "Responsa tua non servabuntur.",
+  "tastingContinue": "Pergere",
+  "tastingQuit": "Exire",
+  "tastingStartCount": "Incipere ({count})",
+  "tastingProfileSynced": "Cum {name} app iunctum ✨",
+  "tastingProfileEnriched": "Gustus ditatus est",
+  "tastingAcuityScoreSummary": "Acutio: {score}% • {praise}",
+  "tastingFlavorOriginsTitle": "Saporum origo & Vini arcana",
+  "tastingFlavorOriginsSubtitle": "Unde odores, color et corpus proveniant cognosce",
+  "tastingBlindQuizTitle": "Mensae caecus ludus 🙈",
+  "tastingBlindQuizQ1": "1. Quae est origo agri? 🌍",
+  "tastingBlindQuizQ2": "2. Quae est praecipua uva? 🍇",
+  "tastingBlindQuizQ3": "3. Aetas aut vindemia aestimata? 📅",
+  "tastingBlindQuizQ4": "4. Aestimatum pretium? 💶",
+  "tastingBlindRevealTitle": "Mysterii lagunculae patefactio 🍾",
+  "tastingBlindQuizScore": "Caeci ludi puncta: {score}/4 🎯",
+  "tastingDebriefTitle": "Oenologica & molecularis inspectio",
+  "tastingSensoryAcuity": "ACUTIO SENSORIA",
+  "tastingPrecision": "Veritas {score}%",
+  "tastingConcordanceTitle": "1. CONCORDIA ET NOTA",
+  "tastingWhatYouDetected": "QUOD PERCEPISTI:",
+  "tastingArchetypeSignature": "PROPRIA VINI NOTA:",
+  "tastingHiddenNuancesTitle": "SUBTILES NOTAE IN PROXIMUM CALICEM:",
+  "tastingPillarsTitle": "2. OENOLOGICA SCIENTIA",
+  "tastingPillarsSubtitle": "Cur hoc vinum hoc corpus, hos odores et hunc colorem habeat?",
+  "tastingChatWithSommelier": "Cum Chatmelier arcana altius scruta",
+  "aromaFruitsRouges": "Baccae rubrae (fraga, cerasa)",
+  "aromaFruitsNoirs": "Baccae nigrae (mora, cassis)",
+  "aromaFruitsBlancs": "Poma alba (persica, pira, mala)",
+  "aromaAgrumes": "Citri fructus (limones)",
+  "aromaFloral": "Florale (violae, rosae)",
+  "aromaVegetal": "Herbeum et viride (silva)",
+  "aromaEpicesDouces": "Aromata dulcia (cinnamum)",
+  "aromaEpicesVives": "Aromata acria (piper nigrum)",
+  "aromaBoise": "Quercus & Vanilla (dolium)",
+  "aromaBeurre": "Butyrum & Panis dulcis",
+  "aromaMineral": "Minerale (silex, creta)",
+  "aromaMiel": "Mel & Conditura",
+  "aromaChocolat": "Socolata & Caffa",
+  "aromaFumee": "Fumidum & Torrefactum",
+  "emojiDisliked": "Displicuit",
+  "emojiMeh": "Mediocre",
+  "emojiDecent": "Decens",
+  "emojiVeryGood": "Valde bonum",
+  "emojiLoved": "Admirabile!",
+  "likedFreshness": "Vigor et aciditas",
+  "likedFruitiness": "Fructus iucunditas",
+  "likedComplexity": "Saporum varietas",
+  "likedElegance": "Elegantia",
+  "likedPower": "Corpus et robur",
+  "likedSilky": "Tanninum sericeum",
+  "likedOriginality": "Natura singularis",
+  "likedFoodPairing": "Concordia cum cibo",
+  "likedMinerality": "Salinitas terrae",
+  "likedLength": "Saporis diuturnitas",
+  "likedDisappointing": "Nihil / Falsum 😕",
+  "dislikedTooAcidic": "Nimis acidum",
+  "dislikedTooTannic": "Nimis adstringens",
+  "dislikedTooOaked": "Nimis quercinum",
+  "dislikedTooAlcoholic": "Nimis fervens",
+  "dislikedTooThin": "Nimis dilutum",
+  "dislikedLacksFruit": "Fructu carens",
+  "dislikedTooSweet": "Nimis dulce",
+  "dislikedTooExpensive": "Nimis carum",
+  "dislikedNothing": "Nihil, erat omnino perfectum!",
+  "tastingStepTasters": "Convivae",
+  "tastingStepNezNav": "Nasus",
+  "tastingStepBoucheNav": "Palatum",
+  "tastingStepVerdictNav": "Decretum",
+  "tastingStepRatingNav": "Nota",
+  "tastingBack": "Retro",
+  "tastingNext": "Ultra",
+  "tastingSaving": "Servatur...",
+  "tastingHeaderTitle": "Degustationis charta",
+  "tastingAnswersOf": "Responsa {name}",
+  "tastingPassPhoneTo": "Telephonum trade ad {name} 📱",
+  "tastingAnswersSavedTurn": "Responsa tua servata sunt.\nNunc {name} aggreditur.",
+  "tastingDictateButton": "Voce sensus mandare 🎙️",
+  "tastingDictateHint": "Libere loquere: Chatmelier IA odores et gustum implebit!",
+  "tastingDictateMicTip": "Consilium: vocis signum in claviatura tange!",
+  "tastingTakePhoto": "Mensa imaginem cape 📸",
+  "tastingChooseGallery": "Ex pinacotheca selige 🖼️",
+  "tastingConclaveSummary": "Conclavis compendium",
+  "tastingCellarMaster": "Magister Cellae",
+  "tastingGuestTaster": "Conviva Gustator",
+  "tastingProfileTag": "Forma: {type}",
+  "tastingFreeTastingRecorded": "Libera annotatio servata est.",
+  "tastingAppearanceLabel": "Species: {appearance}",
+  "tastingStructureLabel": "Structura: {structure} ({caudalies} caudaliae)",
+  "tastingKeyMolecules": "Moleculae praecipuae: {molecules}",
+  "tastingKeyOrigin": "Causa princeps: {key}",
+  "tastingGrapesLabel": "Uvae: {grapes}",
+  "tastingAromaAppliedByAI": "A Chatmelier IA sensus applicati sunt ✨",
+  "tastingBlindYourPredictions": "Mensae praedictiones:",
+  "tastingBlindGuessCorrect": "Optime compertum! 🎯",
+  "tastingBlindMakePredictionsPrompt": "Praedicite antequam vinum patescat!",
+  "tastingStartTaster": "Age, {name}! 🍷",
+  "tastingQuizBravo": "🎯 Euge!",
+  "tastingQuizWas": "(Responsum erat: {answer})",
+  "tastingDictateInputHint": "v.gr. Petrus valde laetatus est 8.5/10 dans, cum notis silvae et cassis...",
+  "tastingDictateAnalyzing": "Investigatur...",
+  "tastingDictateAnalyzeAndApply": "Investigare & chartis applicare ✨",
+  "tastingFormatExpress": "Brevis forma (1 pagina) ⚡",
+  "tastingFormatExpressDesc": "Nota, odores et iudicium intra 30s",
+  "tastingFormatSommelier": "Sommelieris forma (Curata) 🎓",
+  "tastingFormatSommelierDesc": "Olfactus, gustus, diuturnitas et solum penitus perquisita",
+  "tastingCaudalieTooltipTitle": "Quid est caudalia? ⏱️",
+  "tastingCaudalieTooltipBody": "1 caudalia = 1 secundum persistendi saporis post haustum vel exspuitionem.\n• 1 ad 4 caudaliae: vinum lene et agile\n• 5 ad 7 caudaliae: aequilibrium nobile\n• 8 ad 12+ caudaliae: vinum vere insigne!",
+  "tastingAddCustomAroma": "+ Singularis odor",
+  "tastingCustomAromaDialogTitle": "Aromatis nomen adde",
+  "tastingCustomAromaHint": "v.gr. Silex fumidus, Rubus, Rosa sicca...",
+  "tastingFoodSynergyTitle": "Concordia cum cibo 🍽️",
+  "tastingSynergySublime": "🤩 Sublime",
+  "tastingSynergyHarmonious": "👍 Maxime concors",
+  "tastingSynergyNeutral": "😐 Aequum",
+  "tastingSynergyClashing": "⚡ Discors",
+  "checkoutFastRatingTitle": "Celeris nota (liberum):",
+  "checkoutActionTastingTitle": "Hoc vinum degustare",
+  "checkoutActionTastingSubtitle": "Forma brevis aut accurata sommelieris",
+  "checkoutActionDeferredRemind": "Postea admonere 🌙",
+  "checkoutActionAerationTimer": "Aerationis mensura ⏱️",
+  "tastingQuestionnairesCompletedCount": "{count, plural, =0{0 quaestiones solutae} =1{1 quaestio soluta} other{{count} quaestiones solutae}}"
+}

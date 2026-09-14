@@ -207,6 +207,33 @@ class PostTastingNotificationService {
     return target;
   }
 
+  /// Schedule a notification for an explicit target DateTime (e.g. from the reminder time picker)
+  Future<DateTime> scheduleAtCustomTime({
+    required String bottleId,
+    required String wineName,
+    int? vintage,
+    String? producer,
+    String? region,
+    String? wineType,
+    required DateTime targetTime,
+  }) async {
+    final now = DateTime.now();
+    final delay = targetTime.difference(now);
+    final effectiveDelay = delay > const Duration(minutes: 1) ? delay : const Duration(minutes: 15);
+
+    await schedulePostCheckout(
+      bottleId: bottleId,
+      wineName: wineName,
+      vintage: vintage,
+      producer: producer,
+      region: region,
+      wineType: wineType,
+      delayAfterCheckout: effectiveDelay,
+    );
+
+    return targetTime;
+  }
+
   /// Snooze a notification by a given duration, respecting quiet hours.
   Future<void> snooze(String bottleId, Duration duration) async {
     final prefs = await SharedPreferences.getInstance();

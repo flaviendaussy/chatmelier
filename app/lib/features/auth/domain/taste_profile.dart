@@ -31,6 +31,13 @@ class TasteProfile {
   final double? avgAcidityPreference; // running average of preferred acidity (0-1)
   final double? avgTanninPreference; // running average of preferred tannins (0-1)
   final double? avgBodyPreference; // running average of preferred body (0-1)
+  final double? avgOakPreference; // running average of preferred oak (0-1)
+  final double? avgRipeFruitPreference; // running average of preferred ripe fruit (0-1)
+  final double? avgSpicePreference; // running average of preferred spice (0-1)
+  final double? avgFreshFruitPreference; // running average of preferred fresh fruit (0-1)
+  final double? avgMineralityPreference; // running average of preferred minerality (0-1)
+  final Map<String, int> wishlistGrapes; // grape -> wishlist intent (+4.5)
+  final Map<String, int> cellarGrapes; // grape -> cellar inventory count (+5.0 multi-bottle)
   final Map<String, int> idealMoments; // momentId → count
   final int questionnairesCompleted; // total number of questionnaires answered
   final String? friendUserId; // Set if this profile corresponds to a connected friend who has the app
@@ -52,6 +59,13 @@ class TasteProfile {
     this.avgAcidityPreference,
     this.avgTanninPreference,
     this.avgBodyPreference,
+    this.avgOakPreference,
+    this.avgRipeFruitPreference,
+    this.avgSpicePreference,
+    this.avgFreshFruitPreference,
+    this.avgMineralityPreference,
+    this.wishlistGrapes = const {},
+    this.cellarGrapes = const {},
     this.idealMoments = const {},
     this.questionnairesCompleted = 0,
     this.friendUserId,
@@ -72,6 +86,13 @@ class TasteProfile {
     double? avgAcidityPreference,
     double? avgTanninPreference,
     double? avgBodyPreference,
+    double? avgOakPreference,
+    double? avgRipeFruitPreference,
+    double? avgSpicePreference,
+    double? avgFreshFruitPreference,
+    double? avgMineralityPreference,
+    Map<String, int>? wishlistGrapes,
+    Map<String, int>? cellarGrapes,
     Map<String, int>? idealMoments,
     int? questionnairesCompleted,
     String? friendUserId,
@@ -92,6 +113,13 @@ class TasteProfile {
       avgAcidityPreference: avgAcidityPreference ?? this.avgAcidityPreference,
       avgTanninPreference: avgTanninPreference ?? this.avgTanninPreference,
       avgBodyPreference: avgBodyPreference ?? this.avgBodyPreference,
+      avgOakPreference: avgOakPreference ?? this.avgOakPreference,
+      avgRipeFruitPreference: avgRipeFruitPreference ?? this.avgRipeFruitPreference,
+      avgSpicePreference: avgSpicePreference ?? this.avgSpicePreference,
+      avgFreshFruitPreference: avgFreshFruitPreference ?? this.avgFreshFruitPreference,
+      avgMineralityPreference: avgMineralityPreference ?? this.avgMineralityPreference,
+      wishlistGrapes: wishlistGrapes ?? this.wishlistGrapes,
+      cellarGrapes: cellarGrapes ?? this.cellarGrapes,
       idealMoments: idealMoments ?? this.idealMoments,
       questionnairesCompleted: questionnairesCompleted ?? this.questionnairesCompleted,
       friendUserId: clearFriendUserId ? null : (friendUserId ?? this.friendUserId),
@@ -113,6 +141,13 @@ class TasteProfile {
         'avg_acidity_preference': avgAcidityPreference,
         'avg_tannin_preference': avgTanninPreference,
         'avg_body_preference': avgBodyPreference,
+        'avg_oak_preference': avgOakPreference,
+        'avg_ripe_fruit_preference': avgRipeFruitPreference,
+        'avg_spice_preference': avgSpicePreference,
+        'avg_fresh_fruit_preference': avgFreshFruitPreference,
+        'avg_minerality_preference': avgMineralityPreference,
+        'wishlist_grapes': wishlistGrapes,
+        'cellar_grapes': cellarGrapes,
         'ideal_moments': idealMoments,
         'questionnaires_completed': questionnairesCompleted,
         if (friendUserId != null) 'friend_user_id': friendUserId,
@@ -134,6 +169,13 @@ class TasteProfile {
       avgAcidityPreference: (json['avg_acidity_preference'] as num?)?.toDouble(),
       avgTanninPreference: (json['avg_tannin_preference'] as num?)?.toDouble(),
       avgBodyPreference: (json['avg_body_preference'] as num?)?.toDouble(),
+      avgOakPreference: (json['avg_oak_preference'] as num?)?.toDouble(),
+      avgRipeFruitPreference: (json['avg_ripe_fruit_preference'] as num?)?.toDouble(),
+      avgSpicePreference: (json['avg_spice_preference'] as num?)?.toDouble(),
+      avgFreshFruitPreference: (json['avg_fresh_fruit_preference'] as num?)?.toDouble(),
+      avgMineralityPreference: (json['avg_minerality_preference'] as num?)?.toDouble(),
+      wishlistGrapes: _castIntMap(json['wishlist_grapes']),
+      cellarGrapes: _castIntMap(json['cellar_grapes']),
       idealMoments: _castIntMap(json['ideal_moments']),
       questionnairesCompleted: ((json['questionnaires_completed'] ?? json['questionnairesCompleted']) as num?)?.toInt() ?? 0,
       friendUserId: json['friend_user_id']?.toString(),

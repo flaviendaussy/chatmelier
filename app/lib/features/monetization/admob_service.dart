@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'admob_config.dart';
 import '../../shared/utils/app_logger.dart';
 
@@ -30,7 +31,9 @@ class AdMobService {
   bool _pendingStartupAd = false;
   DateTime? _lastPausedTime;
   DateTime? _appOpenLoadTime;
-  DateTime? _lastAppOpenShowTime;
+  DateTime? _lastAnyAdShowTime;
+  static const String _prefKeyLastAnyAdShowTime = 'admob_last_any_ad_show_time';
+
   AppLifecycleListener? _lifecycleListener;
   bool Function()? _isPremiumChecker;
 
@@ -39,6 +42,17 @@ class AdMobService {
       _appOpenAd != null &&
       _appOpenLoadTime != null &&
       DateTime.now().difference(_appOpenLoadTime!) < const Duration(hours: 4);
+
+  DateTime? get lastAnyAdShowTime => _lastAnyAdShowTime;
+
+  /// Records that an ad has just been displayed to the user and persists the timestamp.
+  void recordAdShown() {
+    final now = DateTime.now();
+    _lastAnyAdShowTime = now;
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setInt(_prefKeyLastAnyAdShowTime, now.millisecondsSinceEpoch);
+    }).catchError((_) {});
+  }
 
   /// Initializes the Google Mobile Ads SDK on supported mobile platforms with UMP GDPR consent.
   Future<void> initialize() async {
@@ -49,6 +63,15 @@ class AdMobService {
     }
 
     _appStartTime = DateTime.now();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final lastMs = prefs.getInt(_prefKeyLastAnyAdShowTime);
+      if (lastMs != null) {
+        _lastAnyAdShowTime = DateTime.fromMillisecondsSinceEpoch(lastMs);
+        AppLogger.info('ADMOB', 'Restored lastAnyAdShowTime: $_lastAnyAdShowTime');
+      }
+    } catch (_) {}
+
     final completer = Completer<void>();
 
     try {
@@ -192,6 +215,7 @@ class AdMobService {
 
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (RewardedAd ad) {
+        recordAdShown();
         AppLogger.info('ADMOB', 'RewardedAd showed full screen content.');
       },
       onAdDismissedFullScreenContent: (RewardedAd ad) {
@@ -345,10 +369,12 @@ class AdMobService {
       return false;
     }
 
-    // Protection anti-spam : cooldown de 4 minutes entre deux annonces d'ouverture
-    if (_lastAppOpenShowTime != null &&
-        DateTime.now().difference(_lastAppOpenShowTime!) < const Duration(minutes: 4)) {
-      AppLogger.info('ADMOB', 'AppOpenAd ignored: 4-minute cooldown active.');
+    // Protection anti-spam : cooldown de 10 minutes depuis la dernière pub affichée (tous formats confondus)
+    if (_lastAnyAdShowTime != null &&
+        DateTime.now().difference(_lastAnyAdShowTime!) < const Duration(minutes: 10)) {
+      final remainingSec = const Duration(minutes: 10).inSeconds -
+          DateTime.now().difference(_lastAnyAdShowTime!).inSeconds;
+      AppLogger.info('ADMOB', 'AppOpenAd ignored: 10-minute cooldown active since last ad ($remainingSec s remaining).');
       onDismissed?.call();
       return false;
     }
@@ -360,7 +386,7 @@ class AdMobService {
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
         _isShowingAppOpenAd = true;
-        _lastAppOpenShowTime = DateTime.now();
+        recordAdShown();
         AppLogger.info('ADMOB', 'AppOpenAd showed full screen content.');
       },
       onAdDismissedFullScreenContent: (ad) {
@@ -422,6 +448,15 @@ class AdMobService {
             AppLogger.info('ADMOB', 'AppOpenAd skipped on resume: in background for only ${backgroundDuration.inSeconds}s (< 30s threshold).');
             return;
           }
+        }
+
+        // Multitasking check: Ensure no ad of any kind was shown in the last 10 minutes
+        if (_lastAnyAdShowTime != null &&
+            DateTime.now().difference(_lastAnyAdShowTime!) < const Duration(minutes: 10)) {
+          final remainingSec = const Duration(minutes: 10).inSeconds -
+              DateTime.now().difference(_lastAnyAdShowTime!).inSeconds;
+          AppLogger.info('ADMOB', 'AppOpenAd skipped on resume: an ad was shown within the last 10 minutes ($remainingSec s remaining).');
+          return;
         }
 
         showAppOpenAdIfAvailable();

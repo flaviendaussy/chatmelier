@@ -133,5 +133,94 @@ void main() {
       expect(apps, contains('Oakville AVA'));
       expect(apps, contains('Barolo DOCG'));
     });
+
+    test('TastingPedagogyEngine produces discriminating acuity scores for distinct tasters', () {
+      const sampleBlend = Wine(
+        id: 'wine-mourvedre-carignan-syrah',
+        name: 'Cuvée Terres Chaudes',
+        producer: 'Domaine des Garrigues',
+        vintage: 2019,
+        type: 'red',
+        country: 'France',
+        region: 'Languedoc',
+        appellation: 'Languedoc AOC',
+        grapes: [
+          Grape(name: 'Mourvèdre', pct: 45),
+          Grape(name: 'Carignan', pct: 35),
+          Grape(name: 'Syrah', pct: 20),
+        ],
+        tastingNotes: 'Élevé 14 mois en fûts de chêne français.',
+      );
+
+      // Taster 1 (Flavien): accurately perceives archetype profile
+      final taster1 = TastingPedagogyEngine.analyze(
+        wine: sampleBlend,
+        perceivedAromaIds: {'fruits_noirs', 'epices_vives', 'boise'},
+        userAcidity: 0.58,
+        userTannins: 0.82,
+        userBody: 0.80,
+        userLength: 0.78,
+        userRating: 9.0,
+      );
+
+      // Taster 2 (Caro): perceives discordant aromas and different balance
+      final taster2 = TastingPedagogyEngine.analyze(
+        wine: sampleBlend,
+        perceivedAromaIds: {'agrumes', 'beurre'},
+        userAcidity: 0.85,
+        userTannins: 0.25,
+        userBody: 0.35,
+        userLength: 0.30,
+        userRating: 6.5,
+      );
+
+      // Scores MUST be authentic and discriminating (NEVER both 80%)
+      expect(taster1.acuityScore, isNot(equals(taster2.acuityScore)));
+      expect(taster1.acuityScore, greaterThan(85));
+      expect(taster2.acuityScore, lessThan(80));
+    });
+
+    test('TastingPedagogyEngine generates pedagogical FlavorOriginCards for grapes and oak aging', () {
+      const sampleBlend = Wine(
+        id: 'wine-mourvedre-carignan-syrah',
+        name: 'Domaine de la Négly - La Porte du Ciel',
+        producer: 'Domaine de la Négly',
+        vintage: 2020,
+        type: 'red',
+        country: 'France',
+        region: 'Languedoc',
+        appellation: 'La Clape AOC',
+        grapes: [
+          Grape(name: 'Syrah', pct: 70),
+          Grape(name: 'Mourvèdre', pct: 20),
+          Grape(name: 'Carignan', pct: 10),
+        ],
+        tastingNotes: 'Élevé 18 mois en barriques de chêne neuves.',
+      );
+
+      final report = TastingPedagogyEngine.analyze(wine: sampleBlend);
+      final origins = report.flavorOrigins;
+
+      expect(origins, isNotEmpty);
+
+      // Syrah card
+      final syrahCard = origins.firstWhere((o) => o.title.contains('Syrah'));
+      expect(syrahCard.sensoryContribution.toLowerCase(), contains('poivre'));
+      expect(syrahCard.detailedWhy, contains('rotundone'));
+
+      // Mourvèdre card
+      final mourvedreCard = origins.firstWhere((o) => o.title.contains('Mourvèdre'));
+      expect(mourvedreCard.sensoryContribution.toLowerCase(), contains('fruits noirs'));
+      expect(mourvedreCard.category, equals(FlavorOriginCategory.grape));
+
+      // Carignan card
+      final carignanCard = origins.firstWhere((o) => o.title.contains('Carignan'));
+      expect(carignanCard.sensoryContribution.toLowerCase(), contains('acide'));
+
+      // Oak barrel card
+      final oakCard = origins.firstWhere((o) => o.category == FlavorOriginCategory.oak);
+      expect(oakCard.sensoryContribution.toLowerCase(), anyOf(contains('vanille'), contains('tanins')));
+      expect(oakCard.detailedWhy.toLowerCase(), contains('micro-oxygénation'));
+    });
   });
 }

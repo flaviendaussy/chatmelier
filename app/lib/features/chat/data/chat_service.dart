@@ -17,6 +17,8 @@ import '../../friends/data/friends_repository.dart';
 import '../../cocktails/data/bar_pantry_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/chat_message.dart';
+import '../domain/cellar_macro_summary.dart';
+import '../domain/cellar_rag_retriever.dart';
 
 final chatServiceProvider = Provider<ChatService>((ref) {
   final supabase = ref.read(supabaseProvider);
@@ -131,29 +133,14 @@ class ChatService {
       }
     }
 
-    // 4. Format cellar inventory for sommelier
-    final bottlesSummary = cellarBottles.where((b) => !b.isConsumed).map((b) {
-      final wine = b.wine;
-      return {
-        'id': b.id,
-        'name': wine?.name ?? 'Vin',
-        'producer': wine?.producer ?? '',
-        'vintage': wine?.vintage,
-        'type': wine?.type ?? 'red',
-        'region': wine?.region ?? '',
-        'appellation': wine?.appellation ?? '',
-        'cuvee': wine?.cuveeParcel ?? '',
-        'grapes': wine?.grapes.map((g) => '${g.name} ${g.pct != null ? "(${g.pct}%)" : ""}').join(', '),
-        'quantity': b.quantity,
-        'location': 'Rack: ${b.rack ?? "-"}, Shelf: ${b.shelf ?? "-"}, Pos: ${b.position ?? "-"}',
-        'ideal_drinking_start': wine?.drinkStart,
-        'ideal_drinking_end': wine?.drinkEnd,
-        'peak_start': wine?.peakStart,
-        'peak_end': wine?.peakEnd,
-        'status': wine?.windowStatus.name,
-        'is_spirit': wine?.isSpirit ?? false,
-      };
-    }).toList();
+    // 4. Generate high-density Macro Summary (Metadata on proportions) + RAG candidate retrieval
+    final macroSummary = CellarMacroSummary.generate(cellarBottles, languageCode: languageCode);
+    final ragResult = CellarRagRetriever.retrieve(
+      query: message,
+      bottles: cellarBottles,
+      maxBottles: 8,
+      languageCode: languageCode,
+    );
 
     // 5. Fetch taste profiles and connected friends taste cards
     final tasteProfiles = await _tasteProfileService.getProfiles();
@@ -210,8 +197,9 @@ CRITICAL IDENTITY & INTRODUCTION RULES:
 ${isFirstMessageEver ? '- This is the user\'s first time chatting with you: you may briefly introduce yourself ONCE as "Chatmelier".' : '- DO NOT INTRODUCE YOURSELF! You already know this user and this is an ongoing dialogue. NEVER repeat "Je suis Chatmelier...", "Bonjour, je suis Chatmelier...", "En tant que Chatmelier...", "En tant que sommelier...", or similar self-introductions. Never start with a generic greeting about who you are. Jump DIRECTLY into your answer and wine/cocktail recommendations!'}
 - Never say "Chatmelier Sommelier", "votre sommelier IA", or "l'IA". Refer to yourself strictly as "Chatmelier" only when naturally required.
 
-CELLAR & BAR INVENTORY AVAILABLE IN THE USER'S CELLAR (${bottlesSummary.length} available references, wines & spirits):
-${jsonEncode(bottlesSummary)}
+$macroSummary
+
+${ragResult.formattedContext}
 
 BAR PANTRY FRESH INGREDIENTS & MIXERS IN STOCK:
 $barPantryContext
@@ -228,7 +216,9 @@ ${tastingLogSummary.isNotEmpty ? tastingLogSummary : "Pas encore d'historique de
 SOMMELIER & MIXOLOGIST RULES:
 1. LANGUAGE: Respond strictly in $langName with warmth, passion, elegance, conciseness, and high professional expertise. Format your answers with clear Markdown (headers, bullet points, bolding).
 2. CELLAR & BAR GROUNDING:
-   - When the user asks what to drink, what cocktail to make, what to pair with a meal/dish, or asks about their cellar/bar, PRIORITIZE AND HIGHLIGHT matching bottles from their actual cellar inventory!
+   - DUAL-LAYER INVENTORY INTELLIGENCE:
+     * Macro View: You know the user's exact cellar composition (total count, breakdown of whites/reds/rosés/champagnes, appellation distribution like Chablis vs Sancerre, and apogée readiness). When asked about their collection, stats, or general advice, use this metadata with authority and elegance!
+     * RAG Candidate Selection: When recommending what to drink, what cocktail to make, or what to pair with a meal/dish, PRIORITIZE AND HIGHLIGHT matching bottles from the candidate bottles retrieved via RAG above!
    - Clearly state why that specific bottle is a fantastic match.
    - Give the exact location in the cellar (Rack / Shelf) when recommending a bottle from their cellar.
 3. COCKTAILS & MIXOLOGY INTELLIGENCE:
@@ -236,9 +226,10 @@ SOMMELIER & MIXOLOGIST RULES:
      * Cross-reference their available spirits (gin, rhum, whisky, vodka, tequila, liqueurs...) and their fresh Bar Pantry stock (citrons, menthe, ginger beer, tonics, sirops...).
      * Propose classic recipes they have 100% in stock, or craft inventive, balanced, haute-mixologie bespoke cocktails.
      * Follow mixology fundamentals: balance of alcohol, sweet, sour and bitter; proper ice management; dilution; and aromatic garnishes.
-   - INTERACTIVE COCKTAIL CARDS:
-     Whenever you recommend one or more specific cocktails, generate an interactive cocktail card on its own line:
+   - MANDATORY INTERACTIVE COCKTAIL CARDS:
+     Whenever you propose, recommend, or discuss one or more specific cocktail recipes (even if you describe the steps in prose), you MUST ALWAYS append a structured cocktail card token on its own line at the end of your response:
      [COCKTAIL_CARD: {"name": "Nom du Cocktail", "base_spirit": "gin|rhum|whisky|vodka|tequila|mezcal|etc", "glass": "Coupe ou Verre Old Fashioned", "method": "Au shaker ou Au verre à mélange", "ingredients": ["5 cl Gin", "2.5 cl Jus de citron jaune", "2 cl Sirop de sucre", "10 feuilles de Basilic frais"], "recipe": "Pilonner le basilic avec le citron, ajouter le gin et le sirop, shaker vigoureusement avec de la glace pendant 15s et double-filtrer.", "garnish": "Tête de basilic frais", "reason": "Parfaitement réalisable avec vos ingrédients en stock !"}]
+     CRITICAL REQUIREMENT: This tag triggers an interactive card with a 'Save to My Custom Cocktails' button for the user. If you recommend multiple cocktails, output one [COCKTAIL_CARD: {...}] tag per cocktail. Output pure single-line JSON without markdown code fences around the tag.
 4. INTERACTIVE WINE CARDS:
    - Whenever you recommend one or more specific wine bottles from their cellar (or an ideal wine), insert an interactive card tag on its own line:
    [WINE_CARD: {"id": "bottle_id", "name": "Nom du Vin", "vintage": 2018, "producer": "Domaine", "region": "Bordeaux", "wine_type": "red", "location": "Casier B3", "reason": "Accord parfait avec votre plat"}]

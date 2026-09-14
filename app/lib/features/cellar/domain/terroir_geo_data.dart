@@ -51,6 +51,30 @@ class TerroirGeoProfile {
     required this.keywords,
   });
 
+  /// Generates a smooth, organic polygon boundary representing the appellation / cru zone.
+  List<LatLng> generateAppellationBoundary({double scale = 1.0}) {
+    final double radiusKm = hexRadiusKm * 1.8 * scale;
+    const int pointsCount = 36;
+    const double degToRad = math.pi / 180.0;
+    final double centerLat = center.latitude;
+    final double centerLon = center.longitude;
+
+    final List<LatLng> boundary = [];
+    for (int i = 0; i < pointsCount; i++) {
+      final double angle = (i * 360.0 / pointsCount) * degToRad;
+      final double variation = 1.0 + 0.12 * math.sin(3 * angle + centerLat) + 0.06 * math.cos(5 * angle + centerLon);
+      final double r = radiusKm * variation;
+      final double latOffset = r / 111.32;
+      final double lonOffset = r / (111.32 * math.cos(centerLat * degToRad));
+
+      boundary.add(LatLng(
+        centerLat + latOffset * math.sin(angle),
+        centerLon + lonOffset * math.cos(angle),
+      ));
+    }
+    return boundary;
+  }
+
   /// Generates a set of hexagonal polygons centered on this terroir profile
   List<TerroirHexPolygon> generateHexagons() {
     final List<TerroirHexPolygon> hexList = [];
@@ -64,9 +88,9 @@ class TerroirGeoProfile {
       TerroirHexPolygon(
         points: centerPoints,
         center: center,
-        color: accentColor.withValues(alpha: 0.35),
+        color: accentColor.withValues(alpha: 0.18),
         borderColor: accentColor,
-        borderWidth: 2.2,
+        borderWidth: 1.8,
         isCenterCru: true,
         label: appellation,
       ),
@@ -75,12 +99,12 @@ class TerroirGeoProfile {
     // Ring 1: 6 Surrounding Hexagons (Appellation Terroir Zones)
     final double neighborDist = hexRadiusKm * math.sqrt(3);
     final List<Color> ringColors = [
-      accentColor.withValues(alpha: 0.22),
-      const Color(0xFF8B1E3F).withValues(alpha: 0.26), // Burgundy red
-      accentColor.withValues(alpha: 0.18),
-      const Color(0xFF10B981).withValues(alpha: 0.20), // Vineyard green
-      accentColor.withValues(alpha: 0.24),
-      const Color(0xFFF59E0B).withValues(alpha: 0.20), // Amber gold
+      accentColor.withValues(alpha: 0.10),
+      const Color(0xFF8B1E3F).withValues(alpha: 0.12), // Burgundy/Wine red
+      accentColor.withValues(alpha: 0.08),
+      const Color(0xFF704214).withValues(alpha: 0.09), // Terroir loam
+      accentColor.withValues(alpha: 0.10),
+      const Color(0xFF8B1E3F).withValues(alpha: 0.08),
     ];
 
     for (int i = 0; i < 6; i++) {
@@ -97,8 +121,8 @@ class TerroirGeoProfile {
           points: neighborPoints,
           center: neighborCenter,
           color: ringColors[i % ringColors.length],
-          borderColor: accentColor.withValues(alpha: 0.65),
-          borderWidth: 1.2,
+          borderColor: accentColor.withValues(alpha: 0.35),
+          borderWidth: 1.0,
           isCenterCru: false,
           label: 'Zone ${i + 1}',
         ),
@@ -119,8 +143,8 @@ class TerroirGeoProfile {
           TerroirHexPolygon(
             points: outerPoints,
             center: outerCenter,
-            color: accentColor.withValues(alpha: 0.10),
-            borderColor: accentColor.withValues(alpha: 0.35),
+            color: accentColor.withValues(alpha: 0.06),
+            borderColor: accentColor.withValues(alpha: 0.20),
             borderWidth: 0.8,
             isCenterCru: false,
             label: null,
@@ -186,23 +210,133 @@ class TerroirGeoResolver {
         .trim();
   }
 
-  /// Resolves the optimal terroir profile for the given wine metadata
+  /// Resolves the optimal terroir profile for the given wine or spirit metadata
   static TerroirGeoProfile resolve({
     required String country,
     required String region,
     String? subRegion,
     String? appellation,
+    bool isSpirit = false,
+    String? wineType,
+    String? wineName,
+    String? producer,
   }) {
     final normApp = normalize(appellation ?? '');
     final normSub = normalize(subRegion ?? '');
     final normReg = normalize(region);
     final normCtry = normalize(country);
+    final normName = normalize('${wineName ?? ""} ${producer ?? ""}');
+    final normType = normalize(wineType ?? '');
 
-    final fullCorpus = '$normApp $normSub $normReg $normCtry';
+    final fullCorpus = '$normName $normType $normApp $normSub $normReg $normCtry';
+
+    final spiritKeywords = [
+      'spirit', 'spiritueux', 'whisky', 'whiskey', 'scotch', 'bourbon',
+      'rhum', 'rum', 'gin', 'vodka', 'tequila', 'mezcal', 'cognac',
+      'armagnac', 'calvados', 'chartreuse', 'benedictine', 'liqueur',
+      'digestif', 'eau de vie', 'eau-de-vie', 'pastis', 'anise'
+    ];
+
+    final isSpiritBottle = isSpirit ||
+        spiritKeywords.any((k) => normType.contains(k) || normName.contains(k) || normApp.contains(k));
+
+    if (isSpiritBottle) {
+      final spiritProfiles = _profiles.where((p) => p.id.startsWith('spirit_')).toList();
+
+      // 1. Appellation / Keyword match within spirit profiles
+      if (normApp.isNotEmpty) {
+        for (final profile in spiritProfiles) {
+          for (final kw in profile.keywords) {
+            if (normApp == kw || normApp.contains(kw) || kw.contains(normApp)) {
+              return profile;
+            }
+          }
+        }
+      }
+
+      // 2. Name & Producer match within spirit profiles
+      for (final profile in spiritProfiles) {
+        for (final kw in profile.keywords) {
+          if (normName.contains(kw)) {
+            return profile;
+          }
+        }
+      }
+
+      // 3. Region / SubRegion match within spirit profiles
+      if (normReg.isNotEmpty || normSub.isNotEmpty) {
+        for (final profile in spiritProfiles) {
+          for (final kw in profile.keywords) {
+            if ((normReg.isNotEmpty && (normReg == kw || normReg.contains(kw))) ||
+                (normSub.isNotEmpty && (normSub == kw || normSub.contains(kw)))) {
+              return profile;
+            }
+          }
+        }
+      }
+
+      // 4. Corpus Search among spirit profiles
+      for (final profile in spiritProfiles) {
+        for (final kw in profile.keywords) {
+          if (kw.length >= 4 && fullCorpus.contains(kw)) {
+            return profile;
+          }
+        }
+      }
+
+      // 5. Spirit Country & Regional Fallback (NEVER Pauillac!)
+      if (normCtry == 'france' || normCtry == 'fr') {
+        if (normReg.contains('normandie') || normApp.contains('calvados')) {
+          return spiritProfiles.firstWhere((p) => p.id == 'spirit_calvados');
+        }
+        if (normReg.contains('gascon') || normReg.contains('gers') || normReg.contains('sud ouest')) {
+          return spiritProfiles.firstWhere((p) => p.id == 'spirit_armagnac');
+        }
+        if (normReg.contains('alpes') || normReg.contains('isere')) {
+          return spiritProfiles.firstWhere((p) => p.id == 'spirit_chartreuse');
+        }
+        if (normReg.contains('martinique') || normReg.contains('guadeloupe') || normReg.contains('caraibes')) {
+          return spiritProfiles.firstWhere((p) => p.id == 'spirit_rhum_martinique');
+        }
+        return spiritProfiles.firstWhere((p) => p.id == 'spirit_cognac');
+      }
+
+      if (normCtry.contains('royaume') || normCtry.contains('uk') || normCtry.contains('scotland') || normCtry.contains('ecosse')) {
+        if (RegExp(r'\bgin\b', caseSensitive: false).hasMatch(normName) || RegExp(r'\bgin\b', caseSensitive: false).hasMatch(normApp)) {
+          return spiritProfiles.firstWhere((p) => p.id == 'spirit_gin_london');
+        }
+        if (fullCorpus.contains('islay') || fullCorpus.contains('tourbe') || fullCorpus.contains('peated')) {
+          return spiritProfiles.firstWhere((p) => p.id == 'spirit_whisky_islay');
+        }
+        return spiritProfiles.firstWhere((p) => p.id == 'spirit_whisky_speyside');
+      }
+
+      if (normCtry.contains('etats') || normCtry.contains('usa') || normCtry.contains('us') || normCtry.contains('america')) {
+        return spiritProfiles.firstWhere((p) => p.id == 'spirit_bourbon_kentucky');
+      }
+
+      if (normCtry.contains('irlande') || normCtry.contains('ireland')) {
+        return spiritProfiles.firstWhere((p) => p.id == 'spirit_whiskey_ireland');
+      }
+
+      if (normCtry.contains('mexique') || normCtry.contains('mexico')) {
+        return spiritProfiles.firstWhere((p) => p.id == 'spirit_tequila_jalisco');
+      }
+
+      if (normCtry.contains('pologne') || normCtry.contains('poland') || normCtry.contains('russie') || normCtry.contains('russia')) {
+        return spiritProfiles.firstWhere((p) => p.id == 'spirit_vodka_tradition');
+      }
+
+      // Default spirit fallback: Cognac (never Pauillac wine!)
+      return spiritProfiles.firstWhere((p) => p.id == 'spirit_cognac');
+    }
+
+    // --- Wine Profiles Resolution ---
+    final wineProfiles = _profiles.where((p) => !p.id.startsWith('spirit_')).toList();
 
     // 1. Exact Appellation Match
     if (normApp.isNotEmpty) {
-      for (final profile in _profiles) {
+      for (final profile in wineProfiles) {
         for (final kw in profile.keywords) {
           if (normApp == kw || normApp.contains(kw) || kw.contains(normApp)) {
             return profile;
@@ -213,7 +347,7 @@ class TerroirGeoResolver {
 
     // 2. SubRegion Match
     if (normSub.isNotEmpty) {
-      for (final profile in _profiles) {
+      for (final profile in wineProfiles) {
         for (final kw in profile.keywords) {
           if (normSub == kw || normSub.contains(kw)) {
             return profile;
@@ -224,7 +358,7 @@ class TerroirGeoResolver {
 
     // 3. Region Keyword Match
     if (normReg.isNotEmpty) {
-      for (final profile in _profiles) {
+      for (final profile in wineProfiles) {
         for (final kw in profile.keywords) {
           if (normReg == kw || normReg.contains(kw)) {
             return profile;
@@ -234,7 +368,7 @@ class TerroirGeoResolver {
     }
 
     // 4. Corpus Search
-    for (final profile in _profiles) {
+    for (final profile in wineProfiles) {
       for (final kw in profile.keywords) {
         if (kw.length >= 4 && fullCorpus.contains(kw)) {
           return profile;
@@ -243,15 +377,15 @@ class TerroirGeoResolver {
     }
 
     // 5. Country Fallback
-    for (final profile in _profiles) {
+    for (final profile in wineProfiles) {
       if (normalize(profile.country) == normCtry ||
           profile.countryCode.toLowerCase() == normCtry) {
         return profile;
       }
     }
 
-    // Default universal fallback (France - Bordeaux)
-    return _profiles.first;
+    // Default universal fallback (France - Bordeaux Pauillac for wines)
+    return wineProfiles.first;
   }
 
   // ===========================================================================
@@ -945,6 +1079,322 @@ class TerroirGeoResolver {
       classification: 'Vignoble classé Patrimoine Mondial UNESCO',
       sommelierNotes: 'La plus ancienne région délimitée au monde (1756). Terroir héroïque sculpté par la main de l\'homme produisant les grands Vintages de Porto et de somptueux vins secs.',
       keywords: ['douro', 'porto', 'pinhao', 'touriga', 'portugal', 'alentejo', 'dao', 'vinho verde'],
+    ),
+
+    // =========================================================================
+    // SPIRITUEUX & EAUX-DE-VIE D'EXCEPTION
+    // =========================================================================
+
+    // 1. COGNAC & CHARENTE
+    TerroirGeoProfile(
+      id: 'spirit_cognac',
+      name: 'Cognac & Charente (Grande Champagne)',
+      appellation: 'AOC Cognac',
+      region: 'Nouvelle-Aquitaine',
+      subRegion: 'Grande Champagne & Fins Bois',
+      country: 'France',
+      countryCode: 'FR',
+      flag: '🇫🇷',
+      center: LatLng(45.6960, -0.3280),
+      defaultZoom: 11.5,
+      hexRadiusKm: 3.5,
+      soilType: 'Campanien calcaire crayeux friable (Terres blanches de Grande Champagne)',
+      climate: 'Océanique doux et tempéré à forte hygrométrie favorisant la part des anges',
+      exposure: 'Coteaux ouverts et vallonnés le long du fleuve Charente',
+      elevation: '20 - 160 mètres',
+      keyGrapes: 'Ugni Blanc (dominant), Colombard, Folle Blanche',
+      classification: 'AOC Cognac (Cru Grande Champagne / Petite Champagne)',
+      sommelierNotes: 'Double distillation au repasse dans l\'alambic charentais en cuivre, puis long vieillissement sous fûts de chêne français du Limousin développant le rancio mythique.',
+      accentColor: Color(0xFFD4AF37),
+      keywords: ['cognac', 'charente', 'pineau', 'hennessy', 'remy martin', 'courvoisier', 'martell', 'delamain', 'camus', 'otard', 'hine', 'ugni blanc'],
+    ),
+
+    // 2. ARMAGNAC & BAS-ARMAGNAC
+    TerroirGeoProfile(
+      id: 'spirit_armagnac',
+      name: 'Armagnac & Bas-Armagnac',
+      appellation: 'AOC Bas-Armagnac',
+      region: 'Gascogne',
+      subRegion: 'Bas-Armagnac & Ténarèze',
+      country: 'France',
+      countryCode: 'FR',
+      flag: '🇫🇷',
+      center: LatLng(43.8610, 0.1010),
+      defaultZoom: 11.5,
+      hexRadiusKm: 3.5,
+      soilType: 'Sables fauves siliceux et boulbènes typiques du Bas-Armagnac',
+      climate: 'Subatlantique tempéré sous influence pyrénéenne et océanique',
+      exposure: 'Pentes douces boisées de chênes pédonculés gascons',
+      elevation: '80 - 200 mètres',
+      keyGrapes: 'Baco 22A, Ugni Blanc, Folle Blanche, Colombard',
+      classification: 'AOC Armagnac / Bas-Armagnac',
+      sommelierNotes: 'Plus ancienne eau-de-vie de France (1310). Distillation continue sur alambic armagnacais et élevage sous chêne noir de Gascogne : eau-de-vie rustique, puissante, aux notes de pruneau, vanille et épices.',
+      accentColor: Color(0xFFC05621),
+      keywords: ['armagnac', 'bas armagnac', 'bas-armagnac', 'gers', 'gascogne', 'tenareze', 'haut armagnac', 'baco', 'darmaillac', 'tariquet', 'laberdolive'],
+    ),
+
+    // 3. CALVADOS PAYS D'AUGE
+    TerroirGeoProfile(
+      id: 'spirit_calvados',
+      name: 'Calvados Pays d\'Auge',
+      appellation: 'AOC Calvados Pays d\'Auge',
+      region: 'Normandie',
+      subRegion: 'Pays d\'Auge',
+      country: 'France',
+      countryCode: 'FR',
+      flag: '🇫🇷',
+      center: LatLng(49.2880, 0.1870),
+      defaultZoom: 11.8,
+      hexRadiusKm: 3.0,
+      soilType: 'Marnes argilo-calcaires jurassiques et silex des vallons normands',
+      climate: 'Océanique humide, doux et tempéré favorisant la pomologie',
+      exposure: 'Vergers traditionnels haute-tige enherbés et pâturés',
+      elevation: '40 - 150 mètres',
+      keyGrapes: 'Pommes à cidre douces-amères (Bisquet, Bédan) et acidulées, Poires',
+      classification: 'AOC Calvados Pays d\'Auge (Double distillation)',
+      sommelierNotes: 'Nectar né de la distillation du cidre normand pur jus vieilli en fûts de chêne. Arômes intenses de pomme rôtie au beurre, de tarte tatin, de caramel au beurre salé et d\'épices douces.',
+      accentColor: Color(0xFFDD6B20),
+      keywords: ['calvados', 'normandie', 'pays d auge', 'pays d\'auge', 'pommeau', 'cidre', 'cider', 'dupont', 'drouin', 'groult', 'boulard', 'camut'],
+    ),
+
+    // 4. CHARTREUSE (VOIRON & MASSIF)
+    TerroirGeoProfile(
+      id: 'spirit_chartreuse',
+      name: 'Liqueur des Pères Chartreux (Voiron)',
+      appellation: 'Liqueur de Chartreuse',
+      region: 'Auvergne-Rhône-Alpes',
+      subRegion: 'Massif de la Chartreuse / Voiron',
+      country: 'France',
+      countryCode: 'FR',
+      flag: '🇫🇷',
+      center: LatLng(45.3640, 5.8150),
+      defaultZoom: 12.0,
+      hexRadiusKm: 2.5,
+      soilType: 'Massif préalpin calcaire urgonien et forêts d\'altitude',
+      climate: 'Alpin rigoureux et tempéré par les vallées',
+      exposure: 'Coteaux alpins abrités de la combe d\'Isère',
+      elevation: '280 - 1000 mètres',
+      keyGrapes: 'Alcool de grain infusé et distillé avec 130 plantes et herbes alpines',
+      classification: 'Liqueur monastique historique (Manuscrit 1605)',
+      sommelierNotes: 'La seule liqueur au monde entièrement naturelle à vieillir et se bonifier en bouteille pendant des décennies. Complexe symphonie végétale de menthe poivrée, d\'anis, de thym serpolet, de génépi et de safran.',
+      accentColor: Color(0xFF10B981),
+      keywords: ['chartreuse', 'voiron', 'aiguenoire', 'isere', 'verte', 'jaune', 'elixir', 'vep', 'chartreux'],
+    ),
+
+    // 5. BÉNÉDICTINE (FÉCAMP)
+    TerroirGeoProfile(
+      id: 'spirit_benedictine',
+      name: 'Palais Bénédictine (Fécamp)',
+      appellation: 'Bénédictine D.O.M.',
+      region: 'Normandie',
+      subRegion: 'Côte d\'Albâtre / Fécamp',
+      country: 'France',
+      countryCode: 'FR',
+      flag: '🇫🇷',
+      center: LatLng(49.7570, 0.3750),
+      defaultZoom: 12.0,
+      hexRadiusKm: 2.5,
+      soilType: 'Falaise de craie blanche sénonienne du pays de Caux',
+      climate: 'Océanique vivifiant balayé par les vents de la Manche',
+      exposure: 'Vallée maritime de Fécamp ouverte sur le littoral',
+      elevation: '10 - 80 mètres',
+      keyGrapes: '27 plantes et épices du monde (angélique, hysope, safran, genièvre, cannelle)',
+      classification: 'Élixir de santé monastique né en 1510',
+      sommelierNotes: 'Distillation quadruple sous alambics martelés en cuivre de 1888 et vieillissement en foudres de chêne centenaires. Texture soyeuse, miel épicé, écorces d\'oranges confites et notes orientales.',
+      accentColor: Color(0xFFD97706),
+      keywords: ['benedictine', 'fecamp', 'dom', 'd.o.m', 'le grand', 'b&b', 'caux'],
+    ),
+
+    // 6. ISLAY SINGLE MALT SCOTCH WHISKY
+    TerroirGeoProfile(
+      id: 'spirit_whisky_islay',
+      name: 'Islay Single Malt Scotch Whisky',
+      appellation: 'Single Malt Islay Scotch Whisky',
+      region: 'Écosse / Scotland',
+      subRegion: 'Islay (Hébrides intérieures)',
+      country: 'Royaume-Uni',
+      countryCode: 'GB',
+      flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+      center: LatLng(55.7570, -6.2870),
+      defaultZoom: 11.2,
+      hexRadiusKm: 3.8,
+      soilType: 'Tourbières épaisses gorgées d\'eau de bruyère et quartz précambrien',
+      climate: 'Océanique sauvage, pluvieux et balayé par les embruns atlantiques',
+      exposure: 'Rivages côtiers sauvages du Loch Indaal et du Sound of Islay',
+      elevation: '0 - 150 mètres',
+      keyGrapes: 'Orge maltée séchée à la fumée de tourbe locale (Peat)',
+      classification: 'Protected Geographical Indication (PGI Scotch Whisky)',
+      sommelierNotes: 'Le sanctuaire mondial des whiskies tourbés et iodés. Notes intenses de fumée de feu de bois, goudron médical, algues salines, huître, et tourbe sauvage tempérée par des fûts de Bourbon ou Sherry.',
+      accentColor: Color(0xFF374151),
+      keywords: ['islay', 'laphroaig', 'lagavulin', 'ardbeg', 'bowmore', 'bruichladdich', 'caol ila', 'kilchoman', 'bunnahabhain', 'tourbe', 'peated'],
+    ),
+
+    // 7. SPEYSIDE & HIGHLAND WHISKY
+    TerroirGeoProfile(
+      id: 'spirit_whisky_speyside',
+      name: 'Speyside & Highland Single Malt Whisky',
+      appellation: 'Speyside Single Malt Scotch Whisky',
+      region: 'Écosse / Scotland',
+      subRegion: 'Vallée de la Spey / Highlands',
+      country: 'Royaume-Uni',
+      countryCode: 'GB',
+      flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+      center: LatLng(57.4440, -3.1280),
+      defaultZoom: 11.0,
+      hexRadiusKm: 4.0,
+      soilType: 'Socle granitique calédonien et alluvions glaciaires de la rivière Spey',
+      climate: 'Subpolaire océanique tempéré, eau de source cristalline des monts Cairngorms',
+      exposure: 'Vallons protégés de la Spey bordés de forêts de pins calédoniens',
+      elevation: '150 - 500 mètres',
+      keyGrapes: '100% Orge maltée (malt non tourbé ou délicatement toasté)',
+      classification: 'PGI Scotch Whisky (Speyside / Highlands)',
+      sommelierNotes: 'Le cœur historique et prestigieux du whisky écossais. Élégance, rondeur, notes miellées de pomme verte, poire mûre, malt toasté, vanille et fûts de Sherry Oloroso somptueux.',
+      accentColor: Color(0xFFB45309),
+      keywords: ['speyside', 'whisky', 'whiskey', 'scotch', 'highland', 'highlands', 'macallan', 'glenfiddich', 'balvenie', 'glenlivet', 'aberlour', 'glenmorangie', 'talisker', 'oban', 'dalmore', 'scotland', 'ecosse'],
+    ),
+
+    // 8. IRISH WHISKEY
+    TerroirGeoProfile(
+      id: 'spirit_whiskey_ireland',
+      name: 'Irish Whiskey (Midleton & Bushmills)',
+      appellation: 'Single Pot Still Irish Whiskey',
+      region: 'Irlande',
+      subRegion: 'County Cork / County Antrim',
+      country: 'Irlande',
+      countryCode: 'IE',
+      flag: '🇮🇪',
+      center: LatLng(51.9160, -8.1720),
+      defaultZoom: 11.0,
+      hexRadiusKm: 3.5,
+      soilType: 'Plaines calcaires herbeuses et tourbières alluvionnaires irlandaises',
+      climate: 'Océanique doux et tempéré à fortes précipitations',
+      exposure: 'Verdoyantes vallées côtières tempérées du sud et du nord',
+      elevation: '20 - 120 mètres',
+      keyGrapes: 'Orge maltée et orge crue non maltée (Single Pot Still)',
+      classification: 'GI Irish Whiskey (Triple Distillation)',
+      sommelierNotes: 'La tradition de la triple distillation en pot still apporte une onctuosité beurrée incomparable, sans aucune agressivité fumée, aux notes d\'épices de cuisson, pêche jaune, fudge et bois noble.',
+      accentColor: Color(0xFF047857),
+      keywords: ['ireland', 'irlande', 'irish', 'jameson', 'bushmills', 'redbreast', 'midleton', 'teeling', 'pot still', 'tullamore'],
+    ),
+
+    // 9. KENTUCKY STRAIGHT BOURBON
+    TerroirGeoProfile(
+      id: 'spirit_bourbon_kentucky',
+      name: 'Kentucky Straight Bourbon Whiskey',
+      appellation: 'Kentucky Straight Bourbon Whiskey',
+      region: 'Kentucky / Tennessee',
+      subRegion: 'Bluegrass Region (Bardstown & Frankfort)',
+      country: 'États-Unis',
+      countryCode: 'US',
+      flag: '🇺🇸',
+      center: LatLng(37.8090, -85.4660),
+      defaultZoom: 11.0,
+      hexRadiusKm: 4.5,
+      soilType: 'Plateau calcaire ordovicien filtrant une eau de source exempte de fer',
+      climate: 'Continental humide à variations thermiques saisonnières extrêmes',
+      exposure: 'Collines ondulantes de la région Bluegrass et vallées de la Kentucky River',
+      elevation: '150 - 300 mètres',
+      keyGrapes: 'Au moins 51% Maïs jaune, Seigle (Rye), Orge maltée, Blé',
+      classification: 'Federal Standard of Identity (Bourbon / Straight Bourbon)',
+      sommelierNotes: 'Les étés caniculaires et hivers glacés du Kentucky font respirer les fûts neufs de chêne américain brûlé (char #4), extrayant de puissants arômes de vanille, caramel, érable, maïs toasté et cuir.',
+      accentColor: Color(0xFF92400E),
+      keywords: ['bourbon', 'kentucky', 'rye', 'tennessee', 'jack daniel', 'jim beam', 'makers mark', 'woodford', 'buffalo trace', 'bulleit', 'knob creek', 'pappy', 'wild turkey', 'america'],
+    ),
+
+    // 10. RHUM AGRICOLE DE LA MARTINIQUE
+    TerroirGeoProfile(
+      id: 'spirit_rhum_martinique',
+      name: 'Rhum Agricole de la Martinique & Caraïbes',
+      appellation: 'AOC Rhum Agricole de Martinique',
+      region: 'Martinique / Caraïbes',
+      subRegion: 'Montagne Pelée & Caravelle',
+      country: 'France',
+      countryCode: 'FR',
+      flag: '🇲🇶',
+      center: LatLng(14.8160, -61.1660),
+      defaultZoom: 11.2,
+      hexRadiusKm: 3.8,
+      soilType: 'Sols volcaniques andosols riches et fertiles de la Montagne Pelée',
+      climate: 'Tropical maritime chaud et humide rythmé par les alizés',
+      exposure: 'Versants volcaniques et plaines cannières ensoleillées',
+      elevation: '20 - 450 mètres',
+      keyGrapes: 'Pur jus frais de canne à sucre broyée (Vesou non raffiné)',
+      classification: 'AOC Rhum de Martinique (Seule AOC mondiale du rhum)',
+      sommelierNotes: 'Contrairement aux rhums industriels de mélasse, le rhum agricole est distillé à partir du vesou frais. Explosion aromatique de canne fraîche, zeste de lime, fleurs blanches en blanc, et boisé vanillé noble en vieux.',
+      accentColor: Color(0xFFEAB308),
+      keywords: ['rhum', 'rum', 'martinique', 'guadeloupe', 'agricole', 'clement', 'bally', 'neisson', 'depaz', 'j.m', 'jm', 'damoiseau', 'caraibes', 'caribbean', 'vesou', 'trois rivieres', 'havana', 'diplomatico', 'zacapa', 'plantation', 'bologne'],
+    ),
+
+    // 11. TEQUILA & MEZCAL (JALISCO & OAXACA)
+    TerroirGeoProfile(
+      id: 'spirit_tequila_jalisco',
+      name: 'Tequila & Mezcal d\'Agave (Jalisco & Oaxaca)',
+      appellation: 'DO Tequila / DO Mezcal',
+      region: 'Jalisco / Oaxaca',
+      subRegion: 'Valle de Tequila & Los Altos',
+      country: 'Mexique',
+      countryCode: 'MX',
+      flag: '🇲🇽',
+      center: LatLng(20.8860, -103.8370),
+      defaultZoom: 11.5,
+      hexRadiusKm: 3.5,
+      soilType: 'Terres volcaniques rouges riches en fer et minéraux du volcan de Tequila',
+      climate: 'Semi-aride subtropical avec saisons sèche et pluvieuse bien marquées',
+      exposure: 'Plateaux arides et pentes volcaniques sous le volcan Tequila',
+      elevation: '1200 - 2100 mètres (Haute altitude)',
+      keyGrapes: '100% Agave Tequilana Weber Variedad Azul (cœurs d\'agave / piñas)',
+      classification: 'Denominación de Origen Tequila (CRT certifié)',
+      sommelierNotes: 'Les piñas d\'agave bleu mûrissent 7 à 10 ans sous le soleil mexicain avant d\'être cuites lentement en fours maçonnés. Arômes végétaux frais, poivre blanc, agave confit, herbes sauvages et minéralité volcanique.',
+      accentColor: Color(0xFF15803D),
+      keywords: ['tequila', 'mezcal', 'agave', 'jalisco', 'oaxaca', 'mexique', 'mexico', 'don julio', 'patron', 'casamigos', 'clase azul', 'fortaleza', 'herradura', 'siete leguas', 'del maguey'],
+    ),
+
+    // 12. LONDON DRY GIN
+    TerroirGeoProfile(
+      id: 'spirit_gin_london',
+      name: 'London Dry Gin & Botanicals',
+      appellation: 'London Dry Gin',
+      region: 'Royaume-Uni / Europe',
+      subRegion: 'Londres & Distilleries Artisanales',
+      country: 'Royaume-Uni',
+      countryCode: 'GB',
+      flag: '🇬🇧',
+      center: LatLng(51.5074, -0.1278),
+      defaultZoom: 11.8,
+      hexRadiusKm: 3.5,
+      soilType: 'Bassin alluvionnaire de la Tamise et sources d\'eau pures',
+      climate: 'Océanique tempéré maritime',
+      exposure: 'Cœur historique de la distillation urbaine britannique',
+      elevation: '15 - 40 mètres',
+      keyGrapes: 'Alcool neutre redistillé avec baies de genièvre (Juniperus communis), coriandre, angélique, agrumes',
+      classification: 'Catégorie Réglementaire Européenne London Dry Gin',
+      sommelierNotes: 'Distillation pure sans aucun arôme ni sucre ajouté après alambic. Dominance résineuse et piquante du genièvre, fraîcheur de zeste de citron jaune, racine d\'iris et graines de coriandre.',
+      accentColor: Color(0xFF0284C7),
+      keywords: ['gin', 'london dry', 'tanqueray', 'bombay', 'hendrick', 'beefeater', 'botanical', 'genievre', 'juniper', 'roku', 'monkey 47', 'citadelle'],
+    ),
+
+    // 13. VODKA TRADITION
+    TerroirGeoProfile(
+      id: 'spirit_vodka_tradition',
+      name: 'Vodka de Tradition (Seigle, Blé & Pomme de terre)',
+      appellation: 'Vodka Traditionnelle',
+      region: 'Europe de l\'Est / Pologne & France',
+      subRegion: 'Mazovie & Charente',
+      country: 'Pologne',
+      countryCode: 'PL',
+      flag: '🇵🇱',
+      center: LatLng(52.2297, 21.0122),
+      defaultZoom: 11.0,
+      hexRadiusKm: 4.0,
+      soilType: 'Plaines fertiles de Tchernoziom et terres sablo-limoneuses de céréales nobles',
+      climate: 'Continental tempéré aux hivers glaciaux',
+      exposure: 'Grands plateaux céréaliers d\'Europe centrale',
+      elevation: '80 - 200 mètres',
+      keyGrapes: 'Seigle d\'or Dankowskie, Blé tendre d\'hiver, Pommes de terre Stobrawa',
+      classification: 'Protected Geographical Indication Polska Wódka',
+      sommelierNotes: 'Pureté absolue issue de multiples distillations en colonnes et filtrations au charbon de bois. Texture grasse, crémeuse, notes de pain de seigle frais, vanille douce et poivre blanc délicat.',
+      accentColor: Color(0xFF64748B),
+      keywords: ['vodka', 'belvedere', 'grey goose', 'chopin', 'smirnoff', 'stolichnaya', 'absolut', 'seigle', 'rye vodka', 'wheat vodka'],
     ),
   ];
 }

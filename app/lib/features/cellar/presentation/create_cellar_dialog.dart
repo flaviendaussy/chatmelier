@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/services/cellar_location_service.dart';
+import '../../../l10n/app_localizations.dart';
 
 class CreateCellarDialog extends ConsumerStatefulWidget {
   const CreateCellarDialog({super.key});
@@ -39,6 +40,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
 
   Future<void> _captureCurrentWifi() async {
     setState(() => _isDetectingWifi = true);
+    final l10n = AppLocalizations.of(context);
     try {
       final ssid = await CellarLocationService.getCurrentWifiSsid();
       if (ssid != null && ssid.isNotEmpty) {
@@ -46,7 +48,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('📡 Wi-Fi détecté et associé : "$ssid"'),
+              content: Text(l10n?.cellarWifiDetectedSuccess(ssid) ?? '📡 Wi-Fi détecté et associé : "$ssid"'),
               backgroundColor: const Color(0xFF2E7D32),
             ),
           );
@@ -54,8 +56,8 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Impossible de détecter le Wi-Fi (activez la localisation ou saisissez le nom manuellement)'),
+            SnackBar(
+              content: Text(l10n?.cellarWifiDetectionFailed ?? 'Impossible de détecter le Wi-Fi (activez la localisation ou saisissez le nom manuellement)'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -68,6 +70,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
 
   Future<void> _captureCurrentGps() async {
     setState(() => _isLocatingGps = true);
+    final l10n = AppLocalizations.of(context);
     try {
       final pos = await CellarLocationService.getCurrentPosition();
       if (pos != null) {
@@ -78,7 +81,8 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('📍 Coordonnées GPS capturées (${pos.latitude.toStringAsFixed(4)}, ${pos.longitude.toStringAsFixed(4)})'),
+              content: Text(l10n?.cellarGpsCoordsCaptured(pos.latitude.toStringAsFixed(4), pos.longitude.toStringAsFixed(4)) ??
+                  '📍 Coordonnées GPS capturées (${pos.latitude.toStringAsFixed(4)}, ${pos.longitude.toStringAsFixed(4)})'),
               backgroundColor: const Color(0xFF2E7D32),
             ),
           );
@@ -86,8 +90,8 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Position GPS inaccessible. Vérifiez les autorisations de localisation.'),
+            SnackBar(
+              content: Text(l10n?.cellarGpsInaccessible ?? 'Position GPS inaccessible. Vérifiez les autorisations de localisation.'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -100,6 +104,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context);
 
     setState(() => _isCreating = true);
 
@@ -128,7 +133,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
         Navigator.of(context).pop(newCellar);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✨ Cave "${newCellar.name}" créée avec succès !'),
+            content: Text(l10n?.cellarCreatedSuccess(newCellar.name) ?? '✨ Cave "${newCellar.name}" créée avec succès !'),
             backgroundColor: const Color(0xFF2E7D32),
           ),
         );
@@ -138,7 +143,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
         setState(() => _isCreating = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la création : $e'),
+            content: Text(l10n?.cellarCreationError('$e') ?? 'Erreur lors de la création : $e'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -148,15 +153,16 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.add_home_work, color: Color(0xFF8B1E3F)),
-          SizedBox(width: 8),
+          const Icon(Icons.add_home_work, color: Color(0xFF8B1E3F)),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Créer une nouvelle cave',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              l10n?.cellarCreateTitle ?? 'Créer une nouvelle cave',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -172,44 +178,44 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
               children: [
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nom de la cave *',
-                    hintText: 'ex: Cave de Londres, Cave des Vosges',
-                    prefixIcon: Icon(Icons.wine_bar),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n?.cellarNameLabel ?? 'Nom de la cave *',
+                    hintText: l10n?.cellarNameHint ?? 'ex: Cave de Londres, Cave des Vosges',
+                    prefixIcon: const Icon(Icons.wine_bar),
+                    border: const OutlineInputBorder(),
                   ),
-                  validator: (val) => val == null || val.trim().isEmpty ? 'Veuillez saisir un nom' : null,
+                  validator: (val) => val == null || val.trim().isEmpty ? (l10n?.cellarNameRequired ?? 'Veuillez saisir un nom') : null,
                   autofocus: true,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _locationController,
-                  decoration: const InputDecoration(
-                    labelText: 'Lieu / Ville (optionnel)',
-                    hintText: 'ex: Londres (UK), Vosges (FR)',
-                    prefixIcon: Icon(Icons.location_on_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n?.cellarLocationLabel ?? 'Lieu / Ville (optionnel)',
+                    hintText: l10n?.cellarLocationHint ?? 'ex: Londres (UK), Vosges (FR)',
+                    prefixIcon: const Icon(Icons.location_on_outlined),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _nicknameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Surnom / Pièce (optionnel)',
-                    hintText: 'ex: Sous-sol, Cave à vin principale',
-                    prefixIcon: Icon(Icons.label_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n?.cellarNicknameLabel ?? 'Surnom / Pièce (optionnel)',
+                    hintText: l10n?.cellarNicknameHint ?? 'ex: Sous-sol, Cave à vin principale',
+                    prefixIcon: const Icon(Icons.label_outline),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _descriptionController,
                   maxLines: 2,
-                  decoration: const InputDecoration(
-                    labelText: 'Description (optionnel)',
-                    hintText: 'ex: Cave enterrée fraîche, hygrométrie 70%',
-                    prefixIcon: Icon(Icons.notes),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n?.cellarDescriptionLabel ?? 'Description (optionnel)',
+                    hintText: l10n?.cellarDescriptionHint ?? 'ex: Cave enterrée fraîche, hygrométrie 70%',
+                    prefixIcon: const Icon(Icons.notes),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
 
@@ -221,15 +227,15 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
                 TextFormField(
                   controller: _wifiController,
                   decoration: InputDecoration(
-                    labelText: 'Wi-Fi associé (optionnel)',
-                    hintText: 'ex: Livebox-Cave',
+                    labelText: l10n?.cellarWifiLabel ?? 'Wi-Fi associé (optionnel)',
+                    hintText: l10n?.cellarWifiHint ?? 'ex: Livebox-Cave',
                     prefixIcon: const Icon(Icons.wifi),
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: _isDetectingWifi
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.my_location, color: Color(0xFF8B1E3F)),
-                      tooltip: 'Associer au Wi-Fi actuel',
+                      tooltip: l10n?.cellarLinkCurrentWifi ?? 'Associer au Wi-Fi actuel',
                       onPressed: _isDetectingWifi ? null : _captureCurrentWifi,
                     ),
                   ),
@@ -245,7 +251,9 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
                         ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.gps_fixed, size: 16),
                     label: Text(
-                      _latController.text.isNotEmpty ? 'GPS: ${_latController.text.substring(0, 7)}...' : 'Définir position GPS actuelle',
+                      _latController.text.isNotEmpty
+                          ? 'GPS: ${_latController.text.substring(0, 7)}...'
+                          : (l10n?.cellarUseCurrentGps ?? 'Définir position GPS actuelle'),
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),
@@ -255,17 +263,17 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
                 // Detection Radius
                 DropdownButtonFormField<int>(
                   initialValue: _radiusMeters,
-                  decoration: const InputDecoration(
-                    labelText: 'Rayon de détection GPS',
-                    prefixIcon: Icon(Icons.radar),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n?.cellarRadiusLabel ?? 'Rayon de détection GPS',
+                    prefixIcon: const Icon(Icons.radar),
+                    border: const OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 100, child: Text('100 mètres (très précis)')),
-                    DropdownMenuItem(value: 300, child: Text('300 mètres (recommandé)')),
-                    DropdownMenuItem(value: 500, child: Text('500 mètres')),
-                    DropdownMenuItem(value: 1000, child: Text('1 kilomètre')),
-                    DropdownMenuItem(value: 3000, child: Text('3 kilomètres')),
+                  items: [
+                    DropdownMenuItem(value: 100, child: Text(l10n?.cellarRadiusPrecise ?? '100 mètres (très précis)')),
+                    DropdownMenuItem(value: 300, child: Text(l10n?.cellarRadiusRecommended ?? '300 mètres (recommandé)')),
+                    DropdownMenuItem(value: 500, child: Text(l10n?.cellarRadius500m ?? '500 mètres')),
+                    DropdownMenuItem(value: 1000, child: Text(l10n?.cellarRadius1km ?? '1 kilomètre')),
+                    DropdownMenuItem(value: 3000, child: Text(l10n?.cellarRadius3km ?? '3 kilomètres')),
                   ],
                   onChanged: (val) {
                     if (val != null) setState(() => _radiusMeters = val);
@@ -279,7 +287,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Annuler'),
+          child: Text(l10n?.cancel ?? 'Annuler'),
         ),
         FilledButton(
           onPressed: _isCreating ? null : _submit,
@@ -293,7 +301,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
                   height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                 )
-              : const Text('Créer la cave', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              : Text(l10n?.cellarCreateButton ?? 'Créer la cave', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );

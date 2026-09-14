@@ -218,7 +218,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     final entriesAsync = ref.watch(tastingLogProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final l10n = AppLocalizations.of(context);
     final favoriteWineIds = ref.watch(favoriteWineIdsProvider);
 

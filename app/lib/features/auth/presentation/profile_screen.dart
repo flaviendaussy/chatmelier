@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../monetization/admob_service.dart';
 import '../../../shared/providers/locale_provider.dart';
@@ -28,6 +31,7 @@ import '../domain/user_profile.dart';
 import '../../notifications/presentation/notification_settings_sheet.dart';
 import '../../notifications/data/notification_preferences_service.dart';
 import '../../badges/presentation/badges_gallery_sheet.dart';
+import '../../badges/data/badge_unlock_tracker.dart';
 import '../../feedback/data/shake_feedback_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -42,15 +46,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _displayName = '';
   String? _username;
   String? _phoneNumber;
+  String? _avatarUrl;
   TasteProfile? _userTasteProfile;
   bool _isLoading = true;
   bool _showPrivacyOptions = false;
+  bool _isUploadingAvatar = false;
+  bool _badgeAnimationsEnabled = true;
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
     _checkPrivacyOptions();
+    _loadBadgeSettings();
+  }
+
+  Future<void> _loadBadgeSettings() async {
+    try {
+      final enabled = await BadgeUnlockTracker.areAnimationsEnabled();
+      if (mounted) {
+        setState(() => _badgeAnimationsEnabled = enabled);
+      }
+    } catch (_) {}
   }
 
   Future<void> _checkPrivacyOptions() async {
@@ -74,6 +91,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _displayName = profile.displayName;
             _username = profile.username;
             _phoneNumber = profile.phoneNumber;
+            _avatarUrl = profile.avatarUrl;
             _defaultCurrency = profile.defaultCurrency;
           });
         }
@@ -113,32 +131,277 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  String _tasteProfileSummary([bool isFr = true]) {
+  String _tasteProfileSummary([dynamic lang]) {
+    final langCode = (lang is String && lang.isNotEmpty)
+        ? lang
+        : (Localizations.maybeLocaleOf(context)?.languageCode ?? 'fr');
     final p = _userTasteProfile;
     if (p == null ||
         (p.favoriteTypes.isEmpty &&
             p.favoriteRegions.isEmpty &&
             p.favoriteGrapes.isEmpty &&
             p.dislikedCharacteristics.isEmpty)) {
-      return isFr
-          ? 'Aucune préférence définie pour l\'instant. Personnalisez vos styles, terroirs et cépages favoris !'
-          : 'No preferences defined yet. Customize your favorite styles, terroirs, and grape varieties!';
+      switch (langCode) {
+        case 'en':
+          return 'No preferences defined yet. Customize your favorite styles, terroirs, and grape varieties!';
+        case 'es':
+          return '¡Aún no hay preferencias definidas. Personaliza tus estilos, terruños y variedades!';
+        case 'ca':
+          return 'Encara no hi ha preferències definides. Personalitza els teus estils, terroirs i varietats!';
+        case 'la':
+          return 'Nullae praeferentiae constitutae sunt. Adapta stylos, terrena et uvas dilectas!';
+        default:
+          return 'Aucune préférence définie pour l\'instant. Personnalisez vos styles, terroirs et cépages favoris !';
+      }
+    }
+
+    String stylesLabel;
+    String terroirsLabel;
+    String grapesLabel;
+    String dislikesLabel;
+    switch (langCode) {
+      case 'en':
+        stylesLabel = 'Styles'; terroirsLabel = 'Terroirs'; grapesLabel = 'Grapes'; dislikesLabel = 'Dislikes';
+        break;
+      case 'es':
+        stylesLabel = 'Estilos'; terroirsLabel = 'Terruños'; grapesLabel = 'Uvas'; dislikesLabel = 'Aversiones';
+        break;
+      case 'ca':
+        stylesLabel = 'Estils'; terroirsLabel = 'Terroirs'; grapesLabel = 'Raïms'; dislikesLabel = 'Aversions';
+        break;
+      case 'la':
+        stylesLabel = 'Styli'; terroirsLabel = 'Terrena'; grapesLabel = 'Uvae'; dislikesLabel = 'Aversiones';
+        break;
+      default:
+        stylesLabel = 'Styles'; terroirsLabel = 'Terroirs'; grapesLabel = 'Cépages'; dislikesLabel = 'Aversions';
+        break;
     }
 
     final parts = <String>[];
     if (p.favoriteTypes.isNotEmpty) {
-      parts.add('${isFr ? "Styles" : "Styles"} : ${p.favoriteTypes.take(2).join(", ")}');
+      parts.add('$stylesLabel : ${p.favoriteTypes.take(2).join(", ")}');
     }
     if (p.favoriteRegions.isNotEmpty) {
-      parts.add('${isFr ? "Terroirs" : "Terroirs"} : ${p.favoriteRegions.take(2).join(", ")}');
+      parts.add('$terroirsLabel : ${p.favoriteRegions.take(2).join(", ")}');
     }
     if (p.favoriteGrapes.isNotEmpty) {
-      parts.add('${isFr ? "Cépages" : "Grapes"} : ${p.favoriteGrapes.take(2).join(", ")}');
+      parts.add('$grapesLabel : ${p.favoriteGrapes.take(2).join(", ")}');
     }
     if (p.dislikedCharacteristics.isNotEmpty) {
-      parts.add('${isFr ? "Aversions" : "Dislikes"} : ${p.dislikedCharacteristics.take(1).join(", ")}');
+      parts.add('$dislikesLabel : ${p.dislikedCharacteristics.take(1).join(", ")}');
     }
     return parts.join(' • ');
+  }
+
+  Future<void> _setAvatar(String? url) async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    setState(() => _avatarUrl = url);
+    final repo = ref.read(authRepositoryProvider);
+    await repo.updateProfile(
+      displayName: _displayName.isNotEmpty ? _displayName : (user.userMetadata?['display_name'] ?? 'User'),
+      username: _username,
+      phoneNumber: _phoneNumber,
+      email: user.email,
+      avatarUrl: url ?? '',
+      defaultCurrency: _defaultCurrency,
+    );
+    if (mounted) {
+      final isFr = Localizations.localeOf(context).languageCode == 'fr';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(url == null
+              ? (isFr ? 'Avatar réinitialisé.' : 'Avatar reset.')
+              : (isFr ? 'Avatar mis à jour ! 🍷' : 'Avatar updated! 🍷')),
+          backgroundColor: const Color(0xFF10B981),
+        ),
+      );
+    }
+  }
+
+  Future<void> _pickAndUploadAvatar(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+      if (picked == null) return;
+
+      setState(() => _isUploadingAvatar = true);
+
+      final user = ref.read(currentUserProvider);
+      if (user == null) return;
+
+      final bytes = await picked.readAsBytes();
+      String? finalUrl;
+
+      try {
+        final supabase = Supabase.instance.client;
+        final ext = picked.path.split('.').last.toLowerCase();
+        final safeExt = (ext == 'png' || ext == 'webp') ? ext : 'jpg';
+        final fileName = 'avatars/avatar_${user.id}_${DateTime.now().millisecondsSinceEpoch}.$safeExt';
+        await supabase.storage.from('labels').uploadBinary(
+          fileName,
+          bytes,
+          fileOptions: FileOptions(contentType: 'image/$safeExt', upsert: true),
+        );
+        finalUrl = supabase.storage.from('labels').getPublicUrl(fileName);
+      } catch (storageErr) {
+        AppLogger.warning('PROFILE', 'Supabase storage avatar upload failed, falling back to data URI: $storageErr');
+        final b64 = base64Encode(bytes);
+        finalUrl = 'data:image/jpeg;base64,$b64';
+      }
+
+      await _setAvatar(finalUrl);
+    } catch (e) {
+      AppLogger.error('PROFILE', 'Avatar selection failed: $e');
+      if (mounted) {
+        final isFr = Localizations.localeOf(context).languageCode == 'fr';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isFr ? 'Erreur lors de la sélection de la photo' : 'Error picking avatar image'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploadingAvatar = false);
+    }
+  }
+
+  void _showAvatarPickerSheet() {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    final theme = Theme.of(context);
+    final sommelierAvatars = [
+      '🍷', '🍇', '🍾', '🥂', '🍸', '🥃', '🧀', '🕯️', '🎩', '👑', '🧑‍🍳', '⚜️', '🏰', '🌱', '🌿', '🪵'
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade400,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isFr ? 'Photo de profil & Avatar' : 'Profile Picture & Avatar',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.camera_alt_outlined),
+                        label: Text(isFr ? 'Appareil photo' : 'Camera'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _pickAndUploadAvatar(ImageSource.camera);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.photo_library_outlined),
+                        label: Text(isFr ? 'Galerie' : 'Gallery'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _pickAndUploadAvatar(ImageSource.gallery);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  isFr ? 'Avatars Sommelier' : 'Sommelier Avatars',
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 52,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: sommelierAvatars.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (context, idx) {
+                      final emoji = sommelierAvatars[idx];
+                      final isSelected = _avatarUrl == 'emoji:$emoji';
+                      return InkWell(
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _setAvatar('emoji:$emoji');
+                        },
+                        borderRadius: BorderRadius.circular(26),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                                : theme.colorScheme.surfaceContainerHighest,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                if (_avatarUrl != null && _avatarUrl!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: Text(isFr ? 'Supprimer l\'avatar actuel' : 'Remove current avatar'),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _setAvatar(null);
+                    },
+                  ),
+                ],
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _changeCurrency(String newCurrency) async {
@@ -161,7 +424,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _editDisplayName() async {
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final ctrl = TextEditingController(text: _displayName);
     final result = await showDialog<String?>(
       context: context,
@@ -208,6 +471,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           username: _username,
           phoneNumber: _phoneNumber,
           email: user.email,
+          avatarUrl: _avatarUrl,
         );
         setState(() => _displayName = result);
         if (mounted) {
@@ -223,7 +487,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _editPhoneNumber() async {
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     String tempPhone = _phoneNumber ?? '';
     final result = await showDialog<String?>(
       context: context,
@@ -295,6 +559,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           username: _username,
           phoneNumber: result.isNotEmpty ? result : null,
           email: user.email,
+          avatarUrl: _avatarUrl,
         );
         setState(() => _phoneNumber = result.isNotEmpty ? result : null);
         if (mounted) {
@@ -310,7 +575,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _showLegalDialog(String title, String content) {
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -337,7 +602,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _showPrivacyPolicy() {
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     _showLegalDialog(
       isFr ? 'Politique de Confidentialité' : 'Privacy Policy',
       isFr
@@ -371,7 +636,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _showTermsOfService() {
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     _showLegalDialog(
       isFr ? 'Conditions Générales d\'Utilisation' : 'Terms of Service',
       isFr
@@ -401,7 +666,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _confirmDeleteAccount() async {
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final confirmCtrl = TextEditingController();
     bool canDelete = false;
 
@@ -542,7 +807,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     final resolvedDisplayName = _displayName.isNotEmpty
         ? _displayName
@@ -565,7 +830,59 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: Row(
                     children: [
-                      OwnerAvatar(userId: user?.id ?? '', radius: 22),
+                      GestureDetector(
+                        onTap: user == null ? null : _showAvatarPickerSheet,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            OwnerAvatar(
+                              userId: user?.id ?? '',
+                              avatarUrl: _avatarUrl,
+                              radius: 24,
+                            ),
+                            if (user != null)
+                              Positioned(
+                                bottom: -2,
+                                right: -2,
+                                child: Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: theme.scaffoldBackgroundColor,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    size: 10,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            if (_isUploadingAvatar)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black45,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Center(
+                                    child: SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -746,7 +1063,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                   ),
                   child: Text(
-                    _tasteProfileSummary(isFr),
+                    _tasteProfileSummary(Localizations.localeOf(context).languageCode),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: isDark ? Colors.white70 : Colors.black87,
                       height: 1.3,
@@ -792,6 +1109,56 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
         // 🏆 BADGES & TROPHÉES SHOWCASE
         const BadgesShowcaseCard(),
+
+        // 📊 STATISTIQUES DE CAVE & ANALYSES
+        Card(
+          elevation: 2,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: const Color(0xFF8B1E3F).withValues(alpha: 0.35), width: 1.5),
+          ),
+          color: isDark ? const Color(0xFF201724) : const Color(0xFFFAF5F8),
+          child: InkWell(
+            onTap: () => context.push('/stats'),
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.insights, color: Color(0xFF8B1E3F), size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isFr ? 'Statistiques de la Cave 📊' : 'Cellar & Tasting Analytics 📊',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          isFr
+                              ? 'Répartition par couleur, régions, valeur patrimoniale, apogée'
+                              : 'Color breakdown, regions, total asset value, peak windows',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF8B1E3F)),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -880,6 +1247,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     const DropdownMenuItem(
                       value: 'sv',
                       child: Text('Svenska 🇸🇪', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    ),
+                    const DropdownMenuItem(
+                      value: 'la',
+                      child: Text('Latina (Vaticanum) 🏛️', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     ),
                   ],
                   onChanged: (val) {
@@ -1000,6 +1371,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           trailing: const Icon(Icons.chevron_right),
           onTap: () => NotificationSettingsSheet.show(context),
         ),
+        const Divider(height: 28),
+
+        // Animations des Badges & Trophées
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          secondary: const Icon(Icons.emoji_events_outlined, color: Color(0xFFD4AF37)),
+          title: Text(
+            isFr ? 'Animations des Trophées 🏆' : 'Badge Unlock Animations 🏆',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(
+            isFr
+                ? 'Célébration festive lors du déblocage d\'une distinction'
+                : 'Celebratory animation when a badge is unlocked',
+            style: const TextStyle(fontSize: 12),
+          ),
+          value: _badgeAnimationsEnabled,
+          activeThumbColor: const Color(0xFFD4AF37),
+          onChanged: (val) async {
+            setState(() => _badgeAnimationsEnabled = val);
+            await BadgeUnlockTracker.setAnimationsEnabled(val);
+          },
+        ),
 
         // RGPD Consent options
         if (_showPrivacyOptions) ...[
@@ -1028,6 +1422,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.insights, color: Color(0xFF8B1E3F)),
+          title: Text(isFr ? 'Statistiques de Cave & Analyses 📊' : 'Cellar Analytics & Insights 📊', style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(isFr ? 'Graphiques, apogées, valeurs financières et stocks' : 'Charts, aging peaks, financial valuation and stock', style: const TextStyle(fontSize: 12)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push('/stats'),
+        ),
+        const Divider(height: 12),
+
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.people_alt, color: Color(0xFFD4AF37)),

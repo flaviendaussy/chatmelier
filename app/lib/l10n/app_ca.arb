@@ -209,5 +209,525 @@
   "cocktailsMissingOne": "En falta 1",
   "cocktailsManagePantry": "Gestionar Reserva",
   "cocktailsResetPantry": "Restablir Reserva",
-  "defaultCellarName": "El meu Celler"
+  "defaultCellarName": "El meu Celler",
+  "save": "Desa",
+  "continueAnyway": "Continua igualment",
+  "cellarDetected": "Celler detectat: ",
+  "proximityWifi": "Connectat a la xarxa Wi-Fi \"{ssid}\"",
+  "@proximityWifi": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      }
+    }
+  },
+  "proximityGps": "Ubicació GPS detectada a {distance}",
+  "@proximityGps": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "proximitySwitch": "Canvia",
+  "proximityIgnore": "Ignora",
+  "proximitySwitchedSnack": "📍 S'ha canviat automàticament a \"{cellar}\"",
+  "@proximitySwitchedSnack": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarTitle": "Celler llunyà detectat",
+  "distantCellarWifiWarning": "Actualment estàs connectat a la xarxa Wi-Fi \"{ssid}\" associada amb el teu altre celler \"{cellar}\".",
+  "@distantCellarWifiWarning": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarGpsWarning": "Et trobes a aproximadament {distance} de \"{cellar}\".",
+  "@distantCellarGpsWarning": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarAddConfirm": "{warning}\n\nEncara vols afegir aquesta ampolla al celler \"{cellar}\"?",
+  "@distantCellarAddConfirm": {
+    "placeholders": {
+      "warning": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarCheckoutConfirm": "{warning}\n\nEncara vols retirar aquesta ampolla del celler \"{cellar}\"?",
+  "@distantCellarCheckoutConfirm": {
+    "placeholders": {
+      "warning": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "ratingExceptional": "🏆 Excepcional",
+  "ratingRemarkable": "✨ Notable",
+  "ratingVeryGood": "🍷 Molt bo",
+  "ratingPleasant": "👍 Agradable",
+  "ratingPassable": "Acceptable",
+  "checkoutWhoTasted": "Qui ha tastat aquest vi amb tu?",
+  "checkoutStockRemaining": "{producer} • En estoc: {qty} {qty, plural, =1{ampolla} other{ampolles}}",
+  "@checkoutStockRemaining": {
+    "placeholders": {
+      "producer": {
+        "type": "String"
+      },
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutAddGuest": "Afegeix un convidat",
+  "checkoutAddGuestHint": "Afegeix (Mare, Pare...)",
+  "checkoutCloseAndTaste": "Tanca i gaudeix 🍷",
+  "checkoutSommelierThinking": "El sommelier està preparant anècdotes...",
+  "checkoutAerationTimerActive": "⏱️ Temporitzador d'airejament actiu a la pantalla de bloqueig!",
+  "checkoutStartAerationTimer": "Inicia temporitzador ⏱️",
+  "checkoutAerationTimerTitle": "Temporitzador d'airejament",
+  "checkoutDelayedTonight": "Aquesta nit a les 22:00",
+  "checkoutDelayedTonightSub": "Ideal després de l'àpat per pair i recordar el moment",
+  "checkoutDelayedTomorrow": "Demà al matí a les 11:00",
+  "checkoutDelayedTomorrowSub": "Per anotar les teves impressions amb calma",
+  "checkoutDelayedWeekend": "Aquest cap de setmana (Dissabte a les 11:00)",
+  "checkoutDelayedWeekendSub": "Pren-te el teu temps en una estona lliure",
+  "checkoutDelayedInTwoHours": "En 2 hores ({time})",
+  "@checkoutDelayedInTwoHours": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutDelayedInTwoHoursSub": "Recordatori ràpid en acabar el tast",
+  "checkoutDelayedCustom": "Tria data i hora personalitzades...",
+  "reviewPackagingDetected": "Format d'embalatge detectat",
+  "reviewSingleBottleOnly": "No, només 1 ampolla",
+  "reviewMultipleBottlesConfirm": "Sí, {count} ampolles",
+  "@reviewMultipleBottlesConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewStockUpdatedSuccess": "🍾 Estoc actualitzat amb èxit! ({count} ampolles al celler)",
+  "@reviewStockUpdatedSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewVintageYear": "Anyada / Any de collita",
+  "reviewNonVintage": "Omet / Sense anyada (NV)",
+  "reviewValidate": "Confirma",
+  "reviewBottleAddedSuccess": "🍾 {name} afegida amb èxit al celler!",
+  "@reviewBottleAddedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewBottleAnalysis": "Anàlisi de l'ampolla",
+  "reviewDiscard": "Descarta",
+  "reviewDiscardConfirmTitle": "Descartar l'entrada?",
+  "reviewContinueEditing": "Continua editant",
+  "reviewDiscardWithoutSaving": "Surt sense desar",
+  "reviewBottleDetails": "Detalls de l'ampolla",
+  "reviewStockInCellar": "Estoc al celler",
+  "reviewStockAddition": "Afegeix",
+  "reviewStockNewTotal": "Nou total",
+  "reviewQuantityToAdd": "Quantitat a afegir:",
+  "reviewSeparateEntry": "Crea una entrada separada (prestatge o preu diferent)",
+  "reviewRetryAi": "Reintenta anàlisi IA",
+  "reviewEnlarge": "Amplia",
+  "reviewGeneralInfo": "Informació general",
+  "reviewOriginTerroir": "Origen & Terroir",
+  "reviewQuantityPurchase": "Quantitat & Detalls de compra",
+  "cellarWifiDetectedSuccess": "📡 Wi-Fi detectat i vinculat: \"{ssid}\"",
+  "@cellarWifiDetectedSuccess": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarWifiDetectionFailed": "No s'ha pogut detectar el Wi-Fi (activa la ubicació o introdueix-lo manualment)",
+  "cellarGpsCoordsCaptured": "📍 Coordenades GPS capturades ({lat}, {lon})",
+  "@cellarGpsCoordsCaptured": {
+    "placeholders": {
+      "lat": {
+        "type": "String"
+      },
+      "lon": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarGpsInaccessible": "Ubicació GPS no disponible. Comprova els permisos.",
+  "cellarCreatedSuccess": "✨ Celler \"{cellar}\" creat amb èxit!",
+  "@cellarCreatedSuccess": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarCreationError": "Error durant la creació: {error}",
+  "@cellarCreationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarRadiusPrecise": "100 metres (molt precís)",
+  "cellarRadiusRecommended": "300 metres (recomanat)",
+  "cellarRadius500m": "500 metres",
+  "cellarRadius1km": "1 quilòmetre",
+  "cellarRadius3km": "3 quilòmetres",
+  "cellarCreateButton": "Crea el celler",
+  "cellarUseCurrentGps": "Defineix amb la posició GPS actual",
+  "cellarUpdatedSuccess": "✅ Paràmetres del celler \"{cellar}\" actualitzats",
+  "@cellarUpdatedSuccess": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarUpdateError": "Error en actualitzar: {error}",
+  "@cellarUpdateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "wineTypeRed": "Vi Negre 🍷",
+  "wineTypeWhite": "Vi Blanc 🥂",
+  "wineTypeRose": "Vi Rosat 🌸",
+  "wineTypeSparkling": "Escumós / Cava 🍾",
+  "wineTypeDessert": "Vi Dolç / Generós 🍯",
+  "wineTypeLiqueur": "Licor 🍯",
+  "wineTypeSpirit": "Destil·lats 🥃",
+  "wineTypeGrappa": "Grappa / Marc 🍇",
+  "wineTypeEauDeVie": "Aguardent de Fruita 🍐",
+  "wineTypeWhisky": "Whisky 🥃",
+  "wineTypeRum": "Rom 🏴‍☠️",
+  "wineTypeGin": "Ginebra 🍸",
+  "wineTypeVodka": "Vodka 🧊",
+  "wineTypeTequila": "Tequila 🌵",
+  "wineTypeCognac": "Cognac / Brandi 🍷",
+  "cellarCreateTitle": "Crea un nou celler",
+  "cellarManageTitle": "Gestiona el celler",
+  "cellarNameLabel": "Nom del celler *",
+  "cellarNameHint": "ex. Celler de Casa, Vinoteca Menjador",
+  "cellarNameRequired": "Introdueix un nom",
+  "cellarLocationLabel": "Ubicació / Ciutat (opcional)",
+  "cellarLocationHint": "ex. Barcelona, Priorat",
+  "cellarNicknameLabel": "Sobrenom / Sala (opcional)",
+  "cellarNicknameHint": "ex. Soterrani, Nevera de vins",
+  "cellarDescriptionLabel": "Descripció (opcional)",
+  "cellarDescriptionHint": "ex. Cova subterrània fresca, humitat 70%",
+  "cellarWifiLabel": "Wi-Fi associat (opcional)",
+  "cellarWifiHint": "ex. Wi-Fi-Celler",
+  "cellarLinkCurrentWifi": "Vincula al Wi-Fi actual",
+  "cellarCaptureCurrentWifiTooltip": "Captura el Wi-Fi actual",
+  "cellarRadiusLabel": "Radi de detecció GPS",
+  "cellarAutoDetectionHeader": "Detecció i Transició Automàtica",
+  "cellarAutoDetectionDesc": "Vincula la teva xarxa Wi-Fi o coordenades GPS per canviar automàticament a aquest celler en arribar-hi.",
+  "cellarLatitudeLabel": "Latitud",
+  "cellarLongitudeLabel": "Longitud",
+  "checkoutGuidedTasting": "Tast guiat",
+  "checkoutGuidedTastingShared": "Comparteix impressions per torns o conjuntament",
+  "checkoutGuidedTastingSolo": "Analitza aspecte visual, nas i boca i perfecciona el teu perfil",
+  "checkoutUncorkNowRateLater": "Obre ara, valora després",
+  "checkoutUncorkNowRateLaterSub": "Sortida immediata • Tria l'hora del recordatori (avui, demà...)",
+  "checkoutUncorkAeration": "Obre & Temporitzador d'airejament",
+  "checkoutUncorkAerationAdvised": "Sortida immediata • {minutes} min d'airejament recomanats",
+  "checkoutUncorkAerationSub": "Sortida immediata • Temporitzador de decantació o airejament",
+  "checkoutSommelierServiceAdvice": "Consells de servei del sommelier",
+  "checkoutHistoryAnecdotes": "Històries & Anècdotes",
+  "checkoutNoDecanting": "No cal decantació",
+  "checkoutStoryTitle": "La història d'aquesta ampolla 📖",
+  "checkoutStorySubtitle": "Anècdotes captivadores per compartir a taula",
+  "checkoutStoryTerroir": "Terroir & Varietats",
+  "checkoutStoryVintage": "La història de l'anyada",
+  "checkoutStoryTastingSecret": "Secret de tast",
+  "checkoutStoryTableAnecdote": "Anècdota per a la taula",
+  "checkoutJournalArchivedNotice": "Tranquil: aquesta ampolla s'arxivarà al teu Diari de Tast amb fotos i notes.",
+  "checkoutBottleUncorkedAerationSuccess": "Ampolla oberta! Temporitzador d'airejament ({minutes} min) actiu a la pantalla de bloqueig.",
+  "checkoutAerationDialogPrompt": "L'ampolla es retirarà immediatament. Confirma la durada de l'airejament:",
+  "checkoutRateWine": "Valora el vi",
+  "checkoutStartTimerAction": "Temporitzador {minutes}m ⏱️",
+  "checkoutAdviceAerationSnack": "Consell sommelier: airejar {minutes} min. Temporitzador llest.",
+  "checkoutAdviceReminderSnack": "Recordatori programat després del tast per recollir les teves impressions.",
+  "checkoutBottleRemovedSuccess": "Ampolla retirada del celler!",
+  "checkoutBottleRemovedReminder": "Gaudeix del tast. Recordatori programat per al {date}.",
+  "checkoutWhoTastedSubtitle": "El perfil de gust de cada comensal s'enriquirà automàticament.",
+  "checkoutCellarOf": "Celler de {name}",
+  "checkoutStockBout": "Estoc: {count} amp.",
+  "checkoutAddGuestDialogDesc": "Afegeix un familiar o amic present en aquest tast (ex. Mare, Pare, Laia...).",
+  "checkoutAddGuestNameLabel": "Nom / Sobrenom",
+  "checkoutDelayedSheetTitle": "Obre i valora més tard",
+  "checkoutDelayedSheetSubtitle": "Quan vols rebre el recordatori per a les teves impressions?",
+  "checkoutDelayedTonightTime": "Aquesta nit en 2 hores ({time})",
+  "checkoutDelayedTonightFixed": "Aquesta nit a les 21:00",
+  "checkoutDateTonightLabel": "aquesta nit a les {time}",
+  "checkoutDateTomorrowLabel": "demà a les {time}",
+  "checkoutDateCustomLabel": "el {date} a les {time}",
+  "add": "Afegir",
+  "cellarWinesTab": "🍷 Vins",
+  "cellarSpiritsTab": "🥃 Destil·lats",
+  "cellarPairWithDish": "Quin vi per al meu plat?",
+  "cellarCollapseAll": "Plegar tot",
+  "cellarExpandAll": "Desplegar tot",
+  "cellarSort": "Ordenar",
+  "cellarCategories": "Categories",
+  "cellarFavorites": "Preferits",
+  "cellarGridView": "Graella",
+  "cellarListView": "Llista",
+  "cellarClearFilters": "Esborrar filtres",
+  "cellarNoBottlesCategory": "Cap ampolla en aquesta categoria",
+  "cellarNoBottlesCriteria": "Cap ampolla coincideix amb aquests criteris",
+  "feedbackSheetTitle": "Comentaris del tester i anotació",
+  "feedbackStylus": "Llapis:",
+  "feedbackUndo": "Desfer l'últim traç",
+  "feedbackClear": "Esborrar tot",
+  "feedbackHint": "Encercla la zona i descriu els teus comentaris o error...",
+  "feedbackSubmit": "Enviar informe",
+  "feedbackSubmitting": "Enviant...",
+  "feedbackNoScreenshot": "Cap captura de pantalla disponible",
+  "feedbackEmptyError": "Si us plau, afegeix un comentari o dibuixa a la captura.",
+  "feedbackSuccess": "Gràcies pels teus comentaris! 🍷 Informe enviat.",
+  "feedbackError": "Error en enviar: {error}",
+  "@feedbackError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutFastExit": "Sortida ràpida sense qüestionari ⚡",
+  "checkoutFastExitSubmitting": "Processant sortida...",
+  "checkoutRatingSubtitle": "Atorga la teva nota global després de tastar",
+  "checkoutRecommendedBadge": "Recomanat",
+  "tastingWhoTastedTitle": "👥 Qui ha tastat aquest vi?",
+  "tastingWhoTastedSubtitle": "Selecciona els tastadors. Els perfils de gust s'enriquiran automàticament.",
+  "tastingHowToTaste": "Com tastar?",
+  "tastingEachTurn": "Cadascú al seu torn",
+  "tastingEachTurnDesc": "📱 Passant el telèfon: cadascú respon per separat al seu ritme.",
+  "tastingTogether": "Tots plegats",
+  "tastingTogetherDesc": "🥂 Un únic qüestionari completat entre tots a la taula.",
+  "tastingBlindMode": "Mode Tast a Cegues",
+  "tastingBlindModeDesc": "Amaga el nom del vi i comença un concurs interactiu amb revelació final!",
+  "tastingPrimaryProfile": "Perfil principal",
+  "tastingAppInstalled": "Aplicació instal·lada 📱",
+  "tastingStepTastersTitle": "👥 Selecció de tastadors",
+  "tastingStepTastersSubtitle": "Tria qui comparteix aquest vi avui.",
+  "tastingAddTaster": "Afegeix tastador",
+  "tastingAddTasterHint": "Nom o sobrenom",
+  "tastingStepNezTitle": "👃 L'Examen Olfactiu — Aromes",
+  "tastingStepNezSubtitle": "Fes girar la copa i capta les aromes que se'n desprenen.",
+  "tastingAromaIntensity": "Intensitat aromàtica:",
+  "tastingAromaDiscreet": "🤫 Subtil / Discreta",
+  "tastingAromaExplosive": "💥 Explosiva / Potent",
+  "tastingStepBoucheTitle": "⚖️ L'Examen Gustatiu — Equilibri",
+  "tastingStepBoucheSubtitle": "Descriu la textura, la frescor i l'harmonia en boca.",
+  "tastingAcidity": "Sensació d'acidesa:",
+  "tastingAcidityFreshness": "Acidesa i Frescor:",
+  "tastingAcidityFlat": "🫠 Pla / Desmanegat",
+  "tastingAciditySharp": "⚡ Viu / Esmolat",
+  "tastingTannins": "Tanins:",
+  "tastingTanninsSilky": "🧶 Sedosos / Amables",
+  "tastingTanninsGrippy": "💪 Ferms / Estructurats",
+  "tastingMinerality": "Mineralitat i Vivor:",
+  "tastingMineralityRound": "🧈 Rodó / Greixós",
+  "tastingMineralityCrisp": "🪨 Mineral / Precís",
+  "tastingEffervescence": "Efervescència (Bambolla):",
+  "tastingEffervescenceDelicate": "🫧 Fina / Delicada",
+  "tastingEffervescenceVibrant": "🎆 Viva / Cremosa",
+  "tastingBody": "Cos / Estructura:",
+  "tastingBodyLight": "🍃 Lleuger / Àgil",
+  "tastingBodyFull": "🏋️ Robust / Corpulent",
+  "tastingLength": "Persistència / Longitud:",
+  "tastingLengthShort": "⏱️ Curta",
+  "tastingLengthLong": "♾️ Molt perllongada",
+  "tastingStepVerdictTitle": "✅ Veredicte final",
+  "tastingBuyAgain": "Tornaries a comprar aquesta ampolla?",
+  "tastingBuyAgainYes": "🤩 I tant!",
+  "tastingBuyAgainMaybe": "🤔 Potser",
+  "tastingBuyAgainNo": "👎 No, gràcies",
+  "tastingIdealMoment": "Moment ideal per a aquest vi?",
+  "tastingMomentApero": "🥂 Aperitiu",
+  "tastingMomentMeal": "🍽️ Àpat informal",
+  "tastingMomentDinner": "🎩 Sopar de gala",
+  "tastingMomentRomantic": "🕯️ Sopar romàntic",
+  "tastingMomentSolo": "🧘 Moment de calma en solitud",
+  "tastingWhatLiked": "El que més t'ha agradat:",
+  "tastingWhatDisliked": "El que menys t'ha convençut:",
+  "tastingOccasionLabel": "Ocasió / Record compartit (opcional) ✨",
+  "tastingOccasionHint": "ex. Aniversari, Sopar amb espelmes, Retrobament...",
+  "tastingAddPhoto": "Afegeix una foto de record de la taula 📸",
+  "tastingPhotoSaved": "Foto desada 📸",
+  "tastingStepImpressionTitle": "🎯 Puntuació final i Impressió",
+  "tastingStepImpressionSubtitle": "Després de gaudir del nas i la boca, atorga la teva nota global.",
+  "tastingOverallFeeling": "La teva impressió general:",
+  "tastingScoreOutOf10": "Nota sobre 10:",
+  "tastingCompletedTitle": "Tast finalitzat i desat!",
+  "tastingCompletedSubtitle": "Els perfils de gust s'han actualitzat amb èxit ✨",
+  "tastingBottleRemoved": "Ampolla oberta i retirada del celler",
+  "tastingConsultDebrief": "Mira l'anàlisi del sommelier (Matisos ocults i Terroir)",
+  "tastingFinishButton": "Finalitza ✨",
+  "tastingNextTaster": "Valida → Següent tastador",
+  "tastingConfirmAndFinish": "Valida i Conclou ✨",
+  "tastingQuitTitle": "Vols sortir del qüestionari?",
+  "tastingQuitMessage": "Les teves respostes actuals no es desaran.",
+  "tastingContinue": "Continua",
+  "tastingQuit": "Surt",
+  "tastingStartCount": "Comença ({count})",
+  "tastingProfileSynced": "Sincronitzat amb l'aplicació de {name} ✨",
+  "tastingProfileEnriched": "Perfil gustatiu enriquit",
+  "tastingAcuityScoreSummary": "Agudesa sensorial: {score}% • {praise}",
+  "tastingFlavorOriginsTitle": "Origen dels sabors i Secrets del vi",
+  "tastingFlavorOriginsSubtitle": "Descobreix d'on provenen les aromes, el color i l'estructura del vi",
+  "tastingBlindQuizTitle": "Concurs de tast a cegues a taula 🙈",
+  "tastingBlindQuizQ1": "1. Quina és la regió d'origen? 🌍",
+  "tastingBlindQuizQ2": "2. Quina és la varietat principal de raïm? 🍇",
+  "tastingBlindQuizQ3": "3. Anyada estimada o edat del vi? 📅",
+  "tastingBlindQuizQ4": "4. Preu estimat al mercat? 💶",
+  "tastingBlindRevealTitle": "Gran revelació de l'ampolla misteriosa 🍾",
+  "tastingBlindQuizScore": "Puntuació del concurs a cegues: {score}/4 🎯",
+  "tastingDebriefTitle": "Anàlisi enològica i molecular",
+  "tastingSensoryAcuity": "AGUDESA SENSORIAL",
+  "tastingPrecision": "Precisió {score}%",
+  "tastingConcordanceTitle": "1. CONCORDANÇA I SEGELL DEL CRU",
+  "tastingWhatYouDetected": "EL QUE HAS DETECTAT:",
+  "tastingArchetypeSignature": "SIGNATURA ARQUETÍPICA DEL VI:",
+  "tastingHiddenNuancesTitle": "MATISOS SUBTILS PER A LA TEVA PROPERA COPA:",
+  "tastingPillarsTitle": "2. CIÈNCIA ENOLÒGICA I MOLÈCULES",
+  "tastingPillarsSubtitle": "Per què aquest vi té aquesta estructura, aquestes aromes i aquest color?",
+  "tastingChatWithSommelier": "Aprofundeix en els secrets enològics amb Chatmelier",
+  "aromaFruitsRouges": "Fruits vermells (maduixa, cirera)",
+  "aromaFruitsNoirs": "Fruits negres (mora, grosella negra)",
+  "aromaFruitsBlancs": "Fruita blanca i d'os (préssec, pera, poma)",
+  "aromaAgrumes": "Cítrics (llimona, aranja)",
+  "aromaFloral": "Floral (violeta, rosa)",
+  "aromaVegetal": "Vegetal i herbes (pebrot, sotabosc)",
+  "aromaEpicesDouces": "Espècies dolces (canyella, nou moscada)",
+  "aromaEpicesVives": "Espècies picants (pebre negre)",
+  "aromaBoise": "Roure i Vainilla (criança)",
+  "aromaBeurre": "Mantega i Brioix",
+  "aromaMineral": "Mineral (pedra foguera, guix)",
+  "aromaMiel": "Mel i Confitura",
+  "aromaChocolat": "Xocolata negra i Cafè",
+  "aromaFumee": "Fumat i Torrat",
+  "emojiDisliked": "No m'ha agradat",
+  "emojiMeh": "Passable",
+  "emojiDecent": "Correcte",
+  "emojiVeryGood": "Molt bo",
+  "emojiLoved": "M'ha encantat!",
+  "likedFreshness": "La frescor",
+  "likedFruitiness": "La fruita",
+  "likedComplexity": "La complexitat",
+  "likedElegance": "L'elegància",
+  "likedPower": "La potència",
+  "likedSilky": "La textura sedosa",
+  "likedOriginality": "L'originalitat",
+  "likedFoodPairing": "El maridatge",
+  "likedMinerality": "La mineralitat",
+  "likedLength": "La persistència",
+  "likedDisappointing": "Res / Decepcionant 😕",
+  "dislikedTooAcidic": "Massa àcid",
+  "dislikedTooTannic": "Massa tànic",
+  "dislikedTooOaked": "Massa roure / avainillat",
+  "dislikedTooAlcoholic": "Massa alcohòlic",
+  "dislikedTooThin": "Massa lleuger",
+  "dislikedLacksFruit": "Manca de fruita",
+  "dislikedTooSweet": "Massa dolç",
+  "dislikedTooExpensive": "Massa car per a la qualitat",
+  "dislikedNothing": "Res, era absolutament impecable!",
+  "tastingStepTasters": "Tastadors",
+  "tastingStepNezNav": "Nas",
+  "tastingStepBoucheNav": "Boca",
+  "tastingStepVerdictNav": "Veredicte",
+  "tastingStepRatingNav": "Nota",
+  "tastingBack": "Enrere",
+  "tastingNext": "Següent",
+  "tastingSaving": "Desant...",
+  "tastingHeaderTitle": "Qüestionari de tast",
+  "tastingAnswersOf": "Respostes de {name}",
+  "tastingPassPhoneTo": "Passa el telèfon a {name} 📱",
+  "tastingAnswersSavedTurn": "S'han desat les teves respostes.\nAra li toca a {name}.",
+  "tastingDictateButton": "Dicta impressions de la taula 🎙️",
+  "tastingDictateHint": "Parla o escriu lliurement: la IA Chatmelier completarà les aromes i l'equilibri en boca!",
+  "tastingDictateMicTip": "Consell: activa el micròfon del teclat per dictar en veu alta!",
+  "tastingTakePhoto": "Fes una foto de la taula 📸",
+  "tastingChooseGallery": "Tria de la galeria 🖼️",
+  "tastingConclaveSummary": "Resum del tast",
+  "tastingCellarMaster": "Mestre de Celler",
+  "tastingGuestTaster": "Tastador Convidat",
+  "tastingProfileTag": "Perfil: {type}",
+  "tastingFreeTastingRecorded": "Nota de tast lliure registrada.",
+  "tastingAppearanceLabel": "Aspecte: {appearance}",
+  "tastingStructureLabel": "Estructura: {structure} ({caudalies} caudalies)",
+  "tastingKeyMolecules": "Molècules clau: {molecules}",
+  "tastingKeyOrigin": "Factor determinant: {key}",
+  "tastingGrapesLabel": "Varietats: {grapes}",
+  "tastingAromaAppliedByAI": "Impressions aplicades per Chatmelier AI ✨",
+  "tastingBlindYourPredictions": "Resum de prediccions a cegues:",
+  "tastingBlindGuessCorrect": "Encertat! 🎯",
+  "tastingBlindMakePredictionsPrompt": "Fes les teves prediccions abans de destapar l'etiqueta!",
+  "tastingStartTaster": "Som-hi, {name}! 🍷",
+  "tastingQuizBravo": "🎯 Bravo!",
+  "tastingQuizWas": "(La resposta era: {answer})",
+  "tastingDictateInputHint": "ex.: En Joan fascinat amb 8.5/10, notes de mora i sotabosc. La Maria li ha posat un 7/10 trobant l'acidesa una mica alta...",
+  "tastingDictateAnalyzing": "Analitzant...",
+  "tastingDictateAnalyzeAndApply": "Analitza i Aplica a les fitxes ✨",
+  "tastingFormatExpress": "Format Exprés (1 pàgina) ⚡",
+  "tastingFormatExpressDesc": "Nota, aromes clau i veredicte ràpid en 30s",
+  "tastingFormatSommelier": "Format Sommelier (Detallat) 🎓",
+  "tastingFormatSommelierDesc": "Anàlisi aprofundida de nas, boca, persistència i terroir",
+  "tastingCaudalieTooltipTitle": "Què és una caudalie? ⏱️",
+  "tastingCaudalieTooltipBody": "1 caudalie = 1 segon de persistència del sabor després d'empassar o escopir.\n• D'1 a 4 caudalies: vi fresc i lleuger\n• De 5 a 7 caudalies: gran equilibri\n• De 8 a 12+ caudalies: un vi excepcional!",
+  "tastingAddCustomAroma": "+ Aroma personalitzada",
+  "tastingCustomAromaDialogTitle": "Afegeix una aroma concreta",
+  "tastingCustomAromaHint": "ex. Pedra foguera fumada, Mora silvestre, Rosa seca...",
+  "tastingFoodSynergyTitle": "Sinergia amb el menjar 🍽️",
+  "tastingSynergySublime": "🤩 Sublim",
+  "tastingSynergyHarmonious": "👍 Harmoniosa",
+  "tastingSynergyNeutral": "😐 Neutra",
+  "tastingSynergyClashing": "⚡ Discordant",
+  "checkoutFastRatingTitle": "Puntuació ràpida en 1 toc (opcional):",
+  "checkoutActionTastingTitle": "Tastar aquest vi",
+  "checkoutActionTastingSubtitle": "Format exprés (1 pàgina) o detallat de sommelier",
+  "checkoutActionDeferredRemind": "Recorda-m'ho més tard 🌙",
+  "checkoutActionAerationTimer": "Temporitzador d'airejament ⏱️",
+  "tastingQuestionnairesCompletedCount": "{count, plural, =0{0 qüestionaris completats} =1{1 qüestionari completat} other{{count} qüestionaris completats}}"
 }

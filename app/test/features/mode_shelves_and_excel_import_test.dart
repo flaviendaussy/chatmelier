@@ -117,7 +117,7 @@ void main() {
 
       final demi = BottleSize.fromCode('37.5cl');
       expect(demi.volumeLiters, 0.375);
-      expect(demi.shortName, '37.5 cl');
+      expect(demi.shortName, '37,5 cl');
 
       final jero = BottleSize.fromCode('3L');
       expect(jero.volumeLiters, 3.0);

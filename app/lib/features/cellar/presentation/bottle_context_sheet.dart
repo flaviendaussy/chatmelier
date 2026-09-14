@@ -42,7 +42,7 @@ class BottleContextSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final wine = bottle.wine;
     final wineName = wine?.name ?? (isFr ? 'Vin' : 'Wine');
     final vintage = wine?.vintage != null ? '${wine!.vintage}' : (isFr ? 'NM' : 'NV');
@@ -152,7 +152,7 @@ class BottleContextSheet extends ConsumerWidget {
                                 ),
                               ],
                               const Spacer(),
-                              if (wine != null)
+                              if (wine != null && !wine.isSpirit && !wine.tracksFillLevel && !bottle.tracksFillLevel)
                                 MaturityColorbar(wine: wine, width: 70, height: 6),
                             ],
                           ),
@@ -336,7 +336,7 @@ class BottleContextSheet extends ConsumerWidget {
   void _showAddQuantityDialog(BuildContext context, WidgetRef ref) {
     int qtyToAdd = 1;
     final repo = ref.read(cellarRepositoryProvider);
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     showDialog(
       context: context,
@@ -438,7 +438,7 @@ class BottleContextSheet extends ConsumerWidget {
   void _showMoveCellarDialog(BuildContext context, WidgetRef ref) async {
     final repo = ref.read(cellarRepositoryProvider);
     final userCellars = await repo.getUserCellarsWithRole();
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final otherCellars = userCellars.where((c) {
       final cMap = c['cellars'];
       final id = cMap is Map ? cMap['id']?.toString() : c['cellar_id']?.toString();

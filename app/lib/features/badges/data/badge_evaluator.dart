@@ -8,52 +8,91 @@ import 'badge_catalog.dart';
 class BadgeEvaluator {
   BadgeEvaluator._();
 
+  static List<ContributingItem>? _activeContributing;
+
+  static ContributingItem _bottleToItem(Bottle b) {
+    final w = b.wine;
+    return ContributingItem(
+      id: b.id,
+      name: (w?.name != null && w!.name.isNotEmpty) ? w.name : 'Flacon',
+      producer: w?.producer,
+      vintage: w?.vintage,
+      type: w?.type,
+      region: w?.region,
+      appellation: w?.appellation,
+      imageUrl: w?.imageUrl ?? b.photoUrl,
+      isTasting: false,
+    );
+  }
+
+  static ContributingItem _tastingToItem(TastingEntry te) {
+    return ContributingItem(
+      id: te.id,
+      name: (te.wineName != null && te.wineName!.isNotEmpty) ? te.wineName! : 'Dégustation',
+      vintage: te.vintage,
+      type: te.wineType,
+      region: te.region,
+      appellation: te.appellation,
+      imageUrl: te.photoUrl,
+      isTasting: true,
+      rating: te.rating,
+    );
+  }
+
   static List<BadgeProgress> evaluate({
     required List<Bottle> bottles,
     required List<TastingEntry> tastings,
     List<BarPantryItem>? pantry,
+    bool isLatin = false,
   }) {
     final List<BadgeProgress> results = [];
 
     for (final badge in BadgeCatalog.allBadges) {
       int count = 0;
+      final List<ContributingItem> contributing = [];
+      _activeContributing = contributing;
 
       switch (badge.id) {
         // ==========================================
         // 🏛️ PALIERS DE CAVE (STOCK & DÉGUSTATION)
         // ==========================================
         case 'milestone_first_bottle':
-          count = bottles.length;
-          break;
-
-        case 'milestone_first_tasting':
-          count = tastings.length;
-          break;
-
         case 'milestone_bottles_10':
         case 'milestone_bottles_50':
         case 'milestone_bottles_100':
         case 'milestone_bottles_500':
         case 'milestone_bottles_1000':
           count = bottles.length;
+          for (final b in bottles) {
+            contributing.add(_bottleToItem(b));
+          }
           break;
 
+        case 'milestone_first_tasting':
         case 'milestone_tastings_5':
         case 'milestone_tastings_25':
         case 'milestone_tastings_50':
         case 'milestone_tastings_100':
         case 'milestone_tastings_250':
           count = tastings.length;
+          for (final t in tastings) {
+            contributing.add(_tastingToItem(t));
+          }
           break;
 
         case 'milestone_cellar_rainbow':
           final types = <String>{};
           for (final b in bottles) {
             final t = (b.wine?.type ?? '').toLowerCase();
-            if (t == 'red' || t == 'rouge') types.add('red');
-            if (t == 'white' || t == 'blanc') types.add('white');
-            if (t == 'rose' || t == 'rosé') types.add('rose');
-            if (t == 'sparkling' || t == 'bulles' || t == 'effervescent' || t == 'champagne') types.add('sparkling');
+            String? detected;
+            if (t == 'red' || t == 'rouge') detected = 'red';
+            if (t == 'white' || t == 'blanc') detected = 'white';
+            if (t == 'rose' || t == 'rosé') detected = 'rose';
+            if (t == 'sparkling' || t == 'bulles' || t == 'effervescent' || t == 'champagne') detected = 'sparkling';
+            if (detected != null && !types.contains(detected)) {
+              types.add(detected);
+              contributing.add(_bottleToItem(b));
+            }
           }
           count = types.length;
           break;
@@ -67,7 +106,10 @@ class BadgeEvaluator {
             final isGC = cl.contains('grand cru') || cl.contains('premier cru') || cl.contains('1er cru') ||
                 a.contains('grand cru') || a.contains('premier cru') || a.contains('1er cru') ||
                 n.contains('grand cru') || n.contains('premier cru');
-            if (isGC) count++;
+            if (isGC) {
+              count++;
+              contributing.add(_bottleToItem(b));
+            }
           }
           break;
 
@@ -76,27 +118,29 @@ class BadgeEvaluator {
         // ==========================================
         case 'continent_old_world':
           const oldWorld = [
-            'france', 'italie', 'italy', 'espagne', 'spain', 'portugal',
-            'allemagne', 'germany', 'suisse', 'switzerland', 'autriche', 'austria',
-            'grèce', 'greece', 'hongrie', 'hungary', 'croatie', 'croatia', 'géorgie', 'georgia', 'royaume-uni', 'uk'
+            'france', 'fr', 'italie', 'italy', 'italia', 'it', 'espagne', 'spain', 'espana', 'es',
+            'portugal', 'pt', 'allemagne', 'germany', 'deutschland', 'de', 'suisse', 'switzerland', 'schweiz', 'ch',
+            'autriche', 'austria', 'osterreich', 'at', 'grèce', 'grece', 'greece', 'gr', 'hongrie', 'hungary', 'hu',
+            'croatie', 'croatia', 'hr', 'géorgie', 'georgie', 'georgia', 'ge', 'royaume-uni', 'royaume uni', 'united kingdom', 'uk', 'england'
           ];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => oldWorld.any((w) => c.contains(w)),
+            predicate: (c, r, a, n, t) => _matchCountry(c, oldWorld),
           );
           break;
 
         case 'continent_new_world':
           const newWorld = [
-            'usa', 'états-unis', 'etats-unis', 'united states', 'californ', 'chili', 'chile',
-            'argentine', 'argentina', 'australie', 'australia', 'nouvelle-zélande', 'nouvelle-zelande',
-            'new zealand', 'afrique du sud', 'south africa', 'canada', 'uruguay'
+            'usa', 'us', 'états-unis', 'etats-unis', 'etats unis', 'united states', 'californie', 'california',
+            'chili', 'chile', 'cl', 'argentine', 'argentina', 'ar', 'australie', 'australia', 'au',
+            'nouvelle-zélande', 'nouvelle-zelande', 'nouvelle zelande', 'new zealand', 'nz',
+            'afrique du sud', 'south africa', 'za', 'canada', 'ca', 'uruguay', 'uy'
           ];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => newWorld.any((w) => c.contains(w)),
+            predicate: (c, r, a, n, t) => _matchCountry(c, newWorld),
           );
           break;
 
@@ -106,23 +150,30 @@ class BadgeEvaluator {
           final countries = <String>{};
           for (final b in bottles) {
             final c = b.wine?.country.trim().toLowerCase();
-            if (c != null && c.isNotEmpty) countries.add(c);
+            if (c != null && c.isNotEmpty && !countries.contains(c)) {
+              countries.add(c);
+              contributing.add(_bottleToItem(b));
+            }
           }
           for (final t in tastings) {
             final c = t.country?.trim().toLowerCase();
-            if (c != null && c.isNotEmpty) countries.add(c);
+            if (c != null && c.isNotEmpty && !countries.contains(c)) {
+              countries.add(c);
+              contributing.add(_tastingToItem(t));
+            }
           }
           count = countries.length;
           break;
 
         // ==========================================
-        // 🏳️ PAYS
+        // 🏳️ PAYS (Strict tokenized matching)
         // ==========================================
         case 'country_france':
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('france'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['france', 'fr']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['bordeaux', 'bourgogne', 'champagne', 'loire', 'rhone', 'alsace', 'beaujolais'])),
           );
           break;
 
@@ -130,7 +181,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('ital'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['italie', 'italy', 'italia', 'it']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['piemont', 'piemonte', 'toscane', 'toscana', 'veneto', 'sicile', 'barolo', 'chianti'])),
           );
           break;
 
@@ -138,7 +190,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('espagn') || c.contains('spain') || c.contains('españ') || c.contains('espan'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['espagne', 'spain', 'espana', 'es']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['rioja', 'ribera del duero', 'priorat'])),
           );
           break;
 
@@ -146,7 +199,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('usa') || c.contains('états-unis') || c.contains('etats-unis') || c.contains('californ') || c.contains('united states') || c == 'us',
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['usa', 'us', 'états-unis', 'etats-unis', 'etats unis', 'united states', 'californie', 'california']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['napa valley', 'sonoma', 'oregon', 'washington state'])),
           );
           break;
 
@@ -154,7 +208,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('portugal') || r.contains('douro') || a.contains('porto'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['portugal', 'pt']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['douro', 'porto', 'alentejo', 'dao'])),
           );
           break;
 
@@ -162,7 +217,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('allemagne') || c.contains('germany') || c.contains('deutschland') || r.contains('mosel') || r.contains('rheingau') || r.contains('pfalz'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['allemagne', 'germany', 'deutschland', 'de']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['mosel', 'rheingau', 'pfalz', 'baden'])),
           );
           break;
 
@@ -170,7 +226,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('suisse') || c.contains('switzerland') || c.contains('schweiz') || r.contains('valais') || r.contains('vaud') || r.contains('lavaux') || r.contains('genève') || r.contains('geneve'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['suisse', 'switzerland', 'schweiz', 'ch']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['valais', 'vaud', 'lavaux', 'geneve'])),
           );
           break;
 
@@ -178,7 +235,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('argentine') || c.contains('argentina') || r.contains('mendoza') || r.contains('cafayate') || r.contains('salta'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['argentine', 'argentina', 'ar']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['mendoza', 'cafayate', 'salta'])),
           );
           break;
 
@@ -186,7 +244,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('chili') || c.contains('chile') || r.contains('maipo') || r.contains('colchagua') || r.contains('casablanca'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['chili', 'chile', 'cl']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['maipo', 'colchagua', 'casablanca'])),
           );
           break;
 
@@ -194,7 +253,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('australie') || c.contains('australia') || r.contains('barossa') || r.contains('mclaren') || r.contains('margaret river'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['australie', 'australia', 'au']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['barossa', 'mclaren vale', 'margaret river', 'yarra valley'])),
           );
           break;
 
@@ -202,7 +262,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('nouvelle-zélande') || c.contains('nouvelle-zelande') || c.contains('new zealand') || r.contains('marlborough') || r.contains('central otago'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['nouvelle-zélande', 'nouvelle-zelande', 'nouvelle zelande', 'new zealand', 'nz']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['marlborough', 'central otago'])),
           );
           break;
 
@@ -210,7 +271,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('afrique du sud') || c.contains('south africa') || r.contains('stellenbosch') || r.contains('swartland') || r.contains('constantia'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['afrique du sud', 'south africa', 'za']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['stellenbosch', 'swartland', 'constantia', 'paarl'])),
           );
           break;
 
@@ -218,7 +280,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('grèce') || c.contains('grece') || c.contains('greece') || r.contains('santorin') || r.contains('santorini') || r.contains('naoussa') || r.contains('némée') || r.contains('nemee'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['grèce', 'grece', 'greece', 'gr']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['santorin', 'santorini', 'naoussa', 'nemee'])),
           );
           break;
 
@@ -226,7 +289,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('autriche') || c.contains('austria') || c.contains('österreich') || r.contains('wachau') || r.contains('kamptal') || r.contains('burgenland'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['autriche', 'austria', 'österreich', 'osterreich', 'at']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['wachau', 'kamptal', 'burgenland', 'kremstal'])),
           );
           break;
 
@@ -234,7 +298,8 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => c.contains('géorgie') || c.contains('georgie') || c.contains('georgia') || r.contains('kakhétie') || r.contains('kakheti'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['géorgie', 'georgie', 'georgia', 'ge']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['kakhétie', 'kakhetie', 'kakheti', 'imereti'])),
           );
           break;
 
@@ -243,19 +308,20 @@ class BadgeEvaluator {
             bottles: bottles,
             tastings: tastings,
             requireWine: true,
-            predicate: (c, r, a, n, t) => c.contains('royaume-uni') || c.contains('united kingdom') || c.contains('england') || c.contains('angleterre') || r.contains('sussex') || r.contains('kent') || r.contains('hampshire'),
+            predicate: (c, r, a, n, t) => _matchCountry(c, ['royaume-uni', 'royaume uni', 'united kingdom', 'england', 'angleterre', 'uk', 'gb']) ||
+                (c.isEmpty && _matchRegionAppellation(r, a, ['sussex', 'kent', 'hampshire'])),
           );
           break;
 
         // ==========================================
-        // 🏰 RÉGIONS
+        // 🏰 RÉGIONS (Region & Appellation only)
         // ==========================================
         case 'region_bourgogne':
           const bgKeywords = ['bourgogne', 'burgundy', 'chablis', 'meursault', 'nuits', 'beaune', 'macon', 'mâcon', 'beaujolais'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => bgKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, bgKeywords),
           );
           break;
 
@@ -264,7 +330,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => bdxKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, bdxKeywords),
           );
           break;
 
@@ -273,16 +339,15 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => rhKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, rhKeywords),
           );
           break;
 
         case 'region_champagne':
-          // Strict: Must be true Champagne AOC, not general sparkling
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => r.contains('champagne') || a.contains('champagne') || n.contains('champagne'),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, ['champagne']),
           );
           break;
 
@@ -291,7 +356,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => loireKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, loireKeywords),
           );
           break;
 
@@ -299,7 +364,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => r.contains('alsace') || a.contains('alsace'),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, ['alsace']),
           );
           break;
 
@@ -308,16 +373,16 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => prvKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, prvKeywords),
           );
           break;
 
         case 'region_jura_savoie':
-          const jsKeywords = ['jura', 'savoie', 'arbois', 'château-chalon', 'chateau-chalon', 'savagnin', 'mondeuse'];
+          const jsKeywords = ['jura', 'savoie', 'arbois', 'château-chalon', 'chateau-chalon', 'apremont', 'chignin', 'savagnin', 'mondeuse'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => jsKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, jsKeywords),
           );
           break;
 
@@ -326,7 +391,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => soKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, soKeywords),
           );
           break;
 
@@ -335,7 +400,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => lrKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, lrKeywords),
           );
           break;
 
@@ -344,7 +409,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => crKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, crKeywords),
           );
           break;
 
@@ -353,7 +418,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => bjKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, bjKeywords),
           );
           break;
 
@@ -362,7 +427,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => tsKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, tsKeywords),
           );
           break;
 
@@ -371,7 +436,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => pmKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, pmKeywords),
           );
           break;
 
@@ -380,7 +445,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => vnKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, vnKeywords),
           );
           break;
 
@@ -388,7 +453,7 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => r.contains('rioja') || a.contains('rioja') || n.contains('rioja'),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, ['rioja']),
           );
           break;
 
@@ -397,50 +462,108 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => npKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, npKeywords),
           );
           break;
 
         // ==========================================
-        // 🍇 CÉPAGES
+        // 🍇 CÉPAGES (Varietals & Mono-AOC matching)
         // ==========================================
         case 'grape_pinot_noir':
-          const pnKeywords = ['pinot noir', 'spätburgunder', 'spatburgunder', 'bourgogne rouge', 'gevrey-chambertin', 'vosne-romanée', 'vosne-romanee', 'nuits-saint-georges', 'chambolle-musigny', 'volnay', 'pommard'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => pnKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('pinot noir') || g.name.toLowerCase().contains('spätburgunder')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['pinot noir', 'spätburgunder', 'spatburgunder'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['bourgogne rouge', 'gevrey-chambertin', 'vosne-romanée', 'vosne-romanee', 'nuits-saint-georges', 'chambolle-musigny', 'volnay', 'pommard', 'clos de vougeot'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['pinot noir', 'spätburgunder', 'spatburgunder'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['bourgogne rouge', 'gevrey-chambertin', 'vosne-romanée', 'vosne-romanee', 'nuits-saint-georges', 'chambolle-musigny', 'volnay', 'pommard', 'clos de vougeot'],
+            ),
           );
           break;
 
         case 'grape_cabernet':
-          const csKeywords = ['cabernet sauvignon', 'pauillac', 'saint-julien', 'saint-estèphe', 'saint-estephe', 'margaux', 'graves', 'pessac-léognan', 'pessac-leognan'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => csKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('cabernet sauvignon')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['cabernet sauvignon'],
+              requiredType: 'red',
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['cabernet sauvignon'],
+              requiredType: 'red',
+            ),
           );
           break;
 
         case 'grape_chardonnay':
-          const cdKeywords = ['chardonnay', 'chablis', 'meursault', 'puligny-montrachet', 'chassagne-montrachet', 'corton-charlemagne', 'pouilly-fuissé', 'pouilly-fuisse'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => cdKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('chardonnay')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['chardonnay'],
+              requiredType: 'white',
+              monoVarietalAppellations: ['chablis', 'meursault', 'puligny-montrachet', 'chassagne-montrachet', 'corton-charlemagne', 'pouilly-fuissé', 'pouilly-fuisse'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['chardonnay'],
+              requiredType: 'white',
+              monoVarietalAppellations: ['chablis', 'meursault', 'puligny-montrachet', 'chassagne-montrachet', 'corton-charlemagne', 'pouilly-fuissé', 'pouilly-fuisse'],
+            ),
           );
           break;
 
         case 'grape_syrah':
-          const syKeywords = ['syrah', 'shiraz', 'cornas', 'côte-rôtie', 'cote-rotie', 'hermitage', 'crozes-hermitage', 'saint-joseph'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => syKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('syrah') || g.name.toLowerCase().contains('shiraz')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['syrah', 'shiraz'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['cornas', 'côte-rôtie', 'cote-rotie', 'hermitage'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['syrah', 'shiraz'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['cornas', 'côte-rôtie', 'cote-rotie', 'hermitage'],
+            ),
           );
           break;
 
@@ -448,8 +571,24 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => n.contains('chenin') || a.contains('vouvray') || a.contains('saumur blanc') || a.contains('savennières') || a.contains('coteaux du layon'),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('chenin')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['chenin', 'chenin blanc'],
+              requiredType: 'white',
+              monoVarietalAppellations: ['vouvray', 'saumur blanc', 'savennières', 'savennieres', 'montlouis', 'coteaux du layon'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['chenin', 'chenin blanc'],
+              requiredType: 'white',
+              monoVarietalAppellations: ['vouvray', 'saumur blanc', 'savennières', 'savennieres', 'montlouis', 'coteaux du layon'],
+            ),
           );
           break;
 
@@ -457,8 +596,24 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => n.contains('riesling') || a.contains('riesling'),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('riesling')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['riesling'],
+              requiredType: 'white',
+              monoVarietalAppellations: ['riesling'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['riesling'],
+              requiredType: 'white',
+              monoVarietalAppellations: ['riesling'],
+            ),
           );
           break;
 
@@ -466,113 +621,267 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => n.contains('nebbiolo') || a.contains('barolo') || a.contains('barbaresco') || a.contains('roero'),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('nebbiolo')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['nebbiolo', 'spanna'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['barolo', 'barbaresco', 'roero', 'gattinara', 'ghemme', 'nebbiolo d\'alba'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['nebbiolo', 'spanna'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['barolo', 'barbaresco', 'roero', 'gattinara', 'ghemme', 'nebbiolo d\'alba'],
+            ),
           );
           break;
 
         case 'grape_merlot':
-          const merlotKeywords = ['merlot', 'pomerol', 'saint-émilion', 'saint-emilion', 'fronsac', 'lalande-de-pomerol'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => merlotKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('merlot')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['merlot'],
+              requiredType: 'red',
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['merlot'],
+              requiredType: 'red',
+            ),
           );
           break;
 
         case 'grape_sauvignon_blanc':
-          const sbKeywords = ['sauvignon', 'sancerre', 'pouilly-fumé', 'pouilly-fume', 'menetou-salon'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => sbKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('sauvignon')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['sauvignon', 'sauvignon blanc'],
+              requiredType: 'white',
+              monoVarietalAppellations: ['sancerre', 'pouilly-fumé', 'pouilly-fume', 'menetou-salon'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['sauvignon', 'sauvignon blanc'],
+              requiredType: 'white',
+              monoVarietalAppellations: ['sancerre', 'pouilly-fumé', 'pouilly-fume', 'menetou-salon'],
+            ),
           );
           break;
 
         case 'grape_grenache':
-          const grKeywords = ['grenache', 'garnacha', 'châteauneuf', 'chateauneuf', 'gigondas', 'vacqueyras', 'cannonau'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => grKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('grenache') || g.name.toLowerCase().contains('garnacha')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['grenache', 'garnacha', 'cannonau'],
+              requiredType: 'red',
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['grenache', 'garnacha', 'cannonau'],
+              requiredType: 'red',
+            ),
           );
           break;
 
         case 'grape_cabernet_franc':
-          const cfKeywords = ['cabernet franc', 'chinon', 'bourgueil', 'saumur-champigny', 'saint-nicolas'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => cfKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('cabernet franc')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['cabernet franc'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['chinon', 'bourgueil', 'saumur-champigny', 'saint-nicolas'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['cabernet franc'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['chinon', 'bourgueil', 'saumur-champigny', 'saint-nicolas'],
+            ),
           );
           break;
 
         case 'grape_sangiovese':
-          const sgKeywords = ['sangiovese', 'chianti', 'brunello', 'rosso di montalcino', 'morellino', 'vino nobile'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => sgKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('sangiovese')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['sangiovese'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['brunello', 'rosso di montalcino', 'morellino', 'vino nobile'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['sangiovese'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['brunello', 'rosso di montalcino', 'morellino', 'vino nobile'],
+            ),
           );
           break;
 
         case 'grape_malbec':
-          const mbKeywords = ['malbec', 'cahors'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
             requireWine: true,
-            predicate: (c, r, a, n, t) {
-              if (mbKeywords.any((k) => n.contains(k) || a.contains(k))) return true;
-              final words = '$n $a'.split(RegExp(r'[^a-zA-ZÀ-ÿ0-9]'));
-              return words.contains('cot') || words.contains('côt');
-            },
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('malbec') || g.name.toLowerCase() == 'côt' || g.name.toLowerCase() == 'cot'),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['malbec', 'cot', 'côt'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['cahors'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['malbec', 'cot', 'côt'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['cahors'],
+            ),
           );
           break;
 
         case 'grape_tempranillo':
-          const tpKeywords = ['tempranillo', 'tinta del pais', 'tinto fino', 'cencibel', 'ull de llebre', 'rioja', 'ribera del duero', 'toro'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => tpKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('tempranillo')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['tempranillo', 'tinta del pais', 'tinto fino', 'cencibel', 'ull de llebre'],
+              requiredType: 'red',
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['tempranillo', 'tinta del pais', 'tinto fino', 'cencibel', 'ull de llebre'],
+              requiredType: 'red',
+            ),
           );
           break;
 
         case 'grape_gamay':
-          const gmKeywords = ['gamay', 'beaujolais', 'morgon', 'fleurie', 'brouilly', 'moulin-à-vent', 'moulin a vent', 'chénas', 'chenas', 'chiroubles', 'juliénas', 'julienas', 'régnié', 'regnie', 'saint-amour'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => gmKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('gamay')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['gamay'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['beaujolais', 'morgon', 'fleurie', 'brouilly', 'moulin-à-vent', 'moulin a vent', 'chénas', 'chenas', 'chiroubles', 'juliénas', 'julienas', 'régnié', 'regnie', 'saint-amour'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['gamay'],
+              requiredType: 'red',
+              monoVarietalAppellations: ['beaujolais', 'morgon', 'fleurie', 'brouilly', 'moulin-à-vent', 'moulin a vent', 'chénas', 'chenas', 'chiroubles', 'juliénas', 'julienas', 'régnié', 'regnie', 'saint-amour'],
+            ),
           );
           break;
 
         case 'grape_viognier':
-          const vgKeywords = ['viognier', 'condrieu', 'château-grillet', 'chateau-grillet'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => vgKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('viognier')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['viognier'],
+              requiredType: 'white',
+              monoVarietalAppellations: ['condrieu', 'château-grillet', 'chateau-grillet'],
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['viognier'],
+              requiredType: 'white',
+              monoVarietalAppellations: ['condrieu', 'château-grillet', 'chateau-grillet'],
+            ),
           );
           break;
 
         case 'grape_gewurztraminer':
-          const gwKeywords = ['gewurztraminer', 'gewürztraminer'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => gwKeywords.any((k) => n.contains(k) || a.contains(k)),
-            winePredicate: (w) => (w?.grapes ?? []).any((g) => g.name.toLowerCase().contains('gewurz')),
+            predicate: (c, r, a, n, t) => _matchesGrape(
+              wine: null,
+              wineName: n,
+              wineType: t,
+              appellation: a,
+              grapeAliases: ['gewurztraminer', 'gewürztraminer', 'gewurz'],
+              requiredType: 'white',
+            ),
+            winePredicate: (w) => _matchesGrape(
+              wine: w,
+              wineName: w?.name,
+              wineType: w?.type,
+              appellation: w?.appellation,
+              grapeAliases: ['gewurztraminer', 'gewürztraminer', 'gewurz'],
+              requiredType: 'white',
+            ),
           );
           break;
 
@@ -586,6 +895,7 @@ class BadgeEvaluator {
             final hasPeakNotes = notes.contains('apogée') || notes.contains('apogee') || notes.contains('au sommet') || notes.contains('à point') || notes.contains('a point') || notes.contains('pleine maturité');
             if (hasPeakNotes) {
               count++;
+              contributing.add(_tastingToItem(t));
               continue;
             }
             // Check if bottle or wine has peak window
@@ -595,6 +905,7 @@ class BadgeEvaluator {
               final consumedYear = t.consumedAt.year;
               if (consumedYear >= w.peakStart! && consumedYear <= w.peakEnd!) {
                 count++;
+                contributing.add(_tastingToItem(t));
               }
             }
           }
@@ -606,12 +917,14 @@ class BadgeEvaluator {
             final vintage = b.wine?.vintage;
             if (vintage != null && vintage > 0 && (currentYear - vintage) >= 25) {
               count++;
+              contributing.add(_bottleToItem(b));
             }
           }
           for (final t in tastings) {
             final vintage = t.vintage;
             if (vintage != null && vintage > 0 && (currentYear - vintage) >= 25) {
               count++;
+              contributing.add(_tastingToItem(t));
             }
           }
           break;
@@ -623,6 +936,7 @@ class BadgeEvaluator {
             final hasInfanticideNote = notes.contains('trop jeune') || notes.contains('infanticide') || notes.contains('fermé') || notes.contains('tanins serrés') || notes.contains('à attendre') || notes.contains('a attendre');
             if (hasInfanticideNote) {
               count++;
+              contributing.add(_tastingToItem(t));
               continue;
             }
             final matchingBottle = bottles.where((b) => (t.bottleId != null && b.id == t.bottleId) || b.wineId == t.wineId).firstOrNull;
@@ -630,6 +944,7 @@ class BadgeEvaluator {
             if (w != null && w.peakStart != null) {
               if ((w.peakStart! - t.consumedAt.year) >= 5) {
                 count++;
+                contributing.add(_tastingToItem(t));
               }
             }
           }
@@ -645,6 +960,7 @@ class BadgeEvaluator {
             final app = (t.appellation ?? '').toLowerCase();
             if (wType == 'cocktail' || app == 'cocktail' || name.startsWith('cocktail') || _isKnownCocktail(name)) {
               count++;
+              contributing.add(_tastingToItem(t));
             }
           }
           break;
@@ -658,7 +974,11 @@ class BadgeEvaluator {
             final name = (t.wineName ?? '').toLowerCase();
             final app = (t.appellation ?? '').toLowerCase();
             if (wType == 'cocktail' || app == 'cocktail' || _isKnownCocktail(name)) {
-              cocktailNames.add(t.wineName?.toLowerCase().trim() ?? t.id);
+              final key = t.wineName?.toLowerCase().trim() ?? t.id;
+              if (!cocktailNames.contains(key)) {
+                cocktailNames.add(key);
+                contributing.add(_tastingToItem(t));
+              }
             }
           }
           count = cocktailNames.length;
@@ -666,7 +986,16 @@ class BadgeEvaluator {
 
         case 'cocktail_pantry':
           if (pantry != null) {
-            count = pantry.where((i) => i.inStock).length;
+            final inStock = pantry.where((i) => i.inStock).toList();
+            count = inStock.length;
+            for (final item in inStock) {
+              contributing.add(ContributingItem(
+                id: item.id,
+                name: item.name,
+                type: 'Ingrédient Bar',
+                isTasting: false,
+              ));
+            }
           }
           break;
 
@@ -676,6 +1005,7 @@ class BadgeEvaluator {
             final occ = (t.occasion ?? '').toLowerCase();
             if (notes.contains('shaker maison') || notes.contains('diy shaker') || notes.contains('bocal') || notes.contains('système d') || occ.contains('diy shaker') || occ.contains('shaker maison')) {
               count++;
+              contributing.add(_tastingToItem(t));
             }
           }
           break;
@@ -686,6 +1016,7 @@ class BadgeEvaluator {
             final notes = (t.tastingNotes ?? '').toLowerCase();
             if (name.contains('spritz') || name.contains('negroni') || name.contains('americano') || notes.contains('spritz') || notes.contains('negroni')) {
               count++;
+              contributing.add(_tastingToItem(t));
             }
           }
           break;
@@ -707,7 +1038,7 @@ class BadgeEvaluator {
             bottles: bottles,
             tastings: tastings,
             requireWine: false,
-            predicate: (c, r, a, n, t) => t.contains('gin') || n.contains('gin'),
+            predicate: (c, r, a, n, t) => t == 'gin' || RegExp(r'\bgin\b', caseSensitive: false).hasMatch(t) || RegExp(r'\bgin\b', caseSensitive: false).hasMatch(n),
           );
           break;
 
@@ -756,6 +1087,29 @@ class BadgeEvaluator {
           );
           break;
 
+        case 'spirit_amaretto_italian':
+          count += _countMatching(
+            bottles: bottles,
+            tastings: tastings,
+            requireWine: false,
+            predicate: (c, r, a, n, t) =>
+                n.contains('amaretto') ||
+                n.contains('disaronno') ||
+                t.contains('amaretto') ||
+                t.contains('disaronno'),
+          );
+          break;
+
+        case 'spirit_fill_vigilant':
+          for (final b in bottles) {
+            final isSp = !_isWine(b.wine?.type ?? '', b.wine?.name ?? '', b.wine?.classification ?? '');
+            if (isSp && b.fillLevel <= 25) {
+              count++;
+              contributing.add(_bottleToItem(b));
+            }
+          }
+          break;
+
         // ==========================================
         // 💩 BADGES LOOSER & AUTODÉRISION
         // ==========================================
@@ -763,29 +1117,38 @@ class BadgeEvaluator {
           for (final b in bottles) {
             if (b.purchasePrice != null && b.purchasePrice! > 0 && b.purchasePrice! < 3.0) {
               count++;
+              contributing.add(_bottleToItem(b));
             }
           }
           for (final t in tastings) {
             final notes = (t.tastingNotes ?? '').toLowerCase();
             if (notes.contains('piquette') || notes.contains('villageoise') || notes.contains('2€') || notes.contains('2,50')) {
               count++;
+              contributing.add(_tastingToItem(t));
             }
           }
           break;
 
         case 'looser_past_peak':
-          count += bottles.where((b) => b.wine?.windowStatus == DrinkWindowStatus.pastPeak).length;
+          // Must only count wine that was actually consumed/tasted after its peak,
+          // or where tasting notes explicitly note spoilage/past peak.
+          // Bottles in cellar are unopened inventory and must NEVER count towards "Avoir bu un vin passé".
+          final pastWordRegex = RegExp(r'\b(passé|passée|vinaigre|madérisé|oxydé|mort)\b');
           for (final t in tastings) {
             final notes = (t.tastingNotes ?? '').toLowerCase();
-            final hasPastNote = notes.contains('passé') || notes.contains('passe') || notes.contains('vinaigre') || notes.contains('mort') || notes.contains('oxydé') || notes.contains('madérisé');
-            if (hasPastNote) {
+            if (pastWordRegex.hasMatch(notes)) {
               count++;
+              contributing.add(_tastingToItem(t));
               continue;
             }
             final matchingBottle = bottles.where((b) => (t.bottleId != null && b.id == t.bottleId) || b.wineId == t.wineId).firstOrNull;
             final w = matchingBottle?.wine;
-            if (w != null && w.peakEnd != null && t.consumedAt.year > w.peakEnd! + 3) {
+            if (w != null && w.peakEnd != null && t.consumedAt.year > w.peakEnd! + 2) {
               count++;
+              contributing.add(_tastingToItem(t));
+            } else if (w != null && w.drinkEnd != null && t.consumedAt.year > w.drinkEnd! + 2) {
+              count++;
+              contributing.add(_tastingToItem(t));
             }
           }
           break;
@@ -803,6 +1166,7 @@ class BadgeEvaluator {
                 notes.contains('affreux');
             if (isSevereRating || isHorribleNote) {
               count++;
+              contributing.add(_tastingToItem(t));
             }
           }
           break;
@@ -812,6 +1176,7 @@ class BadgeEvaluator {
             final notes = (t.tastingNotes ?? '').toLowerCase();
             if (notes.contains('bouchon') || notes.contains('tca')) {
               count++;
+              contributing.add(_tastingToItem(t));
             }
           }
           break;
@@ -820,6 +1185,7 @@ class BadgeEvaluator {
           for (final t in tastings) {
             if (t.coTasters.isEmpty) {
               count++;
+              contributing.add(_tastingToItem(t));
             }
           }
           break;
@@ -829,6 +1195,7 @@ class BadgeEvaluator {
           for (final b in bottles) {
             if (b.createdAt.isBefore(threeYearsAgo)) {
               count++;
+              contributing.add(_bottleToItem(b));
             }
           }
           break;
@@ -838,12 +1205,14 @@ class BadgeEvaluator {
             final notes = (b.notes ?? '').toLowerCase();
             if (notes.contains('tache') || notes.contains('coulure') || notes.contains('étiquette abîmée') || notes.contains('etiquette abimee')) {
               count++;
+              contributing.add(_bottleToItem(b));
             }
           }
           for (final t in tastings) {
             final notes = (t.tastingNotes ?? '').toLowerCase();
             if (notes.contains('tache') || notes.contains('coulure') || notes.contains('nappe') || notes.contains('goutte')) {
               count++;
+              contributing.add(_tastingToItem(t));
             }
           }
           break;
@@ -887,15 +1256,15 @@ class BadgeEvaluator {
           break;
 
         case 'savant_cistercien':
-          const bgMarkers = ['bourgogne', 'chablis', 'vougeot', 'cîteaux', 'citeaux', 'meursault', 'côte de nuits', 'cote de nuits', 'côte de beaune', 'cote de beaune', 'corton'];
+          const bgMarkers = ['bourgogne', 'burgundy', 'chablis', 'vougeot', 'cîteaux', 'citeaux', 'meursault', 'côte de nuits', 'cote de nuits', 'côte de beaune', 'cote de beaune', 'corton'];
           for (final b in bottles) {
             final w = b.wine;
             final r = (w?.region ?? '').toLowerCase();
             final a = (w?.appellation ?? '').toLowerCase();
             final n = (w?.name ?? '').toLowerCase();
             final cl = (w?.classification ?? '').toLowerCase();
-            final inBourgogne = bgMarkers.any((k) => r.contains(k) || a.contains(k) || n.contains(k));
-            final isClimat = cl.contains('grand cru') || cl.contains('premier cru') || cl.contains('1er cru') || cl.contains('climat') || cl.contains('cistercien') || a.contains('grand cru') || a.contains('premier cru') || a.contains('1er cru') || n.contains('grand cru') || n.contains('premier cru');
+            final inBourgogne = bgMarkers.any((k) => r.contains(k) || a.contains(k));
+            final isClimat = cl.contains('grand cru') || cl.contains('premier cru') || cl.contains('1er cru') || cl.contains('climat') || cl.contains('cistercien') || a.contains('grand cru') || a.contains('premier cru') || a.contains('1er cru') || n.contains('grand cru') || n.contains('premier cru') || n.contains('1er cru');
             if (inBourgogne && isClimat) {
               count++;
             }
@@ -904,8 +1273,8 @@ class BadgeEvaluator {
             final r = (t.region ?? '').toLowerCase();
             final a = (t.appellation ?? '').toLowerCase();
             final n = (t.wineName ?? '').toLowerCase();
-            final inBourgogne = bgMarkers.any((k) => r.contains(k) || a.contains(k) || n.contains(k));
-            final isClimat = a.contains('grand cru') || a.contains('premier cru') || a.contains('1er cru') || a.contains('climat') || n.contains('grand cru') || n.contains('premier cru') || n.contains('climat');
+            final inBourgogne = bgMarkers.any((k) => r.contains(k) || a.contains(k));
+            final isClimat = a.contains('grand cru') || a.contains('premier cru') || a.contains('1er cru') || a.contains('climat') || n.contains('grand cru') || n.contains('premier cru') || n.contains('1er cru');
             if (inBourgogne && isClimat) {
               count++;
             }
@@ -921,39 +1290,58 @@ class BadgeEvaluator {
           break;
 
         case 'savant_napoleon':
-          const napKeywords = ['chambertin', 'napoléon', 'napoleon'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => napKeywords.any((k) => n.contains(k) || a.contains(k) || r.contains(k)),
+            predicate: (c, r, a, n, t) {
+              final normA = _normalize(a);
+              final normN = _normalize(n);
+              return normA.contains('chambertin') || normN.contains('chambertin') || normN.contains('napoleon');
+            },
           );
           break;
 
         case 'savant_volcan':
           const volKeywords = [
             'etna',
-            'volcan',
-            'volcanique',
             'canaries',
             'canary',
             'lanzarote',
             'santorin',
             'santorini',
-            'basalte',
             'côtes du forez',
             'cotes du forez',
             'côtes d\'auvergne',
             'cotes d\'auvergne',
             'campi flegrei',
             'vesuvio',
+            'vesuve',
+            'açores',
+            'azores',
+            'somlo',
+            'somló',
+            'aglianico del vulture',
+            'tenerife',
+            'valle de la orotava',
           ];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => volKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) {
+              final normR = _normalize(r);
+              final normA = _normalize(a);
+              final normN = _normalize(n);
+              return volKeywords.any((k) {
+                final normK = _normalize(k);
+                return normR.contains(normK) || normA.contains(normK) || (normK == 'etna' && normN.contains('etna'));
+              });
+            },
             winePredicate: (w) {
-              final tn = (w?.tastingNotes ?? '').toLowerCase();
-              return volKeywords.any((k) => tn.contains(k));
+              if (w == null) return false;
+              final sub = _normalize(w.subRegion ?? '');
+              final soil = _normalize(w.terroirSoil ?? '');
+              final isVolcanicSoil = soil.contains('volcan') || soil.contains('basalte') || soil.contains('pouzzolane');
+              return volKeywords.any((k) => sub.contains(_normalize(k))) || isVolcanicSoil;
             },
           );
           break;
@@ -1025,8 +1413,12 @@ class BadgeEvaluator {
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => botKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) {
+              if (t == 'red' || t == 'rouge') return false;
+              return botKeywords.any((k) => _normalize(r).contains(_normalize(k)) || _normalize(a).contains(_normalize(k)));
+            },
             winePredicate: (w) {
+              if (w?.type == 'red') return false;
               final tn = (w?.tastingNotes ?? '').toLowerCase();
               return botKeywords.any((k) => tn.contains(k));
             },
@@ -1055,7 +1447,7 @@ class BadgeEvaluator {
             },
             winePredicate: (w) {
               if (w == null) return false;
-              final r = (w.region ?? '').toLowerCase();
+              final r = w.region.toLowerCase();
               final a = (w.appellation ?? '').toLowerCase();
               final n = w.name.toLowerCase();
               final tn = (w.tastingNotes ?? '').toLowerCase();
@@ -1078,7 +1470,7 @@ class BadgeEvaluator {
             bottles: bottles,
             tastings: tastings,
             predicate: (c, r, a, n, t) {
-              if (kimKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k))) return true;
+              if (_matchRegionAppellation(r, a, kimKeywords)) return true;
               if (a.contains('sancerre') && (n.contains('terres blanches') || r.contains('terres blanches'))) return true;
               return false;
             },
@@ -1090,42 +1482,62 @@ class BadgeEvaluator {
           break;
 
         case 'savant_jefferson':
-          const jeffKeywords = ['hermitage', 'yquem', 'montepulciano', 'haut-brion', 'château haut-brion', 'chateau haut-brion'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => jeffKeywords.any((k) => n.contains(k) || a.contains(k)),
+            predicate: (c, r, a, n, t) {
+              final normA = _normalize(a);
+              final normN = _normalize(n);
+              // Hermitage (excluding Crozes-Hermitage)
+              if (normA.contains('hermitage') && !normA.contains('crozes')) return true;
+              // Château d'Yquem
+              if (normN.contains('yquem') || normA.contains('yquem')) return true;
+              // Château Haut-Brion
+              if (normN.contains('haut brion') || normA.contains('haut brion')) return true;
+              // Vino Nobile di Montepulciano (excluding Montepulciano d'Abruzzo)
+              if (normA.contains('montepulciano') && !normA.contains('abruzzo')) return true;
+              return false;
+            },
           );
           break;
 
         case 'savant_schiste':
-          const schKeywords = ['priorat', 'côte-rôtie', 'cote-rotie', 'collioure', 'banyuls', 'faugères', 'faugeres', 'douro', 'schiste'];
+          const schKeywords = ['priorat', 'côte-rôtie', 'cote-rotie', 'collioure', 'banyuls', 'faugères', 'faugeres', 'douro'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => schKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) {
+              if (_matchRegionAppellation(r, a, schKeywords)) return true;
+              if (n.contains('schiste')) return true;
+              return false;
+            },
             winePredicate: (w) {
               final tn = (w?.tastingNotes ?? '').toLowerCase();
-              return tn.contains('schiste');
+              final soil = (w?.terroirSoil ?? '').toLowerCase();
+              return tn.contains('schiste') || soil.contains('schiste');
             },
           );
           break;
 
         case 'savant_vents':
-          const ventKeywords = ['châteauneuf', 'chateauneuf', 'gigondas', 'vacqueyras', 'bandol', 'côtes de provence', 'cotes de provence', 'ventoux', 'mistral', 'tramontane'];
+          const ventKeywords = ['châteauneuf', 'chateauneuf', 'gigondas', 'vacqueyras', 'bandol', 'côtes de provence', 'cotes de provence', 'ventoux'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => ventKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) {
+              if (_matchRegionAppellation(r, a, ventKeywords)) return true;
+              if (n.contains('mistral') || n.contains('tramontane')) return true;
+              return false;
+            },
           );
           break;
 
         case 'savant_alienor':
-          const alKeywords = ['bordeaux', 'graves', 'médoc', 'medoc', 'pessac', 'clairet', 'aquitaine'];
+          const alKeywords = ['bordeaux', 'graves', 'médoc', 'medoc', 'pessac-léognan', 'pessac-leognan', 'clairet'];
           count += _countMatching(
             bottles: bottles,
             tastings: tastings,
-            predicate: (c, r, a, n, t) => alKeywords.any((k) => r.contains(k) || a.contains(k) || n.contains(k)),
+            predicate: (c, r, a, n, t) => _matchRegionAppellation(r, a, alKeywords),
           );
           break;
 
@@ -1142,6 +1554,151 @@ class BadgeEvaluator {
             },
           );
           break;
+
+        case 'savant_sanguis_christi':
+          count = isLatin ? 1 : 0;
+          break;
+
+        case 'savant_blind_battle':
+          count = _countMatching(
+            bottles: bottles,
+            tastings: tastings,
+            predicate: (c, r, a, n, t) => n.contains('aveugle') || n.contains('blind') || a.contains('aveugle'),
+            winePredicate: (w) {
+              final tn = (w?.tastingNotes ?? '').toLowerCase();
+              final s = (w?.summary ?? '').toLowerCase();
+              return tn.contains('aveugle') || tn.contains('blind') || s.contains('aveugle') || s.contains('blind');
+            },
+          );
+          for (final te in tastings) {
+            final tn = (te.tastingNotes ?? '').toLowerCase();
+            final occ = (te.occasion ?? '').toLowerCase();
+            if (tn.contains('aveugle') || tn.contains('blind') || occ.contains('aveugle') || occ.contains('blind')) {
+              count++;
+            }
+          }
+          break;
+
+        case 'savant_thermocourbe':
+          for (final b in bottles) {
+            final n = (b.notes ?? '').toLowerCase();
+            final tn = (b.wine?.tastingNotes ?? '').toLowerCase();
+            if (n.contains('température') || n.contains('temperature') || n.contains('service') || tn.contains('température') || tn.contains('temperature') || tn.contains('service')) {
+              count++;
+              contributing.add(_bottleToItem(b));
+            }
+          }
+          for (final te in tastings) {
+            final tn = (te.tastingNotes ?? '').toLowerCase();
+            if (tn.contains('température') || tn.contains('temperature') || tn.contains('service') || tn.contains('frais') || tn.contains('chambré')) {
+              count++;
+              contributing.add(_tastingToItem(te));
+            }
+          }
+          break;
+
+        case 'savant_table_consensus':
+          for (final b in bottles) {
+            final n = (b.notes ?? '').toLowerCase();
+            if (n.contains('table') || n.contains('convive') || n.contains('accord') || n.contains('consensus') || (b.wine?.foodPairings.isNotEmpty ?? false)) {
+              count++;
+              contributing.add(_bottleToItem(b));
+            }
+          }
+          for (final te in tastings) {
+            final tn = (te.tastingNotes ?? '').toLowerCase();
+            final fp = (te.foodPaired ?? '').toLowerCase();
+            if (tn.contains('table') || tn.contains('convive') || tn.contains('accord') || tn.contains('consensus') || fp.isNotEmpty || te.coTasters.isNotEmpty) {
+              count++;
+              contributing.add(_tastingToItem(te));
+            }
+          }
+          break;
+
+        case 'savant_consensus_table_master':
+          for (final b in bottles) {
+            final n = (b.notes ?? '').toLowerCase();
+            if (n.contains('table') || n.contains('groupe') || n.contains('convive') || n.contains('consensus') || (b.wine?.foodPairings.isNotEmpty ?? false)) {
+              count++;
+              contributing.add(_bottleToItem(b));
+            }
+          }
+          for (final te in tastings) {
+            final tn = (te.tastingNotes ?? '').toLowerCase();
+            if (tn.contains('table') || tn.contains('groupe') || tn.contains('convive') || tn.contains('consensus') || te.coTasters.isNotEmpty) {
+              count++;
+              contributing.add(_tastingToItem(te));
+            }
+          }
+          break;
+
+        case 'savant_flight_discovery':
+          for (final te in tastings) {
+            final tn = (te.tastingNotes ?? '').toLowerCase();
+            if (tn.contains('flight') || tn.contains('verre') || tn.contains('série') || tn.contains('degustation')) {
+              count++;
+              contributing.add(_tastingToItem(te));
+            }
+          }
+          if (tastings.length >= 3) {
+            count += 1;
+            if (contributing.isEmpty) {
+              for (final t in tastings.take(3)) {
+                contributing.add(_tastingToItem(t));
+              }
+            }
+          }
+          break;
+
+        case 'savant_cellar_architect':
+          final regions = <String>{};
+          final types = <String>{};
+          for (final b in bottles) {
+            final r = (b.wine?.region ?? '').trim().toLowerCase();
+            final t = (b.wine?.type ?? '').trim().toLowerCase();
+            if (r.isNotEmpty) regions.add(r);
+            if (t.isNotEmpty) types.add(t);
+          }
+          if ((regions.length >= 3 && types.length >= 2) || bottles.length >= 10) {
+            count = 1;
+            for (final b in bottles.take(10)) {
+              contributing.add(_bottleToItem(b));
+            }
+          } else {
+            count = 0;
+          }
+          break;
+
+        case 'savant_storyteller':
+          for (final b in bottles) {
+            final w = b.wine;
+            final n = (b.notes ?? '').toLowerCase();
+            final tn = (w?.tastingNotes ?? '').toLowerCase();
+            final p = (w?.producer ?? '').toLowerCase();
+            if (n.length > 30 || tn.length > 30 || p.isNotEmpty) {
+              count++;
+              contributing.add(_bottleToItem(b));
+            }
+          }
+          for (final te in tastings) {
+            final tn = (te.tastingNotes ?? '').toLowerCase();
+            if (tn.length > 30) {
+              count++;
+              contributing.add(_tastingToItem(te));
+            }
+          }
+          break;
+
+        case 'savant_bulles_royales':
+          const effervescents = ['champagne', 'crémant', 'cremant', 'cava', 'franciacorta', 'prosecco', 'sparkling', 'effervescent', 'mousseux'];
+          count = _countMatching(
+            bottles: bottles,
+            tastings: tastings,
+            predicate: (c, r, a, n, t) {
+              return t == 'sparkling' || t == 'effervescent' || effervescents.any((e) => r.contains(e) || a.contains(e) || n.contains(e));
+            },
+          );
+          break;
       }
 
       final isUnlocked = count >= badge.requiredCount;
@@ -1150,8 +1707,11 @@ class BadgeEvaluator {
         currentCount: count,
         isUnlocked: isUnlocked,
         unlockedAt: isUnlocked ? DateTime.now() : null,
+        contributingItems: List.unmodifiable(contributing),
       ));
     }
+
+    _activeContributing = null;
 
     // Sort: Unlocked first, then by progress fraction descending
     results.sort((a, b) {
@@ -1200,6 +1760,88 @@ class BadgeEvaluator {
     return true;
   }
 
+  static String _normalize(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[éèêë]'), 'e')
+        .replaceAll(RegExp(r'[àâä]'), 'a')
+        .replaceAll(RegExp(r'[îï]'), 'i')
+        .replaceAll(RegExp(r'[ôö]'), 'o')
+        .replaceAll(RegExp(r'[ûüù]'), 'u')
+        .replaceAll(RegExp(r'[ç]'), 'c')
+        .replaceAll(RegExp(r'[^a-z0-9 ]'), ' ')
+        .trim();
+  }
+
+  static bool _matchCountry(String? country, List<String> canonicalTokens) {
+    if (country == null || country.trim().isEmpty) return false;
+    final norm = _normalize(country);
+    for (final token in canonicalTokens) {
+      final normToken = _normalize(token);
+      if (norm == normToken) return true;
+      final regex = RegExp('\\b${RegExp.escape(normToken)}\\b');
+      if (regex.hasMatch(norm)) return true;
+    }
+    return false;
+  }
+
+  static bool _matchRegionAppellation(String region, String appellation, List<String> keywords) {
+    final normR = _normalize(region);
+    final normA = _normalize(appellation);
+    for (final kw in keywords) {
+      final normKw = _normalize(kw);
+      if (normR.contains(normKw) || normA.contains(normKw)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static bool _matchesGrape({
+    required Wine? wine,
+    required String? wineName,
+    required String? wineType,
+    required String? appellation,
+    required List<String> grapeAliases,
+    required String requiredType, // 'red' or 'white'
+    List<String> monoVarietalAppellations = const [],
+  }) {
+    final type = _normalize(wine?.type ?? wineType ?? '');
+    final isRed = type == 'red' || type == 'rouge';
+    final isWhite = type == 'white' || type == 'blanc';
+    if (requiredType == 'red' && !isRed) return false;
+    if (requiredType == 'white' && !isWhite) return false;
+
+    // 1. If structured grapes list exists and is non-empty, ONLY use it:
+    if (wine != null && wine.grapes.isNotEmpty) {
+      return wine.grapes.any((g) {
+        final gName = _normalize(g.name);
+        return grapeAliases.any((alias) => gName.contains(_normalize(alias)));
+      });
+    }
+
+    // 2. Otherwise (tasting without grapes list or wine without grape data):
+    final normApp = _normalize(appellation ?? '');
+    final normName = _normalize(wineName ?? '');
+
+    // 2a. Certified 100% mono-varietal appellation
+    for (final aoc in monoVarietalAppellations) {
+      final normAoc = _normalize(aoc);
+      if (normApp.contains(normAoc)) return true;
+    }
+
+    // 2b. Explicit grape token with word boundary in name or appellation
+    for (final alias in grapeAliases) {
+      final normAlias = _normalize(alias);
+      final regex = RegExp('\\b${RegExp.escape(normAlias)}\\b');
+      if (regex.hasMatch(normName) || regex.hasMatch(normApp)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   static int _countMatching({
     required List<Bottle> bottles,
     required List<TastingEntry> tastings,
@@ -1225,6 +1867,7 @@ class BadgeEvaluator {
         count++;
         if (b.wineId.isNotEmpty) matchedWineIds.add(b.wineId);
         if (n.isNotEmpty) matchedWineNames.add(n);
+        _activeContributing?.add(_bottleToItem(b));
       }
     }
     for (final te in tastings) {
@@ -1243,6 +1886,7 @@ class BadgeEvaluator {
         count++;
         if (te.wineId.isNotEmpty) matchedWineIds.add(te.wineId);
         if (n.isNotEmpty) matchedWineNames.add(n);
+        _activeContributing?.add(_tastingToItem(te));
       }
     }
     return count;

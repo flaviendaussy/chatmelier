@@ -79,41 +79,179 @@ class WineTypeBadge extends StatelessWidget {
     }
   }
 
-  static String getLabel(String type) {
-    switch (type.toLowerCase().trim()) {
+  static String getLabel(String type, [String? languageCode]) {
+    final lang = (languageCode ?? 'en').toLowerCase();
+    final t = type.toLowerCase().trim();
+
+    if (lang == 'la') {
+      switch (t) {
+        case 'red':
+        case 'rouge':
+          return 'RUBRUM';
+        case 'white':
+        case 'blanc':
+          return 'ALBUM';
+        case 'rosé':
+        case 'rose':
+          return 'ROSEUM';
+        case 'sparkling':
+        case 'bulles':
+        case 'champagne':
+        case 'effervescent':
+          return 'SPUMANS';
+        case 'dessert':
+        case 'moelleux':
+        case 'liquoreux':
+          return 'DULCE';
+        case 'orange':
+          return 'AURANTIUM';
+        case 'fortified':
+        case 'muté':
+        case 'porto':
+        case 'xérès':
+          return 'FORTIFICATUM';
+        case 'whisky':
+        case 'whiskey':
+        case 'bourbon':
+        case 'scotch':
+          return 'WHISKY';
+        case 'rum':
+        case 'rhum':
+          return 'RHUM';
+        case 'spirit':
+        case 'spiritueux':
+          return 'SPIRITUS';
+        case 'aperol':
+        case 'aperitif':
+          return 'ANTECIBUM';
+        default:
+          return type.toUpperCase();
+      }
+    }
+
+    if (lang == 'es') {
+      switch (t) {
+        case 'red':
+        case 'rouge':
+          return 'TINTO';
+        case 'white':
+        case 'blanc':
+          return 'BLANCO';
+        case 'rosé':
+        case 'rose':
+          return 'ROSADO';
+        case 'sparkling':
+        case 'bulles':
+        case 'champagne':
+        case 'effervescent':
+          return 'ESPUMOSO';
+        case 'dessert':
+        case 'moelleux':
+        case 'liquoreux':
+          return 'DULCE';
+        case 'orange':
+          return 'NARANJA';
+        case 'fortified':
+        case 'muté':
+        case 'porto':
+        case 'xérès':
+          return 'FORTIFICADO';
+        case 'whisky':
+        case 'whiskey':
+          return 'WHISKY';
+        case 'rum':
+        case 'rhum':
+          return 'RON';
+        case 'spirit':
+        case 'spiritueux':
+          return 'ESPIRITUOSOS';
+        case 'aperol':
+        case 'aperitif':
+          return 'APERITIVO';
+        default:
+          return type.toUpperCase();
+      }
+    }
+
+    if (lang == 'ca') {
+      switch (t) {
+        case 'red':
+        case 'rouge':
+          return 'NEGRE';
+        case 'white':
+        case 'blanc':
+          return 'BLANC';
+        case 'rosé':
+        case 'rose':
+          return 'ROSAT';
+        case 'sparkling':
+        case 'bulles':
+        case 'champagne':
+        case 'effervescent':
+          return 'ESCUMÓS';
+        case 'dessert':
+        case 'moelleux':
+        case 'liquoreux':
+          return 'DOLÇ';
+        case 'orange':
+          return 'TARONJA';
+        case 'fortified':
+        case 'muté':
+        case 'porto':
+        case 'xérès':
+          return 'FORTIFICAT';
+        case 'whisky':
+        case 'whiskey':
+          return 'WHISKY';
+        case 'rum':
+        case 'rhum':
+          return 'ROM';
+        case 'spirit':
+        case 'spiritueux':
+          return 'DESTIL·LATS';
+        case 'aperol':
+        case 'aperitif':
+          return 'APERITIU';
+        default:
+          return type.toUpperCase();
+      }
+    }
+
+    final isEn = lang != 'fr';
+    switch (t) {
       case 'red':
       case 'rouge':
-        return 'ROUGE';
+        return isEn ? 'RED' : 'ROUGE';
       case 'white':
       case 'blanc':
-        return 'BLANC';
+        return isEn ? 'WHITE' : 'BLANC';
       case 'rosé':
       case 'rose':
-        return 'ROSÉ';
+        return isEn ? 'ROSÉ' : 'ROSÉ';
       case 'sparkling':
       case 'bulles':
       case 'champagne':
       case 'effervescent':
-        return 'BULLES';
+        return isEn ? 'SPARKLING' : 'BULLES';
       case 'dessert':
       case 'moelleux':
       case 'liquoreux':
-        return 'MOELLEUX';
+        return isEn ? 'DESSERT' : 'MOELLEUX';
       case 'orange':
         return 'ORANGE';
       case 'fortified':
       case 'muté':
       case 'porto':
       case 'xérès':
-        return 'FORTIFIÉ';
+        return isEn ? 'FORTIFIED' : 'FORTIFIÉ';
       case 'whisky':
       case 'whiskey':
       case 'bourbon':
       case 'scotch':
-        return 'WHISKY';
+        return isEn ? 'WHISKEY' : 'WHISKY';
       case 'rum':
       case 'rhum':
-        return 'RHUM';
+        return isEn ? 'RUM' : 'RHUM';
       case 'gin':
         return 'GIN';
       case 'vodka':
@@ -125,7 +263,7 @@ class WineTypeBadge extends StatelessWidget {
       case 'cognac':
       case 'armagnac':
       case 'brandy':
-        return 'COGNAC';
+        return isEn ? 'COGNAC' : 'COGNAC';
       case 'liqueur':
       case 'amaretto':
       case 'triple_sec':
@@ -138,18 +276,18 @@ class WineTypeBadge extends StatelessWidget {
         return 'BITTER';
       case 'aperol':
       case 'aperitif':
-        return 'APÉRITIF';
+        return isEn ? 'APERITIF' : 'APÉRITIF';
       case 'vermouth':
         return 'VERMOUTH';
       case 'spirit':
       case 'spiritueux':
-        return 'SPIRITUEUX';
+        return isEn ? 'SPIRITS' : 'SPIRITUEUX';
       case 'grappa':
         return 'GRAPPA';
       case 'eau_de_vie':
       case 'eau-de-vie':
       case 'marc':
-        return 'EAU-DE-VIE';
+        return isEn ? 'EAU-DE-VIE' : 'EAU-DE-VIE';
       default:
         return type.toUpperCase();
     }
@@ -157,8 +295,9 @@ class WineTypeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode;
     final color = getColor(type);
-    final label = getLabel(type);
+    final label = getLabel(type, lang);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),

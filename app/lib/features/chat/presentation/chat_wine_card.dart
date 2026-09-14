@@ -49,7 +49,7 @@ class ChatWineCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final vintageStr = data.vintage != null ? '${data.vintage}' : (isFr ? 'NM' : 'NV');
     final hasBottleId = data.id != null && data.id!.isNotEmpty;
 
@@ -234,6 +234,7 @@ class ChatWineCard extends StatelessWidget {
   }
 
   void _showServiceModal(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final advice = WineServiceAdvisor.computeAdvice(
       wineType: data.wineType,
       vintage: data.vintage,
@@ -241,6 +242,7 @@ class ChatWineCard extends StatelessWidget {
       appellation: data.appellation,
       producer: data.producer,
       wineName: data.name,
+      isFr: isFr,
     );
 
     showModalBottomSheet(
@@ -257,7 +259,7 @@ class ChatWineCard extends StatelessWidget {
                 const Icon(Icons.thermostat, color: Colors.amber, size: 28),
                 const SizedBox(width: 10),
                 Text(
-                  'Conseils de Service & Dégustation',
+                  isFr ? 'Conseils de Service & Dégustation' : 'Service & Tasting Advice',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -280,16 +282,21 @@ class ChatWineCard extends StatelessWidget {
                   const Icon(Icons.device_thermostat, color: Colors.amber),
                   const SizedBox(width: 10),
                   Text(
-                    'Température idéale : ${advice.tempLabel}',
+                    isFr ? 'Température idéale : ${advice.tempLabel}' : 'Ideal temperature: ${advice.tempLabel}',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 12),
-            Text('🍷 Verre conseillé : ${advice.glasswareType}', style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(
+              isFr ? '🍷 Verre conseillé : ${advice.glasswareType}' : '🍷 Recommended glassware: ${advice.glasswareType}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 6),
-            Text('⏳ Carafage : ${advice.decantingAdvice}'),
+            Text(
+              isFr ? '⏳ Carafage : ${advice.decantingAdvice}' : '⏳ Decanting: ${advice.decantingAdvice}',
+            ),
             const SizedBox(height: 20),
           ],
         ),

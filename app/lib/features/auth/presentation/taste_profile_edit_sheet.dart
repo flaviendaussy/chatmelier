@@ -32,6 +32,18 @@ class TasteProfileEditSheet extends ConsumerStatefulWidget {
 }
 
 class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
+  String get _langCode => Localizations.maybeLocaleOf(context)?.languageCode ?? 'fr';
+
+  String _t(String en, String es, String ca, String la, String fr) {
+    switch (_langCode) {
+      case 'en': return en;
+      case 'es': return es;
+      case 'ca': return ca;
+      case 'la': return la;
+      default: return fr;
+    }
+  }
+
   late String _name;
   late List<String> _favoriteTypes;
   late List<String> _favoriteRegions;
@@ -141,12 +153,12 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Ajouter un(e) $label'),
+        title: Text('${_t("Add", "Añadir", "Afegir", "Adde", "Ajouter un(e)")} $label'),
         content: TextField(
           controller: _customInputController,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: 'Nom du $label...',
+            hintText: '${_t("Name of", "Nombre del", "Nom del", "Nomen", "Nom du")} $label...',
             border: const OutlineInputBorder(),
           ),
           onSubmitted: (_) => _submitCustomItem(targetList),
@@ -154,7 +166,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(_t('Cancel', 'Cancelar', 'Cancel·lar', 'Abrogare', 'Annuler')),
           ),
           FilledButton(
             onPressed: () => _submitCustomItem(targetList),
@@ -162,7 +174,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
               backgroundColor: const Color(0xFF8B1E3F),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Ajouter', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(_t('Add', 'Añadir', 'Afegir', 'Adde', 'Ajouter'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -183,12 +195,16 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Réinitialiser votre profil de goûts ?'),
-        content: const Text(
-          'Toutes vos préférences (styles, régions, cépages, aversions et réglages) seront remises à zéro.',
+        title: Text(_t('Reset your taste profile?', '¿Restablecer tu perfil de gusto?', 'Restablir el teu perfil de gust?', 'Restituere profilum saporis?', 'Réinitialiser votre profil de goûts ?')),
+        content: Text(
+          _t('All preferences (styles, regions, grapes, aversions and settings) will be reset.',
+             'Todas tus preferencias (estilos, regiones, uvas, aversiones y ajustes) se restablecerán.',
+             'Totes les preferències (estils, regions, raïms, aversions i paràmetres) es restabliran.',
+             'Omnes praeferentiae ad nihilum restituentur.',
+             'Toutes vos préférences (styles, régions, cépages, aversions et réglages) seront remises à zéro.'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t('Cancel', 'Cancelar', 'Cancel·lar', 'Abrogare', 'Annuler'))),
           FilledButton(
             onPressed: () {
               setState(() {
@@ -208,7 +224,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
               backgroundColor: Colors.redAccent,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Réinitialiser', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(_t('Reset', 'Restablecer', 'Restablir', 'Restituere', 'Réinitialiser'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -237,9 +253,13 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✨ Profil de goûts mis à jour avec succès !'),
-          backgroundColor: Color(0xFF2E7D32),
+        SnackBar(
+          content: Text(_t('✨ Taste profile updated successfully!',
+                           '✨ ¡Perfil de gusto actualizado con éxito!',
+                           '✨ Perfil de gust actualitzat amb èxit!',
+                           '✨ Profilum saporis feliciter renovatum est!',
+                           '✨ Profil de goûts mis à jour avec succès !')),
+          backgroundColor: const Color(0xFF2E7D32),
         ),
       );
     }
@@ -290,7 +310,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
                             const Icon(Icons.favorite_rounded, color: Color(0xFF8B1E3F), size: 24),
                             const SizedBox(width: 10),
                             Text(
-                              'Mon Profil de Goûts',
+                              _t('My Taste Profile', 'Mi Perfil de Gusto', 'El meu Perfil de Gust', 'Meum Profilum Saporis', 'Mon Profil de Goûts'),
                               style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -298,7 +318,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
                         TextButton.icon(
                           onPressed: _resetProfile,
                           icon: const Icon(Icons.refresh, size: 16, color: Colors.grey),
-                          label: const Text('Réinitialiser', style: TextStyle(color: Colors.grey)),
+                          label: Text(_t('Reset', 'Restablecer', 'Restablir', 'Restituere', 'Réinitialiser'), style: const TextStyle(color: Colors.grey)),
                         ),
                       ],
                     ),
@@ -313,7 +333,11 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
                   padding: const EdgeInsets.all(20),
                   children: [
                     Text(
-                      'Personnalisez vos préférences œnologiques à tout moment. Chatmelier s\'adapte en temps réel pour vos accords mets-vins et recommandations.',
+                      _t('Customize your wine preferences anytime. Chatmelier adapts in real time for food & wine pairings and recommendations.',
+                         'Personaliza tus preferencias enológicas en cualquier momento. Chatmelier se adapta en tiempo real para tus maridajes y recomendaciones.',
+                         'Personalitza les teves preferències enològiques en qualsevol moment. Chatmelier s\'adapta en temps real per als teus maridatges i recomanacions.',
+                         'Praeferentias oenologicas quolibet tempore adapta. Chatmelier tecum concordat in concordantiis ciborum et vinorum.',
+                         'Personnalisez vos préférences œnologiques à tout moment. Chatmelier s\'adapte en temps réel pour vos accords mets-vins et recommandations.'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -322,7 +346,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
 
                     // SECTION 1: STYLES & TYPES DE VINS
                     _buildSectionHeader(
-                      'Styles & Types de Vins Préférés',
+                      _t('Favorite Wine Styles & Types', 'Estilos y Tipos de Vino Favoritos', 'Estils i Tipus de Vi Favorits', 'Genera & Styli Vini Praedilecti', 'Styles & Types de Vins Préférés'),
                       icon: Icons.wine_bar,
                       count: _favoriteTypes.length,
                     ),
@@ -335,7 +359,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
 
                     // SECTION 2: RÉGIONS & TERROIRS
                     _buildSectionHeader(
-                      'Régions & Terroirs Coups de Cœur',
+                      _t('Favorite Regions & Terroirs', 'Regiones y Terruños Favoritos', 'Regions i Terroirs Favorits', 'Regiones & Terrena Praedilecta', 'Régions & Terroirs Coups de Cœur'),
                       icon: Icons.map_outlined,
                       count: _favoriteRegions.length,
                     ),
@@ -348,7 +372,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
 
                     // SECTION 3: CÉPAGES FAVORIS
                     _buildSectionHeader(
-                      'Cépages Favoris',
+                      _t('Favorite Grape Varieties', 'Variedades de Uva Favoritas', 'Varietats de Raïm Preferides', 'Uvae Praedilectae', 'Cépages Favoris'),
                       icon: Icons.grain,
                       count: _favoriteGrapes.length,
                     ),
@@ -361,7 +385,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
 
                     // SECTION 4: AVERSIONS & TRAITS NON APPRÉCIÉS
                     _buildSectionHeader(
-                      'Traits / Arômes non appréciés (Aversions)',
+                      _t('Disliked Traits / Aromas (Aversions)', 'Rasgos / Aromas no deseados (Aversiones)', 'Trets / Aromes no desitjats (Aversions)', 'Qualitates / Aromata non grata (Aversiones)', 'Traits / Arômes non appréciés (Aversions)'),
                       icon: Icons.thumb_down_alt_outlined,
                       count: _dislikedCharacteristics.length,
                       color: Colors.orange.shade800,
@@ -395,7 +419,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
                                     const Icon(Icons.tune, color: Color(0xFFD4AF37), size: 20),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Sensibilités du Palais',
+                                      _t('Palate Sensitivities', 'Sensibilidades del Paladar', 'Sensibilitats del Paladar', 'Sensibilitas Palati', 'Sensibilités du Palais'),
                                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                     ),
                                   ],
@@ -419,28 +443,28 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
                               const SizedBox(height: 16),
                               // Tannins
                               _buildSliderRow(
-                                label: 'Structure tannique',
+                                label: _t('Tannic structure', 'Estructura tánica', 'Estructura tànnica', 'Structura tannica', 'Structure tannique'),
                                 value: _tanninPref,
-                                leftLabel: 'Souple & Fondu',
-                                rightLabel: 'Puissant & Racé',
+                                leftLabel: _t('Soft & Smooth', 'Suave y Sedoso', 'Suau i Sedós', 'Mollis & Fundus', 'Souple & Fondu'),
+                                rightLabel: _t('Bold & Powerful', 'Potente y Noble', 'Potent i Noble', 'Fortis & Nobilis', 'Puissant & Racé'),
                                 onChanged: (v) => setState(() => _tanninPref = v),
                               ),
                               const SizedBox(height: 12),
                               // Acidity
                               _buildSliderRow(
-                                label: 'Acidité / Fraîcheur',
+                                label: _t('Acidity / Freshness', 'Acidez / Frescura', 'Acidesa / Frescor', 'Aciditas / Viriditas', 'Acidité / Fraîcheur'),
                                 value: _acidityPref,
-                                leftLabel: 'Rondeur',
-                                rightLabel: 'Vif & Tendu',
+                                leftLabel: _t('Round', 'Redondo', 'Rodó', 'Rotundum', 'Rondeur'),
+                                rightLabel: _t('Crisp & Lively', 'Vivo y Tenso', 'Viu i Tens', 'Acer & Intentus', 'Vif & Tendu'),
                                 onChanged: (v) => setState(() => _acidityPref = v),
                               ),
                               const SizedBox(height: 12),
                               // Body
                               _buildSliderRow(
-                                label: 'Corps & Matière',
+                                label: _t('Body & Weight', 'Cuerpo y Sustancia', 'Cos i Substància', 'Corpus & Substantia', 'Corps & Matière'),
                                 value: _bodyPref,
-                                leftLabel: 'Léger & Digest',
-                                rightLabel: 'Charnu & Puissant',
+                                leftLabel: _t('Light & Easy', 'Ligero y Fácil', 'Lleuger i Fàcil', 'Leve & Facile', 'Léger & Digest'),
+                                rightLabel: _t('Full & Powerful', 'Carnoso y Potente', 'Carni i Potent', 'Carnosum & Validum', 'Charnu & Puissant'),
                                 onChanged: (v) => setState(() => _bodyPref = v),
                               ),
                             ],
@@ -452,16 +476,20 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
 
                     // SECTION 6: NOTES & PRÉCISIONS LIBRES
                     Text(
-                      'Notes personnelles & Précisions',
+                      _t('Personal Notes & Details', 'Notas personales y detalles', 'Notes personals i detalls', 'Notae & singula', 'Notes personnelles & Précisions'),
                       style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _notesController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        hintText: 'Ex: Grand amateur de vieux millésimes, vins minéraux en biodynamie...',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        hintText: _t('E.g. Great lover of mature vintages, biodynamic mineral wines...',
+                                     'Ej: Gran aficionado a las añadas viejas, vinos minerales biodinámicos...',
+                                     'Ex: Gran aficionat a les anyades velles, vins minerals biodinàmics...',
+                                     'Ex: Amator veterum annorum, vinorum mineralium...',
+                                     'Ex: Grand amateur de vieux millésimes, vins minéraux en biodynamie...'),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -487,9 +515,9 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
                       minimumSize: const Size.fromHeight(50),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text(
-                      'Enregistrer mon profil de goûts ✨',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    child: Text(
+                      _t('Save my taste profile ✨', 'Guardar mi perfil de gusto ✨', 'Desar el meu perfil de gust ✨', 'Servare meum profilum saporis ✨', 'Enregistrer mon profil de goûts ✨'),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

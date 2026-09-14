@@ -586,4 +586,1261 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get cocktailsResetPantry => 'Réinitialiser la Réserve';
+
+  @override
+  String get save => 'Enregistrer';
+
+  @override
+  String get continueAnyway => 'Continuer quand même';
+
+  @override
+  String get cellarDetected => 'Cave détectée : ';
+
+  @override
+  String proximityWifi(String ssid) {
+    return 'Connecté au Wi-Fi \"$ssid\"';
+  }
+
+  @override
+  String proximityGps(String distance) {
+    return 'Position GPS détectée à $distance';
+  }
+
+  @override
+  String get proximitySwitch => 'Basculer';
+
+  @override
+  String get proximityIgnore => 'Ignorer';
+
+  @override
+  String proximitySwitchedSnack(String cellar) {
+    return '📍 Basculé automatiquement vers \"$cellar\"';
+  }
+
+  @override
+  String get distantCellarTitle => 'Cave distante détectée';
+
+  @override
+  String distantCellarWifiWarning(String ssid, String cellar) {
+    return 'Vous êtes actuellement connecté au Wi-Fi \"$ssid\" associé à votre autre cave \"$cellar\".';
+  }
+
+  @override
+  String distantCellarGpsWarning(String distance, String cellar) {
+    return 'Vous êtes actuellement situé à environ $distance de \"$cellar\".';
+  }
+
+  @override
+  String distantCellarAddConfirm(String warning, String cellar) {
+    return '$warning\n\nSouhaitez-vous quand même enregistrer cette bouteille dans la cave \"$cellar\" ?';
+  }
+
+  @override
+  String distantCellarCheckoutConfirm(String warning, String cellar) {
+    return '$warning\n\nSouhaitez-vous quand même enregistrer la sortie de cette bouteille depuis la cave \"$cellar\" ?';
+  }
+
+  @override
+  String get ratingExceptional => '🏆 Exceptionnel';
+
+  @override
+  String get ratingRemarkable => '✨ Remarquable';
+
+  @override
+  String get ratingVeryGood => '🍷 Très bon';
+
+  @override
+  String get ratingPleasant => '👍 Agréable';
+
+  @override
+  String get ratingPassable => 'Passable';
+
+  @override
+  String get checkoutWhoTasted => 'Qui a dégusté ce vin avec vous ?';
+
+  @override
+  String checkoutStockRemaining(String producer, int qty) {
+    String _temp0 = intl.Intl.pluralLogic(
+      qty,
+      locale: localeName,
+      other: 'bouteilles',
+      one: 'bouteille',
+    );
+    return '$producer • En stock : $qty $_temp0';
+  }
+
+  @override
+  String get checkoutAddGuest => 'Ajouter un convive';
+
+  @override
+  String get checkoutAddGuestHint => 'Ajouter (Papa, Maman...)';
+
+  @override
+  String get checkoutCloseAndTaste => 'Fermer & Déguster 🍷';
+
+  @override
+  String get checkoutSommelierThinking =>
+      'Le sommelier prépare les anecdotes de dégustation...';
+
+  @override
+  String get checkoutAerationTimerActive =>
+      '⏱️ Compte à rebours d\'aération actif sur votre écran de verrouillage !';
+
+  @override
+  String get checkoutStartAerationTimer => 'Lancer le minuteur ⏱️';
+
+  @override
+  String get checkoutAerationTimerTitle => 'Minuteur d\'aération';
+
+  @override
+  String get checkoutDelayedTonight => 'Ce soir à 22h00';
+
+  @override
+  String get checkoutDelayedTonightSub =>
+      'Idéal après le repas pour savourer le moment';
+
+  @override
+  String get checkoutDelayedTomorrow => 'Demain matin à 11h00';
+
+  @override
+  String get checkoutDelayedTomorrowSub =>
+      'Pour vous remémorer vos impressions au calme';
+
+  @override
+  String get checkoutDelayedWeekend => 'Ce week-end (Samedi à 11h00)';
+
+  @override
+  String get checkoutDelayedWeekendSub =>
+      'Prenez le temps pendant votre temps libre';
+
+  @override
+  String checkoutDelayedInTwoHours(String time) {
+    return 'Dans 2 heures ($time)';
+  }
+
+  @override
+  String get checkoutDelayedInTwoHoursSub =>
+      'Rappel rapide en fin de dégustation';
+
+  @override
+  String get checkoutDelayedCustom =>
+      'Choisir une date & heure personnalisée...';
+
+  @override
+  String get reviewPackagingDetected => 'Conditionnement Détecté';
+
+  @override
+  String get reviewSingleBottleOnly => 'Non, 1 seule bouteille';
+
+  @override
+  String reviewMultipleBottlesConfirm(int count) {
+    return 'Oui, $count bouteilles';
+  }
+
+  @override
+  String reviewStockUpdatedSuccess(int count) {
+    return '🍾 Stock augmenté avec succès ! ($count bouteilles en cave)';
+  }
+
+  @override
+  String get reviewVintageYear => 'Millésime / Année';
+
+  @override
+  String get reviewNonVintage => 'Passer / Non millésimé';
+
+  @override
+  String get reviewValidate => 'Valider';
+
+  @override
+  String reviewBottleAddedSuccess(String name) {
+    return '🍾 $name ajouté avec succès à la cave !';
+  }
+
+  @override
+  String get reviewBottleAnalysis => 'Analyse de la bouteille';
+
+  @override
+  String get reviewDiscard => 'Abandonner';
+
+  @override
+  String get reviewDiscardConfirmTitle => 'Abandonner la saisie ?';
+
+  @override
+  String get reviewContinueEditing => 'Continuer la saisie';
+
+  @override
+  String get reviewDiscardWithoutSaving => 'Quitter sans enregistrer';
+
+  @override
+  String get reviewBottleDetails => 'Fiche de la Bouteille';
+
+  @override
+  String get reviewStockInCellar => 'Stock en cave';
+
+  @override
+  String get reviewStockAddition => 'Ajout';
+
+  @override
+  String get reviewStockNewTotal => 'Nouveau total';
+
+  @override
+  String get reviewQuantityToAdd => 'Quantité à ajouter :';
+
+  @override
+  String get reviewSeparateEntry =>
+      'Créer une entrée distincte (autre casier / prix)';
+
+  @override
+  String get reviewRetryAi => 'Réessayer l\'analyse IA';
+
+  @override
+  String get reviewEnlarge => 'Agrandir';
+
+  @override
+  String get reviewGeneralInfo => 'Informations Générales';
+
+  @override
+  String get reviewOriginTerroir => 'Origine & Terroir';
+
+  @override
+  String get reviewQuantityPurchase => 'Quantité & Achat';
+
+  @override
+  String cellarWifiDetectedSuccess(String ssid) {
+    return '📡 Wi-Fi détecté et associé : \"$ssid\"';
+  }
+
+  @override
+  String get cellarWifiDetectionFailed =>
+      'Impossible de détecter le Wi-Fi (activez la localisation ou saisissez le nom manuellement)';
+
+  @override
+  String cellarGpsCoordsCaptured(String lat, String lon) {
+    return '📍 Coordonnées GPS capturées ($lat, $lon)';
+  }
+
+  @override
+  String get cellarGpsInaccessible =>
+      'Position GPS inaccessible. Vérifiez les autorisations de localisation.';
+
+  @override
+  String cellarCreatedSuccess(String cellar) {
+    return '✨ Cave \"$cellar\" créée avec succès !';
+  }
+
+  @override
+  String cellarCreationError(String error) {
+    return 'Erreur lors de la création : $error';
+  }
+
+  @override
+  String get cellarRadiusPrecise => '100 mètres (très précis)';
+
+  @override
+  String get cellarRadiusRecommended => '300 mètres (recommandé)';
+
+  @override
+  String get cellarRadius500m => '500 mètres';
+
+  @override
+  String get cellarRadius1km => '1 kilomètre';
+
+  @override
+  String get cellarRadius3km => '3 kilomètres';
+
+  @override
+  String get cellarCreateButton => 'Créer la cave';
+
+  @override
+  String get cellarUseCurrentGps => 'Définir avec ma position GPS actuelle';
+
+  @override
+  String cellarUpdatedSuccess(String cellar) {
+    return '✅ Paramètres de la cave \"$cellar\" mis à jour';
+  }
+
+  @override
+  String cellarUpdateError(String error) {
+    return 'Erreur lors de la mise à jour : $error';
+  }
+
+  @override
+  String get wineTypeRed => 'Rouge 🍷';
+
+  @override
+  String get wineTypeWhite => 'Blanc 🥂';
+
+  @override
+  String get wineTypeRose => 'Rosé 🌸';
+
+  @override
+  String get wineTypeSparkling => 'Bulles 🍾';
+
+  @override
+  String get wineTypeDessert => 'Moelleux 🍯';
+
+  @override
+  String get wineTypeLiqueur => 'Liqueur 🍯';
+
+  @override
+  String get wineTypeSpirit => 'Spiritueux 🥃';
+
+  @override
+  String get wineTypeGrappa => 'Grappa 🍇';
+
+  @override
+  String get wineTypeEauDeVie => 'Eau-de-vie 🍐';
+
+  @override
+  String get wineTypeWhisky => 'Whisky 🥃';
+
+  @override
+  String get wineTypeRum => 'Rhum 🏴‍☠️';
+
+  @override
+  String get wineTypeGin => 'Gin 🍸';
+
+  @override
+  String get wineTypeVodka => 'Vodka 🧊';
+
+  @override
+  String get wineTypeTequila => 'Tequila 🌵';
+
+  @override
+  String get wineTypeCognac => 'Cognac 🍷';
+
+  @override
+  String get cellarCreateTitle => 'Créer une nouvelle cave';
+
+  @override
+  String get cellarManageTitle => 'Gérer la cave';
+
+  @override
+  String get cellarNameLabel => 'Nom de la cave *';
+
+  @override
+  String get cellarNameHint => 'ex : Cave de Londres, Cave des Vosges';
+
+  @override
+  String get cellarNameRequired => 'Veuillez saisir un nom';
+
+  @override
+  String get cellarLocationLabel => 'Lieu / Ville (optionnel)';
+
+  @override
+  String get cellarLocationHint => 'ex : Londres (UK), Vosges (FR)';
+
+  @override
+  String get cellarNicknameLabel => 'Surnom / Pièce (optionnel)';
+
+  @override
+  String get cellarNicknameHint => 'ex : Sous-sol, Cave à vin principale';
+
+  @override
+  String get cellarDescriptionLabel => 'Description (optionnel)';
+
+  @override
+  String get cellarDescriptionHint =>
+      'ex : Cave enterrée fraîche, hygrométrie 70%';
+
+  @override
+  String get cellarWifiLabel => 'Wi-Fi associé (optionnel)';
+
+  @override
+  String get cellarWifiHint => 'ex : Livebox-Cave';
+
+  @override
+  String get cellarLinkCurrentWifi => 'Associer au Wi-Fi actuel';
+
+  @override
+  String get cellarCaptureCurrentWifiTooltip => 'Capturer le Wi-Fi actuel';
+
+  @override
+  String get cellarRadiusLabel => 'Rayon de détection GPS';
+
+  @override
+  String get cellarAutoDetectionHeader => 'Détection & Transition Automatique';
+
+  @override
+  String get cellarAutoDetectionDesc =>
+      'Associez votre réseau Wi-Fi ou vos coordonnées GPS pour que l\'application bascule automatiquement sur cette cave dès que vous y êtes.';
+
+  @override
+  String get cellarLatitudeLabel => 'Latitude';
+
+  @override
+  String get cellarLongitudeLabel => 'Longitude';
+
+  @override
+  String get checkoutGuidedTasting => 'Dégustation guidée';
+
+  @override
+  String get checkoutGuidedTastingShared =>
+      'Partagez vos impressions chacun son tour ou ensemble';
+
+  @override
+  String get checkoutGuidedTastingSolo =>
+      'Analysez robe, nez, bouche & affinez votre profil';
+
+  @override
+  String get checkoutUncorkNowRateLater =>
+      'Déboucher maintenant, noter plus tard';
+
+  @override
+  String get checkoutUncorkNowRateLaterSub =>
+      'Sortie immédiate • Choisir l\'heure du rappel (ce soir, demain...)';
+
+  @override
+  String get checkoutUncorkAeration => 'Déboucher & Minuteur d\'aération';
+
+  @override
+  String checkoutUncorkAerationAdvised(int minutes) {
+    return 'Sortie immédiate • $minutes min d\'aération conseillée';
+  }
+
+  @override
+  String get checkoutUncorkAerationSub =>
+      'Sortie immédiate • Minuteur d\'aération / carafage';
+
+  @override
+  String get checkoutSommelierServiceAdvice => 'Conseils Sommelier de Service';
+
+  @override
+  String get checkoutHistoryAnecdotes => 'Histoire & Anecdotes';
+
+  @override
+  String get checkoutNoDecanting => 'Pas de carafage';
+
+  @override
+  String get checkoutStoryTitle => 'L\'Histoire de cette Bouteille 📖';
+
+  @override
+  String get checkoutStorySubtitle =>
+      'Anecdotes captivantes à raconter à table';
+
+  @override
+  String get checkoutStoryTerroir => 'Terroir & Cépages';
+
+  @override
+  String get checkoutStoryVintage => 'L\'Histoire du Millésime';
+
+  @override
+  String get checkoutStoryTastingSecret => 'Le Secret de Dégustation';
+
+  @override
+  String get checkoutStoryTableAnecdote => 'L\'Anecdote de Table';
+
+  @override
+  String get checkoutJournalArchivedNotice =>
+      'Rassurez-vous : cette bouteille sera précieusement archivée dans votre Journal de Dégustation avec vos photos et notes.';
+
+  @override
+  String checkoutBottleUncorkedAerationSuccess(int minutes) {
+    return 'Bouteille débouchée ! Minuteur d\'aération ($minutes min) lancé sur votre écran.';
+  }
+
+  @override
+  String get checkoutAerationDialogPrompt =>
+      'La bouteille sera immédiatement débouchée et sortie de cave. Confirmez la durée d\'aération avant dégustation :';
+
+  @override
+  String get checkoutRateWine => 'Noter le vin';
+
+  @override
+  String checkoutStartTimerAction(int minutes) {
+    return 'Chrono ${minutes}m ⏱️';
+  }
+
+  @override
+  String checkoutAdviceAerationSnack(int minutes) {
+    return 'Conseil Sommelier : carafer $minutes min. Chrono lockscreen prêt.';
+  }
+
+  @override
+  String get checkoutAdviceReminderSnack =>
+      'Rappel pour noter vos impressions prévu après dégustation.';
+
+  @override
+  String get checkoutBottleRemovedSuccess => 'Bouteille sortie de cave !';
+
+  @override
+  String checkoutBottleRemovedReminder(String date) {
+    return 'Profitez de votre dégustation. Rappel prévu $date pour noter vos impressions.';
+  }
+
+  @override
+  String get checkoutWhoTastedSubtitle =>
+      'Les goûts de chaque participant seront automatiquement enrichis dans son profil.';
+
+  @override
+  String checkoutCellarOf(String name) {
+    return 'Cave de $name';
+  }
+
+  @override
+  String checkoutStockBout(int count) {
+    return 'Stock : $count bout.';
+  }
+
+  @override
+  String get checkoutAddGuestDialogDesc =>
+      'Ajoutez un proche ou membre de la famille présent à cette dégustation (ex: Papa, Maman, Sophie...).';
+
+  @override
+  String get checkoutAddGuestNameLabel => 'Prénom / Nom';
+
+  @override
+  String get checkoutDelayedSheetTitle => 'Déboucher & Noter plus tard';
+
+  @override
+  String get checkoutDelayedSheetSubtitle =>
+      'Quand souhaitez-vous recevoir un rappel pour vos impressions ?';
+
+  @override
+  String checkoutDelayedTonightTime(String time) {
+    return 'Ce soir dans 2 heures ($time)';
+  }
+
+  @override
+  String get checkoutDelayedTonightFixed => 'Ce soir à 21h00';
+
+  @override
+  String checkoutDateTonightLabel(String time) {
+    return 'ce soir à $time';
+  }
+
+  @override
+  String checkoutDateTomorrowLabel(String time) {
+    return 'demain à $time';
+  }
+
+  @override
+  String checkoutDateCustomLabel(String date, String time) {
+    return 'le $date à $time';
+  }
+
+  @override
+  String get add => 'Ajouter';
+
+  @override
+  String get cellarWinesTab => '🍷 Vins';
+
+  @override
+  String get cellarSpiritsTab => '🥃 Spiritueux';
+
+  @override
+  String get cellarPairWithDish => 'Quel vin pour mon plat ?';
+
+  @override
+  String get cellarCollapseAll => 'Tout replier';
+
+  @override
+  String get cellarExpandAll => 'Tout déplier';
+
+  @override
+  String get cellarSort => 'Trier';
+
+  @override
+  String get cellarCategories => 'Catégories';
+
+  @override
+  String get cellarFavorites => 'Favoris';
+
+  @override
+  String get cellarGridView => 'Grille';
+
+  @override
+  String get cellarListView => 'Liste';
+
+  @override
+  String get cellarClearFilters => 'Effacer les filtres';
+
+  @override
+  String get cellarNoBottlesCategory => 'Aucune bouteille dans cette catégorie';
+
+  @override
+  String get cellarNoBottlesCriteria =>
+      'Aucune bouteille ne correspond à ces critères';
+
+  @override
+  String get feedbackSheetTitle => 'Retour Testeur & Annotation';
+
+  @override
+  String get feedbackStylus => 'Stylet :';
+
+  @override
+  String get feedbackUndo => 'Annuler le dernier trait';
+
+  @override
+  String get feedbackClear => 'Tout effacer';
+
+  @override
+  String get feedbackHint =>
+      'Entourez la zone et décrivez votre retour ou bug...';
+
+  @override
+  String get feedbackSubmit => 'Envoyer le rapport';
+
+  @override
+  String get feedbackSubmitting => 'Envoi en cours...';
+
+  @override
+  String get feedbackNoScreenshot => 'Aucune capture d\'écran disponible';
+
+  @override
+  String get feedbackEmptyError =>
+      'Veuillez ajouter un commentaire ou entourer un élément.';
+
+  @override
+  String get feedbackSuccess =>
+      'Merci pour votre retour ! 🍷 Le rapport a été transmis.';
+
+  @override
+  String feedbackError(String error) {
+    return 'Erreur lors de l\'envoi : $error';
+  }
+
+  @override
+  String get checkoutFastExit => 'Sortie rapide sans questionnaire ⚡';
+
+  @override
+  String get checkoutFastExitSubmitting => 'Sortie en cours...';
+
+  @override
+  String get checkoutRatingSubtitle =>
+      'Attribuez votre note globale après dégustation';
+
+  @override
+  String get checkoutRecommendedBadge => 'Recommandé';
+
+  @override
+  String get tastingWhoTastedTitle => '👥 Qui a dégusté ce vin ?';
+
+  @override
+  String get tastingWhoTastedSubtitle =>
+      'Sélectionnez les dégustateurs. Les profils de goût seront enrichis automatiquement.';
+
+  @override
+  String get tastingHowToTaste => 'Comment déguster ?';
+
+  @override
+  String get tastingEachTurn => 'Chacun son tour';
+
+  @override
+  String get tastingEachTurnDesc =>
+      '📱 En passant le téléphone : chacun répond séparément à son rythme.';
+
+  @override
+  String get tastingTogether => 'Ensemble';
+
+  @override
+  String get tastingTogetherDesc =>
+      '🥂 Un seul questionnaire complété ensemble pour tous les convives.';
+
+  @override
+  String get tastingBlindMode => 'Mode Dégustation à l\'Aveugle';
+
+  @override
+  String get tastingBlindModeDesc =>
+      'Masque le nom du vin et active un quiz de table interactif avec révélation finale !';
+
+  @override
+  String get tastingPrimaryProfile => 'Profil principal';
+
+  @override
+  String get tastingAppInstalled => 'App installée 📱';
+
+  @override
+  String tastingQuestionnairesCompletedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count questionnaires complétés',
+      one: '1 questionnaire complété',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tastingStepNezTitle => '🍇 Le Nez — Arômes';
+
+  @override
+  String get tastingStepNezSubtitle =>
+      'Quels arômes avez-vous perçus ? (Plusieurs choix possibles)';
+
+  @override
+  String get tastingAromaIntensity => 'Intensité aromatique :';
+
+  @override
+  String get tastingAromaDiscreet => '🤫 Discret';
+
+  @override
+  String get tastingAromaExplosive => '💥 Explosif';
+
+  @override
+  String get tastingStepBoucheTitle => '⚖️ La Bouche — Équilibre';
+
+  @override
+  String get tastingStepBoucheSubtitle =>
+      'Décrivez la texture et l\'équilibre du vin en bouche.';
+
+  @override
+  String get tastingAcidity => 'Acidité :';
+
+  @override
+  String get tastingAcidityFreshness => 'Acidité & Vivacité :';
+
+  @override
+  String get tastingAcidityFlat => '🫠 Mou / Plat';
+
+  @override
+  String get tastingAciditySharp => '⚡ Vif / Tranchant';
+
+  @override
+  String get tastingTannins => 'Tanins :';
+
+  @override
+  String get tastingTanninsSilky => '🧶 Fondus / Soyeux';
+
+  @override
+  String get tastingTanninsGrippy => '💪 Puissants / Astringents';
+
+  @override
+  String get tastingMinerality => 'Minéralité & Fraîcheur :';
+
+  @override
+  String get tastingMineralityRound => '🧈 Rond / Beurré';
+
+  @override
+  String get tastingMineralityCrisp => '🪨 Minéral / Ciselé';
+
+  @override
+  String get tastingEffervescence => 'Effervescence :';
+
+  @override
+  String get tastingEffervescenceDelicate => '🫧 Fine / Délicate';
+
+  @override
+  String get tastingEffervescenceVibrant => '🎆 Vive / Crémeuse';
+
+  @override
+  String get tastingBody => 'Corps / Volume :';
+
+  @override
+  String get tastingBodyLight => '🍃 Léger / Aérien';
+
+  @override
+  String get tastingBodyFull => '🏋️ Puissant / Charnu';
+
+  @override
+  String get tastingLength => 'Longueur en bouche :';
+
+  @override
+  String get tastingLengthShort => '⏱️ Courte';
+
+  @override
+  String get tastingLengthLong => '♾️ Interminable';
+
+  @override
+  String get tastingStepVerdictTitle => '✅ Verdict Final';
+
+  @override
+  String get tastingBuyAgain => 'Rachèteriez-vous cette bouteille ?';
+
+  @override
+  String get tastingBuyAgainYes => '🤩 Absolument !';
+
+  @override
+  String get tastingBuyAgainMaybe => '🤔 Peut-être';
+
+  @override
+  String get tastingBuyAgainNo => '👎 Non merci';
+
+  @override
+  String get tastingIdealMoment => 'Quel moment idéal pour ce vin ?';
+
+  @override
+  String get tastingMomentApero => '🥂 Apéro';
+
+  @override
+  String get tastingMomentMeal => '🍽️ Repas du quotidien';
+
+  @override
+  String get tastingMomentDinner => '🎩 Grand dîner';
+
+  @override
+  String get tastingMomentRomantic => '🕯️ Dîner romantique';
+
+  @override
+  String get tastingMomentSolo => '🧘 Solo / Méditation';
+
+  @override
+  String get tastingWhatLiked => 'Ce que vous avez le plus aimé :';
+
+  @override
+  String get tastingWhatDisliked => 'Ce qui vous a le moins plu :';
+
+  @override
+  String get tastingOccasionLabel =>
+      'Occasion / Souvenir partagé (optionnel) ✨';
+
+  @override
+  String get tastingOccasionHint =>
+      'Ex: 70 ans de Papa, Dîner aux chandelles, Retrouvailles...';
+
+  @override
+  String get tastingAddPhoto => 'Ajouter une photo souvenir de la table 📸';
+
+  @override
+  String get tastingPhotoSaved => 'Photo souvenir enregistrée 📸';
+
+  @override
+  String get tastingStepImpressionTitle => '🎯 Note Finale & Impression';
+
+  @override
+  String get tastingStepImpressionSubtitle =>
+      'Après avoir apprécié le nez et la bouche, attribuez votre note globale.';
+
+  @override
+  String get tastingOverallFeeling => 'Votre ressenti global :';
+
+  @override
+  String get tastingScoreOutOf10 => 'Note sur 10 :';
+
+  @override
+  String get tastingCompletedTitle => 'Dégustation terminée & enregistrée !';
+
+  @override
+  String get tastingCompletedSubtitle =>
+      'Les profils de dégustation ont été mis à jour avec succès ✨';
+
+  @override
+  String get tastingBottleRemoved => 'Bouteille sortie de la cave';
+
+  @override
+  String get tastingConsultDebrief =>
+      'Consulter le Débrief du Sommelier (Nuances cachées & Terroir)';
+
+  @override
+  String get tastingFinishButton => 'Terminer ✨';
+
+  @override
+  String get tastingNextTaster => 'Valider → Dégustateur suivant';
+
+  @override
+  String get tastingConfirmAndFinish => 'Valider & Terminer ✨';
+
+  @override
+  String get tastingQuitTitle => 'Quitter le questionnaire ?';
+
+  @override
+  String get tastingQuitMessage => 'Vos réponses ne seront pas sauvegardées.';
+
+  @override
+  String get tastingContinue => 'Continuer';
+
+  @override
+  String get tastingQuit => 'Quitter';
+
+  @override
+  String tastingStartCount(int count) {
+    return 'Commencer ($count)';
+  }
+
+  @override
+  String tastingProfileSynced(String name) {
+    return 'Synchronisé dans l\'application de $name ✨';
+  }
+
+  @override
+  String get tastingProfileEnriched => 'Profil de goût enrichi';
+
+  @override
+  String tastingAcuityScoreSummary(int score, String praise) {
+    return 'Acuité sensorielle : $score% • $praise';
+  }
+
+  @override
+  String get tastingFlavorOriginsTitle =>
+      'Origine des Goûts & Secrets du Flacon';
+
+  @override
+  String get tastingFlavorOriginsSubtitle =>
+      'Découvrez d\'où viennent les arômes, la couleur et la structure de votre vin';
+
+  @override
+  String get tastingBlindQuizTitle => 'Quiz de table aveugle 🙈';
+
+  @override
+  String get tastingBlindQuizQ1 => '1. Quelle est la région d\'origine ? 🌍';
+
+  @override
+  String get tastingBlindQuizQ2 => '2. Quel est le cépage principal ? 🍇';
+
+  @override
+  String get tastingBlindQuizQ3 => '3. Âge / Millésime estimé ? 📅';
+
+  @override
+  String get tastingBlindQuizQ4 => '4. Estimation de prix ? 💶';
+
+  @override
+  String get tastingBlindRevealTitle => 'Révélation de la Bouteille Mystère 🍾';
+
+  @override
+  String tastingBlindQuizScore(int score) {
+    return 'Score du Quiz Aveugle : $score/4 🎯';
+  }
+
+  @override
+  String get tastingDebriefTitle => 'Débriefing Œnologique & Moléculaire';
+
+  @override
+  String get tastingSensoryAcuity => 'ACUITÉ SENSORIELLE';
+
+  @override
+  String tastingPrecision(int score) {
+    return '$score% Précision';
+  }
+
+  @override
+  String get tastingConcordanceTitle => '1. CONCORDANCE & SIGNATURE DU CRU';
+
+  @override
+  String get tastingWhatYouDetected => 'CE QUE VOUS AVEZ DÉCELÉ :';
+
+  @override
+  String get tastingArchetypeSignature => 'SIGNATURE ARCHÉTYPALE DU FLACON :';
+
+  @override
+  String get tastingHiddenNuancesTitle =>
+      'SUBTILITÉS & NUANCES À CHERCHER AU PROCHAIN VERRE :';
+
+  @override
+  String get tastingPillarsTitle => '2. SCIENCE ŒNOLOGIQUE & MOLÉCULES';
+
+  @override
+  String get tastingPillarsSubtitle =>
+      'Pourquoi ce vin possède-t-il cette structure, ces arômes et cette couleur ?';
+
+  @override
+  String get tastingChatWithSommelier =>
+      'Approfondir la vinification avec Chatmelier';
+
+  @override
+  String get aromaFruitsRouges => 'Fruits rouges';
+
+  @override
+  String get aromaFruitsNoirs => 'Fruits noirs';
+
+  @override
+  String get aromaFruitsBlancs => 'Fruits blancs/jaunes';
+
+  @override
+  String get aromaAgrumes => 'Agrumes';
+
+  @override
+  String get aromaFloral => 'Floral';
+
+  @override
+  String get aromaVegetal => 'Végétal / Herbes';
+
+  @override
+  String get aromaEpicesDouces => 'Épices douces';
+
+  @override
+  String get aromaEpicesVives => 'Épices vives / Poivre';
+
+  @override
+  String get aromaBoise => 'Boisé / Vanille';
+
+  @override
+  String get aromaBeurre => 'Beurré / Brioche';
+
+  @override
+  String get aromaMineral => 'Minéral / Pierre';
+
+  @override
+  String get aromaMiel => 'Miel / Confiture';
+
+  @override
+  String get aromaChocolat => 'Chocolat / Café';
+
+  @override
+  String get aromaFumee => 'Fumé / Grillé';
+
+  @override
+  String get emojiDisliked => 'Pas aimé';
+
+  @override
+  String get emojiMeh => 'Bof';
+
+  @override
+  String get emojiDecent => 'Correct';
+
+  @override
+  String get emojiVeryGood => 'Très bien';
+
+  @override
+  String get emojiLoved => 'Coup de cœur';
+
+  @override
+  String get likedFreshness => 'La fraîcheur';
+
+  @override
+  String get likedFruitiness => 'Le fruité';
+
+  @override
+  String get likedComplexity => 'La complexité';
+
+  @override
+  String get likedElegance => 'L\'élégance';
+
+  @override
+  String get likedPower => 'La puissance';
+
+  @override
+  String get likedSilky => 'Le côté soyeux';
+
+  @override
+  String get likedOriginality => 'L\'originalité';
+
+  @override
+  String get likedFoodPairing => 'L\'accord avec le plat';
+
+  @override
+  String get likedMinerality => 'La minéralité';
+
+  @override
+  String get likedLength => 'La longueur en bouche';
+
+  @override
+  String get likedDisappointing => 'Rien / Décevant 😕';
+
+  @override
+  String get dislikedTooAcidic => 'Trop acide';
+
+  @override
+  String get dislikedTooTannic => 'Trop tannique';
+
+  @override
+  String get dislikedTooOaked => 'Trop boisé / vanillé';
+
+  @override
+  String get dislikedTooAlcoholic => 'Trop alcoolisé / chaud';
+
+  @override
+  String get dislikedTooThin => 'Trop léger / dilué';
+
+  @override
+  String get dislikedLacksFruit => 'Manque de fruit';
+
+  @override
+  String get dislikedTooSweet => 'Trop sucré';
+
+  @override
+  String get dislikedTooExpensive => 'Trop cher pour la qualité';
+
+  @override
+  String get dislikedNothing => 'Rien, c\'était parfait !';
+
+  @override
+  String get tastingStepTasters => 'Dégustateurs';
+
+  @override
+  String get tastingStepNezNav => 'Le Nez';
+
+  @override
+  String get tastingStepBoucheNav => 'La Bouche';
+
+  @override
+  String get tastingStepVerdictNav => 'Verdict';
+
+  @override
+  String get tastingStepRatingNav => 'Note Finale';
+
+  @override
+  String get tastingBack => 'Retour';
+
+  @override
+  String get tastingNext => 'Suivant';
+
+  @override
+  String get tastingSaving => 'Enregistrement...';
+
+  @override
+  String get tastingHeaderTitle => 'Questionnaire Dégustation';
+
+  @override
+  String tastingAnswersOf(String name) {
+    return 'Réponses de $name';
+  }
+
+  @override
+  String tastingPassPhoneTo(String name) {
+    return 'Passez le téléphone à $name 📱';
+  }
+
+  @override
+  String tastingAnswersSavedTurn(String name) {
+    return 'Vos réponses ont bien été enregistrées.\nC\'est maintenant au tour de $name.';
+  }
+
+  @override
+  String get tastingDictateButton => 'Dicter les impressions à table 🎙️';
+
+  @override
+  String get tastingDictateHint =>
+      'Parlez ou écrivez naturellement, l\'IA Chatmelier pré-remplira vos arômes et équilibre en bouche !';
+
+  @override
+  String get tastingDictateMicTip =>
+      'Astuce : activez le micro sur votre clavier pour dicter à voix haute !';
+
+  @override
+  String get tastingTakePhoto => 'Prendre une photo de la tablée 📸';
+
+  @override
+  String get tastingChooseGallery => 'Choisir dans la galerie 🖼️';
+
+  @override
+  String get tastingConclaveSummary => 'Synthèse du Conclave';
+
+  @override
+  String get tastingCellarMaster => 'Maître de Cave';
+
+  @override
+  String get tastingGuestTaster => 'Convive Dégustateur';
+
+  @override
+  String tastingProfileTag(String type) {
+    return 'Profil : $type';
+  }
+
+  @override
+  String get tastingFreeTastingRecorded => 'Dégustation libre enregistrée.';
+
+  @override
+  String tastingAppearanceLabel(String appearance) {
+    return 'Robe : $appearance';
+  }
+
+  @override
+  String tastingStructureLabel(String structure, int caudalies) {
+    return 'Structure : $structure ($caudalies caudalies)';
+  }
+
+  @override
+  String tastingKeyMolecules(String molecules) {
+    return 'Molécules clés : $molecules';
+  }
+
+  @override
+  String tastingKeyOrigin(String key) {
+    return 'Origine clé : $key';
+  }
+
+  @override
+  String tastingGrapesLabel(String grapes) {
+    return 'Cépages : $grapes';
+  }
+
+  @override
+  String get tastingAromaAppliedByAI =>
+      'Impressions de dégustation appliquées par l\'IA ✨';
+
+  @override
+  String get tastingBlindYourPredictions =>
+      'Bilan des pronostics à l\'aveugle :';
+
+  @override
+  String get tastingBlindGuessCorrect => 'Trouvé ! 🎯';
+
+  @override
+  String get tastingBlindMakePredictionsPrompt =>
+      'Faites vos pronostics avant la grande révélation finale !';
+
+  @override
+  String tastingStartTaster(String name) {
+    return 'C\'est parti, $name ! 🍷';
+  }
+
+  @override
+  String get tastingQuizBravo => '🎯 Bravo !';
+
+  @override
+  String tastingQuizWas(String answer) {
+    return '(C\'était : $answer)';
+  }
+
+  @override
+  String get tastingDictateInputHint =>
+      'Ex : Bernard a adoré, 8.5/10 avec des notes de sous-bois et de cassis. Caro a mis 7/10 en trouvant le vin un peu acide...';
+
+  @override
+  String get tastingDictateAnalyzing => 'Analyse en cours...';
+
+  @override
+  String get tastingDictateAnalyzeAndApply =>
+      'Analyser & Appliquer aux fiches ✨';
+
+  @override
+  String get tastingFormatExpress => 'Format Express (1 page) ⚡';
+
+  @override
+  String get tastingFormatExpressDesc => 'Note, arômes clés et verdict en 30s';
+
+  @override
+  String get tastingFormatSommelier => 'Format Sommelier (Complet) 🎓';
+
+  @override
+  String get tastingFormatSommelierDesc =>
+      'Analyse détaillée robe, nez, bouche & terroir';
+
+  @override
+  String get tastingCaudalieTooltipTitle => 'Qu\'est-ce qu\'une caudalie ? ⏱️';
+
+  @override
+  String get tastingCaudalieTooltipBody =>
+      '1 caudalie = 1 seconde où les arômes persistent en bouche après avoir avalé ou recraché.\n• 1 à 4 caudalies : vin léger de soif\n• 5 à 7 caudalies : bel équilibre aromatique\n• 8 à 12+ caudalies : grand vin d\'exception !';
+
+  @override
+  String get tastingAddCustomAroma => '+ Arôme sur-mesure';
+
+  @override
+  String get tastingCustomAromaDialogTitle => 'Ajouter un arôme précis';
+
+  @override
+  String get tastingCustomAromaHint =>
+      'ex: Silex fumé, Mûre sauvage, Rose séchée...';
+
+  @override
+  String get tastingFoodSynergyTitle => 'Synergie avec le plat 🍽️';
+
+  @override
+  String get tastingSynergySublime => '🤩 Sublimé';
+
+  @override
+  String get tastingSynergyHarmonious => '👍 Harmonieux';
+
+  @override
+  String get tastingSynergyNeutral => '😐 Neutre';
+
+  @override
+  String get tastingSynergyClashing => '⚡ Conflit';
+
+  @override
+  String get checkoutFastRatingTitle => 'Note rapide en 1 tap (optionnelle) :';
+
+  @override
+  String get checkoutActionTastingTitle => 'Déguster ce vin';
+
+  @override
+  String get checkoutActionTastingSubtitle =>
+      'Format express (1 page) ou sommelier complet';
+
+  @override
+  String get checkoutActionDeferredRemind => 'Rappel plus tard 🌙';
+
+  @override
+  String get checkoutActionAerationTimer => 'Chrono aération ⏱️';
 }

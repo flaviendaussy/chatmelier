@@ -305,7 +305,7 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
     if (lower.contains('chartreuse')) return '🌿';
     if (lower.contains('whisky') || lower.contains('bourbon') || lower.contains('scotch')) return '🥃';
     if (lower.contains('rhum') || lower.contains('rum')) return '🏴‍☠️';
-    if (lower.contains('gin')) return '🍸';
+    if (RegExp(r'\bgin\b', caseSensitive: false).hasMatch(lower)) return '🍸';
     if (lower.contains('vodka')) return '🧊';
     if (lower.contains('tequila') || lower.contains('mezcal')) return '🌵';
     if (lower.contains('cognac') || lower.contains('armagnac') || lower.contains('calvados')) return '🥃';
@@ -417,7 +417,7 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
     }
 
     // Gin / Vodka / Tequila Blanco
-    if (text.contains('gin') || text.contains('vodka') || (text.contains('tequila') && text.contains('blanco'))) {
+    if (RegExp(r'\bgin\b', caseSensitive: false).hasMatch(text) || text.contains('vodka') || (text.contains('tequila') && text.contains('blanco'))) {
       return const _SpiritColors(
         primary: Color(0xFF00838F),
         secondary: Color(0xFF4DD0E1),

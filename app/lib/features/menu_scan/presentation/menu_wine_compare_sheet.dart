@@ -48,6 +48,7 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -112,13 +113,17 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Comparateur Spider Radar',
+                        isFr ? 'Comparateur Spider Radar' : 'Spider Radar Comparator',
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
                         isWhiteMode
-                            ? 'Profil Blancs (Beurré, Minéralité, Vivacité, Douceur...)'
-                            : 'Profil Rouges (Tannins, Puissance, Baies, Élevage...)',
+                            ? (isFr
+                                ? 'Profil Blancs (Beurré, Minéralité, Vivacité, Douceur...)'
+                                : 'White Profile (Buttery, Minerality, Crispness, Sweetness...)')
+                            : (isFr
+                                ? 'Profil Rouges (Tannins, Puissance, Baies, Élevage...)'
+                                : 'Red Profile (Tannins, Power, Berries, Oak aging...)'),
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
@@ -140,12 +145,12 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                 segments: [
                   ButtonSegment(
                     value: 'red',
-                    label: Text('Rouges (${reds.length})'),
+                    label: Text(isFr ? 'Rouges (${reds.length})' : 'Reds (${reds.length})'),
                     icon: const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F)),
                   ),
                   ButtonSegment(
                     value: 'white',
-                    label: Text('Blancs & Bulles (${whites.length})'),
+                    label: Text(isFr ? 'Blancs & Bulles (${whites.length})' : 'Whites & Sparkling (${whites.length})'),
                     icon: const Icon(Icons.wine_bar, color: Color(0xFFE8D08D)),
                   ),
                 ],
@@ -161,8 +166,8 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
           // Scrollable Content: Spider Chart + Wine Cards with Prices & Match Scores
           Expanded(
             child: activeWines.isEmpty
-                ? const Center(
-                    child: Text('Aucun vin sélectionné dans cette couleur.'),
+                ? Center(
+                    child: Text(isFr ? 'Aucun vin sélectionné dans cette couleur.' : 'No wine selected in this style.'),
                   )
                 : SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
@@ -174,8 +179,8 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                           child: WineTasteRadarChart(
                             datasets: datasets,
                             customAxisLabels: isWhiteMode
-                                ? MenuWineRadarMetrics.whiteAxisLabels
-                                : MenuWineRadarMetrics.redAxisLabels,
+                                ? MenuWineRadarMetrics.whiteAxisLabelsLocalized(isFr)
+                                : MenuWineRadarMetrics.redAxisLabelsLocalized(isFr),
                             size: 260,
                             showLabels: true,
                           ),
@@ -186,8 +191,12 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Text(
                             isWhiteMode
-                                ? 'Axes Blancs : Minéralité • Vivacité • Fleurs • Beurré & Rondeur • Boisé • Douceur • Puissance'
-                                : 'Axes Rouges : Tannins • Puissance • Acidité • Baies • Élevage • Minéralité • Persistance',
+                                ? (isFr
+                                    ? 'Axes Blancs : Minéralité • Vivacité • Fleurs • Beurré & Rondeur • Boisé • Douceur • Puissance'
+                                    : 'White Axes: Minerality • Crispness • Floral • Buttery & Round • Oak • Sweetness • Body')
+                                : (isFr
+                                    ? 'Axes Rouges : Tannins • Puissance • Acidité • Baies • Élevage • Minéralité • Persistance'
+                                    : 'Red Axes: Tannins • Body • Acidity • Berries • Oak Aging • Minerality • Finish'),
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.grey),
                           ),
@@ -210,7 +219,7 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                             final gStr = '${CurrencyHelper.formatPrice(g.price)} (${g.format})';
                             priceLabel = priceLabel.isNotEmpty ? '$priceLabel • $gStr' : gStr;
                           }
-                          if (priceLabel.isEmpty) priceLabel = 'Prix non indiqué';
+                          if (priceLabel.isEmpty) priceLabel = isFr ? 'Prix non indiqué' : 'Price not listed';
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),

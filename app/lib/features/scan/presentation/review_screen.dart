@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../l10n/app_localizations.dart';
 
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/providers/cellar_provider.dart';
@@ -251,22 +252,30 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   Future<void> _promptMultiBottleConfirmation(int detectedQty, String? pkgType) async {
     if (!mounted) return;
     String pkgLabel = '$detectedQty bouteilles';
-    if (pkgType == 'carton_6' || detectedQty == 6) pkgLabel = 'Carton de 6 bouteilles 📦';
-    if (pkgType == 'crate_12' || detectedQty == 12) pkgLabel = 'Caisse bois de 12 bouteilles 🪵';
+    final l10n = AppLocalizations.of(context);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    if (pkgType == 'carton_6' || detectedQty == 6) {
+      pkgLabel = isFr ? 'Carton de 6 bouteilles 📦' : '6-bottle case 📦';
+    }
+    if (pkgType == 'crate_12' || detectedQty == 12) {
+      pkgLabel = isFr ? 'Caisse bois de 12 bouteilles 🪵' : '12-bottle wooden crate 🪵';
+    }
 
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.inventory_2_outlined, color: Color(0xFFD4AF37)),
-            SizedBox(width: 10),
-            Expanded(child: Text('Conditionnement Détecté')),
+            const Icon(Icons.inventory_2_outlined, color: Color(0xFFD4AF37)),
+            const SizedBox(width: 10),
+            Expanded(child: Text(l10n?.reviewPackagingDetected ?? 'Conditionnement Détecté')),
           ],
         ),
         content: Text(
-          'L\'IA a identifié plusieurs exemplaires sur votre photo ($pkgLabel).\n\nSouhaitez-vous enregistrer directement $detectedQty bouteilles ?',
+          isFr
+              ? 'L\'IA a identifié plusieurs exemplaires sur votre photo ($pkgLabel).\n\nSouhaitez-vous enregistrer directement $detectedQty bouteilles ?'
+              : 'AI identified multiple bottles on your photo ($pkgLabel).\n\nWould you like to directly add $detectedQty bottles?',
         ),
         actions: [
           TextButton(
@@ -277,7 +286,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               });
               Navigator.pop(ctx);
             },
-            child: const Text('Non, 1 seule bouteille'),
+            child: Text(l10n?.reviewSingleBottleOnly ?? 'Non, 1 seule bouteille'),
           ),
           FilledButton(
             onPressed: () {
@@ -291,7 +300,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               backgroundColor: const Color(0xFF8B1E3F),
               foregroundColor: Colors.white,
             ),
-            child: Text('Oui, $detectedQty bouteilles', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(
+              l10n?.reviewMultipleBottlesConfirm(detectedQty) ?? 'Oui, $detectedQty bouteilles',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -299,13 +311,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   static String _normalizeColor(String? type) {
-    final t = (type ?? 'red').toLowerCase().trim();
-    if (t.contains('gin')) return 'gin';
-    if (t.contains('vodka')) return 'vodka';
-    if (t.contains('whisky') || t.contains('whiskey') || t.contains('bourbon') || t.contains('scotch')) return 'whisky';
-    if (t.contains('rhum') || t.contains('rum')) return 'rhum';
-    if (t.contains('tequila') || t.contains('mezcal')) return 'tequila';
-    if (t.contains('cognac') || t.contains('armagnac') || t.contains('calvados')) return 'cognac';
+    final t = (type ?? '').toLowerCase().trim();
     if (t.contains('italicus') ||
         t.contains('rosolio') ||
         t.contains('bénédictine') ||
@@ -320,6 +326,12 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         t.contains('liqueur')) {
       return 'liqueur';
     }
+    if (RegExp(r'\bgin\b', caseSensitive: false).hasMatch(t)) return 'gin';
+    if (t.contains('vodka')) return 'vodka';
+    if (t.contains('whisky') || t.contains('whiskey') || t.contains('bourbon') || t.contains('scotch')) return 'whisky';
+    if (t.contains('rhum') || t.contains('rum')) return 'rhum';
+    if (t.contains('tequila') || t.contains('mezcal')) return 'tequila';
+    if (t.contains('cognac') || t.contains('armagnac') || t.contains('calvados')) return 'cognac';
     if (t.contains('grappa') || t.contains('vinaccia') || t.contains('acquavite')) return 'grappa';
     if (t.contains('eau de vie') || t.contains('eau-de-vie') || t.contains('marc de ')) return 'eau-de-vie';
     if (t.contains('pisco') ||
@@ -493,9 +505,13 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       AppLogger.info('REVIEW_SCREEN', 'Updated stock for bottle ${_duplicateBottle!.id} to $newQty');
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('🍾 Stock augmenté avec succès ! ($newQty bouteilles en cave)'),
+            content: Text(
+              l10n?.reviewStockUpdatedSuccess(newQty) ??
+                  '🍾 Stock augmenté avec succès ! ($newQty bouteilles en cave)',
+            ),
             backgroundColor: const Color(0xFF8B1E3F),
           ),
         );
@@ -533,6 +549,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
     if (!mounted) return;
     final tempVintageCtrl = TextEditingController();
+    final l10n = AppLocalizations.of(context);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     try {
       await showDialog(
@@ -541,12 +559,15 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         builder: (ctx) {
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.calendar_month, color: Color(0xFFD4AF37)),
-                SizedBox(width: 10),
+                const Icon(Icons.calendar_month, color: Color(0xFFD4AF37)),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: Text('Millésime / Année', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    l10n?.reviewVintageYear ?? 'Millésime / Année',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
@@ -554,19 +575,21 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Indiquez ou confirmez l\'année de récolte de cette bouteille :',
-                  style: TextStyle(fontSize: 13),
+                Text(
+                  isFr
+                      ? 'Indiquez ou confirmez l\'année de récolte de cette bouteille :'
+                      : 'Enter or confirm the harvest year of this bottle:',
+                  style: const TextStyle(fontSize: 13),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: tempVintageCtrl,
                   keyboardType: TextInputType.number,
                   autofocus: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Année (ex: 2018, 2020)',
-                    prefixIcon: Icon(Icons.date_range),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: isFr ? 'Année (ex: 2018, 2020)' : 'Year (e.g. 2018, 2020)',
+                    prefixIcon: const Icon(Icons.date_range),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -584,14 +607,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: const Color(0xFFD4AF37)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.all_inclusive, size: 18, color: Color(0xFFB8860B)),
-                        SizedBox(width: 8),
+                        const Icon(Icons.all_inclusive, size: 18, color: Color(0xFFB8860B)),
+                        const SizedBox(width: 8),
                         Text(
-                          'C\'est un Non millésimé (NM)',
-                          style: TextStyle(
+                          isFr ? 'C\'est un Non millésimé (NM)' : 'Non-vintage (NV)',
+                          style: const TextStyle(
                             color: Color(0xFF8B1E3F),
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
@@ -609,7 +632,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   _vintageCtrl.text = '';
                   Navigator.pop(ctx);
                 },
-                child: const Text('Passer / Non millésimé'),
+                child: Text(l10n?.reviewNonVintage ?? 'Passer / Non millésimé'),
               ),
               FilledButton(
                 onPressed: () {
@@ -620,7 +643,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   backgroundColor: const Color(0xFF8B1E3F),
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Valider', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text(
+                  l10n?.reviewValidate ?? 'Valider',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           );
@@ -712,29 +738,32 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         );
 
         if (distCheck.isDistant && mounted) {
+          final l10n = AppLocalizations.of(context);
+          final warning = distCheck.formatWarning(l10n);
           final proceed = await showDialog<bool>(
             context: context,
             barrierDismissible: false,
             builder: (ctx) => AlertDialog(
-              title: const Row(
+              title: Row(
                 children: [
-                  Icon(Icons.location_off_outlined, color: Colors.orange),
-                  SizedBox(width: 8),
+                  const Icon(Icons.location_off_outlined, color: Colors.orange),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Cave distante détectée',
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                      l10n?.distantCellarTitle ?? 'Cave distante détectée',
+                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
               ),
               content: Text(
-                '${distCheck.warningMessage}\n\nSouhaitez-vous quand même enregistrer cette bouteille dans la cave "${targetCellar!.displayName}" ?',
+                l10n?.distantCellarAddConfirm(warning, targetCellar!.displayName) ??
+                    '$warning\n\nSouhaitez-vous quand même enregistrer cette bouteille dans la cave "${targetCellar!.displayName}" ?',
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('Annuler'),
+                  child: Text(l10n?.cancel ?? 'Annuler'),
                 ),
                 FilledButton(
                   style: FilledButton.styleFrom(
@@ -742,7 +771,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () => Navigator.of(ctx).pop(true),
-                  child: const Text('Continuer quand même', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    l10n?.continueAnyway ?? 'Continuer quand même',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
@@ -835,9 +867,13 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       notifyCellarChanged(ref, cellarId);
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('🍾 ${_nameCtrl.text.trim()} ajouté avec succès à la cave !'),
+            content: Text(
+              l10n?.reviewBottleAddedSuccess(_nameCtrl.text.trim()) ??
+                  '🍾 ${_nameCtrl.text.trim()} ajouté avec succès à la cave !',
+            ),
             backgroundColor: const Color(0xFF8B1E3F),
           ),
         );
@@ -892,6 +928,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     if (_isAnalyzing) {
       return Scaffold(
@@ -903,7 +941,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => context.pop(),
           ),
-          title: const Text('Analyse de la bouteille', style: TextStyle(color: Colors.white)),
+          title: Text(l10n?.reviewBottleAnalysis ?? 'Analyse de la bouteille', style: const TextStyle(color: Colors.white)),
         ),
         body: Center(
           child: SingleChildScrollView(
@@ -1005,6 +1043,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
     if (_isUndetected) {
       final isDark = theme.brightness == Brightness.dark;
+      final isFr = Localizations.localeOf(context).languageCode == 'fr';
       return Scaffold(
         backgroundColor: isDark ? const Color(0xFF1A1A1E) : Colors.grey.shade50,
         appBar: AppBar(
@@ -1012,11 +1051,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.close, color: isDark ? Colors.white : Colors.black87),
-            tooltip: 'Abandonner',
+            tooltip: isFr ? 'Abandonner' : 'Discard',
             onPressed: () => context.pop(),
           ),
           title: Text(
-            'Bouteille non détectée',
+            isFr ? 'Bouteille non détectée' : 'Bottle not detected',
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black87,
               fontWeight: FontWeight.bold,
@@ -1064,7 +1103,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   ),
                 const SizedBox(height: 24),
                 Text(
-                  'Vin non reconnu',
+                  isFr ? 'Vin non reconnu' : 'Wine not recognized',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
@@ -1073,7 +1112,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Chatmelier n\'a pas réussi à identifier l\'étiquette sur cette photo. Elle est peut-être trop sombre, floue ou avec des reflets.',
+                  isFr
+                      ? 'Chatmelier n\'a pas réussi à identifier l\'étiquette sur cette photo. Elle est peut-être trop sombre, floue ou avec des reflets.'
+                      : 'Chatmelier could not identify the label on this photo. It may be too dark, blurry, or have reflections.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: isDark ? Colors.white70 : Colors.black87,
@@ -1094,9 +1135,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     icon: const Icon(Icons.camera_alt_outlined),
-                    label: const Text(
-                      'Reprendre une photo',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    label: Text(
+                      isFr ? 'Reprendre une photo' : 'Retake photo',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     onPressed: () => context.pop(),
                   ),
@@ -1114,9 +1155,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     icon: const Icon(Icons.edit_note),
-                    label: const Text(
-                      'Entrer manuellement les détails',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    label: Text(
+                      isFr ? 'Entrer manuellement les détails' : 'Enter details manually',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     onPressed: () {
                       setState(() {
@@ -1133,7 +1174,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     foregroundColor: isDark ? Colors.white60 : Colors.black54,
                   ),
                   icon: const Icon(Icons.close, size: 18),
-                  label: const Text('Abandonner'),
+                  label: Text(l10n?.reviewDiscard ?? 'Abandonner'),
                   onPressed: () => context.pop(),
                 ),
               ],
@@ -1155,14 +1196,16 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         final shouldLeave = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Abandonner la saisie ?'),
-            content: const Text(
-              'Vous avez des informations non enregistrées sur cette bouteille. Souhaitez-vous vraiment quitter sans sauvegarder ?',
+            title: Text(l10n?.reviewDiscardConfirmTitle ?? 'Abandonner la saisie ?'),
+            content: Text(
+              isFr
+                  ? 'Vous avez des informations non enregistrées sur cette bouteille. Souhaitez-vous vraiment quitter sans sauvegarder ?'
+                  : 'You have unsaved information for this bottle. Are you sure you want to discard without saving?',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Continuer la saisie'),
+                child: Text(l10n?.reviewContinueEditing ?? 'Continuer la saisie'),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -1170,7 +1213,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Quitter sans enregistrer'),
+                child: Text(l10n?.reviewDiscardWithoutSaving ?? 'Quitter sans enregistrer'),
               ),
             ],
           ),
@@ -1181,7 +1224,12 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-        title: const Text('Fiche de la Bouteille'),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: isFr ? 'Annuler et fermer' : 'Cancel and close',
+            onPressed: () => context.pop(),
+          ),
+          title: Text(l10n?.reviewBottleDetails ?? 'Fiche de la Bouteille'),
         actions: [
           if (_isSaving)
             const Center(
@@ -1197,7 +1245,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           else ...[
             IconButton(
               icon: const Icon(Icons.restaurant_menu, color: Color(0xFFE65100)),
-              tooltip: 'Déguster hors-cave (Restaurant/Amis)',
+              tooltip: isFr ? 'Déguster hors-cave (Restaurant/Amis)' : 'Taste outside cellar (Restaurant/Friends)',
               onPressed: () {
                 final vintage = int.tryParse(_vintageCtrl.text.trim());
                 ExternalTastingDialog.show(
@@ -1220,7 +1268,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   backgroundColor: const Color(0xFF8B1E3F),
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Enregistrer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text(
+                  l10n?.save ?? 'Enregistrer',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
@@ -1254,7 +1305,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Vin déjà présent dans votre cave ! ($dupStock en stock)',
+                                isFr
+                                    ? 'Vin déjà présent dans votre cave ! ($dupStock en stock)'
+                                    : 'Wine already in your cellar! ($dupStock in stock)',
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                               ),
                             ),
@@ -1262,7 +1315,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Ce vin existe déjà (${_duplicateBottle!.wine?.name ?? ""} ${_duplicateBottle!.wine?.vintage != null ? "${_duplicateBottle!.wine!.vintage}" : ""}). Que souhaitez-vous faire ?',
+                          isFr
+                              ? 'Ce vin existe déjà (${_duplicateBottle!.wine?.name ?? ""} ${_duplicateBottle!.wine?.vintage != null ? "${_duplicateBottle!.wine!.vintage}" : ""}). Que souhaitez-vous faire ?'
+                              : 'This wine already exists (${_duplicateBottle!.wine?.name ?? ""} ${_duplicateBottle!.wine?.vintage != null ? "${_duplicateBottle!.wine!.vintage}" : ""}). What would you like to do?',
                           style: const TextStyle(fontSize: 12.5),
                         ),
                         const SizedBox(height: 10),
@@ -1280,7 +1335,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                             children: [
                               Column(
                                 children: [
-                                  Text('Stock en cave', style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant)),
+                                  Text(l10n?.reviewStockInCellar ?? 'Stock en cave', style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant)),
                                   const SizedBox(height: 2),
                                   Text('$dupStock', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                                 ],
@@ -1288,7 +1343,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                               const Icon(Icons.add, size: 16, color: Colors.grey),
                               Column(
                                 children: [
-                                  const Text('Ajout', style: TextStyle(fontSize: 11, color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
+                                  Text(l10n?.reviewStockAddition ?? 'Ajout', style: const TextStyle(fontSize: 11, color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 2),
                                   Text('+$_quantity', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
                                 ],
@@ -1296,7 +1351,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                               const Text('=', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
                               Column(
                                 children: [
-                                  const Text('Nouveau total', style: TextStyle(fontSize: 11, color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold)),
+                                  Text(l10n?.reviewStockNewTotal ?? 'Nouveau total', style: const TextStyle(fontSize: 11, color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 2),
                                   Text('$totalStock', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F))),
                                 ],
@@ -1309,7 +1364,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                         // Stepper row in duplicate banner
                         Row(
                           children: [
-                            const Text('Quantité à ajouter :', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                            Text(l10n?.reviewQuantityToAdd ?? 'Quantité à ajouter :', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                             const Spacer(),
                             IconButton.filledTonal(
                               visualDensity: VisualDensity.compact,
@@ -1362,7 +1417,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                           onPressed: _increaseExistingBottleStock,
                           icon: const Icon(Icons.add_circle_outline, size: 18, color: Colors.white),
                           label: Text(
-                            'Augmenter le stock existant ($totalStock btl au total)',
+                            isFr
+                                ? 'Augmenter le stock existant ($totalStock btl au total)'
+                                : 'Increase existing stock ($totalStock bottles total)',
                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                           style: FilledButton.styleFrom(
@@ -1375,7 +1432,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                         Center(
                           child: TextButton(
                             onPressed: () => setState(() => _dismissDuplicate = true),
-                            child: const Text('Créer une entrée distincte (autre casier / prix)'),
+                            child: Text(l10n?.reviewSeparateEntry ?? 'Créer une entrée distincte (autre casier / prix)'),
                           ),
                         ),
                       ],
@@ -1403,12 +1460,16 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Vin identifié par l\'IA Sommelier ✨',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF8B1E3F)),
+                          Text(
+                            isFr
+                                ? 'Vin identifié par l\'IA Sommelier ✨'
+                                : 'Wine identified by Sommelier AI ✨',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF8B1E3F)),
                           ),
                           Text(
-                            'Informations extraites de votre étiquette. Vérifiez ou ajustez les détails ci-dessous.',
+                            isFr
+                                ? 'Informations extraites de votre étiquette. Vérifiez ou ajustez les détails ci-dessous.'
+                                : 'Information extracted from your label. Verify or adjust the details below.',
                             style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                           ),
                         ],
@@ -1514,12 +1575,12 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                                 color: Colors.black54,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.zoom_in, color: Colors.white, size: 16),
-                                  SizedBox(width: 4),
-                                  Text('Agrandir', style: TextStyle(color: Colors.white, fontSize: 11)),
+                                  const Icon(Icons.zoom_in, color: Colors.white, size: 16),
+                                  const SizedBox(width: 4),
+                                  Text(l10n?.reviewEnlarge ?? 'Agrandir', style: const TextStyle(color: Colors.white, fontSize: 11)),
                                 ],
                               ),
                             ),
@@ -1543,27 +1604,27 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Informations Générales', style: theme.textTheme.titleMedium),
+                    Text(l10n?.reviewGeneralInfo ?? 'Informations Générales', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _nameCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Nom du vin *',
-                        hintText: 'ex: Château Margaux, Domaine de la Solitude...',
-                        prefixIcon: Icon(Icons.wine_bar),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: isFr ? 'Nom du vin *' : 'Wine name *',
+                        hintText: isFr ? 'ex: Château Margaux, Domaine de la Solitude...' : 'e.g. Château Margaux, Opus One...',
+                        prefixIcon: const Icon(Icons.wine_bar),
+                        border: const OutlineInputBorder(),
                       ),
-                      validator: (val) => val == null || val.trim().isEmpty ? 'Veuillez saisir le nom du vin' : null,
+                      validator: (val) => val == null || val.trim().isEmpty ? (isFr ? 'Veuillez saisir le nom du vin' : 'Please enter wine name') : null,
                       onChanged: (_) => _checkDuplicateInCellar(),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _producerCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Domaine / Producteur',
-                        hintText: 'ex: Famille Perrin, Antinori...',
-                        prefixIcon: Icon(Icons.business),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: isFr ? 'Domaine / Producteur' : 'Producer / Winery',
+                        hintText: isFr ? 'ex: Famille Perrin, Antinori...' : 'e.g. Famille Perrin, Antinori...',
+                        prefixIcon: const Icon(Icons.business),
+                        border: const OutlineInputBorder(),
                       ),
                       onChanged: (_) => _checkDuplicateInCellar(),
                     ),
@@ -1576,14 +1637,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                             controller: _vintageCtrl,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
-                              labelText: 'Millésime',
-                              hintText: 'ex: 2018',
+                              labelText: isFr ? 'Millésime' : 'Vintage',
+                              hintText: isFr ? 'ex: 2018' : 'e.g. 2018',
                               prefixIcon: const Icon(Icons.calendar_today, size: 16),
                               border: const OutlineInputBorder(),
                               suffixIcon: _vintageCtrl.text.isEmpty
-                                  ? const Tooltip(
-                                      message: 'Non millésimé',
-                                      child: Icon(Icons.all_inclusive, size: 16, color: Color(0xFF8B1E3F)),
+                                  ? Tooltip(
+                                      message: isFr ? 'Non millésimé' : 'Non-vintage',
+                                      child: const Icon(Icons.all_inclusive, size: 16, color: Color(0xFF8B1E3F)),
                                     )
                                   : null,
                             ),
@@ -1599,11 +1660,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                           child: TextFormField(
                             controller: _alcoholPctCtrl,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            decoration: const InputDecoration(
-                              labelText: 'Alcool',
-                              hintText: 'ex: 13.5 ou 40',
+                            decoration: InputDecoration(
+                              labelText: isFr ? 'Alcool' : 'Alcohol',
+                              hintText: isFr ? 'ex: 13.5 ou 40' : 'e.g. 13.5 or 40',
                               suffixText: '%',
-                              border: OutlineInputBorder(),
+                              border: const OutlineInputBorder(),
                             ),
                           ),
                         ),
@@ -1612,26 +1673,26 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                           flex: 4,
                           child: DropdownButtonFormField<String>(
                             initialValue: _wineType,
-                            decoration: const InputDecoration(
-                              labelText: 'Catégorie',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: isFr ? 'Catégorie' : 'Category',
+                              border: const OutlineInputBorder(),
                             ),
-                            items: const [
-                              DropdownMenuItem(value: 'red', child: Text('Rouge 🍷')),
-                              DropdownMenuItem(value: 'white', child: Text('Blanc 🥂')),
-                              DropdownMenuItem(value: 'rosé', child: Text('Rosé 🌸')),
-                              DropdownMenuItem(value: 'sparkling', child: Text('Bulles 🍾')),
-                              DropdownMenuItem(value: 'dessert', child: Text('Moelleux 🍯')),
-                              DropdownMenuItem(value: 'liqueur', child: Text('Liqueur 🍯')),
-                              DropdownMenuItem(value: 'spirit', child: Text('Spiritueux 🥃')),
-                              DropdownMenuItem(value: 'grappa', child: Text('Grappa 🍇')),
-                              DropdownMenuItem(value: 'eau-de-vie', child: Text('Eau-de-vie 🍐')),
-                              DropdownMenuItem(value: 'whisky', child: Text('Whisky 🥃')),
-                              DropdownMenuItem(value: 'rhum', child: Text('Rhum 🏴‍☠️')),
-                              DropdownMenuItem(value: 'gin', child: Text('Gin 🍸')),
-                              DropdownMenuItem(value: 'vodka', child: Text('Vodka 🧊')),
-                              DropdownMenuItem(value: 'tequila', child: Text('Tequila 🌵')),
-                              DropdownMenuItem(value: 'cognac', child: Text('Cognac 🍷')),
+                            items: [
+                              DropdownMenuItem(value: 'red', child: Text(l10n?.wineTypeRed ?? 'Rouge 🍷')),
+                              DropdownMenuItem(value: 'white', child: Text(l10n?.wineTypeWhite ?? 'Blanc 🥂')),
+                              DropdownMenuItem(value: 'rosé', child: Text(l10n?.wineTypeRose ?? 'Rosé 🌸')),
+                              DropdownMenuItem(value: 'sparkling', child: Text(l10n?.wineTypeSparkling ?? 'Bulles 🍾')),
+                              DropdownMenuItem(value: 'dessert', child: Text(l10n?.wineTypeDessert ?? 'Moelleux 🍯')),
+                              DropdownMenuItem(value: 'liqueur', child: Text(l10n?.wineTypeLiqueur ?? 'Liqueur 🍯')),
+                              DropdownMenuItem(value: 'spirit', child: Text(l10n?.wineTypeSpirit ?? 'Spiritueux 🥃')),
+                              DropdownMenuItem(value: 'grappa', child: Text(l10n?.wineTypeGrappa ?? 'Grappa 🍇')),
+                              DropdownMenuItem(value: 'eau-de-vie', child: Text(l10n?.wineTypeEauDeVie ?? 'Eau-de-vie 🍐')),
+                              DropdownMenuItem(value: 'whisky', child: Text(l10n?.wineTypeWhisky ?? 'Whisky 🥃')),
+                              DropdownMenuItem(value: 'rhum', child: Text(l10n?.wineTypeRum ?? 'Rhum 🏴‍☠️')),
+                              DropdownMenuItem(value: 'gin', child: Text(l10n?.wineTypeGin ?? 'Gin 🍸')),
+                              DropdownMenuItem(value: 'vodka', child: Text(l10n?.wineTypeVodka ?? 'Vodka 🧊')),
+                              DropdownMenuItem(value: 'tequila', child: Text(l10n?.wineTypeTequila ?? 'Tequila 🌵')),
+                              DropdownMenuItem(value: 'cognac', child: Text(l10n?.wineTypeCognac ?? 'Cognac 🍷')),
                             ],
                             onChanged: (val) {
                               if (val != null) {
@@ -1681,8 +1742,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                               const SizedBox(width: 6),
                               Text(
                                 _vintageCtrl.text.isEmpty
-                                    ? 'Non millésimé (NM) ✓'
-                                    : 'Cliquer si Non millésimé (NM)',
+                                    ? (isFr ? 'Non millésimé (NM) ✓' : 'Non-vintage (NV) ✓')
+                                    : (isFr ? 'Cliquer si Non millésimé (NM)' : 'Tap if Non-vintage (NV)'),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: _vintageCtrl.text.isEmpty
@@ -1716,36 +1777,36 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Origine & Terroir', style: theme.textTheme.titleMedium),
+                    Text(l10n?.reviewOriginTerroir ?? 'Origine & Terroir', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _countryCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Pays *',
-                        prefixIcon: Icon(Icons.public),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: isFr ? 'Pays *' : 'Country *',
+                        prefixIcon: const Icon(Icons.public),
+                        border: const OutlineInputBorder(),
                       ),
-                      validator: (val) => val == null || val.trim().isEmpty ? 'Pays obligatoire' : null,
+                      validator: (val) => val == null || val.trim().isEmpty ? (isFr ? 'Pays obligatoire' : 'Country required') : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _regionCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Région / Vignoble *',
-                        hintText: 'ex: Bordeaux, Bourgogne, Vallée du Rhône...',
-                        prefixIcon: Icon(Icons.terrain),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: isFr ? 'Région / Vignoble *' : 'Region / Vineyard *',
+                        hintText: isFr ? 'ex: Bordeaux, Bourgogne, Vallée du Rhône...' : 'e.g. Bordeaux, Burgundy, Napa Valley...',
+                        prefixIcon: const Icon(Icons.terrain),
+                        border: const OutlineInputBorder(),
                       ),
-                      validator: (val) => val == null || val.trim().isEmpty ? 'Région obligatoire' : null,
+                      validator: (val) => val == null || val.trim().isEmpty ? (isFr ? 'Région obligatoire' : 'Region required') : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _appellationCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Appellation (AOC / AOP / DOCG)',
-                        hintText: 'ex: Margaux, Pauillac, Saint-Émilion...',
-                        prefixIcon: Icon(Icons.verified),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: isFr ? 'Appellation (AOC / AOP / DOCG)' : 'Appellation (AOC / AOP / DOCG)',
+                        hintText: isFr ? 'ex: Margaux, Pauillac, Saint-Émilion...' : 'e.g. Margaux, Pauillac, Saint-Émilion...',
+                        prefixIcon: const Icon(Icons.verified),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                   ],
@@ -1766,14 +1827,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Quantité & Achat', style: theme.textTheme.titleMedium),
+                    Text(l10n?.reviewQuantityPurchase ?? 'Quantité & Achat', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Format / Contenance',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        Text(
+                          isFr ? 'Format / Contenance' : 'Bottle Size / Volume',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         const SizedBox(height: 6),
                         Wrap(
@@ -1803,7 +1864,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                               avatar: const Icon(Icons.more_horiz, size: 16),
                               label: Text(!['37.5cl', '75cl', '1.5L', '3L'].contains(_bottleSize)
                                   ? BottleSize.fromCode(_bottleSize).shortName
-                                  : 'Autre format...'),
+                                  : (isFr ? 'Autre format...' : 'Other size...')),
                               onPressed: _showAllBottleSizesPicker,
                             ),
                           ],
@@ -1813,7 +1874,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        const Text('Quantité :', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                        Text(isFr ? 'Quantité :' : 'Quantity:', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                         const Spacer(),
                         IconButton.filledTonal(
                           visualDensity: VisualDensity.compact,
@@ -1870,7 +1931,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                             controller: _priceCtrl,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             decoration: InputDecoration(
-                              labelText: 'Prix unitaire',
+                              labelText: isFr ? 'Prix unitaire' : 'Unit price',
                               prefixText: '${CurrencyHelper.getSymbol(_selectedCurrency)} ',
                               prefixIcon: const Icon(Icons.payments_outlined),
                               border: const OutlineInputBorder(),
@@ -1882,10 +1943,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                           flex: 2,
                           child: DropdownButtonFormField<String>(
                             initialValue: _selectedCurrency,
-                            decoration: const InputDecoration(
-                              labelText: 'Devise',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                            decoration: InputDecoration(
+                              labelText: isFr ? 'Devise' : 'Currency',
+                              border: const OutlineInputBorder(),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
                             ),
                             items: CurrencyHelper.supportedCurrencies.map((c) {
                               return DropdownMenuItem<String>(
@@ -1903,11 +1964,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _purchaseLocationCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Circonstances de l\'achat (texte libre)',
-                        hintText: 'ex: Acheté en vacances au Chili avec Caro...',
-                        prefixIcon: Icon(Icons.flight_takeoff_outlined),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: isFr ? 'Circonstances de l\'achat (texte libre)' : 'Purchase notes (optional)',
+                        hintText: isFr ? 'ex: Acheté en vacances au Chili avec Caro...' : 'e.g. Bought on vacation in Chile with Caro...',
+                        prefixIcon: const Icon(Icons.flight_takeoff_outlined),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -1916,10 +1977,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _rackCtrl,
-                            decoration: const InputDecoration(
-                              labelText: 'Casier / Étagère',
-                              prefixIcon: Icon(Icons.grid_view),
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: isFr ? 'Casier / Étagère' : 'Rack / Shelf',
+                              prefixIcon: const Icon(Icons.grid_view),
+                              border: const OutlineInputBorder(),
                             ),
                           ),
                         ),
@@ -2015,6 +2076,17 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 label: const Text(
                   'Dégusté hors cave (Chez des proches, resto...)',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Center(
+              child: TextButton.icon(
+                onPressed: () => context.pop(),
+                icon: const Icon(Icons.close, size: 18, color: Colors.grey),
+                label: const Text(
+                  'Annuler et fermer sans ajouter',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ),
             ),

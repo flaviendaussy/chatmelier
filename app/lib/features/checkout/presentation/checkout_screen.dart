@@ -147,33 +147,35 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Future<void> _showAddCompanionDialog() async {
+    final l10n = AppLocalizations.of(context);
     final nameCtrl = TextEditingController();
     final newName = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.person_add, color: Color(0xFF8B1E3F)),
-            SizedBox(width: 8),
-            Text('Ajouter un convive'),
+            const Icon(Icons.person_add, color: Color(0xFF8B1E3F)),
+            const SizedBox(width: 8),
+            Text(l10n?.checkoutAddGuest ?? 'Ajouter un convive'),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Ajoutez un proche ou membre de la famille présent à cette dégustation (ex: Papa, Maman, Sophie...).',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+            Text(
+              l10n?.checkoutAddGuestDialogDesc ??
+                  'Ajoutez un proche ou membre de la famille présent à cette dégustation (ex: Papa, Maman, Sophie...).',
+              style: const TextStyle(fontSize: 13, color: Colors.grey),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: nameCtrl,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Prénom / Nom',
-                hintText: 'ex: Papa',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n?.checkoutAddGuestNameLabel ?? 'Prénom / Nom',
+                hintText: l10n?.checkoutAddGuestHint ?? 'ex: Papa',
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -181,7 +183,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(l10n?.cancel ?? 'Annuler'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
@@ -189,7 +191,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               final text = nameCtrl.text.trim();
               if (text.isNotEmpty) Navigator.pop(ctx, text);
             },
-            child: const Text('Ajouter'),
+            child: Text(l10n?.add ?? 'Ajouter'),
           ),
         ],
       ),
@@ -235,29 +237,32 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
 
       if (distCheck.isDistant && mounted) {
+        final l10n = AppLocalizations.of(context);
+        final warning = distCheck.formatWarning(l10n);
         final proceed = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.location_off_outlined, color: Colors.orange),
-                SizedBox(width: 8),
+                const Icon(Icons.location_off_outlined, color: Colors.orange),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Cave distante détectée',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                    l10n?.distantCellarTitle ?? 'Cave distante détectée',
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
             content: Text(
-              '${distCheck.warningMessage}\n\nSouhaitez-vous quand même enregistrer la sortie de cette bouteille depuis la cave "${targetCellar!.displayName}" ?',
+              l10n?.distantCellarCheckoutConfirm(warning, targetCellar!.displayName) ??
+                  '$warning\n\nSouhaitez-vous quand même enregistrer la sortie de cette bouteille depuis la cave "${targetCellar!.displayName}" ?',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Annuler'),
+                child: Text(l10n?.cancel ?? 'Annuler'),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -265,7 +270,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Continuer quand même', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text(
+                  l10n?.continueAnyway ?? 'Continuer quand même',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
@@ -277,14 +285,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     return true;
   }
 
-  Future<void> _startGuidedTasting() async {
+  Future<void> _startGuidedTasting({bool isExpress = false}) async {
     if (_selectedBottle == null) return;
     final cellarId = _selectedBottle!['cellar_id'] as String?;
     final canProceed = await _checkDistantCellarProceed(cellarId);
     if (!canProceed || !mounted) return;
 
     final wine = _selectedBottle!['wines'] as Map<String, dynamic>? ?? {};
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final wineName = wine['name'] ?? (isFr ? 'Vin' : 'Wine');
     final vintage = (wine['vintage'] as num?)?.toInt() ?? int.tryParse(wine['vintage']?.toString() ?? '');
     final producer = wine['producer'] as String?;
@@ -319,6 +327,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       preselectedTasters: _selectedCoTasters.toList(),
       bottleOwnerId: ownerId,
       bottleOwnerName: ownerName,
+      initialIsExpress: isExpress,
       onFinished: () {
         if (mounted) {
           context.go('/');
@@ -566,12 +575,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       }
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         final wineName = wineMap?['name'] as String? ?? 'Vin';
         final vintage = (wineMap?['vintage'] as num?)?.toInt() ?? int.tryParse(wineMap?['vintage']?.toString() ?? '');
         final producer = wineMap?['producer'] as String?;
         final region = wineMap?['region'] as String?;
         final wineType = wineMap?['type'] as String?;
 
+        final isFr = Localizations.localeOf(context).languageCode == 'fr';
         final advice = WineServiceAdvisor.computeAdvice(
           wineType: wineType,
           vintage: vintage,
@@ -579,6 +590,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           appellation: wineMap?['appellation'] as String?,
           producer: producer,
           wineName: wineName,
+          isFr: isFr,
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -591,14 +603,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Dégustation enregistrée !',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      Text(
+                        l10n?.checkoutSuccess ?? 'Dégustation enregistrée !',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                       Text(
                         advice.carafeMinutes > 0
-                            ? 'Conseil Sommelier : carafer ${advice.carafeMinutes} min. Chrono lockscreen prêt.'
-                            : 'Rappel pour noter vos impressions prévu après dégustation.',
+                            ? (l10n?.checkoutAdviceAerationSnack(advice.carafeMinutes) ??
+                                'Conseil Sommelier : carafer ${advice.carafeMinutes} min. Chrono lockscreen prêt.')
+                            : (l10n?.checkoutAdviceReminderSnack ??
+                                'Rappel pour noter vos impressions prévu après dégustation.'),
                         style: const TextStyle(fontSize: 11, color: Colors.white70),
                       ),
                     ],
@@ -608,7 +622,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             action: advice.carafeMinutes > 0
                 ? SnackBarAction(
-                    label: 'Chrono ${advice.carafeMinutes}m ⏱️',
+                    label: l10n?.checkoutStartTimerAction(advice.carafeMinutes) ?? 'Chrono ${advice.carafeMinutes}m ⏱️',
                     textColor: const Color(0xFFD4AF37),
                     onPressed: () {
                       ref.read(localNotificationServiceProvider).showLiveAerationNotification(
@@ -618,15 +632,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         bottleId: bottleId,
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('⏱️ Compte à rebours d\'aération actif sur votre écran de verrouillage !'),
-                          backgroundColor: Color(0xFFD4AF37),
+                        SnackBar(
+                          content: Text(l10n?.checkoutAerationTimerActive ?? '⏱️ Compte à rebours d\'aération actif sur votre écran de verrouillage !'),
+                          backgroundColor: const Color(0xFFD4AF37),
                         ),
                       );
                     },
                   )
                 : SnackBarAction(
-                    label: 'Noter le vin',
+                    label: l10n?.checkoutRateWine ?? 'Noter le vin',
                     textColor: const Color(0xFFD4AF37),
                     onPressed: () {
                       final targetCtx = rootNavigatorKey.currentContext;
@@ -666,7 +680,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
   }
 
-  Future<void> _submitDeferredCheckout() async {
+  Future<void> _submitDeferredCheckout({DateTime? customReminderTime}) async {
     if (_selectedBottle == null || _isSubmitting) return;
 
     setState(() => _isSubmitting = true);
@@ -728,7 +742,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         },
       };
 
-      // 1. Record provisional tasting log entry
+      // 1. Insert deferred placeholder tasting log
       if (user != null && wineId != null && wineId.isNotEmpty) {
         final payload = <String, dynamic>{
           'wine_id': wineId,
@@ -758,7 +772,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           }
           tastingSavedOnline = true;
         } catch (insertErr) {
-          debugPrint('Deferred tasting log primary insert notice ($insertErr), retrying with core schema...');
+          debugPrint('Deferred tasting log insert notice ($insertErr), retrying with core schema...');
           final corePayload = <String, dynamic>{
             'wine_id': wineId,
             if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
@@ -781,27 +795,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               await offlineStorage.addCachedTasting(localDeferredEntry);
             }
             tastingSavedOnline = true;
-          } catch (coreErr) {
-            debugPrint('Deferred tasting log core insert notice ($coreErr), retrying with normalized rating...');
-            try {
-              corePayload['rating'] = (_rating / 2.0).clamp(0.0, 5.0);
-              final inserted = await supabase
-                  .from('tasting_log')
-                  .insert(corePayload)
-                  .select('*, wines(*)')
-                  .maybeSingle();
-              if (inserted != null) {
-                inserted['rating'] = _rating;
-                await offlineStorage.addCachedTasting(inserted);
-              } else {
-                await offlineStorage.addCachedTasting(localDeferredEntry);
-              }
-              tastingSavedOnline = true;
-            } catch (retryErr) {
-              debugPrint('Deferred tasting log retry insert notice: $retryErr');
-              await offlineStorage.addCachedTasting(localDeferredEntry);
-              tastingSavedOnline = false;
-            }
+          } catch (retryErr) {
+            debugPrint('Deferred tasting log retry insert notice: $retryErr');
+            await offlineStorage.addCachedTasting(localDeferredEntry);
+            tastingSavedOnline = false;
           }
         }
       } else {
@@ -863,23 +860,44 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       notifyCellarChanged(ref, cellarId);
       ref.invalidate(tastingLogProvider);
 
-      // 3. Schedule next morning reminder at 11:00 AM
-      DateTime scheduledTarget = DateTime.now().add(const Duration(hours: 14));
+      // 3. Schedule reminder notification
+      DateTime scheduledTarget = customReminderTime ?? DateTime.now().add(const Duration(hours: 14));
       try {
         final notifService = ref.read(postTastingNotificationProvider);
-        scheduledTarget = await notifService.scheduleNextMorning(
-          bottleId: bottleId,
-          wineName: wineName,
-          vintage: vintage,
-          producer: producer,
-          region: region,
-          wineType: wineType,
-        );
+        if (customReminderTime != null) {
+          scheduledTarget = await notifService.scheduleAtCustomTime(
+            bottleId: bottleId,
+            wineName: wineName,
+            vintage: vintage,
+            producer: producer,
+            region: region,
+            wineType: wineType,
+            targetTime: customReminderTime,
+          );
+        } else {
+          scheduledTarget = await notifService.scheduleNextMorning(
+            bottleId: bottleId,
+            wineName: wineName,
+            vintage: vintage,
+            producer: producer,
+            region: region,
+            wineType: wineType,
+          );
+        }
       } catch (e) {
-        debugPrint('Next morning notification scheduling notice: $e');
+        debugPrint('Deferred notification scheduling notice: $e');
       }
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
+        final timeStr = '${scheduledTarget.hour}h${scheduledTarget.minute.toString().padLeft(2, '0')}';
+        final dateLabel = scheduledTarget.day == DateTime.now().day
+            ? (l10n?.checkoutDateTonightLabel(timeStr) ?? 'ce soir à $timeStr')
+            : (scheduledTarget.day == DateTime.now().day + 1
+                ? (l10n?.checkoutDateTomorrowLabel(timeStr) ?? 'demain à $timeStr')
+                : (l10n?.checkoutDateCustomLabel('${scheduledTarget.day}/${scheduledTarget.month}', timeStr) ??
+                    'le ${scheduledTarget.day}/${scheduledTarget.month} à $timeStr'));
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: const Color(0xFF1B1622),
@@ -893,12 +911,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Bouteille sortie de cave !',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      Text(
+                        l10n?.checkoutBottleRemovedSuccess ?? 'Bouteille sortie de cave !',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                       Text(
-                        'Profitez de votre soirée. Rappel prévu demain à ${scheduledTarget.hour}h${scheduledTarget.minute.toString().padLeft(2, '0')} pour noter vos impressions.',
+                        l10n?.checkoutBottleRemovedReminder(dateLabel) ??
+                            'Profitez de votre dégustation. Rappel prévu $dateLabel pour noter vos impressions.',
                         style: const TextStyle(fontSize: 12, color: Colors.white70),
                       ),
                     ],
@@ -915,6 +934,310 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
         );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  void _showDeferredReminderSelector() {
+    final l10n = AppLocalizations.of(context);
+    final now = DateTime.now();
+    final isEvening = now.hour >= 20;
+
+    final tonight = isEvening
+        ? now.add(const Duration(hours: 2))
+        : DateTime(now.year, now.month, now.day, 21, 0);
+
+    final tomorrowMorning = DateTime(now.year, now.month, now.day + 1, 11, 0);
+
+    int daysUntilSaturday = (DateTime.saturday - now.weekday) % 7;
+    if (daysUntilSaturday <= 0) daysUntilSaturday += 7;
+    final weekend = DateTime(now.year, now.month, now.day + daysUntilSaturday, 11, 0);
+
+    final inTwoHours = now.add(const Duration(hours: 2));
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  const Text('🌙', style: TextStyle(fontSize: 24)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n?.checkoutDelayedSheetTitle ?? 'Déboucher & Noter plus tard',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                        ),
+                        Text(
+                          l10n?.checkoutDelayedSheetSubtitle ?? 'Quand souhaitez-vous recevoir un rappel pour vos impressions ?',
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0x228B1E3F),
+                  child: Icon(Icons.nightlight_round, color: Color(0xFF8B1E3F)),
+                ),
+                title: Text(isEvening
+                    ? (l10n?.checkoutDelayedTonightTime('${tonight.hour}h${tonight.minute.toString().padLeft(2, '0')}') ??
+                        'Ce soir dans 2 heures (${tonight.hour}h${tonight.minute.toString().padLeft(2, '0')})')
+                    : (l10n?.checkoutDelayedTonightFixed ?? 'Ce soir à 21h00')),
+                subtitle: Text(l10n?.checkoutDelayedTonightSub ?? 'Idéal après le repas pour savourer le moment'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _submitDeferredCheckout(customReminderTime: tonight);
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0x22D4AF37),
+                  child: Icon(Icons.wb_sunny_outlined, color: Color(0xFFD4AF37)),
+                ),
+                title: Text(l10n?.checkoutDelayedTomorrow ?? 'Demain matin à 11h00'),
+                subtitle: Text(l10n?.checkoutDelayedTomorrowSub ?? 'Pour vous remémorer vos impressions au calme'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _submitDeferredCheckout(customReminderTime: tomorrowMorning);
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0x2238BDF8),
+                  child: Icon(Icons.weekend_outlined, color: Color(0xFF38BDF8)),
+                ),
+                title: Text(l10n?.checkoutDelayedWeekend ?? 'Ce week-end (Samedi à 11h00)'),
+                subtitle: Text(l10n?.checkoutDelayedWeekendSub ?? 'Prenez le temps pendant votre temps libre'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _submitDeferredCheckout(customReminderTime: weekend);
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0x2210B981),
+                  child: Icon(Icons.timer_outlined, color: Color(0xFF10B981)),
+                ),
+                title: Text(l10n?.checkoutDelayedInTwoHours('${inTwoHours.hour}h${inTwoHours.minute.toString().padLeft(2, '0')}') ??
+                    'Dans 2 heures (${inTwoHours.hour}h${inTwoHours.minute.toString().padLeft(2, '0')})'),
+                subtitle: Text(l10n?.checkoutDelayedInTwoHoursSub ?? 'Rappel rapide en fin de dégustation'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _submitDeferredCheckout(customReminderTime: inTwoHours);
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0x228B1E3F),
+                  child: Icon(Icons.edit_calendar, color: Color(0xFF8B1E3F)),
+                ),
+                title: Text(l10n?.checkoutDelayedCustom ?? 'Choisir une date & heure personnalisée...'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: now,
+                    firstDate: now,
+                    lastDate: now.add(const Duration(days: 30)),
+                  );
+                  if (pickedDate != null && mounted) {
+                    final pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: const TimeOfDay(hour: 21, minute: 0),
+                    );
+                    if (pickedTime != null && mounted) {
+                      final customTarget = DateTime(
+                        pickedDate.year,
+                        pickedDate.month,
+                        pickedDate.day,
+                        pickedTime.hour,
+                        pickedTime.minute,
+                      );
+                      _submitDeferredCheckout(customReminderTime: customTarget);
+                    }
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _submitDecantingCheckout(int defaultMinutes) async {
+    if (_selectedBottle == null || _isSubmitting) return;
+    final l10n = AppLocalizations.of(context);
+
+    int selectedMinutes = defaultMinutes > 0 ? defaultMinutes : 30;
+
+    final confirmedMinutes = await showDialog<int>(
+      context: context,
+      builder: (ctx) {
+        int tempMin = selectedMinutes;
+        return StatefulBuilder(
+          builder: (ctx, setDlgState) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                const Icon(Icons.timer_outlined, color: Color(0xFFD4AF37)),
+                const SizedBox(width: 10),
+                Text(l10n?.checkoutAerationTimerTitle ?? 'Minuteur d\'aération', style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n?.checkoutAerationDialogPrompt ??
+                      'La bouteille sera immédiatement débouchée et sortie de cave. Confirmez la durée d\'aération avant dégustation :',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline, color: Color(0xFFD4AF37)),
+                        onPressed: tempMin > 10 ? () => setDlgState(() => tempMin -= 5) : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$tempMin min',
+                        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37)),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline, color: Color(0xFFD4AF37)),
+                        onPressed: tempMin < 180 ? () => setDlgState(() => tempMin += 5) : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, null),
+                child: Text(l10n?.cancel ?? 'Annuler'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFD4AF37),
+                  foregroundColor: Colors.black87,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () => Navigator.pop(ctx, tempMin),
+                child: Text(l10n?.checkoutStartAerationTimer ?? 'Lancer le minuteur ⏱️', style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (confirmedMinutes == null || !mounted) return;
+
+    setState(() => _isSubmitting = true);
+    final supabase = ref.read(supabaseProvider);
+    final bottleId = _selectedBottle!['id'] as String;
+    final currentQty = _selectedBottle!['quantity'] as int? ?? 1;
+    final cellarId = _selectedBottle!['cellar_id'] as String?;
+    final wineMap = _selectedBottle!['wines'] as Map<String, dynamic>?;
+    final wineName = wineMap?['name'] as String? ?? 'Vin';
+    final vintage = (wineMap?['vintage'] as num?)?.toInt() ?? int.tryParse(wineMap?['vintage']?.toString() ?? '');
+
+    try {
+      if (currentQty > _consumeCount) {
+        await supabase.from('bottles').update({'quantity': currentQty - _consumeCount}).eq('id', bottleId);
+      } else {
+        await supabase.from('bottles').update({
+          'quantity': 0,
+          'status': 'consumed',
+          'consumed_at': DateTime.now().toIso8601String(),
+        }).eq('id', bottleId);
+      }
+
+      if (cellarId != null) {
+        final offlineStorage = ref.read(offlineStorageServiceProvider);
+        await offlineStorage.applyOfflineConsume(cellarId, bottleId);
+      }
+
+      notifyCellarChanged(ref, cellarId);
+      ref.invalidate(tastingLogProvider);
+
+      ref.read(localNotificationServiceProvider).showLiveAerationNotification(
+        wineName: wineName,
+        vintage: vintage,
+        remainingSeconds: confirmedMinutes * 60,
+        bottleId: bottleId,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF1B1622),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 6),
+            content: Row(
+              children: [
+                const Text('⏱️ ', style: TextStyle(fontSize: 22)),
+                Expanded(
+                  child: Text(
+                    l10n?.checkoutBottleUncorkedAerationSuccess(confirmedMinutes) ??
+                        'Bouteille débouchée ! Minuteur d\'aération ($confirmedMinutes min) lancé sur votre écran.',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        context.go('/');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -1028,7 +1351,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               child: Icon(Icons.wine_bar, color: theme.colorScheme.primary),
                             ),
                             title: Text('$wineName$vintage', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('$producer • En stock : $qty bouteille${qty > 1 ? "s" : ""}'),
+                            subtitle: Text(l10n?.checkoutStockRemaining(producer, qty) ?? '$producer • En stock : $qty bouteille${qty > 1 ? "s" : ""}'),
                             trailing: FilledButton.tonal(
                               onPressed: () => setState(() => _selectedBottle = b),
                               child: Text(l10n?.bottleDetailDrinkButton ?? 'Déguster'),
@@ -1043,7 +1366,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
     }
 
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final wine = _selectedBottle!['wines'] as Map<String, dynamic>? ?? {};
     final wineName = wine['name'] ?? (isFr ? 'Vin' : 'Wine');
     final vintage = wine['vintage'] != null ? '${wine['vintage']}' : (isFr ? 'NM' : 'NV');
@@ -1061,6 +1384,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     final profilesData = _selectedBottle!['profiles'] as Map<String, dynamic>?;
     final ownerDisplayName = profilesData?['display_name'] as String?;
+
+    final vInt = int.tryParse(vintage);
+    final advice = WineServiceAdvisor.computeAdvice(
+      wineType: wineType,
+      vintage: vInt,
+      region: region,
+      appellation: wine['appellation'] as String?,
+      producer: producer,
+      wineName: wineName,
+      isFr: isFr,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -1113,7 +1447,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  'Cave de $ownerDisplayName',
+                                  l10n?.checkoutCellarOf(ownerDisplayName) ?? 'Cave de $ownerDisplayName',
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: theme.colorScheme.onSurfaceVariant,
@@ -1124,7 +1458,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             ],
                             const Spacer(),
                             Text(
-                              'Stock : $maxQty bout.',
+                              l10n?.checkoutStockBout(maxQty) ?? 'Stock : $maxQty bout.',
                               style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
                             ),
                           ],
@@ -1144,6 +1478,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+
+            // =========================================================================
+            // HERO TASTING CARD ("Taste this wine" / "Déguster ce vin")
+            // Format Express ⚡ vs Format Sommelier 🎓 - Placed first at the top
+            // =========================================================================
+            _buildHeroTastingCard(theme, l10n),
             const SizedBox(height: 16),
 
             // Sommelier Immediate Service Advice & Storytelling Card
@@ -1175,56 +1516,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               const SizedBox(height: 20),
             ],
 
-            // 10-point Rating
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(l10n?.checkoutRating ?? 'Note de dégustation', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD4AF37),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.star, size: 16, color: Colors.white),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${_rating.toStringAsFixed(1)} / 10',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Slider(
-              value: _rating,
-              min: 1.0,
-              max: 10.0,
-              divisions: 18,
-              activeColor: const Color(0xFFD4AF37),
-              label: '${_rating.toStringAsFixed(1)} / 10',
-              onChanged: (val) {
-                setState(() => _rating = val);
-              },
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('1.0', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                Text(
-                  _rating >= 9.5 ? '🏆 Exceptionnel' : (_rating >= 8.5 ? '✨ Remarquable' : (_rating >= 7.5 ? '🍷 Très bon' : (_rating >= 6.0 ? '👍 Agréable' : 'Passable'))),
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFD4AF37)),
-                ),
-                const Text('10.0', style: TextStyle(fontSize: 11, color: Colors.grey)),
-              ],
-            ),
-            const SizedBox(height: 16),
-
             // Convives, Famille & Amis Co-dégustateurs
             Row(
               children: [
@@ -1232,7 +1523,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Qui a dégusté ce vin avec vous ?',
+                    l10n?.checkoutWhoTasted ?? 'Qui a dégusté ce vin avec vous ?',
                     style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -1240,16 +1531,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
                   onPressed: _showAddCompanionDialog,
                   icon: const Icon(Icons.person_add, size: 15, color: Color(0xFF8B1E3F)),
-                  label: const Text(
-                    '+ Ajouter un convive',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
+                  label: Text(
+                    '+ ${l10n?.checkoutAddGuest ?? "Ajouter un convive"}',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 4),
             Text(
-              'Les goûts de chaque participant seront automatiquement enrichis dans son profil.',
+              l10n?.checkoutWhoTastedSubtitle ?? 'Les goûts de chaque participant seront automatiquement enrichis dans son profil.',
               style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11),
             ),
             const SizedBox(height: 8),
@@ -1315,7 +1606,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 // Quick add ActionChip
                 ActionChip(
                   avatar: const Icon(Icons.add, size: 16, color: Color(0xFF8B1E3F)),
-                  label: const Text('Ajouter (Papa, Maman...)'),
+                  label: Text(l10n?.checkoutAddGuestHint ?? 'Ajouter (Papa, Maman...)'),
                   onPressed: _showAddCompanionDialog,
                 ),
               ],
@@ -1350,6 +1641,93 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
+            const SizedBox(height: 16),
+
+            // 10-point Rating (Placed last, as requested by user)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: theme.brightness == Brightness.dark
+                    ? const Color(0xFF221C2B)
+                    : const Color(0xFFF9F6F0),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n?.checkoutRating ?? 'Note de dégustation',
+                            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            l10n?.checkoutRatingSubtitle ?? 'Attribuez votre note globale après dégustation',
+                            style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD4AF37),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star, size: 16, color: Colors.white),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${_rating.toStringAsFixed(1)} / 10',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Slider(
+                    value: _rating,
+                    min: 1.0,
+                    max: 10.0,
+                    divisions: 18,
+                    activeColor: const Color(0xFFD4AF37),
+                    label: '${_rating.toStringAsFixed(1)} / 10',
+                    onChanged: (val) {
+                      setState(() => _rating = val);
+                    },
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('1.0', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                      Text(
+                        _rating >= 9.5
+                            ? (l10n?.ratingExceptional ?? '🏆 Exceptionnel')
+                            : (_rating >= 8.5
+                                ? (l10n?.ratingRemarkable ?? '✨ Remarquable')
+                                : (_rating >= 7.5
+                                    ? (l10n?.ratingVeryGood ?? '🍷 Très bon')
+                                    : (_rating >= 6.0
+                                        ? (l10n?.ratingPleasant ?? '👍 Agréable')
+                                        : (l10n?.ratingPassable ?? 'Passable')))),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFD4AF37)),
+                      ),
+                      const Text('10.0', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
             // Reassuring clarification for beginners / forgetful users
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1358,14 +1736,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.auto_stories_outlined, size: 18, color: Color(0xFF8B1E3F)),
-                  SizedBox(width: 10),
+                  const Icon(Icons.auto_stories_outlined, size: 18, color: Color(0xFF8B1E3F)),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Rassurez-vous : cette bouteille sera précieusement archivée dans votre Journal de Dégustation avec vos photos et notes.',
-                      style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.3),
+                      l10n?.checkoutJournalArchivedNotice ??
+                          'Rassurez-vous : cette bouteille sera précieusement archivée dans votre Journal de Dégustation avec vos photos et notes.',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey, height: 1.3),
                     ),
                   ),
                 ],
@@ -1373,165 +1752,277 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Option 1: Dégustation guidée (Primary & Recommended)
-            Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF8B1E3F), Color(0xFF6B1730)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.35),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: _isSubmitting ? null : _startGuidedTasting,
-                  borderRadius: BorderRadius.circular(16),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 24),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Row(
-                                children: [
-                                  Text(
-                                    'Dégustation guidée',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text('✨', style: TextStyle(fontSize: 14)),
-                                ],
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                _selectedCoTasters.isNotEmpty
-                                    ? 'Partagez vos impressions chacun son tour ou ensemble'
-                                    : 'Analysez robe, nez, bouche & affinez votre profil',
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Option 2: Déboucher maintenant, noter plus tard 🌙
+            // =========================================================================
+            // SORTIE DE CAVE SIMPLE / RAPIDE
+            // =========================================================================
             Container(
               decoration: BoxDecoration(
                 color: theme.brightness == Brightness.dark
-                    ? const Color(0xFF241D2B)
-                    : const Color(0xFFF9F5F0),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.45)),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: _isSubmitting ? null : _submitDeferredCheckout,
-                  borderRadius: BorderRadius.circular(16),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.nightlight_round, color: Color(0xFFD4AF37), size: 20),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Row(
-                                children: [
-                                  Text(
-                                    'Déboucher maintenant, noter plus tard',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text('🌙', style: TextStyle(fontSize: 13)),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Sortie immédiate • Rappel automatique demain matin',
-                                style: TextStyle(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(Icons.schedule, color: theme.colorScheme.onSurfaceVariant, size: 16),
-                      ],
-                    ),
-                  ),
+                    ? const Color(0xFF221C28)
+                    : const Color(0xFFF7F5F0),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: theme.brightness == Brightness.dark
+                      ? Colors.white12
+                      : Colors.black12,
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-
-            // Option 3: Sortie rapide (Tertiary / Outlined)
-            OutlinedButton.icon(
-              onPressed: _isSubmitting ? null : _submitCheckout,
-              icon: _isSubmitting
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.bolt, color: Color(0xFF8B1E3F)),
-              label: Text(
-                _isSubmitting ? 'Sortie en cours...' : 'Sortie rapide sans questionnaire ⚡',
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF8B1E3F),
-                side: BorderSide(color: const Color(0xFF8B1E3F).withValues(alpha: 0.4)),
-                minimumSize: const Size.fromHeight(44),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text('📦', style: TextStyle(fontSize: 18)),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n?.checkoutFastRatingTitle ?? 'Sortie de cave rapide',
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Primary fast exit button
+                  FilledButton.tonalIcon(
+                    onPressed: _isSubmitting ? null : _submitCheckout,
+                    icon: _isSubmitting
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.bolt, color: Color(0xFFF59E0B), size: 20),
+                    label: Text(
+                      _isSubmitting
+                          ? (l10n?.checkoutFastExitSubmitting ?? 'Sortie en cours...')
+                          : (l10n?.checkoutFastExit ?? 'Sortie rapide sans questionnaire ⚡'),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: theme.brightness == Brightness.dark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: theme.brightness == Brightness.dark
+                          ? const Color(0xFF2E2A36)
+                          : const Color(0xFFE9E4DC),
+                      side: BorderSide(
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.white24
+                            : Colors.black12,
+                      ),
+                      minimumSize: const Size.fromHeight(46),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Compact 2-column actions for later / aeration timer
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _isSubmitting ? null : _showDeferredReminderSelector,
+                          icon: const Icon(Icons.nightlight_round, size: 15, color: Color(0xFFD4AF37)),
+                          label: Text(
+                            l10n?.checkoutActionDeferredRemind ?? 'Rappel plus tard',
+                            style: const TextStyle(fontSize: 11.5),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _isSubmitting
+                              ? null
+                              : () => _submitDecantingCheckout(advice.carafeMinutes > 0 ? advice.carafeMinutes : 30),
+                          icon: const Icon(Icons.timer_outlined, size: 15, color: Color(0xFF38BDF8)),
+                          label: Text(
+                            l10n?.checkoutActionAerationTimer ?? 'Chrono aération',
+                            style: const TextStyle(fontSize: 11.5),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeroTastingCard(ThemeData theme, AppLocalizations? l10n) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF8B1E3F), Color(0xFF5A1328)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFD4AF37), width: 1.6),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8B1E3F).withValues(alpha: 0.35),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD4AF37),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.stars, color: Colors.black87, size: 13),
+                    const SizedBox(width: 4),
+                    Text(
+                      l10n?.checkoutRecommendedBadge ?? 'Recommandé',
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Text('🍷', style: TextStyle(fontSize: 20)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n?.checkoutActionTastingTitle ?? 'Déguster ce vin',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            _selectedCoTasters.isNotEmpty
+                ? (l10n?.checkoutGuidedTastingShared ??
+                    'Partagez vos impressions chacun son tour ou ensemble')
+                : (l10n?.checkoutActionTastingSubtitle ??
+                    'Analysez vos sensations & enrichissez votre carnet'),
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              // Format Express ⚡
+              Expanded(
+                child: Material(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    onTap: _isSubmitting ? null : () => _startGuidedTasting(isExpress: true),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.bolt, color: Color(0xFFF59E0B), size: 18),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  l10n?.tastingFormatExpress ?? 'Format Express',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            l10n?.tastingFormatExpressDesc ?? '1 page • 30 secondes',
+                            style: const TextStyle(color: Colors.white70, fontSize: 10.5),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Format Sommelier 🎓
+              Expanded(
+                child: Material(
+                  color: const Color(0xFFD4AF37).withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    onTap: _isSubmitting ? null : () => _startGuidedTasting(isExpress: false),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.school, color: Color(0xFFD4AF37), size: 18),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  l10n?.tastingFormatSommelier ?? 'Format Sommelier',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            l10n?.tastingFormatSommelierDesc ?? '5 étapes • Analyse complète',
+                            style: const TextStyle(color: Colors.white70, fontSize: 10.5),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -1545,6 +2036,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     String region,
     String wineType,
   ) {
+    final l10n = AppLocalizations.of(context);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final vInt = int.tryParse(vintage);
     final advice = WineServiceAdvisor.computeAdvice(
       wineType: wineType,
@@ -1553,6 +2046,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       appellation: wine['appellation'] as String?,
       producer: producer,
       wineName: wineName,
+      isFr: isFr,
     );
 
     return Container(
@@ -1576,9 +2070,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 child: const Icon(Icons.wine_bar, color: Color(0xFFD4AF37), size: 16),
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Conseils Sommelier de Service',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
+              Text(
+                l10n?.checkoutSommelierServiceAdvice ?? 'Conseils Sommelier de Service',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
               ),
               const Spacer(),
               InkWell(
@@ -1591,14 +2085,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFF8B1E3F).withValues(alpha: 0.3)),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.auto_stories, size: 13, color: Color(0xFF8B1E3F)),
-                      SizedBox(width: 4),
+                      const Icon(Icons.auto_stories, size: 13, color: Color(0xFF8B1E3F)),
+                      const SizedBox(width: 4),
                       Text(
-                        'Histoire & Anecdotes',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
+                        l10n?.checkoutHistoryAnecdotes ?? 'Histoire & Anecdotes',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
                       ),
                     ],
                   ),
@@ -1615,7 +2109,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               _serviceBadge(Icons.thermostat, advice.tempLabel, Colors.blue.shade300),
               _serviceBadge(
                 Icons.hourglass_bottom,
-                advice.carafeMinutes > 0 ? advice.carafeLabel : 'Pas de carafage',
+                advice.carafeMinutes > 0 ? advice.carafeLabel : (l10n?.checkoutNoDecanting ?? 'Pas de carafage'),
                 advice.carafeMinutes > 0 ? Colors.amber.shade400 : Colors.green.shade400,
               ),
               _serviceBadge(Icons.wine_bar_outlined, advice.glasswareType, Colors.purple.shade300),
@@ -1644,14 +2138,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('⏱️ Chrono d\'aération (${advice.carafeMinutes} min) lancé sur l\'écran de verrouillage !'),
+                      content: Text(l10n?.checkoutBottleUncorkedAerationSuccess(advice.carafeMinutes) ??
+                          '⏱️ Chrono d\'aération (${advice.carafeMinutes} min) lancé sur l\'écran de verrouillage !'),
                       behavior: SnackBarBehavior.floating,
                       duration: const Duration(seconds: 3),
                     ),
                   );
                 },
                 icon: const Icon(Icons.timer_outlined, size: 15),
-                label: Text('Lancer le chrono (${advice.carafeMinutes}m) ⏱️', style: const TextStyle(fontSize: 11.5)),
+                label: Text(l10n?.checkoutStartTimerAction(advice.carafeMinutes) ?? 'Lancer le chrono (${advice.carafeMinutes}m) ⏱️', style: const TextStyle(fontSize: 11.5)),
               ),
             ),
           ],
@@ -1750,6 +2245,7 @@ class _WineStorytellingSheetState extends ConsumerState<_WineStorytellingSheet> 
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
@@ -1788,11 +2284,11 @@ class _WineStorytellingSheetState extends ConsumerState<_WineStorytellingSheet> 
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'L\'Histoire de cette Bouteille 📖',
+                      l10n?.checkoutStoryTitle ?? 'L\'Histoire de cette Bouteille 📖',
                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      'Anecdotes captivantes à raconter à table',
+                      l10n?.checkoutStorySubtitle ?? 'Anecdotes captivantes à raconter à table',
                       style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                     ),
                   ],
@@ -1803,13 +2299,13 @@ class _WineStorytellingSheetState extends ConsumerState<_WineStorytellingSheet> 
           const SizedBox(height: 16),
           Expanded(
             child: _isLoading
-                ? const Center(
+                ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircularProgressIndicator(color: Color(0xFFD4AF37)),
-                        SizedBox(height: 14),
-                        Text('Le sommelier prépare les anecdotes de dégustation...', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        const CircularProgressIndicator(color: Color(0xFFD4AF37)),
+                        const SizedBox(height: 14),
+                        Text(l10n?.checkoutSommelierThinking ?? 'Le sommelier prépare les anecdotes de dégustation...', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                       ],
                     ),
                   )
@@ -1817,28 +2313,28 @@ class _WineStorytellingSheetState extends ConsumerState<_WineStorytellingSheet> 
                     children: [
                       _storyCard(
                         icon: Icons.landscape,
-                        title: 'Terroir & Cépages',
+                        title: l10n?.checkoutStoryTerroir ?? 'Terroir & Cépages',
                         content: _storyData!.terroirAndGrape,
                         color: Colors.green.shade400,
                       ),
                       const SizedBox(height: 12),
                       _storyCard(
                         icon: Icons.wb_sunny_outlined,
-                        title: 'L\'Histoire du Millésime',
+                        title: l10n?.checkoutStoryVintage ?? 'L\'Histoire du Millésime',
                         content: _storyData!.vintageClimate,
                         color: Colors.amber.shade400,
                       ),
                       const SizedBox(height: 12),
                       _storyCard(
                         icon: Icons.wine_bar,
-                        title: 'Le Secret de Dégustation',
+                        title: l10n?.checkoutStoryTastingSecret ?? 'Le Secret de Dégustation',
                         content: _storyData!.sommelierTip,
                         color: const Color(0xFF8B1E3F),
                       ),
                       const SizedBox(height: 12),
                       _storyCard(
                         icon: Icons.lightbulb_outline,
-                        title: 'L\'Anecdote de Table',
+                        title: l10n?.checkoutStoryTableAnecdote ?? 'L\'Anecdote de Table',
                         content: _storyData!.funFact,
                         color: Colors.blue.shade400,
                       ),
@@ -1853,7 +2349,7 @@ class _WineStorytellingSheetState extends ConsumerState<_WineStorytellingSheet> 
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fermer & Déguster 🍷', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(l10n?.checkoutCloseAndTaste ?? 'Fermer & Déguster 🍷', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

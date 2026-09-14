@@ -158,28 +158,57 @@ class ChatBubble extends StatelessWidget {
     final List<ChatWineCardData> wineCards = [];
     final List<ChatCocktailCardData> cocktailCards = [];
 
+    Map<String, dynamic>? tryParseCardJson(String rawJson) {
+      var s = rawJson.trim();
+      if (s.startsWith('```json')) {
+        s = s.substring(7);
+      } else if (s.startsWith('```')) {
+        s = s.substring(3);
+      }
+      if (s.endsWith('```')) {
+        s = s.substring(0, s.length - 3);
+      }
+      s = s.trim();
+      s = s.replaceAll('“', '"').replaceAll('”', '"').replaceAll('‘', "'").replaceAll('’', "'");
+      s = s.replaceAll(RegExp(r',\s*\}'), '}').replaceAll(RegExp(r',\s*\]'), ']');
+      try {
+        return jsonDecode(s) as Map<String, dynamic>;
+      } catch (_) {
+        final start = s.indexOf('{');
+        final end = s.lastIndexOf('}');
+        if (start != -1 && end != -1 && end > start) {
+          try {
+            var sub = s.substring(start, end + 1);
+            sub = sub.replaceAll(RegExp(r',\s*\}'), '}').replaceAll(RegExp(r',\s*\]'), ']');
+            return jsonDecode(sub) as Map<String, dynamic>;
+          } catch (_) {}
+        }
+      }
+      return null;
+    }
+
     // 1. Wine Cards
-    final wineCardRegex = RegExp(r'\[WINE_CARD:\s*(\{.*?\})\]', dotAll: true);
+    final wineCardRegex = RegExp(r'\[WINE_CARD:\s*(\{.*?\}|```(?:json)?\s*\{.*?\}\s*```)\s*\]', dotAll: true);
     var cleaned = raw.replaceAllMapped(wineCardRegex, (match) {
       final jsonStr = match.group(1);
       if (jsonStr != null) {
-        try {
-          final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+        final map = tryParseCardJson(jsonStr);
+        if (map != null) {
           wineCards.add(ChatWineCardData.fromJson(map));
-        } catch (_) {}
+        }
       }
       return '';
     });
 
     // 2. Cocktail Cards
-    final cocktailCardRegex = RegExp(r'\[COCKTAIL_CARD:\s*(\{.*?\})\]', dotAll: true);
+    final cocktailCardRegex = RegExp(r'\[COCKTAIL_CARD:\s*(\{.*?\}|```(?:json)?\s*\{.*?\}\s*```)\s*\]', dotAll: true);
     cleaned = cleaned.replaceAllMapped(cocktailCardRegex, (match) {
       final jsonStr = match.group(1);
       if (jsonStr != null) {
-        try {
-          final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+        final map = tryParseCardJson(jsonStr);
+        if (map != null) {
           cocktailCards.add(ChatCocktailCardData.fromJson(map));
-        } catch (_) {}
+        }
       }
       return '';
     });
@@ -188,7 +217,92 @@ class ChatBubble extends StatelessWidget {
     cleaned = cleaned.replaceAll(RegExp(r'\[WINE_CARD:[^\]]*\]?', dotAll: true), '');
     cleaned = cleaned.replaceAll(RegExp(r'\[COCKTAIL_CARD:[^\]]*\]?', dotAll: true), '');
 
-    // 4. Scrub any customer-facing UUIDs from the text body
+    // 4. Heuristic Cocktail Extraction Fallback
+    // If the assistant gave a full cocktail recipe but omitted the [COCKTAIL_CARD: ...] tag:
+    if (cocktailCards.isEmpty) {
+      final lower = raw.toLowerCase();
+      final hasCocktailIntent = lower.contains('cocktail') ||
+          lower.contains('shaker') ||
+          lower.contains('mixologie') ||
+          lower.contains('au verre à mélange') ||
+          lower.contains('old fashioned');
+
+      if (hasCocktailIntent) {
+        final lines = raw.split('\n');
+        final ingredients = <String>[];
+        String? detectedName;
+        final recipeLines = <String>[];
+        bool inIngredients = false;
+        bool inRecipe = false;
+
+        for (final line in lines) {
+          final trimmed = line.trim();
+          final lineLower = trimmed.toLowerCase();
+
+          if (detectedName == null &&
+              (trimmed.startsWith('### ') || trimmed.startsWith('## ') || trimmed.startsWith('**') && trimmed.endsWith('**')) &&
+              (lineLower.contains('cocktail') || lineLower.contains('le ') || lineLower.contains('smash') || lineLower.contains('sour') || lineLower.contains('fizz') || lineLower.contains('mule') || lineLower.contains('spritz') || lineLower.contains('martini'))) {
+            detectedName = trimmed.replaceAll(RegExp(r'[#\*]'), '').trim();
+          }
+
+          if (lineLower.contains('ingrédient') || lineLower.contains('ingredients')) {
+            inIngredients = true;
+            inRecipe = false;
+            continue;
+          }
+          if (lineLower.contains('recette') || lineLower.contains('préparation') || lineLower.contains('preparation') || lineLower.contains('instructions') || lineLower.contains('méthode')) {
+            inIngredients = false;
+            inRecipe = true;
+            continue;
+          }
+
+          if (inIngredients) {
+            if (trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')) {
+              final ing = trimmed.replaceFirst(RegExp(r'^[-•\*]\s*'), '').trim();
+              if (ing.isNotEmpty && !ing.toLowerCase().startsWith('recette') && !ing.toLowerCase().startsWith('préparation')) {
+                ingredients.add(ing);
+              }
+            } else if (trimmed.isEmpty && ingredients.isNotEmpty) {
+              inIngredients = false;
+            }
+          } else if (inRecipe) {
+            if (trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*') || RegExp(r'^\d+[\.\)]').hasMatch(trimmed) || (trimmed.isNotEmpty && !trimmed.startsWith('#'))) {
+              recipeLines.add(trimmed.replaceFirst(RegExp(r'^[-•\*\d\.\)]\s*'), '').trim());
+            } else if (trimmed.startsWith('#') || trimmed.startsWith('---')) {
+              inRecipe = false;
+            }
+          }
+        }
+
+        if (ingredients.length >= 2) {
+          String baseSpirit = 'gin';
+          if (lower.contains('rhum') || lower.contains('rum')) baseSpirit = 'rhum';
+          else if (lower.contains('whisky') || lower.contains('whiskey') || lower.contains('bourbon')) baseSpirit = 'whisky';
+          else if (lower.contains('vodka')) baseSpirit = 'vodka';
+          else if (lower.contains('tequila') || lower.contains('mezcal')) baseSpirit = 'tequila';
+          else if (lower.contains('cognac')) baseSpirit = 'cognac';
+          else if (lower.contains('armagnac')) baseSpirit = 'armagnac';
+          else if (lower.contains('calvados')) baseSpirit = 'calvados';
+
+          final synthesizedName = detectedName ?? 'Cocktail Signature';
+          final synthesizedRecipe = recipeLines.isNotEmpty
+              ? recipeLines.join(' ')
+              : 'Mélanger les ingrédients au shaker avec des glaçons, filtrer et servir frais.';
+
+          cocktailCards.add(ChatCocktailCardData(
+            name: synthesizedName,
+            baseSpirit: baseSpirit,
+            glass: lower.contains('coupe') ? 'Coupe' : (lower.contains('highball') ? 'Verre Highball' : 'Verre Old Fashioned'),
+            method: lower.contains('shaker') ? 'Au shaker' : 'Au verre à mélange',
+            ingredients: ingredients,
+            recipe: synthesizedRecipe,
+            reason: 'Recette proposée par Chatmelier',
+          ));
+        }
+      }
+    }
+
+    // 5. Scrub any customer-facing UUIDs from the text body
     cleaned = ChatService.sanitizeCustomerFacingText(cleaned).trim();
 
     return _ParsedContent(

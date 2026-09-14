@@ -18,6 +18,7 @@ const kSupportedLanguageCodes = [
   'zh',
   'ko',
   'sv',
+  'la',
 ];
 
 /// Manages app locale state:

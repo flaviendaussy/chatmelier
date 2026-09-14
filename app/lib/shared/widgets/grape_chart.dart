@@ -488,6 +488,7 @@ class _GrapeChartState extends State<GrapeChart> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     final resolvedGrapes = GrapeBlendResolver.resolveGrapes(
       existingGrapes: widget.grapes,
@@ -514,7 +515,7 @@ class _GrapeChartState extends State<GrapeChart> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Cépages non renseignés pour cette cuvée.',
+                isFr ? 'Cépages non renseignés pour cette cuvée.' : 'Grape varieties not specified for this cuvée.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
@@ -590,7 +591,7 @@ class _GrapeChartState extends State<GrapeChart> {
                       children: [
                         Icon(Icons.pie_chart, size: 14, color: isDark ? const Color(0xFFD4AF37) : const Color(0xFF8B1E3F)),
                         Text(
-                          '${resolvedGrapes.length} cépage${resolvedGrapes.length > 1 ? "s" : ""}',
+                          '${resolvedGrapes.length} ${isFr ? (resolvedGrapes.length > 1 ? "cépages" : "cépage") : (resolvedGrapes.length > 1 ? "varieties" : "variety")}',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -721,7 +722,9 @@ class _GrapeChartState extends State<GrapeChart> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Cépages typiques de l\'appellation (proportions exactes non renseignées par le domaine).',
+          isFr
+              ? 'Cépages typiques de l\'appellation (proportions exactes non renseignées par le domaine).'
+              : 'Typical varieties for this appellation (exact proportions not disclosed by the estate).',
           style: theme.textTheme.bodySmall?.copyWith(
             fontSize: 11,
             color: theme.colorScheme.onSurfaceVariant,

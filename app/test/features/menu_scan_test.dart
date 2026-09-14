@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -137,12 +138,12 @@ void main() {
       );
 
       final radar = redMetrics.toRedRadarMetrics();
-      expect(radar.body, 9.0); // Axe 1: Tannins & Structure
-      expect(radar.acidity, 8.5); // Axe 2: Puissance & Corps
-      expect(radar.fruit, 6.0); // Axe 3: Fraîcheur & Acidité
-      expect(radar.oak, 7.5); // Axe 4: Fruit & Gourmandise
-      expect(radar.minerality, 8.0); // Axe 5: Boisé & Élevage
-      expect(radar.sweetness, 4.0); // Axe 6: Minéralité & Épices
+      expect(radar.tannin, 9.0); // Tannins
+      expect(radar.body, 8.5); // Puissance & Corps
+      expect(radar.acidity, 6.0); // Fraîcheur & Acidité
+      expect(radar.ripeFruit, 7.5); // Fruit
+      expect(radar.oak, 8.0); // Boisé & Élevage
+      expect(radar.minerality, 4.0); // Minéralité
 
       final labels = MenuWineRadarMetrics.redAxisLabels;
       expect(labels.length, 7);
@@ -163,12 +164,11 @@ void main() {
       );
 
       final radar = whiteMetrics.toWhiteRadarMetrics();
-      expect(radar.body, 8.5); // Axe 1: Minéralité & Tension
-      expect(radar.acidity, 7.8); // Axe 2: Fraîcheur & Vivacité
-      expect(radar.fruit, 7.0); // Axe 3: Fruit & Arômes
-      expect(radar.oak, 9.0); // Axe 4: Beurré & Rondeur
-      expect(radar.minerality, 6.5); // Axe 5: Boisé & Élevage
-      expect(radar.sweetness, 8.0); // Axe 6: Corps & Puissance
+      expect(radar.minerality, 8.5); // Minéralité & Tension
+      expect(radar.acidity, 7.8); // Fraîcheur & Vivacité
+      expect(radar.freshFruit, 7.0); // Fruit & Fleurs
+      expect(radar.oak, 9.0); // Beurré & Rondeur
+      expect(radar.body, 8.0); // Corps & Puissance
 
       final labels = MenuWineRadarMetrics.whiteAxisLabels;
       expect(labels.length, 7);
@@ -397,6 +397,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
+            locale: const Locale('fr'),
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
+            supportedLocales: const [Locale('fr'), Locale('en')],
             home: EnrichedMenuScreen(menu: menu),
           ),
         ),

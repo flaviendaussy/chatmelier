@@ -40,7 +40,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
   final List<MenuChatMessage> _messages = [];
   bool _isLoading = false;
 
-  final List<String> _quickPrompts = [
+  final List<String> _quickPromptsFr = [
     '🐟 Quel vin avec du poisson / fruits de mer ?',
     '🥩 Quel vin rouge pour une viande rouge savoureuse ?',
     '💎 Le meilleur rapport qualité / prix sous 45 € ?',
@@ -48,15 +48,30 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
     '🧀 Quel accord parfait avec un plateau de fromages ?',
   ];
 
+  final List<String> _quickPromptsEn = [
+    '🐟 Which wine with fish / seafood?',
+    '🥩 Which red wine for savory red meat?',
+    '💎 Best value for money under €45?',
+    '🍷 A smooth red wine with low tannins?',
+    '🧀 Best pairing for a cheese board?',
+  ];
+
+  bool _initialized = false;
+
   @override
-  void initState() {
-    super.initState();
-    _messages.add(MenuChatMessage(
-      text:
-          'Bonjour ! Je suis votre Sommelier personnel chez "${widget.menu.restaurantName}". J\'ai analysé les ${widget.menu.wines.length} références de cette carte des vins. Que mangez-vous ce soir, ou quelles sont vos envies pour vous guider ?',
-      isUser: false,
-      time: DateTime.now(),
-    ));
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      final isFr = Localizations.localeOf(context).languageCode == 'fr';
+      _messages.add(MenuChatMessage(
+        text: isFr
+            ? 'Bonjour ! Je suis votre Sommelier personnel chez "${widget.menu.restaurantName}". J\'ai analysé les ${widget.menu.wines.length} références de cette carte des vins. Que mangez-vous ce soir, ou quelles sont vos envies pour vous guider ?'
+            : 'Hello! I\'m your personal Sommelier at "${widget.menu.restaurantName}". I have analyzed the ${widget.menu.wines.length} wines on this list. What are you dining on tonight, or what are you in the mood for?',
+        isUser: false,
+        time: DateTime.now(),
+      ));
+    }
   }
 
   @override
@@ -98,9 +113,10 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
       }
     } catch (e) {
       if (mounted) {
+        final isFr = Localizations.localeOf(context).languageCode == 'fr';
         setState(() {
           _messages.add(MenuChatMessage(
-            text: 'Désolé, une erreur est survenue : $e',
+            text: isFr ? 'Désolé, une erreur est survenue : $e' : 'Sorry, an error occurred: $e',
             isUser: false,
             time: DateTime.now(),
           ));
@@ -125,8 +141,10 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final quickPrompts = isFr ? _quickPromptsFr : _quickPromptsEn;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.90,
@@ -168,11 +186,13 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Conseil Sommelier sur cette carte',
+                        isFr ? 'Conseil Sommelier sur cette carte' : 'Sommelier Advice on this Wine List',
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '${widget.menu.restaurantName} • ${widget.menu.wines.length} vins analysés',
+                        isFr
+                            ? '${widget.menu.restaurantName} • ${widget.menu.wines.length} vins analysés'
+                            : '${widget.menu.restaurantName} • ${widget.menu.wines.length} wines analyzed',
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
@@ -194,10 +214,10 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               scrollDirection: Axis.horizontal,
-              itemCount: _quickPrompts.length,
+              itemCount: quickPrompts.length,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
-                final prompt = _quickPrompts[index];
+                final prompt = quickPrompts[index];
                 return ActionChip(
                   label: Text(prompt, style: const TextStyle(fontSize: 12)),
                   backgroundColor: isDark ? Colors.white10 : Colors.grey.shade100,
@@ -247,18 +267,18 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
           ),
 
           if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF8B1E3F)),
                   ),
-                  SizedBox(width: 10),
-                  Text('Le sommelier réfléchit...', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(width: 10),
+                  Text(isFr ? 'Le sommelier réfléchit...' : 'Sommelier reflecting...', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
             ),
@@ -278,7 +298,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
                     textInputAction: TextInputAction.send,
                     onSubmitted: _sendMessage,
                     decoration: InputDecoration(
-                      hintText: 'Ex: Quel vin pour du canard rôti ?',
+                      hintText: isFr ? 'Ex: Quel vin pour du canard rôti ?' : 'E.g.: Which wine for roasted duck?',
                       hintStyle: const TextStyle(fontSize: 13),
                       filled: true,
                       fillColor: isDark ? Colors.white10 : Colors.grey.shade50,

@@ -222,19 +222,7 @@ class Wine {
 
     // Auto-normalize spirits, liqueurs, and fortified wines misclassified in database
     String resolvedType = rawType;
-    if (combinedLower.contains('gin')) {
-      resolvedType = 'gin';
-    } else if (combinedLower.contains('vodka')) {
-      resolvedType = 'vodka';
-    } else if (combinedLower.contains('whisky') || combinedLower.contains('whiskey') || combinedLower.contains('bourbon') || combinedLower.contains('scotch')) {
-      resolvedType = 'whisky';
-    } else if (combinedLower.contains('rhum') || combinedLower.contains('rum')) {
-      resolvedType = 'rhum';
-    } else if (combinedLower.contains('cognac') || combinedLower.contains('armagnac') || combinedLower.contains('calvados')) {
-      resolvedType = 'cognac';
-    } else if (combinedLower.contains('tequila') || combinedLower.contains('mezcal')) {
-      resolvedType = 'tequila';
-    } else if (combinedLower.contains('italicus') ||
+    if (combinedLower.contains('italicus') ||
         combinedLower.contains('rosolio') ||
         combinedLower.contains('bénédictine') ||
         combinedLower.contains('benedictine') ||
@@ -254,6 +242,18 @@ class Wine {
         combinedLower.contains('pimm') ||
         combinedLower.contains('liqueur')) {
       resolvedType = 'liqueur';
+    } else if (RegExp(r'\bgin\b', caseSensitive: false).hasMatch(combinedLower)) {
+      resolvedType = 'gin';
+    } else if (combinedLower.contains('vodka')) {
+      resolvedType = 'vodka';
+    } else if (combinedLower.contains('whisky') || combinedLower.contains('whiskey') || combinedLower.contains('bourbon') || combinedLower.contains('scotch')) {
+      resolvedType = 'whisky';
+    } else if (combinedLower.contains('rhum') || combinedLower.contains('rum')) {
+      resolvedType = 'rhum';
+    } else if (combinedLower.contains('cognac') || combinedLower.contains('armagnac') || combinedLower.contains('calvados')) {
+      resolvedType = 'cognac';
+    } else if (combinedLower.contains('tequila') || combinedLower.contains('mezcal')) {
+      resolvedType = 'tequila';
     } else if (combinedLower.contains('pisco') ||
         combinedLower.contains('grappa') ||
         combinedLower.contains('eau de vie') ||

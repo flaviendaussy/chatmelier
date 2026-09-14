@@ -86,45 +86,48 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(56),
           child: Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            height: 56,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
             color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
             child: Row(
               children: [
-                const Icon(Icons.wine_bar, size: 18, color: Color(0xFF8B1E3F)),
+                const Icon(Icons.wine_bar, size: 22, color: Color(0xFF8B1E3F)),
                 const SizedBox(width: 8),
                 Text(
                   isFr ? 'Périmètre :' : 'Scope :',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.5),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                     decoration: BoxDecoration(
                       color: isDark ? Colors.grey.shade800 : Colors.white,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                        width: 1.2,
+                      ),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: selectedCellarId ?? 'overall',
                         isExpanded: true,
                         isDense: true,
-                        icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+                        icon: const Icon(Icons.keyboard_arrow_down, size: 22),
                         items: [
                           DropdownMenuItem(
                             value: 'overall',
                             child: Row(
                               children: [
-                                const Icon(Icons.public, size: 16, color: Color(0xFF8B1E3F)),
+                                const Icon(Icons.public, size: 18, color: Color(0xFF8B1E3F)),
                                 const SizedBox(width: 8),
                                 Flexible(
                                   child: Text(
                                     isFr ? 'Toutes mes caves (Global)' : 'All my cellars (Global / Overall)',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -139,12 +142,12 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                               value: id,
                               child: Row(
                                 children: [
-                                  const Icon(Icons.storefront, size: 16, color: Colors.grey),
+                                  const Icon(Icons.storefront, size: 18, color: Colors.grey),
                                   const SizedBox(width: 8),
                                   Flexible(
                                     child: Text(
                                       name,
-                                      style: const TextStyle(fontSize: 12.5),
+                                      style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),

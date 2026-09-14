@@ -26,6 +26,18 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
   late List<ReverseFoodPairing> _pairings;
   int _selectedPairingIndex = 0;
 
+  String get _langCode => Localizations.maybeLocaleOf(context)?.languageCode ?? 'fr';
+
+  String _t(String en, String es, String ca, String la, String fr) {
+    switch (_langCode) {
+      case 'en': return en;
+      case 'es': return es;
+      case 'ca': return ca;
+      case 'la': return la;
+      default: return fr;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +46,14 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
 
   void _askSommelierForRecipe(ReverseFoodPairing pairing) {
     final wineName = '${widget.wine.producer} ${widget.wine.name} ${widget.wine.vintage ?? ""}';
-    final prompt = 'Chatmelier, donne-moi la recette gastronomique complète et les secrets de chef pour cuisiner "${pairing.dishName}" afin de sublimer ma bouteille de $wineName (${widget.wine.region}, ${widget.wine.grapes.map((g) => g.name).join(", ")}). Explique les cuissons et accords moléculaires.';
+    final grapesStr = widget.wine.grapes.map((g) => g.name).join(", ");
+    final prompt = switch (_langCode) {
+      'en' => 'Chatmelier, please provide the complete gourmet recipe and chef secrets to cook "${pairing.dishName}" to elevate my bottle of $wineName (${widget.wine.region}, $grapesStr). Explain cooking temperatures and molecular pairings.',
+      'es' => 'Chatmelier, dame la receta gastronómica completa y los secretos de chef para cocinar "${pairing.dishName}" para ensalzar mi botella de $wineName (${widget.wine.region}, $grapesStr). Explica cocciones y maridajes moleculares.',
+      'ca' => 'Chatmelier, dóna\'m la recepta gastronòmica completa i els secrets de xef per cuinar "${pairing.dishName}" per sublimar la meva ampolla de $wineName (${widget.wine.region}, $grapesStr). Explica coccions i maridatges moleculars.',
+      'la' => 'Chatmelier, da mihi integram formulam culinariam et secreta coquendi pro "${pairing.dishName}" ad illustrandam lagenam meam de $wineName (${widget.wine.region}, $grapesStr).',
+      _ => 'Chatmelier, donne-moi la recette gastronomique complète et les secrets de chef pour cuisiner "${pairing.dishName}" afin de sublimer ma bouteille de $wineName (${widget.wine.region}, $grapesStr). Explique les cuissons et accords moléculaires.',
+    };
 
     Navigator.pop(context);
     context.go('/chat', extra: prompt);
@@ -95,7 +114,7 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Que cuisiner avec ce vin ?',
+                            _t('What to cook with this wine?', '¿Qué cocinar con este vino?', 'Què cuinar amb aquest vi?', 'Quid coquendum cum hoc vino?', 'Que cuisiner avec ce vin ?'),
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
@@ -130,7 +149,7 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
                   children: [
                     // Horizontal Tab Selector for Suggested Dishes
                     Text(
-                      'RECETTES IDÉALES EN ACCORD MAJEUR',
+                      _t('IDEAL RECIPES & MASTER PAIRINGS', 'RECETAS IDEALES EN MARIDAJE MAYOR', 'RECEPTES IDEALS EN MARIDATGE MAJOR', 'PRAECEPTA COQUINARIA OPTIMA', 'RECETTES IDÉALES EN ACCORD MAJEUR'),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: const Color(0xFFD4AF37),
                         fontWeight: FontWeight.bold,
@@ -218,7 +237,7 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
-                                    currentPairing.affinityLevel,
+                                    currentPairing.localizedAffinityLevel(_langCode),
                                     style: const TextStyle(
                                       color: Color(0xFFD4AF37),
                                       fontWeight: FontWeight.bold,
@@ -231,7 +250,7 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
                                     const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 16),
                                     const SizedBox(width: 4),
                                     Text(
-                                      '${currentPairing.affinityPct}% Affinité',
+                                      '${currentPairing.affinityPct}% ${_t("Affinity", "Afinidad", "Afinitat", "Affinitas", "Affinité")}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFFD4AF37),
@@ -258,7 +277,7 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
 
                             // Key Ingredients
                             Text(
-                              'INGRÉDIENTS CLÉS & RÉSONANCES',
+                              _t('KEY INGREDIENTS & RESONANCES', 'INGREDIENTES CLAVE Y RESONANCIAS', 'INGREDIENTS CLAU I RESONÀNCIES', 'ELEMENTA PRAECIPUA & RESONANTIAE', 'INGRÉDIENTS CLÉS & RÉSONANCES'),
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
@@ -305,9 +324,9 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Text(
-                                          'Secret de Cuisson du Chef :',
-                                          style: TextStyle(
+                                        Text(
+                                          _t("Chef's Cooking Secret:", "Secreto de Cocina del Chef:", "Secret de Cuina del Xef:", "Secretum Coquinandi Magistri:", "Secret de Cuisson du Chef :"),
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 12,
                                             color: Color(0xFF8B1E3F),
@@ -344,9 +363,9 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Text(
-                                          'Pourquoi l\'accord fonctionne (Science & Molécules) :',
-                                          style: TextStyle(
+                                        Text(
+                                          _t("Why the pairing works (Science & Molecules):", "¿Por qué funciona el maridaje? (Ciencia y Moléculas):", "Per què funciona el maridatge? (Ciència i Molècules):", "Cur concordantia valet (Scientia & Moleculae):", "Pourquoi l'accord fonctionne (Science & Molécules) :"),
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 12,
                                             color: Color(0xFFD4AF37),
@@ -381,9 +400,9 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
                             elevation: 2,
                           ),
                           icon: const Text('👨‍🍳', style: TextStyle(fontSize: 18)),
-                          label: const Text(
-                            'Demander la recette complète à Chatmelier',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          label: Text(
+                            _t('Ask Chatmelier for the full recipe', 'Pedir la receta completa a Chatmelier', 'Demanar la recepta completa a Chatmelier', 'Roga integram formulam a Chatmelier', 'Demander la recette complète à Chatmelier'),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                           onPressed: () => _askSommelierForRecipe(currentPairing),
                         ),

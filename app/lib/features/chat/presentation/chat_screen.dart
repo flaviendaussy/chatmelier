@@ -14,7 +14,22 @@ import '../../offline/presentation/sync_provider.dart';
 import '../../offline/data/connectivity_service.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key});
+  final String? bottleId;
+  final String? wineName;
+  final String? vintage;
+  final String? producer;
+  final String? region;
+  final String? wineType;
+
+  const ChatScreen({
+    super.key,
+    this.bottleId,
+    this.wineName,
+    this.vintage,
+    this.producer,
+    this.region,
+    this.wineType,
+  });
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -52,14 +67,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (!_initialized) {
       _initialized = true;
       if (_messages.isEmpty) {
-        final l10n = AppLocalizations.of(context);
-        _messages.add(ChatMessage(
-          id: 'welcome',
-          role: 'assistant',
-          content: l10n?.chatGreeting ??
-              'Bonjour ! Je suis Chatmelier. Posez-moi vos questions sur les accords mets-vins, l\'apogée de vos bouteilles, ou demandez-moi des recommandations basées sur votre cave actuelle.',
-          createdAt: DateTime.now(),
-        ));
+        final isFr = Localizations.localeOf(context).languageCode == 'fr';
+        if (widget.wineName != null && widget.wineName!.isNotEmpty) {
+          final parts = [
+            if (widget.producer != null && widget.producer!.isNotEmpty) widget.producer!,
+            widget.wineName!,
+            if (widget.vintage != null && widget.vintage!.isNotEmpty) widget.vintage!,
+          ];
+          final wineTitle = parts.join(' ');
+          _messages.add(ChatMessage(
+            id: 'bottle_welcome',
+            role: 'assistant',
+            content: isFr
+                ? 'Bonjour ! Je suis prêt à vous conseiller sur ce $wineTitle 🍷. Que souhaitez-vous savoir ? Ses accords mets-vins idéaux, son potentiel de garde, son temps de carafage ou son terroir ?'
+                : 'Hello! I am ready to advise you on this $wineTitle 🍷. What would you like to know? Ideal food pairings, aging potential, decanting time, or its terroir?',
+            createdAt: DateTime.now(),
+          ));
+        } else {
+          final l10n = AppLocalizations.of(context);
+          _messages.add(ChatMessage(
+            id: 'welcome',
+            role: 'assistant',
+            content: l10n?.chatGreeting ??
+                'Bonjour ! Je suis Chatmelier. Posez-moi vos questions sur les accords mets-vins, l\'apogée de vos bouteilles, ou demandez-moi des recommandations basées sur votre cave actuelle.',
+            createdAt: DateTime.now(),
+          ));
+        }
       }
     }
   }
@@ -211,19 +244,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final stream = service.sendMessageStream(text, cellarId, languageCode: langCode);
       await for (final chunk in stream) {
         if (!mounted) break;
-        setState(() {
-          final idx = _messages.indexWhere((m) => m.id == assistantMsg.id);
-          if (idx != -1) {
-            _messages[idx] = ChatMessage(
-              id: assistantMsg.id,
-              role: 'assistant',
-              content: _messages[idx].content + chunk,
-              createdAt: assistantMsg.createdAt,
-            );
+        // Smooth typewriter pacing so user can naturally read AI stream
+        final words = chunk.split(' ');
+        for (int w = 0; w < words.length; w++) {
+          if (!mounted) break;
+          final word = words[w] + (w < words.length - 1 ? ' ' : '');
+          setState(() {
+            final idx = _messages.indexWhere((m) => m.id == assistantMsg.id);
+            if (idx != -1) {
+              _messages[idx] = ChatMessage(
+                id: assistantMsg.id,
+                role: 'assistant',
+                content: _messages[idx].content + word,
+                createdAt: assistantMsg.createdAt,
+              );
+            }
+          });
+          if (!_showScrollToBottom) {
+            _scrollToBottom();
           }
-        });
-        if (!_showScrollToBottom) {
-          _scrollToBottom();
+          if (words.length > 1) {
+            await Future.delayed(const Duration(milliseconds: 22));
+          }
         }
       }
     } catch (e) {
@@ -263,12 +305,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final isLargeScreen = Responsive.isTabletOrDesktop(context);
     final profiles = ref.watch(tasteProfilesListProvider).value ?? [];
     final names = profiles.map((p) => p.name).where((n) => n.trim().isNotEmpty && n != 'Moi').toList();
     final profileTooltip = names.isNotEmpty
-        ? 'Profils de Goût (${names.take(2).join(' & ')})'
-        : 'Profils de Goût & Invités';
+        ? (isFr ? 'Profils de Goût (${names.take(2).join(' & ')})' : 'Taste Profiles (${names.take(2).join(' & ')})')
+        : (isFr ? 'Profils de Goût & Invités' : 'Taste Profiles & Guests');
 
     return Scaffold(
       appBar: AppBar(
@@ -288,6 +331,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// 📱 Mobile Layout: Single-column chat stream with bottom input and chips
   Widget _buildMobileLayout() {
     final l10n = AppLocalizations.of(context);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final profiles = ref.watch(tasteProfilesListProvider).value ?? [];
     final names = profiles.map((p) => p.name).where((n) => n.trim().isNotEmpty && n != 'Moi').toList();
     final duoChipText = names.length >= 2
@@ -308,17 +352,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               children: [
                 const Icon(Icons.wifi_off, color: Colors.white, size: 18),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Mode Hors-Ligne : Chatmelier recherche du réseau...',
-                    style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                    isFr ? 'Mode Hors-Ligne : Chatmelier recherche du réseau...' : 'Offline Mode: Chatmelier is looking for network...',
+                    style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
                   ),
                 ),
                 InkWell(
                   onTap: () => ref.read(connectivityServiceProvider).checkConnection(),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    child: Text('Tester', style: TextStyle(color: Colors.white, decoration: TextDecoration.underline, fontSize: 12)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: Text(
+                      isFr ? 'Tester' : 'Retry',
+                      style: const TextStyle(color: Colors.white, decoration: TextDecoration.underline, fontSize: 12),
+                    ),
                   ),
                 ),
               ],
@@ -385,6 +432,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// 💻 Tablet & Desktop Layout: 2-Column Split Workspace
   Widget _buildLargeScreenLayout() {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final isOnline = ref.watch(isOnlineProvider);
 
     return Row(
@@ -402,17 +450,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     children: [
                       const Icon(Icons.wifi_off, color: Colors.white, size: 18),
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Mode Hors-Ligne : Chatmelier recherche du réseau...',
-                          style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                          isFr ? 'Mode Hors-Ligne : Chatmelier recherche du réseau...' : 'Offline Mode: Chatmelier is looking for network...',
+                          style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
                         ),
                       ),
                       InkWell(
                         onTap: () => ref.read(connectivityServiceProvider).checkConnection(),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          child: Text('Tester', style: TextStyle(color: Colors.white, decoration: TextDecoration.underline, fontSize: 12)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          child: Text(isFr ? 'Tester' : 'Retry', style: const TextStyle(color: Colors.white, decoration: TextDecoration.underline, fontSize: 12)),
                         ),
                       ),
                     ],
@@ -514,6 +562,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _buildContextSidebar() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final cellarId = ref.watch(currentCellarIdProvider);
     final bottlesAsync = ref.watch(bottlesProvider(cellarId));
     final profiles = ref.watch(tasteProfilesListProvider).value ?? [];
@@ -607,7 +656,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 return Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    'Aucune bouteille enregistrée dans cette cave.',
+                    isFr ? 'Aucune bouteille enregistrée dans cette cave.' : 'No bottles recorded in this cellar.',
                     style: TextStyle(
                         fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                   ),

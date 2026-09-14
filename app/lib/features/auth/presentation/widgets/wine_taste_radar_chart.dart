@@ -19,7 +19,7 @@ class RadarChartDataset {
   });
 
   List<double> get values =>
-      customValues ?? metrics?.toList() ?? const [5.0, 5.0, 5.0, 5.0, 5.0, 5.0];
+      customValues ?? metrics?.toList() ?? const [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0];
 }
 
 /// 🕸️ Interactive Multi-Layer Spider / Radar Chart for Wine Taste Profiles
@@ -76,6 +76,8 @@ class _WineTasteRadarChartState extends State<WineTasteRadarChart> with SingleTi
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final langCode = Localizations.maybeLocaleOf(context)?.languageCode ?? 'en';
+    final resolvedAxisLabels = widget.customAxisLabels ?? WineTasteRadarMetrics.localizedAxisLabels(langCode);
 
     return AnimatedBuilder(
       animation: _animation,
@@ -87,7 +89,7 @@ class _WineTasteRadarChartState extends State<WineTasteRadarChart> with SingleTi
             size: Size(widget.size, widget.size),
             painter: _RadarChartPainter(
               datasets: widget.datasets.where((d) => d.isVisible).toList(),
-              customAxisLabels: widget.customAxisLabels,
+              customAxisLabels: resolvedAxisLabels,
               animProgress: _animation.value,
               isDark: isDark,
               textColor: theme.colorScheme.onSurface,

@@ -30,6 +30,7 @@ class WineServiceAdvisor {
     required String? appellation,
     required String? producer,
     required String? wineName,
+    bool isFr = true,
   }) {
     final currentYear = DateTime.now().year;
     final age = vintage != null ? (currentYear - vintage).clamp(0, 100) : null;
@@ -37,6 +38,39 @@ class WineServiceAdvisor {
     final reg = (region ?? '').toLowerCase();
     final app = (appellation ?? '').toLowerCase();
     final name = '${wineName ?? ""} ${producer ?? ""}'.toLowerCase();
+
+    // 0. Spirits & Liqueurs
+    final isSpirit = type.contains('spirit') ||
+        type.contains('liqueur') ||
+        type.contains('whisky') ||
+        type.contains('whiskey') ||
+        type.contains('rhum') ||
+        type.contains('rum') ||
+        type.contains('gin') ||
+        type.contains('vodka') ||
+        type.contains('cognac') ||
+        type.contains('armagnac') ||
+        type.contains('calvados') ||
+        type.contains('tequila') ||
+        type.contains('mezcal') ||
+        type.contains('bourbon');
+
+    if (isSpirit) {
+      return WineServiceAdvice(
+        minTemp: 18,
+        maxTemp: 20,
+        tempLabel: '18°C - 20°C',
+        carafeMinutes: 0,
+        carafeLabel: isFr ? 'Service direct au verre' : 'Direct pour in tumbler/tulip',
+        decantingAdvice: isFr
+            ? 'Servir à température ambiante dans un verre tulipe ou Glencairn pour canaliser les vapeurs d\'alcool et concentrer les arômes sans brûlure.'
+            : 'Serve at cool room temperature in a tulip or Glencairn glass to concentrate delicate aromatics without excessive alcohol burn.',
+        glasswareType: isFr ? 'Verre tulipe à spiritueux / Verre Glencairn' : 'Spirits tulip glass / Glencairn glass',
+        detailedTip: isFr
+            ? 'Laisser respirer 2 à 3 minutes dans le verre avant la dégustation. Quelques gouttes d\'eau pure et fraîche peuvent ouvrir les arômes les plus complexes.'
+            : 'Let rest 2-3 minutes in the glass before tasting. A few drops of pure spring water can unlock hidden aromatic complexity.',
+      );
+    }
 
     // 1. Red Wines
     if (type.contains('red') || type.contains('rouge')) {
@@ -64,37 +98,49 @@ class WineServiceAdvisor {
 
       if (isPowerfulRed) {
         if (age != null && age >= 20) {
-          return const WineServiceAdvice(
+          return WineServiceAdvice(
             minTemp: 17,
             maxTemp: 18,
             tempLabel: '17°C - 18°C',
             carafeMinutes: 0,
-            carafeLabel: 'Pas de caravage',
-            decantingAdvice: 'Débouchage délicat 30-45 min avant le service. Éviter le caravage pour ne pas épuiser ses arômes tertiaires fragiles.',
-            glasswareType: 'Grand verre Bordeaux / Verre tulipe généreux',
-            detailedTip: 'Un grand vin ancien a besoin de douceur. Versez lentement en laissant le dépôt au fond de la bouteille.',
+            carafeLabel: isFr ? 'Pas de caravage' : 'No decanting needed',
+            decantingAdvice: isFr
+                ? 'Débouchage délicat 30-45 min avant le service. Éviter le caravage pour ne pas épuiser ses arômes tertiaires fragiles.'
+                : 'Delicate uncorking 30-45 min before service. Avoid decanting to preserve fragile tertiary aromas.',
+            glasswareType: isFr ? 'Grand verre Bordeaux / Verre tulipe généreux' : 'Large Bordeaux glass / Generous tulip glass',
+            detailedTip: isFr
+                ? 'Un grand vin ancien a besoin de douceur. Versez lentement en laissant le dépôt au fond de la bouteille.'
+                : 'A great mature wine requires gentleness. Pour slowly, leaving the fine sediment in the bottle.',
           );
         } else if (age != null && age >= 8) {
-          return const WineServiceAdvice(
+          return WineServiceAdvice(
             minTemp: 16,
             maxTemp: 18,
             tempLabel: '16°C - 18°C',
             carafeMinutes: 45,
-            carafeLabel: '45 min en carafe',
-            decantingAdvice: 'Caravage doux 45 minutes avant le service pour épanouir le bouquet sans brutaliser la texture soyeuse.',
-            glasswareType: 'Verre Bordeaux ample',
-            detailedTip: 'Laissez respirer à température ambiante fraîche (16-17°C).',
+            carafeLabel: isFr ? '45 min en carafe' : '45 min in decanter',
+            decantingAdvice: isFr
+                ? 'Caravage doux 45 minutes avant le service pour épanouir le bouquet sans brutaliser la texture soyeuse.'
+                : 'Gentle decanting 45 minutes before service to unfurl the bouquet without jarring its silky texture.',
+            glasswareType: isFr ? 'Verre Bordeaux ample' : 'Broad Bordeaux glass',
+            detailedTip: isFr
+                ? 'Laissez respirer à température ambiante fraîche (16-17°C).'
+                : 'Let it breathe at a cool room temperature (16-17°C).',
           );
         } else {
-          return const WineServiceAdvice(
+          return WineServiceAdvice(
             minTemp: 16,
             maxTemp: 17,
             tempLabel: '16°C - 17°C',
             carafeMinutes: 120,
-            carafeLabel: '2h en carafe évasée',
-            decantingAdvice: 'Caravage vigoureux 2 heures avant le repas dans une carafe à large base pour aérer et assouplir les tanins encore serrés.',
-            glasswareType: 'Verre Bordeaux grand format',
-            detailedTip: 'L\'oxygénation intensive va réveiller les arômes de fruits noirs et fondre la trame tannique.',
+            carafeLabel: isFr ? '2h en carafe évasée' : '2h in wide-bottom decanter',
+            decantingAdvice: isFr
+                ? 'Caravage vigoureux 2 heures avant le repas dans une carafe à large base pour aérer et assouplir les tanins encore serrés.'
+                : 'Vigorous decanting 2 hours before the meal in a broad-base decanter to aerate and soften tight tannins.',
+            glasswareType: isFr ? 'Verre Bordeaux grand format' : 'Large-format Bordeaux glass',
+            detailedTip: isFr
+                ? 'L\'oxygénation intensive va réveiller les arômes de fruits noirs et fondre la trame tannique.'
+                : 'Intensive aeration awakens dark fruit aromas and melts the youthful tannic structure.',
           );
         }
       }
@@ -112,39 +158,51 @@ class WineServiceAdvisor {
 
       if (isDelicateRed) {
         if (age != null && age >= 15) {
-          return const WineServiceAdvice(
+          return WineServiceAdvice(
             minTemp: 15,
             maxTemp: 16,
             tempLabel: '15°C - 16°C',
             carafeMinutes: 0,
-            carafeLabel: 'Service direct au verre',
-            decantingAdvice: 'Ouvrir 30 min avant sans carafer. Le Pinot Noir âgé révèle sa complexité directement dans un grand calice.',
-            glasswareType: 'Grand verre Bourgogne (forme ballon)',
-            detailedTip: 'La délicatesse du sous-bois et de la truffe s\'exprime pleinement sans passage en carafe.',
+            carafeLabel: isFr ? 'Service direct au verre' : 'Direct pour by the glass',
+            decantingAdvice: isFr
+                ? 'Ouvrir 30 min avant sans carafer. Le Pinot Noir âgé révèle sa complexité directement dans un grand calice.'
+                : 'Open 30 min ahead without decanting. Mature Pinot Noir reveals its complexity directly in a large bowl glass.',
+            glasswareType: isFr ? 'Grand verre Bourgogne (forme ballon)' : 'Large Burgundy glass (balloon bowl)',
+            detailedTip: isFr
+                ? 'La délicatesse du sous-bois et de la truffe s\'exprime pleinement sans passage en carafe.'
+                : 'Delicate forest floor and truffle notes express themselves best without decanting.',
           );
         } else {
-          return const WineServiceAdvice(
+          return WineServiceAdvice(
             minTemp: 14,
             maxTemp: 16,
             tempLabel: '14°C - 16°C',
             carafeMinutes: 30,
-            carafeLabel: '30 min d\'aération',
-            decantingAdvice: 'Aération douce 30 minutes en bouteille ou carafe étroite pour libérer la pureté du fruit rouge.',
-            glasswareType: 'Verre Bourgogne ballon',
-            detailedTip: 'Température idéale légèrement fraîche pour préserver l\'éclat et la tension aromatique.',
+            carafeLabel: isFr ? '30 min d\'aération' : '30 min aeration',
+            decantingAdvice: isFr
+                ? 'Aération douce 30 minutes en bouteille ou carafe étroite pour libérer la pureté du fruit rouge.'
+                : 'Gentle aeration 30 minutes in bottle or slender decanter to release vibrant red fruit purity.',
+            glasswareType: isFr ? 'Verre Bourgogne ballon' : 'Burgundy balloon glass',
+            detailedTip: isFr
+                ? 'Température idéale légèrement fraîche pour préserver l\'éclat et la tension aromatique.'
+                : 'Ideal slightly cool temperature to preserve brightness and aromatic tension.',
           );
         }
       }
 
-      return const WineServiceAdvice(
+      return WineServiceAdvice(
         minTemp: 15,
         maxTemp: 17,
         tempLabel: '15°C - 17°C',
         carafeMinutes: 45,
-        carafeLabel: '45 min en carafe',
-        decantingAdvice: 'Ouvrir 45 min à 1h avant la dégustation.',
-        glasswareType: 'Verre à vin rouge standard ou tulipe',
-        detailedTip: 'Servir légèrement rafraîchi pour sublimer l\'équilibre.',
+        carafeLabel: isFr ? '45 min en carafe' : '45 min in decanter',
+        decantingAdvice: isFr
+            ? 'Ouvrir 45 min à 1h avant la dégustation.'
+            : 'Uncork 45 min to 1 hour before serving.',
+        glasswareType: isFr ? 'Verre à vin rouge standard ou tulipe' : 'Standard red wine or tulip glass',
+        detailedTip: isFr
+            ? 'Servir légèrement rafraîchi pour sublimer l\'équilibre.'
+            : 'Serve slightly cool to enhance balance and freshness.',
       );
     }
 
@@ -163,81 +221,105 @@ class WineServiceAdvisor {
           name.contains('viognier');
 
       if (isRichWhite) {
-        return const WineServiceAdvice(
+        return WineServiceAdvice(
           minTemp: 11,
           maxTemp: 13,
           tempLabel: '11°C - 13°C',
           carafeMinutes: 30,
-          carafeLabel: '30 min en carafe fraîche',
-          decantingAdvice: 'Un passage en carafe fraîche 30 minutes libère les notes de noisette, brioche et fruits mûrs.',
-          glasswareType: 'Verre grand blanc / Bourgogne blanc',
-          detailedTip: 'Ne servez jamais un grand blanc glacé, le froid anesthésie sa minéralité et sa rondeur.',
+          carafeLabel: isFr ? '30 min en carafe fraîche' : '30 min in chilled decanter',
+          decantingAdvice: isFr
+              ? 'Un passage en carafe fraîche 30 minutes libère les notes de noisette, brioche et fruits mûrs.'
+              : 'Decanting 30 minutes in a chilled decanter releases notes of hazelnut, brioche, and ripe orchard fruit.',
+          glasswareType: isFr ? 'Verre grand blanc / Bourgogne blanc' : 'Large white wine / White Burgundy glass',
+          detailedTip: isFr
+              ? 'Ne servez jamais un grand blanc glacé, le froid anesthésie sa minéralité et sa rondeur.'
+              : 'Never serve a great white ice cold; excessive chill numbs minerality and roundness.',
         );
       }
 
-      return const WineServiceAdvice(
+      return WineServiceAdvice(
         minTemp: 9,
         maxTemp: 11,
         tempLabel: '9°C - 11°C',
         carafeMinutes: 0,
-        carafeLabel: 'Service direct frais',
-        decantingAdvice: 'Déboucher à la minute et maintenir au seau frais.',
-        glasswareType: 'Verre à blanc élancé',
-        detailedTip: 'Une belle fraîcheur fait ressortir les notes d\'agrumes et la vivacité minérale.',
+        carafeLabel: isFr ? 'Service direct frais' : 'Direct chilled service',
+        decantingAdvice: isFr
+            ? 'Déboucher à la minute et maintenir au seau frais.'
+            : 'Uncork upon serving and keep cool in an ice bucket.',
+        glasswareType: isFr ? 'Verre à blanc élancé' : 'Slender white wine glass',
+        detailedTip: isFr
+            ? 'Une belle fraîcheur fait ressortir les notes d\'agrumes et la vivacité minérale.'
+            : 'Crisp coolness highlights citrus zest and mineral vitality.',
       );
     }
 
     // 3. Sparkling / Champagne
     if (type.contains('sparkling') || type.contains('champagne') || type.contains('effervescent') || type.contains('bulles')) {
-      return const WineServiceAdvice(
+      return WineServiceAdvice(
         minTemp: 8,
         maxTemp: 10,
         tempLabel: '8°C - 10°C',
         carafeMinutes: 0,
-        carafeLabel: 'Service immédiat au seau',
-        decantingAdvice: 'Servir frais dans un verre tulipe pour laisser les bulles fines s\'exprimer sans perdre leur effervescence.',
-        glasswareType: 'Verre tulipe à Champagne (éviter les flûtes trop étroites ou coupes)',
-        detailedTip: 'Pour un grand millésimé vineux, servez plutôt à 10-11°C pour révéler toute son ampleur.',
+        carafeLabel: isFr ? 'Service immédiat au seau' : 'Immediate service from ice bucket',
+        decantingAdvice: isFr
+            ? 'Servir frais dans un verre tulipe pour laisser les bulles fines s\'exprimer sans perdre leur effervescence.'
+            : 'Serve chilled in a tulip glass to allow fine bubbles to breathe without flattening effervescence.',
+        glasswareType: isFr ? 'Verre tulipe à Champagne (éviter les flûtes trop étroites ou coupes)' : 'Champagne tulip glass (avoid overly narrow flutes or saucers)',
+        detailedTip: isFr
+            ? 'Pour un grand millésimé vineux, servez plutôt à 10-11°C pour révéler toute son ampleur.'
+            : 'For a rich vintage Champagne, serve slightly warmer at 10-11°C to unlock full complexity.',
       );
     }
 
     // 4. Rosé
     if (type.contains('rosé') || type.contains('rose')) {
-      return const WineServiceAdvice(
+      return WineServiceAdvice(
         minTemp: 8,
         maxTemp: 10,
         tempLabel: '8°C - 10°C',
         carafeMinutes: 0,
-        carafeLabel: 'Service direct',
-        decantingAdvice: 'Servir bien frais directement au seau à glace.',
-        glasswareType: 'Verre à vin blanc universel',
-        detailedTip: 'Idéal pour préserver le croquant du fruit et la vivacité florale.',
+        carafeLabel: isFr ? 'Service direct' : 'Direct chilled service',
+        decantingAdvice: isFr
+            ? 'Servir bien frais directement au seau à glace.'
+            : 'Serve well chilled directly from the wine bucket.',
+        glasswareType: isFr ? 'Verre à vin blanc universel' : 'Universal white wine glass',
+        detailedTip: isFr
+            ? 'Idéal pour préserver le croquant du fruit et la vivacité florale.'
+            : 'Ideal to preserve crisp berry fruit and floral brightness.',
       );
     }
 
     // 5. Sweet / Fortified (Sauternes, Port, Tokaji)
     if (type.contains('sweet') || type.contains('liquoreux') || type.contains('porto') || type.contains('fortified')) {
-      return const WineServiceAdvice(
+      return WineServiceAdvice(
         minTemp: 7,
         maxTemp: 9,
         tempLabel: '7°C - 9°C',
         carafeMinutes: 15,
-        carafeLabel: '15 min d\'aération fraîche',
-        decantingAdvice: 'Servir très frais. Le froid compense la richesse en sucres et sublime la fraîcheur acidulée.',
-        glasswareType: 'Petit verre tulipe ou verre à digestif',
-        detailedTip: 'Laissez le vin tempérer lentement dans le verre pour libérer les arômes de miel, d\'abricot et d\'épices.',
+        carafeLabel: isFr ? '15 min d\'aération fraîche' : '15 min cool aeration',
+        decantingAdvice: isFr
+            ? 'Servir très frais. Le froid compense la richesse en sucres et sublime la fraîcheur acidulée.'
+            : 'Serve very cold. Chill balances residual sweetness and brings forward refreshing acidity.',
+        glasswareType: isFr ? 'Petit verre tulipe ou verre à digestif' : 'Small tulip or dessert wine glass',
+        detailedTip: isFr
+            ? 'Laissez le vin tempérer lentement dans le verre pour libérer les arômes de miel, d\'abricot et d\'épices.'
+            : 'Let wine warm gently in the glass to release intoxicating aromas of honey, candied apricot, and saffron.',
       );
     }
 
-    return const WineServiceAdvice(
+    return WineServiceAdvice(
       minTemp: 14,
       maxTemp: 16,
       tempLabel: '14°C - 16°C',
       carafeMinutes: 30,
-      carafeLabel: '30 min de repos',
-      decantingAdvice: 'Ouvrir 30 minutes avant le service.',
-      glasswareType: 'Verre à vin universel',
-      detailedTip: 'Servir à température de cave fraîche.',
+      carafeLabel: isFr ? '30 min de repos' : '30 min rest',
+      decantingAdvice: isFr
+          ? 'Ouvrir 30 minutes avant le service.'
+          : 'Uncork 30 minutes before serving.',
+      glasswareType: isFr ? 'Verre à vin universel' : 'Universal wine glass',
+      detailedTip: isFr
+          ? 'Servir à température de cave fraîche.'
+          : 'Serve at cool cellar temperature.',
     );
   }
 }

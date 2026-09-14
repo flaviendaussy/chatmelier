@@ -22,6 +22,18 @@ class TasteProfilesDialog extends ConsumerStatefulWidget {
 }
 
 class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
+  String get _langCode => Localizations.maybeLocaleOf(context)?.languageCode ?? 'fr';
+
+  String _t(String en, String es, String ca, String la, String fr) {
+    switch (_langCode) {
+      case 'en': return en;
+      case 'es': return es;
+      case 'ca': return ca;
+      case 'la': return la;
+      default: return fr;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -71,11 +83,11 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Profils de Goût & Co-Dégustateurs',
+                      _t('Taste Profiles & Tasting Buddies', 'Perfiles de Gusto y Co-Catadores', 'Perfils de Gust i Co-Tastadors', 'Profili Saporis & Co-Gustatores', 'Profils de Goût & Co-Dégustateurs'),
                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      'Le Chatmelier personnalise ses conseils pour vous et vos proches (ex: Caro)',
+                      _t('Chatmelier personalizes advice for you and your guests (e.g. Caro)', 'Chatmelier personaliza sus consejos para ti y tus invitados (ej: Caro)', 'Chatmelier personalitza els consells per a tu i els teus convidats (ex: Caro)', 'Chatmelier consilia tibi et hospitibus tuis adaptat (ex: Caro)', 'Le Chatmelier personnalise ses conseils pour vous et vos proches (ex: Caro)'),
                       style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                     ),
                   ],
@@ -95,14 +107,14 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               icon: const Icon(Icons.radar, color: Color(0xFF8B1E3F), size: 20),
-              label: const Row(
+              label: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Spider Chart des Goûts (Radar 3 Modes)',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    _t('Taste Spider Chart (3-Mode Radar)', 'Gráfico Radar de Gustos (3 Modos)', 'Gràfic Radar de Gusts (3 Modes)', 'Charta Araneae Saporum (3 Modi)', 'Spider Chart des Goûts (Radar 3 Modes)'),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
-                  Icon(Icons.arrow_forward_ios, size: 12),
+                  const Icon(Icons.arrow_forward_ios, size: 12),
                 ],
               ),
               onPressed: () {
@@ -160,7 +172,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                                       Row(
                                         children: [
                                           Text(
-                                            profile.isPrimary ? 'Moi ($userDisplayName)' : profile.name,
+                                            profile.isPrimary ? '${_t("Me", "Yo", "Jo", "Ego", "Moi")} ($userDisplayName)' : profile.name,
                                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                           ),
                                           if (profile.isPrimary) ...[
@@ -222,7 +234,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
-                                      'Évite : ${profile.dislikedCharacteristics.join(", ")}',
+                                      '${_t("Avoids: ", "Evita: ", "Evita: ", "Vitat: ", "Évite : ")}${profile.dislikedCharacteristics.join(", ")}',
                                       style: const TextStyle(fontSize: 11.5, color: Colors.red),
                                     ),
                                   ),
@@ -268,7 +280,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               icon: const Icon(Icons.person_add_alt_1),
-              label: const Text('Ajouter un profil (ex: Caro, Invité)', style: TextStyle(fontWeight: FontWeight.bold)),
+              label: Text(_t('Add a profile (e.g. Caro, Guest)', 'Añadir un perfil (ej: Caro, Invitado)', 'Afegir un perfil (ex: Caro, Convidat)', 'Adde profilum (ex: Caro, Hospes)', 'Ajouter un profil (ex: Caro, Invité)'), style: const TextStyle(fontWeight: FontWeight.bold)),
               onPressed: () => _showEditProfileSheet(null),
             ),
           ),
@@ -293,6 +305,16 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
   }
 
   Future<void> _showEditProfileSheet(TasteProfile? existing) async {
+    final lang = _langCode;
+    String t(String en, String es, String ca, String la, String fr) {
+      switch (lang) {
+        case 'en': return en;
+        case 'es': return es;
+        case 'ca': return ca;
+        case 'la': return la;
+        default: return fr;
+      }
+    }
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final notesCtrl = TextEditingController(text: existing?.notes ?? '');
     final typesCtrl = TextEditingController(text: existing?.favoriteTypes.join(', ') ?? '');
@@ -304,54 +326,54 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
       await showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(existing == null ? 'Nouveau profil' : 'Modifier ${existing.name}'),
+          title: Text(existing == null ? t('New profile', 'Nuevo perfil', 'Nou perfil', 'Novum profilum', 'Nouveau profil') : '${t("Edit", "Modificar", "Modificar", "Muta", "Modifier")} ${existing.name}'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Prénom / Nom *', hintText: 'ex: Caro'),
+                  decoration: InputDecoration(labelText: t('First / Last Name *', 'Nombre / Apellido *', 'Nom / Cognom *', 'Nomen / Cognomen *', 'Prénom / Nom *'), hintText: t('e.g. Caro', 'ej: Caro', 'ex: Caro', 'ex: Caro', 'ex: Caro')),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: typesCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Types & Couleurs préférés (séparés par virgule)',
-                    hintText: 'ex: Blanc sec, Rosé de Provence, Champagne',
+                  decoration: InputDecoration(
+                    labelText: t('Preferred Types & Colors (comma-separated)', 'Tipos y Colores preferidos (separados por coma)', 'Tipus i Colors preferits (separats per coma)', 'Genera & Colores praedilecti (commate discreti)', 'Types & Couleurs préférés (séparés par virgule)'),
+                    hintText: t('e.g. Dry white, Provence rosé, Champagne', 'ej: Blanco seco, Rosado de Provenza, Champán', 'ex: Blanc sec, Rosat de Provença, Xampany', 'ex: Album siccum, Rosatum Provinciae, Campania', 'ex: Blanc sec, Rosé de Provence, Champagne'),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: regionsCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Régions & Terroirs aimés',
-                    hintText: 'ex: Bourgogne, Rhône, Loire, Provence',
+                  decoration: InputDecoration(
+                    labelText: t('Favorite Regions & Terroirs', 'Regiones y Terruños favoritos', 'Regions i Terroirs favorits', 'Regiones & Terrena dilecta', 'Régions & Terroirs aimés'),
+                    hintText: t('e.g. Burgundy, Rhône, Loire, Provence', 'ej: Borgoña, Ródano, Loira, Provenza', 'ex: Borgonya, Roine, Loira, Provença', 'ex: Burgundia, Rhodanus, Liger, Provincia', 'ex: Bourgogne, Rhône, Loire, Provence'),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: grapesCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Cépages favoris',
+                  decoration: InputDecoration(
+                    labelText: t('Favorite Grape Varieties', 'Variedades de uva favoritas', 'Varietats de raïm preferides', 'Uvae praedilectae', 'Cépages favoris'),
                     hintText: 'ex: Pinot Noir, Chardonnay, Syrah',
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: dislikesCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Ce qu\'il / elle n\'aime pas',
-                    hintText: 'ex: Trop tannique, Boisé excessif',
+                  decoration: InputDecoration(
+                    labelText: t("Dislikes / Aversions", "Lo que no le gusta", "El que no li agrada", "Quae non placent", "Ce qu'il / elle n'aime pas"),
+                    hintText: t('e.g. Too tannic, excessive oak', 'ej: Demasiado tánico, roble excesivo', 'ex: Massa tànnic, roure excessiu', 'ex: Nimis tannicus, nimis quercus', 'ex: Trop tannique, Boisé excessif'),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: notesCtrl,
                   maxLines: 2,
-                  decoration: const InputDecoration(
-                    labelText: 'Notes & style général',
-                    hintText: 'ex: Aime les vins frais et fruités pour l\'apéritif...',
+                  decoration: InputDecoration(
+                    labelText: t('Notes & general style', 'Notas y estilo general', 'Notes i estil general', 'Notae & stylus generalis', 'Notes & style général'),
+                    hintText: t('e.g. Loves fresh and fruity wines for aperitif...', 'ej: Le gustan los vinos frescos y afrutados para el aperitivo...', 'ex: Li agraden els vins frescos i fruitats per a l\'aperitiu...', 'ex: Amat vina recentia et fructuosa...', 'ex: Aime les vins frais et fruités pour l\'apéritif...'),
                   ),
                 ),
               ],
@@ -360,7 +382,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Annuler'),
+              child: Text(t('Cancel', 'Cancelar', 'Cancel·lar', 'Abrogare', 'Annuler')),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -400,7 +422,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                 ref.invalidate(tasteProfilesListProvider);
                 if (ctx.mounted) Navigator.pop(ctx);
               },
-              child: const Text('Enregistrer'),
+              child: Text(t('Save', 'Guardar', 'Desar', 'Servare', 'Enregistrer')),
             ),
           ],
         ),

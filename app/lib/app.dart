@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'config/router.dart';
 import 'config/theme.dart';
 import 'l10n/app_localizations.dart';
+import 'shared/l10n/fallback_localizations_delegates.dart';
 import 'shared/providers/locale_provider.dart';
 import 'shared/providers/theme_provider.dart';
 import 'features/checkout/data/post_tasting_notification_service.dart';
@@ -27,7 +28,7 @@ class ChatmelierApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       locale: userLocale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: kAppLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       localeListResolutionCallback: (locales, supportedLocales) {
         if (locales == null || locales.isEmpty) {

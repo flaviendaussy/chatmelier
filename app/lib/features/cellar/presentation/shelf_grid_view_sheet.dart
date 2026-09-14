@@ -91,7 +91,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
     required List<Bottle> allBottles,
   }) async {
     final repo = ref.read(cellarRepositoryProvider);
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     // MODE 1: Bottle placement mode
     if (widget.bottleToPlace != null) {
@@ -348,7 +348,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                       style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
                       onPressed: () {
                         Navigator.of(ctx).pop();
-                        context.push('/bottle/${occupantBottle.id}');
+                        context.push('/cellar/bottle/${occupantBottle.id.trim()}');
                       },
                     ),
                   ),
@@ -695,7 +695,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     final furnitureAsync = ref.watch(cellarFurnitureProvider(widget.cellarId));
     final bottlesAsync = ref.watch(bottlesProvider(widget.cellarId));

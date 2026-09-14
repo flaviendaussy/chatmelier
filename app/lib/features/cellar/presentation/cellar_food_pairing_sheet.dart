@@ -34,12 +34,27 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
   final _searchController = TextEditingController();
   String? _selectedCategory;
   List<FoodPairingMatch> _matches = [];
+  bool _initialized = false;
+
+  String get _langCode => Localizations.maybeLocaleOf(context)?.languageCode ?? 'fr';
+
+  String _t(String en, String es, String ca, String la, String fr) {
+    switch (_langCode) {
+      case 'en': return en;
+      case 'es': return es;
+      case 'ca': return ca;
+      case 'la': return la;
+      default: return fr;
+    }
+  }
 
   @override
-  void initState() {
-    super.initState();
-    // Default search with first category
-    _selectCategory(WineFoodMatcher.categories.first);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      _selectCategory(WineFoodMatcher.categories.first);
+    }
   }
 
   @override
@@ -50,12 +65,14 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
 
   void _selectCategory(FoodPairingCategory cat) {
     HapticFeedback.selectionClick();
+    final firstDish = cat.getSampleDishes(_langCode).first;
     setState(() {
       _selectedCategory = cat.id;
-      _searchController.text = cat.sampleDishes.first;
+      _searchController.text = firstDish;
       _matches = WineFoodMatcher.findMatches(
         bottles: widget.bottles,
-        dishQuery: cat.sampleDishes.first,
+        dishQuery: firstDish,
+        lang: _langCode,
       );
     });
   }
@@ -67,6 +84,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
       _matches = WineFoodMatcher.findMatches(
         bottles: widget.bottles,
         dishQuery: dish,
+        lang: _langCode,
       );
     });
   }
@@ -77,6 +95,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
       _matches = WineFoodMatcher.findMatches(
         bottles: widget.bottles,
         dishQuery: query,
+        lang: _langCode,
       );
     });
   }
@@ -134,14 +153,14 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Quel vin pour votre plat ?',
+                        _t('What wine for your dish?', '¿Qué vino para tu plato?', 'Quin vi pel teu plat?', 'Quod vinum ad cibum tuum?', 'Quel vin pour votre plat ?'),
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Playfair Display',
                         ),
                       ),
                       Text(
-                        'Recherche intelligente dans "${widget.cellarName}" (${inCellarBottles.length} en stock)',
+                        '${_t("Smart cellar search in", "Búsqueda inteligente en", "Cerca intel·ligent a", "Quaesitio ingeniosa in", "Recherche intelligente dans")} "${widget.cellarName}" (${inCellarBottles.length} ${_t("in stock", "en stock", "en estoc", "in cella", "en stock")})',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: isDark ? Colors.white70 : Colors.black54,
                         ),
@@ -164,7 +183,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
               controller: _searchController,
               onChanged: _onSearchChanged,
               decoration: InputDecoration(
-                hintText: 'Ex: Bar de ligne, Magret de canard, Risotto...',
+                hintText: _t('e.g. Ribeye steak, Duck breast, Risotto, Salmon...', 'ej: Entrecot, Magret de pato, Risotto, Salmón...', 'ex: Entrecot, Magret d\'ànec, Risotto, Salmó...', 'ex: Bubula assa, Magret, Risotto, Salmo...', 'Ex: Bar de ligne, Magret de canard, Risotto...'),
                 prefixIcon: const Icon(Icons.search, color: Color(0xFFD4AF37)),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -200,7 +219,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
 
                 return ChoiceChip(
                   avatar: Text(cat.icon, style: const TextStyle(fontSize: 14)),
-                  label: Text(cat.label),
+                  label: Text(cat.localizedLabel(_langCode)),
                   selected: isSelected,
                   onSelected: (selected) {
                     if (selected) _selectCategory(cat);
@@ -237,10 +256,10 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: activeCategory.sampleDishes.length,
+                  itemCount: activeCategory.getSampleDishes(_langCode).length,
                   separatorBuilder: (_, __) => const SizedBox(width: 6),
                   itemBuilder: (context, idx) {
-                    final dish = activeCategory.sampleDishes[idx];
+                    final dish = activeCategory.getSampleDishes(_langCode)[idx];
                     final isCurrentDish = _searchController.text.trim().toLowerCase() == dish.toLowerCase();
 
                     return ActionChip(
@@ -273,30 +292,96 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
           // Matches list
           Expanded(
             child: _matches.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.wine_bar_outlined, size: 54, color: Colors.white24),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Aucun accord trouvé pour ce plat',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
+                ? SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.shield_outlined, size: 36, color: Color(0xFFD4AF37)),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          _t('No bottle in cellar matches', 'Ninguna botella en bodega coincide', 'Cap ampolla al celler no coincideix', 'Nulla lagena in cella convenit', 'Aucun flacon en cave ne convient'),
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Playfair Display',
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _t('Sommelier requirement (Threshold ≥ 60%): better to open nothing than an unsuitable bottle that would spoil your dish.',
+                             'Exigencia de sumiller (Umbral ≥ 60%): mejor no abrir nada que una botella inadecuada que desvirtúe el plato.',
+                             'Exigència de sommelier (Llindar ≥ 60%): val més no obrir res que una ampolla inadequada que espatlli el plat.',
+                             'Postulatio sommelier (Limes ≥ 60%): melius nihil aperire quam lagenam ineptam quae cibum corrumpat.',
+                             'Exigence sommelière (Seuil ≥ 60%) : mieux vaut ne rien ouvrir plutôt qu\'une bouteille inadaptée qui dénaturerait votre mets.'),
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isDark ? Colors.white70 : Colors.black87,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        // Sommelier Advice Card
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF2A2325) : const Color(0xFFF9F6F0),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
+                              width: 1,
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Essayez une autre recherche ou sélectionnez une catégorie ci-dessus.',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: isDark ? Colors.white60 : Colors.black54,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Text('💡', style: TextStyle(fontSize: 18)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _t("Chatmelier's Advice", "Consejo del Chatmelier", "Consell del Chatmelier", "Consilium Chatmelier", "Conseil du Chatmelier"),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: Color(0xFFD4AF37),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                WineFoodMatcher.getSommelierAdviceForDish(_searchController.text, _langCode),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _t('Try another search or select a category above.',
+                             'Pruebe otra búsqueda o seleccione una categoría arriba.',
+                             'Proveu una altra cerca o seleccioneu una categoria a dalt.',
+                             'Aliam quaestionem tenta aut categoriam supra elige.',
+                             'Essayez une autre recherche ou sélectionnez une catégorie ci-dessus.'),
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isDark ? Colors.white38 : Colors.black38,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 : ListView.separated(
@@ -477,7 +562,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                                   const SizedBox(width: 8),
                                   TextButton.icon(
                                     icon: const Icon(Icons.arrow_forward, size: 14),
-                                    label: const Text('Voir fiche'),
+                                    label: Text(_t('View wine', 'Ver ficha', 'Veure fitxa', 'Vide lagenam', 'Voir fiche')),
                                     style: TextButton.styleFrom(
                                       foregroundColor: const Color(0xFFD4AF37),
                                       visualDensity: VisualDensity.compact,

@@ -39,6 +39,7 @@ class GaussianDrinkingCurve extends StatelessWidget {
       explicitPeakEnd: wine.peakEnd,
     );
 
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final vintage = window.vintage;
     final drinkStart = window.drinkStart;
     final drinkEnd = window.drinkEnd;
@@ -53,24 +54,34 @@ class GaussianDrinkingCurve extends StatelessWidget {
 
     switch (status) {
       case DrinkWindowStatus.tooYoung:
-        badgeText = 'TROP JEUNE';
-        statusDescription = 'Trop jeune pour être apprécié à son plein potentiel. Laisser reposer en cave.';
+        badgeText = isFr ? 'TROP JEUNE' : 'TOO YOUNG';
+        statusDescription = isFr
+            ? 'Trop jeune pour être apprécié à son plein potentiel. Laisser reposer en cave.'
+            : 'Too young to be enjoyed at its full potential. Let it rest in cellar.';
         break;
       case DrinkWindowStatus.aging:
-        badgeText = 'EN GARDE';
-        statusDescription = 'En période de garde et d\'élevage. Le vin affine ses tanins et sa complexité.';
+        badgeText = isFr ? 'EN GARDE' : 'AGING';
+        statusDescription = isFr
+            ? 'En période de garde et d\'élevage. Le vin affine ses tanins et sa complexité.'
+            : 'In aging and maturation phase. The wine is softening its tannins and developing complexity.';
         break;
       case DrinkWindowStatus.inPeak:
-        badgeText = 'À L\'APOGÉE ✨';
-        statusDescription = 'Actuellement dans sa fenêtre d\'apogée idéale ! Équilibre parfait. 🍷';
+        badgeText = isFr ? 'À L\'APOGÉE ✨' : 'AT PEAK ✨';
+        statusDescription = isFr
+            ? 'Actuellement dans sa fenêtre d\'apogée idéale ! Équilibre parfait. 🍷'
+            : 'Currently in its ideal drinking peak! Perfect balance. 🍷';
         break;
       case DrinkWindowStatus.drinkSoon:
-        badgeText = 'À BOIRE ⏰';
-        statusDescription = 'À consommer prochainement pour profiter de toute sa fraîcheur et de son fruit.';
+        badgeText = isFr ? 'À BOIRE ⏰' : 'DRINK SOON ⏰';
+        statusDescription = isFr
+            ? 'À consommer prochainement pour profiter de toute sa fraîcheur et de son fruit.'
+            : 'Consume soon to enjoy all of its freshness and fruit expression.';
         break;
       case DrinkWindowStatus.pastPeak:
-        badgeText = 'PASSÉ L\'APOGÉE ⚠️';
-        statusDescription = 'Apogée dépassée. À déguster sans tarder pour apprécier les arômes tertiaires.';
+        badgeText = isFr ? 'PASSÉ L\'APOGÉE ⚠️' : 'PAST PEAK ⚠️';
+        statusDescription = isFr
+            ? 'Apogée dépassée. À déguster sans tarder pour apprécier les arômes tertiaires.'
+            : 'Past peak. Taste without delay to appreciate tertiary aromas.';
         break;
     }
 
@@ -85,7 +96,7 @@ class GaussianDrinkingCurve extends StatelessWidget {
                 const Icon(Icons.auto_graph, size: 18, color: Color(0xFF8B1E3F)),
                 const SizedBox(width: 6),
                 Text(
-                  'Courbe de Maturité & Apogée',
+                  isFr ? 'Courbe de Maturité & Apogée' : 'Maturity & Drinking Window Curve',
                   style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -120,6 +131,7 @@ class GaussianDrinkingCurve extends StatelessWidget {
               primaryColor: const Color(0xFF8B1E3F),
               goldColor: const Color(0xFFD4AF37),
               isDark: isDark,
+              isFr: isFr,
             ),
           ),
         ),
@@ -150,6 +162,7 @@ class GaussianDrinkingCurve extends StatelessWidget {
   }
 
   Widget _buildNonVintageView(BuildContext context, ThemeData theme, bool isDark) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     const goldColor = Color(0xFFD4AF37);
     const burgColor = Color(0xFF8B1E3F);
 
@@ -164,7 +177,7 @@ class GaussianDrinkingCurve extends StatelessWidget {
                 const Icon(Icons.wine_bar, size: 18, color: goldColor),
                 const SizedBox(width: 6),
                 Text(
-                  'Maturité & Garde (Non Millésimé)',
+                  isFr ? 'Maturité & Garde (Non Millésimé)' : 'Maturity & Aging (Non-Vintage)',
                   style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -176,14 +189,14 @@ class GaussianDrinkingCurve extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.green.withValues(alpha: 0.5)),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.check_circle, size: 12, color: Colors.green),
-                  SizedBox(width: 4),
+                  const Icon(Icons.check_circle, size: 12, color: Colors.green),
+                  const SizedBox(width: 4),
                   Text(
-                    'PRÊT À BOIRE ✨',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green),
+                    isFr ? 'PRÊT À BOIRE ✨' : 'READY TO DRINK ✨',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green),
                   ),
                 ],
               ),
@@ -219,12 +232,12 @@ class GaussianDrinkingCurve extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Cuvée Sans Millésime (NM)',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        Text(
+                          isFr ? 'Cuvée Sans Millésime (NM)' : 'Non-Vintage Cuvee (NV)',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                         Text(
-                          'Assemblage équilibré multi-années',
+                          isFr ? 'Assemblage équilibré multi-années' : 'Balanced multi-vintage blend',
                           style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black54),
                         ),
                       ],
@@ -234,7 +247,9 @@ class GaussianDrinkingCurve extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Par définition, les champagnes et vins non millésimés sont commercialisés à leur parfait équilibre par le chef de cave. Ils sont prêts à être savourés dès aujourd\'hui sans nécessiter de garde prolongée.',
+                isFr
+                    ? 'Par définition, les champagnes et vins non millésimés sont commercialisés à leur parfait équilibre par le chef de cave. Ils sont prêts à être savourés dès aujourd\'hui sans nécessiter de garde prolongée.'
+                    : 'By definition, non-vintage champagnes and wines are released at their perfect balance by the cellar master. They are ready to be enjoyed today without requiring extended cellar aging.',
                 style: TextStyle(fontSize: 12, height: 1.4, color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
               ),
               const SizedBox(height: 14),
@@ -250,12 +265,12 @@ class GaussianDrinkingCurve extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: burgColor.withValues(alpha: 0.2)),
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Dégustation Idéale', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: burgColor)),
-                          SizedBox(height: 2),
-                          Text('Dès à présent', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          Text(isFr ? 'Dégustation Idéale' : 'Ideal Tasting', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: burgColor)),
+                          const SizedBox(height: 2),
+                          Text(isFr ? 'Dès à présent' : 'Ready now', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -269,12 +284,12 @@ class GaussianDrinkingCurve extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: goldColor.withValues(alpha: 0.3)),
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Potentiel de cave', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: goldColor)),
-                          SizedBox(height: 2),
-                          Text('1 à 3 ans max', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          Text(isFr ? 'Potentiel de cave' : 'Cellar Potential', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: goldColor)),
+                          const SizedBox(height: 2),
+                          Text(isFr ? '1 à 3 ans max' : '1 to 3 yrs max', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -300,6 +315,7 @@ class _GaussianCurvePainter extends CustomPainter {
   final Color primaryColor;
   final Color goldColor;
   final bool isDark;
+  final bool isFr;
 
   _GaussianCurvePainter({
     required this.vintage,
@@ -312,6 +328,7 @@ class _GaussianCurvePainter extends CustomPainter {
     required this.primaryColor,
     required this.goldColor,
     required this.isDark,
+    this.isFr = true,
   });
 
   @override
@@ -507,10 +524,10 @@ class _GaussianCurvePainter extends CustomPainter {
       tp.paint(canvas, Offset(x - (tp.width / 2), baselineY + 5));
     }
 
-    drawYearLabel(vintage, 'Récolte');
-    if (drinkStart != vintage) drawYearLabel(drinkStart, 'Début');
-    drawYearLabel(peakStart, 'Apogée ✨', isGold: true);
-    if (drinkEnd != peakStart && drinkEnd != peakEnd) drawYearLabel(drinkEnd, 'Fin');
+    drawYearLabel(vintage, isFr ? 'Récolte' : 'Vintage');
+    if (drinkStart != vintage) drawYearLabel(drinkStart, isFr ? 'Début' : 'Start');
+    drawYearLabel(peakStart, isFr ? 'Apogée ✨' : 'Peak ✨', isGold: true);
+    if (drinkEnd != peakStart && drinkEnd != peakEnd) drawYearLabel(drinkEnd, isFr ? 'Fin' : 'End');
   }
 
   @override
@@ -521,6 +538,7 @@ class _GaussianCurvePainter extends CustomPainter {
         oldDelegate.peakStart != peakStart ||
         oldDelegate.peakEnd != peakEnd ||
         oldDelegate.currentYear != currentYear ||
-        oldDelegate.isDark != isDark;
+        oldDelegate.isDark != isDark ||
+        oldDelegate.isFr != isFr;
   }
 }

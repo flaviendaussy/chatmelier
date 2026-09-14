@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 class OwnerAvatar extends StatelessWidget {
@@ -23,15 +24,36 @@ class OwnerAvatar extends StatelessWidget {
         ? displayName![0].toUpperCase()
         : 'U';
 
-    final bool hasValidNetworkAvatar = avatarUrl != null &&
-        avatarUrl!.isNotEmpty &&
-        (avatarUrl!.startsWith('http://') || avatarUrl!.startsWith('https://'));
+    if (avatarUrl != null && avatarUrl!.isNotEmpty) {
+      // 1. Data URI Base64
+      if (avatarUrl!.startsWith('data:image')) {
+        try {
+          final b64 = avatarUrl!.split(',').last;
+          final bytes = base64Decode(b64);
+          return CircleAvatar(
+            radius: effectiveRadius,
+            backgroundImage: MemoryImage(bytes),
+          );
+        } catch (_) {}
+      }
 
-    if (hasValidNetworkAvatar) {
-      return CircleAvatar(
-        radius: effectiveRadius,
-        backgroundImage: NetworkImage(avatarUrl!),
-      );
+      // 2. Emoji preset avatar
+      if (avatarUrl!.startsWith('emoji:')) {
+        final emoji = avatarUrl!.substring('emoji:'.length);
+        return CircleAvatar(
+          radius: effectiveRadius,
+          backgroundColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+          child: Text(emoji, style: TextStyle(fontSize: effectiveRadius * 1.05)),
+        );
+      }
+
+      // 3. Network URL
+      if (avatarUrl!.startsWith('http://') || avatarUrl!.startsWith('https://')) {
+        return CircleAvatar(
+          radius: effectiveRadius,
+          backgroundImage: NetworkImage(avatarUrl!),
+        );
+      }
     }
 
     return CircleAvatar(

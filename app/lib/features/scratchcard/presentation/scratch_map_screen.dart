@@ -62,7 +62,33 @@ final allUserBottlesProvider = FutureProvider<List<Bottle>>((ref) async {
 enum MapTileTheme {
   darkMatter,
   openStreetMap,
+  satellite,
   topoRelief,
+}
+
+class _TerroirCluster {
+  final String region;
+  final String countryCode;
+  final String flag;
+  final LatLng center;
+  final List<ResolvedTerroirNode> nodes;
+
+  _TerroirCluster({
+    required this.region,
+    required this.countryCode,
+    required this.flag,
+    required this.center,
+    required this.nodes,
+  });
+
+  int get count => nodes.length;
+  int get ownedCount => nodes.fold(0, (sum, n) => sum + n.ownedCount);
+  int get drunkCount => nodes.fold(0, (sum, n) => sum + n.drunkCount);
+  int get unlockedCount => nodes.where((n) => n.isUnlocked).length;
+  bool get isMastered => unlockedCount == count && count > 0;
+  bool get isOwned => ownedCount > 0;
+  bool get isDrunk => drunkCount > 0;
+  bool get isUnlocked => unlockedCount > 0;
 }
 
 class ScratchMapScreen extends ConsumerStatefulWidget {
@@ -75,6 +101,7 @@ class ScratchMapScreen extends ConsumerStatefulWidget {
 class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   MapTileTheme _currentTileTheme = MapTileTheme.darkMatter;
+  double _currentZoom = 5.8;
   String _activeCountryCode = 'ALL';
   String _filterStatus = 'ALL'; // 'ALL', 'OWNED', 'DRUNK', 'UNLOCKED', 'LOCKED'
   String _searchQuery = '';
@@ -188,6 +215,76 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
     );
   }
 
+  List<_TerroirCluster> _buildClusters(List<ResolvedTerroirNode> nodes) {
+    final Map<String, List<ResolvedTerroirNode>> grouped = {};
+    for (final n in nodes) {
+      final key = '${n.node.countryCode}_${n.node.region}';
+      grouped.putIfAbsent(key, () => []).add(n);
+    }
+
+    final List<_TerroirCluster> clusters = [];
+    for (final list in grouped.values) {
+      if (list.isEmpty) continue;
+      double sumLat = 0;
+      double sumLon = 0;
+      for (final n in list) {
+        sumLat += n.node.center.latitude;
+        sumLon += n.node.center.longitude;
+      }
+      final center = LatLng(sumLat / list.length, sumLon / list.length);
+      clusters.add(
+        _TerroirCluster(
+          region: list.first.node.region,
+          countryCode: list.first.node.countryCode,
+          flag: list.first.node.flag,
+          center: center,
+          nodes: list,
+        ),
+      );
+    }
+    return clusters;
+  }
+
+  String _getCountryLabel(String code) {
+    switch (code) {
+      case 'ALL': return '🌍 Monde';
+      case 'FR': return '🇫🇷 France';
+      case 'IT': return '🇮🇹 Italie';
+      case 'ES': return '🇪🇸 Espagne';
+      case 'PT': return '🇵🇹 Portugal';
+      case 'US': return '🇺🇸 USA';
+      case 'AR': return '🇦🇷 Argentine';
+      case 'CL': return '🇨🇱 Chili';
+      case 'AU': return '🇦🇺 Océanie';
+      case 'ZA': return '🇿🇦 Af. du Sud';
+      default: return code;
+    }
+  }
+
+  String _getStatusLabel(String status, int total, int owned, int drunk, int unlocked) {
+    switch (status) {
+      case 'OWNED': return '🏷️ En Cave ($owned)';
+      case 'DRUNK': return '🍷 Dégusté ($drunk)';
+      case 'UNLOCKED': return '✨ Débloqué ($unlocked)';
+      case 'LOCKED': return '🔒 À découvrir (${total - unlocked})';
+      case 'ALL':
+      default:
+        return 'Tous les terroirs ($total)';
+    }
+  }
+
+  String _getShortStatusLabel(String status) {
+    switch (status) {
+      case 'OWNED': return '🏷️ Cave';
+      case 'DRUNK': return '🍷 Dégusté';
+      case 'UNLOCKED': return '✨ Débloqué';
+      case 'LOCKED': return '🔒 À découvrir';
+      case 'ALL':
+      default:
+        return 'Tous';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -236,6 +333,8 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
     final ownedCount = resolvedNodes.where((r) => r.isOwned).length;
     final drunkCount = resolvedNodes.where((r) => r.isDrunk).length;
     final completionPct = totalCount > 0 ? (unlockedCount / totalCount * 100).toStringAsFixed(0) : '0';
+
+    final clusters = _buildClusters(filteredNodes);
 
     return Scaffold(
       appBar: AppBar(
@@ -287,6 +386,16 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
                 ),
               ),
               const PopupMenuItem(
+                value: MapTileTheme.satellite,
+                child: Row(
+                  children: [
+                    Icon(Icons.satellite_alt_outlined, size: 18, color: Colors.blueAccent),
+                    SizedBox(width: 10),
+                    Text('Satellite HD (ArcGIS)'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
                 value: MapTileTheme.openStreetMap,
                 child: Row(
                   children: [
@@ -323,12 +432,21 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
                 // 1. FlutterMap GIS Engine
                 FlutterMap(
                   mapController: _mapController,
-                  options: const MapOptions(
-                    initialCenter: LatLng(46.6, 2.5),
+                  options: MapOptions(
+                    initialCenter: const LatLng(46.6, 2.5),
                     initialZoom: 5.8,
                     minZoom: 2.0,
                     maxZoom: 17.0,
-                    interactionOptions: InteractionOptions(
+                    onPositionChanged: (camera, hasGesture) {
+                      if ((camera.zoom >= 6.8 && _currentZoom < 6.8) ||
+                          (camera.zoom < 6.8 && _currentZoom >= 6.8) ||
+                          (_currentZoom - camera.zoom).abs() > 0.5) {
+                        setState(() {
+                          _currentZoom = camera.zoom;
+                        });
+                      }
+                    },
+                    interactionOptions: const InteractionOptions(
                       flags: InteractiveFlag.all,
                     ),
                   ),
@@ -341,57 +459,88 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
                       maxZoom: 19,
                     ),
 
-                    // Shaded Terroir Halos
-                    CircleLayer(
-                      circles: filteredNodes.map((r) {
-                        Color circleColor;
-                        if (r.isMastered) {
-                          circleColor = const Color(0xFFD4AF37).withValues(alpha: 0.22);
-                        } else if (r.isOwned) {
-                          circleColor = const Color(0xFF8B1E3F).withValues(alpha: 0.25);
-                        } else if (r.isDrunk) {
-                          circleColor = Colors.purple.withValues(alpha: 0.22);
-                        } else {
-                          circleColor = Colors.grey.withValues(alpha: 0.08);
-                        }
+                    if (_currentZoom < 6.8) ...[
+                      // Macro Regional Clusters
+                      CircleLayer(
+                        circles: clusters.map((c) {
+                          final isDiscovered = c.nodes.any((n) => n.isUnlocked);
+                          return CircleMarker(
+                            point: c.center,
+                            radius: 36,
+                            useRadiusInMeter: false,
+                            color: isDiscovered
+                                ? const Color(0xFF8B1E3F).withValues(alpha: 0.20)
+                                : Colors.white.withValues(alpha: 0.05),
+                            borderColor: isDiscovered
+                                ? const Color(0xFFD4AF37).withValues(alpha: 0.4)
+                                : Colors.white12,
+                            borderStrokeWidth: 1.2,
+                          );
+                        }).toList(),
+                      ),
+                      MarkerLayer(
+                        markers: clusters.map((c) {
+                          return Marker(
+                            point: c.center,
+                            width: 170,
+                            height: 44,
+                            alignment: Alignment.center,
+                            child: _buildClusterMarkerWidget(c, isDark),
+                          );
+                        }).toList(),
+                      ),
+                    ] else ...[
+                      // Micro Terroir Individual Halos & Pins
+                      CircleLayer(
+                        circles: filteredNodes.map((r) {
+                          Color circleColor;
+                          if (r.isMastered) {
+                            circleColor = const Color(0xFFD4AF37).withValues(alpha: 0.25);
+                          } else if (r.isOwned) {
+                            circleColor = const Color(0xFF8B1E3F).withValues(alpha: 0.25);
+                          } else if (r.isDrunk) {
+                            circleColor = Colors.purple.withValues(alpha: 0.22);
+                          } else {
+                            circleColor = Colors.grey.withValues(alpha: 0.08);
+                          }
 
-                        return CircleMarker(
-                          point: r.node.center,
-                          radius: r.isUnlocked ? 35 : 22,
-                          useRadiusInMeter: false,
-                          color: circleColor,
-                          borderColor: r.isUnlocked
-                              ? (r.isMastered ? const Color(0xFFD4AF37) : const Color(0xFF8B1E3F))
-                              : Colors.white24,
-                          borderStrokeWidth: r.isUnlocked ? 1.5 : 0.8,
-                        );
-                      }).toList(),
-                    ),
-
-                    // Interactive Markers
-                    MarkerLayer(
-                      markers: filteredNodes.map((r) {
-                        return Marker(
-                          point: r.node.center,
-                          width: r.isUnlocked ? 110 : 80,
-                          height: 52,
-                          alignment: Alignment.center,
-                          child: GestureDetector(
-                            onTap: () => _showTerroirDetails(r),
-                            child: _buildTerroirMarkerWidget(r, isDark),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                          return CircleMarker(
+                            point: r.node.center,
+                            radius: r.isUnlocked ? 22 : 14,
+                            useRadiusInMeter: false,
+                            color: circleColor,
+                            borderColor: r.isUnlocked
+                                ? (r.isMastered ? const Color(0xFFD4AF37) : const Color(0xFF8B1E3F))
+                                : Colors.white24,
+                            borderStrokeWidth: r.isUnlocked ? 1.5 : 0.8,
+                          );
+                        }).toList(),
+                      ),
+                      MarkerLayer(
+                        markers: filteredNodes.map((r) {
+                          return Marker(
+                            point: r.node.center,
+                            width: 110,
+                            height: 48,
+                            alignment: Alignment.center,
+                            child: GestureDetector(
+                              onTap: () => _showTerroirDetails(r),
+                              child: _buildTerroirMarkerWidget(r, isDark),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ],
                 ),
 
-                // 2. Top Navigation Bar (Country & Status quick filters)
+                // 2. Top Navigation Bar (Search + Unified Dropdown Bar)
                 Positioned(
-                  top: 12,
+                  top: 10,
                   left: 12,
                   right: 12,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Search Bar Overlay
                       if (_showSearchBar)
@@ -433,48 +582,147 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
                           ),
                         ),
 
-                      // Horizontal Quick-Jump Country Bar
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildCountryChip('ALL', '🌍 Monde'),
-                            const SizedBox(width: 6),
-                            _buildCountryChip('FR', '🇫🇷 France'),
-                            const SizedBox(width: 6),
-                            _buildCountryChip('IT', '🇮🇹 Italie'),
-                            const SizedBox(width: 6),
-                            _buildCountryChip('ES', '🇪🇸 Espagne'),
-                            const SizedBox(width: 6),
-                            _buildCountryChip('PT', '🇵🇹 Portugal'),
-                            const SizedBox(width: 6),
-                            _buildCountryChip('US', '🇺🇸 USA'),
-                            const SizedBox(width: 6),
-                            _buildCountryChip('AR', '🇦🇷 Argentine'),
-                            const SizedBox(width: 6),
-                            _buildCountryChip('CL', '🇨🇱 Chili'),
-                            const SizedBox(width: 6),
-                            _buildCountryChip('AU', '🇦🇺 Océanie'),
-                            const SizedBox(width: 6),
-                            _buildCountryChip('ZA', '🇿🇦 Afrique du Sud'),
+                      // Sleek Compact Unified Filter Bar
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: (isDark ? const Color(0xFF181722) : Colors.white).withValues(alpha: 0.94),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.15)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.18),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      // Status Filters Bar
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _buildStatusFilterChip('ALL', 'Tous ($totalCount)'),
-                            const SizedBox(width: 6),
-                            _buildStatusFilterChip('OWNED', '🏷️ En Cave ($ownedCount)'),
-                            const SizedBox(width: 6),
-                            _buildStatusFilterChip('DRUNK', '🍷 Dégustés ($drunkCount)'),
-                            const SizedBox(width: 6),
-                            _buildStatusFilterChip('UNLOCKED', '✨ Débloqués ($unlockedCount)'),
-                            const SizedBox(width: 6),
-                            _buildStatusFilterChip('LOCKED', '🔒 À découvrir (${totalCount - unlockedCount})'),
+                            // Country Menu
+                            PopupMenuButton<String>(
+                              initialValue: _activeCountryCode,
+                              onSelected: (code) => _selectCountry(code),
+                              tooltip: 'Filtrer par pays / région',
+                              color: isDark ? const Color(0xFF22212E) : Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              itemBuilder: (ctx) => [
+                                'ALL', 'FR', 'IT', 'ES', 'PT', 'US', 'AR', 'CL', 'AU', 'ZA',
+                              ].map((code) => PopupMenuItem(
+                                value: code,
+                                child: Text(_getCountryLabel(code), style: const TextStyle(fontSize: 13)),
+                              )).toList(),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: _activeCountryCode != 'ALL'
+                                      ? const Color(0xFF8B1E3F)
+                                      : (isDark ? Colors.white10 : Colors.grey.shade200),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _getCountryLabel(_activeCountryCode),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: _activeCountryCode != 'ALL' ? Colors.white : theme.colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Icon(
+                                      Icons.arrow_drop_down,
+                                      size: 15,
+                                      color: _activeCountryCode != 'ALL' ? Colors.white : theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            // Status Menu
+                            PopupMenuButton<String>(
+                              initialValue: _filterStatus,
+                              onSelected: (status) => setState(() => _filterStatus = status),
+                              tooltip: 'Filtrer par statut',
+                              color: isDark ? const Color(0xFF22212E) : Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              itemBuilder: (ctx) => [
+                                'ALL', 'OWNED', 'DRUNK', 'UNLOCKED', 'LOCKED',
+                              ].map((status) => PopupMenuItem(
+                                value: status,
+                                child: Text(_getStatusLabel(status, totalCount, ownedCount, drunkCount, unlockedCount), style: const TextStyle(fontSize: 13)),
+                              )).toList(),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: _filterStatus != 'ALL'
+                                      ? const Color(0xFFD4AF37).withValues(alpha: 0.25)
+                                      : (isDark ? Colors.white10 : Colors.grey.shade200),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: _filterStatus != 'ALL' ? const Color(0xFFD4AF37) : Colors.transparent,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _filterStatus == 'ALL'
+                                          ? 'Tous ($totalCount)'
+                                          : _getShortStatusLabel(_filterStatus),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: _filterStatus != 'ALL' ? const Color(0xFFD4AF37) : theme.colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Icon(
+                                      Icons.arrow_drop_down,
+                                      size: 15,
+                                      color: _filterStatus != 'ALL' ? const Color(0xFFD4AF37) : theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            if (_activeCountryCode != 'ALL' || _filterStatus != 'ALL') ...[
+                              const SizedBox(width: 2),
+                              IconButton(
+                                icon: const Icon(Icons.close, size: 15),
+                                tooltip: 'Réinitialiser filtres',
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
+                                onPressed: () {
+                                  setState(() {
+                                    _activeCountryCode = 'ALL';
+                                    _filterStatus = 'ALL';
+                                  });
+                                  _flyTo(_worldCenter, _worldZoom);
+                                },
+                              ),
+                            ],
+                            const Spacer(),
+                            // Zoom Indicator Badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: isDark ? Colors.black38 : Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                _currentZoom < 6.8 ? 'Régions' : 'Terroirs',
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -487,15 +735,15 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
                   bottom: 16,
                   left: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: (isDark ? const Color(0xFF141318) : Colors.white).withValues(alpha: 0.92),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: theme.dividerColor.withValues(alpha: 0.2)),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: theme.dividerColor.withValues(alpha: 0.15)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 8,
+                          color: Colors.black.withValues(alpha: 0.18),
+                          blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
                       ],
@@ -504,12 +752,12 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _buildLegendBullet(const Color(0xFFD4AF37), 'Cave & Dégusté 🌟'),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         _buildLegendBullet(const Color(0xFF8B1E3F), 'En Cave 🏷️'),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         _buildLegendBullet(Colors.purple.shade400, 'Dégusté 🍷'),
-                        const SizedBox(width: 12),
-                        _buildLegendBullet(Colors.grey.shade600, 'À explorer 🔒'),
+                        const SizedBox(width: 10),
+                        _buildLegendBullet(Colors.grey.shade500, 'À explorer 🔒'),
                       ],
                     ),
                   ),
@@ -535,76 +783,7 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
     );
   }
 
-  Widget _buildCountryChip(String code, String label) {
-    final isSelected = _activeCountryCode == code;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _selectCountry(code),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFF8B1E3F)
-                : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF22212C) : Colors.white).withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected ? const Color(0xFFD4AF37) : Colors.transparent,
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-              color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildStatusFilterChip(String status, String label) {
-    final isSelected = _filterStatus == status;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => setState(() => _filterStatus = status),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFFD4AF37).withValues(alpha: 0.25)
-                : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1922) : Colors.white).withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected ? const Color(0xFFD4AF37) : Colors.transparent,
-              width: 1,
-            ),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? const Color(0xFFD4AF37) : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildLegendBullet(Color color, String text) {
     return Row(
@@ -618,6 +797,79 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
         const SizedBox(width: 5),
         Text(text, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600)),
       ],
+    );
+  }
+
+  Widget _buildClusterMarkerWidget(_TerroirCluster cluster, bool isDark) {
+    final totalInCluster = cluster.nodes.length;
+    final unlockedInCluster = cluster.nodes.where((n) => n.isUnlocked).length;
+    final ownedInCluster = cluster.nodes.where((n) => n.isOwned).fold(0, (acc, n) => acc + n.ownedCount);
+    final isDiscovered = unlockedInCluster > 0;
+
+    return GestureDetector(
+      onTap: () => _flyTo(cluster.center, 8.5),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDiscovered
+                ? [const Color(0xFF8B1E3F), const Color(0xFF4A0E17)]
+                : [const Color(0xFF282733), const Color(0xFF1B1A24)],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDiscovered ? const Color(0xFFD4AF37) : Colors.white24,
+            width: 1.4,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDiscovered
+                  ? const Color(0xFFD4AF37).withValues(alpha: 0.28)
+                  : Colors.black.withValues(alpha: 0.35),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(cluster.flag, style: const TextStyle(fontSize: 13)),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                cluster.region,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5.5, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: isDiscovered ? const Color(0xFFD4AF37) : Colors.white24,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                ownedInCluster > 0
+                    ? '$totalInCluster ($ownedInCluster btl)'
+                    : '$totalInCluster',
+                style: TextStyle(
+                  color: isDiscovered ? Colors.black : Colors.white,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -708,6 +960,8 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
     switch (theme) {
       case MapTileTheme.darkMatter:
         return 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
+      case MapTileTheme.satellite:
+        return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
       case MapTileTheme.openStreetMap:
         return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
       case MapTileTheme.topoRelief:
@@ -719,6 +973,7 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
     switch (theme) {
       case MapTileTheme.darkMatter:
         return const ['a', 'b', 'c', 'd'];
+      case MapTileTheme.satellite:
       case MapTileTheme.openStreetMap:
         return const [];
       case MapTileTheme.topoRelief:

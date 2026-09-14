@@ -209,5 +209,525 @@
   "cocktailsMissingOne": "あと1つ不足",
   "cocktailsManagePantry": "バーの在庫管理",
   "cocktailsResetPantry": "在庫をリセット",
-  "defaultCellarName": "マイセラー"
+  "defaultCellarName": "マイセラー",
+  "save": "保存",
+  "continueAnyway": "そのまま続行",
+  "cellarDetected": "セラーを検出: ",
+  "proximityWifi": "Wi-Fi「{ssid}」に接続中",
+  "@proximityWifi": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      }
+    }
+  },
+  "proximityGps": "GPS位置（{distance}）を検出",
+  "@proximityGps": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "proximitySwitch": "切り替える",
+  "proximityIgnore": "無視する",
+  "proximitySwitchedSnack": "📍「{cellar}」に自動的に切り替えました",
+  "@proximitySwitchedSnack": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarTitle": "離れたセラーを検出",
+  "distantCellarWifiWarning": "現在、別のセラー「{cellar}」に関連付けられたWi-Fi「{ssid}」に接続されています。",
+  "@distantCellarWifiWarning": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarGpsWarning": "現在、「{cellar}」から約{distance}離れた場所にいます。",
+  "@distantCellarGpsWarning": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarAddConfirm": "{warning}\n\nそれでもこのボトルをセラー「{cellar}」に追加しますか？",
+  "@distantCellarAddConfirm": {
+    "placeholders": {
+      "warning": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "distantCellarCheckoutConfirm": "{warning}\n\nそれでもこのボトルをセラー「{cellar}」から出庫しますか？",
+  "@distantCellarCheckoutConfirm": {
+    "placeholders": {
+      "warning": {
+        "type": "String"
+      },
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "ratingExceptional": "🏆 傑出",
+  "ratingRemarkable": "✨ 素晴らしい",
+  "ratingVeryGood": "🍷 とても良い",
+  "ratingPleasant": "👍 心地よい",
+  "ratingPassable": "普通",
+  "checkoutWhoTasted": "誰と一緒にこのワインを楽しみましたか？",
+  "checkoutStockRemaining": "{producer} • 在庫: {qty} {qty, plural, =1{本} other{本}}",
+  "@checkoutStockRemaining": {
+    "placeholders": {
+      "producer": {
+        "type": "String"
+      },
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutAddGuest": "ゲストを追加",
+  "checkoutAddGuestHint": "名前を追加 (母、父...)",
+  "checkoutCloseAndTaste": "閉じてテイスティングを楽しむ 🍷",
+  "checkoutSommelierThinking": "ソムリエがテイスティングの物語を準備中...",
+  "checkoutAerationTimerActive": "⏱️ ロック画面でエアレーションタイマーが作動中！",
+  "checkoutStartAerationTimer": "タイマーを開始 ⏱️",
+  "checkoutAerationTimerTitle": "エアレーションタイマー",
+  "checkoutDelayedTonight": "今夜 22:00",
+  "checkoutDelayedTonightSub": "食後にゆっくりと余韻を振り返るのに最適",
+  "checkoutDelayedTomorrow": "明朝 11:00",
+  "checkoutDelayedTomorrowSub": "静かな時間にテイスティングの印象を記録",
+  "checkoutDelayedWeekend": "今週末 (土曜 11:00)",
+  "checkoutDelayedWeekendSub": "休日のリラックスした時間に",
+  "checkoutDelayedInTwoHours": "2時間後 ({time})",
+  "@checkoutDelayedInTwoHours": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutDelayedInTwoHoursSub": "テイスティング終了時のクイックリマインダー",
+  "checkoutDelayedCustom": "日時を指定...",
+  "reviewPackagingDetected": "パッケージを検出",
+  "reviewSingleBottleOnly": "いいえ、1本のみ",
+  "reviewMultipleBottlesConfirm": "はい、{count}本",
+  "@reviewMultipleBottlesConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewStockUpdatedSuccess": "🍾 在庫が正常に更新されました！（セラー内: {count}本）",
+  "@reviewStockUpdatedSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewVintageYear": "ヴィンテージ / 収穫年",
+  "reviewNonVintage": "スキップ / ノン・ヴィンテージ (NV)",
+  "reviewValidate": "確定する",
+  "reviewBottleAddedSuccess": "🍾「{name}」がセラーに正常に追加されました！",
+  "@reviewBottleAddedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewBottleAnalysis": "ボトルの分析",
+  "reviewDiscard": "破棄",
+  "reviewDiscardConfirmTitle": "入力を破棄しますか？",
+  "reviewContinueEditing": "編集を続ける",
+  "reviewDiscardWithoutSaving": "保存せずに破棄",
+  "reviewBottleDetails": "ボトルの詳細",
+  "reviewStockInCellar": "セラー内在庫",
+  "reviewStockAddition": "追加",
+  "reviewStockNewTotal": "新しい合計",
+  "reviewQuantityToAdd": "追加する数量:",
+  "reviewSeparateEntry": "別のエントリを作成（ラック/価格が異なる場合）",
+  "reviewRetryAi": "AI分析を再試行",
+  "reviewEnlarge": "拡大",
+  "reviewGeneralInfo": "基本情報",
+  "reviewOriginTerroir": "産地 & テロワール",
+  "reviewQuantityPurchase": "数量 & 購入情報",
+  "cellarWifiDetectedSuccess": "📡 Wi-Fiを検出して連携:「{ssid}」",
+  "@cellarWifiDetectedSuccess": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarWifiDetectionFailed": "Wi-Fiを検出できませんでした（位置情報を有効にするか手動入力してください）",
+  "cellarGpsCoordsCaptured": "📍 GPS座標を取得 ({lat}, {lon})",
+  "@cellarGpsCoordsCaptured": {
+    "placeholders": {
+      "lat": {
+        "type": "String"
+      },
+      "lon": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarGpsInaccessible": "GPS位置を取得できません。位置情報の権限を確認してください。",
+  "cellarCreatedSuccess": "✨ セラー「{cellar}」が正常に作成されました！",
+  "@cellarCreatedSuccess": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarCreationError": "作成エラー: {error}",
+  "@cellarCreationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarRadiusPrecise": "100 m（高精度）",
+  "cellarRadiusRecommended": "300 m（推奨）",
+  "cellarRadius500m": "500 m",
+  "cellarRadius1km": "1 km",
+  "cellarRadius3km": "3 km",
+  "cellarCreateButton": "セラーを作成",
+  "cellarUseCurrentGps": "現在のGPS位置を設定",
+  "cellarUpdatedSuccess": "✅ セラー「{cellar}」の設定を更新しました",
+  "@cellarUpdatedSuccess": {
+    "placeholders": {
+      "cellar": {
+        "type": "String"
+      }
+    }
+  },
+  "cellarUpdateError": "更新エラー: {error}",
+  "@cellarUpdateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "wineTypeRed": "赤ワイン 🍷",
+  "wineTypeWhite": "白ワイン 🥂",
+  "wineTypeRose": "ロゼワイン 🌸",
+  "wineTypeSparkling": "スパークリング 🍾",
+  "wineTypeDessert": "デザート / 極甘口 🍯",
+  "wineTypeLiqueur": "リキュール 🍯",
+  "wineTypeSpirit": "スピリッツ 🥃",
+  "wineTypeGrappa": "グラッパ 🍇",
+  "wineTypeEauDeVie": "フルーツブランデー 🍐",
+  "wineTypeWhisky": "ウイスキー 🥃",
+  "wineTypeRum": "ラム 🏴‍☠️",
+  "wineTypeGin": "ジン 🍸",
+  "wineTypeVodka": "ウォッカ 🧊",
+  "wineTypeTequila": "テキーラ 🌵",
+  "wineTypeCognac": "コニャック 🍷",
+  "cellarCreateTitle": "新しいセラーを作成",
+  "cellarManageTitle": "セラーの管理",
+  "cellarNameLabel": "セラー名 *",
+  "cellarNameHint": "例: 自宅セラー、別邸ワインセラー",
+  "cellarNameRequired": "名前を入力してください",
+  "cellarLocationLabel": "場所 / 都市 (任意)",
+  "cellarLocationHint": "例: 東京、ボルドー",
+  "cellarNicknameLabel": "ニックネーム / 設置部屋 (任意)",
+  "cellarNicknameHint": "例: 地下室、リビングワインセラー",
+  "cellarDescriptionLabel": "説明 (任意)",
+  "cellarDescriptionHint": "例: 温度14℃、湿度70%の地下セラー",
+  "cellarWifiLabel": "関連Wi-Fi (任意)",
+  "cellarWifiHint": "例: Home-Cellar-WiFi",
+  "cellarLinkCurrentWifi": "現在のWi-Fiを関連付ける",
+  "cellarCaptureCurrentWifiTooltip": "現在のWi-Fiを取得",
+  "cellarRadiusLabel": "GPS検出半径",
+  "cellarAutoDetectionHeader": "自動検出 & スマート切り替え",
+  "cellarAutoDetectionDesc": "Wi-FiネットワークまたはGPS座標を連携すると、その場所に到着した際に自動でセラーが切り替わります。",
+  "cellarLatitudeLabel": "緯度",
+  "cellarLongitudeLabel": "経度",
+  "checkoutGuidedTasting": "ガイド付きテイスティング",
+  "checkoutGuidedTastingShared": "一人ずつ、またはみんなで印象を共有",
+  "checkoutGuidedTastingSolo": "外観、香り、味わいを分析して味覚プロフィールを洗練",
+  "checkoutUncorkNowRateLater": "今すぐ抜栓、あとで評価",
+  "checkoutUncorkNowRateLaterSub": "即時出庫 • リマインダー時刻を選択 (今夜、明日...)",
+  "checkoutUncorkAeration": "抜栓 & エアレーションタイマー",
+  "checkoutUncorkAerationAdvised": "即時出庫 • {minutes}分のエアレーション推奨",
+  "checkoutUncorkAerationSub": "即時出庫 • デキャンタージュ / エアレーションタイマー",
+  "checkoutSommelierServiceAdvice": "ソムリエのサーヴィスアドバイス",
+  "checkoutHistoryAnecdotes": "物語 & エピソード",
+  "checkoutNoDecanting": "デキャンタージュ不要",
+  "checkoutStoryTitle": "このボトルの物語 📖",
+  "checkoutStorySubtitle": "食卓で語り合える魅力的なエピソード",
+  "checkoutStoryTerroir": "テロワール & ブドウ品種",
+  "checkoutStoryVintage": "ヴィンテージの物語",
+  "checkoutStoryTastingSecret": "テイスティングの秘密",
+  "checkoutStoryTableAnecdote": "テーブルでの小話",
+  "checkoutJournalArchivedNotice": "ご安心ください: このボトルは写真やメモとともにテイスティング日誌に大切に保存されます。",
+  "checkoutBottleUncorkedAerationSuccess": "ボトルを抜栓しました！エアレーションタイマー（{minutes}分）がロック画面で作動中です。",
+  "checkoutAerationDialogPrompt": "ボトルは即座に抜栓され出庫されます。テイスティング前のエアレーション時間を確認してください:",
+  "checkoutRateWine": "ワインを評価",
+  "checkoutStartTimerAction": "タイマー {minutes}分 ⏱️",
+  "checkoutAdviceAerationSnack": "ソムリエのアドバイス: {minutes}分のエアレーション。ロック画面タイマー準備完了。",
+  "checkoutAdviceReminderSnack": "印象を記録するためのリマインダーを設定しました。",
+  "checkoutBottleRemovedSuccess": "ボトルがセラーから出庫されました！",
+  "checkoutBottleRemovedReminder": "テイスティングをお楽しみください。{date}にリマインダーをお送りします。",
+  "checkoutWhoTastedSubtitle": "各参加者の味覚プロフィールが自動的に強化されます。",
+  "checkoutCellarOf": "{name}のセラー",
+  "checkoutStockBout": "在庫: {count}本",
+  "checkoutAddGuestDialogDesc": "このテイスティングに同席しているご家族やご友人を追加します（例: お母さん、お父さん、花子...）。",
+  "checkoutAddGuestNameLabel": "名前 / ニックネーム",
+  "checkoutDelayedSheetTitle": "抜栓してあとで評価",
+  "checkoutDelayedSheetSubtitle": "テイスティングの感想をいつ記録しますか？",
+  "checkoutDelayedTonightTime": "今夜 2時間後 ({time})",
+  "checkoutDelayedTonightFixed": "今夜 21:00",
+  "checkoutDateTonightLabel": "今夜 {time}",
+  "checkoutDateTomorrowLabel": "明日 {time}",
+  "checkoutDateCustomLabel": "{date} {time}",
+  "add": "追加",
+  "cellarWinesTab": "🍷 ワイン",
+  "cellarSpiritsTab": "🥃 スピリッツ",
+  "cellarPairWithDish": "料理に合うワインは？",
+  "cellarCollapseAll": "すべて折りたたむ",
+  "cellarExpandAll": "すべて展開",
+  "cellarSort": "並び替え",
+  "cellarCategories": "カテゴリー",
+  "cellarFavorites": "お気に入り",
+  "cellarGridView": "グリッド",
+  "cellarListView": "リスト",
+  "cellarClearFilters": "フィルターをクリア",
+  "cellarNoBottlesCategory": "このカテゴリーにボトルはありません",
+  "cellarNoBottlesCriteria": "条件に一致するボトルがありません",
+  "feedbackSheetTitle": "テスターフィードバック＆アノテーション",
+  "feedbackStylus": "ペン：",
+  "feedbackUndo": "最後の線を元に戻す",
+  "feedbackClear": "すべて消去",
+  "feedbackHint": "該当箇所を囲んで、フィードバックや不具合を記入してください...",
+  "feedbackSubmit": "レポートを送信",
+  "feedbackSubmitting": "送信中...",
+  "feedbackNoScreenshot": "スクリーンショットはありません",
+  "feedbackEmptyError": "コメントを追加するか、スクリーンショットに書き込んでください。",
+  "feedbackSuccess": "フィードバックありがとうございます！ 🍷 レポートを送信しました。",
+  "feedbackError": "送信エラー：{error}",
+  "@feedbackError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutFastExit": "アンケートなしでクイック出庫 ⚡",
+  "checkoutFastExitSubmitting": "出庫処理中...",
+  "checkoutRatingSubtitle": "テイスティング後の全体評価を入力",
+  "checkoutRecommendedBadge": "おすすめ",
+  "tastingWhoTastedTitle": "👥 誰がこのワインを試飲しましたか？",
+  "tastingWhoTastedSubtitle": "テイスターを選択してください。味覚プロファイルが自動的に学習されます。",
+  "tastingHowToTaste": "テイスティング方法",
+  "tastingEachTurn": "順番にテイスティング",
+  "tastingEachTurnDesc": "📱 スマホを回しながら: 各自が自分のペースで回答します。",
+  "tastingTogether": "みんなで一緒に",
+  "tastingTogetherDesc": "🥂 全員で話し合いながら1つのアンケートを完成させます。",
+  "tastingBlindMode": "ブラインドテイスティングモード",
+  "tastingBlindModeDesc": "ワイン名を伏せて、食卓でクイズを楽しんだ後に正解を発表！",
+  "tastingPrimaryProfile": "メインプロファイル",
+  "tastingAppInstalled": "アプリインストール済み 📱",
+  "tastingStepTastersTitle": "👥 テイスターの選択",
+  "tastingStepTastersSubtitle": "今夜ワインを分かち合うメンバーを選択してください。",
+  "tastingAddTaster": "テイスターを追加",
+  "tastingAddTasterHint": "ニックネームまたはお名前",
+  "tastingStepNezTitle": "👃 香り — アロマの表現",
+  "tastingStepNezSubtitle": "グラスを回して立ち上るアロマとニュアンスを感じ取ってください。",
+  "tastingAromaIntensity": "香りの強さ:",
+  "tastingAromaDiscreet": "🤫 穏やか・繊細",
+  "tastingAromaExplosive": "💥 華やか・力強い",
+  "tastingStepBoucheTitle": "⚖️ 味わい — バランス",
+  "tastingStepBoucheSubtitle": "口に含んだときのテクスチャーと調和を表現してください。",
+  "tastingAcidity": "酸味:",
+  "tastingAcidityFreshness": "酸味 & フレッシュ感:",
+  "tastingAcidityFlat": "🫠 穏やか / まろやか",
+  "tastingAciditySharp": "⚡ キレがある / シャープ",
+  "tastingTannins": "タンニン (渋み):",
+  "tastingTanninsSilky": "🧶 シルキー / 滑らか",
+  "tastingTanninsGrippy": "💪 骨格がある / 力強い",
+  "tastingMinerality": "ミネラル感 & 鮮感:",
+  "tastingMineralityRound": "🧈 まろやか / リッチ",
+  "tastingMineralityCrisp": "🪨 ミネラリー / 引き締まった",
+  "tastingEffervescence": "泡立ち:",
+  "tastingEffervescenceDelicate": "🫧 きめ細やか / 繊細",
+  "tastingEffervescenceVibrant": "🎆 快活 / クリーミー",
+  "tastingBody": "ボディ / 密度:",
+  "tastingBodyLight": "🍃 軽やか / エレガント",
+  "tastingBodyFull": "🏋️ 重厚 / フルボディ",
+  "tastingLength": "余韻 / 長さ:",
+  "tastingLengthShort": "⏱️ 短め",
+  "tastingLengthLong": "♾️ 長く続く余韻",
+  "tastingStepVerdictTitle": "✅ 総合判定",
+  "tastingBuyAgain": "このボトルをまた購入したいですか？",
+  "tastingBuyAgainYes": "🤩 ぜひ買いたい！",
+  "tastingBuyAgainMaybe": "🤔 機会があれば",
+  "tastingBuyAgainNo": "👎 今回は見送り",
+  "tastingIdealMoment": "このワインに最適なシーンは？",
+  "tastingMomentApero": "🥂 アペリティフ / 乾杯",
+  "tastingMomentMeal": "🍽️ カジュアルな食事",
+  "tastingMomentDinner": "🎩 特別なディナー",
+  "tastingMomentRomantic": "🕯️ ロマンチックな夜",
+  "tastingMomentSolo": "🧘 一人の贅沢な時間",
+  "tastingWhatLiked": "特に気に入った点:",
+  "tastingWhatDisliked": "少し気になった点:",
+  "tastingOccasionLabel": "シーン / 思い出 (任意) ✨",
+  "tastingOccasionHint": "例: 誕生日、記念日、友人との語らい...",
+  "tastingAddPhoto": "食卓の記念写真を追加 📸",
+  "tastingPhotoSaved": "写真が保存されました 📸",
+  "tastingStepImpressionTitle": "🎯 最終評価 & 印象",
+  "tastingStepImpressionSubtitle": "香りと味わいをじっくり堪能した後の総合評価をつけてください。",
+  "tastingOverallFeeling": "全体の印象:",
+  "tastingScoreOutOf10": "10点満点での評価:",
+  "tastingCompletedTitle": "テイスティング完了 & 記録完了！",
+  "tastingCompletedSubtitle": "味覚プロファイルが正常に更新されました ✨",
+  "tastingBottleRemoved": "ボトルが抜栓され、セラーから出庫されました",
+  "tastingConsultDebrief": "ソムリエのデブリーフィングを見る（隠れたニュアンス & テロワール）",
+  "tastingFinishButton": "完了 ✨",
+  "tastingNextTaster": "確定 → 次のテイスターへ",
+  "tastingConfirmAndFinish": "確定して終了 ✨",
+  "tastingQuitTitle": "アンケートを終了しますか？",
+  "tastingQuitMessage": "回答は保存されません。",
+  "tastingContinue": "続ける",
+  "tastingQuit": "終了する",
+  "tastingStartCount": "開始 ({count})",
+  "tastingProfileSynced": "{name}のアプリに同期しました ✨",
+  "tastingProfileEnriched": "味覚プロファイルが強化されました",
+  "tastingAcuityScoreSummary": "官能鋭敏度: {score}% • {praise}",
+  "tastingFlavorOriginsTitle": "香りの起源 & ワインの秘密",
+  "tastingFlavorOriginsSubtitle": "アロマ、色調、骨格がどこから生まれるのかを探求",
+  "tastingBlindQuizTitle": "ブラインドテイスティング・テーブルクイズ 🙈",
+  "tastingBlindQuizQ1": "1. 原産地（地域）はどこでしょう？ 🌍",
+  "tastingBlindQuizQ2": "2. 主なブドウ品種は何でしょう？ 🍇",
+  "tastingBlindQuizQ3": "3. 推定年数 / ヴィンテージは？ 📅",
+  "tastingBlindQuizQ4": "4. 推定価格帯は？ 💶",
+  "tastingBlindRevealTitle": "ミステリーボトルの正体発表 🍾",
+  "tastingBlindQuizScore": "ブラインドクイズ スコア: {score}/4 🎯",
+  "tastingDebriefTitle": "醸造学 & 分子デブリーフィング",
+  "tastingSensoryAcuity": "感覚の鋭敏度",
+  "tastingPrecision": "的中率 {score}%",
+  "tastingConcordanceTitle": "1. 一致度 & クリュの個性",
+  "tastingWhatYouDetected": "あなたが感じ取った要素:",
+  "tastingArchetypeSignature": "このワインの典型的な個性:",
+  "tastingHiddenNuancesTitle": "次の一杯で見つけたい繊細なニュアンス:",
+  "tastingPillarsTitle": "2. 醸造科学 & 分子構造",
+  "tastingPillarsSubtitle": "なぜこのワインはこの骨格、アロマ、色調を持つのか？",
+  "tastingChatWithSommelier": "Chatmelierでワイン造りの秘密をさらに深掘りする",
+  "aromaFruitsRouges": "赤系果実 (チェリー・イチゴ)",
+  "aromaFruitsNoirs": "黒系果実 (カシス・ブルーベリー)",
+  "aromaFruitsBlancs": "白系果実 (白桃・洋ナシ・リンゴ)",
+  "aromaAgrumes": "柑橘類 (レモン・グレープフルーツ)",
+  "aromaFloral": "フローラル (スミレ・バラ)",
+  "aromaVegetal": "植物・ハーブ (ピーマン・下草)",
+  "aromaEpicesDouces": "甘やかなスパイス (シナモン・ナツメグ)",
+  "aromaEpicesVives": "刺激的なスパイス (黒コショウ)",
+  "aromaBoise": "オーク・樽香 (ヴァニラ・トースト)",
+  "aromaBeurre": "バター・ブリオッシュ",
+  "aromaMineral": "ミネラル・火打石",
+  "aromaMiel": "蜂蜜・コンフィチュール",
+  "aromaChocolat": "チョコレート・カカオ",
+  "aromaFumee": "スモーク・燻製香",
+  "emojiDisliked": "いまいち",
+  "emojiMeh": "普通",
+  "emojiDecent": "まあまあ",
+  "emojiVeryGood": "とても良い",
+  "emojiLoved": "最高！",
+  "likedFreshness": "みずみずしいフレッシュ感",
+  "likedFruitiness": "ピュアな果実味",
+  "likedComplexity": "アロマの複雑さ",
+  "likedElegance": "エレガンス・気品",
+  "likedPower": "力強さ・豊かなボディ",
+  "likedSilky": "シルキーで滑らかな舌触り",
+  "likedOriginality": "個性的でユニークな魅力",
+  "likedFoodPairing": "お料理との絶妙な調和",
+  "likedMinerality": "引き締まったミネラル感",
+  "likedLength": "長く心に残る余韻",
+  "likedDisappointing": "特になし / 残念 😕",
+  "dislikedTooAcidic": "酸味が強すぎる",
+  "dislikedTooTannic": "渋み (タンニン) が強すぎる",
+  "dislikedTooOaked": "樽香 / ヴァニラが強すぎる",
+  "dislikedTooAlcoholic": "アルコール感が強すぎる",
+  "dislikedTooThin": "軽すぎる / 水っぽい",
+  "dislikedLacksFruit": "果実味が足りない",
+  "dislikedTooSweet": "甘すぎる",
+  "dislikedTooExpensive": "価格に見合わない",
+  "dislikedNothing": "文句なし、完璧でした！",
+  "tastingStepTasters": "テイスター",
+  "tastingStepNezNav": "香り",
+  "tastingStepBoucheNav": "味わい",
+  "tastingStepVerdictNav": "判定",
+  "tastingStepRatingNav": "総合評価",
+  "tastingBack": "戻る",
+  "tastingNext": "次へ",
+  "tastingSaving": "保存中...",
+  "tastingHeaderTitle": "テイスティングアンケート",
+  "tastingAnswersOf": "{name}の回答",
+  "tastingPassPhoneTo": "{name}にスマートフォンを渡してください 📱",
+  "tastingAnswersSavedTurn": "あなたの回答を記録しました。\n次は{name}の番です。",
+  "tastingDictateButton": "テーブルでの感想を音声入力 🎙️",
+  "tastingDictateHint": "自然に話すか入力してください。Chatmelier AIがアロマと味わいのバランスを自動補完します！",
+  "tastingDictateMicTip": "ヒント: キーボードのマイクボタンを押して声で入力できます！",
+  "tastingTakePhoto": "食卓の写真を撮影 📸",
+  "tastingChooseGallery": "ギャラリーから選択 🖼️",
+  "tastingConclaveSummary": "テイスティング結果のまとめ",
+  "tastingCellarMaster": "セラーマスター",
+  "tastingGuestTaster": "ゲストテイスター",
+  "tastingProfileTag": "プロファイル: {type}",
+  "tastingFreeTastingRecorded": "フリーテイスティングが記録されました。",
+  "tastingAppearanceLabel": "外観: {appearance}",
+  "tastingStructureLabel": "骨格: {structure} ({caudalies}コダリー)",
+  "tastingKeyMolecules": "主要分子: {molecules}",
+  "tastingKeyOrigin": "キー要素: {key}",
+  "tastingGrapesLabel": "ブドウ品種: {grapes}",
+  "tastingAromaAppliedByAI": "Chatmelier AIによってテイスティング印象が適用されました ✨",
+  "tastingBlindYourPredictions": "ブラインド予想のまとめ:",
+  "tastingBlindGuessCorrect": "正解です！ 🎯",
+  "tastingBlindMakePredictionsPrompt": "最後の正解発表の前に、みんなで予想を立ててみましょう！",
+  "tastingStartTaster": "さあ、始めましょう、{name}！ 🍷",
+  "tastingQuizBravo": "🎯 お見事！",
+  "tastingQuizWas": "(正解: {answer})",
+  "tastingDictateInputHint": "例: ベルナールは大絶賛で8.5点、下草とカシスの香り。キャロは7点で少し酸味が際立つと感じた...",
+  "tastingDictateAnalyzing": "分析中...",
+  "tastingDictateAnalyzeAndApply": "分析してシートに反映 ✨",
+  "tastingFormatExpress": "エクスプレス形式 (1ページ) ⚡",
+  "tastingFormatExpressDesc": "30秒で点数、主要アロマ、評価を入力",
+  "tastingFormatSommelier": "ソムリエ形式 (詳細) 🎓",
+  "tastingFormatSommelierDesc": "香り、口当たりのバランス、余韻、テロワールを徹底分析",
+  "tastingCaudalieTooltipTitle": "コダリー (Caudalie) とは？ ⏱️",
+  "tastingCaudalieTooltipBody": "1コダリー = 飲み込んだ（または吐き出した）後の香りの持続時間1秒間。\n• 1〜4コダリー：軽やかですっきりしたワイン\n• 5〜7コダリー：バランスの取れた素晴らしいワイン\n• 8〜12+コダリー：傑出した偉大なグラン・ヴァン！",
+  "tastingAddCustomAroma": "+ カスタムアロマ",
+  "tastingCustomAromaDialogTitle": "固有のアロマを追加",
+  "tastingCustomAromaHint": "例: スモーキーな火打石、野イチゴ、乾燥したバラ...",
+  "tastingFoodSynergyTitle": "料理との相性 (マリアージュ) 🍽️",
+  "tastingSynergySublime": "🤩 最高のマリアージュ",
+  "tastingSynergyHarmonious": "👍 調和している",
+  "tastingSynergyNeutral": "😐 普通 / 中立",
+  "tastingSynergyClashing": "⚡ ぶつかり合う",
+  "checkoutFastRatingTitle": "ワンタップ簡単評価 (任意):",
+  "checkoutActionTastingTitle": "このワインをテイスティング",
+  "checkoutActionTastingSubtitle": "エクスプレス (1ページ) または詳細ソムリエ形式",
+  "checkoutActionDeferredRemind": "あとでリマインド 🌙",
+  "checkoutActionAerationTimer": "エアレーションタイマー ⏱️",
+  "tastingQuestionnairesCompletedCount": "{count, plural, =0{アンケート未完了} =1{1件完了} other{{count}件完了}}"
 }

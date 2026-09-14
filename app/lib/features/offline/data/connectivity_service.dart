@@ -8,6 +8,7 @@ import '../../../shared/providers/cellar_provider.dart';
 class ConnectivityService {
   final Ref _ref;
   Timer? _timer;
+  Timer? _offlineDebounceTimer;
   bool _isChecking = false;
   bool _isAutoSyncing = false;
 
@@ -21,6 +22,8 @@ class ConnectivityService {
 
   void stopMonitoring() {
     _timer?.cancel();
+    _offlineDebounceTimer?.cancel();
+    _offlineDebounceTimer = null;
   }
 
   Future<bool> checkConnection() async {
@@ -37,20 +40,55 @@ class ConnectivityService {
           .get(Uri.parse('https://1.1.1.1/cdn-cgi/trace'))
           .timeout(const Duration(seconds: 4));
       final online = response.statusCode == 200;
-      _ref.read(isOnlineProvider.notifier).state = online;
 
       if (online) {
-        _triggerAutoSyncIfPending();
+        _handleOnline();
+      } else {
+        _handleOfflineCandidate();
       }
 
       return online;
     } catch (_) {
-      // If probe fails, fallback offline
-      _ref.read(isOnlineProvider.notifier).state = false;
-      return false;
+      // If probe fails, candidate for offline (debounced)
+      _handleOfflineCandidate();
+      return _ref.read(isOnlineProvider);
     } finally {
       _isChecking = false;
     }
+  }
+
+  void _handleOnline() {
+    _offlineDebounceTimer?.cancel();
+    _offlineDebounceTimer = null;
+    if (!_ref.read(isOnlineProvider)) {
+      _ref.read(isOnlineProvider.notifier).state = true;
+    }
+    _triggerAutoSyncIfPending();
+  }
+
+  void _handleOfflineCandidate() {
+    // If already officially offline, nothing to debounce
+    if (!_ref.read(isOnlineProvider)) return;
+
+    // If a debounce countdown is already active, don't restart it
+    if (_offlineDebounceTimer != null && _offlineDebounceTimer!.isActive) return;
+
+    // Wait 5s before officially dropping into offline mode
+    // Prevents false offline triggers when switching apps or on momentary network hiccup
+    _offlineDebounceTimer = Timer(const Duration(seconds: 5), () async {
+      try {
+        final response = await http
+            .get(Uri.parse('https://1.1.1.1/cdn-cgi/trace'))
+            .timeout(const Duration(seconds: 3));
+        if (response.statusCode == 200) {
+          _handleOnline();
+          return;
+        }
+      } catch (_) {}
+
+      // Still unreachable after 5 seconds debounce -> officially offline
+      _ref.read(isOnlineProvider.notifier).state = false;
+    });
   }
 
   Future<void> _triggerAutoSyncIfPending() async {

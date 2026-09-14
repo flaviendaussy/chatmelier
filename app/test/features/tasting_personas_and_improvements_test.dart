@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:chatmelier/features/checkout/data/post_tasting_notification_service.dart';
 import 'package:chatmelier/features/journal/data/tasting_ai_assistant_service.dart';
 import 'package:chatmelier/features/journal/domain/tasting_questionnaire_result.dart';
+import 'package:chatmelier/features/journal/domain/tasting_pedagogy_engine.dart';
+import 'package:chatmelier/features/cellar/domain/wine.dart';
 
 void main() {
   group('PostTastingNotificationService - Persona improvements', () {
@@ -193,6 +195,116 @@ void main() {
             summary.contains('Moyenne'),
         isTrue,
       );
+    });
+  });
+
+  group('Multi-Persona Tasting Enhancements (Express, Custom Aromas, Food Synergy, Pedagogy)', () {
+    const sampleChateauneuf = Wine(
+      id: 'wine-chateauneuf-du-pape',
+      name: 'Châteauneuf-du-Pape Rouge',
+      producer: 'Château de Beaucastel',
+      vintage: 2017,
+      type: 'red',
+      country: 'France',
+      region: 'Vallée du Rhône',
+      appellation: 'Châteauneuf-du-Pape AOC',
+      grapes: [
+        Grape(name: 'Grenache', pct: 70),
+        Grape(name: 'Mourvèdre', pct: 15),
+        Grape(name: 'Syrah', pct: 10),
+      ],
+      tastingNotes: 'Fruits noirs confits, garrigue sauvage, épices orientales et sous-bois.',
+    );
+
+    test('TastingQuestionnaireResult serializes and deserializes customAromas, foodPairingSynergy and isExpressMode', () {
+      final initial = TastingQuestionnaireResult(
+        profileId: 'taster-expert',
+        profileName: 'Jean-Luc (Sommelier)',
+        noteOutOf10: 9.5,
+        emojiImpression: 4,
+        perceivedAromas: const {'🫐 Fruits noirs', '🌶️ Poivre / Épices'},
+        customAromas: const ['Garrigue', 'Sous-bois'],
+        foodPairingSynergy: 'sublime',
+        isExpressMode: true,
+        aromaIntensity: 0.9,
+        acidity: 0.5,
+        tannins: 0.8,
+        body: 0.9,
+        length: 0.8,
+        wouldBuyAgain: 'yes',
+        idealMoment: 'diner_gastronomique',
+        whatLikedMost: const {'complexite', 'longueur'},
+        whatDislikedMost: const {},
+      );
+
+      final json = initial.toJson();
+      expect(json['custom_aromas'], equals(['Garrigue', 'Sous-bois']));
+      expect(json['food_pairing_synergy'], equals('sublime'));
+      expect(json['is_express_mode'], isTrue);
+
+      final reconstructed = TastingQuestionnaireResult.fromJson(json);
+      expect(reconstructed.customAromas, equals(['Garrigue', 'Sous-bois']));
+      expect(reconstructed.foodPairingSynergy, equals('sublime'));
+      expect(reconstructed.isExpressMode, isTrue);
+      expect(reconstructed.noteOutOf10, equals(9.5));
+      expect(reconstructed.profileName, equals('Jean-Luc (Sommelier)'));
+    });
+
+    test('TastingQuestionnaireResult backwards compatibility when JSON lacks new fields', () {
+      final legacyJson = <String, dynamic>{
+        'profile_id': 'legacy-user',
+        'profile_name': 'Sophie',
+        'note_out_of_10': 8.0,
+        'emoji_impression': 3,
+        'perceived_aromas': ['Cerise'],
+        'aroma_intensity': 0.7,
+      };
+
+      final result = TastingQuestionnaireResult.fromJson(legacyJson);
+      expect(result.customAromas, isEmpty);
+      expect(result.foodPairingSynergy, isNull);
+      expect(result.isExpressMode, isFalse);
+      expect(result.noteOutOf10, equals(8.0));
+      expect(result.profileName, equals('Sophie'));
+    });
+
+    test('TastingPedagogyEngine awards bonus and detects custom aromas matching wine notes (Picky Connoisseur)', () {
+      // Test without custom aromas
+      final baseReport = TastingPedagogyEngine.analyze(
+        wine: sampleChateauneuf,
+        userAromas: const ['🫐 Fruits noirs'],
+        userCaudalies: 8,
+        userRating: 9.0,
+      );
+
+      // Test with connoisseur custom aromas that match tasting notes (garrigue, sous-bois)
+      final connoisseurReport = TastingPedagogyEngine.analyze(
+        wine: sampleChateauneuf,
+        userAromas: const ['🫐 Fruits noirs'],
+        customAromas: const ['Garrigue', 'Sous-bois'],
+        userCaudalies: 8,
+        userRating: 9.0,
+      );
+
+      // Connoisseur should get a higher acuity score thanks to custom aroma precision
+      expect(connoisseurReport.acuityScore, greaterThan(baseReport.acuityScore));
+      expect(connoisseurReport.sommelierPraise, isNotEmpty);
+      expect(connoisseurReport.scientificPillars, isNotEmpty);
+    });
+
+    test('TastingPedagogyEngine handles express tasting inputs gracefully', () {
+      final expressReport = TastingPedagogyEngine.analyze(
+        wine: sampleChateauneuf,
+        userAromas: const ['🫐 Fruits noirs', '🌶️ Poivre / Épices'],
+        userStructure: 'Tanins fermes et puissants',
+        userRating: 8.5,
+      );
+
+      expect(expressReport.acuityScore, greaterThan(50));
+      expect(expressReport.archetypeAromas, isNotEmpty);
+      expect(expressReport.matchingAromas, isNotEmpty);
+      expect(expressReport.userStructure, equals('Tanins fermes et puissants'));
+      expect(expressReport.sommelierPraise, isNotEmpty);
     });
   });
 }

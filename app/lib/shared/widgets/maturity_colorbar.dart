@@ -28,7 +28,7 @@ class MaturityColorbar extends StatelessWidget {
       progress = ((currentYear - vintage) / (timelineEnd - vintage)).clamp(0.0, 1.0);
     }
 
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final status = wine.windowStatus;
     final statusText = isFr ? status.labelFr : status.labelEn;
     final statusColor = status.color;

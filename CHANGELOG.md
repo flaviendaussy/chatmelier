@@ -2,6 +2,99 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.3.2+65] — 2026-09-13
+
+### 🍷 Ce qui change pour vous / What's New for You
+- **🎬 Cérémonie Vidéo du Chatmelier & Révélation des Badges** :
+  - Intégration cinématographique du Chatmelier dévoilant ses médailles brodées sous son gilet de sommelier en velours bordeaux.
+  - Lecteur vidéo immersif avec halo or champagne, commandes de lecture/pause, sourdine et boucle continue.
+  - Accessible directement depuis la célébration de déblocage ou depuis chaque fiche de badge de la galerie.
+- **🏆 Expérience Gamifiée & Pop-up de Célébration Sommelière** :
+  - Nouvelle célébration animée haute définition lors du déblocage d'un badge : halo tournant or sommelier, rayons d'effervescence champagne et retours haptiques subtils.
+  - Possibilité de rejouer la célébration à tout moment depuis la galerie des badges.
+- **🍾 Moteur de Flacons Contributeurs (Zéro-Bloat)** :
+  - Découvrez exactement quelles bouteilles ou dégustations ont débloqué chaque badge.
+  - Volet coulissant avec recherche instantanée et pagination optimisée, conçu pour rester ultra-fluide même avec 500+ flacons.
+- **⚙️ Contrôle Total des Animations** :
+  - Option *"Ne plus afficher ces animations"* directement accessible sur la pop-up de célébration.
+  - Interrupteur dédié dans les Réglages du Profil pour activer ou désactiver les célébrations à volonté.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Vidéo & Multimédia (`chatmelier_badge_video_dialog.dart`, `video_player`)* : Ajout du package `video_player: ^2.9.2`, configuration du contrôleur d'assets vidéo `assets/videos/chatmelier_badge_reveal.mp4` avec boucle, mute, gestion d'erreurs et aspect ratio dynamique.
+- *Célébration (`badge_unlock_celebration_dialog.dart`, `badge_unlock_tracker.dart`)* : Moteur de suivi persistant dans `SharedPreferences` (`chatmelier_badge_celebration_animations_enabled`), détection sélective des nouveaux déblocages, prévention des alertes multiples lors de la première installation.
+- *Flacons contributeurs (`badge_evaluator.dart`)* : Récolte et conservation des `contributingItems` (titre du vin, millésime, appellation, catégorie) lors de l'évaluation des badges.
+- *Réglages (`profile_screen.dart`)* : Synchronisation de l'état d'animation des badges avec persistance locale instantanée.
+
+---
+
+## [v1.3.1+64] — 2026-09-13
+
+### 🍷 Ce qui change pour vous / What's New for You
+- **🏅 Catalogue Complet des 119 Badges Sommelier** :
+  - Intégration à 100% des médaillons 3D sculptés en bas-relief générés par Gemini en WebP haute définition.
+  - Nouveaux badges d'élite : *Dolce Vita Amaretto*, *Flight Découverte*, *Le Dernier Trait* (niveau bouteille $\le 25\%$), *Maître de Table* (consensus de groupe), *Alchimiste du Chenin*, *L'Exotisme Épicé* (Gewurztraminer), *Collectionneur de Grands Crus*, et *Cave Patrimoniale* (500+ flacons).
+- **🧪 Évaluateurs Métier Connectés** :
+  - Détection automatique des marques emblématiques (Disaronno pour l'Amaretto, spiritueux rares, accords mets-vins).
+
+---
+
+## [v1.2.2+62] — 2026-09-13
+
+### 🍷 Ce qui change pour vous / What's New for You
+- **Protection de la Vie Privée & Sélecteur de Photos Système Android** :
+  - Suppression intégrale des demandes d'accès à l'ensemble de votre galerie (`READ_MEDIA_IMAGES` / `READ_EXTERNAL_STORAGE`).
+  - L'importation d'étiquettes de bouteilles et de menus s'effectue exclusivement via le Sélecteur de Photos sécurisé natif d'Android (aucun accès persistant à vos photos privées).
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Manifest Android (`AndroidManifest.xml`)* : Suppression de `READ_MEDIA_IMAGES` et `READ_EXTERNAL_STORAGE`. Conformité totale avec le règlement Google Play Console relatif aux autorisations de photos et vidéos (utilisation du système Photo Picker d'Android via `image_picker`).
+
+---
+
+## [v1.2.2+61] — 2026-09-13
+
+### 🍷 Ce qui change pour vous / What's New for You
+- **Radar de Goûts Personnalisé à 8 Axes Orthogonaux** :
+  - Décomposition haute précision de votre profil œnologique (Structure tannique, Densité, Boisé/Élevage, Fruit solaire, Épices/Sauvage, Fruit croquant, Minéralité, Tension/Vivacité).
+  - Élimination des profils jumeaux : les amateurs de vins denses et épicés (ex: Cornas, Bandol) et de vins vifs et minéraux (ex: Chablis, Sancerre) ont désormais des radars géométriquement très distincts.
+- **⚡ Dégustation Express en 3 Micro-Taps (< 5s)** :
+  - Qualification instantanée sans interrompre le repas : Toucher de bouche (Soyeux, Vif, Dense) et Éclat du fruit (Croquant, Profond, Épicé).
+  - Profilage implicite passif : vos ajouts en cave et en liste d'envies calibrent automatiquement votre palais sans questionnaire redondant.
+- **🌐 Expérience Multilingue Authentique (13 Langues à 100%)** :
+  - Complétude absolue (551 clés par langue) sur les 13 langues officielles avec terminologie sommelière certifiée (J.S.A., AIS, etc.).
+  - Zéro terme anglais résiduel dans les écritures non-latines (japonais, chinois, coréen).
+- **🎨 Identité Webapp & Écran de Chargement** :
+  - Remplacement du verre de vin par le logo officiel Chatmelier avec pulsation dorée élégante dès le premier affichage.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Localisation (`app_*.arb`)* : Synchronisation de 551 clés sur les 13 locales, validation par la suite `translation_proximity_and_l10n_test.dart` avec hachage inter-familles linguistiques et intégrité ICU.
+- *Profil & Radar (`wine_taste_radar_metrics.dart`, `taste_profile_service.dart`)* : Implémentation du radar à 8 axes, distance euclidienne normalisée, tests de non-gémellité Flavien vs Caro.
+- *Webapp (`index.html`, `404.html`)* : Intégration de `logo_transparent.png`, balise `preload` et styling CSS optimisé.
+
+---
+
+## [v1.2.2+56] — 2026-09-11
+
+### 🍷 Ce qui change pour vous / What's New for You
+- **Sortie de Cave Épurée & Décisionnelle (Zero Clutter)** :
+  - Fin des cartes empilées : l'écran de sortie de cave propose désormais 2 blocs de décision clairs et lisibles (Dégustation immédiate vs Outils de sortie rapide).
+- **Expérience de Dégustation Multi-Personas** :
+  - **⚡ Format Express (30 secondes chrono)** : Formulaire fluide sur une seule page scrollable pour noter un vin sans interrompre la fête ou l'apéro.
+  - **🎓 Format Sommelier (5 étapes guidées)** : Analyse sensorielle complète (œil, nez, bouche, persistance, verdict).
+  - **🧐 Arômes sur-mesure pour palais pointilleux** : Possibilité d'ajouter des descripteurs précis libres (`Sous-bois`, `Garrigue`, `Pivoine`...) récompensés par le moteur d'acuité.
+  - **ℹ️ Démystification des Caudalies** : Infobulle explicative simple au niveau du curseur de longueur (1 caudalie = 1 seconde de plaisir en bouche).
+  - **🍽️ Accord & Synergie Mets-Vin** : Évaluation directe de l'alchimie du vin avec le repas (`Sublimé`, `Harmonieux`, `Neutre`, `Conflit`).
+- **Nouveaux Badges Régionaux Illustrés par IA** :
+  - ⚔️ **Chevalier du Rhône** : Médaillon d'argent, armure médiévale et coteaux escarpés du Rhône.
+  - 🌿 **Poète du Val de Loire** : Château Renaissance, pierre de tuffeau et Chenin doré.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Checkout (`checkout_screen.dart`)* : Réduction de la complexité visuelle à 2 blocs primaires, routage direct vers le mode Express ou Sommelier.
+- *Questionnaire (`tasting_questionnaire_sheet.dart`, `tasting_questionnaire_result.dart`)* : Support du mode `isExpressMode`, champs `customAromas` et `foodPairingSynergy`, constructeur `fromJson` avec rétrocompatibilité totale.
+- *Moteur d'acuité (`tasting_pedagogy_engine.dart`)* : Détection et valorisation des arômes libres dans le calcul du score sensoriel.
+- *Catalogue de badges (`badge_catalog.dart`)* : Intégration des assets 512x512 WebP & PNG pour `region_rhone` et `region_loire`.
+
+---
+
 ## [v1.2.1+50] — 2026-09-11
 
 ### 🍷 Ce qui change pour vous / What's New for You

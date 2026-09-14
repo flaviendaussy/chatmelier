@@ -212,6 +212,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     if (_hasCameraError) {
       return Scaffold(
         backgroundColor: const Color(0xFF1E1E1E),
@@ -222,7 +223,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => context.pop(),
           ),
-          title: const Text('Scanner une bouteille', style: TextStyle(color: Colors.white)),
+          title: Text(isFr ? 'Scanner une bouteille' : 'Scan a bottle', style: const TextStyle(color: Colors.white)),
         ),
         body: Center(
           child: Padding(
@@ -232,15 +233,17 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               children: [
                 const Icon(Icons.photo_camera_outlined, size: 80, color: Colors.white70),
                 const SizedBox(height: 20),
-                const Text(
-                  'Ajouter une bouteille',
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                Text(
+                  isFr ? 'Ajouter une bouteille' : 'Add a bottle',
+                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Prenez une photo de votre étiquette ou choisissez une image depuis votre galerie pour l\'analyse automatique.',
+                Text(
+                  isFr
+                      ? 'Prenez une photo de votre étiquette ou choisissez une image depuis votre galerie pour l\'analyse automatique.'
+                      : 'Take a photo of your wine label or choose an image from your gallery for automatic analysis.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 const SizedBox(height: 28),
                 SizedBox(
@@ -249,7 +252,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   child: ElevatedButton.icon(
                     onPressed: _pickNativeCamera,
                     icon: const Icon(Icons.camera_alt),
-                    label: const Text('Prendre une photo', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    label: Text(isFr ? 'Prendre une photo' : 'Take a photo', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF8B1E3F),
                       foregroundColor: Colors.white,
@@ -264,7 +267,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   child: OutlinedButton.icon(
                     onPressed: _pickGallery,
                     icon: const Icon(Icons.photo_library, color: Colors.white),
-                    label: const Text('Choisir dans la galerie', style: TextStyle(color: Colors.white)),
+                    label: Text(isFr ? 'Choisir dans la galerie' : 'Choose from gallery', style: const TextStyle(color: Colors.white)),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.white38),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -278,7 +281,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => context.push('/scan/menu'),
                     icon: const Icon(Icons.restaurant_menu, color: Color(0xFFC2185B)),
-                    label: const Text('Scanner une carte des vins (Restaurant)', style: TextStyle(color: Colors.white)),
+                    label: Text(isFr ? 'Scanner une carte des vins (Restaurant)' : 'Scan wine list (Restaurant)', style: const TextStyle(color: Colors.white)),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFC2185B)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -292,7 +295,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   child: TextButton.icon(
                     onPressed: _manualEntry,
                     icon: const Icon(Icons.edit_note, color: Colors.white70),
-                    label: const Text('Saisie manuelle sans photo', style: TextStyle(color: Colors.white70)),
+                    label: Text(isFr ? 'Saisie manuelle sans photo' : 'Manual entry without photo', style: const TextStyle(color: Colors.white70)),
                   ),
                 ),
               ],
@@ -311,12 +314,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             children: [
               const CircularProgressIndicator(color: Colors.white),
               const SizedBox(height: 20),
-              const Text('Préparation de la caméra...', style: TextStyle(color: Colors.white70)),
+              Text(isFr ? 'Préparation de la caméra...' : 'Preparing camera...', style: const TextStyle(color: Colors.white70)),
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: _pickNativeCamera,
                 icon: const Icon(Icons.camera_alt),
-                label: const Text('Ouvrir l\'appareil photo'),
+                label: Text(isFr ? 'Ouvrir l\'appareil photo' : 'Open camera'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8B1E3F),
                   foregroundColor: Colors.white,
@@ -326,7 +329,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               TextButton.icon(
                 onPressed: _manualEntry,
                 icon: const Icon(Icons.edit, color: Colors.white70),
-                label: const Text('Passer à la saisie manuelle', style: TextStyle(color: Colors.white70)),
+                label: Text(isFr ? 'Passer à la saisie manuelle' : 'Switch to manual entry', style: const TextStyle(color: Colors.white70)),
               ),
             ],
           ),
@@ -383,9 +386,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                         color: Colors.black.withAlpha(160),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Text(
-                        '🍾 Rapprochez la bouteille',
-                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                      child: Text(
+                        isFr ? '🍾 Rapprochez la bouteille' : '🍾 Move closer to bottle',
+                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -399,14 +402,14 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                               color: Colors.amber.shade900.withAlpha(200),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Text(
-                              '⚠️ Caméra avant active',
-                              style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            child: Text(
+                              isFr ? '⚠️ Caméra avant active' : '⚠️ Front camera active',
+                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                             ),
                           )
-                        : const Text(
-                            'Cadrez l\'étiquette dans le rectangle',
-                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                        : Text(
+                            isFr ? 'Cadrez l\'étiquette dans le rectangle' : 'Frame label inside rectangle',
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
                           ),
                   ),
                 ],
@@ -436,7 +439,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                         backgroundColor: Colors.black54,
                         child: IconButton(
                           icon: const Icon(Icons.flip_camera_ios, color: Colors.white, size: 22),
-                          tooltip: 'Changer d\'objectif (Dorsale / Frontale)',
+                          tooltip: isFr ? 'Changer d\'objectif (Dorsale / Frontale)' : 'Switch camera (Rear / Front)',
                           onPressed: _switchCamera,
                         ),
                       ),
@@ -450,7 +453,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                           color: _isFlashOn ? Colors.amber : Colors.white,
                           size: 22,
                         ),
-                        tooltip: 'Torche / Éclairage cave',
+                        tooltip: isFr ? 'Torche / Éclairage cave' : 'Flashlight / Cellar light',
                         onPressed: _toggleFlash,
                       ),
                     ),
@@ -458,7 +461,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                     TextButton.icon(
                       onPressed: () => context.push('/scan/menu'),
                       icon: const Icon(Icons.restaurant_menu, color: Colors.white, size: 16),
-                      label: const Text('Carte Menu', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                      label: Text(isFr ? 'Carte Menu' : 'Wine List', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                       style: TextButton.styleFrom(
                         backgroundColor: const Color(0xFFC2185B).withAlpha(200),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -468,7 +471,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                     TextButton.icon(
                       onPressed: _manualEntry,
                       icon: const Icon(Icons.edit, color: Colors.white, size: 16),
-                      label: const Text('Manuel', style: TextStyle(color: Colors.white, fontSize: 13)),
+                      label: Text(isFr ? 'Manuel' : 'Manual', style: const TextStyle(color: Colors.white, fontSize: 13)),
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.black54,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -491,14 +494,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 6)],
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.wifi_off, color: Colors.white, size: 18),
-                    SizedBox(width: 8),
+                    const Icon(Icons.wifi_off, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Hors-ligne : l\'analyse photo IA nécessite du réseau. La saisie manuelle reste disponible.',
-                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                        isFr
+                            ? 'Hors-ligne : l\'analyse photo IA nécessite du réseau. La saisie manuelle reste disponible.'
+                            : 'Offline: AI photo analysis requires an internet connection. Manual entry remains available.',
+                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -524,7 +529,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                     children: [
                       _buildZoomButton(1.0, '1x'),
                       const SizedBox(width: 6),
-                      _buildZoomButton(2.0, '2x (Recommandé)'),
+                      _buildZoomButton(2.0, isFr ? '2x (Recommandé)' : '2x (Recommended)'),
                       if (_maxZoom >= 3.0) ...[
                         const SizedBox(width: 6),
                         _buildZoomButton(3.0, '3x'),
@@ -553,12 +558,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                       backgroundColor: Colors.black54,
                       child: IconButton(
                         icon: const Icon(Icons.photo_library_outlined, color: Colors.white, size: 26),
-                        tooltip: 'Galerie photos',
+                        tooltip: isFr ? 'Galerie photos' : 'Photo gallery',
                         onPressed: _pickGallery,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text('Galerie', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    Text(isFr ? 'Galerie' : 'Gallery', style: const TextStyle(color: Colors.white70, fontSize: 11)),
                   ],
                 ),
 
@@ -601,12 +606,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                       backgroundColor: Colors.black54,
                       child: IconButton(
                         icon: const Icon(Icons.camera, color: Colors.white, size: 26),
-                        tooltip: 'Appareil photo haute résolution',
+                        tooltip: isFr ? 'Appareil photo haute résolution' : 'High resolution camera',
                         onPressed: _pickNativeCamera,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text('Natif', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    Text(isFr ? 'Natif' : 'Native', style: const TextStyle(color: Colors.white70, fontSize: 11)),
                   ],
                 ),
               ],

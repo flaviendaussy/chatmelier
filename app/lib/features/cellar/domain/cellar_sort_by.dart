@@ -23,8 +23,165 @@ enum CellarSortBy {
 
   const CellarSortBy(this.key, this.label, this.icon);
 
-  String localizedLabel(bool isFr) {
-    if (isFr) return label;
+  String localizedLabel(dynamic lang) {
+    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    if (code == 'fr') return label;
+
+    if (code == 'la') {
+      switch (this) {
+        case CellarSortBy.nameAsc:
+          return 'Nomen vini (A → Z)';
+        case CellarSortBy.nameDesc:
+          return 'Nomen vini (Z → A)';
+        case CellarSortBy.producerAsc:
+          return 'Vinitor / Praedium (A → Z)';
+        case CellarSortBy.producerDesc:
+          return 'Vinitor / Praedium (Z → A)';
+        case CellarSortBy.vintageDesc:
+          return 'Annata (Novißima)';
+        case CellarSortBy.vintageAsc:
+          return 'Annata (Antiquißima)';
+        case CellarSortBy.maturity:
+          return 'Aptum ad bibendum (Fastigium & Urgentia)';
+        case CellarSortBy.quantityDesc:
+          return 'Copia (Decrescens)';
+        case CellarSortBy.quantityAsc:
+          return 'Copia (Crescens)';
+        case CellarSortBy.color:
+          return 'Color & Genus';
+        case CellarSortBy.priceDesc:
+          return 'Pretium (Carißimum)';
+        case CellarSortBy.priceAsc:
+          return 'Pretium (Vilißimum)';
+        case CellarSortBy.recentlyAdded:
+          return 'Nuper adiectum';
+      }
+    }
+
+    if (code == 'es') {
+      switch (this) {
+        case CellarSortBy.nameAsc:
+          return 'Nombre del vino (A → Z)';
+        case CellarSortBy.nameDesc:
+          return 'Nombre del vino (Z → A)';
+        case CellarSortBy.producerAsc:
+          return 'Bodega / Productor (A → Z)';
+        case CellarSortBy.producerDesc:
+          return 'Bodega / Productor (Z → A)';
+        case CellarSortBy.vintageDesc:
+          return 'Añada (Más reciente)';
+        case CellarSortBy.vintageAsc:
+          return 'Añada (Más antigua)';
+        case CellarSortBy.maturity:
+          return 'Listo para beber (Apogeo y Urgencia)';
+        case CellarSortBy.quantityDesc:
+          return 'Cantidad (Descendente)';
+        case CellarSortBy.quantityAsc:
+          return 'Cantidad (Ascendente)';
+        case CellarSortBy.color:
+          return 'Color y Tipo';
+        case CellarSortBy.priceDesc:
+          return 'Precio / Valor (Más caro)';
+        case CellarSortBy.priceAsc:
+          return 'Precio / Valor (Más barato)';
+        case CellarSortBy.recentlyAdded:
+          return 'Añadido recientemente';
+      }
+    }
+
+    if (code == 'ca') {
+      switch (this) {
+        case CellarSortBy.nameAsc:
+          return 'Nom del vi (A → Z)';
+        case CellarSortBy.nameDesc:
+          return 'Nom del vi (Z → A)';
+        case CellarSortBy.producerAsc:
+          return 'Celler / Productor (A → Z)';
+        case CellarSortBy.producerDesc:
+          return 'Celler / Productor (Z → A)';
+        case CellarSortBy.vintageDesc:
+          return 'Collita (Més recent)';
+        case CellarSortBy.vintageAsc:
+          return 'Collita (Més antiga)';
+        case CellarSortBy.maturity:
+          return 'A punt per beure (Apogeu i Urgència)';
+        case CellarSortBy.quantityDesc:
+          return 'Quantitat (Descendent)';
+        case CellarSortBy.quantityAsc:
+          return 'Quantitat (Ascendent)';
+        case CellarSortBy.color:
+          return 'Color i Tipus';
+        case CellarSortBy.priceDesc:
+          return 'Preu / Valor (Més car)';
+        case CellarSortBy.priceAsc:
+          return 'Preu / Valor (Més barat)';
+        case CellarSortBy.recentlyAdded:
+          return 'Afegit recentment';
+      }
+    }
+
+    if (code == 'it') {
+      switch (this) {
+        case CellarSortBy.nameAsc:
+          return 'Nome del vino (A → Z)';
+        case CellarSortBy.nameDesc:
+          return 'Nome del vino (Z → A)';
+        case CellarSortBy.producerAsc:
+          return 'Cantina / Produttore (A → Z)';
+        case CellarSortBy.producerDesc:
+          return 'Cantina / Produttore (Z → A)';
+        case CellarSortBy.vintageDesc:
+          return 'Annata (Più recente)';
+        case CellarSortBy.vintageAsc:
+          return 'Annata (Meno recente)';
+        case CellarSortBy.maturity:
+          return 'Pronto da bere (Apice e Urgenza)';
+        case CellarSortBy.quantityDesc:
+          return 'Quantità (Decrescente)';
+        case CellarSortBy.quantityAsc:
+          return 'Quantità (Crescente)';
+        case CellarSortBy.color:
+          return 'Colore e Tipo';
+        case CellarSortBy.priceDesc:
+          return 'Prezzo / Valore (Più costoso)';
+        case CellarSortBy.priceAsc:
+          return 'Prezzo / Valore (Meno costoso)';
+        case CellarSortBy.recentlyAdded:
+          return 'Aggiunto di recente';
+      }
+    }
+
+    if (code == 'de') {
+      switch (this) {
+        case CellarSortBy.nameAsc:
+          return 'Weinname (A → Z)';
+        case CellarSortBy.nameDesc:
+          return 'Weinname (Z → A)';
+        case CellarSortBy.producerAsc:
+          return 'Weingut / Erzeuger (A → Z)';
+        case CellarSortBy.producerDesc:
+          return 'Weingut / Erzeuger (Z → A)';
+        case CellarSortBy.vintageDesc:
+          return 'Jahrgang (Neuester)';
+        case CellarSortBy.vintageAsc:
+          return 'Jahrgang (Ältester)';
+        case CellarSortBy.maturity:
+          return 'Trinkreif (Trinkfenster & Dringlichkeit)';
+        case CellarSortBy.quantityDesc:
+          return 'Menge (Absteigend)';
+        case CellarSortBy.quantityAsc:
+          return 'Menge (Aufsteigend)';
+        case CellarSortBy.color:
+          return 'Farbe & Typ';
+        case CellarSortBy.priceDesc:
+          return 'Preis / Wert (Höchster)';
+        case CellarSortBy.priceAsc:
+          return 'Preis / Wert (Geringster)';
+        case CellarSortBy.recentlyAdded:
+          return 'Kürzlich hinzugefügt';
+      }
+    }
+
     switch (this) {
       case CellarSortBy.nameAsc:
         return 'Wine name (A → Z)';

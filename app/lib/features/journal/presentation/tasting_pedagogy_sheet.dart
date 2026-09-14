@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/tasting_pedagogy_engine.dart';
 
 class TastingPedagogySheet extends StatelessWidget {
@@ -21,7 +22,10 @@ class TastingPedagogySheet extends StatelessWidget {
   void _askSommelierQuestion(BuildContext context) {
     final wine = report.wine;
     final wineName = '${wine.producer} ${wine.name} ${wine.vintage ?? ""}';
-    final prompt = 'Chatmelier, j\'ai dégusté mon flacon de $wineName (${wine.region}, ${wine.grapes.map((g) => g.name).join(", ")}). Peux-tu m\'expliquer en détail les secrets de vinification du domaine, le type de barrique utilisé, et pourquoi ces molécules aromatiques s\'expriment ainsi ?';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    final prompt = isFr
+        ? "Chatmelier, j'ai dégusté mon flacon de $wineName (${wine.region}, ${wine.grapes.map((g) => g.name).join(', ')}). Peux-tu m'expliquer en détail les secrets de vinification du domaine, le type de barrique utilisé, et pourquoi ces molécules aromatiques s'expriment ainsi ?"
+        : "Chatmelier, I tasted my bottle of $wineName (${wine.region}, ${wine.grapes.map((g) => g.name).join(', ')}). Can you explain in detail the winemaking secrets of the domaine, the type of oak barrel used, and why these aromatic molecules express themselves this way?";
 
     Navigator.pop(context);
     context.go('/chat', extra: prompt);
@@ -31,6 +35,7 @@ class TastingPedagogySheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
     final wine = report.wine;
 
     return DraggableScrollableSheet(
@@ -82,7 +87,7 @@ class TastingPedagogySheet extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Débriefing Oenologique & Moléculaire',
+                            l10n?.tastingDebriefTitle ?? 'Débriefing Oenologique & Moléculaire',
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 17,
@@ -119,14 +124,23 @@ class TastingPedagogySheet extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFF722F37).withValues(alpha: 0.15),
-                            const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                        gradient: theme.brightness == Brightness.dark
+                            ? LinearGradient(
+                                colors: [
+                                  const Color(0xFF722F37).withValues(alpha: 0.25),
+                                  const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : LinearGradient(
+                                colors: [
+                                  const Color(0xFF722F37).withValues(alpha: 0.1),
+                                  const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
                       ),
@@ -141,7 +155,7 @@ class TastingPedagogySheet extends StatelessWidget {
                                   const Icon(Icons.psychology, color: Color(0xFFD4AF37), size: 20),
                                   const SizedBox(width: 6),
                                   Text(
-                                    'ACUITÉ SENSORIELLE',
+                                    l10n?.tastingSensoryAcuity ?? 'ACUITÉ SENSORIELLE',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 11,
@@ -158,7 +172,7 @@ class TastingPedagogySheet extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  '${report.acuityScore}% Précision',
+                                  l10n?.tastingPrecision(report.acuityScore) ?? '${report.acuityScore}% Précision',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
@@ -182,8 +196,113 @@ class TastingPedagogySheet extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-                    // SECTION 1: COMPARATIVE SENSORY ANALYSIS
-                    _buildSectionHeader(theme, '1. CONCORDANCE & SIGNATURE DU CRU', '🎯'),
+                    // SECTION 1: FLAVOR ORIGINS & WINE SECRETS (User explicit request)
+                    if (report.flavorOrigins.isNotEmpty) ...[
+                      _buildSectionHeader(
+                        theme,
+                        l10n?.tastingFlavorOriginsTitle ?? 'ORIGINE DES GOÛTS & SECRETS DU FLACON',
+                        '🍇',
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n?.tastingFlavorOriginsSubtitle ??
+                            "Découvrez d'où viennent les arômes, la robe et la structure de votre vin",
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...report.flavorOrigins.map((origin) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF231F2C) : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(origin.icon, style: const TextStyle(fontSize: 22)),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      origin.title,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF722F37).withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: const Color(0xFF722F37).withValues(alpha: 0.4)),
+                                    ),
+                                    child: Text(
+                                      origin.category.name.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFD4AF37),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (origin.badgeText != null && origin.badgeText!.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    origin.badgeText!,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFD4AF37),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 8),
+                              Text(
+                                origin.sensoryContribution,
+                                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                origin.detailedWhy,
+                                style: theme.textTheme.bodySmall?.copyWith(height: 1.4, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // SECTION 2: COMPARATIVE SENSORY ANALYSIS
+                    _buildSectionHeader(
+                      theme,
+                      l10n?.tastingConcordanceTitle ?? 'CONCORDANCE & SIGNATURE DU CRU',
+                      '🎯',
+                    ),
                     const SizedBox(height: 12),
 
                     // User Inputs vs Archetype Box
@@ -199,7 +318,7 @@ class TastingPedagogySheet extends StatelessWidget {
                         children: [
                           // What the user perceived
                           Text(
-                            'CE QUE VOUS AVEZ DÉCELÉ :',
+                            l10n?.tastingWhatYouDetected ?? 'CE QUE VOUS AVEZ DÉCELÉ :',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -228,24 +347,35 @@ class TastingPedagogySheet extends StatelessWidget {
                               }).toList(),
                             ),
                           ] else ...[
-                            const Text('Dégustation libre enregistrée.', style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12)),
+                            Text(
+                              l10n?.tastingFreeTastingRecorded ?? 'Dégustation libre enregistrée.',
+                              style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+                            ),
                           ],
 
                           if (report.userAppearance != null) ...[
                             const SizedBox(height: 8),
-                            Text('• Robe : ${report.userAppearance}', style: const TextStyle(fontSize: 12)),
+                            Text(
+                              l10n?.tastingAppearanceLabel(report.userAppearance!) ??
+                                  '• Robe : ${report.userAppearance}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
                           ],
                           if (report.userStructure != null) ...[
                             const SizedBox(height: 4),
-                            Text('• Structure : ${report.userStructure} (${report.userCaudalies} caudalies)', style: const TextStyle(fontSize: 12)),
+                            Text(
+                              l10n?.tastingStructureLabel(report.userStructure!, report.userCaudalies) ??
+                                  '• Structure : ${report.userStructure} (${report.userCaudalies} caudalies)',
+                              style: const TextStyle(fontSize: 12),
+                            ),
                           ],
 
                           const Divider(height: 24),
 
                           // Theoretical Archetype for this terroir
-                          const Text(
-                            'SIGNATURE ARCHÉTYPALE DU FLACON :',
-                            style: TextStyle(
+                          Text(
+                            l10n?.tastingArchetypeSignature ?? 'SIGNATURE ARCHÉTYPALE DU FLACON :',
+                            style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFFD4AF37),
@@ -285,7 +415,8 @@ class TastingPedagogySheet extends StatelessWidget {
                     // Hidden Nuances To Spot Next Time
                     if (report.hiddenNuancesToDiscover.isNotEmpty) ...[
                       Text(
-                        'SUBTILITÉS & NUANCES À CHERCHER AU PROCHAIN VERRE :',
+                        l10n?.tastingHiddenNuancesTitle ??
+                            'SUBTILITÉS & NUANCES À CHERCHER AU PROCHAIN VERRE :',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
@@ -327,7 +458,11 @@ class TastingPedagogySheet extends StatelessWidget {
                                           ),
                                           child: Text(
                                             nuance.origin,
-                                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37)),
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFFD4AF37),
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -348,12 +483,19 @@ class TastingPedagogySheet extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // SECTION 2: ENOLOGICAL PROCESS & MOLECULAR SCIENCE
-                    _buildSectionHeader(theme, '2. SCIENCE OENOLOGIQUE & MOLÉCULES', '🔬'),
+                    // SECTION 3: ENOLOGICAL PROCESS & MOLECULAR SCIENCE
+                    _buildSectionHeader(
+                      theme,
+                      l10n?.tastingPillarsTitle ?? 'SCIENCE OENOLOGIQUE & MOLÉCULES',
+                      '🔬',
+                    ),
                     const SizedBox(height: 6),
                     Text(
-                      'Pourquoi ce vin possède-t-il cette structure, ces arômes et cette couleur ?',
-                      style: theme.textTheme.bodySmall?.copyWith(color: isDark ? Colors.white60 : Colors.black54),
+                      l10n?.tastingPillarsSubtitle ??
+                          'Pourquoi ce vin possède-t-il cette structure, ces arômes et cette couleur ?',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isDark ? Colors.white60 : Colors.black54,
+                      ),
                     ),
                     const SizedBox(height: 14),
 
@@ -400,7 +542,8 @@ class TastingPedagogySheet extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                'Molécules clés : ${pillar.chemicalKey}',
+                                l10n?.tastingKeyMolecules(pillar.chemicalKey) ??
+                                    'Molécules clés : ${pillar.chemicalKey}',
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -437,9 +580,9 @@ class TastingPedagogySheet extends StatelessWidget {
                           elevation: 2,
                         ),
                         icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                        label: const Text(
-                          'Approfondir la vinification avec Chatmelier',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        label: Text(
+                          l10n?.tastingChatWithSommelier ?? 'Approfondir la vinification avec Chatmelier',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         onPressed: () => _askSommelierQuestion(context),
                       ),

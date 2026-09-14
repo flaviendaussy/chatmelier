@@ -23,21 +23,31 @@ class MenuMatchmakerSheet extends StatefulWidget {
 
 class _MatchmakerQuestion {
   final String id;
-  final String title;
-  final String subtitle;
+  final String titleFr;
+  final String titleEn;
+  final String subtitleFr;
+  final String subtitleEn;
   final IconData icon;
   final Color iconColor;
-  final String userPreferenceLabel;
+  final String userPreferenceLabelFr;
+  final String userPreferenceLabelEn;
   final bool Function(List<MenuWine> pool) isEligible;
   final List<MenuWine> Function(List<MenuWine> pool, bool answerYes) filter;
 
+  String title(bool isFr) => isFr ? titleFr : titleEn;
+  String subtitle(bool isFr) => isFr ? subtitleFr : subtitleEn;
+  String userPreferenceLabel(bool isFr) => isFr ? userPreferenceLabelFr : userPreferenceLabelEn;
+
   const _MatchmakerQuestion({
     required this.id,
-    required this.title,
-    required this.subtitle,
+    required this.titleFr,
+    required this.titleEn,
+    required this.subtitleFr,
+    required this.subtitleEn,
     required this.icon,
     required this.iconColor,
-    required this.userPreferenceLabel,
+    required this.userPreferenceLabelFr,
+    required this.userPreferenceLabelEn,
     required this.isEligible,
     required this.filter,
   });
@@ -82,13 +92,18 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
 
   _MatchmakerQuestion get _priceSliderQuestion => _MatchmakerQuestion(
         id: 'price_slider',
-        title: 'Quel est votre budget maximum ?',
-        subtitle: _isGlassSelected
+        titleFr: 'Quel est votre budget maximum ?',
+        titleEn: 'What is your maximum budget?',
+        subtitleFr: _isGlassSelected
             ? 'Ajustez le curseur pour fixer votre limite de prix par verre.'
             : 'Ajustez le curseur pour fixer votre limite de prix par bouteille.',
+        subtitleEn: _isGlassSelected
+            ? 'Adjust the slider to set your price limit per glass.'
+            : 'Adjust the slider to set your price limit per bottle.',
         icon: Icons.price_change_outlined,
         iconColor: const Color(0xFF2E7D32),
-        userPreferenceLabel: 'Budget maîtrisé',
+        userPreferenceLabelFr: 'Budget maîtrisé',
+        userPreferenceLabelEn: 'Budget set',
         isEligible: (pool) => true,
         filter: (pool, answerYes) => pool,
       );
@@ -111,11 +126,14 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       // 1. Rouge ou Autre
       _MatchmakerQuestion(
         id: 'color_red',
-        title: 'Envie de vin Rouge ce soir ?',
-        subtitle: 'Pour accompagner viandes, charcuteries ou plats généreux.',
+        titleFr: 'Envie de vin Rouge ce soir ?',
+        titleEn: 'Craving Red wine tonight?',
+        subtitleFr: 'Pour accompagner viandes, charcuteries ou plats généreux.',
+        subtitleEn: 'To pair with meats, charcuterie, or hearty dishes.',
         icon: Icons.wine_bar,
         iconColor: const Color(0xFF8B1E3F),
-        userPreferenceLabel: 'Vin Rouge',
+        userPreferenceLabelFr: 'Vin Rouge',
+        userPreferenceLabelEn: 'Red Wine',
         isEligible: (pool) => pool.any((w) => w.isRed) && pool.any((w) => !w.isRed),
         filter: (pool, answerYes) {
           final filtered = answerYes ? pool.where((w) => w.isRed).toList() : pool.where((w) => !w.isRed).toList();
@@ -126,11 +144,14 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       // 2. Bulles / Champagne
       _MatchmakerQuestion(
         id: 'sparkling',
-        title: 'Plutôt Bulles festives / Champagne ?',
-        subtitle: 'Pour l\'apéritif, les célébrations ou la fraîcheur pétillante.',
+        titleFr: 'Plutôt Bulles festives / Champagne ?',
+        titleEn: 'In the mood for Bubbles / Champagne?',
+        subtitleFr: 'Pour l\'apéritif, les célébrations ou la fraîcheur pétillante.',
+        subtitleEn: 'For aperitifs, celebrations, or crisp effervescence.',
         icon: Icons.celebration,
         iconColor: const Color(0xFFD4AF37),
-        userPreferenceLabel: 'Bulles / Champagne',
+        userPreferenceLabelFr: 'Bulles / Champagne',
+        userPreferenceLabelEn: 'Bubbles / Champagne',
         isEligible: (pool) => pool.any((w) => w.isSparkling) && pool.any((w) => !w.isSparkling),
         filter: (pool, answerYes) {
           final filtered =
@@ -142,11 +163,14 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       // 3. Rosé estival
       _MatchmakerQuestion(
         id: 'rose',
-        title: 'Une envie de Rosé frais & convivial ?',
-        subtitle: 'Idéal pour la détente, cuisine méditerranéenne ou grillades légères.',
+        titleFr: 'Une envie de Rosé frais & convivial ?',
+        titleEn: 'Fancy a fresh & crisp Rosé?',
+        subtitleFr: 'Idéal pour la détente, cuisine méditerranéenne ou grillades légères.',
+        subtitleEn: 'Ideal for relaxing, Mediterranean cuisine, or light grills.',
         icon: Icons.wb_sunny_outlined,
         iconColor: const Color(0xFFE91E63),
-        userPreferenceLabel: 'Vin Rosé',
+        userPreferenceLabelFr: 'Vin Rosé',
+        userPreferenceLabelEn: 'Rosé Wine',
         isEligible: (pool) => pool.any((w) => w.isRose) && pool.any((w) => !w.isRose),
         filter: (pool, answerYes) {
           final filtered =
@@ -158,11 +182,14 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       // 4. Tannique & Structuré (STRICTEMENT réservé s'il y a des rouges en lice !)
       _MatchmakerQuestion(
         id: 'tannins',
-        title: 'Amateur de Tannins & Structure ?',
-        subtitle: 'Vins charpentés, corsés, matière dense (ex: Bordeaux, Cahors, Syrah).',
+        titleFr: 'Amateur de Tannins & Structure ?',
+        titleEn: 'Looking for Tannins & Structure?',
+        subtitleFr: 'Vins charpentés, corsés, matière dense (ex: Bordeaux, Cahors, Syrah).',
+        subtitleEn: 'Full-bodied, bold wines with firm structure (e.g. Bordeaux, Cahors, Syrah).',
         icon: Icons.fitness_center,
         iconColor: const Color(0xFF5D4037),
-        userPreferenceLabel: 'Tannique & Structuré',
+        userPreferenceLabelFr: 'Tannique & Structuré',
+        userPreferenceLabelEn: 'Tannic & Structured',
         isEligible: (pool) =>
             pool.any((w) => w.isRed && (w.metrics.tannins >= 5.0 || w.tags.contains('tannique'))) &&
             pool.any((w) => w.metrics.tannins < 5.0),
@@ -187,11 +214,14 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       // 5. Minéralité & Tension (Très pertinent pour les blancs et rosés ciselés)
       _MatchmakerQuestion(
         id: 'minerality',
-        title: 'Recherche de Minéralité & Vivacité ?',
-        subtitle: 'Vins tendus, ciselés, salins (ex: Chablis, Sancerre, Muscadet, Riesling sec).',
+        titleFr: 'Recherche de Minéralité & Vivacité ?',
+        titleEn: 'Seeking Minerality & Crisp Vivacity?',
+        subtitleFr: 'Vins tendus, ciselés, salins (ex: Chablis, Sancerre, Muscadet, Riesling sec).',
+        subtitleEn: 'Taut, saline, chiseled wines (e.g. Chablis, Sancerre, Muscadet, dry Riesling).',
         icon: Icons.landscape,
         iconColor: const Color(0xFF00897B),
-        userPreferenceLabel: 'Minéral & Vif',
+        userPreferenceLabelFr: 'Minéral & Vif',
+        userPreferenceLabelEn: 'Mineral & Crisp',
         isEligible: (pool) =>
             pool.any((w) => w.metrics.minerality >= 5.5 || w.tags.contains('minéral') || w.metrics.acidity >= 6.5) &&
             pool.any((w) => w.metrics.minerality < 5.5 && !w.tags.contains('minéral')),
@@ -215,11 +245,14 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       // 6. Beurré & Rondeur (STRICTEMENT réservé aux blancs opulents)
       _MatchmakerQuestion(
         id: 'butteriness',
-        title: 'Caractère Beurré, Brioché & Gourmand ?',
-        subtitle: 'Vins opulents avec élevage soigné (ex: Meursault, grands Chardonnay, Viognier).',
+        titleFr: 'Caractère Beurré, Brioché & Gourmand ?',
+        titleEn: 'Rich Butteriness & Brioche Notes?',
+        subtitleFr: 'Vins opulents avec élevage soigné (ex: Meursault, grands Chardonnay, Viognier).',
+        subtitleEn: 'Opulent wines with gentle oak aging (e.g. Meursault, fine Chardonnay, Viognier).',
         icon: Icons.bakery_dining,
         iconColor: const Color(0xFFF57F17),
-        userPreferenceLabel: 'Beurré & Rond',
+        userPreferenceLabelFr: 'Beurré & Rond',
+        userPreferenceLabelEn: 'Buttery & Round',
         isEligible: (pool) =>
             pool.any((w) => w.isWhite && (w.metrics.butteriness >= 4.0 || w.tags.contains('beurré') || w.tags.contains('rond'))) &&
             pool.any((w) => w.metrics.butteriness < 4.0),
@@ -243,11 +276,14 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       // 7. Légèreté & Fruit Frais Croquant
       _MatchmakerQuestion(
         id: 'light_fruity',
-        title: 'Fruit Frais, Légèreté & Digestibilité ?',
-        subtitle: 'Vins gouleyants et aériens, faciles à boire (ex: Pinot Noir léger, Gamay, Loire).',
+        titleFr: 'Fruit Frais, Légèreté & Digestibilité ?',
+        titleEn: 'Fresh Fruit, Lightness & Easy Drinking?',
+        subtitleFr: 'Vins gouleyants et aériens, faciles à boire (ex: Pinot Noir léger, Gamay, Loire).',
+        subtitleEn: 'Glou-glou, delicate wines with buoyant fruit (e.g. light Pinot Noir, Gamay, Loire).',
         icon: Icons.eco_outlined,
         iconColor: const Color(0xFF43A047),
-        userPreferenceLabel: 'Léger & Fruité',
+        userPreferenceLabelFr: 'Léger & Fruité',
+        userPreferenceLabelEn: 'Light & Fruity',
         isEligible: (pool) =>
             pool.any((w) => w.tags.contains('léger') || w.tags.contains('fruité') || (w.metrics.body <= 5.0 && w.metrics.fruit >= 5.5)) &&
             pool.any((w) => w.metrics.body > 5.5),
@@ -262,11 +298,14 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       // 8. Notes Boisées & Fût de Chêne
       _MatchmakerQuestion(
         id: 'oak',
-        title: 'Notes Boisées, Toastées & Vanillées ?',
-        subtitle: 'Élevage en barrique de chêne apportant complexité et rondeur.',
+        titleFr: 'Notes Boisées, Toastées & Vanillées ?',
+        titleEn: 'Oaked, Toasty & Vanilla Notes?',
+        subtitleFr: 'Élevage en barrique de chêne apportant complexité et rondeur.',
+        subtitleEn: 'Oak barrel aging delivering depth and spicy warmth.',
         icon: Icons.forest,
         iconColor: const Color(0xFF8D6E63),
-        userPreferenceLabel: 'Boisé & Fût',
+        userPreferenceLabelFr: 'Boisé & Fût',
+        userPreferenceLabelEn: 'Oaked & Barrel-Aged',
         isEligible: (pool) =>
             pool.any((w) => w.metrics.oak >= 5.0 || w.tags.contains('boisé')) &&
             pool.any((w) => w.metrics.oak < 4.5),
@@ -281,11 +320,14 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       // 9. Format au Verre
       _MatchmakerQuestion(
         id: 'by_the_glass',
-        title: 'Dégustation au Verre privilégiée ?',
-        subtitle: 'Pour profiter d\'un cru sélectionné sans commander une bouteille.',
+        titleFr: 'Dégustation au Verre privilégiée ?',
+        titleEn: 'Prefer Wine by the Glass?',
+        subtitleFr: 'Pour profiter d\'un cru sélectionné sans commander une bouteille.',
+        subtitleEn: 'To enjoy a fine pour without committing to a full bottle.',
         icon: Icons.local_bar_outlined,
         iconColor: const Color(0xFF00ACC1),
-        userPreferenceLabel: 'Au Verre',
+        userPreferenceLabelFr: 'Au Verre',
+        userPreferenceLabelEn: 'By the Glass',
         isEligible: (pool) =>
             pool.any((w) => w.hasGlassPrice) && pool.any((w) => !w.hasGlassPrice),
         filter: (pool, answerYes) {
@@ -365,7 +407,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     _askedQuestionIds.add(currentQ.id);
 
     if (answerYes) {
-      _recordedChoices.add(currentQ.userPreferenceLabel);
+      _recordedChoices.add(currentQ.userPreferenceLabelFr);
     }
     if (currentQ.id == 'by_the_glass') {
       _isGlassSelected = answerYes;
@@ -403,34 +445,37 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     });
   }
 
-  String _buildJustification(MenuWine wine) {
+  String _buildJustification(MenuWine wine, bool isFr) {
     final reasons = <String>[];
     if (wine.isRed && _recordedChoices.contains('Vin Rouge')) {
-      reasons.add('parfaitement dans votre registre de vin rouge');
+      reasons.add(isFr ? 'parfaitement dans votre registre de vin rouge' : 'matching your red wine preference');
     }
     if (wine.tags.contains('minéral') || _recordedChoices.contains('Minéral & Vif')) {
-      reasons.add('avec cette belle trame minérale et vive recherchée');
+      reasons.add(isFr ? 'avec cette belle trame minérale et vive recherchée' : 'with the crisp, lively minerality you were looking for');
     }
     if (wine.tags.contains('beurré') || _recordedChoices.contains('Beurré & Rond')) {
-      reasons.add('offrant des arômes beurrés et une gourmandise soyeuse');
+      reasons.add(isFr ? 'offrant des arômes beurrés et une gourmandise soyeuse' : 'offering rich butteriness and silky texture');
     }
     if (wine.tags.contains('tannique') || _recordedChoices.contains('Tannique & Structuré')) {
-      reasons.add('doté de tanins nobles et d\'une charpente équilibrée');
+      reasons.add(isFr ? 'doté de tanins nobles et d\'une charpente équilibrée' : 'structured with noble tannins and balanced body');
     }
     if (wine.bottlePrice != null) {
-      reasons.add('pour un tarif de ${CurrencyHelper.formatPrice(wine.bottlePrice!)}');
+      reasons.add(isFr ? 'pour un tarif de ${CurrencyHelper.formatPrice(wine.bottlePrice!)}' : 'priced at ${CurrencyHelper.formatPrice(wine.bottlePrice!)}');
     }
 
     if (reasons.isEmpty) {
-      return 'Ce cru se distingue sur cette carte par son équilibre exemplaire et son profil aromatique très harmonieux.';
+      return isFr
+          ? 'Ce cru se distingue sur cette carte par son équilibre exemplaire et son profil aromatique très harmonieux.'
+          : 'This wine stands out on this list for its exemplary balance and harmonious aromatic profile.';
     }
-    return 'Pourquoi ce choix : ${reasons.join(', ')}.';
+    return isFr ? 'Pourquoi ce choix : ${reasons.join(', ')}.' : 'Why this choice: ${reasons.join(', ')}.';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.88,
@@ -471,14 +516,16 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Le Sommelier Matchmaker',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                      Text(
+                        isFr ? 'Le Sommelier Matchmaker' : 'Sommelier Matchmaker',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                       ),
                       Text(
                         _isFinished
-                            ? '🎉 Vos meilleures bouteilles trouvées !'
-                            : 'Swiper pour trouver votre vin idéal en 4 questions',
+                            ? (isFr ? '🎉 Vos meilleures bouteilles trouvées !' : '🎉 Your ideal bottles found!')
+                            : (isFr
+                                ? 'Swiper pour trouver votre vin idéal en 4 questions'
+                                : 'Swipe to find your ideal wine in 4 questions'),
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
@@ -496,16 +543,16 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
 
           // Body: Card Swiper or Winning Podium
           Expanded(
-            child: _isFinished ? _buildPodiumView(theme, isDark) : _buildSwiperView(theme, isDark),
+            child: _isFinished ? _buildPodiumView(theme, isDark, isFr) : _buildSwiperView(theme, isDark, isFr),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSwiperView(ThemeData theme, bool isDark) {
+  Widget _buildSwiperView(ThemeData theme, bool isDark, bool isFr) {
     if (_activeQuestion == null) {
-      return _buildPodiumView(theme, isDark);
+      return _buildPodiumView(theme, isDark, isFr);
     }
     final q = _activeQuestion!;
     final totalCount = widget.allWines.length;
@@ -516,9 +563,9 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Column(
           children: [
-            _buildRemainingBadgeCounter(totalCount, remainingCount, isDark),
+            _buildRemainingBadgeCounter(totalCount, remainingCount, isDark, isFr),
             const SizedBox(height: 20),
-            _buildPriceSliderCard(theme, isDark, q),
+            _buildPriceSliderCard(theme, isDark, q, isFr),
           ],
         ),
       );
@@ -529,7 +576,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       child: Column(
         children: [
           // Remaining Badge Counter (X en lice sur Y au total)
-          _buildRemainingBadgeCounter(totalCount, remainingCount, isDark),
+          _buildRemainingBadgeCounter(totalCount, remainingCount, isDark, isFr),
           const SizedBox(height: 16),
 
           // Interactive Swipeable Card with gesture detector
@@ -582,7 +629,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                             color: Colors.green.shade600,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text('OUI ✅', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: Text(isFr ? 'OUI ✅' : 'YES ✅', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         )
                       else if (_dragOffset < -30)
                         Container(
@@ -591,7 +638,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                             color: Colors.red.shade600,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text('NON ❌', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: Text(isFr ? 'NON ❌' : 'NO ❌', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         )
                       else
                         const SizedBox(height: 24),
@@ -611,7 +658,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
 
                       // Title
                       Text(
-                        q.title,
+                        q.title(isFr),
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
                       ),
@@ -619,7 +666,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
 
                       // Subtitle
                       Text(
-                        q.subtitle,
+                        q.subtitle(isFr),
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black54),
                       ),
@@ -648,7 +695,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   ),
                   onPressed: () => _answer(false),
                   icon: const Icon(Icons.close),
-                  label: const Text('NON', style: TextStyle(fontWeight: FontWeight.bold)),
+                  label: Text(isFr ? 'NON' : 'NO', style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
 
@@ -663,23 +710,25 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   ),
                   onPressed: () => _answer(true),
                   icon: const Icon(Icons.check),
-                  label: const Text('OUI', style: TextStyle(fontWeight: FontWeight.bold)),
+                  label: Text(isFr ? 'OUI' : 'YES', style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
           ),
 
           const SizedBox(height: 12),
-          const Text(
-            'Glissez vers la gauche pour NON • Glissez vers la droite pour OUI',
-            style: TextStyle(fontSize: 11, color: Colors.grey),
+          Text(
+            isFr
+                ? 'Glissez vers la gauche pour NON • Glissez vers la droite pour OUI'
+                : 'Swipe left for NO • Swipe right for YES',
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRemainingBadgeCounter(int totalCount, int remainingCount, bool isDark) {
+  Widget _buildRemainingBadgeCounter(int totalCount, int remainingCount, bool isDark, bool isFr) {
     return Column(
       children: [
         Row(
@@ -698,7 +747,9 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   const Icon(Icons.wine_bar, size: 18, color: Color(0xFFD4AF37)),
                   const SizedBox(width: 8),
                   Text(
-                    '$remainingCount vins en lice sur $totalCount au total',
+                    isFr
+                        ? '$remainingCount vins en lice sur $totalCount au total'
+                        : '$remainingCount wines remaining out of $totalCount total',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
                   ),
                 ],
@@ -738,7 +789,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     );
   }
 
-  Widget _buildPriceSliderCard(ThemeData theme, bool isDark, _MatchmakerQuestion q) {
+  Widget _buildPriceSliderCard(ThemeData theme, bool isDark, _MatchmakerQuestion q, bool isFr) {
     final min = _minPrice;
     final max = _maxPrice;
     final currentVal = (_selectedBudgetLimit ?? ((min + max) / 2)).clamp(min, max);
@@ -774,13 +825,13 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
           ),
           const SizedBox(height: 14),
           Text(
-            q.title,
+            q.title(isFr),
             textAlign: TextAlign.center,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 6),
           Text(
-            q.subtitle,
+            q.subtitle(isFr),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white70 : Colors.black54),
           ),
@@ -801,8 +852,8 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
             ),
             child: Text(
               _noPriceLimit
-                  ? '✨ Pas de limite de budget'
-                  : 'Budget max : ${CurrencyHelper.formatPrice(currentVal)}',
+                  ? (isFr ? '✨ Pas de limite de budget' : '✨ No budget limit')
+                  : '${isFr ? 'Budget max : ' : 'Max budget: '}${CurrencyHelper.formatPrice(currentVal)}',
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
@@ -847,7 +898,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
                 ),
                 ChoiceChip(
-                  label: const Text('Pas de limite'),
+                  label: Text(isFr ? 'Pas de limite' : 'No limit'),
                   selected: _noPriceLimit,
                   onSelected: (val) {
                     setState(() {
@@ -876,7 +927,9 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
               ),
               icon: const Icon(Icons.check, size: 20),
               label: Text(
-                _noPriceLimit ? 'Continuer sans limite de prix' : 'Valider ce budget',
+                _noPriceLimit
+                    ? (isFr ? 'Continuer sans limite de prix' : 'Continue without price limit')
+                    : (isFr ? 'Valider ce budget' : 'Confirm budget'),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               onPressed: () => _applyBudgetLimit(currentVal),
@@ -918,7 +971,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     });
   }
 
-  Widget _buildPodiumView(ThemeData theme, bool isDark) {
+  Widget _buildPodiumView(ThemeData theme, bool isDark, bool isFr) {
     final winners = _currentPool.take(3).toList();
 
     return SingleChildScrollView(
@@ -947,11 +1000,13 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Vos ${winners.length} Vins Idéaux',
+                        isFr ? 'Vos ${winners.length} Vins Idéaux' : 'Your ${winners.length} Ideal Wines',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       Text(
-                        'Sélectionnés sur-mesure parmi la carte du restaurant.',
+                        isFr
+                            ? 'Sélectionnés sur-mesure parmi la carte du restaurant.'
+                            : 'Custom-selected from the venue\'s wine list.',
                         style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black87),
                       ),
                     ],
@@ -965,7 +1020,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
 
           // Winners Cards with Sommelier Justification
           ...winners.map((wine) {
-            final justification = _buildJustification(wine);
+            final justification = _buildJustification(wine, isFr);
 
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
@@ -1082,7 +1137,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
             ),
             onPressed: _reset,
             icon: const Icon(Icons.refresh),
-            label: const Text('Recommencer le Matchmaker'),
+            label: Text(isFr ? 'Recommencer le Matchmaker' : 'Restart Matchmaker'),
           ),
         ],
       ),

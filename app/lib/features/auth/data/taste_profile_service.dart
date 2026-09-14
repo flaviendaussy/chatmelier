@@ -266,17 +266,91 @@ class TasteProfileService {
 
     // 5. Update palate axis running averages (for liked wines, note ≥ 5)
     if (result.noteOutOf10 >= 5.0) {
-      profile = profile.copyWith(
-        avgAcidityPreference: _runningAvg(profile.avgAcidityPreference, result.acidity, n),
-        avgBodyPreference: _runningAvg(profile.avgBodyPreference, result.body, n),
-      );
+      double? newAcidity = _runningAvg(profile.avgAcidityPreference, result.acidity, n);
+      double? newBody = _runningAvg(profile.avgBodyPreference, result.body, n);
+      double? newTannin = profile.avgTanninPreference;
+      double? newOak = profile.avgOakPreference;
+      double? newRipeFruit = profile.avgRipeFruitPreference;
+      double? newSpice = profile.avgSpicePreference;
+      double? newFreshFruit = profile.avgFreshFruitPreference;
+      double? newMinerality = profile.avgMineralityPreference;
+
       final cleanType = (wineType ?? '').toLowerCase();
       final isRedWine = cleanType.contains('rouge') || cleanType == 'red';
       if (isRedWine && result.tannins != null && result.tannins! > 0) {
-        profile = profile.copyWith(
-          avgTanninPreference: _runningAvg(profile.avgTanninPreference, result.tannins!, n),
-        );
+        newTannin = _runningAvg(profile.avgTanninPreference, result.tannins!, n);
       }
+
+      // Fast-Tasting Micro-Tap 1: Toucher de Bouche
+      if (result.mouthfeelTexture != null) {
+        switch (result.mouthfeelTexture) {
+          case 'silky_lacy':
+            newFreshFruit = _runningAvg(newFreshFruit, 0.75, n);
+            newMinerality = _runningAvg(newMinerality, 0.70, n);
+            if (isRedWine) newTannin = _runningAvg(newTannin, 0.40, n);
+            break;
+          case 'crisp_salivating':
+            newAcidity = _runningAvg(newAcidity, 0.85, n);
+            newMinerality = _runningAvg(newMinerality, 0.80, n);
+            break;
+          case 'dense_structured':
+            newBody = _runningAvg(newBody, 0.80, n);
+            if (isRedWine) newTannin = _runningAvg(newTannin, 0.80, n);
+            break;
+        }
+      }
+
+      // Fast-Tasting Micro-Tap 2: Éclat du Fruit
+      if (result.fruitProfile != null) {
+        switch (result.fruitProfile) {
+          case 'crunchy_tart':
+            newFreshFruit = _runningAvg(newFreshFruit, 0.85, n);
+            newAcidity = _runningAvg(newAcidity, 0.75, n);
+            break;
+          case 'deep_ripe':
+            newRipeFruit = _runningAvg(newRipeFruit, 0.85, n);
+            newBody = _runningAvg(newBody, 0.70, n);
+            break;
+          case 'spicy_herbal':
+            newSpice = _runningAvg(newSpice, 0.85, n);
+            newMinerality = _runningAvg(newMinerality, 0.65, n);
+            break;
+        }
+      }
+
+      // Passive Bottle Auto-Enrichment (Implicit learning from grape variety on liked bottles)
+      if (result.noteOutOf10 >= 7.0 && wineGrapes != null) {
+        for (final g in wineGrapes) {
+          final lowG = g.toLowerCase();
+          if (lowG.contains('syrah') || lowG.contains('shiraz')) {
+            newSpice = _runningAvg(newSpice, 0.85, n);
+            newRipeFruit = _runningAvg(newRipeFruit, 0.75, n);
+          } else if (lowG.contains('cabernet') || lowG.contains('malbec') || lowG.contains('mourvèdre')) {
+            newTannin = _runningAvg(newTannin, 0.80, n);
+            newOak = _runningAvg(newOak, 0.65, n);
+          } else if (lowG.contains('pinot noir') || lowG.contains('gamay')) {
+            newFreshFruit = _runningAvg(newFreshFruit, 0.80, n);
+            newAcidity = _runningAvg(newAcidity, 0.75, n);
+          } else if (lowG.contains('chardonnay')) {
+            newMinerality = _runningAvg(newMinerality, 0.75, n);
+            newOak = _runningAvg(newOak, 0.65, n);
+          } else if (lowG.contains('sauvignon') || lowG.contains('riesling') || lowG.contains('chenin')) {
+            newAcidity = _runningAvg(newAcidity, 0.85, n);
+            newMinerality = _runningAvg(newMinerality, 0.80, n);
+          }
+        }
+      }
+
+      profile = profile.copyWith(
+        avgAcidityPreference: newAcidity,
+        avgBodyPreference: newBody,
+        avgTanninPreference: newTannin,
+        avgOakPreference: newOak,
+        avgRipeFruitPreference: newRipeFruit,
+        avgSpicePreference: newSpice,
+        avgFreshFruitPreference: newFreshFruit,
+        avgMineralityPreference: newMinerality,
+      );
     }
 
     // 6. Update ideal moments
@@ -284,8 +358,8 @@ class TasteProfileService {
     updatedMoments[result.idealMoment] = (updatedMoments[result.idealMoment] ?? 0) + 1;
     profile = profile.copyWith(idealMoments: updatedMoments);
 
-    // 7. Auto-discover favorites (conservative: only on high ratings + buy again)
-    if (result.noteOutOf10 >= 8.0 && result.wouldBuyAgain == 'yes') {
+    // 7. Auto-discover favorites (conservative: on high ratings + would buy again)
+    if (result.noteOutOf10 >= 7.5 && result.wouldBuyAgain != 'no') {
       // Add region if not already present
       if (wineRegion != null && wineRegion.isNotEmpty) {
         final regions = List<String>.from(profile.favoriteRegions);
@@ -317,10 +391,10 @@ class TasteProfileService {
       }
     }
 
-    // 8. Auto-discover dislikes (conservative: need ≥ 3 mentions across questionnaires)
+    // 8. Auto-discover dislikes & Aversions (Hard negative filtering)
     final newDislikes = List<String>.from(profile.dislikedCharacteristics);
     for (final entry in updatedDisliked.entries) {
-      if (entry.value >= 3) {
+      if (entry.value >= 2 || (result.noteOutOf10 <= 4.0 && entry.value >= 1)) {
         final readable = _dislikedIdToLabel(entry.key);
         if (!newDislikes.any((d) => d.toLowerCase() == readable.toLowerCase())) {
           newDislikes.add(readable);
@@ -335,7 +409,28 @@ class TasteProfileService {
 
     AppLogger.info('TASTE_PROFILE',
         'Applied questionnaire for ${result.profileName}: note=${result.noteOutOf10}, '
-        'aromas=${result.perceivedAromas.length}, total=${n + 1}');
+        'texture=${result.mouthfeelTexture}, fruit=${result.fruitProfile}, total=${n + 1}');
+  }
+
+  /// Record a bottle addition to wishlist (+4.5 intent weight)
+  Future<void> recordWishlistGrape(String profileId, String grape) async {
+    final profiles = await getProfiles();
+    final idx = profiles.indexWhere((p) => p.id == profileId);
+    if (idx == -1) return;
+    final p = profiles[idx];
+    final updatedWish = Map<String, int>.from(p.wishlistGrapes);
+    updatedWish[grape] = (updatedWish[grape] ?? 0) + 1;
+    profiles[idx] = p.copyWith(wishlistGrapes: updatedWish);
+    await saveProfiles(profiles);
+  }
+
+  /// Sync cellar grape inventory bottle counts (+5.0 multi-bottle high intent weight)
+  Future<void> syncCellarGrapes(String profileId, Map<String, int> grapeStock) async {
+    final profiles = await getProfiles();
+    final idx = profiles.indexWhere((p) => p.id == profileId);
+    if (idx == -1) return;
+    profiles[idx] = profiles[idx].copyWith(cellarGrapes: grapeStock);
+    await saveProfiles(profiles);
   }
 
   // =========================================================================

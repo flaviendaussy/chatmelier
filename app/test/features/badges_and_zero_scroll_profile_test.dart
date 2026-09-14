@@ -248,6 +248,15 @@ void main() {
           coTasters: const [], // Loup solitaire
           consumedAt: DateTime.now(),
         ),
+        TastingEntry(
+          id: 't_past',
+          wineId: 'w_cheap',
+          wineName: 'Vin de Table Carton',
+          bottleId: 'b_cheap',
+          tastingNotes: 'Vin complètement madérisé et passé, un vrai vinaigre',
+          coTasters: const [],
+          consumedAt: DateTime(2025),
+        ),
       ];
 
       final results = BadgeEvaluator.evaluate(bottles: bottles, tastings: tastings);
@@ -263,6 +272,32 @@ void main() {
       expect(masochist.isUnlocked, isTrue);
       expect(bouchonne.isUnlocked, isTrue);
       expect(solo.isUnlocked, isTrue);
+
+      // Negative check: Unopened past-peak bottles in cellar do NOT unlock looser_past_peak without a tasting
+      final unconsumedResults = BadgeEvaluator.evaluate(bottles: bottles, tastings: []);
+      final unconsumedPastPeak = unconsumedResults.firstWhere((p) => p.badge.id == 'looser_past_peak');
+      expect(unconsumedPastPeak.isUnlocked, isFalse);
+
+      // Negative check: Morgon Roches Noires with volcanic hints in tasting notes does NOT unlock savant_volcan
+      final morgonResults = BadgeEvaluator.evaluate(
+        bottles: [
+          _testBottle(
+            id: 'b_morgon',
+            wine: const Wine(
+              id: 'w_morgon',
+              name: 'Morgon Côte du Py Roches Noires',
+              type: 'red',
+              country: 'France',
+              region: 'Beaujolais',
+              appellation: 'Morgon',
+              tastingNotes: 'Mineral notes characteristic of volcanic soils and blue stones.',
+            ),
+          ),
+        ],
+        tastings: [],
+      );
+      final morgonVolcan = morgonResults.firstWhere((p) => p.badge.id == 'savant_volcan');
+      expect(morgonVolcan.isUnlocked, isFalse);
     });
 
     test('Evaluates Le Chatmelier Savant (Historical & Scientific) Badges', () {
@@ -378,6 +413,97 @@ void main() {
       expect(botrytis.isUnlocked, isTrue);
       expect(carbonique.isUnlocked, isTrue);
       expect(kimmeridgien.isUnlocked, isTrue);
+    });
+
+    test('Evaluates 6 New Interactive Savant Badges (Blind Battle, Thermocourbe, Consensus, Cellar Architect, Storyteller, Bulles Royales)', () {
+      final bottles = [
+        _testBottle(
+          id: 'b_champagne1',
+          notes: 'Dégusté à la température idéale de 9°C en accord avec les convives',
+          wine: const Wine(
+            id: 'w_ch1',
+            name: 'Champagne Grand Cru Blanc de Blancs',
+            type: 'sparkling',
+            country: 'France',
+            region: 'Champagne',
+            producer: 'Maison Érudite',
+            foodPairings: ['Huîtres', 'Fruits de mer'],
+          ),
+        ),
+        _testBottle(
+          id: 'b_champagne2',
+          wine: const Wine(
+            id: 'w_ch2',
+            name: 'Crémant d\'Alsace Extra Brut',
+            type: 'sparkling',
+            country: 'France',
+            region: 'Alsace',
+            producer: 'Domaine de la Clé',
+          ),
+        ),
+        _testBottle(
+          id: 'b_champagne3',
+          wine: const Wine(
+            id: 'w_ch3',
+            name: 'Cava Gran Reserva Brut Nature',
+            type: 'sparkling',
+            country: 'Espagne',
+            region: 'Penedès',
+            producer: 'Celler Imperial',
+          ),
+        ),
+        _testBottle(
+          id: 'b_bourgogne',
+          wine: const Wine(
+            id: 'w_bourg',
+            name: 'Volnay Premier Cru',
+            type: 'red',
+            country: 'France',
+            region: 'Bourgogne',
+            producer: 'Domaine Historique',
+          ),
+        ),
+        _testBottle(
+          id: 'b_bordeaux',
+          wine: const Wine(
+            id: 'w_bdx',
+            name: 'Pauillac Grand Cru Classé',
+            type: 'red',
+            country: 'France',
+            region: 'Bordeaux',
+            producer: 'Château Illustre',
+          ),
+        ),
+      ];
+
+      final tastings = [
+        TastingEntry(
+          id: 't_aveugle',
+          wineId: 'w_bourg',
+          wineName: 'Volnay Mystère',
+          occasion: 'Session Dégustation à l\'aveugle entre amis',
+          tastingNotes: 'Dégusté à l\'aveugle totale : robe rubis éclatante, tanins fins.',
+          coTasters: ['Sophie', 'Marc'],
+          foodPaired: 'Magret de canard',
+          consumedAt: DateTime.now(),
+        ),
+      ];
+
+      final results = BadgeEvaluator.evaluate(bottles: bottles, tastings: tastings);
+
+      final blindBattle = results.firstWhere((p) => p.badge.id == 'savant_blind_battle');
+      final thermocourbe = results.firstWhere((p) => p.badge.id == 'savant_thermocourbe');
+      final consensus = results.firstWhere((p) => p.badge.id == 'savant_table_consensus');
+      final architect = results.firstWhere((p) => p.badge.id == 'savant_cellar_architect');
+      final storyteller = results.firstWhere((p) => p.badge.id == 'savant_storyteller');
+      final bulles = results.firstWhere((p) => p.badge.id == 'savant_bulles_royales');
+
+      expect(blindBattle.isUnlocked, isTrue, reason: 'Blind battle badge should be unlocked');
+      expect(thermocourbe.isUnlocked, isTrue, reason: 'Thermocourbe badge should be unlocked');
+      expect(consensus.isUnlocked, isTrue, reason: 'Consensus badge should be unlocked');
+      expect(architect.isUnlocked, isTrue, reason: 'Cellar architect badge should be unlocked (diversity: Champagne, Alsace, Penedes, Bourgogne, Bordeaux)');
+      expect(storyteller.isUnlocked, isTrue, reason: 'Storyteller badge should be unlocked');
+      expect(bulles.isUnlocked, isTrue, reason: 'Bulles royales badge should be unlocked (>= 3 sparkling wines)');
     });
 
     test('Evaluates Cocktails & Pantry Badges', () {

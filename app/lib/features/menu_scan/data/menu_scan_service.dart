@@ -4,29 +4,35 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../config/constants.dart';
+import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/services/gemini_model_registry.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../auth/data/ai_cost_tracker_service.dart';
 import '../../auth/domain/taste_profile.dart';
+import '../../scan/data/label_image_optimizer.dart';
 import '../domain/menu_flagging_engine.dart';
 import '../domain/menu_wine.dart';
 import 'wine_knowledge_cache_service.dart';
 
 final menuScanServiceProvider = Provider<MenuScanService>((ref) {
   final cache = ref.read(wineKnowledgeCacheServiceProvider);
-  return MenuScanService(cache);
+  final client = ref.read(supabaseProvider);
+  return MenuScanService(cache, client);
 });
 
 class MenuScanService {
   final WineKnowledgeCacheService _knowledgeCache;
+  final SupabaseClient? _supabaseClient;
   static const String _geminiApiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: '',
+    defaultValue: AppConstants.geminiApiKey,
   );
 
-  MenuScanService(this._knowledgeCache);
+  MenuScanService(this._knowledgeCache, [this._supabaseClient]);
 
   /// Helper to load bytes from a path (local file, XFile, or blob/network)
   static Future<Uint8List> _readImageBytes(String imagePath) async {
@@ -82,9 +88,15 @@ class MenuScanService {
       } else {
         final path = imagePaths[i];
         bytes = await _readImageBytes(path);
-        final pLower = path.toLowerCase();
-        if (pLower.endsWith('.png')) mimeType = 'image/png';
-        if (pLower.endsWith('.webp')) mimeType = 'image/webp';
+      }
+
+      // Optimize & downsample image to prevent HTTP 413 / huge payloads while keeping text ultra-crisp
+      try {
+        final optimized = LabelImageOptimizer.optimize(bytes, autoCrop: false, maxDimension: 2560);
+        bytes = optimized.bytes;
+        mimeType = 'image/jpeg';
+      } catch (e) {
+        AppLogger.warning('MENU_SCAN', 'Image optimization skipped for page $i: $e');
       }
 
       parts.add({
@@ -159,55 +171,82 @@ Return STRICTLY a JSON object with:
       }
     });
 
-    // Prioritize high-throughput, fast responsive multimodal vision models first
-    // (gemini-3.1-flash-lite, gemini-3.5-flash, gemini-flash-latest) with a generous 55s timeout
-    // because extracting 20 to 50 wines with full structured JSON yields 5,000+ tokens.
+    // Prioritize high-throughput, fast responsive multimodal vision models with broad fallbacks
+    final registryModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.standardFlashPreferred);
     final candidateModels = <String>[
-      'gemini-3.1-flash-lite',
+      'gemini-3.8-flash',
+      'gemini-3.6-flash',
       'gemini-3.5-flash',
       'gemini-flash-latest',
-      'gemini-3.5-flash-lite',
-    ];
+      ...registryModels,
+    ].toSet().toList();
 
     Map<String, dynamic>? parsedJson;
     String? usedModel;
 
-    for (final model in candidateModels) {
-      try {
-        AppLogger.debug('MENU_SCAN', 'Calling Gemini with model $model for ${parts.length - 1} images...');
-        onStepUpdate?.call('Déchiffrage optique des cuvées, producteurs et millésimes...');
-        final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-        );
-
-        final response = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: requestBody,
-        ).timeout(const Duration(seconds: 55));
-
-        if (response.statusCode == 200) {
-          onStepUpdate?.call('Extraction des prix, accords mets & vins et profils sensoriels...');
-          final data = jsonDecode(response.body);
-          String rawText = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '{}';
-          if (rawText.contains('```json')) {
-            rawText = rawText.split('```json')[1].split('```')[0].trim();
-          } else if (rawText.contains('```')) {
-            rawText = rawText.split('```')[1].split('```')[0].trim();
-          }
-          parsedJson = jsonDecode(rawText) as Map<String, dynamic>;
-          usedModel = model;
-
-          AiCostTrackerService().recordRawResponse(
-            model: model,
-            feature: 'menu_scan_vision',
-            responseJson: data,
-            isSearchGrounded: false,
+    // Fast-path: if direct Gemini API key is empty, invoke Supabase Edge Function directly!
+    if (_geminiApiKey.trim().isEmpty) {
+      AppLogger.info('MENU_SCAN', 'Direct Gemini API key not configured, calling Supabase Edge Function scan-menu...');
+      onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud...' : 'Analyse de la carte des vins via le Cloud Chatmelier...');
+      parsedJson = await _invokeEdgeFunction(parts, languageCode, restaurantNameHint);
+    } else {
+      for (final model in candidateModels) {
+        try {
+          AppLogger.debug('MENU_SCAN', 'Calling Gemini with model $model for ${parts.length - 1} images...');
+          onStepUpdate?.call(isEn ? 'Optical recognition of wines, estates & vintages...' : 'Déchiffrage optique des cuvées, producteurs et millésimes...');
+          final url = Uri.parse(
+            'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
           );
-          break;
+
+          final response = await http.post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: requestBody,
+          ).timeout(const Duration(seconds: 55));
+
+          if (response.statusCode == 200) {
+            onStepUpdate?.call(isEn ? 'Extracting prices, pairings & sensory profiles...' : 'Extraction des prix, accords mets & vins et profils sensoriels...');
+            final data = jsonDecode(response.body);
+            String rawText = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '{}';
+            if (rawText.contains('```json')) {
+              rawText = rawText.split('```json')[1].split('```')[0].trim();
+            } else if (rawText.contains('```')) {
+              rawText = rawText.split('```')[1].split('```')[0].trim();
+            }
+
+            try {
+              parsedJson = jsonDecode(rawText) as Map<String, dynamic>;
+            } catch (_) {
+              // Robust repair for minor JSON quirks (trailing commas, unbalanced braces)
+              var repaired = rawText.replaceAll(RegExp(r',\s*\}'), '}').replaceAll(RegExp(r',\s*\]'), ']');
+              final start = repaired.indexOf('{');
+              final end = repaired.lastIndexOf('}');
+              if (start != -1 && end != -1 && end > start) {
+                repaired = repaired.substring(start, end + 1);
+              }
+              parsedJson = jsonDecode(repaired) as Map<String, dynamic>;
+            }
+
+            usedModel = model;
+
+            AiCostTrackerService().recordRawResponse(
+              model: model,
+              feature: 'menu_scan_vision',
+              responseJson: data,
+              isSearchGrounded: false,
+            );
+            break;
+          }
+        } catch (e) {
+          AppLogger.warning('MENU_SCAN', 'Attempt with $model failed: $e. Trying next model...');
         }
-      } catch (e) {
-        AppLogger.warning('MENU_SCAN', 'Attempt with $model failed: $e. Trying next model...');
+      }
+
+      // If direct Gemini calls failed, try Supabase Edge Function fallback!
+      if (parsedJson == null) {
+        AppLogger.info('MENU_SCAN', 'Direct Gemini calls failed. Falling back to Supabase Edge Function scan-menu...');
+        onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud fallback...' : 'Analyse de secours via le Cloud Chatmelier...');
+        parsedJson = await _invokeEdgeFunction(parts, languageCode, restaurantNameHint);
       }
     }
 
@@ -397,5 +436,46 @@ Consignes absolues :
     }
 
     return 'Désolé, impossible de joindre le sommelier IA pour le moment. Veuillez vérifier votre connexion.';
+  }
+
+  Future<Map<String, dynamic>?> _invokeEdgeFunction(
+    List<Map<String, dynamic>> parts,
+    String languageCode,
+    String? restaurantNameHint,
+  ) async {
+    final client = _supabaseClient ?? (Supabase.instance.isInitialized ? Supabase.instance.client : null);
+    if (client == null) {
+      AppLogger.warning('MENU_SCAN', 'Supabase client not available for scan-menu fallback');
+      return null;
+    }
+
+    try {
+      final imagesBase64 = <String>[];
+      for (final part in parts) {
+        final inlineData = part['inlineData'];
+        if (inlineData is Map && inlineData['data'] is String) {
+          imagesBase64.add(inlineData['data'] as String);
+        }
+      }
+
+      if (imagesBase64.isEmpty) {
+        AppLogger.warning('MENU_SCAN', 'No base64 image data found for scan-menu edge function');
+        return null;
+      }
+
+      AppLogger.info('MENU_SCAN', 'Invoking Supabase Edge Function scan-menu with ${imagesBase64.length} image(s)...');
+      final res = await client.functions.invoke('scan-menu', body: {
+        'imagesBase64': imagesBase64,
+        'languageCode': languageCode,
+        'restaurantNameHint': restaurantNameHint,
+      }).timeout(const Duration(seconds: 50));
+
+      if (res.data != null && res.data is Map) {
+        return Map<String, dynamic>.from(res.data as Map);
+      }
+    } catch (e, stack) {
+      AppLogger.error('MENU_SCAN', 'Edge function scan-menu error: $e', e, stack);
+    }
+    return null;
   }
 }

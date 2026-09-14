@@ -34,8 +34,109 @@ enum CellarGroupBy {
     }
   }
 
-  String localizedLabel(bool isFr) {
-    if (isFr) return label;
+  String localizedLabel(dynamic lang) {
+    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    if (code == 'fr') return label;
+    if (code == 'la') {
+      switch (this) {
+        case CellarGroupBy.none:
+          return 'Nullum';
+        case CellarGroupBy.color:
+          return 'Color';
+        case CellarGroupBy.appellation:
+          return 'Appellatio';
+        case CellarGroupBy.region:
+          return 'Regio';
+        case CellarGroupBy.country:
+          return 'Terra';
+        case CellarGroupBy.continent:
+          return 'Continens';
+        case CellarGroupBy.maturity:
+          return 'Maturitas / Fastigium';
+        case CellarGroupBy.vintage:
+          return 'Annata';
+      }
+    }
+    if (code == 'es') {
+      switch (this) {
+        case CellarGroupBy.none:
+          return 'Ninguno';
+        case CellarGroupBy.color:
+          return 'Color';
+        case CellarGroupBy.appellation:
+          return 'Denominación';
+        case CellarGroupBy.region:
+          return 'Región';
+        case CellarGroupBy.country:
+          return 'País';
+        case CellarGroupBy.continent:
+          return 'Continente';
+        case CellarGroupBy.maturity:
+          return 'Madurez / Apogeo';
+        case CellarGroupBy.vintage:
+          return 'Añada';
+      }
+    }
+    if (code == 'ca') {
+      switch (this) {
+        case CellarGroupBy.none:
+          return 'Cap';
+        case CellarGroupBy.color:
+          return 'Color';
+        case CellarGroupBy.appellation:
+          return 'Denominació';
+        case CellarGroupBy.region:
+          return 'Regió';
+        case CellarGroupBy.country:
+          return 'País';
+        case CellarGroupBy.continent:
+          return 'Continent';
+        case CellarGroupBy.maturity:
+          return 'Maduresa / Apogeu';
+        case CellarGroupBy.vintage:
+          return 'Collita';
+      }
+    }
+    if (code == 'it') {
+      switch (this) {
+        case CellarGroupBy.none:
+          return 'Nessuno';
+        case CellarGroupBy.color:
+          return 'Colore';
+        case CellarGroupBy.appellation:
+          return 'Denominazione';
+        case CellarGroupBy.region:
+          return 'Regione';
+        case CellarGroupBy.country:
+          return 'Paese';
+        case CellarGroupBy.continent:
+          return 'Continente';
+        case CellarGroupBy.maturity:
+          return 'Maturità / Apice';
+        case CellarGroupBy.vintage:
+          return 'Annata';
+      }
+    }
+    if (code == 'de') {
+      switch (this) {
+        case CellarGroupBy.none:
+          return 'Keine';
+        case CellarGroupBy.color:
+          return 'Farbe';
+        case CellarGroupBy.appellation:
+          return 'Appellation';
+        case CellarGroupBy.region:
+          return 'Region';
+        case CellarGroupBy.country:
+          return 'Land';
+        case CellarGroupBy.continent:
+          return 'Kontinent';
+        case CellarGroupBy.maturity:
+          return 'Trinkreife / Höhepunkt';
+        case CellarGroupBy.vintage:
+          return 'Jahrgang';
+      }
+    }
     switch (this) {
       case CellarGroupBy.none:
         return 'None';
@@ -108,14 +209,24 @@ class CellarGroupEngine {
     List<Bottle> bottles,
     CellarGroupBy groupBy, {
     CellarSortBy? sortBy,
-    bool isFr = true,
+    dynamic lang = 'fr',
   }) {
+    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final isFr = code == 'fr';
+
     if (groupBy == CellarGroupBy.none) {
       final sorted = sortBy != null ? sortBy.sort(bottles) : bottles;
+      String allTitle = isFr ? 'Toutes les bouteilles' : 'All Bottles';
+      if (code == 'la') allTitle = 'Omnes Ampullae';
+      if (code == 'es') allTitle = 'Todas las botellas';
+      if (code == 'ca') allTitle = 'Totes les ampolles';
+      if (code == 'it') allTitle = 'Tutte le bottiglie';
+      if (code == 'de') allTitle = 'Alle Flaschen';
+
       return [
         CellarGroupSection(
           key: 'all',
-          title: isFr ? 'Toutes les bouteilles' : 'All Bottles',
+          title: allTitle,
           emoji: '🍾',
           bottles: sorted,
         ),
@@ -127,11 +238,11 @@ class CellarGroupEngine {
 
     for (final bottle in bottles) {
       final wine = bottle.wine;
-      final key = _extractKey(bottle, wine, groupBy, isFr: isFr);
+      final key = _extractKey(bottle, wine, groupBy, lang: lang);
       map.putIfAbsent(key, () => []).add(bottle);
 
       if (!metaMap.containsKey(key)) {
-        metaMap[key] = _extractMetadata(bottle, wine, groupBy, key, isFr: isFr);
+        metaMap[key] = _extractMetadata(bottle, wine, groupBy, key, lang: lang);
       }
     }
 
@@ -309,8 +420,10 @@ class CellarGroupEngine {
     return sections;
   }
 
-  static String _extractKey(Bottle bottle, Wine? wine, CellarGroupBy groupBy, {bool isFr = true}) {
+  static String _extractKey(Bottle bottle, Wine? wine, CellarGroupBy groupBy, {dynamic lang = 'fr'}) {
     if (wine == null) return 'unknown';
+    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final isFr = code == 'fr';
 
     switch (groupBy) {
       case CellarGroupBy.none:
@@ -333,7 +446,15 @@ class CellarGroupEngine {
         final app = wine.appellation?.trim();
         if (app != null && app.isNotEmpty) return app;
         final reg = wine.region.trim();
-        if (reg.isNotEmpty) return isFr ? '$reg (Générique)' : '$reg (Generic)';
+        if (reg.isNotEmpty) {
+          if (code == 'la') return '$reg (Generale)';
+          if (code == 'es') return '$reg (Genérico)';
+          if (code == 'ca') return '$reg (Genèric)';
+          return isFr ? '$reg (Générique)' : '$reg (Generic)';
+        }
+        if (code == 'la') return 'Sine appellatione';
+        if (code == 'es') return 'Sin denominación';
+        if (code == 'ca') return 'Sense denominació';
         return isFr ? 'Sans appellation' : 'No appellation';
 
       case CellarGroupBy.region:
@@ -343,6 +464,9 @@ class CellarGroupEngine {
           if (reg.toLowerCase().startsWith(c.toLowerCase())) return reg;
           return '$c - $reg';
         }
+        if (code == 'la') return '$c - Regio non descripta';
+        if (code == 'es') return '$c - Región no indicada';
+        if (code == 'ca') return '$c - Regió no indicada';
         return isFr ? '$c - Région non renseignée' : '$c - Region not specified';
 
       case CellarGroupBy.country:
@@ -351,7 +475,7 @@ class CellarGroupEngine {
         return 'France';
 
       case CellarGroupBy.continent:
-        return _getContinent(wine.country, isFr: isFr);
+        return _getContinent(wine.country, lang: lang);
 
       case CellarGroupBy.maturity:
         if (wine.tracksFillLevel) return 'spirit_no_apogee';
@@ -377,7 +501,9 @@ class CellarGroupEngine {
     }
   }
 
-  static String _getContinent(String country, {bool isFr = true}) {
+  static String _getContinent(String country, {dynamic lang = 'fr'}) {
+    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final isFr = code == 'fr';
     final c = country.toLowerCase().trim();
     if (c.contains('france') ||
         c.contains('ital') ||
@@ -412,17 +538,30 @@ class CellarGroupEngine {
         c.contains('brazil') ||
         c.contains('mexiq') ||
         c.contains('mexic')) {
+      if (code == 'la') return 'Americae';
+      if (code == 'es') return 'Américas';
+      if (code == 'ca') return 'Amèriques';
       return isFr ? 'Amériques' : 'Americas';
     }
     if (c.contains('austral') || c.contains('zélande') || c.contains('zealand')) {
+      if (code == 'la' || code == 'es' || code == 'ca' || code == 'it') return 'Oceania';
       return isFr ? 'Océanie' : 'Oceania';
     }
     if (c.contains('afrique') || c.contains('africa') || c.contains('maroc') || c.contains('tunis') || c.contains('algér')) {
+      if (code == 'la' || code == 'it') return 'Africa';
+      if (code == 'es') return 'África';
+      if (code == 'ca') return 'Àfrica';
       return isFr ? 'Afrique' : 'Africa';
     }
     if (c.contains('japon') || c.contains('japan') || c.contains('chine') || c.contains('china') || c.contains('liban') || c.contains('lebanon') || c.contains('isra')) {
+      if (code == 'la') return 'Asia & Oriens Medius';
+      if (code == 'es') return 'Asia y Oriente Medio';
+      if (code == 'ca') return 'Àsia i Orient Mitjà';
       return isFr ? 'Asie & Moyen-Orient' : 'Asia & Middle East';
     }
+    if (code == 'la') return 'Mundus & Alia';
+    if (code == 'es') return 'Mundo y Otros';
+    if (code == 'ca') return 'Món i Altres';
     return isFr ? 'Monde & Autres' : 'World & Others';
   }
 
@@ -431,32 +570,75 @@ class CellarGroupEngine {
     Wine? wine,
     CellarGroupBy groupBy,
     String key, {
-    bool isFr = true,
+    dynamic lang = 'fr',
   }) {
+    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final isFr = code == 'fr';
+
     switch (groupBy) {
       case CellarGroupBy.none:
-        return _GroupMetadata(title: isFr ? 'Toutes les bouteilles' : 'All Bottles', emoji: '🍾');
+        String allTitle = isFr ? 'Toutes les bouteilles' : 'All Bottles';
+        if (code == 'la') allTitle = 'Omnes Ampullae';
+        if (code == 'es') allTitle = 'Todas las botellas';
+        if (code == 'ca') allTitle = 'Totes les ampolles';
+        return _GroupMetadata(title: allTitle, emoji: '🍾');
 
       case CellarGroupBy.color:
         switch (key) {
           case 'red':
-            return _GroupMetadata(title: isFr ? 'Vins Rouges' : 'Red Wines', emoji: '🍷', color: const Color(0xFF8B1A2B));
+            String title = isFr ? 'Vins Rouges' : 'Red Wines';
+            if (code == 'la') title = 'Vina Rubra';
+            if (code == 'es') title = 'Vinos Tintos';
+            if (code == 'ca') title = 'Vins Negres';
+            return _GroupMetadata(title: title, emoji: '🍷', color: const Color(0xFF8B1A2B));
           case 'white':
-            return _GroupMetadata(title: isFr ? 'Vins Blancs' : 'White Wines', emoji: '🥂', color: const Color(0xFFC2A649));
+            String title = isFr ? 'Vins Blancs' : 'White Wines';
+            if (code == 'la') title = 'Vina Alba';
+            if (code == 'es') title = 'Vinos Blancos';
+            if (code == 'ca') title = 'Vins Blancs';
+            return _GroupMetadata(title: title, emoji: '🥂', color: const Color(0xFFC2A649));
           case 'rosé':
-            return _GroupMetadata(title: isFr ? 'Vins Rosés' : 'Rosé Wines', emoji: '🌸', color: const Color(0xFFE8A0BF));
+            String title = isFr ? 'Vins Rosés' : 'Rosé Wines';
+            if (code == 'la') title = 'Vina Rosea';
+            if (code == 'es') title = 'Vinos Rosados';
+            if (code == 'ca') title = 'Vins Rosats';
+            return _GroupMetadata(title: title, emoji: '🌸', color: const Color(0xFFE8A0BF));
           case 'sparkling':
-            return _GroupMetadata(title: isFr ? 'Champagnes & Effervescents' : 'Sparkling & Champagne', emoji: '✨', color: const Color(0xFFD4AF37));
+            String title = isFr ? 'Champagnes & Effervescents' : 'Sparkling & Champagne';
+            if (code == 'la') title = 'Campana & Spumantia';
+            if (code == 'es') title = 'Champán y Espumosos';
+            if (code == 'ca') title = 'Xampany i Escumosos';
+            return _GroupMetadata(title: title, emoji: '✨', color: const Color(0xFFD4AF37));
           case 'dessert':
-            return _GroupMetadata(title: isFr ? 'Vins Moelleux & Doux' : 'Dessert & Sweet Wines', emoji: '🍯', color: const Color(0xFFE5A65D));
+            String title = isFr ? 'Vins Moelleux & Doux' : 'Dessert & Sweet Wines';
+            if (code == 'la') title = 'Vina Dulcia';
+            if (code == 'es') title = 'Vinos Dulces';
+            if (code == 'ca') title = 'Vins Dolços';
+            return _GroupMetadata(title: title, emoji: '🍯', color: const Color(0xFFE5A65D));
           case 'orange':
-            return _GroupMetadata(title: isFr ? 'Vins Oranges' : 'Orange Wines', emoji: '🏺', color: const Color(0xFFE67E22));
+            String title = isFr ? 'Vins Oranges' : 'Orange Wines';
+            if (code == 'la') title = 'Vina Aurantia';
+            if (code == 'es') title = 'Vinos Naranjas';
+            if (code == 'ca') title = 'Vins Taronja';
+            return _GroupMetadata(title: title, emoji: '🏺', color: const Color(0xFFE67E22));
           case 'fortified':
-            return _GroupMetadata(title: isFr ? 'Vins Fortifiés & Mutés' : 'Fortified Wines', emoji: '🍷', color: const Color(0xFF78281F));
+            String title = isFr ? 'Vins Fortifiés & Mutés' : 'Fortified Wines';
+            if (code == 'la') title = 'Vina Fortificata';
+            if (code == 'es') title = 'Vinos Fortificados';
+            if (code == 'ca') title = 'Vins Fortificats';
+            return _GroupMetadata(title: title, emoji: '🍷', color: const Color(0xFF78281F));
           case 'spirit':
-            return _GroupMetadata(title: isFr ? 'Spiritueux' : 'Spirits', emoji: '🥃', color: const Color(0xFFD35400));
+            String title = isFr ? 'Spiritueux' : 'Spirits';
+            if (code == 'la') title = 'Spiritus';
+            if (code == 'es') title = 'Espirituosos';
+            if (code == 'ca') title = 'Destil·lats';
+            return _GroupMetadata(title: title, emoji: '🥃', color: const Color(0xFFD35400));
           default:
-            return _GroupMetadata(title: isFr ? 'Autres Vins' : 'Other Wines', emoji: '🍾');
+            String title = isFr ? 'Autres Vins' : 'Other Wines';
+            if (code == 'la') title = 'Alia Vina';
+            if (code == 'es') title = 'Otros Vinos';
+            if (code == 'ca') title = 'Altres Vins';
+            return _GroupMetadata(title: title, emoji: '🍾');
         }
 
       case CellarGroupBy.appellation:
@@ -518,50 +700,86 @@ class CellarGroupEngine {
       case CellarGroupBy.maturity:
         switch (key) {
           case 'peak':
+            String title = isFr ? 'À l\'apogée (Idéal à boire)' : 'At Peak (Ready to drink)';
+            if (code == 'la') title = 'In Fastigio (Aptum ad bibendum)';
+            if (code == 'es') title = 'En el apogeo (Ideal para beber)';
+            if (code == 'ca') title = 'En el seu apogeu (Ideal per beure)';
             return _GroupMetadata(
-              title: isFr ? 'À l\'apogée (Idéal à boire)' : 'At Peak (Ready to drink)',
+              title: title,
               emoji: '🌟',
               color: const Color(0xFF2E7D32),
             );
           case 'drink_soon':
+            String title = isFr ? 'À boire prochainement' : 'Drink Soon';
+            if (code == 'la') title = 'Mox Bibendum';
+            if (code == 'es') title = 'Beber pronto';
+            if (code == 'ca') title = 'Per beure aviat';
             return _GroupMetadata(
-              title: isFr ? 'À boire prochainement' : 'Drink Soon',
+              title: title,
               emoji: '⏰',
               color: const Color(0xFFEF6C00),
             );
           case 'aging':
+            String title = isFr ? 'En garde / Bon potentiel' : 'Aging / Good potential';
+            if (code == 'la') title = 'In Custodia / Servandum';
+            if (code == 'es') title = 'En guarda / Buen potencial';
+            if (code == 'ca') title = 'En guarda / Bon potencial';
             return _GroupMetadata(
-              title: isFr ? 'En garde / Bon potentiel' : 'Aging / Good potential',
+              title: title,
               emoji: '⏳',
               color: const Color(0xFF1976D2),
             );
           case 'too_young':
+            String title = isFr ? 'Trop jeune / À conserver' : 'Too Young / Keep';
+            if (code == 'la') title = 'Nimis Iuvenis / Custodiendum';
+            if (code == 'es') title = 'Demasiado joven / Conservar';
+            if (code == 'ca') title = 'Massa jove / Conservar';
             return _GroupMetadata(
-              title: isFr ? 'Trop jeune / À conserver' : 'Too Young / Keep',
+              title: title,
               emoji: '🌱',
               color: const Color(0xFF7B1FA2),
             );
           case 'past_peak':
+            String title = isFr ? 'Apogée dépassée' : 'Past Peak';
+            if (code == 'la') title = 'Post Fastigium';
+            if (code == 'es') title = 'Apogeo pasado';
+            if (code == 'ca') title = 'Apogeu superat';
             return _GroupMetadata(
-              title: isFr ? 'Apogée dépassée' : 'Past Peak',
+              title: title,
               emoji: '⚠️',
               color: const Color(0xFFC62828),
             );
           case 'spirit_no_apogee':
+            String title = isFr ? 'Spiritueux & Vins Mutés (Sans apogée)' : 'Spirits & Fortified (No peak)';
+            if (code == 'la') title = 'Spiritus (Sine fastigio)';
+            if (code == 'es') title = 'Espirituosos (Sin apogeo)';
+            if (code == 'ca') title = 'Destil·lats (Sense apogeu)';
             return _GroupMetadata(
-              title: isFr ? 'Spiritueux & Vins Mutés (Sans apogée)' : 'Spirits & Fortified (No peak)',
+              title: title,
               emoji: '🥃',
               color: const Color(0xFFD35400),
             );
           default:
-            return _GroupMetadata(title: isFr ? 'Maturité indéterminée' : 'Undetermined maturity', emoji: '❓');
+            String title = isFr ? 'Maturité indéterminée' : 'Undetermined maturity';
+            if (code == 'la') title = 'Maturitas Incognita';
+            if (code == 'es') title = 'Madurez indeterminada';
+            if (code == 'ca') title = 'Maduresa indeterminada';
+            return _GroupMetadata(title: title, emoji: '❓');
         }
 
       case CellarGroupBy.vintage:
         if (key == 'NM' || key == 'unknown') {
-          return _GroupMetadata(title: isFr ? 'Non-Millésimé (NM)' : 'Non-Vintage (NV)', emoji: '🏷️');
+          String title = isFr ? 'Non-Millésimé (NM)' : 'Non-Vintage (NV)';
+          if (code == 'la') title = 'Non-Annata (NM)';
+          if (code == 'es') title = 'Sin añada (NV)';
+          if (code == 'ca') title = 'Sense anyada (NV)';
+          return _GroupMetadata(title: title, emoji: '🏷️');
         }
-        return _GroupMetadata(title: isFr ? 'Millésime $key' : 'Vintage $key', emoji: '📅');
+        String title = isFr ? 'Millésime $key' : 'Vintage $key';
+        if (code == 'la') title = 'Annata $key';
+        if (code == 'es') title = 'Añada $key';
+        if (code == 'ca') title = 'Collita $key';
+        return _GroupMetadata(title: title, emoji: '📅');
     }
   }
 }

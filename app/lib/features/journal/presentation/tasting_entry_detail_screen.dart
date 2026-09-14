@@ -80,55 +80,59 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
     return val % 1 == 0 ? '${val.toInt()} / 10' : '${val.toStringAsFixed(1)} / 10';
   }
 
-  String _getSommelierVerdict(double? rating) {
-    if (rating == null) return 'Dégusté';
+  String _getSommelierVerdict(double? rating, {bool isFr = true}) {
+    if (rating == null) return isFr ? 'Dégusté' : 'Tasted';
     final val = (rating <= 5.0 && rating > 0) ? rating * 2 : rating;
-    if (val >= 9.5) return 'Exceptionnel 🏆';
-    if (val >= 8.5) return 'Remarquable ✨';
-    if (val >= 7.5) return 'Très bon vin 🍷';
-    if (val >= 6.0) return 'Agréable 👍';
-    return 'Passable / Correct';
+    if (val >= 9.5) return isFr ? 'Exceptionnel 🏆' : 'Exceptional 🏆';
+    if (val >= 8.5) return isFr ? 'Remarquable ✨' : 'Remarkable ✨';
+    if (val >= 7.5) return isFr ? 'Très bon vin 🍷' : 'Very good wine 🍷';
+    if (val >= 6.0) return isFr ? 'Agréable 👍' : 'Pleasant 👍';
+    return isFr ? 'Passable / Correct' : 'Fair / Decent';
   }
 
-  void _shareTasting() {
+  void _shareTasting({bool isFr = true}) {
     final entry = widget.entry;
-    final wineTitle = '${entry.wineName ?? "Vin"}${entry.vintage != null ? " ${entry.vintage}" : ""}';
+    final wineTitle = '${entry.wineName ?? (isFr ? "Vin" : "Wine")}${entry.vintage != null ? " ${entry.vintage}" : ""}';
     final ratingStr = _formatRatingScore(entry.rating);
     final buffer = StringBuffer();
-    buffer.writeln('🍷 Souvenir de Dégustation : $wineTitle');
-    buffer.writeln('⭐ Note : $ratingStr (${_getSommelierVerdict(entry.rating)})');
+    buffer.writeln(isFr ? '🍷 Souvenir de Dégustation : $wineTitle' : '🍷 Tasting Memory: $wineTitle');
+    buffer.writeln(isFr ? '⭐ Note : $ratingStr (${_getSommelierVerdict(entry.rating, isFr: isFr)})' : '⭐ Rating: $ratingStr (${_getSommelierVerdict(entry.rating, isFr: isFr)})');
     if (entry.locationName != null && entry.locationName!.isNotEmpty) {
-      buffer.writeln('📍 Lieu : ${entry.locationName}');
+      buffer.writeln(isFr ? '📍 Lieu : ${entry.locationName}' : '📍 Location: ${entry.locationName}');
     }
     if (entry.coTasters.isNotEmpty) {
-      buffer.writeln('👥 Partagé avec : ${entry.coTasters.join(", ")}');
+      buffer.writeln(isFr ? '👥 Partagé avec : ${entry.coTasters.join(", ")}' : '👥 Shared with: ${entry.coTasters.join(", ")}');
     }
     if (entry.foodPaired != null && entry.foodPaired!.isNotEmpty) {
-      buffer.writeln('🍽️ Accord : ${entry.foodPaired}');
+      buffer.writeln(isFr ? '🍽️ Accord : ${entry.foodPaired}' : '🍽️ Pairing: ${entry.foodPaired}');
     }
     if (entry.tastingNotes != null && entry.tastingNotes!.isNotEmpty) {
-      buffer.writeln('📝 Notes : ${entry.tastingNotes}');
+      buffer.writeln(isFr ? '📝 Notes : ${entry.tastingNotes}' : '📝 Notes: ${entry.tastingNotes}');
     }
-    buffer.writeln('\nPartagé depuis Chatmelier 🍇');
+    buffer.writeln(isFr ? '\nPartagé depuis Chatmelier 🍇' : '\nShared from Chatmelier 🍇');
 
-    Share.share(buffer.toString(), subject: 'Dégustation : $wineTitle');
+    Share.share(buffer.toString(), subject: isFr ? 'Dégustation : $wineTitle' : 'Tasting: $wineTitle');
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final entry = widget.entry;
     final wine = _wine;
 
-    final wineName = entry.wineName ?? wine?.name ?? 'Vin dégusté';
+    final wineName = entry.wineName ?? wine?.name ?? (isFr ? 'Vin dégusté' : 'Tasted wine');
     final vintageStr = (entry.vintage != null && entry.vintage! > 0)
         ? '${entry.vintage}'
-        : 'Non Millésimé (NM)';
+        : (isFr ? 'Non Millésimé (NM)' : 'Non-Vintage (NV)');
     final wineType = entry.wineType ?? wine?.type ?? 'red';
     final ratingStr = _formatRatingScore(entry.rating);
-    final verdict = _getSommelierVerdict(entry.rating);
-    final dateFormatted = DateFormat('EEEE d MMMM yyyy à HH:mm', 'fr_FR').format(entry.consumedAt);
+    final verdict = _getSommelierVerdict(entry.rating, isFr: isFr);
+    final dateFormatted = DateFormat(
+      isFr ? 'EEEE d MMMM yyyy à HH:mm' : 'EEEE, MMMM d, yyyy at h:mm a',
+      isFr ? 'fr_FR' : 'en_US',
+    ).format(entry.consumedAt);
 
     // Resolve wine / bottle image
     final resolvedImage = entry.photoUrl != null && entry.photoUrl!.isNotEmpty
@@ -145,7 +149,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
             actions: [
               IconButton(
                 icon: const Icon(Icons.wine_bar_outlined),
-                tooltip: 'Aller à Ma Cave',
+                tooltip: isFr ? 'Aller à Ma Cave' : 'Go to My Cellar',
                 onPressed: () {
                   Navigator.of(context).pop();
                   context.go('/');
@@ -153,8 +157,8 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
               ),
               IconButton(
                 icon: const Icon(Icons.share_outlined),
-                tooltip: 'Partager cette dégustation',
-                onPressed: _shareTasting,
+                tooltip: isFr ? 'Partager cette dégustation' : 'Share this tasting',
+                onPressed: () => _shareTasting(isFr: isFr),
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -287,9 +291,9 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'FICHE DE DÉGUSTATION',
-                                    style: TextStyle(
+                                  Text(
+                                    isFr ? 'FICHE DE DÉGUSTATION' : 'TASTING SHEET',
+                                    style: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 1.1,
@@ -350,7 +354,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text('Appréciation : ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              Text(isFr ? 'Appréciation : ' : 'Rating: ', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                               Text(
                                 verdict,
                                 style: const TextStyle(
@@ -372,7 +376,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                           _buildContextRow(
                             icon: Icons.place,
                             iconColor: Colors.blue,
-                            label: 'Lieu de dégustation',
+                            label: isFr ? 'Lieu de dégustation' : 'Tasting location',
                             value: entry.locationName!,
                           ),
                           const SizedBox(height: 12),
@@ -389,7 +393,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Partagé avec :', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                    Text(isFr ? 'Partagé avec :' : 'Shared with:', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                     const SizedBox(height: 4),
                                     Wrap(
                                       spacing: 6,
@@ -415,7 +419,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                           _buildContextRow(
                             icon: Icons.restaurant,
                             iconColor: const Color(0xFF10B981),
-                            label: 'Accord mets & vin dégusté',
+                            label: isFr ? 'Accord mets & vin dégusté' : 'Food & wine pairing tasted',
                             value: entry.foodPaired!,
                           ),
                           const SizedBox(height: 12),
@@ -432,7 +436,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Impressions & Arômes :', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                    Text(isFr ? 'Impressions & Arômes :' : 'Impressions & Aromas:', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                     const SizedBox(height: 4),
                                     Text(
                                       entry.tastingNotes!,
@@ -460,9 +464,9 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             icon: const Text('🎓', style: TextStyle(fontSize: 18)),
-                            label: const Text(
-                              'Débriefing Oenologique & Secrets Moléculaires',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            label: Text(
+                              isFr ? 'Débriefing Oenologique & Secrets Moléculaires' : 'Oenological Debrief & Molecular Insights',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                             onPressed: () {
                               final wineObj = _wine ?? Wine(
@@ -495,7 +499,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                       const Icon(Icons.info_outline, color: Color(0xFF8B1E3F), size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'Carte & Fiche du Vin',
+                        isFr ? 'Carte & Fiche du Vin' : 'Wine Identity & Details',
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -512,11 +516,11 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                           if (entry.appellation != null && entry.appellation!.isNotEmpty)
                             _buildInfoRow('Appellation', entry.appellation!),
                           if (entry.region != null && entry.region!.isNotEmpty)
-                            _buildInfoRow('Région', entry.region!),
+                            _buildInfoRow(isFr ? 'Région' : 'Region', entry.region!),
                           if (entry.country != null && entry.country!.isNotEmpty)
-                            _buildInfoRow('Pays', entry.country!),
+                            _buildInfoRow(isFr ? 'Pays' : 'Country', entry.country!),
                           if (wine?.alcoholPct != null)
-                            _buildInfoRow('Alcool', '${wine!.alcoholPct!.toStringAsFixed(1)}% vol'),
+                            _buildInfoRow(isFr ? 'Alcool' : 'Alcohol', '${wine!.alcoholPct!.toStringAsFixed(1)}% vol'),
                           if (wine?.classification != null && wine!.classification!.isNotEmpty)
                             _buildInfoRow('Classification', wine.classification!),
                         ],
@@ -533,7 +537,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                         const Icon(Icons.show_chart, color: Color(0xFF8B1E3F), size: 20),
                         const SizedBox(width: 8),
                         Text(
-                          'Apogée & Maturité Sommelier',
+                          isFr ? 'Apogée & Maturité Sommelier' : 'Drinking Peak & Maturity',
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -549,7 +553,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                           const Icon(Icons.pie_chart_outline, color: Color(0xFF8B1E3F), size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'Cépages & Assemblage',
+                            isFr ? 'Cépages & Assemblage' : 'Grape Varieties & Blend',
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -570,7 +574,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                           const Icon(Icons.military_tech_outlined, color: Color(0xFFD4AF37), size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'Notes des Critiques & Guides',
+                            isFr ? 'Notes des Critiques & Guides' : 'Critics Scores & Guides',
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -606,7 +610,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                           const Icon(Icons.map_outlined, color: Color(0xFF8B1E3F), size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'Terroir & Géographie',
+                            isFr ? 'Terroir & Géographie' : 'Terroir & Geography',
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -617,12 +621,16 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                         region: wine.region,
                         subRegion: wine.subRegion,
                         appellation: wine.appellation,
+                        isSpirit: wine.isSpirit,
+                        wineType: wine.type,
+                        wineName: wine.name,
+                        producer: wine.producer,
                       ),
                       const SizedBox(height: 16),
                     ],
 
                     // Décryptage Moléculaire & Science Œnologique
-                    _buildMolecularScienceCard(wine, entry, theme, isDark),
+                    _buildMolecularScienceCard(wine, entry, theme, isDark, isFr),
                     const SizedBox(height: 20),
 
                     // Bouton de redirection vers Ma Cave
@@ -634,9 +642,9 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                           context.go('/');
                         },
                         icon: const Icon(Icons.wine_bar, color: Colors.white),
-                        label: const Text(
-                          'Voir mon stock dans Ma Cave 🍾',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                        label: Text(
+                          isFr ? 'Voir mon stock dans Ma Cave 🍾' : 'View my stock in My Cellar 🍾',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFF8B1E3F),
@@ -657,7 +665,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
     );
   }
 
-  Widget _buildMolecularScienceCard(Wine wine, TastingEntry entry, ThemeData theme, bool isDark) {
+  Widget _buildMolecularScienceCard(Wine wine, TastingEntry entry, ThemeData theme, bool isDark, bool isFr) {
     final wineType = (entry.wineType ?? wine.type).toLowerCase();
     final isRed = wineType.contains('red') || wineType.contains('rouge');
     final isSparkling = wineType.contains('sparkling') || wineType.contains('bulles') || wineType.contains('champagne');
@@ -689,9 +697,9 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'DÉCRYPTAGE MOLÉCULAIRE & SCIENCE',
-                      style: TextStyle(
+                    Text(
+                      isFr ? 'DÉCRYPTAGE MOLÉCULAIRE & SCIENCE' : 'MOLECULAR INSIGHTS & SCIENCE',
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.1,
@@ -699,7 +707,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                       ),
                     ),
                     Text(
-                      'Biochimie & composés aromatiques du vin',
+                      isFr ? 'Biochimie & composés aromatiques du vin' : 'Wine biochemistry & aroma compounds',
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? Colors.white60 : Colors.grey.shade700,
@@ -715,12 +723,20 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
           // 1. Phénols & Couleur
           _buildMoleculeTopic(
             emoji: '🍇',
-            title: isRed ? 'Anthocyanes & Tannins Polymérisés' : (isSparkling ? 'Mannoprotéines & Autolyse' : 'Acides Hydroxycinnamiques'),
-            description: isRed
-                ? 'Malvidine-3-glucoside et tannins condensés (proanthocyanidines). Au fil des ans, les tannins se polymérisent, adoucissant l\'astringence en précipitant moins les protéines salivaires (proline).'
-                : (isSparkling
-                    ? 'L\'élevage sur lies libère des mannoprotéines par autolyse des levures (Saccharomyces cerevisiae), stabilisant la texture crémeuse et la finesse de l\'effervescence.'
-                    : 'Acide caftarique et flavonoïdes offrant la brillance jaune doré et agissant comme antioxydants naturels.'),
+            title: isFr
+                ? (isRed ? 'Anthocyanes & Tannins Polymérisés' : (isSparkling ? 'Mannoprotéines & Autolyse' : 'Acides Hydroxycinnamiques'))
+                : (isRed ? 'Anthocyanins & Polymerized Tannins' : (isSparkling ? 'Mannoproteins & Autolysis' : 'Hydroxycinnamic Acids')),
+            description: isFr
+                ? (isRed
+                    ? 'Malvidine-3-glucoside et tannins condensés (proanthocyanidines). Au fil des ans, les tannins se polymérisent, adoucissant l\'astringence en précipitant moins les protéines salivaires (proline).'
+                    : (isSparkling
+                        ? 'L\'élevage sur lies libère des mannoprotéines par autolyse des levures (Saccharomyces cerevisiae), stabilisant la texture crémeuse et la finesse de l\'effervescence.'
+                        : 'Acide caftarique et flavonoïdes offrant la brillance jaune doré et agissant comme antioxydants naturels.'))
+                : (isRed
+                    ? 'Malvidin-3-glucoside and condensed tannins (proanthocyanidins). Over time, tannins polymerize, softening astringency by binding fewer salivary proteins (proline).'
+                    : (isSparkling
+                        ? 'Aging on lees releases mannoproteins through yeast autolysis (Saccharomyces cerevisiae), stabilizing creamy texture and bubble finesse.'
+                        : 'Caftaric acid and flavonoids providing golden brilliance and acting as natural antioxidants.')),
             isDark: isDark,
           ),
           const SizedBox(height: 10),
@@ -728,8 +744,8 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
           // 2. Molécules Aromatiques Clés
           _buildMoleculeTopic(
             emoji: '🧪',
-            title: 'Profil des Molécules Aromatiques',
-            description: _getAromaticMoleculesSummary(allGrapes, region, isRed, isSparkling),
+            title: isFr ? 'Profil des Molécules Aromatiques' : 'Aromatic Molecules Profile',
+            description: _getAromaticMoleculesSummary(allGrapes, region, isRed, isSparkling, isFr: isFr),
             isDark: isDark,
           ),
           const SizedBox(height: 10),
@@ -737,8 +753,10 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
           // 3. Équilibre Acido-Basique
           _buildMoleculeTopic(
             emoji: '⚖️',
-            title: 'Équilibre Acide & Salinité Minérale',
-            description: 'Acide tartrique (C₄H₆O₆) garantissant la vivacité et la longévité, complété par l\'acide malique ou lactique (C₃H₆O₃) adoucissant le volume en bouche.',
+            title: isFr ? 'Équilibre Acide & Salinité Minérale' : 'Acid Balance & Mineral Salinity',
+            description: isFr
+                ? 'Acide tartrique (C₄H₆O₆) garantissant la vivacité et la longévité, complété par l\'acide malique ou lactique (C₃H₆O₃) adoucissant le volume en bouche.'
+                : 'Tartaric acid (C₄H₆O₆) ensuring freshness and longevity, balanced by malic or lactic acid (C₃H₆O₃) softening roundness on the palate.',
             isDark: isDark,
           ),
         ],
@@ -746,7 +764,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
     );
   }
 
-  String _getAromaticMoleculesSummary(String grapes, String region, bool isRed, bool isSparkling) {
+  String _getAromaticMoleculesSummary(String grapes, String region, bool isRed, bool isSparkling, {bool isFr = true}) {
     final list = <String>[];
     if (grapes.contains('sauvignon') || grapes.contains('cabernet') || grapes.contains('merlot')) {
       list.add('• Pyrazines (2-isobutyl-3-méthoxypyrazine) : notes végétales nobles, cassis frais.');
@@ -861,6 +879,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
   }
 
   Widget _buildSommelierServiceCard(Wine wine, ThemeData theme, bool isDark) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final advice = WineServiceAdvisor.computeAdvice(
       wineType: wine.type,
       vintage: wine.vintage,
@@ -868,6 +887,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
       appellation: wine.appellation,
       producer: wine.producer,
       wineName: wine.name,
+      isFr: isFr,
     );
 
     return Container(
@@ -880,13 +900,13 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.room_service_outlined, color: Color(0xFFD4AF37), size: 20),
-              SizedBox(width: 8),
+              const Icon(Icons.room_service_outlined, color: Color(0xFFD4AF37), size: 20),
+              const SizedBox(width: 8),
               Text(
-                'Conseils de Service du Sommelier',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                isFr ? 'Conseils de Service du Sommelier' : 'Sommelier Service Advice',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
           ),
@@ -896,17 +916,17 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
             children: [
               _buildServiceItem(
                 Icons.thermostat,
-                'Température',
+                isFr ? 'Température' : 'Temperature',
                 '${advice.minTemp} - ${advice.maxTemp}°C',
               ),
               _buildServiceItem(
                 Icons.air,
-                'Carafage',
-                advice.carafeMinutes > 0 ? '${advice.carafeMinutes} min' : 'Non requis',
+                isFr ? 'Carafage' : 'Decanting',
+                advice.carafeMinutes > 0 ? '${advice.carafeMinutes} min' : (isFr ? 'Non requis' : 'Not required'),
               ),
               _buildServiceItem(
                 Icons.wine_bar,
-                'Verre',
+                isFr ? 'Verre' : 'Glassware',
                 advice.glasswareType.split(' ').first,
               ),
             ],

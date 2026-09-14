@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import '../../features/cellar/domain/cellar.dart';
+import '../../l10n/app_localizations.dart';
 import '../utils/app_logger.dart';
 
 enum ProximityMatchType { wifi, gps }
@@ -21,18 +22,50 @@ class CellarProximityMatch {
     this.wifiSsid,
     required this.explanation,
   });
+
+  String formatExplanation(AppLocalizations? l10n) {
+    if (l10n != null) {
+      if (matchType == ProximityMatchType.wifi && wifiSsid != null) {
+        return l10n.proximityWifi(wifiSsid!);
+      } else if (matchType == ProximityMatchType.gps && distanceMeters != null) {
+        final distStr = distanceMeters! < 1000
+            ? '${distanceMeters!.toStringAsFixed(0)} m'
+            : '${(distanceMeters! / 1000).toStringAsFixed(1)} km';
+        return l10n.proximityGps(distStr);
+      }
+    }
+    return explanation;
+  }
 }
 
 class DistantCellarCheck {
   final bool isDistant;
   final double? distanceKm;
   final String? warningMessage;
+  final String? wifiSsid;
+  final String? otherCellarName;
+  final String? targetCellarName;
 
   const DistantCellarCheck({
     required this.isDistant,
     this.distanceKm,
     this.warningMessage,
+    this.wifiSsid,
+    this.otherCellarName,
+    this.targetCellarName,
   });
+
+  String formatWarning(AppLocalizations? l10n) {
+    if (l10n != null) {
+      if (wifiSsid != null && otherCellarName != null) {
+        return l10n.distantCellarWifiWarning(wifiSsid!, otherCellarName!);
+      } else if (distanceKm != null && targetCellarName != null) {
+        final distStr = '${distanceKm!.toStringAsFixed(distanceKm! > 10 ? 0 : 1)} km';
+        return l10n.distantCellarGpsWarning(distStr, targetCellarName!);
+      }
+    }
+    return warningMessage ?? '';
+  }
 }
 
 class CellarLocationService {
@@ -194,6 +227,9 @@ class CellarLocationService {
             other.wifiSsid!.trim().toLowerCase() == currentWifi.toLowerCase()) {
           return DistantCellarCheck(
             isDistant: true,
+            wifiSsid: other.wifiSsid,
+            otherCellarName: other.displayName,
+            targetCellarName: targetCellar.displayName,
             warningMessage:
                 'Vous êtes actuellement connecté au Wi-Fi "${other.wifiSsid}" associé à votre autre cave "${other.displayName}".',
           );
@@ -219,6 +255,7 @@ class CellarLocationService {
           return DistantCellarCheck(
             isDistant: true,
             distanceKm: distKm,
+            targetCellarName: targetCellar.displayName,
             warningMessage:
                 'Vous êtes actuellement situé à environ ${distKm.toStringAsFixed(distKm > 10 ? 0 : 1)} km de "${targetCellar.displayName}".',
           );

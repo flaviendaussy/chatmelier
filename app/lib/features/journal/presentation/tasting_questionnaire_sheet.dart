@@ -12,7 +12,11 @@ import '../../offline/presentation/sync_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../data/tasting_ai_assistant_service.dart';
 import '../domain/tasting_questionnaire_result.dart';
+import '../../cellar/domain/wine.dart';
+import '../domain/tasting_pedagogy_engine.dart';
+import 'tasting_pedagogy_sheet.dart';
 import 'journal_screen.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// A 4-step paginated bottom sheet for structured post-tasting feedback.
 ///
@@ -34,6 +38,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
   final String? bottleOwnerId;
   final String? bottleOwnerName;
   final VoidCallback? onFinished;
+  final bool initialIsExpress;
 
   const TastingQuestionnaireSheet({
     super.key,
@@ -51,6 +56,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
     this.bottleOwnerId,
     this.bottleOwnerName,
     this.onFinished,
+    this.initialIsExpress = false,
   });
 
   /// Show the questionnaire as a full-screen modal bottom sheet.
@@ -70,6 +76,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
     String? bottleOwnerId,
     String? bottleOwnerName,
     VoidCallback? onFinished,
+    bool initialIsExpress = false,
   }) {
     return showModalBottomSheet<bool>(
       context: context,
@@ -92,6 +99,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
         bottleOwnerId: bottleOwnerId,
         bottleOwnerName: bottleOwnerName,
         onFinished: onFinished,
+        initialIsExpress: initialIsExpress,
       ),
     );
   }
@@ -101,7 +109,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
 }
 
 class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaireSheet> {
-  final _pageController = PageController();
+  PageController _pageController = PageController();
   int _currentStep = 0;
 
   // Profile selection
@@ -123,6 +131,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   // Step 1: Impression
   int _emojiIndex = 3; // default 😊
   double _noteSlider = 7.0;
+
+  // Express mode & Picky connoisseur / Foodie enhancements
+  late bool _isExpressMode;
+  final List<String> _customAromas = [];
+  String? _foodPairingSynergy;
+  String? _selectedMouthfeelTexture;
+  String? _selectedFruitProfile;
 
   // Step 2: Nez
   Set<String> _selectedAromas = {};
@@ -195,6 +210,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   @override
   void initState() {
     super.initState();
+    _isExpressMode = widget.initialIsExpress;
     _loadProfiles();
   }
 
@@ -249,6 +265,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       setState(() {
         _allProfiles = merged;
         _selectedProfileIds = initialSelected;
+        _selectedProfiles = merged.where((p) => initialSelected.contains(p.id)).toList();
         _profilesLoaded = true;
       });
     }
@@ -258,6 +275,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     _emojiIndex = 3;
     _noteSlider = 7.0;
     _selectedAromas = {};
+    _customAromas.clear();
+    _foodPairingSynergy = null;
     _aromaIntensity = 0.5;
     _acidity = 0.5;
     _tannins = 0.5;
@@ -269,6 +288,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     _idealMoment = 'repas';
     _whatLiked = {};
     _whatDisliked = {};
+    _selectedMouthfeelTexture = null;
+    _selectedFruitProfile = null;
   }
 
   void _nextStep() {
@@ -295,11 +316,18 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   }
 
   Future<void> _submitCurrentProfile() async {
-    final profile = _selectedProfiles[_currentProfileIndex];
+    final profile = _selectedProfiles.isNotEmpty
+        ? _selectedProfiles[_currentProfileIndex]
+        : (_allProfiles.firstOrNull ?? const TasteProfile(id: 'me', name: 'Moi', isPrimary: true));
     final result = TastingQuestionnaireResult(
       emojiImpression: _emojiIndex,
       noteOutOf10: _noteSlider,
       perceivedAromas: Set<String>.from(_selectedAromas),
+      customAromas: List<String>.from(_customAromas),
+      foodPairingSynergy: _foodPairingSynergy,
+      mouthfeelTexture: _selectedMouthfeelTexture,
+      fruitProfile: _selectedFruitProfile,
+      isExpressMode: _isExpressMode,
       aromaIntensity: _aromaIntensity,
       acidity: _acidity,
       tannins: _showTannins ? _tannins : null,
@@ -366,6 +394,11 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           emojiImpression: result.emojiImpression,
           noteOutOf10: result.noteOutOf10,
           perceivedAromas: result.perceivedAromas,
+          customAromas: result.customAromas,
+          foodPairingSynergy: result.foodPairingSynergy,
+          mouthfeelTexture: result.mouthfeelTexture,
+          fruitProfile: result.fruitProfile,
+          isExpressMode: result.isExpressMode,
           aromaIntensity: result.aromaIntensity,
           acidity: result.acidity,
           tannins: result.tannins,
@@ -597,6 +630,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     final vintageStr = widget.vintage != null ? ' ${widget.vintage}' : '';
 
     if (_isCompleted) {
@@ -686,12 +720,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Questionnaire Dégustation',
+                            l10n.tastingHeaderTitle,
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
                             _isBlindTasting
-                                ? 'Bouteille Mystère 🕵️‍♂️ (Vin ${_isRed ? "Rouge" : (_isWhite ? "Blanc" : "Rosé")})'
+                                ? 'Bouteille Mystère 🕵️‍♂️ (Vin ${_isRed ? (l10n.wineTypeRed) : (_isWhite ? (l10n.wineTypeWhite) : (l10n.wineTypeRose))})'
                                 : '${widget.wineName}$vintageStr',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: const Color(0xFF8B1E3F),
@@ -702,7 +736,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Dicter mes impressions (IA) 🎙️',
+                      tooltip: l10n.tastingDictateButton,
                       icon: const Icon(Icons.mic, color: Color(0xFF8B1E3F)),
                       onPressed: _showVoiceDictationDialog,
                     ),
@@ -730,8 +764,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                           const Icon(Icons.person, size: 16, color: Color(0xFFD4AF37)),
                           const SizedBox(width: 6),
                           Text(
-                            'Réponses de ${_profileDisplayName(_selectedProfiles[_currentProfileIndex])}'
-                            '${_selectedProfiles.length > 1 ? " (${_currentProfileIndex + 1}/${_selectedProfiles.length})" : ""}',
+                            l10n.tastingAnswersOf(_profileDisplayName(_selectedProfiles[_currentProfileIndex])) +
+                            (_selectedProfiles.length > 1 ? ' (${_currentProfileIndex + 1}/${_selectedProfiles.length})' : ''),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
@@ -742,128 +776,172 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                       ),
                     ),
                   ),
-              ],
-            ),
-          ),
 
-          // Step indicator
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              children: List.generate(5, (i) {
-                final labels = ['Dégustateurs', 'Impression', 'Le Nez', 'La Bouche', 'Verdict'];
-                final isActive = i == _currentStep;
-                final isDone = i < _currentStep;
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(right: i < 4 ? 4 : 0),
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: isDone
-                                ? const Color(0xFFD4AF37)
-                                : isActive
-                                    ? const Color(0xFF8B1E3F)
-                                    : Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          labels[i],
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                            color: isActive ? const Color(0xFF8B1E3F) : Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
+                // Mode switcher (Express ⚡ vs Sommelier 🎓)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ChoiceChip(
+                        avatar: const Icon(Icons.bolt, size: 14, color: Color(0xFFF59E0B)),
+                        label: Text(l10n.tastingFormatExpress, style: const TextStyle(fontSize: 11.5)),
+                        selected: _isExpressMode,
+                        onSelected: (val) {
+                          if (val) setState(() => _isExpressMode = true);
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        avatar: const Icon(Icons.school, size: 14, color: Color(0xFFD4AF37)),
+                        label: Text(l10n.tastingFormatSommelier, style: const TextStyle(fontSize: 11.5)),
+                        selected: !_isExpressMode,
+                        onSelected: (val) {
+                          if (val) setState(() => _isExpressMode = false);
+                        },
+                      ),
+                    ],
                   ),
-                );
-              }),
-            ),
-          ),
-
-          // Page content
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _buildProfileSelector(),
-                _buildStep1Impression(),
-                _buildStep2Nez(),
-                _buildStep3Bouche(),
-                _buildStep4Verdict(),
+                ),
               ],
             ),
           ),
 
-          // Navigation buttons
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+          if (_isExpressMode)
+            Expanded(
+              child: _buildExpressForm(),
+            )
+          else ...[
+            // Step indicator
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Row(
+                children: List.generate(5, (i) {
+                  final labels = [
+                    l10n.tastingStepTasters,
+                    l10n.tastingStepNezNav,
+                    l10n.tastingStepBoucheNav,
+                    l10n.tastingStepVerdictNav,
+                    l10n.tastingStepRatingNav,
+                  ];
+                  final isActive = i == _currentStep;
+                  final isDone = i < _currentStep;
+                  return Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(right: i < 4 ? 4 : 0),
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: isDone
+                                  ? const Color(0xFFD4AF37)
+                                  : isActive
+                                      ? const Color(0xFF8B1E3F)
+                                      : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            labels[i],
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                              color: isActive ? const Color(0xFF8B1E3F) : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+
+            // Page content
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  if (_currentStep > 0)
-                    OutlinedButton.icon(
-                      onPressed: _prevStep,
-                      icon: const Icon(Icons.arrow_back, size: 16),
-                      label: const Text('Retour'),
-                    ),
-                  const Spacer(),
-                  if (_currentStep == 0)
-                    FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF8B1E3F),
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: _selectedProfileIds.isEmpty
-                          ? null
-                          : () {
-                              _selectedProfiles = _allProfiles
-                                  .where((p) => _selectedProfileIds.contains(p.id))
-                                  .toList();
-                              _currentProfileIndex = 0;
-                              _resetAnswers();
-                              _nextStep();
-                            },
-                      icon: const Icon(Icons.arrow_forward, size: 16),
-                      label: Text('Commencer (${_selectedProfileIds.length})'),
-                    ),
-                  if (_currentStep > 0 && _currentStep < 4)
-                    FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF8B1E3F),
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: _nextStep,
-                      icon: const Icon(Icons.arrow_forward, size: 16),
-                      label: const Text('Suivant'),
-                    ),
-                  if (_currentStep == 4)
-                    FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFFD4AF37),
-                        foregroundColor: Colors.black87,
-                      ),
-                      onPressed: _isSaving ? null : _submitCurrentProfile,
-                      icon: _isSaving
-                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Icon(Icons.check, size: 16),
-                      label: Text(
-                        _separateTurns && _currentProfileIndex < _selectedProfiles.length - 1
-                            ? 'Valider → Dégustateur suivant'
-                            : 'Valider & Terminer ✨',
-                      ),
-                    ),
+                  _buildProfileSelector(),
+                  _buildStep2Nez(),
+                  _buildStep3Bouche(),
+                  _buildStep4Verdict(),
+                  _buildStep1Impression(),
                 ],
               ),
             ),
-          ),
+
+            // Navigation buttons
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: Row(
+                  children: [
+                    if (_currentStep > 0)
+                      OutlinedButton.icon(
+                        onPressed: _prevStep,
+                        icon: const Icon(Icons.arrow_back, size: 16),
+                        label: Text(l10n.tastingBack),
+                      ),
+                    const Spacer(),
+                    if (_currentStep == 0)
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF8B1E3F),
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: _selectedProfileIds.isEmpty
+                            ? null
+                            : () {
+                                _selectedProfiles = _allProfiles
+                                    .where((p) => _selectedProfileIds.contains(p.id))
+                                    .toList();
+                                _currentProfileIndex = 0;
+                                _resetAnswers();
+                                _nextStep();
+                              },
+                        icon: const Icon(Icons.arrow_forward, size: 16),
+                        label: Text(
+                          l10n.tastingStartCount(_selectedProfileIds.length),
+                        ),
+                      ),
+                    if (_currentStep > 0 && _currentStep < 4)
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF8B1E3F),
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: _nextStep,
+                        icon: const Icon(Icons.arrow_forward, size: 16),
+                        label: Text(l10n.tastingNext),
+                      ),
+                    if (_currentStep == 4)
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFFD4AF37),
+                          foregroundColor: Colors.black87,
+                        ),
+                        onPressed: _isSaving ? null : _submitCurrentProfile,
+                        icon: _isSaving
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Icon(Icons.check, size: 16),
+                        label: Text(
+                          _isSaving
+                              ? (l10n.tastingSaving)
+                              : (_separateTurns && _currentProfileIndex < _selectedProfiles.length - 1
+                                  ? (l10n.tastingNextTaster)
+                                  : (l10n.tastingConfirmAndFinish)),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -874,6 +952,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   // ===========================================================================
   Widget _buildProfileSelector() {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     if (!_profilesLoaded) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -881,12 +960,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       padding: const EdgeInsets.all(20),
       children: [
         Text(
-          '👥 Qui a dégusté ce vin ?',
+          l10n.tastingWhoTastedTitle,
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
         Text(
-          'Sélectionnez les dégustateurs. Les profils de goût seront enrichis automatiquement.',
+          l10n.tastingWhoTastedSubtitle,
           style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
         const SizedBox(height: 16),
@@ -904,13 +983,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 18),
-                    SizedBox(width: 8),
+                    const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 18),
+                    const SizedBox(width: 8),
                     Text(
-                      'Comment déguster ?',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      l10n.tastingHowToTaste,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ],
                 ),
@@ -920,7 +999,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                     Expanded(
                       child: ChoiceChip(
                         avatar: const Icon(Icons.phone_android, size: 14),
-                        label: const Text('Chacun son tour', style: TextStyle(fontSize: 12)),
+                        label: Text(
+                          l10n.tastingEachTurn,
+                          style: const TextStyle(fontSize: 12),
+                        ),
                         selected: _separateTurns,
                         selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.2),
                         checkmarkColor: const Color(0xFF8B1E3F),
@@ -933,7 +1015,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                     Expanded(
                       child: ChoiceChip(
                         avatar: const Icon(Icons.celebration, size: 14),
-                        label: const Text('Ensemble', style: TextStyle(fontSize: 12)),
+                        label: Text(
+                          l10n.tastingTogether,
+                          style: const TextStyle(fontSize: 12),
+                        ),
                         selected: !_separateTurns,
                         selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.2),
                         checkmarkColor: const Color(0xFF8B1E3F),
@@ -947,8 +1032,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 const SizedBox(height: 6),
                 Text(
                   _separateTurns
-                      ? '📱 En passant le téléphone : chacun répond séparément à son rythme.'
-                      : '🥂 Un seul questionnaire complété ensemble pour tous les convives.',
+                      ? (l10n.tastingEachTurnDesc)
+                      : (l10n.tastingTogetherDesc),
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ],
@@ -986,12 +1071,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Mode Dégustation à l\'Aveugle',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    Text(
+                      l10n.tastingBlindMode,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     Text(
-                      'Masque le nom du vin et active un quiz de table interactif avec révélation finale !',
+                      l10n.tastingBlindModeDesc,
                       style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                     ),
                   ],
@@ -999,7 +1084,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               ),
               Switch(
                 value: _isBlindTasting,
-                activeColor: const Color(0xFFD4AF37),
+                activeThumbColor: const Color(0xFFD4AF37),
                 onChanged: (val) {
                   setState(() => _isBlindTasting = val);
                   HapticFeedback.selectionClick();
@@ -1062,7 +1147,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                           ),
                           if (profile.questionnairesCompleted > 0)
                             Text(
-                              '${profile.questionnairesCompleted} questionnaire${profile.questionnairesCompleted > 1 ? "s" : ""} complété${profile.questionnairesCompleted > 1 ? "s" : ""}',
+                              l10n.tastingQuestionnairesCompletedCount(profile.questionnairesCompleted),
                               style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                             ),
                           Wrap(
@@ -1077,9 +1162,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                                     color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Text(
-                                    'Profil principal',
-                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37)),
+                                  child: Text(
+                                    l10n.tastingPrimaryProfile,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFD4AF37),
+                                    ),
                                   ),
                                 ),
                               if (profile.hasApp)
@@ -1090,14 +1179,18 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                                     color: Colors.green.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.smartphone, size: 10, color: Colors.green),
-                                      SizedBox(width: 3),
+                                      const Icon(Icons.smartphone, size: 10, color: Colors.green),
+                                      const SizedBox(width: 3),
                                       Text(
-                                        'App installée 📱',
-                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green),
+                                        l10n.tastingAppInstalled,
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -1118,16 +1211,24 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   }
 
   // ===========================================================================
-  // Step 1: Impression Générale 🎯
+  // Step 4: Note Finale & Impression 🎯
   // ===========================================================================
   Widget _buildStep1Impression() {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final emojiDescriptions = TastingQuestionnaireResult.getEmojiDescriptions(l10n);
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         Text(
-          '🎯 Impression Générale',
+          l10n.tastingStepImpressionTitle,
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.tastingStepImpressionSubtitle,
+          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
         if (_isBlindTasting) ...[
           const SizedBox(height: 12),
@@ -1136,7 +1237,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         const SizedBox(height: 20),
 
         // Emoji selector
-        Text('Votre ressenti global :', style: theme.textTheme.titleSmall),
+        Text(
+          l10n.tastingOverallFeeling,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1144,7 +1248,11 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             final isSelected = _emojiIndex == i;
             return GestureDetector(
               onTap: () {
-                setState(() => _emojiIndex = i);
+                final defaultNoteForEmoji = [2.5, 4.5, 6.5, 8.0, 9.5][i];
+                setState(() {
+                  _emojiIndex = i;
+                  _noteSlider = defaultNoteForEmoji;
+                });
                 HapticFeedback.selectionClick();
               },
               child: AnimatedContainer(
@@ -1168,7 +1276,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      TastingQuestionnaireResult.emojiDescriptions[i],
+                      emojiDescriptions[i],
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -1185,11 +1293,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         const SizedBox(height: 32),
 
         // Note slider
-        Text('Note sur 10 :', style: theme.textTheme.titleSmall),
+        Text(
+          l10n.tastingScoreOutOf10,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
-            const Text('😐', style: TextStyle(fontSize: 20)),
+            const Text('😖', style: TextStyle(fontSize: 20)),
             Expanded(
               child: Slider(
                 value: _noteSlider,
@@ -1198,10 +1309,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 divisions: 18,
                 activeColor: const Color(0xFF8B1E3F),
                 label: _noteSlider.toStringAsFixed(1),
-                onChanged: (v) => setState(() => _noteSlider = v),
+                onChanged: (v) => setState(() {
+                  _noteSlider = v;
+                  _emojiIndex = TastingQuestionnaireResult.emojiIndexForRating(v);
+                }),
               ),
             ),
-            const Text('🤩', style: TextStyle(fontSize: 20)),
+            const Text('😍', style: TextStyle(fontSize: 20)),
           ],
         ),
         Center(
@@ -1222,16 +1336,19 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   // ===========================================================================
   Widget _buildStep2Nez() {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final aromaList = TastingQuestionnaireResult.getAromaOptions(l10n);
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         Text(
-          '🍇 Le Nez — Arômes',
+          l10n.tastingStepNezTitle,
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
         Text(
-          'Quels arômes avez-vous perçus ? (Plusieurs choix possibles)',
+          l10n.tastingStepNezSubtitle,
           style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
         const SizedBox(height: 16),
@@ -1239,34 +1356,58 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: TastingQuestionnaireResult.aromaOptions.map((aroma) {
-            final isSelected = _selectedAromas.contains(aroma.id);
-            return FilterChip(
-              selected: isSelected,
-              label: Text('${aroma.emoji} ${aroma.label}'),
-              selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
-              checkmarkColor: const Color(0xFF8B1E3F),
-              onSelected: (val) {
-                setState(() {
-                  if (val) {
-                    _selectedAromas.add(aroma.id);
-                  } else {
-                    _selectedAromas.remove(aroma.id);
-                  }
-                });
-                HapticFeedback.selectionClick();
-              },
-            );
-          }).toList(),
+          children: [
+            ...aromaList.map((aroma) {
+              final isSelected = _selectedAromas.contains(aroma.id);
+              return FilterChip(
+                selected: isSelected,
+                label: Text('${aroma.emoji} ${aroma.localizedLabel(l10n)}'),
+                selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                checkmarkColor: const Color(0xFF8B1E3F),
+                onSelected: (val) {
+                  setState(() {
+                    if (val) {
+                      _selectedAromas.add(aroma.id);
+                    } else {
+                      _selectedAromas.remove(aroma.id);
+                    }
+                  });
+                  HapticFeedback.selectionClick();
+                },
+              );
+            }),
+            ..._customAromas.map((customAroma) {
+              return InputChip(
+                avatar: const Icon(Icons.star, size: 14, color: Color(0xFFD4AF37)),
+                label: Text(customAroma),
+                selected: true,
+                selectedColor: const Color(0xFFD4AF37).withValues(alpha: 0.2),
+                checkmarkColor: const Color(0xFFD4AF37),
+                onDeleted: () {
+                  setState(() {
+                    _customAromas.remove(customAroma);
+                  });
+                },
+              );
+            }),
+            ActionChip(
+              avatar: const Icon(Icons.add, size: 16, color: Color(0xFF8B1E3F)),
+              label: Text(l10n.tastingAddCustomAroma),
+              onPressed: _showAddCustomAromaDialog,
+            ),
+          ],
         ),
 
         const SizedBox(height: 24),
 
-        Text('Intensité aromatique :', style: theme.textTheme.titleSmall),
+        Text(
+          l10n.tastingAromaIntensity,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         _buildSliderRow(
-          leftLabel: '🤫 Discret',
-          rightLabel: '💥 Explosif',
+          leftLabel: l10n.tastingAromaDiscreet,
+          rightLabel: l10n.tastingAromaExplosive,
           value: _aromaIntensity,
           onChanged: (v) => setState(() => _aromaIntensity = v),
         ),
@@ -1279,25 +1420,32 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   // ===========================================================================
   Widget _buildStep3Bouche() {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         Text(
-          '⚖️ La Bouche — Équilibre',
+          l10n.tastingStepBoucheTitle,
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
         Text(
-          'Décrivez la texture et l\'équilibre du vin en bouche.',
+          l10n.tastingStepBoucheSubtitle,
           style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
         const SizedBox(height: 20),
 
         // Acidité / Vivacité
-        Text(_isWhite ? 'Acidité & Vivacité :' : 'Acidité :', style: theme.textTheme.titleSmall),
+        Text(
+          _isWhite
+              ? (l10n.tastingAcidityFreshness)
+              : (l10n.tastingAcidity),
+          style: theme.textTheme.titleSmall,
+        ),
         _buildSliderRow(
-          leftLabel: '🫠 Mou / Plat',
-          rightLabel: '⚡ Vif / Tranchant',
+          leftLabel: l10n.tastingAcidityFlat,
+          rightLabel: l10n.tastingAciditySharp,
           value: _acidity,
           onChanged: (v) => setState(() => _acidity = v),
         ),
@@ -1305,10 +1453,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
         // Tanins (ONLY for reds — never for whites!)
         if (_showTannins) ...[
-          Text('Tanins :', style: theme.textTheme.titleSmall),
+          Text(
+            l10n.tastingTannins,
+            style: theme.textTheme.titleSmall,
+          ),
           _buildSliderRow(
-            leftLabel: '🧶 Fondus / Soyeux',
-            rightLabel: '💪 Puissants / Astringents',
+            leftLabel: l10n.tastingTanninsSilky,
+            rightLabel: l10n.tastingTanninsGrippy,
             value: _tannins,
             onChanged: (v) => setState(() => _tannins = v),
           ),
@@ -1317,10 +1468,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
         // Minéralité & Fraîcheur (for whites and rosés instead of tannins)
         if (_isWhite || _isRose) ...[
-          Text('Minéralité & Fraîcheur :', style: theme.textTheme.titleSmall),
+          Text(
+            l10n.tastingMinerality,
+            style: theme.textTheme.titleSmall,
+          ),
           _buildSliderRow(
-            leftLabel: '🧈 Rond / Beurré',
-            rightLabel: '🪨 Minéral / Ciselé',
+            leftLabel: l10n.tastingMineralityRound,
+            rightLabel: l10n.tastingMineralityCrisp,
             value: _mineralite,
             onChanged: (v) => setState(() => _mineralite = v),
           ),
@@ -1329,10 +1483,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
         // Effervescence (only for sparkling)
         if (_isSparkling) ...[
-          Text('Effervescence :', style: theme.textTheme.titleSmall),
+          Text(
+            l10n.tastingEffervescence,
+            style: theme.textTheme.titleSmall,
+          ),
           _buildSliderRow(
-            leftLabel: '🫧 Fine / Délicate',
-            rightLabel: '🎆 Vive / Crémeuse',
+            leftLabel: l10n.tastingEffervescenceDelicate,
+            rightLabel: l10n.tastingEffervescenceVibrant,
             value: _effervescence,
             onChanged: (v) => setState(() => _effervescence = v),
           ),
@@ -1340,20 +1497,39 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         ],
 
         // Corps
-        Text('Corps / Volume :', style: theme.textTheme.titleSmall),
+        Text(
+          l10n.tastingBody,
+          style: theme.textTheme.titleSmall,
+        ),
         _buildSliderRow(
-          leftLabel: '🍃 Léger / Aérien',
-          rightLabel: '🏋️ Puissant / Charnu',
+          leftLabel: l10n.tastingBodyLight,
+          rightLabel: l10n.tastingBodyFull,
           value: _body,
           onChanged: (v) => setState(() => _body = v),
         ),
         const SizedBox(height: 16),
 
-        // Longueur
-        Text('Longueur en bouche :', style: theme.textTheme.titleSmall),
+        // Longueur (Caudalies)
+        Row(
+          children: [
+            Text(
+              l10n.tastingLength,
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(width: 6),
+            InkWell(
+              onTap: () => _showCaudalieTooltip(context),
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(4.0),
+                child: Icon(Icons.help_outline, size: 16, color: Color(0xFFD4AF37)),
+              ),
+            ),
+          ],
+        ),
         _buildSliderRow(
-          leftLabel: '⏱️ Courte',
-          rightLabel: '♾️ Interminable',
+          leftLabel: l10n.tastingLengthShort,
+          rightLabel: l10n.tastingLengthLong,
           value: _length,
           onChanged: (v) => setState(() => _length = v),
         ),
@@ -1366,56 +1542,147 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   // ===========================================================================
   Widget _buildStep4Verdict() {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final likedList = TastingQuestionnaireResult.getLikedOptions(l10n);
+    final dislikedList = TastingQuestionnaireResult.getDislikedOptions(l10n);
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         Text(
-          '✅ Verdict Final',
+          l10n.tastingStepVerdictTitle,
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
 
         // Would buy again
-        Text('Rachèteriez-vous cette bouteille ?', style: theme.textTheme.titleSmall),
+        Text(
+          l10n.tastingBuyAgain,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
-            _buildChoiceChip('🤩 Absolument !', 'yes', _wouldBuyAgain, (v) => setState(() => _wouldBuyAgain = v)),
+            _buildChoiceChip(
+              l10n.tastingBuyAgainYes,
+              'yes',
+              _wouldBuyAgain,
+              (v) => setState(() => _wouldBuyAgain = v),
+            ),
             const SizedBox(width: 8),
-            _buildChoiceChip('🤔 Peut-être', 'maybe', _wouldBuyAgain, (v) => setState(() => _wouldBuyAgain = v)),
+            _buildChoiceChip(
+              l10n.tastingBuyAgainMaybe,
+              'maybe',
+              _wouldBuyAgain,
+              (v) => setState(() => _wouldBuyAgain = v),
+            ),
             const SizedBox(width: 8),
-            _buildChoiceChip('👎 Non merci', 'no', _wouldBuyAgain, (v) => setState(() => _wouldBuyAgain = v)),
+            _buildChoiceChip(
+              l10n.tastingBuyAgainNo,
+              'no',
+              _wouldBuyAgain,
+              (v) => setState(() => _wouldBuyAgain = v),
+            ),
           ],
         ),
         const SizedBox(height: 20),
 
         // Ideal moment
-        Text('Quel moment idéal pour ce vin ?', style: theme.textTheme.titleSmall),
+        Text(
+          l10n.tastingIdealMoment,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildChoiceChip('🥂 Apéro', 'apero', _idealMoment, (v) => setState(() => _idealMoment = v)),
-            _buildChoiceChip('🍽️ Repas du quotidien', 'repas', _idealMoment, (v) => setState(() => _idealMoment = v)),
-            _buildChoiceChip('🎩 Grand dîner', 'grand_diner', _idealMoment, (v) => setState(() => _idealMoment = v)),
-            _buildChoiceChip('🕯️ Dîner romantique', 'diner_romantique', _idealMoment, (v) => setState(() => _idealMoment = v)),
-            _buildChoiceChip('🧘 Solo / Méditation', 'solo', _idealMoment, (v) => setState(() => _idealMoment = v)),
+            _buildChoiceChip(
+              l10n.tastingMomentApero,
+              'apero',
+              _idealMoment,
+              (v) => setState(() => _idealMoment = v),
+            ),
+            _buildChoiceChip(
+              l10n.tastingMomentMeal,
+              'repas',
+              _idealMoment,
+              (v) => setState(() => _idealMoment = v),
+            ),
+            _buildChoiceChip(
+              l10n.tastingMomentDinner,
+              'grand_diner',
+              _idealMoment,
+              (v) => setState(() => _idealMoment = v),
+            ),
+            _buildChoiceChip(
+              l10n.tastingMomentRomantic,
+              'diner_romantique',
+              _idealMoment,
+              (v) => setState(() => _idealMoment = v),
+            ),
+            _buildChoiceChip(
+              l10n.tastingMomentSolo,
+              'solo',
+              _idealMoment,
+              (v) => setState(() => _idealMoment = v),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        // Accord Mets & Vins - Synergie (Food-Wine Synergy)
+        Text(
+          l10n.tastingFoodSynergyTitle,
+          style: theme.textTheme.titleSmall,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildChoiceChip(
+              l10n.tastingSynergySublime,
+              'sublime',
+              _foodPairingSynergy,
+              (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
+            ),
+            _buildChoiceChip(
+              l10n.tastingSynergyHarmonious,
+              'harmonious',
+              _foodPairingSynergy,
+              (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
+            ),
+            _buildChoiceChip(
+              l10n.tastingSynergyNeutral,
+              'neutral',
+              _foodPairingSynergy,
+              (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
+            ),
+            _buildChoiceChip(
+              l10n.tastingSynergyClashing,
+              'clashing',
+              _foodPairingSynergy,
+              (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
+            ),
           ],
         ),
         const SizedBox(height: 20),
 
         // What liked most
-        Text('Ce que vous avez le plus aimé :', style: theme.textTheme.titleSmall),
+        Text(
+          l10n.tastingWhatLiked,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
           runSpacing: 6,
-          children: TastingQuestionnaireResult.likedOptions.map((opt) {
+          children: likedList.map((opt) {
             final isSelected = _whatLiked.contains(opt.id);
             return FilterChip(
               selected: isSelected,
-              label: Text(opt.label, style: const TextStyle(fontSize: 12)),
+              label: Text(opt.localizedLabel(l10n), style: const TextStyle(fontSize: 12)),
               selectedColor: const Color(0xFFD4AF37).withValues(alpha: 0.2),
               checkmarkColor: const Color(0xFFD4AF37),
               onSelected: (val) {
@@ -1433,18 +1700,21 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         const SizedBox(height: 20),
 
         // What disliked (trop_tannique is hidden for non-red wines)
-        Text('Ce qui vous a le moins plu :', style: theme.textTheme.titleSmall),
+        Text(
+          l10n.tastingWhatDisliked,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
           runSpacing: 6,
-          children: TastingQuestionnaireResult.dislikedOptions
+          children: dislikedList
               .where((opt) => _showTannins || opt.id != 'trop_tannique')
               .map((opt) {
             final isSelected = _whatDisliked.contains(opt.id);
             return FilterChip(
               selected: isSelected,
-              label: Text(opt.label, style: const TextStyle(fontSize: 12)),
+              label: Text(opt.localizedLabel(l10n), style: const TextStyle(fontSize: 12)),
               selectedColor: Colors.red.withValues(alpha: 0.15),
               checkmarkColor: Colors.red,
               onSelected: (val) {
@@ -1470,8 +1740,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         // Occasion / Moment partagé
         TextField(
           decoration: InputDecoration(
-            labelText: 'Occasion / Souvenir partagé (optionnel) ✨',
-            hintText: 'Ex: 70 ans de Papa, Dîner aux chandelles, Retrouvailles...',
+            labelText: l10n.tastingOccasionLabel,
+            hintText: l10n.tastingOccasionHint,
             prefixIcon: const Icon(Icons.celebration_outlined, color: Color(0xFF8B1E3F)),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -1490,7 +1760,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             ),
             onPressed: _pickTastingPhoto,
             icon: const Icon(Icons.photo_camera_outlined, size: 18),
-            label: const Text('Ajouter une photo souvenir de la table 📸', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+            label: Text(
+              l10n.tastingAddPhoto,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            ),
           )
         else
           Container(
@@ -1504,10 +1777,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               children: [
                 const Icon(Icons.image, color: Color(0xFF8B1E3F)),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Photo souvenir enregistrée 📸',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    l10n.tastingPhotoSaved,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
                 IconButton(
@@ -1527,8 +1800,20 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   // ===========================================================================
 
   Widget _buildCompletionView() {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final vintageStr = widget.vintage != null ? ' ${widget.vintage}' : '';
+
+    final wineObj = Wine(
+      id: widget.wineId ?? 'temp',
+      name: widget.wineName,
+      vintage: widget.vintage,
+      producer: widget.producer,
+      region: widget.region ?? '',
+      country: 'France',
+      type: widget.wineType ?? 'red',
+      grapes: (widget.wineGrapes ?? []).map((g) => Grape(name: g, pct: null)).toList(),
+    );
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -1550,7 +1835,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         ),
         const SizedBox(height: 16),
         Text(
-          'Dégustation terminée & enregistrée !',
+          l10n.tastingCompletedTitle,
           textAlign: TextAlign.center,
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
@@ -1568,7 +1853,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         ),
         const SizedBox(height: 8),
         Text(
-          'Les profils de dégustation ont été mis à jour avec succès ✨',
+          l10n.tastingCompletedSubtitle,
           textAlign: TextAlign.center,
           style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
@@ -1581,14 +1866,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 color: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.inventory_2_outlined, size: 14, color: Color(0xFF8B1E3F)),
-                  SizedBox(width: 6),
+                  const Icon(Icons.inventory_2_outlined, size: 14, color: Color(0xFF8B1E3F)),
+                  const SizedBox(width: 6),
                   Text(
-                    'Bouteille sortie de la cave',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
+                    l10n.tastingBottleRemoved,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
                   ),
                 ],
               ),
@@ -1599,21 +1884,54 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
         // Blind Tasting Grand Reveal Card
         if (_isBlindTasting) ...[
-          _buildBlindRevealCard(vintageStr),
+          _buildBlindRevealCard(vintageStr, l10n),
           const SizedBox(height: 16),
         ],
 
         // Table Conclave Consensus Card
         if (_selectedProfiles.length > 1 && _conclaveSummary != null) ...[
-          _buildConclaveSummaryCard(),
+          _buildConclaveSummaryCard(l10n),
           const SizedBox(height: 16),
         ],
+
+        // Wine Flavor Origins Section (Cépages, Boisé, Terroir, Âge)
+        _buildFlavorOriginsCard(wineObj, l10n),
+        const SizedBox(height: 16),
 
         // Summary cards for each taster
         ..._selectedProfiles.map((profile) {
           final res = _completedResults[profile.id];
           final isSynced = _syncedFriendNames.contains(profile.name);
           final displayName = _profileDisplayName(profile);
+
+          final report = res != null
+              ? TastingPedagogyEngine.analyze(
+                  wine: wineObj,
+                  userRating: res.noteOutOf10,
+                  userAromas: res.perceivedAromas.map((aId) {
+                    final opt = TastingQuestionnaireResult.aromaOptions.firstWhere(
+                      (a) => a.id == aId,
+                      orElse: () => AromaOption(id: aId, label: aId, emoji: '🍇'),
+                    );
+                    return '${opt.emoji} ${opt.localizedLabel(l10n)}';
+                  }).toList(),
+                  customAromas: res.customAromas,
+                  userComment: res.whatLikedMost.join(', '),
+                  userAcidity: res.acidity,
+                  userTannins: res.tannins,
+                  userBody: res.body,
+                  userLength: res.length,
+                  perceivedAromaIds: res.perceivedAromas.toSet(),
+                )
+              : null;
+
+          final personaSubtitle = profile.isPrimary
+              ? l10n.tastingCellarMaster
+              : (profile.favoriteTypes.isNotEmpty
+                  ? l10n.tastingProfileTag(profile.favoriteTypes.first + (profile.favoriteRegions.isNotEmpty ? ' • ${profile.favoriteRegions.first}' : ''))
+                  : l10n.tastingGuestTaster);
+
+          final emojiDescs = TastingQuestionnaireResult.getEmojiDescriptions(l10n);
 
           return Card(
             margin: const EdgeInsets.only(bottom: 12),
@@ -1645,11 +1963,16 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                               displayName,
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                             ),
-                            if (res != null)
+                            Text(
+                              personaSubtitle,
+                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                            ),
+                            if (res != null) ...[
+                              const SizedBox(height: 2),
                               Row(
                                 children: [
                                   Text(
-                                    TastingQuestionnaireResult.emojiLabels[res.emojiImpression],
+                                    emojiDescs[res.emojiImpression],
                                     style: const TextStyle(fontSize: 16),
                                   ),
                                   const SizedBox(width: 6),
@@ -1663,28 +1986,102 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                                   ),
                                 ],
                               ),
+                            ],
                           ],
                         ),
                       ),
                     ],
                   ),
-                  if (res != null && res.perceivedAromas.isNotEmpty) ...[
+                  if (res != null && (res.perceivedAromas.isNotEmpty || res.customAromas.isNotEmpty)) ...[
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 6,
                       runSpacing: 4,
-                      children: res.perceivedAromas.map((aId) {
-                        final opt = TastingQuestionnaireResult.aromaOptions.firstWhere(
-                          (a) => a.id == aId,
-                          orElse: () => AromaOption(id: aId, label: aId, emoji: '🍇'),
-                        );
-                        return Chip(
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.zero,
-                          label: Text('${opt.emoji} ${opt.label}', style: const TextStyle(fontSize: 11)),
-                          backgroundColor: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
-                        );
-                      }).toList(),
+                      children: [
+                        ...res.perceivedAromas.map((aId) {
+                          final opt = TastingQuestionnaireResult.aromaOptions.firstWhere(
+                            (a) => a.id == aId,
+                            orElse: () => AromaOption(id: aId, label: aId, emoji: '🍇'),
+                          );
+                          return Chip(
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            label: Text('${opt.emoji} ${opt.localizedLabel(l10n)}', style: const TextStyle(fontSize: 11)),
+                            backgroundColor: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
+                          );
+                        }),
+                        ...res.customAromas.map((cAroma) {
+                          return Chip(
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            avatar: const Icon(Icons.star, size: 12, color: Color(0xFFD4AF37)),
+                            label: Text(cAroma, style: const TextStyle(fontSize: 11)),
+                            backgroundColor: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
+                  if (res != null && res.foodPairingSynergy != null) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.restaurant, size: 13, color: Color(0xFFD4AF37)),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${l10n.tastingFoodSynergyTitle} : ${res.foodPairingSynergy == 'sublime' ? l10n.tastingSynergySublime : (res.foodPairingSynergy == 'harmonious' ? l10n.tastingSynergyHarmonious : (res.foodPairingSynergy == 'neutral' ? l10n.tastingSynergyNeutral : l10n.tastingSynergyClashing))}',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFD4AF37)),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (report != null) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.school, size: 16, color: Color(0xFFD4AF37)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l10n.tastingAcuityScoreSummary(report.acuityScore, report.sommelierPraise),
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFD4AF37)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    InkWell(
+                      onTap: () => TastingPedagogySheet.show(context, report: report),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.auto_stories_outlined, size: 14, color: Color(0xFF8B1E3F)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                l10n.tastingConsultDebrief,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF8B1E3F),
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios, size: 10, color: Color(0xFF8B1E3F)),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                   const SizedBox(height: 10),
@@ -1698,8 +2095,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                       const SizedBox(width: 6),
                       Text(
                         isSynced
-                            ? 'Synchronisé dans l\'application de ${profile.name} ✨'
-                            : 'Profil de goût enrichi',
+                            ? l10n.tastingProfileSynced(profile.name)
+                            : l10n.tastingProfileEnriched,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: isSynced ? FontWeight.bold : FontWeight.normal,
@@ -1727,13 +2124,136 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             Navigator.of(context).pop(true);
           },
           icon: const Icon(Icons.celebration, color: Colors.white),
-          label: const Text('Terminer ✨', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          label: Text(l10n.tastingFinishButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ),
       ],
     );
   }
 
+  Widget _buildFlavorOriginsCard(Wine wineObj, AppLocalizations l10n) {
+    final pedagogy = TastingPedagogyEngine.analyze(wine: wineObj);
+    if (pedagogy.flavorOrigins.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF8B1E3F).withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Text('🧬', style: TextStyle(fontSize: 18)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.tastingFlavorOriginsTitle,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF8B1E3F),
+                      ),
+                    ),
+                    Text(
+                      l10n.tastingFlavorOriginsSubtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...pedagogy.flavorOrigins.map((origin) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(origin.icon, style: const TextStyle(fontSize: 16)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          origin.title,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          origin.badgeText ?? "",
+                          style: const TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF8B1E3F),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    origin.sensoryContribution,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFD4AF37),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    origin.detailedWhy,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      height: 1.35,
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTransitionView() {
+    final l10n = AppLocalizations.of(context)!;
     final nextProfile = _selectedProfiles[_currentProfileIndex + 1];
     final theme = Theme.of(context);
     return Center(
@@ -1756,13 +2276,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             ),
             const SizedBox(height: 24),
             Text(
-              'Passez le téléphone à ${nextProfile.name} 📱',
+              l10n.tastingPassPhoneTo(nextProfile.name),
               textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Text(
-              'Vos réponses ont bien été enregistrées.\nC\'est au tour de ${nextProfile.name} de donner ses impressions sur ce vin !',
+              l10n.tastingAnswersSavedTurn(nextProfile.name),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
             ),
@@ -1775,17 +2295,18 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               onPressed: () {
+                _pageController.dispose();
                 setState(() {
                   _currentProfileIndex++;
                   _isTransitioningToNextTaster = false;
                   _currentStep = 1;
+                  _pageController = PageController(initialPage: 1);
                   _resetAnswers();
                 });
-                _pageController.jumpToPage(1);
               },
               icon: const Icon(Icons.play_arrow),
               label: Text(
-                'C\'est parti, ${nextProfile.name} ! 🍷',
+                l10n.tastingStartTaster(nextProfile.name),
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
@@ -1840,7 +2361,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     );
   }
 
-  Widget _buildChoiceChip(String label, String value, String currentValue, ValueChanged<String> onChanged) {
+  Widget _buildChoiceChip(String label, String value, String? currentValue, ValueChanged<String> onChanged) {
     final isSelected = currentValue == value;
     return GestureDetector(
       onTap: () {
@@ -1872,15 +2393,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   }
 
   Widget _buildBlindQuizCard(ThemeData theme) {
-    if (_blindQuizData == null) {
-      _blindQuizData = ref.read(tastingAiAssistantServiceProvider).generateBlindQuizOptions(
-        wineName: widget.wineName,
-        wineType: widget.wineType ?? 'red',
-        vintage: widget.vintage,
-        region: widget.region,
-        grapes: widget.wineGrapes,
-      );
-    }
+    final l10n = AppLocalizations.of(context)!;
+    _blindQuizData ??= ref.read(tastingAiAssistantServiceProvider).generateBlindQuizOptions(
+      wineName: widget.wineName,
+      wineType: widget.wineType ?? 'red',
+      vintage: widget.vintage,
+      region: widget.region,
+      grapes: widget.wineGrapes,
+    );
     final quiz = _blindQuizData!;
 
     return Container(
@@ -1899,7 +2419,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               const Text('🙈', style: TextStyle(fontSize: 22)),
               const SizedBox(width: 8),
               Text(
-                'Quiz Dégustation à l\'Aveugle',
+                l10n.tastingBlindQuizTitle,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFFD4AF37),
@@ -1908,14 +2428,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Faites vos pronostics avant la grande révélation finale !',
-            style: TextStyle(fontSize: 11, color: Colors.grey),
+          Text(
+            l10n.tastingBlindMakePredictionsPrompt,
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
           ),
           const SizedBox(height: 14),
 
           // 1. Région
-          const Text('1. Quelle est la région d\'origine ? 🌍', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(l10n.tastingBlindQuizQ1, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Wrap(
             spacing: 6,
@@ -1934,7 +2454,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           const SizedBox(height: 12),
 
           // 2. Cépage
-          const Text('2. Quel est le cépage principal ? 🍇', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(l10n.tastingBlindQuizQ2, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Wrap(
             spacing: 6,
@@ -1953,7 +2473,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           const SizedBox(height: 12),
 
           // 3. Millésime / Tranche d'âge
-          const Text('3. Âge / Millésime estimé ? 📅', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(l10n.tastingBlindQuizQ3, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Wrap(
             spacing: 6,
@@ -1972,7 +2492,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           const SizedBox(height: 12),
 
           // 4. Fourchette de prix
-          const Text('4. Estimation de prix ? 💶', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(l10n.tastingBlindQuizQ4, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Wrap(
             spacing: 6,
@@ -1995,6 +2515,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
   void _showVoiceDictationDialog() {
     final parentContext = context;
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     bool isProcessing = false;
 
@@ -2034,12 +2555,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Dicter les impressions à table 🎙️',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            Text(
+                              l10n.tastingDictateButton,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Text(
-                              'Parlez ou écrivez naturellement, l\'IA s\'occupe du reste',
+                              l10n.tastingDictateHint,
                               style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
                             ),
                           ],
@@ -2058,14 +2579,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                       color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.lightbulb_outline, size: 16, color: Color(0xFFD4AF37)),
-                        SizedBox(width: 8),
+                        const Icon(Icons.lightbulb_outline, size: 16, color: Color(0xFFD4AF37)),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Astuce : activez le micro sur votre clavier pour dicter à voix haute !',
-                            style: TextStyle(fontSize: 11, color: Color(0xFFD4AF37), fontWeight: FontWeight.w600),
+                            l10n.tastingDictateMicTip,
+                            style: const TextStyle(fontSize: 11, color: Color(0xFFD4AF37), fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -2077,7 +2598,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                     maxLines: 3,
                     autofocus: true,
                     decoration: InputDecoration(
-                      hintText: 'Ex : Bernard a adoré, 8.5/10 avec des notes de sous-bois et de cassis. Caro a mis 7/10 en trouvant le vin un peu acide...',
+                      hintText: l10n.tastingDictateInputHint,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       contentPadding: const EdgeInsets.all(12),
                     ),
@@ -2129,11 +2650,11 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                                 });
                               }
 
-                              if (mounted) {
+                              if (mounted && context.mounted && parentContext.mounted) {
                                 Navigator.of(context).pop();
                                 ScaffoldMessenger.of(parentContext).showSnackBar(
                                   SnackBar(
-                                    content: Text('✨ Impressions de dégustation appliquées par l\'IA (${parsed?.noteOutOf10.toStringAsFixed(1)}/10) !'),
+                                    content: Text('${l10n.tastingAromaAppliedByAI} (${parsed?.noteOutOf10.toStringAsFixed(1)}/10) !'),
                                     backgroundColor: const Color(0xFF8B1E3F),
                                     behavior: SnackBarBehavior.floating,
                                   ),
@@ -2147,7 +2668,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                         : const Icon(Icons.auto_awesome, color: Colors.white),
                     label: Text(
-                      isProcessing ? 'Analyse en cours...' : 'Analyser & Appliquer aux fiches ✨',
+                      isProcessing ? l10n.tastingDictateAnalyzing : l10n.tastingDictateAnalyzeAndApply,
                       style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
@@ -2161,6 +2682,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   }
 
   Future<void> _pickTastingPhoto() async {
+    final l10n = AppLocalizations.of(context)!;
     final picker = ImagePicker();
     final choice = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -2169,12 +2691,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Prendre une photo de la tablée 📸'),
+              title: Text(l10n.tastingTakePhoto),
               onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Choisir dans la galerie 🖼️'),
+              title: Text(l10n.tastingChooseGallery),
               onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
             ),
           ],
@@ -2190,7 +2712,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     }
   }
 
-  Widget _buildBlindRevealCard(String vintageStr) {
+  Widget _buildBlindRevealCard(String vintageStr, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -2211,14 +2733,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Text('🍾', style: TextStyle(fontSize: 26)),
-              SizedBox(width: 8),
+              const Text('🍾', style: TextStyle(fontSize: 26)),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Révélation de la Bouteille Mystère !',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                  l10n.tastingBlindRevealTitle,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                 ),
               ),
             ],
@@ -2236,16 +2758,16 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                'Cépages : ${widget.wineGrapes!.join(", ")}',
+                l10n.tastingGrapesLabel(widget.wineGrapes!.join(", ")),
                 style: const TextStyle(fontSize: 12, color: Colors.white70),
               ),
             ),
           const SizedBox(height: 12),
           const Divider(color: Colors.white38),
           const SizedBox(height: 6),
-          const Text(
-            'Bilan des pronostics à l\'aveugle 🎯 :',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+          Text(
+            l10n.tastingBlindYourPredictions,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           const SizedBox(height: 6),
           if (_guessedRegion != null)
@@ -2254,6 +2776,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               _guessedRegion!,
               _blindQuizData?.correctRegion,
               _blindQuizData?.correctRegion == _guessedRegion,
+              l10n,
             ),
           if (_guessedGrape != null)
             _quizResultRow(
@@ -2261,6 +2784,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               _guessedGrape!,
               _blindQuizData?.correctGrape,
               _blindQuizData?.correctGrape == _guessedGrape,
+              l10n,
             ),
           if (_guessedVintage != null)
             _quizResultRow(
@@ -2268,6 +2792,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               _guessedVintage!,
               _blindQuizData?.correctVintageBracket,
               _blindQuizData?.correctVintageBracket == _guessedVintage,
+              l10n,
             ),
           if (_guessedPrice != null)
             _quizResultRow(
@@ -2275,14 +2800,15 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               _guessedPrice!,
               _blindQuizData?.estimatedPriceBracket,
               _blindQuizData?.estimatedPriceBracket == _guessedPrice,
+              l10n,
             ),
         ],
       ),
     );
   }
 
-  Widget _quizResultRow(String label, String guessed, String? correct, bool isCorrect) {
-    final correctMsg = correct != null ? "(C'était : $correct)" : '';
+  Widget _quizResultRow(String label, String guessed, String? correct, bool isCorrect, AppLocalizations l10n) {
+    final correctMsg = correct != null ? l10n.tastingQuizWas(correct) : '';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -2291,7 +2817,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              '$label : $guessed ${isCorrect ? "🎯 Bravo !" : correctMsg}',
+              '$label : $guessed ${isCorrect ? l10n.tastingQuizBravo : correctMsg}',
               style: const TextStyle(fontSize: 11.5, color: Colors.white),
             ),
           ),
@@ -2300,7 +2826,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     );
   }
 
-  Widget _buildConclaveSummaryCard() {
+  Widget _buildConclaveSummaryCard(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -2311,13 +2837,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Text('🍷', style: TextStyle(fontSize: 20)),
-              SizedBox(width: 8),
+              const Text('🍷', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
               Text(
-                'Synthèse du Conclave',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF8B1E3F)),
+                l10n.tastingConclaveSummary,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF8B1E3F)),
               ),
             ],
           ),
@@ -2332,22 +2858,610 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   }
 
   void _confirmClose(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Quitter le questionnaire ?'),
-        content: const Text('Vos réponses ne seront pas sauvegardées.'),
+        title: Text(l10n.tastingQuitTitle),
+        content: Text(l10n.tastingQuitMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Continuer'),
+            child: Text(l10n.tastingContinue),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
               Navigator.of(context).pop();
             },
-            child: const Text('Quitter', style: TextStyle(color: Colors.red)),
+            child: Text(l10n.tastingQuit, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpressForm() {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final aromaList = TastingQuestionnaireResult.getAromaOptions(l10n);
+    final emojiDescs = TastingQuestionnaireResult.getEmojiDescriptions(l10n);
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      children: [
+        // Card 1: Note & Impression Globale
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.2)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '1. ${l10n.tastingStepRatingNav}',
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B1E3F),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${_noteSlider.toStringAsFixed(1)} / 10',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Emojis row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(5, (i) {
+                  final isSelected = i == _emojiIndex;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _emojiIndex = i;
+                        _noteSlider = [3.0, 5.0, 7.0, 8.5, 9.5][i];
+                      });
+                      HapticFeedback.selectionClick();
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFF8B1E3F).withValues(alpha: 0.15) : Colors.transparent,
+                        shape: BoxShape.circle,
+                        border: isSelected ? Border.all(color: const Color(0xFF8B1E3F), width: 2) : null,
+                      ),
+                      child: Text(
+                        TastingQuestionnaireResult.emojiLabels[i],
+                        style: TextStyle(fontSize: isSelected ? 26 : 22),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 4),
+              Center(
+                child: Text(
+                  emojiDescs[_emojiIndex],
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF8B1E3F)),
+                ),
+              ),
+              Slider(
+                value: _noteSlider,
+                min: 1,
+                max: 10,
+                divisions: 18,
+                activeColor: const Color(0xFF8B1E3F),
+                label: _noteSlider.toStringAsFixed(1),
+                onChanged: (v) => setState(() {
+                  _noteSlider = v;
+                  _emojiIndex = TastingQuestionnaireResult.emojiIndexForRating(v);
+                }),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Card: ⚡ 3 Micro-Taps Fast-Tasting (Sensation Express)
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.25)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.flash_on_rounded, size: 18, color: Color(0xFFD4AF37)),
+                  const SizedBox(width: 6),
+                  Text(
+                    TastingQuestionnaireResult.fastTastingTitle(l10n),
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Micro-Tap 1: Le Toucher de Bouche
+              Text(
+                TastingQuestionnaireResult.mouthfeelTitle(l10n),
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: TastingQuestionnaireResult.textureOptions.map((opt) {
+                  final isSelected = _selectedMouthfeelTexture == opt.id;
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            _selectedMouthfeelTexture = isSelected ? null : opt.id;
+                            if (!isSelected) {
+                              if (opt.id == 'silky_lacy') {
+                                _tannins = 0.40;
+                                _acidity = 0.55;
+                              } else if (opt.id == 'crisp_salivating') {
+                                _acidity = 0.80;
+                                _mineralite = 0.75;
+                              } else if (opt.id == 'dense_structured') {
+                                _body = 0.80;
+                                _tannins = 0.80;
+                              }
+                            }
+                          });
+                          HapticFeedback.selectionClick();
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFF8B1E3F).withValues(alpha: 0.18)
+                                : theme.colorScheme.surface.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? const Color(0xFF8B1E3F) : theme.dividerColor.withAlpha(40),
+                              width: isSelected ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(opt.emoji, style: const TextStyle(fontSize: 18)),
+                              const SizedBox(height: 4),
+                              Text(
+                                opt.localizedLabel(l10n),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  color: isSelected ? const Color(0xFF8B1E3F) : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 12),
+
+              // Micro-Tap 2: L'Éclat du Fruit
+              Text(
+                TastingQuestionnaireResult.fruitProfileTitle(l10n),
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: TastingQuestionnaireResult.fruitProfileOptions.map((opt) {
+                  final isSelected = _selectedFruitProfile == opt.id;
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            _selectedFruitProfile = isSelected ? null : opt.id;
+                            if (!isSelected) {
+                              if (opt.id == 'crunchy_tart') {
+                                _selectedAromas.add('fruits_rouges');
+                                _acidity = 0.70;
+                              } else if (opt.id == 'deep_ripe') {
+                                _selectedAromas.add('fruits_noirs');
+                                _body = 0.70;
+                              } else if (opt.id == 'spicy_herbal') {
+                                _selectedAromas.add('epices_vives');
+                              }
+                            }
+                          });
+                          HapticFeedback.selectionClick();
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFFD4AF37).withValues(alpha: 0.18)
+                                : theme.colorScheme.surface.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? const Color(0xFFD4AF37) : theme.dividerColor.withAlpha(40),
+                              width: isSelected ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(opt.emoji, style: const TextStyle(fontSize: 18)),
+                              const SizedBox(height: 4),
+                              Text(
+                                opt.localizedLabel(l10n),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  color: isSelected ? const Color(0xFFD4AF37) : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Card 2: Arômes express (sélection rapide + sur-mesure)
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.2)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '2. ${l10n.tastingStepNezNav}',
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  if (_selectedAromas.isNotEmpty || _customAromas.isNotEmpty)
+                    Text(
+                      '${_selectedAromas.length + _customAromas.length} sélectionné(s)',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF8B1E3F), fontWeight: FontWeight.w600),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  ...aromaList.map((aroma) {
+                    final isSelected = _selectedAromas.contains(aroma.id);
+                    return FilterChip(
+                      selected: isSelected,
+                      label: Text('${aroma.emoji} ${aroma.localizedLabel(l10n)}', style: const TextStyle(fontSize: 12)),
+                      selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                      checkmarkColor: const Color(0xFF8B1E3F),
+                      onSelected: (val) {
+                        setState(() {
+                          if (val) {
+                            _selectedAromas.add(aroma.id);
+                          } else {
+                            _selectedAromas.remove(aroma.id);
+                          }
+                        });
+                        HapticFeedback.selectionClick();
+                      },
+                    );
+                  }),
+                  ..._customAromas.map((customAroma) {
+                    return InputChip(
+                      avatar: const Icon(Icons.star, size: 14, color: Color(0xFFD4AF37)),
+                      label: Text(customAroma, style: const TextStyle(fontSize: 12)),
+                      selected: true,
+                      selectedColor: const Color(0xFFD4AF37).withValues(alpha: 0.2),
+                      checkmarkColor: const Color(0xFFD4AF37),
+                      onDeleted: () {
+                        setState(() {
+                          _customAromas.remove(customAroma);
+                        });
+                      },
+                    );
+                  }),
+                  ActionChip(
+                    avatar: const Icon(Icons.add, size: 16, color: Color(0xFF8B1E3F)),
+                    label: Text(l10n.tastingAddCustomAroma, style: const TextStyle(fontSize: 12)),
+                    onPressed: _showAddCustomAromaDialog,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Card 3: Équilibre en Bouche express
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.2)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '3. ${l10n.tastingStepBoucheNav}',
+                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              // Vivacité / Acidité
+              Text(_isWhite ? l10n.tastingAcidityFreshness : l10n.tastingAcidity, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              _buildSliderRow(
+                leftLabel: l10n.tastingAcidityFlat,
+                rightLabel: l10n.tastingAciditySharp,
+                value: _acidity,
+                onChanged: (v) => setState(() => _acidity = v),
+              ),
+              // Tanins (reds)
+              if (_showTannins) ...[
+                const SizedBox(height: 8),
+                Text(l10n.tastingTannins, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                _buildSliderRow(
+                  leftLabel: l10n.tastingTanninsSilky,
+                  rightLabel: l10n.tastingTanninsGrippy,
+                  value: _tannins,
+                  onChanged: (v) => setState(() => _tannins = v),
+                ),
+              ],
+              // Minéralité (whites/rosés)
+              if (_isWhite || _isRose) ...[
+                const SizedBox(height: 8),
+                Text(l10n.tastingMinerality, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                _buildSliderRow(
+                  leftLabel: l10n.tastingMineralityRound,
+                  rightLabel: l10n.tastingMineralityCrisp,
+                  value: _mineralite,
+                  onChanged: (v) => setState(() => _mineralite = v),
+                ),
+              ],
+              // Effervescence (sparkling)
+              if (_isSparkling) ...[
+                const SizedBox(height: 8),
+                Text(l10n.tastingEffervescence, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                _buildSliderRow(
+                  leftLabel: l10n.tastingEffervescenceDelicate,
+                  rightLabel: l10n.tastingEffervescenceVibrant,
+                  value: _effervescence,
+                  onChanged: (v) => setState(() => _effervescence = v),
+                ),
+              ],
+              const SizedBox(height: 8),
+              // Longueur & Caudalies
+              Row(
+                children: [
+                  Text(l10n.tastingLength, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(width: 4),
+                  InkWell(
+                    onTap: () => _showCaudalieTooltip(context),
+                    child: const Icon(Icons.help_outline, size: 14, color: Color(0xFFD4AF37)),
+                  ),
+                ],
+              ),
+              _buildSliderRow(
+                leftLabel: l10n.tastingLengthShort,
+                rightLabel: l10n.tastingLengthLong,
+                value: _length,
+                onChanged: (v) => setState(() => _length = v),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Card 4: Accord Mets & Verdict
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.2)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '4. ${l10n.tastingStepVerdictNav}',
+                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              // Synergie mets
+              Text(l10n.tastingFoodSynergyTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  _buildChoiceChip(
+                    l10n.tastingSynergySublime,
+                    'sublime',
+                    _foodPairingSynergy,
+                    (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
+                  ),
+                  _buildChoiceChip(
+                    l10n.tastingSynergyHarmonious,
+                    'harmonious',
+                    _foodPairingSynergy,
+                    (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
+                  ),
+                  _buildChoiceChip(
+                    l10n.tastingSynergyNeutral,
+                    'neutral',
+                    _foodPairingSynergy,
+                    (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
+                  ),
+                  _buildChoiceChip(
+                    l10n.tastingSynergyClashing,
+                    'clashing',
+                    _foodPairingSynergy,
+                    (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Would buy again
+              Text(l10n.tastingBuyAgain, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  _buildChoiceChip(
+                    l10n.tastingBuyAgainYes,
+                    'yes',
+                    _wouldBuyAgain,
+                    (v) => setState(() => _wouldBuyAgain = v),
+                  ),
+                  const SizedBox(width: 6),
+                  _buildChoiceChip(
+                    l10n.tastingBuyAgainMaybe,
+                    'maybe',
+                    _wouldBuyAgain,
+                    (v) => setState(() => _wouldBuyAgain = v),
+                  ),
+                  const SizedBox(width: 6),
+                  _buildChoiceChip(
+                    l10n.tastingBuyAgainNo,
+                    'no',
+                    _wouldBuyAgain,
+                    (v) => setState(() => _wouldBuyAgain = v),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Primary Submit Button
+        FilledButton.icon(
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF8B1E3F),
+            foregroundColor: Colors.white,
+            minimumSize: const Size.fromHeight(50),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+          onPressed: _isSaving ? null : _submitCurrentProfile,
+          icon: _isSaving
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : const Icon(Icons.check_circle_outline),
+          label: Text(
+            _isSaving
+                ? l10n.tastingSaving
+                : l10n.tastingConfirmAndFinish,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  void _showCaudalieTooltip(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.timer_outlined, color: Color(0xFFD4AF37)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l10n.tastingCaudalieTooltipTitle,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          l10n.tastingCaudalieTooltipBody,
+          style: const TextStyle(fontSize: 14, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Compris !'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddCustomAromaDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    final textController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.tastingCustomAromaDialogTitle),
+        content: TextField(
+          controller: textController,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
+            hintText: l10n.tastingCustomAromaHint,
+            prefixIcon: const Icon(Icons.star, color: Color(0xFFD4AF37)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.tastingBack),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
+            onPressed: () {
+              final val = textController.text.trim();
+              if (val.isNotEmpty) {
+                setState(() {
+                  if (!_customAromas.contains(val)) {
+                    _customAromas.add(val);
+                  }
+                });
+              }
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Ajouter'),
           ),
         ],
       ),

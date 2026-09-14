@@ -157,12 +157,6 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
   String _normalizeWineType(String? raw) {
     if (raw == null) return 'red';
     final lower = raw.toLowerCase();
-    if (lower.contains('whisky') || lower.contains('whiskey') || lower.contains('bourbon') || lower.contains('scotch')) return 'whisky';
-    if (lower.contains('rhum') || lower.contains('rum')) return 'rhum';
-    if (lower.contains('gin')) return 'gin';
-    if (lower.contains('vodka')) return 'vodka';
-    if (lower.contains('tequila') || lower.contains('mezcal')) return 'tequila';
-    if (lower.contains('cognac') || lower.contains('armagnac') || lower.contains('brandy') || lower.contains('calvados')) return 'cognac';
     if (lower.contains('italicus') ||
         lower.contains('rosolio') ||
         lower.contains('bénédictine') ||
@@ -181,6 +175,12 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
         lower.contains('liqueur')) {
       return 'liqueur';
     }
+    if (lower.contains('whisky') || lower.contains('whiskey') || lower.contains('bourbon') || lower.contains('scotch')) return 'whisky';
+    if (lower.contains('rhum') || lower.contains('rum')) return 'rhum';
+    if (RegExp(r'\bgin\b', caseSensitive: false).hasMatch(lower)) return 'gin';
+    if (lower.contains('vodka')) return 'vodka';
+    if (lower.contains('tequila') || lower.contains('mezcal')) return 'tequila';
+    if (lower.contains('cognac') || lower.contains('armagnac') || lower.contains('brandy') || lower.contains('calvados')) return 'cognac';
     if (lower.contains('grappa') || lower.contains('vinaccia')) return 'grappa';
     if (lower.contains('eau de vie') || lower.contains('eau-de-vie') || lower.contains('marc')) return 'eau-de-vie';
     if (lower.contains('pisco') ||

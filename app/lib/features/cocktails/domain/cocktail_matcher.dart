@@ -119,7 +119,7 @@ class CocktailMatcher {
 
       switch (target) {
         case 'gin':
-          isMatch = wineType == 'gin' || combined.contains('gin');
+          isMatch = wineType == 'gin' || RegExp(r'\bgin\b', caseSensitive: false).hasMatch(combined);
           break;
         case 'rum':
         case 'rhum':

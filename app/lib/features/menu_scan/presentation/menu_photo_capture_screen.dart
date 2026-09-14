@@ -38,17 +38,29 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
   void _startStatusTimer(String? restaurantName) {
     _statusTimer?.cancel();
     _statusStepIndex = 0;
+    final isFr = mounted ? (Localizations.localeOf(context).languageCode == 'fr') : true;
     final restSuffix = restaurantName != null && restaurantName.isNotEmpty ? ' ($restaurantName)' : '';
-    final steps = [
-      'Chatmelier analyse le menu$restSuffix...',
-      'Déchiffrage optique des cuvées, producteurs et millésimes...',
-      'Chatmelier s\'informe sur les domaines et terroirs viticoles...',
-      'Extraction des prix à la bouteille et des formats au verre...',
-      'Calcul des profils sensoriels (tanins, minéralité, vivacité)...',
-      'Vérification dans la cave de connaissances Chatmelier...',
-      'Génération des accords mets-vins personnalisés...',
-      'Finalisation de votre carte des vins enrichie...',
-    ];
+    final steps = isFr
+        ? [
+            'Chatmelier analyse le menu$restSuffix...',
+            'Déchiffrage optique des cuvées, producteurs et millésimes...',
+            'Chatmelier s\'informe sur les domaines et terroirs viticoles...',
+            'Extraction des prix à la bouteille et des formats au verre...',
+            'Calcul des profils sensoriels (tanins, minéralité, vivacité)...',
+            'Vérification dans la cave de connaissances Chatmelier...',
+            'Génération des accords mets-vins personnalisés...',
+            'Finalisation de votre carte des vins enrichie...',
+          ]
+        : [
+            'Chatmelier is analyzing the menu$restSuffix...',
+            'Optical recognition of cuvées, producers and vintages...',
+            'Chatmelier explores estates and wine terroirs...',
+            'Extracting bottle and by-the-glass pricing...',
+            'Computing sensory profiles (tannins, minerality, acidity)...',
+            'Cross-referencing Chatmelier knowledge cellar...',
+            'Generating personalized food & wine pairings...',
+            'Finalizing your enriched wine list...',
+          ];
     _currentStatusStep = steps[0];
     _statusTimer = Timer.periodic(const Duration(milliseconds: 2700), (t) {
       if (!mounted) {
@@ -80,8 +92,9 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       }
     } catch (e) {
       if (mounted) {
+        final isFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la prise de photo : $e')),
+          SnackBar(content: Text(isFr ? 'Erreur lors de la prise de photo : $e' : 'Error taking photo: $e')),
         );
       }
     }
@@ -99,8 +112,9 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       }
     } catch (e) {
       if (mounted) {
+        final isFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la sélection de photos : $e')),
+          SnackBar(content: Text(isFr ? 'Erreur lors de la sélection de photos : $e' : 'Error selecting photos: $e')),
         );
       }
     }
@@ -123,8 +137,15 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
         },
         onAdDismissed: () {
           if (mounted) {
+            final isFr = Localizations.localeOf(context).languageCode == 'fr';
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Le visionnage de la vidéo est requis pour le scan en mode gratuit.')),
+              SnackBar(
+                content: Text(
+                  isFr
+                      ? 'Le visionnage de la vidéo est requis pour le scan en mode gratuit.'
+                      : 'Watching the video is required for scanning in free mode.',
+                ),
+              ),
             );
           }
         },
@@ -193,12 +214,13 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scanner la Carte des Vins'),
+        title: Text(isFr ? 'Scanner la Carte des Vins' : 'Scan Wine List'),
         elevation: 0,
         actions: [
           if (_capturedPages.isNotEmpty && !_isAnalyzing)
@@ -206,7 +228,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
               onPressed: _startAnalysis,
               icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
               label: Text(
-                'Analyser (${_capturedPages.length})',
+                isFr ? 'Analyser (${_capturedPages.length})' : 'Analyze (${_capturedPages.length})',
                 style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold),
               ),
             ),
@@ -245,12 +267,14 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Capture Multi-Pages',
+                              isFr ? 'Capture Multi-Pages' : 'Multi-Page Capture',
                               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Prenez toutes les pages de la carte (blancs, rouges, bulles...). Elles seront fusionnées et analysées en une seule fois par l\'IA !',
+                              isFr
+                                  ? 'Prenez toutes les pages de la carte (blancs, rouges, bulles...). Elles seront fusionnées et analysées en une seule fois par l\'IA !'
+                                  : 'Capture all pages of the list (whites, reds, sparkling...). They will be merged and analyzed together by AI!',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.white70 : Colors.black87,
@@ -276,17 +300,19 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                 color: isDark ? Colors.white24 : Colors.grey.shade400,
                               ),
                               const SizedBox(height: 16),
-                              const Text(
-                                'Aucune page capturée pour le moment',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              Text(
+                                isFr ? 'Aucune page capturée pour le moment' : 'No pages captured yet',
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 8),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 36.0),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 36.0),
                                 child: Text(
-                                  'Prenez la première page de la carte des vins avec l\'appareil photo ou la galerie.',
+                                  isFr
+                                      ? 'Prenez la première page de la carte des vins avec l\'appareil photo ou la galerie.'
+                                      : 'Capture the first page of the wine list using the camera or gallery.',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                                  style: const TextStyle(fontSize: 13, color: Colors.grey),
                                 ),
                               ),
                               const SizedBox(height: 24),
@@ -300,7 +326,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                     ),
                                     onPressed: _takePhoto,
                                     icon: const Icon(Icons.camera_alt),
-                                    label: const Text('Prendre photo'),
+                                    label: Text(isFr ? 'Prendre photo' : 'Take photo'),
                                   ),
                                   const SizedBox(width: 12),
                                   OutlinedButton.icon(
@@ -309,7 +335,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                     ),
                                     onPressed: _pickFromGallery,
                                     icon: const Icon(Icons.photo_library),
-                                    label: const Text('Galerie'),
+                                    label: Text(isFr ? 'Galerie' : 'Gallery'),
                                   ),
                                 ],
                               ),
@@ -338,7 +364,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                           children: [
                                             ListTile(
                                               leading: const Icon(Icons.camera_alt, color: Color(0xFF8B1E3F)),
-                                              title: const Text('Prendre une autre page en photo'),
+                                              title: Text(isFr ? 'Prendre une autre page en photo' : 'Take another page photo'),
                                               onTap: () {
                                                 Navigator.pop(ctx);
                                                 _takePhoto();
@@ -346,7 +372,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                             ),
                                             ListTile(
                                               leading: const Icon(Icons.photo_library, color: Color(0xFF8B1E3F)),
-                                              title: const Text('Ajouter depuis la galerie'),
+                                              title: Text(isFr ? 'Ajouter depuis la galerie' : 'Add from gallery'),
                                               onTap: () {
                                                 Navigator.pop(ctx);
                                                 _pickFromGallery();
@@ -367,18 +393,18 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                         style: BorderStyle.solid,
                                       ),
                                     ),
-                                    child: const Column(
+                                    child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.add_circle_outline, size: 36, color: Color(0xFF8B1E3F)),
-                                        SizedBox(height: 8),
+                                        const Icon(Icons.add_circle_outline, size: 36, color: Color(0xFF8B1E3F)),
+                                        const SizedBox(height: 8),
                                         Text(
-                                          'Ajouter une page',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                          isFr ? 'Ajouter une page' : 'Add a page',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                         ),
                                         Text(
-                                          'Photo ou Galerie',
-                                          style: TextStyle(fontSize: 11, color: Colors.grey),
+                                          isFr ? 'Photo ou Galerie' : 'Photo or Gallery',
+                                          style: const TextStyle(fontSize: 11, color: Colors.grey),
                                         ),
                                       ],
                                     ),
@@ -478,7 +504,9 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                             onPressed: _isAnalyzing ? null : _startAnalysis,
                             icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
                             label: Text(
-                              'Analyser la carte (${_capturedPages.length} ${_capturedPages.length > 1 ? "pages" : "page"})',
+                              isFr
+                                  ? 'Analyser la carte (${_capturedPages.length} ${_capturedPages.length > 1 ? "pages" : "page"})'
+                                  : 'Analyze wine list (${_capturedPages.length} ${_capturedPages.length > 1 ? "pages" : "page"})',
                               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -538,6 +566,7 @@ class _MenuAnalysisLoadingOverlayState extends State<_MenuAnalysisLoadingOverlay
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -623,7 +652,7 @@ class _MenuAnalysisLoadingOverlayState extends State<_MenuAnalysisLoadingOverlay
 
               // Title: "Analyse du menu par Chatmelier"
               Text(
-                'Analyse du menu par Chatmelier',
+                isFr ? 'Analyse du menu par Chatmelier' : 'Menu analysis by Chatmelier',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -696,7 +725,9 @@ class _MenuAnalysisLoadingOverlayState extends State<_MenuAnalysisLoadingOverlay
 
               // Subtext explanation
               Text(
-                'Extraction des cuvées, millésimes, prix au verre & bouteille, et profils sensoriels.',
+                isFr
+                    ? 'Extraction des cuvées, millésimes, prix au verre & bouteille, et profils sensoriels.'
+                    : 'Extracting cuvées, vintages, by-the-glass & bottle pricing, and sensory profiles.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 11,

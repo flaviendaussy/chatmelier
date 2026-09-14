@@ -8,6 +8,7 @@ import '../../features/cellar/data/favorite_wines_service.dart';
 import '../utils/currency_helper.dart';
 import 'wine_type_badge.dart';
 import 'maturity_colorbar.dart';
+import 'spirit_fill_bar.dart';
 import 'bottle_image_view.dart';
 
 class BottleCard extends StatelessWidget {
@@ -56,11 +57,18 @@ class BottleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final wine = bottle.wine;
     final wineName = wine?.name ?? (isFr ? 'Vin' : 'Wine');
-    final vintageStr = wine?.vintage != null ? '${wine!.vintage}' : (isFr ? 'NM' : 'NV');
     final producer = wine?.producer;
+    final String vintageStr;
+    if (wine?.vintage != null && wine!.vintage! > 0) {
+      vintageStr = '${wine.vintage}';
+    } else if (bottle.purchaseDate != null) {
+      vintageStr = isFr ? 'NM (${bottle.purchaseDate!.year})' : 'NV (${bottle.purchaseDate!.year})';
+    } else {
+      vintageStr = isFr ? 'NM' : 'NV';
+    }
     final photo = WineImageService.resolveBottleDisplayImage(bottle, wine);
     final status = wine?.windowStatus ?? DrinkWindowStatus.inPeak;
     final maturityColor = _getMaturityColor(status);
@@ -315,8 +323,8 @@ class BottleCard extends StatelessWidget {
 
                     const Spacer(),
 
-                    // Maturity Color Bar
-                    if (wine != null) ...[
+                    // Maturity Color Bar (wines only - spirits do not age in bottle)
+                    if (wine != null && !wine.isSpirit && !wine.tracksFillLevel && !bottle.tracksFillLevel) ...[
                       Row(
                         children: [
                           Expanded(
@@ -337,6 +345,22 @@ class BottleCard extends StatelessWidget {
                               ),
                             ),
                           ],
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                    ] else if (bottle.tracksFillLevel || (wine?.tracksFillLevel ?? false)) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SpiritFillBar(
+                              fillLevel: bottle.fillLevel,
+                              spiritType: wine?.type,
+                              wineName: wine?.name,
+                              width: double.infinity,
+                              height: 5,
+                              showLabel: true,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 6),

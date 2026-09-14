@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/app_logger.dart';
 
 class FeedbackStroke {
@@ -125,12 +126,13 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
   }
 
   Future<void> _submitFeedback() async {
+    final l10n = AppLocalizations.of(context);
     final comment = _commentController.text.trim();
     if (comment.isEmpty && _strokes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez ajouter un commentaire ou entourer un élément.'),
-          backgroundColor: Color(0xFF8B1E3F),
+        SnackBar(
+          content: Text(l10n?.feedbackEmptyError ?? 'Veuillez ajouter un commentaire ou entourer un élément.'),
+          backgroundColor: const Color(0xFF8B1E3F),
         ),
       );
       return;
@@ -172,18 +174,18 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-                SizedBox(width: 8),
+                const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Text('Merci pour votre retour ! 🍷 Le rapport a été transmis.'),
+                  child: Text(l10n?.feedbackSuccess ?? 'Merci pour votre retour ! 🍷 Le rapport a été transmis.'),
                 ),
               ],
             ),
-            backgroundColor: Color(0xFF2E7D32),
-            duration: Duration(seconds: 4),
+            backgroundColor: const Color(0xFF2E7D32),
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -191,7 +193,7 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de l\'envoi: $e'),
+            content: Text(l10n?.feedbackError(e.toString()) ?? 'Erreur lors de l\'envoi: $e'),
             backgroundColor: Colors.red.shade700,
           ),
         );
@@ -204,6 +206,7 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final media = MediaQuery.of(context);
 
@@ -240,10 +243,10 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
                   child: const Icon(Icons.vibration, color: Color(0xFF8B1E3F), size: 20),
                 ),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Retour Testeur & Annotation',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    l10n?.feedbackSheetTitle ?? 'Retour Testeur & Annotation',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
                 IconButton(
@@ -260,9 +263,9 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
             color: isDark ? Colors.black26 : Colors.grey.shade100,
             child: Row(
               children: [
-                const Text(
-                  'Stylet :',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                Text(
+                  l10n?.feedbackStylus ?? 'Stylet :',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 8),
                 _buildColorDot(const Color(0xFFE53935)), // Red
@@ -272,12 +275,12 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
                 _buildColorDot(const Color(0xFF00ACC1)), // Cyan
                 const Spacer(),
                 IconButton(
-                  tooltip: 'Annuler le dernier trait',
+                  tooltip: l10n?.feedbackUndo ?? 'Annuler le dernier trait',
                   icon: const Icon(Icons.undo, size: 20),
                   onPressed: _strokes.isNotEmpty ? _undo : null,
                 ),
                 IconButton(
-                  tooltip: 'Tout effacer',
+                  tooltip: l10n?.feedbackClear ?? 'Tout effacer',
                   icon: const Icon(Icons.delete_sweep_outlined, size: 20),
                   onPressed: _strokes.isNotEmpty ? _clear : null,
                 ),
@@ -335,10 +338,10 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
                         );
                       },
                     )
-                  : const Center(
+                  : Center(
                       child: Text(
-                        'Aucune capture d\'écran disponible',
-                        style: TextStyle(color: Colors.grey),
+                        l10n?.feedbackNoScreenshot ?? 'Aucune capture d\'écran disponible',
+                        style: const TextStyle(color: Colors.grey),
                       ),
                     ),
             ),
@@ -353,7 +356,7 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
                   controller: _commentController,
                   maxLines: 2,
                   decoration: InputDecoration(
-                    hintText: 'Entourez la zone et décrivez votre retour ou bug...',
+                    hintText: l10n?.feedbackHint ?? 'Entourez la zone et décrivez votre retour ou bug...',
                     hintStyle: const TextStyle(fontSize: 13),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -376,7 +379,9 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
                           )
                         : const Icon(Icons.send_rounded, size: 18),
                     label: Text(
-                      _isSubmitting ? 'Envoi en cours...' : 'Envoyer le rapport',
+                      _isSubmitting
+                          ? (l10n?.feedbackSubmitting ?? 'Envoi en cours...')
+                          : (l10n?.feedbackSubmit ?? 'Envoyer le rapport'),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     onPressed: _isSubmitting ? null : _submitFeedback,

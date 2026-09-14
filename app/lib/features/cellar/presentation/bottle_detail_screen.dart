@@ -32,6 +32,10 @@ import 'wine_reverse_food_pairing_sheet.dart';
 import 'spirit_bottle_fill_view.dart';
 import '../../offline/presentation/sync_provider.dart';
 import '../data/vineyard_knowledge_service.dart';
+import '../../sommelier/presentation/thermal_aeration_calculator_sheet.dart';
+import '../../sommelier/presentation/sommelier_storyteller_dialog.dart';
+import 'aging_simulator_sheet.dart';
+import '../../blind_battle/presentation/blind_battle_host_screen.dart';
 
 class BottleDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -182,7 +186,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   Future<void> _showPhotoOptions(Wine wine) async {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     showModalBottomSheet(
       context: context,
@@ -257,7 +261,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                 final currentCellar = ref.read(currentCellarIdProvider);
                 notifyCellarChanged(ref, currentCellar);
                 if (mounted) {
-                  final snackFr = Localizations.localeOf(context).languageCode != 'en';
+                  final snackFr = Localizations.localeOf(context).languageCode == 'fr';
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(snackFr ? '✨ Étiquette officielle du domaine appliquée !' : '✨ Official estate label applied!'),
@@ -328,7 +332,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       notifyCellarChanged(ref, currentCellar);
 
       if (mounted) {
-        final snackFr = Localizations.localeOf(context).languageCode != 'en';
+        final snackFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(snackFr ? '📸 Photo de la bouteille enregistrée avec succès !' : '📸 Bottle photo saved successfully!'),
@@ -353,7 +357,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   }
 
   void _showQuickEditPersonalNotes(Bottle bottleObj) {
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final textCtrl = TextEditingController(text: bottleObj.notes ?? '');
     showModalBottomSheet(
       context: context,
@@ -498,7 +502,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
     try {
       final supabase = ref.read(supabaseProvider);
       final scanService = ScanService(supabase);
-      final isFr = mounted ? Localizations.localeOf(context).languageCode != 'en' : true;
+      final isFr = mounted ? Localizations.localeOf(context).languageCode == 'fr' : true;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -612,7 +616,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
             final currentCellar = ref.read(currentCellarIdProvider);
             notifyCellarChanged(ref, currentCellar);
             if (mounted) {
-              final sFr = Localizations.localeOf(context).languageCode != 'en';
+              final sFr = Localizations.localeOf(context).languageCode == 'fr';
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
@@ -671,7 +675,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       notifyCellarChanged(ref, currentCellar);
 
       if (mounted) {
-        final sFr = Localizations.localeOf(context).languageCode != 'en';
+        final sFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -685,7 +689,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        final sFr = Localizations.localeOf(context).languageCode != 'en';
+        final sFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -701,7 +705,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   }
 
   void _showApogeeExplanationDialog(BuildContext context) {
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -797,7 +801,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   }
 
   Future<void> _showEditPriceDialog() async {
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final currentPrice = (_bottleData!['purchase_price'] as num?)?.toDouble();
     String currentCurrency = _bottleData!['currency'] as String? ?? 'EUR';
     final priceCtrl = TextEditingController(text: currentPrice != null ? currentPrice.toStringAsFixed(2) : '');
@@ -872,7 +876,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     if (_isLoading) {
       return const Scaffold(
@@ -957,8 +961,15 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               },
             ),
             flexibleSpace: FlexibleSpaceBar(
+              titlePadding: const EdgeInsetsDirectional.only(
+                start: 56,
+                end: 180,
+                bottom: 14,
+              ),
               title: Text(
                 wine.vintage != null ? '${wine.name} (${wine.vintage})' : wine.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Colors.white,
                   shadows: [Shadow(color: Colors.black87, blurRadius: 8)],
@@ -987,8 +998,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                   ),
                   if (!isViewOnly)
                     Positioned(
-                      top: 48,
-                      right: 12,
+                      bottom: 16,
+                      right: 16,
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
@@ -1092,7 +1103,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   const Icon(Icons.wine_bar, size: 12, color: Color(0xFFD4AF37)),
                                   const SizedBox(width: 4),
                                   Text(
-                                    bottleObj.sizeObject.label,
+                                    bottleObj.sizeObject.localizedLabel(context),
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
@@ -1201,7 +1212,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                       ),
                     ),
                   Text(
-                    wine.name,
+                    wine.vintage != null && wine.vintage! > 0
+                        ? '${wine.name} (${wine.vintage})'
+                        : (bottleObj.purchaseDate != null
+                            ? '${wine.name} (${isFr ? "NM • Achat ${bottleObj.purchaseDate!.year}" : "NV • Cellared ${bottleObj.purchaseDate!.year}"})'
+                            : (wine.tracksFillLevel ? wine.name : '${wine.name} (${isFr ? "NM" : "NV"})')),
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1359,6 +1374,62 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         ),
                       ],
                     ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // ================= CHAT ABOUT THIS BOTTLE =================
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () {
+                        final vStr = wine.vintage != null && wine.vintage! > 0 ? '${wine.vintage}' : '';
+                        final uri = Uri(
+                          path: '/chat',
+                          queryParameters: {
+                            'bottleId': bottleObj.id,
+                            'wineName': wine.name,
+                            'vintage': vStr,
+                            'producer': wine.producer ?? '',
+                            'region': wine.region,
+                            'appellation': wine.appellation ?? '',
+                            'wineType': wine.type,
+                          },
+                        );
+                        context.push(uri.toString());
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color(0xFF8B1E3F).withValues(alpha: 0.12),
+                              const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.5),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFFD4AF37)),
+                            const SizedBox(width: 8),
+                            Text(
+                              isFr ? '💬 Discuter de ce vin avec le Chatmelier' : '💬 Chat about this wine with Chatmelier',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Color(0xFFD4AF37),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -1631,6 +1702,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                           appellation: wine.appellation,
                           producer: wine.producer,
                           wineName: wine.name,
+                          isFr: isFr,
                         );
                         return Card(
                           elevation: 1,
@@ -1749,6 +1821,98 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     },
                                   ),
                                 ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          side: const BorderSide(color: Color(0xFF1976D2)),
+                                        ),
+                                        icon: const Icon(Icons.thermostat_auto, color: Color(0xFF1976D2), size: 18),
+                                        label: Text(
+                                          isFr ? 'Thermocourbe' : 'Thermal Curve',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        onPressed: () {
+                                          ThermalAerationCalculatorSheet.show(context, bottle: bottleObj);
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          side: const BorderSide(color: Color(0xFF722F37)),
+                                        ),
+                                        icon: const Icon(Icons.record_voice_over, color: Color(0xFF722F37), size: 18),
+                                        label: Text(
+                                          isFr ? 'Récit Audio' : 'Storyteller',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        onPressed: () {
+                                          SommelierStorytellerDialog.show(context, wine: wine);
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          side: const BorderSide(color: Color(0xFFD4AF37)),
+                                        ),
+                                        icon: const Icon(Icons.history_toggle_off, color: Color(0xFFD4AF37), size: 18),
+                                        label: Text(
+                                          isFr ? 'Jumeau Numérique' : 'Aging Simulator',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        onPressed: () {
+                                          AgingSimulatorSheet.show(context, wine: wine);
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          side: const BorderSide(color: Color(0xFF8B1E3F)),
+                                        ),
+                                        icon: const Icon(Icons.sports_esports_outlined, color: Color(0xFF8B1E3F), size: 18),
+                                        label: Text(
+                                          isFr ? 'Blind Battle' : 'Blind Battle',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) => BlindBattleHostScreen(initialBottle: bottleObj),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
@@ -1782,6 +1946,10 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               region: wine.region,
                               subRegion: wine.subRegion,
                               appellation: wine.appellation,
+                              isSpirit: wine.isSpirit,
+                              wineType: wine.type,
+                              wineName: wine.name,
+                              producer: wine.producer,
                             ),
                           ],
                         ),
@@ -2699,7 +2867,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
 
   void _showAddSiblingOrIncrementSheet(BuildContext context, Bottle bottle) {
     final theme = Theme.of(context);
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final initialQty = bottle.quantity;
     int extraQty = 1;
     final addCtrl = TextEditingController(text: '1');

@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/badge.dart';
 import '../data/badges_provider.dart';
+import '../data/badge_unlock_tracker.dart';
+import 'badge_unlock_celebration_dialog.dart';
+import 'chatmelier_badge_video_dialog.dart';
 
 class BadgesGalleryPage extends StatelessWidget {
   const BadgesGalleryPage({super.key});
@@ -35,10 +38,21 @@ class _BadgesGallerySheetState extends ConsumerState<BadgesGallerySheet> {
   BadgeCategory? _selectedCategory;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        BadgeUnlockTracker.checkAndCelebrateNewUnlocks(context, ref);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final allBadges = ref.watch(userBadgesProgressProvider);
     final stats = ref.watch(unlockedBadgesCountProvider);
 
@@ -121,6 +135,11 @@ class _BadgesGallerySheetState extends ConsumerState<BadgesGallerySheet> {
                     ],
                   ),
                 ),
+                IconButton(
+                  tooltip: isFr ? 'Cérémonie Vidéo du Chatmelier 🎬' : 'Chatmelier Video Ceremony 🎬',
+                  icon: const Icon(Icons.movie_filter_outlined, color: Color(0xFFD4AF37)),
+                  onPressed: () => ChatmelierBadgeVideoDialog.show(context),
+                ),
                 if (!widget.isPage)
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -191,7 +210,7 @@ class _BadgesGallerySheetState extends ConsumerState<BadgesGallerySheet> {
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                     gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                       maxCrossAxisExtent: 220,
-                      childAspectRatio: 0.84,
+                      childAspectRatio: 0.78,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
@@ -295,13 +314,13 @@ class _BadgeGridCard extends StatelessWidget {
               ClipOval(
                 child: Image.asset(
                   badge.assetImagePath!,
-                  width: 48,
-                  height: 48,
+                  width: 88,
+                  height: 88,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Text(
                     badge.emoji,
                     style: TextStyle(
-                      fontSize: 36,
+                      fontSize: 54,
                       color: isUnlocked ? null : Colors.grey.withValues(alpha: 0.4),
                     ),
                   ),
@@ -311,7 +330,7 @@ class _BadgeGridCard extends StatelessWidget {
               Text(
                 badge.emoji,
                 style: TextStyle(
-                  fontSize: 36,
+                  fontSize: 54,
                   color: isUnlocked ? null : Colors.grey.withValues(alpha: 0.4),
                 ),
               ),
@@ -383,6 +402,7 @@ class _BadgeDetailModal extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final badge = progress.badge;
     final tierColor = badge.tier.color;
     final isUnlocked = progress.isUnlocked;
@@ -579,11 +599,61 @@ class _BadgeDetailModal extends StatelessWidget {
                           ],
                         ),
                       ),
+                      // Flacons & Dégustations ayant contribué (Zero Bloat)
+                      if (progress.contributingItems.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        _buildContributingSection(context, progress, isDark),
+                      ],
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 14),
+
+              // Voir la cérémonie vidéo du Chatmelier
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFD4AF37),
+                    side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                  ),
+                  icon: const Icon(Icons.movie_filter_outlined, size: 16, color: Color(0xFFD4AF37)),
+                  label: Text(
+                    isFr ? 'Cérémonie du Chatmelier 🎬' : 'Chatmelier Trophy Reveal 🎬',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  onPressed: () => ChatmelierBadgeVideoDialog.show(context, progress: progress),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Revoir la célébration (unlocked badges)
+              if (isUnlocked) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFD4AF37),
+                      side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                    ),
+                    icon: const Icon(Icons.auto_awesome, size: 16, color: Color(0xFFD4AF37)),
+                    label: const Text(
+                      'Revoir la célébration 🏆',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      BadgeUnlockCelebrationDialog.show(context, progress);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
 
               // Close Button (always accessible)
               SizedBox(
@@ -604,6 +674,335 @@ class _BadgeDetailModal extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildContributingSection(BuildContext context, BadgeProgress progress, bool isDark) {
+    final items = progress.contributingItems;
+    final total = items.length;
+    final displayedItems = items.take(3).toList();
+    final remaining = total - displayedItems.length;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.wine_bar, size: 18, color: Color(0xFF8B1E3F)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Flacons associés ($total)',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            progress.isUnlocked
+                ? 'Flacons ayant permis de débloquer cette distinction :'
+                : 'Flacons ayant déjà contribué à cet objectif :',
+            style: TextStyle(
+              fontSize: 11,
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Render top items
+          ...displayedItems.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isDark ? Colors.white12 : Colors.black12,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        item.isTasting ? Icons.wine_bar : Icons.liquor,
+                        size: 16,
+                        color: const Color(0xFFD4AF37),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              item.displaySubtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                color: isDark ? Colors.white54 : Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (item.rating != null && item.rating! > 0)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star, size: 12, color: Color(0xFFD4AF37)),
+                            const SizedBox(width: 2),
+                            Text(
+                              item.rating!.toStringAsFixed(1),
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              )),
+
+          // Expand / View All button if > 3 items (prevents bloat for 500 wines!)
+          if (remaining > 0) ...[
+            const SizedBox(height: 4),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  foregroundColor: const Color(0xFF8B1E3F),
+                ),
+                icon: const Icon(Icons.format_list_bulleted, size: 15),
+                label: Text(
+                  '+ $remaining autre${remaining > 1 ? 's' : ''} flacon${remaining > 1 ? 's' : ''} (Voir tout)',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () => _showAllContributingSheet(context, progress),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showAllContributingSheet(BuildContext context, BadgeProgress progress) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => _AllContributingItemsModal(progress: progress),
+    );
+  }
+}
+
+/// Dedicated scrollable and searchable bottom sheet for badges with many contributing bottles (up to 500)
+class _AllContributingItemsModal extends StatefulWidget {
+  final BadgeProgress progress;
+
+  const _AllContributingItemsModal({required this.progress});
+
+  @override
+  State<_AllContributingItemsModal> createState() => _AllContributingItemsModalState();
+}
+
+class _AllContributingItemsModalState extends State<_AllContributingItemsModal> {
+  String _searchQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final allItems = widget.progress.contributingItems;
+    final badge = widget.progress.badge;
+
+    final filtered = _searchQuery.trim().isEmpty
+        ? allItems
+        : allItems.where((i) {
+            final q = _searchQuery.toLowerCase();
+            return i.name.toLowerCase().contains(q) ||
+                (i.producer ?? '').toLowerCase().contains(q) ||
+                (i.appellation ?? '').toLowerCase().contains(q) ||
+                (i.region ?? '').toLowerCase().contains(q) ||
+                (i.vintage?.toString().contains(q) ?? false);
+          }).toList();
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.78,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1F1728) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        children: [
+          // Drag handle
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 44,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Flacons associés (${allItems.length})',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        badge.localizedTitle(context),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          ),
+
+          // Search input if > 8 items
+          if (allItems.length > 8)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+              child: TextField(
+                onChanged: (val) => setState(() => _searchQuery = val),
+                decoration: InputDecoration(
+                  hintText: 'Rechercher un flacon, producteur, millésime...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  isDense: true,
+                  filled: true,
+                  fillColor: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.grey.shade100,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
+
+          const Divider(height: 16),
+
+          // Virtualized scrollable list for zero-bloat performance (up to 500 wines)
+          Expanded(
+            child: filtered.isEmpty
+                ? Center(
+                    child: Text(
+                      'Aucun flacon ne correspond à la recherche.',
+                      style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const Divider(height: 8),
+                    itemBuilder: (context, idx) {
+                      final item = filtered[idx];
+                      return ListTile(
+                        dense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        leading: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            item.isTasting ? Icons.wine_bar : Icons.liquor,
+                            size: 20,
+                            color: const Color(0xFFD4AF37),
+                          ),
+                        ),
+                        title: Text(
+                          item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                        ),
+                        subtitle: Text(
+                          item.displaySubtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.white54 : Colors.black54,
+                          ),
+                        ),
+                        trailing: item.rating != null && item.rating! > 0
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.star, size: 14, color: Color(0xFFD4AF37)),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    item.rating!.toStringAsFixed(1),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : null,
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -717,7 +1116,18 @@ class BadgesShowcaseCard extends ConsumerWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(item.badge.emoji, style: const TextStyle(fontSize: 24)),
+                          if (item.badge.assetImagePath != null)
+                            ClipOval(
+                              child: Image.asset(
+                                item.badge.assetImagePath!,
+                                width: 28,
+                                height: 28,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Text(item.badge.emoji, style: const TextStyle(fontSize: 24)),
+                              ),
+                            )
+                          else
+                            Text(item.badge.emoji, style: const TextStyle(fontSize: 24)),
                           const SizedBox(height: 2),
                           Text(
                             item.badge.localizedTitle(context),

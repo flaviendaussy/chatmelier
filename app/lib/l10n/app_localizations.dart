@@ -13,6 +13,7 @@ import 'app_localizations_fr.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_ja.dart';
 import 'app_localizations_ko.dart';
+import 'app_localizations_la.dart';
 import 'app_localizations_nl.dart';
 import 'app_localizations_pt.dart';
 import 'app_localizations_sv.dart';
@@ -112,6 +113,7 @@ abstract class AppLocalizations {
     Locale('it'),
     Locale('ja'),
     Locale('ko'),
+    Locale('la'),
     Locale('nl'),
     Locale('pt'),
     Locale('sv'),
@@ -1209,6 +1211,2196 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset Bar Pantry'**
   String get cocktailsResetPantry;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @continueAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue anyway'**
+  String get continueAnyway;
+
+  /// No description provided for @cellarDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Cellar detected: '**
+  String get cellarDetected;
+
+  /// No description provided for @proximityWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to Wi-Fi \"{ssid}\"'**
+  String proximityWifi(String ssid);
+
+  /// No description provided for @proximityGps.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS location detected at {distance}'**
+  String proximityGps(String distance);
+
+  /// No description provided for @proximitySwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch'**
+  String get proximitySwitch;
+
+  /// No description provided for @proximityIgnore.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore'**
+  String get proximityIgnore;
+
+  /// No description provided for @proximitySwitchedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'📍 Automatically switched to \"{cellar}\"'**
+  String proximitySwitchedSnack(String cellar);
+
+  /// No description provided for @distantCellarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Distant cellar detected'**
+  String get distantCellarTitle;
+
+  /// No description provided for @distantCellarWifiWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'You are currently connected to Wi-Fi \"{ssid}\" associated with your other cellar \"{cellar}\".'**
+  String distantCellarWifiWarning(String ssid, String cellar);
+
+  /// No description provided for @distantCellarGpsWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'You are currently located approximately {distance} from \"{cellar}\".'**
+  String distantCellarGpsWarning(String distance, String cellar);
+
+  /// No description provided for @distantCellarAddConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{warning}\n\nDo you still want to add this bottle to the cellar \"{cellar}\"?'**
+  String distantCellarAddConfirm(String warning, String cellar);
+
+  /// No description provided for @distantCellarCheckoutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{warning}\n\nDo you still want to checkout this bottle from the cellar \"{cellar}\"?'**
+  String distantCellarCheckoutConfirm(String warning, String cellar);
+
+  /// No description provided for @ratingExceptional.
+  ///
+  /// In en, this message translates to:
+  /// **'🏆 Exceptional'**
+  String get ratingExceptional;
+
+  /// No description provided for @ratingRemarkable.
+  ///
+  /// In en, this message translates to:
+  /// **'✨ Remarkable'**
+  String get ratingRemarkable;
+
+  /// No description provided for @ratingVeryGood.
+  ///
+  /// In en, this message translates to:
+  /// **'🍷 Very good'**
+  String get ratingVeryGood;
+
+  /// No description provided for @ratingPleasant.
+  ///
+  /// In en, this message translates to:
+  /// **'👍 Pleasant'**
+  String get ratingPleasant;
+
+  /// No description provided for @ratingPassable.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get ratingPassable;
+
+  /// No description provided for @checkoutWhoTasted.
+  ///
+  /// In en, this message translates to:
+  /// **'Who tasted this wine with you?'**
+  String get checkoutWhoTasted;
+
+  /// No description provided for @checkoutStockRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{producer} • In stock: {qty} {qty, plural, =1{bottle} other{bottles}}'**
+  String checkoutStockRemaining(String producer, int qty);
+
+  /// No description provided for @checkoutAddGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a guest'**
+  String get checkoutAddGuest;
+
+  /// No description provided for @checkoutAddGuestHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add (Mom, Dad...)'**
+  String get checkoutAddGuestHint;
+
+  /// No description provided for @checkoutCloseAndTaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Close & Enjoy 🍷'**
+  String get checkoutCloseAndTaste;
+
+  /// No description provided for @checkoutSommelierThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'The sommelier is preparing tasting stories...'**
+  String get checkoutSommelierThinking;
+
+  /// No description provided for @checkoutAerationTimerActive.
+  ///
+  /// In en, this message translates to:
+  /// **'⏱️ Aeration timer active on your lock screen!'**
+  String get checkoutAerationTimerActive;
+
+  /// No description provided for @checkoutStartAerationTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Start timer ⏱️'**
+  String get checkoutStartAerationTimer;
+
+  /// No description provided for @checkoutAerationTimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Aeration Timer'**
+  String get checkoutAerationTimerTitle;
+
+  /// No description provided for @checkoutDelayedTonight.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight at 10:00 PM'**
+  String get checkoutDelayedTonight;
+
+  /// No description provided for @checkoutDelayedTonightSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideal after the meal to savor the moment'**
+  String get checkoutDelayedTonightSub;
+
+  /// No description provided for @checkoutDelayedTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow morning at 11:00 AM'**
+  String get checkoutDelayedTomorrow;
+
+  /// No description provided for @checkoutDelayedTomorrowSub.
+  ///
+  /// In en, this message translates to:
+  /// **'To recall your impressions in quiet'**
+  String get checkoutDelayedTomorrowSub;
+
+  /// No description provided for @checkoutDelayedWeekend.
+  ///
+  /// In en, this message translates to:
+  /// **'This weekend (Saturday at 11:00 AM)'**
+  String get checkoutDelayedWeekend;
+
+  /// No description provided for @checkoutDelayedWeekendSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Take your time during your free moments'**
+  String get checkoutDelayedWeekendSub;
+
+  /// No description provided for @checkoutDelayedInTwoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'In 2 hours ({time})'**
+  String checkoutDelayedInTwoHours(String time);
+
+  /// No description provided for @checkoutDelayedInTwoHoursSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick reminder at the end of the tasting'**
+  String get checkoutDelayedInTwoHoursSub;
+
+  /// No description provided for @checkoutDelayedCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a custom date & time...'**
+  String get checkoutDelayedCustom;
+
+  /// No description provided for @reviewPackagingDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Packaging Detected'**
+  String get reviewPackagingDetected;
+
+  /// No description provided for @reviewSingleBottleOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'No, 1 bottle only'**
+  String get reviewSingleBottleOnly;
+
+  /// No description provided for @reviewMultipleBottlesConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, {count} bottles'**
+  String reviewMultipleBottlesConfirm(int count);
+
+  /// No description provided for @reviewStockUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'🍾 Stock updated successfully! ({count} bottles in cellar)'**
+  String reviewStockUpdatedSuccess(int count);
+
+  /// No description provided for @reviewVintageYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Vintage / Year'**
+  String get reviewVintageYear;
+
+  /// No description provided for @reviewNonVintage.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip / Non-vintage'**
+  String get reviewNonVintage;
+
+  /// No description provided for @reviewValidate.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get reviewValidate;
+
+  /// No description provided for @reviewBottleAddedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'🍾 {name} added successfully to the cellar!'**
+  String reviewBottleAddedSuccess(String name);
+
+  /// No description provided for @reviewBottleAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottle Analysis'**
+  String get reviewBottleAnalysis;
+
+  /// No description provided for @reviewDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get reviewDiscard;
+
+  /// No description provided for @reviewDiscardConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard entry?'**
+  String get reviewDiscardConfirmTitle;
+
+  /// No description provided for @reviewContinueEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue editing'**
+  String get reviewContinueEditing;
+
+  /// No description provided for @reviewDiscardWithoutSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard without saving'**
+  String get reviewDiscardWithoutSaving;
+
+  /// No description provided for @reviewBottleDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottle Details'**
+  String get reviewBottleDetails;
+
+  /// No description provided for @reviewStockInCellar.
+  ///
+  /// In en, this message translates to:
+  /// **'Cellar stock'**
+  String get reviewStockInCellar;
+
+  /// No description provided for @reviewStockAddition.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get reviewStockAddition;
+
+  /// No description provided for @reviewStockNewTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'New total'**
+  String get reviewStockNewTotal;
+
+  /// No description provided for @reviewQuantityToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity to add:'**
+  String get reviewQuantityToAdd;
+
+  /// No description provided for @reviewSeparateEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a separate entry (different rack / price)'**
+  String get reviewSeparateEntry;
+
+  /// No description provided for @reviewRetryAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry AI analysis'**
+  String get reviewRetryAi;
+
+  /// No description provided for @reviewEnlarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Enlarge'**
+  String get reviewEnlarge;
+
+  /// No description provided for @reviewGeneralInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'General Information'**
+  String get reviewGeneralInfo;
+
+  /// No description provided for @reviewOriginTerroir.
+  ///
+  /// In en, this message translates to:
+  /// **'Origin & Terroir'**
+  String get reviewOriginTerroir;
+
+  /// No description provided for @reviewQuantityPurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity & Purchase'**
+  String get reviewQuantityPurchase;
+
+  /// No description provided for @cellarWifiDetectedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'📡 Wi-Fi detected & linked: \"{ssid}\"'**
+  String cellarWifiDetectedSuccess(String ssid);
+
+  /// No description provided for @cellarWifiDetectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to detect Wi-Fi (enable location or enter manually)'**
+  String get cellarWifiDetectionFailed;
+
+  /// No description provided for @cellarGpsCoordsCaptured.
+  ///
+  /// In en, this message translates to:
+  /// **'📍 GPS coordinates captured ({lat}, {lon})'**
+  String cellarGpsCoordsCaptured(String lat, String lon);
+
+  /// No description provided for @cellarGpsInaccessible.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS location unavailable. Check location permissions.'**
+  String get cellarGpsInaccessible;
+
+  /// No description provided for @cellarCreatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'✨ Cellar \"{cellar}\" created successfully!'**
+  String cellarCreatedSuccess(String cellar);
+
+  /// No description provided for @cellarCreationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error during creation: {error}'**
+  String cellarCreationError(String error);
+
+  /// No description provided for @cellarRadiusPrecise.
+  ///
+  /// In en, this message translates to:
+  /// **'100 meters (very precise)'**
+  String get cellarRadiusPrecise;
+
+  /// No description provided for @cellarRadiusRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'300 meters (recommended)'**
+  String get cellarRadiusRecommended;
+
+  /// No description provided for @cellarRadius500m.
+  ///
+  /// In en, this message translates to:
+  /// **'500 meters'**
+  String get cellarRadius500m;
+
+  /// No description provided for @cellarRadius1km.
+  ///
+  /// In en, this message translates to:
+  /// **'1 kilometer'**
+  String get cellarRadius1km;
+
+  /// No description provided for @cellarRadius3km.
+  ///
+  /// In en, this message translates to:
+  /// **'3 kilometers'**
+  String get cellarRadius3km;
+
+  /// No description provided for @cellarCreateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create cellar'**
+  String get cellarCreateButton;
+
+  /// No description provided for @cellarUseCurrentGps.
+  ///
+  /// In en, this message translates to:
+  /// **'Set with current GPS location'**
+  String get cellarUseCurrentGps;
+
+  /// No description provided for @cellarUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Cellar settings for \"{cellar}\" updated'**
+  String cellarUpdatedSuccess(String cellar);
+
+  /// No description provided for @cellarUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error during update: {error}'**
+  String cellarUpdateError(String error);
+
+  /// No description provided for @wineTypeRed.
+  ///
+  /// In en, this message translates to:
+  /// **'Red 🍷'**
+  String get wineTypeRed;
+
+  /// No description provided for @wineTypeWhite.
+  ///
+  /// In en, this message translates to:
+  /// **'White 🥂'**
+  String get wineTypeWhite;
+
+  /// No description provided for @wineTypeRose.
+  ///
+  /// In en, this message translates to:
+  /// **'Rosé 🌸'**
+  String get wineTypeRose;
+
+  /// No description provided for @wineTypeSparkling.
+  ///
+  /// In en, this message translates to:
+  /// **'Sparkling 🍾'**
+  String get wineTypeSparkling;
+
+  /// No description provided for @wineTypeDessert.
+  ///
+  /// In en, this message translates to:
+  /// **'Dessert / Sweet 🍯'**
+  String get wineTypeDessert;
+
+  /// No description provided for @wineTypeLiqueur.
+  ///
+  /// In en, this message translates to:
+  /// **'Liqueur 🍯'**
+  String get wineTypeLiqueur;
+
+  /// No description provided for @wineTypeSpirit.
+  ///
+  /// In en, this message translates to:
+  /// **'Spirits 🥃'**
+  String get wineTypeSpirit;
+
+  /// No description provided for @wineTypeGrappa.
+  ///
+  /// In en, this message translates to:
+  /// **'Grappa 🍇'**
+  String get wineTypeGrappa;
+
+  /// No description provided for @wineTypeEauDeVie.
+  ///
+  /// In en, this message translates to:
+  /// **'Fruit Brandy 🍐'**
+  String get wineTypeEauDeVie;
+
+  /// No description provided for @wineTypeWhisky.
+  ///
+  /// In en, this message translates to:
+  /// **'Whisky 🥃'**
+  String get wineTypeWhisky;
+
+  /// No description provided for @wineTypeRum.
+  ///
+  /// In en, this message translates to:
+  /// **'Rum 🏴‍☠️'**
+  String get wineTypeRum;
+
+  /// No description provided for @wineTypeGin.
+  ///
+  /// In en, this message translates to:
+  /// **'Gin 🍸'**
+  String get wineTypeGin;
+
+  /// No description provided for @wineTypeVodka.
+  ///
+  /// In en, this message translates to:
+  /// **'Vodka 🧊'**
+  String get wineTypeVodka;
+
+  /// No description provided for @wineTypeTequila.
+  ///
+  /// In en, this message translates to:
+  /// **'Tequila 🌵'**
+  String get wineTypeTequila;
+
+  /// No description provided for @wineTypeCognac.
+  ///
+  /// In en, this message translates to:
+  /// **'Cognac 🍷'**
+  String get wineTypeCognac;
+
+  /// No description provided for @cellarCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new cellar'**
+  String get cellarCreateTitle;
+
+  /// No description provided for @cellarManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage cellar'**
+  String get cellarManageTitle;
+
+  /// No description provided for @cellarNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cellar name *'**
+  String get cellarNameLabel;
+
+  /// No description provided for @cellarNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., London Cellar, Vosges Cellar'**
+  String get cellarNameHint;
+
+  /// No description provided for @cellarNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get cellarNameRequired;
+
+  /// No description provided for @cellarLocationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location / City (optional)'**
+  String get cellarLocationLabel;
+
+  /// No description provided for @cellarLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., London (UK), Beaune (FR)'**
+  String get cellarLocationHint;
+
+  /// No description provided for @cellarNicknameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname / Room (optional)'**
+  String get cellarNicknameLabel;
+
+  /// No description provided for @cellarNicknameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Basement, Main wine cooler'**
+  String get cellarNicknameHint;
+
+  /// No description provided for @cellarDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get cellarDescriptionLabel;
+
+  /// No description provided for @cellarDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Cool underground cellar, 70% humidity'**
+  String get cellarDescriptionHint;
+
+  /// No description provided for @cellarWifiLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Associated Wi-Fi (optional)'**
+  String get cellarWifiLabel;
+
+  /// No description provided for @cellarWifiHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Home-Cellar-WiFi'**
+  String get cellarWifiHint;
+
+  /// No description provided for @cellarLinkCurrentWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to current Wi-Fi'**
+  String get cellarLinkCurrentWifi;
+
+  /// No description provided for @cellarCaptureCurrentWifiTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture current Wi-Fi'**
+  String get cellarCaptureCurrentWifiTooltip;
+
+  /// No description provided for @cellarRadiusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS detection radius'**
+  String get cellarRadiusLabel;
+
+  /// No description provided for @cellarAutoDetectionHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Detection & Smart Transition'**
+  String get cellarAutoDetectionHeader;
+
+  /// No description provided for @cellarAutoDetectionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Link your Wi-Fi network or GPS coordinates to automatically switch to this cellar when you are there.'**
+  String get cellarAutoDetectionDesc;
+
+  /// No description provided for @cellarLatitudeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude'**
+  String get cellarLatitudeLabel;
+
+  /// No description provided for @cellarLongitudeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude'**
+  String get cellarLongitudeLabel;
+
+  /// No description provided for @checkoutGuidedTasting.
+  ///
+  /// In en, this message translates to:
+  /// **'Guided Tasting'**
+  String get checkoutGuidedTasting;
+
+  /// No description provided for @checkoutGuidedTastingShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your impressions one by one or together'**
+  String get checkoutGuidedTastingShared;
+
+  /// No description provided for @checkoutGuidedTastingSolo.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze appearance, nose, palate & refine your profile'**
+  String get checkoutGuidedTastingSolo;
+
+  /// No description provided for @checkoutUncorkNowRateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncork now, rate later'**
+  String get checkoutUncorkNowRateLater;
+
+  /// No description provided for @checkoutUncorkNowRateLaterSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant checkout • Choose reminder time (tonight, tomorrow...)'**
+  String get checkoutUncorkNowRateLaterSub;
+
+  /// No description provided for @checkoutUncorkAeration.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncork & Aeration timer'**
+  String get checkoutUncorkAeration;
+
+  /// No description provided for @checkoutUncorkAerationAdvised.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant checkout • {minutes} min aeration recommended'**
+  String checkoutUncorkAerationAdvised(int minutes);
+
+  /// No description provided for @checkoutUncorkAerationSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant checkout • Aeration / decanting timer'**
+  String get checkoutUncorkAerationSub;
+
+  /// No description provided for @checkoutSommelierServiceAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sommelier Serving Advice'**
+  String get checkoutSommelierServiceAdvice;
+
+  /// No description provided for @checkoutHistoryAnecdotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Stories & Trivia'**
+  String get checkoutHistoryAnecdotes;
+
+  /// No description provided for @checkoutNoDecanting.
+  ///
+  /// In en, this message translates to:
+  /// **'No decanting'**
+  String get checkoutNoDecanting;
+
+  /// No description provided for @checkoutStoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The Story of this Bottle 📖'**
+  String get checkoutStoryTitle;
+
+  /// No description provided for @checkoutStorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Captivating stories to share at the table'**
+  String get checkoutStorySubtitle;
+
+  /// No description provided for @checkoutStoryTerroir.
+  ///
+  /// In en, this message translates to:
+  /// **'Terroir & Grapes'**
+  String get checkoutStoryTerroir;
+
+  /// No description provided for @checkoutStoryVintage.
+  ///
+  /// In en, this message translates to:
+  /// **'The Vintage Story'**
+  String get checkoutStoryVintage;
+
+  /// No description provided for @checkoutStoryTastingSecret.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasting Secret'**
+  String get checkoutStoryTastingSecret;
+
+  /// No description provided for @checkoutStoryTableAnecdote.
+  ///
+  /// In en, this message translates to:
+  /// **'Table Anecdote'**
+  String get checkoutStoryTableAnecdote;
+
+  /// No description provided for @checkoutJournalArchivedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest assured: this bottle will be carefully archived in your Tasting Journal with your photos and notes.'**
+  String get checkoutJournalArchivedNotice;
+
+  /// No description provided for @checkoutBottleUncorkedAerationSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottle uncorked! Aeration timer ({minutes} min) running on your lock screen.'**
+  String checkoutBottleUncorkedAerationSuccess(int minutes);
+
+  /// No description provided for @checkoutAerationDialogPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'The bottle will be immediately uncorked and checked out. Confirm the aeration duration before tasting:'**
+  String get checkoutAerationDialogPrompt;
+
+  /// No description provided for @checkoutRateWine.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate wine'**
+  String get checkoutRateWine;
+
+  /// No description provided for @checkoutStartTimerAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer {minutes}m ⏱️'**
+  String checkoutStartTimerAction(int minutes);
+
+  /// No description provided for @checkoutAdviceAerationSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Sommelier Tip: aerate for {minutes} min. Lockscreen timer ready.'**
+  String checkoutAdviceAerationSnack(int minutes);
+
+  /// No description provided for @checkoutAdviceReminderSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder scheduled after tasting to record your impressions.'**
+  String get checkoutAdviceReminderSnack;
+
+  /// No description provided for @checkoutBottleRemovedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottle checked out from cellar!'**
+  String get checkoutBottleRemovedSuccess;
+
+  /// No description provided for @checkoutBottleRemovedReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoy your tasting. Reminder scheduled {date} to record your impressions.'**
+  String checkoutBottleRemovedReminder(String date);
+
+  /// No description provided for @checkoutWhoTastedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Each participant\'s taste profile will automatically be enriched.'**
+  String get checkoutWhoTastedSubtitle;
+
+  /// No description provided for @checkoutCellarOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s Cellar'**
+  String checkoutCellarOf(String name);
+
+  /// No description provided for @checkoutStockBout.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock: {count} btl.'**
+  String checkoutStockBout(int count);
+
+  /// No description provided for @checkoutAddGuestDialogDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a loved one or family member present at this tasting (e.g., Mom, Dad, Sophie...).'**
+  String get checkoutAddGuestDialogDesc;
+
+  /// No description provided for @checkoutAddGuestNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First name / Name'**
+  String get checkoutAddGuestNameLabel;
+
+  /// No description provided for @checkoutDelayedSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncork & Rate later'**
+  String get checkoutDelayedSheetTitle;
+
+  /// No description provided for @checkoutDelayedSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When would you like to receive a reminder for your impressions?'**
+  String get checkoutDelayedSheetSubtitle;
+
+  /// No description provided for @checkoutDelayedTonightTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight in 2 hours ({time})'**
+  String checkoutDelayedTonightTime(String time);
+
+  /// No description provided for @checkoutDelayedTonightFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight at 9:00 PM'**
+  String get checkoutDelayedTonightFixed;
+
+  /// No description provided for @checkoutDateTonightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'tonight at {time}'**
+  String checkoutDateTonightLabel(String time);
+
+  /// No description provided for @checkoutDateTomorrowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'tomorrow at {time}'**
+  String checkoutDateTomorrowLabel(String time);
+
+  /// No description provided for @checkoutDateCustomLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'on {date} at {time}'**
+  String checkoutDateCustomLabel(String date, String time);
+
+  /// Generic Add button label
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @cellarWinesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'🍷 Wines'**
+  String get cellarWinesTab;
+
+  /// No description provided for @cellarSpiritsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'🥃 Spirits'**
+  String get cellarSpiritsTab;
+
+  /// No description provided for @cellarPairWithDish.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair wine with dish'**
+  String get cellarPairWithDish;
+
+  /// No description provided for @cellarCollapseAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all'**
+  String get cellarCollapseAll;
+
+  /// No description provided for @cellarExpandAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all'**
+  String get cellarExpandAll;
+
+  /// No description provided for @cellarSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get cellarSort;
+
+  /// No description provided for @cellarCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get cellarCategories;
+
+  /// No description provided for @cellarFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get cellarFavorites;
+
+  /// No description provided for @cellarGridView.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get cellarGridView;
+
+  /// No description provided for @cellarListView.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get cellarListView;
+
+  /// No description provided for @cellarClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get cellarClearFilters;
+
+  /// No description provided for @cellarNoBottlesCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No bottles in this category'**
+  String get cellarNoBottlesCategory;
+
+  /// No description provided for @cellarNoBottlesCriteria.
+  ///
+  /// In en, this message translates to:
+  /// **'No bottles match these criteria'**
+  String get cellarNoBottlesCriteria;
+
+  /// No description provided for @feedbackSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tester Feedback & Annotation'**
+  String get feedbackSheetTitle;
+
+  /// No description provided for @feedbackStylus.
+  ///
+  /// In en, this message translates to:
+  /// **'Pen:'**
+  String get feedbackStylus;
+
+  /// No description provided for @feedbackUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo last stroke'**
+  String get feedbackUndo;
+
+  /// No description provided for @feedbackClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get feedbackClear;
+
+  /// No description provided for @feedbackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle the area and describe your feedback or bug...'**
+  String get feedbackHint;
+
+  /// No description provided for @feedbackSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get feedbackSubmit;
+
+  /// No description provided for @feedbackSubmitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending...'**
+  String get feedbackSubmitting;
+
+  /// No description provided for @feedbackNoScreenshot.
+  ///
+  /// In en, this message translates to:
+  /// **'No screenshot available'**
+  String get feedbackNoScreenshot;
+
+  /// No description provided for @feedbackEmptyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add a comment or draw on the screenshot.'**
+  String get feedbackEmptyError;
+
+  /// No description provided for @feedbackSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for your feedback! 🍷 The report was sent.'**
+  String get feedbackSuccess;
+
+  /// No description provided for @feedbackError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error sending feedback: {error}'**
+  String feedbackError(String error);
+
+  /// No description provided for @checkoutFastExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick exit without questionnaire'**
+  String get checkoutFastExit;
+
+  /// No description provided for @checkoutFastExitSubmitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing checkout...'**
+  String get checkoutFastExitSubmitting;
+
+  /// No description provided for @checkoutRatingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate your overall impression after tasting'**
+  String get checkoutRatingSubtitle;
+
+  /// No description provided for @checkoutRecommendedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get checkoutRecommendedBadge;
+
+  /// No description provided for @tastingWhoTastedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'👥 Who tasted this wine?'**
+  String get tastingWhoTastedTitle;
+
+  /// No description provided for @tastingWhoTastedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the tasters. Taste profiles will be enriched automatically.'**
+  String get tastingWhoTastedSubtitle;
+
+  /// No description provided for @tastingHowToTaste.
+  ///
+  /// In en, this message translates to:
+  /// **'How to taste?'**
+  String get tastingHowToTaste;
+
+  /// No description provided for @tastingEachTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Taking turns'**
+  String get tastingEachTurn;
+
+  /// No description provided for @tastingEachTurnDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'📱 Pass the phone: each person answers separately at their own pace.'**
+  String get tastingEachTurnDesc;
+
+  /// No description provided for @tastingTogether.
+  ///
+  /// In en, this message translates to:
+  /// **'Together'**
+  String get tastingTogether;
+
+  /// No description provided for @tastingTogetherDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'🥂 A single questionnaire completed together for all guests.'**
+  String get tastingTogetherDesc;
+
+  /// No description provided for @tastingBlindMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Blind Tasting Mode'**
+  String get tastingBlindMode;
+
+  /// No description provided for @tastingBlindModeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Hides the wine name and launches an interactive table quiz with a grand reveal!'**
+  String get tastingBlindModeDesc;
+
+  /// No description provided for @tastingPrimaryProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary profile'**
+  String get tastingPrimaryProfile;
+
+  /// No description provided for @tastingAppInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'App installed 📱'**
+  String get tastingAppInstalled;
+
+  /// No description provided for @tastingQuestionnairesCompletedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 questionnaire completed} other{{count} questionnaires completed}}'**
+  String tastingQuestionnairesCompletedCount(int count);
+
+  /// No description provided for @tastingStepNezTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'🍇 The Nose — Aromas'**
+  String get tastingStepNezTitle;
+
+  /// No description provided for @tastingStepNezSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which aromas did you perceive? (Multiple choices possible)'**
+  String get tastingStepNezSubtitle;
+
+  /// No description provided for @tastingAromaIntensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Aromatic intensity:'**
+  String get tastingAromaIntensity;
+
+  /// No description provided for @tastingAromaDiscreet.
+  ///
+  /// In en, this message translates to:
+  /// **'🤫 Subtle'**
+  String get tastingAromaDiscreet;
+
+  /// No description provided for @tastingAromaExplosive.
+  ///
+  /// In en, this message translates to:
+  /// **'💥 Explosive'**
+  String get tastingAromaExplosive;
+
+  /// No description provided for @tastingStepBoucheTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'⚖️ The Palate — Balance'**
+  String get tastingStepBoucheTitle;
+
+  /// No description provided for @tastingStepBoucheSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the texture and balance of the wine on the palate.'**
+  String get tastingStepBoucheSubtitle;
+
+  /// No description provided for @tastingAcidity.
+  ///
+  /// In en, this message translates to:
+  /// **'Acidity:'**
+  String get tastingAcidity;
+
+  /// No description provided for @tastingAcidityFreshness.
+  ///
+  /// In en, this message translates to:
+  /// **'Acidity & Crispness:'**
+  String get tastingAcidityFreshness;
+
+  /// No description provided for @tastingAcidityFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'🫠 Flabby / Flat'**
+  String get tastingAcidityFlat;
+
+  /// No description provided for @tastingAciditySharp.
+  ///
+  /// In en, this message translates to:
+  /// **'⚡ Crisp / Sharp'**
+  String get tastingAciditySharp;
+
+  /// No description provided for @tastingTannins.
+  ///
+  /// In en, this message translates to:
+  /// **'Tannins:'**
+  String get tastingTannins;
+
+  /// No description provided for @tastingTanninsSilky.
+  ///
+  /// In en, this message translates to:
+  /// **'🧶 Silky / Soft'**
+  String get tastingTanninsSilky;
+
+  /// No description provided for @tastingTanninsGrippy.
+  ///
+  /// In en, this message translates to:
+  /// **'💪 Grippy / Firm'**
+  String get tastingTanninsGrippy;
+
+  /// No description provided for @tastingMinerality.
+  ///
+  /// In en, this message translates to:
+  /// **'Minerality & Freshness:'**
+  String get tastingMinerality;
+
+  /// No description provided for @tastingMineralityRound.
+  ///
+  /// In en, this message translates to:
+  /// **'🧈 Round / Buttery'**
+  String get tastingMineralityRound;
+
+  /// No description provided for @tastingMineralityCrisp.
+  ///
+  /// In en, this message translates to:
+  /// **'🪨 Mineral / Precise'**
+  String get tastingMineralityCrisp;
+
+  /// No description provided for @tastingEffervescence.
+  ///
+  /// In en, this message translates to:
+  /// **'Effervescence:'**
+  String get tastingEffervescence;
+
+  /// No description provided for @tastingEffervescenceDelicate.
+  ///
+  /// In en, this message translates to:
+  /// **'🫧 Fine / Delicate'**
+  String get tastingEffervescenceDelicate;
+
+  /// No description provided for @tastingEffervescenceVibrant.
+  ///
+  /// In en, this message translates to:
+  /// **'🎆 Lively / Creamy'**
+  String get tastingEffervescenceVibrant;
+
+  /// No description provided for @tastingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body / Texture:'**
+  String get tastingBody;
+
+  /// No description provided for @tastingBodyLight.
+  ///
+  /// In en, this message translates to:
+  /// **'🍃 Light / Airy'**
+  String get tastingBodyLight;
+
+  /// No description provided for @tastingBodyFull.
+  ///
+  /// In en, this message translates to:
+  /// **'🏋️ Full / Bold'**
+  String get tastingBodyFull;
+
+  /// No description provided for @tastingLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish / Length:'**
+  String get tastingLength;
+
+  /// No description provided for @tastingLengthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'⏱️ Short'**
+  String get tastingLengthShort;
+
+  /// No description provided for @tastingLengthLong.
+  ///
+  /// In en, this message translates to:
+  /// **'♾️ Lingering'**
+  String get tastingLengthLong;
+
+  /// No description provided for @tastingStepVerdictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Final Verdict'**
+  String get tastingStepVerdictTitle;
+
+  /// No description provided for @tastingBuyAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Would you buy this bottle again?'**
+  String get tastingBuyAgain;
+
+  /// No description provided for @tastingBuyAgainYes.
+  ///
+  /// In en, this message translates to:
+  /// **'🤩 Absolutely!'**
+  String get tastingBuyAgainYes;
+
+  /// No description provided for @tastingBuyAgainMaybe.
+  ///
+  /// In en, this message translates to:
+  /// **'🤔 Maybe'**
+  String get tastingBuyAgainMaybe;
+
+  /// No description provided for @tastingBuyAgainNo.
+  ///
+  /// In en, this message translates to:
+  /// **'👎 No thanks'**
+  String get tastingBuyAgainNo;
+
+  /// No description provided for @tastingIdealMoment.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideal occasion for this wine?'**
+  String get tastingIdealMoment;
+
+  /// No description provided for @tastingMomentApero.
+  ///
+  /// In en, this message translates to:
+  /// **'🥂 Aperitif'**
+  String get tastingMomentApero;
+
+  /// No description provided for @tastingMomentMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'🍽️ Casual dining'**
+  String get tastingMomentMeal;
+
+  /// No description provided for @tastingMomentDinner.
+  ///
+  /// In en, this message translates to:
+  /// **'🎩 Fine dining'**
+  String get tastingMomentDinner;
+
+  /// No description provided for @tastingMomentRomantic.
+  ///
+  /// In en, this message translates to:
+  /// **'🕯️ Romantic dinner'**
+  String get tastingMomentRomantic;
+
+  /// No description provided for @tastingMomentSolo.
+  ///
+  /// In en, this message translates to:
+  /// **'🧘 Solo / Quiet moment'**
+  String get tastingMomentSolo;
+
+  /// No description provided for @tastingWhatLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'What you liked most:'**
+  String get tastingWhatLiked;
+
+  /// No description provided for @tastingWhatDisliked.
+  ///
+  /// In en, this message translates to:
+  /// **'What you disliked most:'**
+  String get tastingWhatDisliked;
+
+  /// No description provided for @tastingOccasionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Occasion / Shared memory (optional) ✨'**
+  String get tastingOccasionLabel;
+
+  /// No description provided for @tastingOccasionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Birthday, Candlelit dinner, Reunion...'**
+  String get tastingOccasionHint;
+
+  /// No description provided for @tastingAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo memory of the table 📸'**
+  String get tastingAddPhoto;
+
+  /// No description provided for @tastingPhotoSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo memory saved 📸'**
+  String get tastingPhotoSaved;
+
+  /// No description provided for @tastingStepImpressionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'🎯 Final Rating & Impression'**
+  String get tastingStepImpressionTitle;
+
+  /// No description provided for @tastingStepImpressionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'After savoring the nose and palate, assign your overall rating.'**
+  String get tastingStepImpressionSubtitle;
+
+  /// No description provided for @tastingOverallFeeling.
+  ///
+  /// In en, this message translates to:
+  /// **'Your overall impression:'**
+  String get tastingOverallFeeling;
+
+  /// No description provided for @tastingScoreOutOf10.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating out of 10:'**
+  String get tastingScoreOutOf10;
+
+  /// No description provided for @tastingCompletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasting completed & recorded!'**
+  String get tastingCompletedTitle;
+
+  /// No description provided for @tastingCompletedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Taste profiles have been successfully updated ✨'**
+  String get tastingCompletedSubtitle;
+
+  /// No description provided for @tastingBottleRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottle uncorked & removed from cellar'**
+  String get tastingBottleRemoved;
+
+  /// No description provided for @tastingConsultDebrief.
+  ///
+  /// In en, this message translates to:
+  /// **'View Sommelier Debrief (Hidden nuances & Terroir)'**
+  String get tastingConsultDebrief;
+
+  /// No description provided for @tastingFinishButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish ✨'**
+  String get tastingFinishButton;
+
+  /// No description provided for @tastingNextTaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Validate → Next taster'**
+  String get tastingNextTaster;
+
+  /// No description provided for @tastingConfirmAndFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Validate & Finish ✨'**
+  String get tastingConfirmAndFinish;
+
+  /// No description provided for @tastingQuitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the questionnaire?'**
+  String get tastingQuitTitle;
+
+  /// No description provided for @tastingQuitMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answers will not be saved.'**
+  String get tastingQuitMessage;
+
+  /// No description provided for @tastingContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get tastingContinue;
+
+  /// No description provided for @tastingQuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get tastingQuit;
+
+  /// No description provided for @tastingStartCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Start ({count})'**
+  String tastingStartCount(int count);
+
+  /// No description provided for @tastingProfileSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced to {name}\'s app ✨'**
+  String tastingProfileSynced(String name);
+
+  /// No description provided for @tastingProfileEnriched.
+  ///
+  /// In en, this message translates to:
+  /// **'Taste profile enriched'**
+  String get tastingProfileEnriched;
+
+  /// No description provided for @tastingAcuityScoreSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensory acuity: {score}% • {praise}'**
+  String tastingAcuityScoreSummary(int score, String praise);
+
+  /// No description provided for @tastingFlavorOriginsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Origins of Flavors & Wine Secrets'**
+  String get tastingFlavorOriginsTitle;
+
+  /// No description provided for @tastingFlavorOriginsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover where your wine\'s aromas, color, and structure come from'**
+  String get tastingFlavorOriginsSubtitle;
+
+  /// No description provided for @tastingBlindQuizTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blind Tasting Table Quiz 🙈'**
+  String get tastingBlindQuizTitle;
+
+  /// No description provided for @tastingBlindQuizQ1.
+  ///
+  /// In en, this message translates to:
+  /// **'1. What is the region of origin? 🌍'**
+  String get tastingBlindQuizQ1;
+
+  /// No description provided for @tastingBlindQuizQ2.
+  ///
+  /// In en, this message translates to:
+  /// **'2. What is the primary grape? 🍇'**
+  String get tastingBlindQuizQ2;
+
+  /// No description provided for @tastingBlindQuizQ3.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Estimated age / vintage? 📅'**
+  String get tastingBlindQuizQ3;
+
+  /// No description provided for @tastingBlindQuizQ4.
+  ///
+  /// In en, this message translates to:
+  /// **'4. Estimated price? 💶'**
+  String get tastingBlindQuizQ4;
+
+  /// No description provided for @tastingBlindRevealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mystery Bottle Grand Reveal 🍾'**
+  String get tastingBlindRevealTitle;
+
+  /// No description provided for @tastingBlindQuizScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Blind Quiz Score: {score}/4 🎯'**
+  String tastingBlindQuizScore(int score);
+
+  /// No description provided for @tastingDebriefTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enological & Molecular Debrief'**
+  String get tastingDebriefTitle;
+
+  /// No description provided for @tastingSensoryAcuity.
+  ///
+  /// In en, this message translates to:
+  /// **'SENSORY ACUITY'**
+  String get tastingSensoryAcuity;
+
+  /// No description provided for @tastingPrecision.
+  ///
+  /// In en, this message translates to:
+  /// **'{score}% Accuracy'**
+  String tastingPrecision(int score);
+
+  /// No description provided for @tastingConcordanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'1. CONCORDANCE & CRU SIGNATURE'**
+  String get tastingConcordanceTitle;
+
+  /// No description provided for @tastingWhatYouDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'WHAT YOU DETECTED:'**
+  String get tastingWhatYouDetected;
+
+  /// No description provided for @tastingArchetypeSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'ARCHETYPAL SIGNATURE OF THE WINE:'**
+  String get tastingArchetypeSignature;
+
+  /// No description provided for @tastingHiddenNuancesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SUBTLE NUANCES TO SPOT IN YOUR NEXT GLASS:'**
+  String get tastingHiddenNuancesTitle;
+
+  /// No description provided for @tastingPillarsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'2. ENOLOGICAL SCIENCE & MOLECULES'**
+  String get tastingPillarsTitle;
+
+  /// No description provided for @tastingPillarsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why does this wine have this structure, these aromas, and this color?'**
+  String get tastingPillarsSubtitle;
+
+  /// No description provided for @tastingChatWithSommelier.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepen winemaking secrets with Chatmelier'**
+  String get tastingChatWithSommelier;
+
+  /// No description provided for @aromaFruitsRouges.
+  ///
+  /// In en, this message translates to:
+  /// **'Red berries'**
+  String get aromaFruitsRouges;
+
+  /// No description provided for @aromaFruitsNoirs.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark berries'**
+  String get aromaFruitsNoirs;
+
+  /// No description provided for @aromaFruitsBlancs.
+  ///
+  /// In en, this message translates to:
+  /// **'Stone / Orchard fruit'**
+  String get aromaFruitsBlancs;
+
+  /// No description provided for @aromaAgrumes.
+  ///
+  /// In en, this message translates to:
+  /// **'Citrus'**
+  String get aromaAgrumes;
+
+  /// No description provided for @aromaFloral.
+  ///
+  /// In en, this message translates to:
+  /// **'Floral'**
+  String get aromaFloral;
+
+  /// No description provided for @aromaVegetal.
+  ///
+  /// In en, this message translates to:
+  /// **'Herbal / Vegetal'**
+  String get aromaVegetal;
+
+  /// No description provided for @aromaEpicesDouces.
+  ///
+  /// In en, this message translates to:
+  /// **'Sweet spices'**
+  String get aromaEpicesDouces;
+
+  /// No description provided for @aromaEpicesVives.
+  ///
+  /// In en, this message translates to:
+  /// **'Pungent spices / Pepper'**
+  String get aromaEpicesVives;
+
+  /// No description provided for @aromaBoise.
+  ///
+  /// In en, this message translates to:
+  /// **'Oak / Vanilla'**
+  String get aromaBoise;
+
+  /// No description provided for @aromaBeurre.
+  ///
+  /// In en, this message translates to:
+  /// **'Butter / Brioche'**
+  String get aromaBeurre;
+
+  /// No description provided for @aromaMineral.
+  ///
+  /// In en, this message translates to:
+  /// **'Mineral / Flint'**
+  String get aromaMineral;
+
+  /// No description provided for @aromaMiel.
+  ///
+  /// In en, this message translates to:
+  /// **'Honey / Jam'**
+  String get aromaMiel;
+
+  /// No description provided for @aromaChocolat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chocolate / Coffee'**
+  String get aromaChocolat;
+
+  /// No description provided for @aromaFumee.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoke / Toasted'**
+  String get aromaFumee;
+
+  /// No description provided for @emojiDisliked.
+  ///
+  /// In en, this message translates to:
+  /// **'Disliked'**
+  String get emojiDisliked;
+
+  /// No description provided for @emojiMeh.
+  ///
+  /// In en, this message translates to:
+  /// **'Meh'**
+  String get emojiMeh;
+
+  /// No description provided for @emojiDecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Decent'**
+  String get emojiDecent;
+
+  /// No description provided for @emojiVeryGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Very good'**
+  String get emojiVeryGood;
+
+  /// No description provided for @emojiLoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Loved it'**
+  String get emojiLoved;
+
+  /// No description provided for @likedFreshness.
+  ///
+  /// In en, this message translates to:
+  /// **'Freshness'**
+  String get likedFreshness;
+
+  /// No description provided for @likedFruitiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Fruitiness'**
+  String get likedFruitiness;
+
+  /// No description provided for @likedComplexity.
+  ///
+  /// In en, this message translates to:
+  /// **'Complexity'**
+  String get likedComplexity;
+
+  /// No description provided for @likedElegance.
+  ///
+  /// In en, this message translates to:
+  /// **'Elegance'**
+  String get likedElegance;
+
+  /// No description provided for @likedPower.
+  ///
+  /// In en, this message translates to:
+  /// **'Power & Body'**
+  String get likedPower;
+
+  /// No description provided for @likedSilky.
+  ///
+  /// In en, this message translates to:
+  /// **'Silky texture'**
+  String get likedSilky;
+
+  /// No description provided for @likedOriginality.
+  ///
+  /// In en, this message translates to:
+  /// **'Originality'**
+  String get likedOriginality;
+
+  /// No description provided for @likedFoodPairing.
+  ///
+  /// In en, this message translates to:
+  /// **'Food pairing synergy'**
+  String get likedFoodPairing;
+
+  /// No description provided for @likedMinerality.
+  ///
+  /// In en, this message translates to:
+  /// **'Minerality'**
+  String get likedMinerality;
+
+  /// No description provided for @likedLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish length'**
+  String get likedLength;
+
+  /// No description provided for @likedDisappointing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing / Disappointing 😕'**
+  String get likedDisappointing;
+
+  /// No description provided for @dislikedTooAcidic.
+  ///
+  /// In en, this message translates to:
+  /// **'Too acidic'**
+  String get dislikedTooAcidic;
+
+  /// No description provided for @dislikedTooTannic.
+  ///
+  /// In en, this message translates to:
+  /// **'Too tannic'**
+  String get dislikedTooTannic;
+
+  /// No description provided for @dislikedTooOaked.
+  ///
+  /// In en, this message translates to:
+  /// **'Too oaked / vanilla'**
+  String get dislikedTooOaked;
+
+  /// No description provided for @dislikedTooAlcoholic.
+  ///
+  /// In en, this message translates to:
+  /// **'Too alcoholic / hot'**
+  String get dislikedTooAlcoholic;
+
+  /// No description provided for @dislikedTooThin.
+  ///
+  /// In en, this message translates to:
+  /// **'Too light / watery'**
+  String get dislikedTooThin;
+
+  /// No description provided for @dislikedLacksFruit.
+  ///
+  /// In en, this message translates to:
+  /// **'Lacks fruit'**
+  String get dislikedLacksFruit;
+
+  /// No description provided for @dislikedTooSweet.
+  ///
+  /// In en, this message translates to:
+  /// **'Too sweet'**
+  String get dislikedTooSweet;
+
+  /// No description provided for @dislikedTooExpensive.
+  ///
+  /// In en, this message translates to:
+  /// **'Too pricey for quality'**
+  String get dislikedTooExpensive;
+
+  /// No description provided for @dislikedNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing, it was perfect!'**
+  String get dislikedNothing;
+
+  /// No description provided for @tastingStepTasters.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasters'**
+  String get tastingStepTasters;
+
+  /// No description provided for @tastingStepNezNav.
+  ///
+  /// In en, this message translates to:
+  /// **'The Nose'**
+  String get tastingStepNezNav;
+
+  /// No description provided for @tastingStepBoucheNav.
+  ///
+  /// In en, this message translates to:
+  /// **'The Palate'**
+  String get tastingStepBoucheNav;
+
+  /// No description provided for @tastingStepVerdictNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Verdict'**
+  String get tastingStepVerdictNav;
+
+  /// No description provided for @tastingStepRatingNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Rating'**
+  String get tastingStepRatingNav;
+
+  /// No description provided for @tastingBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get tastingBack;
+
+  /// No description provided for @tastingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tastingNext;
+
+  /// No description provided for @tastingSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get tastingSaving;
+
+  /// No description provided for @tastingHeaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasting Questionnaire'**
+  String get tastingHeaderTitle;
+
+  /// No description provided for @tastingAnswersOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Answers by {name}'**
+  String tastingAnswersOf(String name);
+
+  /// No description provided for @tastingPassPhoneTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass the phone to {name} 📱'**
+  String tastingPassPhoneTo(String name);
+
+  /// No description provided for @tastingAnswersSavedTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answers have been recorded.\nIt is now {name}\'s turn.'**
+  String tastingAnswersSavedTurn(String name);
+
+  /// No description provided for @tastingDictateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictate table impressions 🎙️'**
+  String get tastingDictateButton;
+
+  /// No description provided for @tastingDictateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak or write naturally, Chatmelier AI will pre-fill your aromas and palate balance!'**
+  String get tastingDictateHint;
+
+  /// No description provided for @tastingDictateMicTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: enable the microphone on your keyboard to dictate aloud!'**
+  String get tastingDictateMicTip;
+
+  /// No description provided for @tastingTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a table photo 📸'**
+  String get tastingTakePhoto;
+
+  /// No description provided for @tastingChooseGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery 🖼️'**
+  String get tastingChooseGallery;
+
+  /// No description provided for @tastingConclaveSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Conclave Summary'**
+  String get tastingConclaveSummary;
+
+  /// No description provided for @tastingCellarMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Cellar Master'**
+  String get tastingCellarMaster;
+
+  /// No description provided for @tastingGuestTaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest Taster'**
+  String get tastingGuestTaster;
+
+  /// No description provided for @tastingProfileTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile: {type}'**
+  String tastingProfileTag(String type);
+
+  /// No description provided for @tastingFreeTastingRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeform tasting recorded.'**
+  String get tastingFreeTastingRecorded;
+
+  /// No description provided for @tastingAppearanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance: {appearance}'**
+  String tastingAppearanceLabel(String appearance);
+
+  /// No description provided for @tastingStructureLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Structure: {structure} ({caudalies} caudalies)'**
+  String tastingStructureLabel(String structure, int caudalies);
+
+  /// No description provided for @tastingKeyMolecules.
+  ///
+  /// In en, this message translates to:
+  /// **'Key molecules: {molecules}'**
+  String tastingKeyMolecules(String molecules);
+
+  /// No description provided for @tastingKeyOrigin.
+  ///
+  /// In en, this message translates to:
+  /// **'Key: {key}'**
+  String tastingKeyOrigin(String key);
+
+  /// No description provided for @tastingGrapesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Grape varieties: {grapes}'**
+  String tastingGrapesLabel(String grapes);
+
+  /// No description provided for @tastingAromaAppliedByAI.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasting impressions applied by Chatmelier AI ✨'**
+  String get tastingAromaAppliedByAI;
+
+  /// No description provided for @tastingBlindYourPredictions.
+  ///
+  /// In en, this message translates to:
+  /// **'Blind table predictions summary:'**
+  String get tastingBlindYourPredictions;
+
+  /// No description provided for @tastingBlindGuessCorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct! 🎯'**
+  String get tastingBlindGuessCorrect;
+
+  /// No description provided for @tastingBlindMakePredictionsPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Make your table predictions before the grand final reveal!'**
+  String get tastingBlindMakePredictionsPrompt;
+
+  /// No description provided for @tastingStartTaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go, {name}! 🍷'**
+  String tastingStartTaster(String name);
+
+  /// No description provided for @tastingQuizBravo.
+  ///
+  /// In en, this message translates to:
+  /// **'🎯 Bravo!'**
+  String get tastingQuizBravo;
+
+  /// No description provided for @tastingQuizWas.
+  ///
+  /// In en, this message translates to:
+  /// **'(It was: {answer})'**
+  String tastingQuizWas(String answer);
+
+  /// No description provided for @tastingDictateInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'E.g.: Bernard loved it, 8.5/10 with undergrowth and blackcurrant notes. Caro gave 7/10 finding the wine slightly acidic...'**
+  String get tastingDictateInputHint;
+
+  /// No description provided for @tastingDictateAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing...'**
+  String get tastingDictateAnalyzing;
+
+  /// No description provided for @tastingDictateAnalyzeAndApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze & Apply to Sheets ✨'**
+  String get tastingDictateAnalyzeAndApply;
+
+  /// No description provided for @tastingFormatExpress.
+  ///
+  /// In en, this message translates to:
+  /// **'Express Format (1 page) ⚡'**
+  String get tastingFormatExpress;
+
+  /// No description provided for @tastingFormatExpressDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating, key aromas and quick verdict in 30s'**
+  String get tastingFormatExpressDesc;
+
+  /// No description provided for @tastingFormatSommelier.
+  ///
+  /// In en, this message translates to:
+  /// **'Sommelier Format (Detailed) 🎓'**
+  String get tastingFormatSommelier;
+
+  /// No description provided for @tastingFormatSommelierDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'In-depth nose, palate balance, finish & terroir'**
+  String get tastingFormatSommelierDesc;
+
+  /// No description provided for @tastingCaudalieTooltipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is a caudalie? ⏱️'**
+  String get tastingCaudalieTooltipTitle;
+
+  /// No description provided for @tastingCaudalieTooltipBody.
+  ///
+  /// In en, this message translates to:
+  /// **'1 caudalie = 1 second of lingering flavor after swallowing or spitting.\n• 1 to 4 caudalies: light, crisp wine\n• 5 to 7 caudalies: beautiful balance\n• 8 to 12+ caudalies: exceptional fine wine!'**
+  String get tastingCaudalieTooltipBody;
+
+  /// No description provided for @tastingAddCustomAroma.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Custom aroma'**
+  String get tastingAddCustomAroma;
+
+  /// No description provided for @tastingCustomAromaDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a precise aroma'**
+  String get tastingCustomAromaDialogTitle;
+
+  /// No description provided for @tastingCustomAromaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Smoked flint, Wild blackberry, Dried rose...'**
+  String get tastingCustomAromaHint;
+
+  /// No description provided for @tastingFoodSynergyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Food pairing synergy 🍽️'**
+  String get tastingFoodSynergyTitle;
+
+  /// No description provided for @tastingSynergySublime.
+  ///
+  /// In en, this message translates to:
+  /// **'🤩 Elevated'**
+  String get tastingSynergySublime;
+
+  /// No description provided for @tastingSynergyHarmonious.
+  ///
+  /// In en, this message translates to:
+  /// **'👍 Balanced'**
+  String get tastingSynergyHarmonious;
+
+  /// No description provided for @tastingSynergyNeutral.
+  ///
+  /// In en, this message translates to:
+  /// **'😐 Neutral'**
+  String get tastingSynergyNeutral;
+
+  /// No description provided for @tastingSynergyClashing.
+  ///
+  /// In en, this message translates to:
+  /// **'⚡ Clashing'**
+  String get tastingSynergyClashing;
+
+  /// No description provided for @checkoutFastRatingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'1-tap quick rating (optional):'**
+  String get checkoutFastRatingTitle;
+
+  /// No description provided for @checkoutActionTastingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Taste this wine'**
+  String get checkoutActionTastingTitle;
+
+  /// No description provided for @checkoutActionTastingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Express (1 page) or detailed sommelier format'**
+  String get checkoutActionTastingSubtitle;
+
+  /// No description provided for @checkoutActionDeferredRemind.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind later 🌙'**
+  String get checkoutActionDeferredRemind;
+
+  /// No description provided for @checkoutActionAerationTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Aeration timer ⏱️'**
+  String get checkoutActionAerationTimer;
 }
 
 class _AppLocalizationsDelegate
@@ -1230,6 +3422,7 @@ class _AppLocalizationsDelegate
         'it',
         'ja',
         'ko',
+        'la',
         'nl',
         'pt',
         'sv',
@@ -1259,6 +3452,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsJa();
     case 'ko':
       return AppLocalizationsKo();
+    case 'la':
+      return AppLocalizationsLa();
     case 'nl':
       return AppLocalizationsNl();
     case 'pt':

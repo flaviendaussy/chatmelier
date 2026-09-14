@@ -282,38 +282,28 @@ class _ScratchMapCanvasState extends State<ScratchMapCanvas> {
               ),
             ),
 
-            // Zoom Floating Controls
+            // Zoom Floating Controls (Compact Horizontal Pill)
             Positioned(
-              bottom: 16,
-              right: 16,
+              bottom: 10,
+              right: 12,
               child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(
                   color: (isDark ? const Color(0xFF1E1A24) : Colors.white).withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 3)),
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 6, offset: const Offset(0, 2)),
                   ],
                   border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
                 ),
-                child: Column(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.add, size: 20),
-                      tooltip: 'Zoom avant (+)',
-                      onPressed: () {
-                        final current = _transformController.value;
-                        final scale = current.getMaxScaleOnAxis();
-                        if (scale < 9.5) {
-                          _transformController.value = Matrix4.copy(current)
-                            ..multiply(Matrix4.diagonal3Values(1.35, 1.35, 1.0));
-                        }
-                      },
-                    ),
-                    const Divider(height: 1),
-                    IconButton(
-                      icon: const Icon(Icons.remove, size: 20),
+                      icon: const Icon(Icons.remove, size: 17),
                       tooltip: 'Zoom arrière (-)',
+                      constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                      padding: EdgeInsets.zero,
                       onPressed: () {
                         final current = _transformController.value;
                         final scale = current.getMaxScaleOnAxis();
@@ -323,10 +313,29 @@ class _ScratchMapCanvasState extends State<ScratchMapCanvas> {
                         }
                       },
                     ),
-                    const Divider(height: 1),
                     IconButton(
-                      icon: const Icon(Icons.center_focus_strong, size: 20, color: Color(0xFFD4AF37)),
+                      icon: const Icon(Icons.add, size: 17),
+                      tooltip: 'Zoom avant (+)',
+                      constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        final current = _transformController.value;
+                        final scale = current.getMaxScaleOnAxis();
+                        if (scale < 9.5) {
+                          _transformController.value = Matrix4.copy(current)
+                            ..multiply(Matrix4.diagonal3Values(1.35, 1.35, 1.0));
+                        }
+                      },
+                    ),
+                    const SizedBox(
+                      height: 18,
+                      child: VerticalDivider(width: 1, thickness: 0.8),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.center_focus_strong, size: 17, color: Color(0xFFD4AF37)),
                       tooltip: 'Recentrer la carte',
+                      constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                      padding: EdgeInsets.zero,
                       onPressed: () => _transformController.value = Matrix4.identity(),
                     ),
                   ],
@@ -334,33 +343,34 @@ class _ScratchMapCanvasState extends State<ScratchMapCanvas> {
               ),
             ),
 
-            // Floating Header Instructions Banner
+            // Floating Discreet Hint Pill (Top-Left over Atlantic waters, leaving Champagne visible)
             Positioned(
               top: 10,
-              left: 16,
-              right: 16,
+              left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: (isDark ? const Color(0xFF1E1A24) : Colors.white).withValues(alpha: 0.94),
-                  borderRadius: BorderRadius.circular(20),
+                  color: (isDark ? const Color(0xFF1E1A24) : Colors.white).withValues(alpha: 0.90),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
                     ),
                   ],
-                  border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
+                  border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.35)),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Carte révélée selon vos stocks et dégustations. Touchez un terroir pour le détail !',
-                        style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                    const Icon(Icons.touch_app_outlined, color: Color(0xFFD4AF37), size: 15),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Touchez un terroir',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],

@@ -209,5 +209,512 @@
   "cocktailsReadyToShake": "Prêts à shaker",
   "cocktailsMissingOne": "1 manquant",
   "cocktailsManagePantry": "Gérer ma Réserve",
-  "cocktailsResetPantry": "Réinitialiser la Réserve"
+  "cocktailsResetPantry": "Réinitialiser la Réserve",
+  "save": "Enregistrer",
+  "continueAnyway": "Continuer quand même",
+  "cellarDetected": "Cave détectée : ",
+  "proximityWifi": "Connecté au Wi-Fi \"{ssid}\"",
+  "proximityGps": "Position GPS détectée à {distance}",
+  "proximitySwitch": "Basculer",
+  "proximityIgnore": "Ignorer",
+  "proximitySwitchedSnack": "📍 Basculé automatiquement vers \"{cellar}\"",
+  "distantCellarTitle": "Cave distante détectée",
+  "distantCellarWifiWarning": "Vous êtes actuellement connecté au Wi-Fi \"{ssid}\" associé à votre autre cave \"{cellar}\".",
+  "distantCellarGpsWarning": "Vous êtes actuellement situé à environ {distance} de \"{cellar}\".",
+  "distantCellarAddConfirm": "{warning}\n\nSouhaitez-vous quand même enregistrer cette bouteille dans la cave \"{cellar}\" ?",
+  "distantCellarCheckoutConfirm": "{warning}\n\nSouhaitez-vous quand même enregistrer la sortie de cette bouteille depuis la cave \"{cellar}\" ?",
+  "ratingExceptional": "🏆 Exceptionnel",
+  "ratingRemarkable": "✨ Remarquable",
+  "ratingVeryGood": "🍷 Très bon",
+  "ratingPleasant": "👍 Agréable",
+  "ratingPassable": "Passable",
+  "checkoutWhoTasted": "Qui a dégusté ce vin avec vous ?",
+  "checkoutStockRemaining": "{producer} • En stock : {qty} {qty, plural, =1{bouteille} other{bouteilles}}",
+  "@checkoutStockRemaining": {
+    "placeholders": {
+      "producer": {
+        "type": "String"
+      },
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutAddGuest": "Ajouter un convive",
+  "checkoutAddGuestHint": "Ajouter (Papa, Maman...)",
+  "checkoutCloseAndTaste": "Fermer & Déguster 🍷",
+  "checkoutSommelierThinking": "Le sommelier prépare les anecdotes de dégustation...",
+  "checkoutAerationTimerActive": "⏱️ Compte à rebours d'aération actif sur votre écran de verrouillage !",
+  "checkoutStartAerationTimer": "Lancer le minuteur ⏱️",
+  "checkoutAerationTimerTitle": "Minuteur d'aération",
+  "checkoutDelayedTonight": "Ce soir à 22h00",
+  "checkoutDelayedTonightSub": "Idéal après le repas pour savourer le moment",
+  "checkoutDelayedTomorrow": "Demain matin à 11h00",
+  "checkoutDelayedTomorrowSub": "Pour vous remémorer vos impressions au calme",
+  "checkoutDelayedWeekend": "Ce week-end (Samedi à 11h00)",
+  "checkoutDelayedWeekendSub": "Prenez le temps pendant votre temps libre",
+  "checkoutDelayedInTwoHours": "Dans 2 heures ({time})",
+  "checkoutDelayedInTwoHoursSub": "Rappel rapide en fin de dégustation",
+  "checkoutDelayedCustom": "Choisir une date & heure personnalisée...",
+  "reviewPackagingDetected": "Conditionnement Détecté",
+  "reviewSingleBottleOnly": "Non, 1 seule bouteille",
+  "reviewMultipleBottlesConfirm": "Oui, {count} bouteilles",
+  "reviewStockUpdatedSuccess": "🍾 Stock augmenté avec succès ! ({count} bouteilles en cave)",
+  "reviewVintageYear": "Millésime / Année",
+  "reviewNonVintage": "Passer / Non millésimé",
+  "reviewValidate": "Valider",
+  "reviewBottleAddedSuccess": "🍾 {name} ajouté avec succès à la cave !",
+  "reviewBottleAnalysis": "Analyse de la bouteille",
+  "reviewDiscard": "Abandonner",
+  "reviewDiscardConfirmTitle": "Abandonner la saisie ?",
+  "reviewContinueEditing": "Continuer la saisie",
+  "reviewDiscardWithoutSaving": "Quitter sans enregistrer",
+  "reviewBottleDetails": "Fiche de la Bouteille",
+  "reviewStockInCellar": "Stock en cave",
+  "reviewStockAddition": "Ajout",
+  "reviewStockNewTotal": "Nouveau total",
+  "reviewQuantityToAdd": "Quantité à ajouter :",
+  "reviewSeparateEntry": "Créer une entrée distincte (autre casier / prix)",
+  "reviewRetryAi": "Réessayer l'analyse IA",
+  "reviewEnlarge": "Agrandir",
+  "reviewGeneralInfo": "Informations Générales",
+  "reviewOriginTerroir": "Origine & Terroir",
+  "reviewQuantityPurchase": "Quantité & Achat",
+  "cellarWifiDetectedSuccess": "📡 Wi-Fi détecté et associé : \"{ssid}\"",
+  "cellarWifiDetectionFailed": "Impossible de détecter le Wi-Fi (activez la localisation ou saisissez le nom manuellement)",
+  "cellarGpsCoordsCaptured": "📍 Coordonnées GPS capturées ({lat}, {lon})",
+  "cellarGpsInaccessible": "Position GPS inaccessible. Vérifiez les autorisations de localisation.",
+  "cellarCreatedSuccess": "✨ Cave \"{cellar}\" créée avec succès !",
+  "cellarCreationError": "Erreur lors de la création : {error}",
+  "cellarRadiusPrecise": "100 mètres (très précis)",
+  "cellarRadiusRecommended": "300 mètres (recommandé)",
+  "cellarRadius500m": "500 mètres",
+  "cellarRadius1km": "1 kilomètre",
+  "cellarRadius3km": "3 kilomètres",
+  "cellarCreateButton": "Créer la cave",
+  "cellarUseCurrentGps": "Définir avec ma position GPS actuelle",
+  "cellarUpdatedSuccess": "✅ Paramètres de la cave \"{cellar}\" mis à jour",
+  "cellarUpdateError": "Erreur lors de la mise à jour : {error}",
+  "wineTypeRed": "Rouge 🍷",
+  "wineTypeWhite": "Blanc 🥂",
+  "wineTypeRose": "Rosé 🌸",
+  "wineTypeSparkling": "Bulles 🍾",
+  "wineTypeDessert": "Moelleux 🍯",
+  "wineTypeLiqueur": "Liqueur 🍯",
+  "wineTypeSpirit": "Spiritueux 🥃",
+  "wineTypeGrappa": "Grappa 🍇",
+  "wineTypeEauDeVie": "Eau-de-vie 🍐",
+  "wineTypeWhisky": "Whisky 🥃",
+  "wineTypeRum": "Rhum 🏴‍☠️",
+  "wineTypeGin": "Gin 🍸",
+  "wineTypeVodka": "Vodka 🧊",
+  "wineTypeTequila": "Tequila 🌵",
+  "wineTypeCognac": "Cognac 🍷",
+  "cellarCreateTitle": "Créer une nouvelle cave",
+  "cellarManageTitle": "Gérer la cave",
+  "cellarNameLabel": "Nom de la cave *",
+  "cellarNameHint": "ex : Cave de Londres, Cave des Vosges",
+  "cellarNameRequired": "Veuillez saisir un nom",
+  "cellarLocationLabel": "Lieu / Ville (optionnel)",
+  "cellarLocationHint": "ex : Londres (UK), Vosges (FR)",
+  "cellarNicknameLabel": "Surnom / Pièce (optionnel)",
+  "cellarNicknameHint": "ex : Sous-sol, Cave à vin principale",
+  "cellarDescriptionLabel": "Description (optionnel)",
+  "cellarDescriptionHint": "ex : Cave enterrée fraîche, hygrométrie 70%",
+  "cellarWifiLabel": "Wi-Fi associé (optionnel)",
+  "cellarWifiHint": "ex : Livebox-Cave",
+  "cellarLinkCurrentWifi": "Associer au Wi-Fi actuel",
+  "cellarCaptureCurrentWifiTooltip": "Capturer le Wi-Fi actuel",
+  "cellarRadiusLabel": "Rayon de détection GPS",
+  "cellarAutoDetectionHeader": "Détection & Transition Automatique",
+  "cellarAutoDetectionDesc": "Associez votre réseau Wi-Fi ou vos coordonnées GPS pour que l'application bascule automatiquement sur cette cave dès que vous y êtes.",
+  "cellarLatitudeLabel": "Latitude",
+  "cellarLongitudeLabel": "Longitude",
+  "checkoutGuidedTasting": "Dégustation guidée",
+  "checkoutGuidedTastingShared": "Partagez vos impressions chacun son tour ou ensemble",
+  "checkoutGuidedTastingSolo": "Analysez robe, nez, bouche & affinez votre profil",
+  "checkoutUncorkNowRateLater": "Déboucher maintenant, noter plus tard",
+  "checkoutUncorkNowRateLaterSub": "Sortie immédiate • Choisir l'heure du rappel (ce soir, demain...)",
+  "checkoutUncorkAeration": "Déboucher & Minuteur d'aération",
+  "checkoutUncorkAerationAdvised": "Sortie immédiate • {minutes} min d'aération conseillée",
+  "checkoutUncorkAerationSub": "Sortie immédiate • Minuteur d'aération / carafage",
+  "checkoutSommelierServiceAdvice": "Conseils Sommelier de Service",
+  "checkoutHistoryAnecdotes": "Histoire & Anecdotes",
+  "checkoutNoDecanting": "Pas de carafage",
+  "checkoutStoryTitle": "L'Histoire de cette Bouteille 📖",
+  "checkoutStorySubtitle": "Anecdotes captivantes à raconter à table",
+  "checkoutStoryTerroir": "Terroir & Cépages",
+  "checkoutStoryVintage": "L'Histoire du Millésime",
+  "checkoutStoryTastingSecret": "Le Secret de Dégustation",
+  "checkoutStoryTableAnecdote": "L'Anecdote de Table",
+  "checkoutJournalArchivedNotice": "Rassurez-vous : cette bouteille sera précieusement archivée dans votre Journal de Dégustation avec vos photos et notes.",
+  "checkoutBottleUncorkedAerationSuccess": "Bouteille débouchée ! Minuteur d'aération ({minutes} min) lancé sur votre écran.",
+  "checkoutAerationDialogPrompt": "La bouteille sera immédiatement débouchée et sortie de cave. Confirmez la durée d'aération avant dégustation :",
+  "checkoutRateWine": "Noter le vin",
+  "checkoutStartTimerAction": "Chrono {minutes}m ⏱️",
+  "checkoutAdviceAerationSnack": "Conseil Sommelier : carafer {minutes} min. Chrono lockscreen prêt.",
+  "checkoutAdviceReminderSnack": "Rappel pour noter vos impressions prévu après dégustation.",
+  "checkoutBottleRemovedSuccess": "Bouteille sortie de cave !",
+  "checkoutBottleRemovedReminder": "Profitez de votre dégustation. Rappel prévu {date} pour noter vos impressions.",
+  "checkoutWhoTastedSubtitle": "Les goûts de chaque participant seront automatiquement enrichis dans son profil.",
+  "checkoutCellarOf": "Cave de {name}",
+  "checkoutStockBout": "Stock : {count} bout.",
+  "checkoutAddGuestDialogDesc": "Ajoutez un proche ou membre de la famille présent à cette dégustation (ex: Papa, Maman, Sophie...).",
+  "checkoutAddGuestNameLabel": "Prénom / Nom",
+  "checkoutDelayedSheetTitle": "Déboucher & Noter plus tard",
+  "checkoutDelayedSheetSubtitle": "Quand souhaitez-vous recevoir un rappel pour vos impressions ?",
+  "checkoutDelayedTonightTime": "Ce soir dans 2 heures ({time})",
+  "checkoutDelayedTonightFixed": "Ce soir à 21h00",
+  "checkoutDateTonightLabel": "ce soir à {time}",
+  "checkoutDateTomorrowLabel": "demain à {time}",
+  "checkoutDateCustomLabel": "le {date} à {time}",
+  "add": "Ajouter",
+  "cellarWinesTab": "🍷 Vins",
+  "cellarSpiritsTab": "🥃 Spiritueux",
+  "cellarPairWithDish": "Quel vin pour mon plat ?",
+  "cellarCollapseAll": "Tout replier",
+  "cellarExpandAll": "Tout déplier",
+  "cellarSort": "Trier",
+  "cellarCategories": "Catégories",
+  "cellarFavorites": "Favoris",
+  "cellarGridView": "Grille",
+  "cellarListView": "Liste",
+  "cellarClearFilters": "Effacer les filtres",
+  "cellarNoBottlesCategory": "Aucune bouteille dans cette catégorie",
+  "cellarNoBottlesCriteria": "Aucune bouteille ne correspond à ces critères",
+  "feedbackSheetTitle": "Retour Testeur & Annotation",
+  "feedbackStylus": "Stylet :",
+  "feedbackUndo": "Annuler le dernier trait",
+  "feedbackClear": "Tout effacer",
+  "feedbackHint": "Entourez la zone et décrivez votre retour ou bug...",
+  "feedbackSubmit": "Envoyer le rapport",
+  "feedbackSubmitting": "Envoi en cours...",
+  "feedbackNoScreenshot": "Aucune capture d'écran disponible",
+  "feedbackEmptyError": "Veuillez ajouter un commentaire ou entourer un élément.",
+  "feedbackSuccess": "Merci pour votre retour ! 🍷 Le rapport a été transmis.",
+  "feedbackError": "Erreur lors de l'envoi : {error}",
+  "@feedbackError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutFastExit": "Sortie rapide sans questionnaire ⚡",
+  "checkoutFastExitSubmitting": "Sortie en cours...",
+  "checkoutRatingSubtitle": "Attribuez votre note globale après dégustation",
+  "checkoutRecommendedBadge": "Recommandé",
+  "tastingWhoTastedTitle": "👥 Qui a dégusté ce vin ?",
+  "tastingWhoTastedSubtitle": "Sélectionnez les dégustateurs. Les profils de goût seront enrichis automatiquement.",
+  "tastingHowToTaste": "Comment déguster ?",
+  "tastingEachTurn": "Chacun son tour",
+  "tastingEachTurnDesc": "📱 En passant le téléphone : chacun répond séparément à son rythme.",
+  "tastingTogether": "Ensemble",
+  "tastingTogetherDesc": "🥂 Un seul questionnaire complété ensemble pour tous les convives.",
+  "tastingBlindMode": "Mode Dégustation à l'Aveugle",
+  "tastingBlindModeDesc": "Masque le nom du vin et active un quiz de table interactif avec révélation finale !",
+  "tastingPrimaryProfile": "Profil principal",
+  "tastingAppInstalled": "App installée 📱",
+  "tastingQuestionnairesCompletedCount": "{count, plural, =1{1 questionnaire complété} other{{count} questionnaires complétés}}",
+  "@tastingQuestionnairesCompletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tastingStepNezTitle": "🍇 Le Nez — Arômes",
+  "tastingStepNezSubtitle": "Quels arômes avez-vous perçus ? (Plusieurs choix possibles)",
+  "tastingAromaIntensity": "Intensité aromatique :",
+  "tastingAromaDiscreet": "🤫 Discret",
+  "tastingAromaExplosive": "💥 Explosif",
+  "tastingStepBoucheTitle": "⚖️ La Bouche — Équilibre",
+  "tastingStepBoucheSubtitle": "Décrivez la texture et l'équilibre du vin en bouche.",
+  "tastingAcidity": "Acidité :",
+  "tastingAcidityFreshness": "Acidité & Vivacité :",
+  "tastingAcidityFlat": "🫠 Mou / Plat",
+  "tastingAciditySharp": "⚡ Vif / Tranchant",
+  "tastingTannins": "Tanins :",
+  "tastingTanninsSilky": "🧶 Fondus / Soyeux",
+  "tastingTanninsGrippy": "💪 Puissants / Astringents",
+  "tastingMinerality": "Minéralité & Fraîcheur :",
+  "tastingMineralityRound": "🧈 Rond / Beurré",
+  "tastingMineralityCrisp": "🪨 Minéral / Ciselé",
+  "tastingEffervescence": "Effervescence :",
+  "tastingEffervescenceDelicate": "🫧 Fine / Délicate",
+  "tastingEffervescenceVibrant": "🎆 Vive / Crémeuse",
+  "tastingBody": "Corps / Volume :",
+  "tastingBodyLight": "🍃 Léger / Aérien",
+  "tastingBodyFull": "🏋️ Puissant / Charnu",
+  "tastingLength": "Longueur en bouche :",
+  "tastingLengthShort": "⏱️ Courte",
+  "tastingLengthLong": "♾️ Interminable",
+  "tastingStepVerdictTitle": "✅ Verdict Final",
+  "tastingBuyAgain": "Rachèteriez-vous cette bouteille ?",
+  "tastingBuyAgainYes": "🤩 Absolument !",
+  "tastingBuyAgainMaybe": "🤔 Peut-être",
+  "tastingBuyAgainNo": "👎 Non merci",
+  "tastingIdealMoment": "Quel moment idéal pour ce vin ?",
+  "tastingMomentApero": "🥂 Apéro",
+  "tastingMomentMeal": "🍽️ Repas du quotidien",
+  "tastingMomentDinner": "🎩 Grand dîner",
+  "tastingMomentRomantic": "🕯️ Dîner romantique",
+  "tastingMomentSolo": "🧘 Solo / Méditation",
+  "tastingWhatLiked": "Ce que vous avez le plus aimé :",
+  "tastingWhatDisliked": "Ce qui vous a le moins plu :",
+  "tastingOccasionLabel": "Occasion / Souvenir partagé (optionnel) ✨",
+  "tastingOccasionHint": "Ex: 70 ans de Papa, Dîner aux chandelles, Retrouvailles...",
+  "tastingAddPhoto": "Ajouter une photo souvenir de la table 📸",
+  "tastingPhotoSaved": "Photo souvenir enregistrée 📸",
+  "tastingStepImpressionTitle": "🎯 Note Finale & Impression",
+  "tastingStepImpressionSubtitle": "Après avoir apprécié le nez et la bouche, attribuez votre note globale.",
+  "tastingOverallFeeling": "Votre ressenti global :",
+  "tastingScoreOutOf10": "Note sur 10 :",
+  "tastingCompletedTitle": "Dégustation terminée & enregistrée !",
+  "tastingCompletedSubtitle": "Les profils de dégustation ont été mis à jour avec succès ✨",
+  "tastingBottleRemoved": "Bouteille sortie de la cave",
+  "tastingConsultDebrief": "Consulter le Débrief du Sommelier (Nuances cachées & Terroir)",
+  "tastingFinishButton": "Terminer ✨",
+  "tastingNextTaster": "Valider → Dégustateur suivant",
+  "tastingConfirmAndFinish": "Valider & Terminer ✨",
+  "tastingQuitTitle": "Quitter le questionnaire ?",
+  "tastingQuitMessage": "Vos réponses ne seront pas sauvegardées.",
+  "tastingContinue": "Continuer",
+  "tastingQuit": "Quitter",
+  "tastingStartCount": "Commencer ({count})",
+  "@tastingStartCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tastingProfileSynced": "Synchronisé dans l'application de {name} ✨",
+  "@tastingProfileSynced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingProfileEnriched": "Profil de goût enrichi",
+  "tastingAcuityScoreSummary": "Acuité sensorielle : {score}% • {praise}",
+  "@tastingAcuityScoreSummary": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "praise": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingFlavorOriginsTitle": "Origine des Goûts & Secrets du Flacon",
+  "tastingFlavorOriginsSubtitle": "Découvrez d'où viennent les arômes, la couleur et la structure de votre vin",
+  "tastingBlindQuizTitle": "Quiz de table aveugle 🙈",
+  "tastingBlindQuizQ1": "1. Quelle est la région d'origine ? 🌍",
+  "tastingBlindQuizQ2": "2. Quel est le cépage principal ? 🍇",
+  "tastingBlindQuizQ3": "3. Âge / Millésime estimé ? 📅",
+  "tastingBlindQuizQ4": "4. Estimation de prix ? 💶",
+  "tastingBlindRevealTitle": "Révélation de la Bouteille Mystère 🍾",
+  "tastingBlindQuizScore": "Score du Quiz Aveugle : {score}/4 🎯",
+  "@tastingBlindQuizScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "tastingDebriefTitle": "Débriefing Œnologique & Moléculaire",
+  "tastingSensoryAcuity": "ACUITÉ SENSORIELLE",
+  "tastingPrecision": "{score}% Précision",
+  "@tastingPrecision": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "tastingConcordanceTitle": "1. CONCORDANCE & SIGNATURE DU CRU",
+  "tastingWhatYouDetected": "CE QUE VOUS AVEZ DÉCELÉ :",
+  "tastingArchetypeSignature": "SIGNATURE ARCHÉTYPALE DU FLACON :",
+  "tastingHiddenNuancesTitle": "SUBTILITÉS & NUANCES À CHERCHER AU PROCHAIN VERRE :",
+  "tastingPillarsTitle": "2. SCIENCE ŒNOLOGIQUE & MOLÉCULES",
+  "tastingPillarsSubtitle": "Pourquoi ce vin possède-t-il cette structure, ces arômes et cette couleur ?",
+  "tastingChatWithSommelier": "Approfondir la vinification avec Chatmelier",
+  "aromaFruitsRouges": "Fruits rouges",
+  "aromaFruitsNoirs": "Fruits noirs",
+  "aromaFruitsBlancs": "Fruits blancs/jaunes",
+  "aromaAgrumes": "Agrumes",
+  "aromaFloral": "Floral",
+  "aromaVegetal": "Végétal / Herbes",
+  "aromaEpicesDouces": "Épices douces",
+  "aromaEpicesVives": "Épices vives / Poivre",
+  "aromaBoise": "Boisé / Vanille",
+  "aromaBeurre": "Beurré / Brioche",
+  "aromaMineral": "Minéral / Pierre",
+  "aromaMiel": "Miel / Confiture",
+  "aromaChocolat": "Chocolat / Café",
+  "aromaFumee": "Fumé / Grillé",
+  "emojiDisliked": "Pas aimé",
+  "emojiMeh": "Bof",
+  "emojiDecent": "Correct",
+  "emojiVeryGood": "Très bien",
+  "emojiLoved": "Coup de cœur",
+  "likedFreshness": "La fraîcheur",
+  "likedFruitiness": "Le fruité",
+  "likedComplexity": "La complexité",
+  "likedElegance": "L'élégance",
+  "likedPower": "La puissance",
+  "likedSilky": "Le côté soyeux",
+  "likedOriginality": "L'originalité",
+  "likedFoodPairing": "L'accord avec le plat",
+  "likedMinerality": "La minéralité",
+  "likedLength": "La longueur en bouche",
+  "likedDisappointing": "Rien / Décevant 😕",
+  "dislikedTooAcidic": "Trop acide",
+  "dislikedTooTannic": "Trop tannique",
+  "dislikedTooOaked": "Trop boisé / vanillé",
+  "dislikedTooAlcoholic": "Trop alcoolisé / chaud",
+  "dislikedTooThin": "Trop léger / dilué",
+  "dislikedLacksFruit": "Manque de fruit",
+  "dislikedTooSweet": "Trop sucré",
+  "dislikedTooExpensive": "Trop cher pour la qualité",
+  "dislikedNothing": "Rien, c'était parfait !",
+  "tastingStepTasters": "Dégustateurs",
+  "tastingStepNezNav": "Le Nez",
+  "tastingStepBoucheNav": "La Bouche",
+  "tastingStepVerdictNav": "Verdict",
+  "tastingStepRatingNav": "Note Finale",
+  "tastingBack": "Retour",
+  "tastingNext": "Suivant",
+  "tastingSaving": "Enregistrement...",
+  "tastingHeaderTitle": "Questionnaire Dégustation",
+  "tastingAnswersOf": "Réponses de {name}",
+  "@tastingAnswersOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingPassPhoneTo": "Passez le téléphone à {name} 📱",
+  "@tastingPassPhoneTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingAnswersSavedTurn": "Vos réponses ont bien été enregistrées.\nC'est maintenant au tour de {name}.",
+  "@tastingAnswersSavedTurn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingDictateButton": "Dicter les impressions à table 🎙️",
+  "tastingDictateHint": "Parlez ou écrivez naturellement, l'IA Chatmelier pré-remplira vos arômes et équilibre en bouche !",
+  "tastingDictateMicTip": "Astuce : activez le micro sur votre clavier pour dicter à voix haute !",
+  "tastingTakePhoto": "Prendre une photo de la tablée 📸",
+  "tastingChooseGallery": "Choisir dans la galerie 🖼️",
+  "tastingConclaveSummary": "Synthèse du Conclave",
+  "tastingCellarMaster": "Maître de Cave",
+  "tastingGuestTaster": "Convive Dégustateur",
+  "tastingProfileTag": "Profil : {type}",
+  "@tastingProfileTag": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingFreeTastingRecorded": "Dégustation libre enregistrée.",
+  "tastingAppearanceLabel": "Robe : {appearance}",
+  "@tastingAppearanceLabel": {
+    "placeholders": {
+      "appearance": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingStructureLabel": "Structure : {structure} ({caudalies} caudalies)",
+  "@tastingStructureLabel": {
+    "placeholders": {
+      "structure": {
+        "type": "String"
+      },
+      "caudalies": {
+        "type": "int"
+      }
+    }
+  },
+  "tastingKeyMolecules": "Molécules clés : {molecules}",
+  "@tastingKeyMolecules": {
+    "placeholders": {
+      "molecules": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingKeyOrigin": "Origine clé : {key}",
+  "@tastingKeyOrigin": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingGrapesLabel": "Cépages : {grapes}",
+  "@tastingGrapesLabel": {
+    "placeholders": {
+      "grapes": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingAromaAppliedByAI": "Impressions de dégustation appliquées par l'IA ✨",
+  "tastingBlindYourPredictions": "Bilan des pronostics à l'aveugle :",
+  "tastingBlindGuessCorrect": "Trouvé ! 🎯",
+  "tastingBlindMakePredictionsPrompt": "Faites vos pronostics avant la grande révélation finale !",
+  "tastingStartTaster": "C'est parti, {name} ! 🍷",
+  "@tastingStartTaster": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingQuizBravo": "🎯 Bravo !",
+  "tastingQuizWas": "(C'était : {answer})",
+  "@tastingQuizWas": {
+    "placeholders": {
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
+  "tastingDictateInputHint": "Ex : Bernard a adoré, 8.5/10 avec des notes de sous-bois et de cassis. Caro a mis 7/10 en trouvant le vin un peu acide...",
+  "tastingDictateAnalyzing": "Analyse en cours...",
+  "tastingDictateAnalyzeAndApply": "Analyser & Appliquer aux fiches ✨",
+  "tastingFormatExpress": "Format Express (1 page) ⚡",
+  "tastingFormatExpressDesc": "Note, arômes clés et verdict en 30s",
+  "tastingFormatSommelier": "Format Sommelier (Complet) 🎓",
+  "tastingFormatSommelierDesc": "Analyse détaillée robe, nez, bouche & terroir",
+  "tastingCaudalieTooltipTitle": "Qu'est-ce qu'une caudalie ? ⏱️",
+  "tastingCaudalieTooltipBody": "1 caudalie = 1 seconde où les arômes persistent en bouche après avoir avalé ou recraché.\n• 1 à 4 caudalies : vin léger de soif\n• 5 à 7 caudalies : bel équilibre aromatique\n• 8 à 12+ caudalies : grand vin d'exception !",
+  "tastingAddCustomAroma": "+ Arôme sur-mesure",
+  "tastingCustomAromaDialogTitle": "Ajouter un arôme précis",
+  "tastingCustomAromaHint": "ex: Silex fumé, Mûre sauvage, Rose séchée...",
+  "tastingFoodSynergyTitle": "Synergie avec le plat 🍽️",
+  "tastingSynergySublime": "🤩 Sublimé",
+  "tastingSynergyHarmonious": "👍 Harmonieux",
+  "tastingSynergyNeutral": "😐 Neutre",
+  "tastingSynergyClashing": "⚡ Conflit",
+  "checkoutFastRatingTitle": "Note rapide en 1 tap (optionnelle) :",
+  "checkoutActionTastingTitle": "Déguster ce vin",
+  "checkoutActionTastingSubtitle": "Format express (1 page) ou sommelier complet",
+  "checkoutActionDeferredRemind": "Rappel plus tard 🌙",
+  "checkoutActionAerationTimer": "Chrono aération ⏱️"
 }

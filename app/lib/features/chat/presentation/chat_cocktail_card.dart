@@ -56,6 +56,7 @@ class ChatCocktailCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     final customCocktails = ref.watch(customCocktailsProvider);
     final isSaved = customCocktails.any((c) =>
@@ -112,7 +113,7 @@ class ChatCocktailCard extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        '${data.baseSpirit.toUpperCase()} • ${data.glass ?? "Verre à cocktail"}',
+                        '${data.baseSpirit.toUpperCase()} • ${data.glass ?? (isFr ? "Verre à cocktail" : "Cocktail glass")}',
                         style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                       ),
                     ],
@@ -126,14 +127,14 @@ class ChatCocktailCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFF2E7D32)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check, size: 12, color: Color(0xFF2E7D32)),
-                        SizedBox(width: 4),
+                        const Icon(Icons.check, size: 12, color: Color(0xFF2E7D32)),
+                        const SizedBox(width: 4),
                         Text(
-                          'Enregistré',
-                          style: TextStyle(
+                          isFr ? 'Enregistré' : 'Saved',
+                          style: const TextStyle(
                             color: Color(0xFF2E7D32),
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -150,9 +151,9 @@ class ChatCocktailCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFFD4AF37)),
                     ),
-                    child: const Text(
-                      'Mixologie ✨',
-                      style: TextStyle(
+                    child: Text(
+                      isFr ? 'Mixologie ✨' : 'Mixology ✨',
+                      style: const TextStyle(
                         color: Color(0xFFB8860B),
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -221,11 +222,11 @@ class ChatCocktailCard extends ConsumerWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     icon: const Icon(Icons.local_bar, size: 18),
-                    label: const Text(
-                      'Voir la recette',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    label: Text(
+                      isFr ? 'Voir la recette' : 'View recipe',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
-                    onPressed: () => _openCocktailRecipe(context, ref),
+                    onPressed: () => _openCocktailRecipe(context, ref, isFr: isFr),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -243,9 +244,9 @@ class ChatCocktailCard extends ConsumerWidget {
                     size: 20,
                   ),
                   tooltip: isSaved
-                      ? 'Cocktail déjà enregistré (cliquer pour renommer)'
-                      : 'Ajouter à mes cocktails',
-                  onPressed: () => _saveCocktail(context, ref),
+                      ? (isFr ? 'Cocktail déjà enregistré (cliquer pour renommer)' : 'Cocktail already saved (click to rename)')
+                      : (isFr ? 'Ajouter à mes cocktails' : 'Save to my cocktails'),
+                  onPressed: () => _saveCocktail(context, ref, isFr: isFr),
                 ),
               ],
             ),
@@ -255,12 +256,12 @@ class ChatCocktailCard extends ConsumerWidget {
     );
   }
 
-  void _saveCocktail(BuildContext context, WidgetRef ref) {
-    final cocktail = _toCocktail(ref);
+  void _saveCocktail(BuildContext context, WidgetRef ref, {bool isFr = true}) {
+    final cocktail = _toCocktail(ref, isFr: isFr);
     SaveCocktailDialog.show(context, cocktail: cocktail);
   }
 
-  Cocktail _toCocktail(WidgetRef ref) {
+  Cocktail _toCocktail(WidgetRef ref, {bool isFr = true}) {
     final allCocktails = ref.read(allCocktailsProvider);
     return allCocktails.firstWhere(
       (c) => c.name.toLowerCase().trim() == data.name.toLowerCase().trim(),
@@ -268,28 +269,34 @@ class ChatCocktailCard extends ConsumerWidget {
         id: 'custom_chat_${data.name.toLowerCase().replaceAll(' ', '_')}',
         name: data.name,
         baseSpirit: data.baseSpirit,
-        category: 'Création Chatmelier',
-        glass: data.glass ?? 'Verre à cocktail',
-        method: data.method ?? 'Au shaker',
-        garnish: data.garnish ?? 'Zeste d\'agrume frais',
-        description: data.reason ?? 'Cocktail créé sur-mesure d\'après vos ingrédients disponibles.',
+        category: isFr ? 'Création Chatmelier' : 'Chatmelier Creation',
+        glass: data.glass ?? (isFr ? 'Verre à cocktail' : 'Cocktail glass'),
+        method: data.method ?? (isFr ? 'Au shaker' : 'Shaken'),
+        garnish: data.garnish ?? (isFr ? 'Zeste d\'agrume frais' : 'Fresh citrus peel'),
+        description: data.reason ?? (isFr ? 'Cocktail créé sur-mesure d\'après vos ingrédients disponibles.' : 'Tailored cocktail crafted from your available ingredients.'),
         ingredients: data.ingredients
             .map((i) => CocktailIngredient(name: i))
             .toList(),
         instructions: data.recipe != null && data.recipe!.isNotEmpty
             ? [data.recipe!]
-            : [
-                'Mettre tous les ingrédients dans le shaker avec des glaçons.',
-                'Frapper vigoureusement pendant 15 secondes.',
-                'Filtrer dans le verre et garnir.',
-              ],
+            : (isFr
+                ? [
+                    'Mettre tous les ingrédients dans le shaker avec des glaçons.',
+                    'Frapper vigoureusement pendant 15 secondes.',
+                    'Filtrer dans le verre et garnir.',
+                  ]
+                : [
+                    'Combine all ingredients into a shaker with ice.',
+                    'Shake vigorously for 15 seconds.',
+                    'Strain into the glass and garnish.',
+                  ]),
         isCustom: true,
       ),
     );
   }
 
-  void _openCocktailRecipe(BuildContext context, WidgetRef ref) {
-    final cocktail = _toCocktail(ref);
+  void _openCocktailRecipe(BuildContext context, WidgetRef ref, {bool isFr = true}) {
+    final cocktail = _toCocktail(ref, isFr: isFr);
     CocktailDetailSheet.show(context, cocktail);
   }
 

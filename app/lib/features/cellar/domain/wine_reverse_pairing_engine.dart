@@ -20,6 +20,45 @@ class ReverseFoodPairing {
     required this.cookingAdvice,
     required this.molecularRationale,
   });
+
+  String localizedAffinityLevel([dynamic lang]) {
+    final langCode = (lang is String && lang.isNotEmpty)
+        ? lang
+        : (lang != null && lang is Object && lang.runtimeType.toString().contains('Locale') ? (lang as dynamic).languageCode as String : 'fr');
+    if (affinityLevel.contains('Majeur')) {
+      switch (langCode) {
+        case 'en': return 'Major Match 🌟';
+        case 'es': return 'Maridaje Mayor 🌟';
+        case 'ca': return 'Maridatge Major 🌟';
+        case 'la': return 'Harmonia Optima 🌟';
+        default: return affinityLevel;
+      }
+    } else if (affinityLevel.contains('Sublime')) {
+      switch (langCode) {
+        case 'en': return 'Sublime Match ✨';
+        case 'es': return 'Maridaje Sublime ✨';
+        case 'ca': return 'Maridatge Sublime ✨';
+        case 'la': return 'Harmonia Sublimis ✨';
+        default: return affinityLevel;
+      }
+    } else if (affinityLevel.contains('Universelle')) {
+      switch (langCode) {
+        case 'en': return 'Universal Harmony 🍷';
+        case 'es': return 'Armonía Universal 🍷';
+        case 'ca': return 'Harmonia Universal 🍷';
+        case 'la': return 'Harmonia Universalis 🍷';
+        default: return affinityLevel;
+      }
+    } else {
+      switch (langCode) {
+        case 'en': return 'Perfect Harmony 🍷';
+        case 'es': return 'Armonía Perfecta 🍷';
+        case 'ca': return 'Harmonia Perfecta 🍷';
+        case 'la': return 'Harmonia Perfecta 🍷';
+        default: return affinityLevel;
+      }
+    }
+  }
 }
 
 class WineReversePairingEngine {

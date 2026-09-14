@@ -201,7 +201,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             label: const Text('Lien direct par email (Recommandé)'),
             onPressed: () async {
               final targetEmail = emailController.text.trim();
-              if (targetEmail.isEmpty || !targetEmail.contains('@')) return;
+              if (targetEmail.isEmpty || !targetEmail.contains('@')) {
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Veuillez renseigner une adresse email valide.')),
+                );
+                return;
+              }
               Navigator.of(dialogCtx).pop();
               _emailCtrl.text = targetEmail;
               _tabController.animateTo(0);
@@ -213,7 +218,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             label: const Text('Réinitialiser le mot de passe'),
             onPressed: () async {
               final targetEmail = emailController.text.trim();
-              if (targetEmail.isEmpty || !targetEmail.contains('@')) return;
+              if (targetEmail.isEmpty || !targetEmail.contains('@')) {
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Veuillez renseigner une adresse email valide.')),
+                );
+                return;
+              }
               Navigator.of(dialogCtx).pop();
               try {
                 final repo = ref.read(authRepositoryProvider);
@@ -221,9 +231,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 if (mounted) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text('✉️ Email de réinitialisation envoyé à $targetEmail (vérifiez vos spams)'),
-                      backgroundColor: const Color(0xFF8B1E3F),
-                      duration: const Duration(seconds: 6),
+                      content: Text('✉️ Email de réinitialisation envoyé à $targetEmail (vérifiez vos courriers indésirables / spams)'),
+                      backgroundColor: const Color(0xFF10B981),
+                      duration: const Duration(seconds: 7),
                     ),
                   );
                 }
@@ -261,6 +271,84 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showJoinTableDialog(BuildContext context) {
+    final codeCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1728),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.groups_rounded, color: Color(0xFFD4AF37)),
+            SizedBox(width: 8),
+            Text('Rejoindre une table', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Entrez le code de table fourni par votre hôte (ex: TABLE-98931) ou collez le lien complet :',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: codeCtrl,
+              autofocus: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'TABLE-XXXXX ou lien',
+                hintStyle: const TextStyle(color: Colors.white38),
+                filled: true,
+                fillColor: Colors.black26,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: const Text('Annuler', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF8B1E3F),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              final raw = codeCtrl.text.trim();
+              if (raw.isEmpty) return;
+              Navigator.of(dialogCtx).pop();
+
+              String session = raw;
+              String? data;
+              if (raw.contains('session=')) {
+                try {
+                  final uri = Uri.parse(raw);
+                  session = uri.queryParameters['session'] ?? uri.queryParameters['s'] ?? raw;
+                  data = uri.queryParameters['data'] ?? uri.queryParameters['d'];
+                } catch (_) {}
+              }
+
+              if (data != null && data.isNotEmpty) {
+                context.push('/table-consensus?session=$session&data=$data');
+              } else {
+                context.push('/table-consensus?session=$session');
+              }
+            },
+            child: const Text('Rejoindre'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -307,7 +395,85 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 16),
+
+                  // 🍽️ Section Invité / Restaurant (Accès immédiat sans compte)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF2C1530), Color(0xFF190C1C)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.8), width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8B1E3F).withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            const Text('🍽️', style: TextStyle(fontSize: 20)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Au restaurant ce soir ?',
+                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
+                                  ),
+                                  Text(
+                                    'Profitez du sommelier & de la table sans compte !',
+                                    style: TextStyle(color: const Color(0xFFD4AF37).withValues(alpha: 0.9), fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFFD4AF37),
+                                  side: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                icon: const Icon(Icons.groups_rounded, size: 16),
+                                label: const Text('Rejoindre table', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                onPressed: () => _showJoinTableDialog(context),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF8B1E3F),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                icon: const Icon(Icons.camera_alt_rounded, size: 16),
+                                label: const Text('Scanner menu', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                onPressed: () => context.push('/scan/menu'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
 
                   // Auth Method Tabs
                   Container(

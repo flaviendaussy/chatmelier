@@ -185,12 +185,15 @@ class AuthRepository {
         String? cachedEmail = (user.userMetadata?['email'] as String?) ?? user.email;
         String? cachedName = user.userMetadata?['display_name'] as String?;
 
+        String? cachedAvatar = user.userMetadata?['avatar_url'] as String?;
+
         try {
           final prefs = await SharedPreferences.getInstance();
           cachedUser ??= prefs.getString('user_profile_username_$userId');
           cachedPhone ??= prefs.getString('user_profile_phone_$userId');
           cachedEmail ??= prefs.getString('user_profile_email_$userId');
           cachedName ??= prefs.getString('user_profile_name_$userId');
+          cachedAvatar ??= prefs.getString('user_profile_avatar_$userId');
         } catch (_) {}
 
         if (profile != null) {
@@ -199,14 +202,16 @@ class AuthRepository {
             phoneNumber: (profile.phoneNumber != null && profile.phoneNumber!.isNotEmpty) ? profile.phoneNumber : cachedPhone,
             email: (profile.email != null && profile.email!.isNotEmpty) ? profile.email : cachedEmail,
             displayName: profile.displayName != 'User' ? profile.displayName : (cachedName ?? profile.displayName),
+            avatarUrl: (profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty) ? profile.avatarUrl : cachedAvatar,
           );
-        } else if (cachedUser != null || cachedName != null) {
+        } else if (cachedUser != null || cachedName != null || cachedAvatar != null) {
           profile = UserProfile(
             id: userId,
             displayName: cachedName ?? user.userMetadata?['display_name'] ?? 'User',
             username: cachedUser,
             phoneNumber: cachedPhone,
             email: cachedEmail ?? user.email,
+            avatarUrl: cachedAvatar,
           );
         }
       }
@@ -372,6 +377,7 @@ class AuthRepository {
             if (cleanUsername != null && cleanUsername.isNotEmpty) 'username': cleanUsername,
             if (cleanPhone != null && cleanPhone.isNotEmpty) 'phone_number': cleanPhone,
             if (cleanEmail != null && cleanEmail.isNotEmpty) 'email': cleanEmail,
+            if (avatarUrl != null) 'avatar_url': avatarUrl,
             if (defaultCurrency != null) 'default_currency': defaultCurrency,
           },
         ),
@@ -393,6 +399,9 @@ class AuthRepository {
       }
       if (cleanEmail != null && cleanEmail.isNotEmpty) {
         await prefs.setString('user_profile_email_${user.id}', cleanEmail);
+      }
+      if (avatarUrl != null) {
+        await prefs.setString('user_profile_avatar_${user.id}', avatarUrl);
       }
       await prefs.setString('user_profile_name_${user.id}', displayName);
       if (defaultCurrency != null) {

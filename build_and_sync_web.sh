@@ -23,7 +23,7 @@ cp -r build/web/* "$DIR/"
 cp "$DIR/index.html" "$DIR/404.html"
 cp "$DIR/index.html" "$DIR/app/build/web/404.html"
 
-# Ensure legal and store docs are in place
+# Ensure legal, admin and store docs are in place
 if [ -f "$DIR/privacy.html" ]; then
   cp "$DIR/privacy.html" "$DIR/app/build/web/privacy.html"
 fi
@@ -33,6 +33,11 @@ fi
 if [ -f "$DIR/app-ads.txt" ]; then
   cp "$DIR/app-ads.txt" "$DIR/app/build/web/app-ads.txt"
 fi
+# ⚠️  La console admin n'est plus déployée : elle embarquait un JWT service_role Supabase
+#     en clair, lisible par quiconque ouvrait le code source de la page publique.
+#     Le `cp -r` vers une cible existante ajoutait en prime un niveau d'imbrication à chaque
+#     déploiement (7 copies empilées au moment du retrait).
+#     À reconstruire avec une authentification serveur avant toute remise en ligne.
 
 echo "🚀 Syncing to Chatmelier/chatmelier.github.io (org)..."
 TMP_DIR=$(mktemp -d)
@@ -41,6 +46,7 @@ cp -r "$DIR"/app/build/web/* "$TMP_DIR/"
 cp -f "$DIR"/privacy.html "$TMP_DIR/" 2>/dev/null || true
 cp -f "$DIR"/terms.html "$TMP_DIR/" 2>/dev/null || true
 cp -f "$DIR"/app-ads.txt "$TMP_DIR/" 2>/dev/null || true
+# (console admin volontairement non déployée — voir la note plus haut)
 touch "$TMP_DIR/.nojekyll"
 
 cd "$TMP_DIR"

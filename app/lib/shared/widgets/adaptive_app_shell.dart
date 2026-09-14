@@ -90,8 +90,14 @@ class AdaptiveAppShell extends ConsumerWidget {
       );
     } else {
       shell = _MobileAppShell(
-        currentIndex: currentIndex,
-        onNavigate: (i) => _onNavigate(context, i),
+        currentIndex: currentIndex >= 4 ? 4 : currentIndex,
+        onNavigate: (i) {
+          if (i == 4) {
+            _onNavigate(context, 5);
+          } else {
+            _onNavigate(context, i);
+          }
+        },
         child: child,
       );
     }
@@ -156,12 +162,7 @@ class _MobileAppShell extends ConsumerWidget {
       (
         icon: Icons.restaurant_menu_outlined,
         activeIcon: Icons.restaurant_menu,
-        label: l10n?.navJournal ?? 'Degust.',
-      ),
-      (
-        icon: Icons.insights_outlined,
-        activeIcon: Icons.insights,
-        label: l10n?.navStats ?? 'Stats'
+        label: l10n?.navJournal ?? (Localizations.localeOf(context).languageCode == 'fr' ? 'Dégust.' : 'Tasting'),
       ),
       (
         icon: Icons.person_outline,

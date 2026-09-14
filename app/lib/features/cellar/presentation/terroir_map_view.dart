@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../domain/terroir_geo_data.dart';
 
 enum TerroirMapTheme {
@@ -14,6 +15,10 @@ class TerroirMapView extends StatefulWidget {
   final String region;
   final String? subRegion;
   final String? appellation;
+  final bool isSpirit;
+  final String? wineType;
+  final String? wineName;
+  final String? producer;
 
   const TerroirMapView({
     super.key,
@@ -21,6 +26,10 @@ class TerroirMapView extends StatefulWidget {
     required this.region,
     this.subRegion,
     this.appellation,
+    this.isSpirit = false,
+    this.wineType,
+    this.wineName,
+    this.producer,
   });
 
   @override
@@ -34,6 +43,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
 
   late TerroirGeoProfile _profile;
   late List<TerroirHexPolygon> _hexagons;
+  late List<LatLng> _appellationBoundary;
 
   @override
   void initState() {
@@ -47,7 +57,11 @@ class _TerroirMapViewState extends State<TerroirMapView> {
     if (oldWidget.country != widget.country ||
         oldWidget.region != widget.region ||
         oldWidget.subRegion != widget.subRegion ||
-        oldWidget.appellation != widget.appellation) {
+        oldWidget.appellation != widget.appellation ||
+        oldWidget.isSpirit != widget.isSpirit ||
+        oldWidget.wineType != widget.wineType ||
+        oldWidget.wineName != widget.wineName ||
+        oldWidget.producer != widget.producer) {
       _resolveTerroir();
       _mapController.move(_profile.center, _profile.defaultZoom);
     }
@@ -59,8 +73,13 @@ class _TerroirMapViewState extends State<TerroirMapView> {
       region: widget.region,
       subRegion: widget.subRegion,
       appellation: widget.appellation,
+      isSpirit: widget.isSpirit,
+      wineType: widget.wineType,
+      wineName: widget.wineName,
+      producer: widget.producer,
     );
     _hexagons = _profile.generateHexagons();
+    _appellationBoundary = _profile.generateAppellationBoundary();
   }
 
   String _getTileUrl(TerroirMapTheme theme) {
@@ -170,63 +189,77 @@ class _TerroirMapViewState extends State<TerroirMapView> {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // ===================================================================
-          // MAP CANVAS (280px tall, completely clear of text banners)
-          // ===================================================================
-          SizedBox(
-            height: 280,
-            child: Stack(
-              children: [
-                FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: _profile.center,
-                    initialZoom: _profile.defaultZoom,
-                    minZoom: 3.0,
-                    maxZoom: 18.0,
-                    interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.all,
-                    ),
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final content = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ===================================================================
+              // MAP CANVAS (280px tall, completely clear of text banners)
+              // ===================================================================
+              SizedBox(
+                height: 280,
+                child: Stack(
                   children: [
-                    // Dynamic Base Tile Layer
-                    TileLayer(
-                      key: ValueKey(_mapTheme),
-                      urlTemplate: _getTileUrl(_mapTheme),
-                      subdomains: _getTileSubdomains(_mapTheme),
-                      userAgentPackageName: 'com.chatmelier.app',
-                      maxZoom: 19,
-                    ),
-
-                    // Hexbin Cartography Layer (Parcels & Terroir Zones)
-                    if (_showHexagons)
-                      PolygonLayer(
-                        polygons: _hexagons.map((hex) {
-                          return Polygon(
-                            points: hex.points,
-                            color: hex.color,
-                            borderColor: hex.borderColor,
-                            borderStrokeWidth: hex.borderWidth,
-                          );
-                        }).toList(),
+                    FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: _profile.center,
+                        initialZoom: _profile.defaultZoom,
+                        minZoom: 3.0,
+                        maxZoom: 18.0,
+                        interactionOptions: const InteractionOptions(
+                          flags: InteractiveFlag.all,
+                        ),
                       ),
+                      children: [
+                        // Dynamic Base Tile Layer
+                        TileLayer(
+                          key: ValueKey(_mapTheme),
+                          urlTemplate: _getTileUrl(_mapTheme),
+                          subdomains: _getTileSubdomains(_mapTheme),
+                          userAgentPackageName: 'com.chatmelier.app',
+                          maxZoom: 19,
+                        ),
 
-                    // Sommelier Terroir Center Pin Marker
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: _profile.center,
-                          width: 44,
-                          height: 44,
-                          child: _buildTerroirPin(),
+                        // Appellation Terroir Envelope & Cru Parcel Layer
+                        if (_showHexagons)
+                          PolygonLayer(
+                            polygons: [
+                              // Smooth Organic Appellation Boundary
+                              Polygon(
+                                points: _appellationBoundary,
+                                color: _profile.accentColor.withValues(alpha: 0.15),
+                                borderColor: _profile.accentColor.withValues(alpha: 0.85),
+                                borderStrokeWidth: 2.0,
+                              ),
+                              // Cru Parcel Core
+                              ..._hexagons.where((h) => h.isCenterCru).map((hex) {
+                                return Polygon(
+                                  points: hex.points,
+                                  color: const Color(0xFF8B1E3F).withValues(alpha: 0.22),
+                                  borderColor: const Color(0xFFD4AF37),
+                                  borderStrokeWidth: 1.5,
+                                );
+                              }),
+                            ],
+                          ),
+
+                        // Sommelier Terroir Center Pin Marker
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: _profile.center,
+                              width: 80,
+                              height: 48,
+                              alignment: Alignment.center,
+                              child: _buildTerroirPin(),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
 
                 // Top-Left: Mini Theme Switcher Pill
                 Positioned(
@@ -380,21 +413,26 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color(0xFFD4AF37).withValues(alpha: 0.5),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.5),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        _profile.classification.split('(').first.trim(),
-                        style: const TextStyle(
-                          color: Color(0xFFD4AF37),
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                        child: Text(
+                          _profile.classification.split('(').first.trim(),
+                          style: const TextStyle(
+                            color: Color(0xFFD4AF37),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                     ),
@@ -473,27 +511,63 @@ class _TerroirMapViewState extends State<TerroirMapView> {
             ),
           ),
         ],
+      );
+
+          if (constraints.hasBoundedHeight) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              primary: false,
+              child: content,
+            );
+          }
+          return content;
+        },
       ),
     );
   }
 
   Widget _buildTerroirPin() {
-    return Stack(
-      alignment: Alignment.center,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Outer glowing pulse ring
         Container(
-          width: 40,
-          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
+            color: const Color(0xFF18151E).withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFD4AF37), width: 1.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.45),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_profile.flag, style: const TextStyle(fontSize: 10)),
+              const SizedBox(width: 3),
+              Flexible(
+                child: Text(
+                  _profile.appellation,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ],
           ),
         ),
-        // Center Pin
+        const SizedBox(height: 2),
         Container(
-          width: 28,
-          height: 28,
+          width: 14,
+          height: 14,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: const LinearGradient(
@@ -501,18 +575,19 @@ class _TerroirMapViewState extends State<TerroirMapView> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
+            border: Border.all(color: Colors.white, width: 1.8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
+                color: const Color(0xFFD4AF37).withValues(alpha: 0.6),
                 blurRadius: 6,
-                offset: const Offset(0, 2),
+                offset: const Offset(0, 1),
               ),
             ],
           ),
           child: const Center(
             child: Icon(
               Icons.wine_bar,
-              size: 16,
+              size: 8,
               color: Color(0xFF18151E),
             ),
           ),
@@ -568,8 +643,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
         children: [
           Icon(icon, size: 14, color: const Color(0xFFD4AF37)),
           const SizedBox(width: 6),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 260),
+          Flexible(
             child: RichText(
               overflow: TextOverflow.ellipsis,
               maxLines: 2,
@@ -723,14 +797,22 @@ class _TerroirMapFullscreenScreenState
               ),
               if (_showHexagons)
                 PolygonLayer(
-                  polygons: widget.hexagons.map((hex) {
-                    return Polygon(
-                      points: hex.points,
-                      color: hex.color,
-                      borderColor: hex.borderColor,
-                      borderStrokeWidth: hex.borderWidth,
-                    );
-                  }).toList(),
+                  polygons: [
+                    Polygon(
+                      points: widget.profile.generateAppellationBoundary(),
+                      color: widget.profile.accentColor.withValues(alpha: 0.15),
+                      borderColor: widget.profile.accentColor.withValues(alpha: 0.85),
+                      borderStrokeWidth: 2.0,
+                    ),
+                    ...widget.hexagons.where((h) => h.isCenterCru).map((hex) {
+                      return Polygon(
+                        points: hex.points,
+                        color: const Color(0xFF8B1E3F).withValues(alpha: 0.22),
+                        borderColor: const Color(0xFFD4AF37),
+                        borderStrokeWidth: 1.5,
+                      );
+                    }),
+                  ],
                 ),
               MarkerLayer(
                 markers: [

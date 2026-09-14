@@ -31,6 +31,9 @@ import '../features/badges/presentation/badges_gallery_sheet.dart';
 import '../features/menu_scan/domain/menu_wine.dart';
 import '../features/menu_scan/presentation/menu_photo_capture_screen.dart';
 import '../features/menu_scan/presentation/enriched_menu_screen.dart';
+import '../features/blind_battle/presentation/blind_battle_guest_screen.dart';
+import '../features/blind_battle/presentation/blind_battle_host_screen.dart';
+import '../features/menu_scan/presentation/menu_table_consensus_guest_screen.dart';
 import '../shared/widgets/adaptive_app_shell.dart';
 import '../shared/providers/supabase_provider.dart';
 
@@ -67,6 +70,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
       final isInviteRoute = state.matchedLocation.startsWith('/invite/');
+      final isBlindBattleRoute = state.matchedLocation.startsWith('/blind');
+      final isTableConsensusRoute = state.matchedLocation.startsWith('/table-consensus') ||
+          state.matchedLocation.startsWith('/menu-match');
+      final isMenuScanRoute = state.matchedLocation.startsWith('/scan/menu');
       final isAdminRoute = state.matchedLocation.startsWith('/admin');
 
       if (isAdminRoute) return null;
@@ -83,7 +90,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      if (!isLoggedIn && !isAuthRoute && !isInviteRoute) return '/login';
+      if (!isLoggedIn && !isAuthRoute && !isInviteRoute && !isBlindBattleRoute && !isTableConsensusRoute && !isMenuScanRoute) return '/login';
       if (isLoggedIn && isAuthRoute) return '/';
       return null;
     },
@@ -103,6 +110,59 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/invite/:code',
         builder: (context, state) {
           return const PendingInvitesScreen();
+        },
+      ),
+
+      // Blind Battle routes (public access for guests via QR code or host)
+      GoRoute(
+        path: '/blind',
+        builder: (context, state) {
+          final sessionId = state.uri.queryParameters['session'];
+          return BlindBattleGuestScreen(initialSessionId: sessionId);
+        },
+      ),
+      GoRoute(
+        path: '/blind/:sessionId',
+        builder: (context, state) {
+          final sessionId = state.pathParameters['sessionId'];
+          return BlindBattleGuestScreen(initialSessionId: sessionId);
+        },
+      ),
+      GoRoute(
+        path: '/blind-host',
+        builder: (context, state) {
+          return const BlindBattleHostScreen();
+        },
+      ),
+
+      // Table Consensus routes (public access for guests via QR code on web or app)
+      GoRoute(
+        path: '/table-consensus',
+        builder: (context, state) {
+          final sessionId = state.uri.queryParameters['session'] ?? state.uri.queryParameters['s'];
+          final data = state.uri.queryParameters['data'] ?? state.uri.queryParameters['d'];
+          return MenuTableConsensusGuestScreen(initialSessionId: sessionId, initialData: data);
+        },
+      ),
+      GoRoute(
+        path: '/menu-match',
+        builder: (context, state) {
+          final sessionId = state.uri.queryParameters['session'] ?? state.uri.queryParameters['s'];
+          final data = state.uri.queryParameters['data'] ?? state.uri.queryParameters['d'];
+          return MenuTableConsensusGuestScreen(initialSessionId: sessionId, initialData: data);
+        },
+      ),
+
+      // Public Restaurant Menu Scan routes (no account required)
+      GoRoute(
+        path: '/scan/menu',
+        builder: (context, state) => const MenuPhotoCaptureScreen(),
+      ),
+      GoRoute(
+        path: '/scan/menu/result',
+        builder: (context, state) {
+          final menu = state.extra as ScannedMenu;
+          return EnrichedMenuScreen(menu: menu);
         },
       ),
 
@@ -215,17 +275,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/scan',
         builder: (context, state) => const ScanScreen(),
-      ),
-      GoRoute(
-        path: '/scan/menu',
-        builder: (context, state) => const MenuPhotoCaptureScreen(),
-      ),
-      GoRoute(
-        path: '/scan/menu/result',
-        builder: (context, state) {
-          final menu = state.extra as ScannedMenu;
-          return EnrichedMenuScreen(menu: menu);
-        },
       ),
       GoRoute(
         path: '/review',

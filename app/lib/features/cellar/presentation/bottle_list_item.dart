@@ -4,6 +4,7 @@ import '../domain/wine.dart';
 import '../domain/wine_image_service.dart';
 import '../data/favorite_wines_service.dart';
 import '../../../shared/widgets/bottle_image_view.dart';
+import '../../../shared/widgets/spirit_fill_bar.dart';
 
 class BottleListItem extends StatelessWidget {
   final Bottle bottle;
@@ -53,7 +54,7 @@ class BottleListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isFr = Localizations.localeOf(context).languageCode != 'en';
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final wine = bottle.wine;
     final vintageStr = wine?.vintage != null ? '${wine!.vintage}' : (isFr ? 'NM' : 'NV');
     final photo = WineImageService.resolveBottleDisplayImage(bottle, wine);
@@ -200,8 +201,15 @@ class BottleListItem extends StatelessWidget {
                     Row(
                       children: [
                         if (bottle.tracksFillLevel) ...[
-                          Icon(Icons.local_bar, size: 12, color: Colors.amber.shade700),
-                          const SizedBox(width: 4),
+                          SpiritFillBar(
+                            fillLevel: bottle.fillLevel,
+                            spiritType: wine?.type,
+                            wineName: wine?.name,
+                            width: isUltraCompact ? 54 : 66,
+                            height: 6,
+                            compact: isUltraCompact,
+                          ),
+                          const SizedBox(width: 5),
                           Text(
                             isFr ? '${bottle.fillLevel}% restant' : '${bottle.fillLevel}% left',
                             style: TextStyle(

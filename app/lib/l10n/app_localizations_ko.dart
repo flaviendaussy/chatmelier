@@ -570,4 +570,1216 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get cocktailsResetPantry => '팬트리 재설정';
+
+  @override
+  String get save => '저장';
+
+  @override
+  String get continueAnyway => '계속 진행';
+
+  @override
+  String get cellarDetected => '셀러 감지: ';
+
+  @override
+  String proximityWifi(String ssid) {
+    return 'Wi-Fi \"$ssid\"에 연결됨';
+  }
+
+  @override
+  String proximityGps(String distance) {
+    return 'GPS 위치 감지 (거리: $distance)';
+  }
+
+  @override
+  String get proximitySwitch => '전환';
+
+  @override
+  String get proximityIgnore => '무시';
+
+  @override
+  String proximitySwitchedSnack(String cellar) {
+    return '📍 \"$cellar\" 셀러로 자동 전환되었습니다';
+  }
+
+  @override
+  String get distantCellarTitle => '원거리 셀러 감지';
+
+  @override
+  String distantCellarWifiWarning(String ssid, String cellar) {
+    return '현재 다른 셀러 \"$cellar\"에 연결된 Wi-Fi \"$ssid\"에 접속되어 있습니다.';
+  }
+
+  @override
+  String distantCellarGpsWarning(String distance, String cellar) {
+    return '현재 \"$cellar\" 셀러에서 약 $distance 떨어져 있습니다.';
+  }
+
+  @override
+  String distantCellarAddConfirm(String warning, String cellar) {
+    return '$warning\n\n그래도 이 와인을 \"$cellar\" 셀러에 추가하시겠습니까?';
+  }
+
+  @override
+  String distantCellarCheckoutConfirm(String warning, String cellar) {
+    return '$warning\n\n그래도 이 와인을 \"$cellar\" 셀러에서 출고하시겠습니까?';
+  }
+
+  @override
+  String get ratingExceptional => '🏆 독보적';
+
+  @override
+  String get ratingRemarkable => '✨ 훌륭함';
+
+  @override
+  String get ratingVeryGood => '🍷 매우 좋음';
+
+  @override
+  String get ratingPleasant => '👍 기분 좋음';
+
+  @override
+  String get ratingPassable => '보통';
+
+  @override
+  String get checkoutWhoTasted => '누구와 함께 이 와인을 테이스팅하셨나요?';
+
+  @override
+  String checkoutStockRemaining(String producer, int qty) {
+    String _temp0 = intl.Intl.pluralLogic(
+      qty,
+      locale: localeName,
+      other: '병',
+      one: '병',
+    );
+    return '$producer • 재고: $qty $_temp0';
+  }
+
+  @override
+  String get checkoutAddGuest => '게스트 추가';
+
+  @override
+  String get checkoutAddGuestHint => '이름 추가 (엄마, 아빠, 친구...)';
+
+  @override
+  String get checkoutCloseAndTaste => '닫고 테이스팅 즐기기 🍷';
+
+  @override
+  String get checkoutSommelierThinking => '소믈리에가 와인 이야기를 준비 중입니다...';
+
+  @override
+  String get checkoutAerationTimerActive => '⏱️ 잠금 화면에서 에어레이션 타이머 작동 중!';
+
+  @override
+  String get checkoutStartAerationTimer => '타이머 시작 ⏱️';
+
+  @override
+  String get checkoutAerationTimerTitle => '에어레이션 타이머';
+
+  @override
+  String get checkoutDelayedTonight => '오늘 밤 22:00';
+
+  @override
+  String get checkoutDelayedTonightSub => '식사 후 여유롭게 여운을 정리하기에 이상적';
+
+  @override
+  String get checkoutDelayedTomorrow => '내일 오전 11:00';
+
+  @override
+  String get checkoutDelayedTomorrowSub => '조용한 시간에 테이스팅 느낌을 기록';
+
+  @override
+  String get checkoutDelayedWeekend => '이번 주말 (토요일 오전 11:00)';
+
+  @override
+  String get checkoutDelayedWeekendSub => '주말 여유 시간에 차분하게';
+
+  @override
+  String checkoutDelayedInTwoHours(String time) {
+    return '2시간 후 ($time)';
+  }
+
+  @override
+  String get checkoutDelayedInTwoHoursSub => '테이스팅 마무리 시점의 빠른 리마인더';
+
+  @override
+  String get checkoutDelayedCustom => '날짜 및 시간 직접 선택...';
+
+  @override
+  String get reviewPackagingDetected => '패키지 규격 감지';
+
+  @override
+  String get reviewSingleBottleOnly => '아니요, 1병만';
+
+  @override
+  String reviewMultipleBottlesConfirm(int count) {
+    return '예, 총 $count병';
+  }
+
+  @override
+  String reviewStockUpdatedSuccess(int count) {
+    return '🍾 재고가 성공적으로 업데이트되었습니다! (셀러 내: $count병)';
+  }
+
+  @override
+  String get reviewVintageYear => '빈티지 / 생산 연도';
+
+  @override
+  String get reviewNonVintage => '건너뛰기 / 논빈티지 (NV)';
+
+  @override
+  String get reviewValidate => '입고 확정';
+
+  @override
+  String reviewBottleAddedSuccess(String name) {
+    return '🍾 \"$name\" 와인이 셀러에 성공적으로 추가되었습니다!';
+  }
+
+  @override
+  String get reviewBottleAnalysis => '와인 정밀 분석';
+
+  @override
+  String get reviewDiscard => '취소';
+
+  @override
+  String get reviewDiscardConfirmTitle => '입력을 취소하시겠습니까?';
+
+  @override
+  String get reviewContinueEditing => '계속 편집';
+
+  @override
+  String get reviewDiscardWithoutSaving => '저장하지 않고 나가기';
+
+  @override
+  String get reviewBottleDetails => '와인 상세 정보';
+
+  @override
+  String get reviewStockInCellar => '셀러 재고';
+
+  @override
+  String get reviewStockAddition => '입고 추가';
+
+  @override
+  String get reviewStockNewTotal => '변경 후 총수량';
+
+  @override
+  String get reviewQuantityToAdd => '추가할 수량:';
+
+  @override
+  String get reviewSeparateEntry => '별도 항목 생성 (다른 랙 또는 구매 가격)';
+
+  @override
+  String get reviewRetryAi => 'AI 분석 재시도';
+
+  @override
+  String get reviewEnlarge => '확대 보기';
+
+  @override
+  String get reviewGeneralInfo => '기본 정보';
+
+  @override
+  String get reviewOriginTerroir => '원산지 및 테루아';
+
+  @override
+  String get reviewQuantityPurchase => '수량 및 구매 정보';
+
+  @override
+  String cellarWifiDetectedSuccess(String ssid) {
+    return '📡 Wi-Fi 감지 및 연동 완료: \"$ssid\"';
+  }
+
+  @override
+  String get cellarWifiDetectionFailed =>
+      'Wi-Fi를 감지할 수 없습니다 (위치 서비스를 켜거나 직접 입력하세요)';
+
+  @override
+  String cellarGpsCoordsCaptured(String lat, String lon) {
+    return '📍 GPS 좌표 획득 완료 ($lat, $lon)';
+  }
+
+  @override
+  String get cellarGpsInaccessible => 'GPS 위치에 접근할 수 없습니다. 위치 권한을 확인하세요.';
+
+  @override
+  String cellarCreatedSuccess(String cellar) {
+    return '✨ \"$cellar\" 셀러가 성공적으로 생성되었습니다!';
+  }
+
+  @override
+  String cellarCreationError(String error) {
+    return '생성 중 오류: $error';
+  }
+
+  @override
+  String get cellarRadiusPrecise => '100 m (정밀 감지)';
+
+  @override
+  String get cellarRadiusRecommended => '300 m (권장)';
+
+  @override
+  String get cellarRadius500m => '500 m';
+
+  @override
+  String get cellarRadius1km => '1 km';
+
+  @override
+  String get cellarRadius3km => '3 km';
+
+  @override
+  String get cellarCreateButton => '셀러 생성하기';
+
+  @override
+  String get cellarUseCurrentGps => '현재 GPS 위치로 설정';
+
+  @override
+  String cellarUpdatedSuccess(String cellar) {
+    return '✅ \"$cellar\" 셀러 설정이 업데이트되었습니다';
+  }
+
+  @override
+  String cellarUpdateError(String error) {
+    return '업데이트 오류: $error';
+  }
+
+  @override
+  String get wineTypeRed => '레드 와인 🍷';
+
+  @override
+  String get wineTypeWhite => '화이트 와인 🥂';
+
+  @override
+  String get wineTypeRose => '로제 와인 🌸';
+
+  @override
+  String get wineTypeSparkling => '스파클링 와인 🍾';
+
+  @override
+  String get wineTypeDessert => '디저트 / 스위트 🍯';
+
+  @override
+  String get wineTypeLiqueur => '리큐어 🍯';
+
+  @override
+  String get wineTypeSpirit => '스피릿 / 증류주 🥃';
+
+  @override
+  String get wineTypeGrappa => '그라파 🍇';
+
+  @override
+  String get wineTypeEauDeVie => '오드비 (과일 브랜디) 🍐';
+
+  @override
+  String get wineTypeWhisky => '위스키 🥃';
+
+  @override
+  String get wineTypeRum => '럼 🏴‍☠️';
+
+  @override
+  String get wineTypeGin => '진 🍸';
+
+  @override
+  String get wineTypeVodka => '보드카 🧊';
+
+  @override
+  String get wineTypeTequila => '데킬라 🌵';
+
+  @override
+  String get wineTypeCognac => '꼬냑 🍷';
+
+  @override
+  String get cellarCreateTitle => '새 셀러 만들기';
+
+  @override
+  String get cellarManageTitle => '셀러 관리';
+
+  @override
+  String get cellarNameLabel => '셀러 이름 *';
+
+  @override
+  String get cellarNameHint => '예: 집 셀러, 본가 와인고';
+
+  @override
+  String get cellarNameRequired => '셀러 이름을 입력하세요';
+
+  @override
+  String get cellarLocationLabel => '위치 / 도시 (선택)';
+
+  @override
+  String get cellarLocationHint => '예: 서울, 보르도';
+
+  @override
+  String get cellarNicknameLabel => '별칭 / 보관 방 (선택)';
+
+  @override
+  String get cellarNicknameHint => '예: 지하 저장고, 거실 와인셀러';
+
+  @override
+  String get cellarDescriptionLabel => '설명 (선택)';
+
+  @override
+  String get cellarDescriptionHint => '예: 온도 13°C, 습도 70% 지하 보관';
+
+  @override
+  String get cellarWifiLabel => '연결된 Wi-Fi (선택)';
+
+  @override
+  String get cellarWifiHint => '예: Home-Cellar-5G';
+
+  @override
+  String get cellarLinkCurrentWifi => '현재 Wi-Fi와 연동';
+
+  @override
+  String get cellarCaptureCurrentWifiTooltip => '현재 Wi-Fi 가져오기';
+
+  @override
+  String get cellarRadiusLabel => 'GPS 감지 반경';
+
+  @override
+  String get cellarAutoDetectionHeader => '스마트 자동 감지 및 전환';
+
+  @override
+  String get cellarAutoDetectionDesc =>
+      'Wi-Fi 또는 GPS 좌표를 연동하면 해당 장소에 도착했을 때 자동으로 셀러가 전환됩니다.';
+
+  @override
+  String get cellarLatitudeLabel => '위도';
+
+  @override
+  String get cellarLongitudeLabel => '경도';
+
+  @override
+  String get checkoutGuidedTasting => '가이드 테이스팅';
+
+  @override
+  String get checkoutGuidedTastingShared => '차례대로 또는 함께 인상을 공유';
+
+  @override
+  String get checkoutGuidedTastingSolo => '외관, 향, 맛의 균형을 분석하여 맞춤 미각 프로필 완성';
+
+  @override
+  String get checkoutUncorkNowRateLater => '지금 오픈, 평가는 나중에';
+
+  @override
+  String get checkoutUncorkNowRateLaterSub =>
+      '즉시 출고 • 리마인더 시점 선택 (오늘 밤, 내일...)';
+
+  @override
+  String get checkoutUncorkAeration => '오픈 및 에어레이션 타이머';
+
+  @override
+  String checkoutUncorkAerationAdvised(int minutes) {
+    return '즉시 출고 • $minutes분 에어레이션 권장';
+  }
+
+  @override
+  String get checkoutUncorkAerationSub => '즉시 출고 • 디캔팅 / 에어레이션 카운트다운';
+
+  @override
+  String get checkoutSommelierServiceAdvice => '소믈리에 서빙 가이드';
+
+  @override
+  String get checkoutHistoryAnecdotes => '와이너리 이야기 & 비하인드';
+
+  @override
+  String get checkoutNoDecanting => '디캔팅 불필요';
+
+  @override
+  String get checkoutStoryTitle => '이 와인의 이야기 📖';
+
+  @override
+  String get checkoutStorySubtitle => '식탁에서 나누기 좋은 흥미로운 에피소드';
+
+  @override
+  String get checkoutStoryTerroir => '테루아 & 포도 품종';
+
+  @override
+  String get checkoutStoryVintage => '빈티지 이야기';
+
+  @override
+  String get checkoutStoryTastingSecret => '테이스팅 시크릿';
+
+  @override
+  String get checkoutStoryTableAnecdote => '테이블 토크 팁';
+
+  @override
+  String get checkoutJournalArchivedNotice =>
+      '안심하세요: 이 와인은 사진 및 메모와 함께 테이스팅 일지에 정성스럽게 보관됩니다.';
+
+  @override
+  String checkoutBottleUncorkedAerationSuccess(int minutes) {
+    return '와인이 오픈되었습니다! 에어레이션 타이머($minutes분)가 잠금 화면에서 실행 중입니다.';
+  }
+
+  @override
+  String get checkoutAerationDialogPrompt =>
+      '와인이 즉시 출고됩니다. 테이스팅 전 에어레이션 권장 시간을 확인하세요:';
+
+  @override
+  String get checkoutRateWine => '와인 평가하기';
+
+  @override
+  String checkoutStartTimerAction(int minutes) {
+    return '타이머 $minutes분 ⏱️';
+  }
+
+  @override
+  String checkoutAdviceAerationSnack(int minutes) {
+    return '소믈리에 팁: $minutes분 에어레이션 추천. 잠금 화면 타이머 준비 완료.';
+  }
+
+  @override
+  String get checkoutAdviceReminderSnack =>
+      '테이스팅 후 느낌을 기록할 수 있도록 리마인더가 예약되었습니다.';
+
+  @override
+  String get checkoutBottleRemovedSuccess => '와인이 셀러에서 출고되었습니다!';
+
+  @override
+  String checkoutBottleRemovedReminder(String date) {
+    return '즐거운 테이스팅 되세요. $date에 인상을 기록하도록 알려드릴게요.';
+  }
+
+  @override
+  String get checkoutWhoTastedSubtitle => '모든 참가자의 미각 프로필이 자동으로 정교해집니다.';
+
+  @override
+  String checkoutCellarOf(String name) {
+    return '$name 님의 셀러';
+  }
+
+  @override
+  String checkoutStockBout(int count) {
+    return '재고: $count병';
+  }
+
+  @override
+  String get checkoutAddGuestDialogDesc =>
+      '이번 테이스팅에 함께한 가족이나 친구를 추가하세요 (예: 엄마, 아빠, 영희...).';
+
+  @override
+  String get checkoutAddGuestNameLabel => '이름 / 닉네임';
+
+  @override
+  String get checkoutDelayedSheetTitle => '오픈 후 나중에 평가하기';
+
+  @override
+  String get checkoutDelayedSheetSubtitle => '언제 테이스팅 인상을 기록할 리마인더를 받으시겠어요?';
+
+  @override
+  String checkoutDelayedTonightTime(String time) {
+    return '오늘 밤 2시간 후 ($time)';
+  }
+
+  @override
+  String get checkoutDelayedTonightFixed => '오늘 밤 21:00';
+
+  @override
+  String checkoutDateTonightLabel(String time) {
+    return '오늘 밤 $time';
+  }
+
+  @override
+  String checkoutDateTomorrowLabel(String time) {
+    return '내일 $time';
+  }
+
+  @override
+  String checkoutDateCustomLabel(String date, String time) {
+    return '$date $time';
+  }
+
+  @override
+  String get add => '추가';
+
+  @override
+  String get cellarWinesTab => '🍷 와인';
+
+  @override
+  String get cellarSpiritsTab => '🥃 스피릿';
+
+  @override
+  String get cellarPairWithDish => '이 요리에 어울리는 와인은?';
+
+  @override
+  String get cellarCollapseAll => '모두 접기';
+
+  @override
+  String get cellarExpandAll => '모두 펼치기';
+
+  @override
+  String get cellarSort => '정렬';
+
+  @override
+  String get cellarCategories => '카테고리';
+
+  @override
+  String get cellarFavorites => '즐겨찾기';
+
+  @override
+  String get cellarGridView => '그리드';
+
+  @override
+  String get cellarListView => '목록';
+
+  @override
+  String get cellarClearFilters => '필터 초기화';
+
+  @override
+  String get cellarNoBottlesCategory => '이 카테고리에 와인이 없습니다';
+
+  @override
+  String get cellarNoBottlesCriteria => '조건에 맞는 와인이 없습니다';
+
+  @override
+  String get feedbackSheetTitle => '테스터 피드백 및 주석';
+
+  @override
+  String get feedbackStylus => '펜:';
+
+  @override
+  String get feedbackUndo => '마지막 획 실행 취소';
+
+  @override
+  String get feedbackClear => '모두 지우기';
+
+  @override
+  String get feedbackHint => '영역을 표시하고 의견이나 버그를 설명해주세요...';
+
+  @override
+  String get feedbackSubmit => '보고서 보내기';
+
+  @override
+  String get feedbackSubmitting => '전송 중...';
+
+  @override
+  String get feedbackNoScreenshot => '사용 가능한 스크린샷이 없습니다';
+
+  @override
+  String get feedbackEmptyError => '댓글을 추가하거나 스크린샷에 그려주세요.';
+
+  @override
+  String get feedbackSuccess => '소중한 피드백 감사합니다! 🍷 보고서가 전송되었습니다.';
+
+  @override
+  String feedbackError(String error) {
+    return '전송 오류: $error';
+  }
+
+  @override
+  String get checkoutFastExit => '설문 없이 빠른 출고 ⚡';
+
+  @override
+  String get checkoutFastExitSubmitting => '출고 진행 중...';
+
+  @override
+  String get checkoutRatingSubtitle => '시음 후 와인의 종합 점수를 남겨주세요';
+
+  @override
+  String get checkoutRecommendedBadge => '추천';
+
+  @override
+  String get tastingWhoTastedTitle => '👥 누구와 이 와인을 시음했나요?';
+
+  @override
+  String get tastingWhoTastedSubtitle => '테이스터를 선택하세요. 취향 프로필이 자동으로 맞춤 학습됩니다.';
+
+  @override
+  String get tastingHowToTaste => '테이스팅 진행 방식';
+
+  @override
+  String get tastingEachTurn => '차례대로 돌아가며';
+
+  @override
+  String get tastingEachTurnDesc => '📱 스마트폰을 넘기며: 각자 자신의 속도에 맞춰 따로 답변합니다.';
+
+  @override
+  String get tastingTogether => '모두 다 함께';
+
+  @override
+  String get tastingTogetherDesc => '🥂 식탁에서 대화를 나누며 하나의 답변지를 함께 완성합니다.';
+
+  @override
+  String get tastingBlindMode => '블라인드 테이스팅 모드';
+
+  @override
+  String get tastingBlindModeDesc => '와인 이름을 숨기고 식탁 퀴즈를 즐긴 후 정답을 화려하게 공개합니다!';
+
+  @override
+  String get tastingPrimaryProfile => '대표 프로필';
+
+  @override
+  String get tastingAppInstalled => '앱 설치됨 📱';
+
+  @override
+  String tastingQuestionnairesCompletedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '설문 $count건 완료',
+      one: '설문 1건 완료',
+      zero: '작성된 설문 없음',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tastingStepNezTitle => '👃 향 (노즈) — 아로마 표현';
+
+  @override
+  String get tastingStepNezSubtitle => '스월링 후 글라스에서 피어오르는 다채로운 향기를 감상하세요.';
+
+  @override
+  String get tastingAromaIntensity => '향의 강도:';
+
+  @override
+  String get tastingAromaDiscreet => '🤫 은은하고 섬세함';
+
+  @override
+  String get tastingAromaExplosive => '💥 화려하고 폭발적';
+
+  @override
+  String get tastingStepBoucheTitle => '⚖️ 맛 (팔레트) — 균형미';
+
+  @override
+  String get tastingStepBoucheSubtitle => '입안에서 느껴지는 질감과 산미, 타닌의 조화를 표현하세요.';
+
+  @override
+  String get tastingAcidity => '산미의 느낌:';
+
+  @override
+  String get tastingAcidityFreshness => '산미 & 청량감:';
+
+  @override
+  String get tastingAcidityFlat => '🫠 펑퍼짐함 / 밋밋함';
+
+  @override
+  String get tastingAciditySharp => '⚡ 날카로움 / 짜릿함';
+
+  @override
+  String get tastingTannins => '타닌 (떫은맛):';
+
+  @override
+  String get tastingTanninsSilky => '🧶 부드럽고 실키함';
+
+  @override
+  String get tastingTanninsGrippy => '💪 탄탄하고 그립감 있음';
+
+  @override
+  String get tastingMinerality => '미네랄감 & 생동감:';
+
+  @override
+  String get tastingMineralityRound => '🧈 둥글둥글하고 리치함';
+
+  @override
+  String get tastingMineralityCrisp => '🪨 또렷한 미네랄 / 맑음';
+
+  @override
+  String get tastingEffervescence => '기포 (스파클링):';
+
+  @override
+  String get tastingEffervescenceDelicate => '🫧 섬세하고 부드러움';
+
+  @override
+  String get tastingEffervescenceVibrant => '🎆 활기차고 크리미함';
+
+  @override
+  String get tastingBody => '바디감 / 무게감:';
+
+  @override
+  String get tastingBodyLight => '🍃 가볍고 산뜻함';
+
+  @override
+  String get tastingBodyFull => '🏋️ 묵직하고 웅장함';
+
+  @override
+  String get tastingLength => '피니시 / 여운의 길이:';
+
+  @override
+  String get tastingLengthShort => '⏱️ 짧은 편';
+
+  @override
+  String get tastingLengthLong => '♾️ 길게 이어지는 여운';
+
+  @override
+  String get tastingStepVerdictTitle => '✅ 최종 판정';
+
+  @override
+  String get tastingBuyAgain => '이 와인을 다시 구매하시겠습니까?';
+
+  @override
+  String get tastingBuyAgainYes => '🤩 꼭 다시 살 거예요!';
+
+  @override
+  String get tastingBuyAgainMaybe => '🤔 기회가 된다면';
+
+  @override
+  String get tastingBuyAgainNo => '👎 이번엔 괜찮아요';
+
+  @override
+  String get tastingIdealMoment => '이 와인과 가장 어울리는 순간은?';
+
+  @override
+  String get tastingMomentApero => '🥂 아페리티프 / 식전주';
+
+  @override
+  String get tastingMomentMeal => '🍽️ 편안한 일상 식사';
+
+  @override
+  String get tastingMomentDinner => '🎩 격식 있는 정찬 디너';
+
+  @override
+  String get tastingMomentRomantic => '🕯️ 로맨틱한 촛불 식사';
+
+  @override
+  String get tastingMomentSolo => '🧘 고요한 혼술의 시간';
+
+  @override
+  String get tastingWhatLiked => '가장 마음에 든 점:';
+
+  @override
+  String get tastingWhatDisliked => '조금 아쉬웠던 점:';
+
+  @override
+  String get tastingOccasionLabel => '기념 순간 / 추억 (선택) ✨';
+
+  @override
+  String get tastingOccasionHint => '예: 생일 파티, 기념일 디너, 오랜 친구 모임...';
+
+  @override
+  String get tastingAddPhoto => '테이블 기념 사진 추가 📸';
+
+  @override
+  String get tastingPhotoSaved => '테이블 사진이 저장되었습니다 📸';
+
+  @override
+  String get tastingStepImpressionTitle => '🎯 최종 평점 및 감상';
+
+  @override
+  String get tastingStepImpressionSubtitle => '향과 맛을 충분히 음미한 후 종합 점수를 매겨주세요.';
+
+  @override
+  String get tastingOverallFeeling => '전반적인 느낌:';
+
+  @override
+  String get tastingScoreOutOf10 => '10점 만점 평점:';
+
+  @override
+  String get tastingCompletedTitle => '테이스팅 기록 완료!';
+
+  @override
+  String get tastingCompletedSubtitle => '취향 프로필이 성공적으로 업데이트되었습니다 ✨';
+
+  @override
+  String get tastingBottleRemoved => '와인이 오픈되어 셀러에서 출고되었습니다';
+
+  @override
+  String get tastingConsultDebrief => '소믈리에 디브리핑 보기 (숨은 뉘앙스 & 테루아)';
+
+  @override
+  String get tastingFinishButton => '완료 ✨';
+
+  @override
+  String get tastingNextTaster => '확인 → 다음 테이스터로';
+
+  @override
+  String get tastingConfirmAndFinish => '확인 및 완료 ✨';
+
+  @override
+  String get tastingQuitTitle => '설문을 종료하시겠습니까?';
+
+  @override
+  String get tastingQuitMessage => '작성 중인 답변이 저장되지 않습니다.';
+
+  @override
+  String get tastingContinue => '계속하기';
+
+  @override
+  String get tastingQuit => '종료';
+
+  @override
+  String tastingStartCount(int count) {
+    return '시작하기 ($count)';
+  }
+
+  @override
+  String tastingProfileSynced(String name) {
+    return '$name 님의 앱에 동기화 완료 ✨';
+  }
+
+  @override
+  String get tastingProfileEnriched => '미각 프로필이 더 정교해졌습니다';
+
+  @override
+  String tastingAcuityScoreSummary(int score, String praise) {
+    return '감각 예리도: $score% • $praise';
+  }
+
+  @override
+  String get tastingFlavorOriginsTitle => '풍미의 기원 & 와인의 비밀';
+
+  @override
+  String get tastingFlavorOriginsSubtitle => '향과 색상, 구조가 어디서 탄생했는지 알아보세요';
+
+  @override
+  String get tastingBlindQuizTitle => '블라인드 테이스팅 테이블 퀴즈 🙈';
+
+  @override
+  String get tastingBlindQuizQ1 => '1. 이 와인의 생산 지역은 어디일까요? 🌍';
+
+  @override
+  String get tastingBlindQuizQ2 => '2. 주된 포도 품종은 무엇일까요? 🍇';
+
+  @override
+  String get tastingBlindQuizQ3 => '3. 예상 빈티지 / 숙성 기간은? 📅';
+
+  @override
+  String get tastingBlindQuizQ4 => '4. 예상 가격대는? 💶';
+
+  @override
+  String get tastingBlindRevealTitle => '미스터리 보틀 정답 대공개 🍾';
+
+  @override
+  String tastingBlindQuizScore(int score) {
+    return '블라인드 퀴즈 점수: $score/4 🎯';
+  }
+
+  @override
+  String get tastingDebriefTitle => '양조학 및 분자 디브리핑';
+
+  @override
+  String get tastingSensoryAcuity => '감각 예리도';
+
+  @override
+  String tastingPrecision(int score) {
+    return '정확도 $score%';
+  }
+
+  @override
+  String get tastingConcordanceTitle => '1. 일치도 및 크뤼 고유 캐릭터';
+
+  @override
+  String get tastingWhatYouDetected => '테이스터가 감지한 요소:';
+
+  @override
+  String get tastingArchetypeSignature => '이 와인의 전형적인 캐릭터:';
+
+  @override
+  String get tastingHiddenNuancesTitle => '다음 잔에서 찾아볼 섬세한 뉘앙스:';
+
+  @override
+  String get tastingPillarsTitle => '2. 양조 과학 및 분자 분석';
+
+  @override
+  String get tastingPillarsSubtitle => '왜 이 와인은 이러한 구조, 향, 색상을 띨까요?';
+
+  @override
+  String get tastingChatWithSommelier => 'Chatmelier와 양조 비밀 더 깊이 파헤치기';
+
+  @override
+  String get aromaFruitsRouges => '붉은 베리류 (딸기/체리/라즈베리)';
+
+  @override
+  String get aromaFruitsNoirs => '검은 베리류 (블랙베리/카시스/블루베리)';
+
+  @override
+  String get aromaFruitsBlancs => '백도/배/사과/서양배';
+
+  @override
+  String get aromaAgrumes => '시트러스 (레몬/라임/자몽)';
+
+  @override
+  String get aromaFloral => '플로럴 (제비꽃/장미/아카시아)';
+
+  @override
+  String get aromaVegetal => '허브 및 식물향 (피망/민트/풀내음)';
+
+  @override
+  String get aromaEpicesDouces => '달콤한 스파이스 (시나몬/넛멕/정향)';
+
+  @override
+  String get aromaEpicesVives => '알싸한 스파이스 (블랙페퍼/후추)';
+
+  @override
+  String get aromaBoise => '오크 숙성향 (바닐라/토스트/삼나무)';
+
+  @override
+  String get aromaBeurre => '버터 / 브리오슈';
+
+  @override
+  String get aromaMineral => '미네랄 (부싯돌/석회/백악질)';
+
+  @override
+  String get aromaMiel => '꿀 / 과일잼';
+
+  @override
+  String get aromaChocolat => '다크 초콜릿 / 볶은 커피';
+
+  @override
+  String get aromaFumee => '스모크 / 훈제향';
+
+  @override
+  String get emojiDisliked => '아쉬움';
+
+  @override
+  String get emojiMeh => '보통';
+
+  @override
+  String get emojiDecent => '괜찮음';
+
+  @override
+  String get emojiVeryGood => '매우 좋음';
+
+  @override
+  String get emojiLoved => '인생 와인!';
+
+  @override
+  String get likedFreshness => '생동감 있는 신선한 산미';
+
+  @override
+  String get likedFruitiness => '순수하고 풍성한 과실미';
+
+  @override
+  String get likedComplexity => '매혹적인 복합미';
+
+  @override
+  String get likedElegance => '우아하고 섬세한 밸런스';
+
+  @override
+  String get likedPower => '힘차고 풍부한 바디감';
+
+  @override
+  String get likedSilky => '실크처럼 부드러운 타닌';
+
+  @override
+  String get likedOriginality => '개성 넘치는 테루아의 독창성';
+
+  @override
+  String get likedFoodPairing => '음식과의 조화로운 마리아주';
+
+  @override
+  String get likedMinerality => '깔끔하고 세련된 미네랄리티';
+
+  @override
+  String get likedLength => '오랫동안 맴도는 깊은 여운';
+
+  @override
+  String get likedDisappointing => '특별히 없음 / 실망스러움 😕';
+
+  @override
+  String get dislikedTooAcidic => '산미가 지나치게 찌르고 시큼함';
+
+  @override
+  String get dislikedTooTannic => '타닌이 너무 떫고 껄끄러움';
+
+  @override
+  String get dislikedTooOaked => '오크 및 바닐라 향이 너무 과함';
+
+  @override
+  String get dislikedTooAlcoholic => '알코올 열감이 튀고 뜨거움';
+
+  @override
+  String get dislikedTooThin => '바디가 너무 묽고 싱거움';
+
+  @override
+  String get dislikedLacksFruit => '과실향이 너무 빈약함';
+
+  @override
+  String get dislikedTooSweet => '단맛이 지나쳐 쉽게 질림';
+
+  @override
+  String get dislikedTooExpensive => '품질 대비 가격이 너무 비쌈';
+
+  @override
+  String get dislikedNothing => '완벽함, 흠잡을 곳 없음!';
+
+  @override
+  String get tastingStepTasters => '테이스터';
+
+  @override
+  String get tastingStepNezNav => '향';
+
+  @override
+  String get tastingStepBoucheNav => '맛';
+
+  @override
+  String get tastingStepVerdictNav => '판정';
+
+  @override
+  String get tastingStepRatingNav => '평점';
+
+  @override
+  String get tastingBack => '이전';
+
+  @override
+  String get tastingNext => '다음';
+
+  @override
+  String get tastingSaving => '저장 중...';
+
+  @override
+  String get tastingHeaderTitle => '테이스팅 설문지';
+
+  @override
+  String tastingAnswersOf(String name) {
+    return '$name 님의 답변';
+  }
+
+  @override
+  String tastingPassPhoneTo(String name) {
+    return '$name 님에게 스마트폰을 넘겨주세요 📱';
+  }
+
+  @override
+  String tastingAnswersSavedTurn(String name) {
+    return '답변이 안전하게 저장되었습니다.\n이제 $name 님의 차례입니다.';
+  }
+
+  @override
+  String get tastingDictateButton => '테이블 감상 음성 받아쓰기 🎙️';
+
+  @override
+  String get tastingDictateHint =>
+      '자유롭게 말하거나 적어주세요. Chatmelier AI가 향과 맛의 지표를 자동 완성합니다!';
+
+  @override
+  String get tastingDictateMicTip => '팁: 키보드의 마이크 버튼을 눌러 음성으로 빠르게 남길 수 있습니다!';
+
+  @override
+  String get tastingTakePhoto => '테이블 와인 사진 촬영 📸';
+
+  @override
+  String get tastingChooseGallery => '갤러리에서 선택 🖼️';
+
+  @override
+  String get tastingConclaveSummary => '테이스팅 종합 결과';
+
+  @override
+  String get tastingCellarMaster => '셀러 마스터';
+
+  @override
+  String get tastingGuestTaster => '초대 테이스터';
+
+  @override
+  String tastingProfileTag(String type) {
+    return '취향 유형: $type';
+  }
+
+  @override
+  String get tastingFreeTastingRecorded => '자유 테이스팅 메모가 기록되었습니다.';
+
+  @override
+  String tastingAppearanceLabel(String appearance) {
+    return '외관: $appearance';
+  }
+
+  @override
+  String tastingStructureLabel(String structure, int caudalies) {
+    return '구조: $structure ($caudalies 코달리)';
+  }
+
+  @override
+  String tastingKeyMolecules(String molecules) {
+    return '주요 분자: $molecules';
+  }
+
+  @override
+  String tastingKeyOrigin(String key) {
+    return '핵심 요소: $key';
+  }
+
+  @override
+  String tastingGrapesLabel(String grapes) {
+    return '포도 품종: $grapes';
+  }
+
+  @override
+  String get tastingAromaAppliedByAI => 'Chatmelier AI가 테이스팅 인상을 자동 적용했습니다 ✨';
+
+  @override
+  String get tastingBlindYourPredictions => '테이블 블라인드 예측 요약:';
+
+  @override
+  String get tastingBlindGuessCorrect => '정답입니다! 🎯';
+
+  @override
+  String get tastingBlindMakePredictionsPrompt => '최종 와인 공개 전에 모두의 예측을 남겨보세요!';
+
+  @override
+  String tastingStartTaster(String name) {
+    return '자, 시작해볼까요, $name 님! 🍷';
+  }
+
+  @override
+  String get tastingQuizBravo => '🎯 대단해요!';
+
+  @override
+  String tastingQuizWas(String answer) {
+    return '(정답은: $answer)';
+  }
+
+  @override
+  String get tastingDictateInputHint =>
+      '예: 민수는 정말 좋아하며 8.5점, 흙내음과 블랙베리 향을 꼽음. 수진은 7점, 산미가 살짝 튄다고 느낌...';
+
+  @override
+  String get tastingDictateAnalyzing => 'AI 분석 중...';
+
+  @override
+  String get tastingDictateAnalyzeAndApply => '분석 및 설문지에 적용 ✨';
+
+  @override
+  String get tastingFormatExpress => '익스프레스 형식 (1페이지) ⚡';
+
+  @override
+  String get tastingFormatExpressDesc => '30초 만에 점수, 핵심 아로마, 한 줄 판정 기록';
+
+  @override
+  String get tastingFormatSommelier => '소믈리에 형식 (상세) 🎓';
+
+  @override
+  String get tastingFormatSommelierDesc => '향의 변화, 입안의 밸런스, 여운, 테루아 심층 분석';
+
+  @override
+  String get tastingCaudalieTooltipTitle => '코달리 (Caudalie)란? ⏱️';
+
+  @override
+  String get tastingCaudalieTooltipBody =>
+      '1 코달리 = 와인을 삼키거나 뱉은 후 입안에서 향이 머무는 1초.\n• 1~4 코달리: 가볍고 산뜻한 와인\n• 5~7 코달리: 아름다운 균형을 지닌 와인\n• 8~12+ 코달리: 감탄이 절로 나오는 위대한 그랑 크뤼!';
+
+  @override
+  String get tastingAddCustomAroma => '+ 직접 아로마 추가';
+
+  @override
+  String get tastingCustomAromaDialogTitle => '특정 아로마 입력';
+
+  @override
+  String get tastingCustomAromaHint => '예: 스모키한 부싯돌, 산딸기, 말린 장미...';
+
+  @override
+  String get tastingFoodSynergyTitle => '음식과의 마리아주 궁합 🍽️';
+
+  @override
+  String get tastingSynergySublime => '🤩 환상의 조화';
+
+  @override
+  String get tastingSynergyHarmonious => '👍 훌륭한 균형';
+
+  @override
+  String get tastingSynergyNeutral => '😐 무난함';
+
+  @override
+  String get tastingSynergyClashing => '⚡ 불협화음';
+
+  @override
+  String get checkoutFastRatingTitle => '원탭 간편 평점 (선택):';
+
+  @override
+  String get checkoutActionTastingTitle => '이 와인 테이스팅하기';
+
+  @override
+  String get checkoutActionTastingSubtitle => '익스프레스 (1페이지) 또는 상세 소믈리에 형식';
+
+  @override
+  String get checkoutActionDeferredRemind => '나중에 알림 🌙';
+
+  @override
+  String get checkoutActionAerationTimer => '에어레이션 타이머 ⏱️';
 }

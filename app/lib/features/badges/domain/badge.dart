@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../data/badge_translations.dart';
 
 enum BadgeCategory {
   milestones,
@@ -19,6 +20,8 @@ extension BadgeCategoryX on BadgeCategory {
     switch (code) {
       case 'fr':
         return labelFr;
+      case 'la':
+        return labelLa;
       case 'it':
         return labelIt;
       case 'es':
@@ -91,6 +94,31 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Self-Deprecation 💩';
       case BadgeCategory.chatmelierSavant:
         return 'The Erudite Chatmelier';
+    }
+  }
+
+  String get labelLa {
+    switch (this) {
+      case BadgeCategory.milestones:
+        return 'Miliaria Cellae';
+      case BadgeCategory.continents:
+        return 'Continentes';
+      case BadgeCategory.countries:
+        return 'Terrae';
+      case BadgeCategory.regions:
+        return 'Regiones';
+      case BadgeCategory.grapes:
+        return 'Uvae Varietates';
+      case BadgeCategory.aging:
+        return 'Aetas & Fastigium';
+      case BadgeCategory.cocktails:
+        return 'Mixologia';
+      case BadgeCategory.spirits:
+        return 'Spiritus';
+      case BadgeCategory.looser:
+        return 'Irrisio Propria 💩';
+      case BadgeCategory.chatmelierSavant:
+        return 'Chatmelier Doctus';
     }
   }
 
@@ -383,6 +411,8 @@ extension BadgeTierX on BadgeTier {
     switch (code) {
       case 'fr':
         return labelFr;
+      case 'la':
+        return labelLa;
       case 'it':
       case 'es':
         return labelEs;
@@ -430,6 +460,19 @@ extension BadgeTierX on BadgeTier {
         return 'Gold';
       case BadgeTier.diamond:
         return 'Diamond';
+    }
+  }
+
+  String get labelLa {
+    switch (this) {
+      case BadgeTier.bronze:
+        return 'Aes';
+      case BadgeTier.silver:
+        return 'Argentum';
+      case BadgeTier.gold:
+        return 'Aurum';
+      case BadgeTier.diamond:
+        return 'Adamas';
     }
   }
 
@@ -568,13 +611,16 @@ class WineBadge {
   final String id;
   final String title;
   final String? titleEn;
+  final String? titleLa;
   final String emoji;
   final BadgeCategory category;
   final BadgeTier tier;
   final String description;
   final String? descriptionEn;
+  final String? descriptionLa;
   final String chatmelierLore;
   final String? chatmelierLoreEn;
+  final String? chatmelierLoreLa;
   final int requiredCount;
   final String? assetImagePath;
 
@@ -582,39 +628,99 @@ class WineBadge {
     required this.id,
     required this.title,
     this.titleEn,
+    this.titleLa,
     required this.emoji,
     required this.category,
     required this.tier,
     required this.description,
     this.descriptionEn,
+    this.descriptionLa,
     required this.chatmelierLore,
     this.chatmelierLoreEn,
+    this.chatmelierLoreLa,
     this.requiredCount = 1,
     this.assetImagePath,
   });
 
   String localizedTitle(BuildContext context) {
     final code = Localizations.localeOf(context).languageCode;
-    if (code != 'fr' && titleEn != null && titleEn!.isNotEmpty) {
-      return titleEn!;
+    if (code == 'la') {
+      if (titleLa != null && titleLa!.isNotEmpty) return titleLa!;
+      final t = BadgeTranslations.get(id);
+      if (t != null && t.titleLa.isNotEmpty) return t.titleLa;
+    }
+    if (code != 'fr') {
+      if (titleEn != null && titleEn!.isNotEmpty) return titleEn!;
+      final t = BadgeTranslations.get(id);
+      if (t != null && t.titleEn.isNotEmpty) return t.titleEn;
     }
     return title;
   }
 
   String localizedDescription(BuildContext context) {
     final code = Localizations.localeOf(context).languageCode;
-    if (code != 'fr' && descriptionEn != null && descriptionEn!.isNotEmpty) {
-      return descriptionEn!;
+    if (code == 'la') {
+      if (descriptionLa != null && descriptionLa!.isNotEmpty) return descriptionLa!;
+      final t = BadgeTranslations.get(id);
+      if (t != null && t.descLa.isNotEmpty) return t.descLa;
+    }
+    if (code != 'fr') {
+      if (descriptionEn != null && descriptionEn!.isNotEmpty) return descriptionEn!;
+      final t = BadgeTranslations.get(id);
+      if (t != null && t.descEn.isNotEmpty) return t.descEn;
     }
     return description;
   }
 
   String localizedLore(BuildContext context) {
     final code = Localizations.localeOf(context).languageCode;
+    if (code == 'la' && chatmelierLoreLa != null && chatmelierLoreLa!.isNotEmpty) {
+      return chatmelierLoreLa!;
+    }
     if (code != 'fr' && chatmelierLoreEn != null && chatmelierLoreEn!.isNotEmpty) {
       return chatmelierLoreEn!;
     }
     return chatmelierLore;
+  }
+}
+
+class ContributingItem {
+  final String id;
+  final String name;
+  final String? producer;
+  final int? vintage;
+  final String? type;
+  final String? region;
+  final String? appellation;
+  final String? imageUrl;
+  final bool isTasting;
+  final double? rating;
+
+  const ContributingItem({
+    required this.id,
+    required this.name,
+    this.producer,
+    this.vintage,
+    this.type,
+    this.region,
+    this.appellation,
+    this.imageUrl,
+    this.isTasting = false,
+    this.rating,
+  });
+
+  String get displaySubtitle {
+    final parts = <String>[];
+    if (vintage != null && vintage! > 0) parts.add('$vintage');
+    if (appellation != null && appellation!.isNotEmpty) {
+      parts.add(appellation!);
+    } else if (region != null && region!.isNotEmpty) {
+      parts.add(region!);
+    } else if (producer != null && producer!.isNotEmpty) {
+      parts.add(producer!);
+    }
+    if (isTasting) parts.add('Dégustation Consignée');
+    return parts.isEmpty ? (type ?? 'Flacon') : parts.join(' • ');
   }
 }
 
@@ -623,12 +729,14 @@ class BadgeProgress {
   final int currentCount;
   final bool isUnlocked;
   final DateTime? unlockedAt;
+  final List<ContributingItem> contributingItems;
 
   const BadgeProgress({
     required this.badge,
     required this.currentCount,
     required this.isUnlocked,
     this.unlockedAt,
+    this.contributingItems = const [],
   });
 
   double get progressFraction {

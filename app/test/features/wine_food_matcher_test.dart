@@ -210,5 +210,142 @@ void main() {
         expect(cat.icon, isNotEmpty);
       }
     });
+
+    test('Strict threshold rejects incompatible wines (no weak ~10-15% matches)', () {
+      // Searching for oysters: Bordeaux red should NOT be returned even as fallback
+      final matches = WineFoodMatcher.findMatches(
+        bottles: [bordeauxBottle],
+        dishQuery: 'Huîtres fraîches du bassin d\'Arcachon',
+      );
+
+      // Score must be below minQualityScore (60), so matches must be completely empty!
+      expect(matches, isEmpty);
+    });
+
+    test('Sommelier advice provides high-value recommendations on unmatched dishes', () {
+      final adviceOysters = WineFoodMatcher.getSommelierAdviceForDish('Huîtres chaudes');
+      expect(adviceOysters.toLowerCase(), contains('chablis'));
+
+      final adviceRaclette = WineFoodMatcher.getSommelierAdviceForDish('Raclette valaisanne');
+      expect(adviceRaclette.toLowerCase(), contains('savoie'));
+
+      final adviceChocolate = WineFoodMatcher.getSommelierAdviceForDish('Fondant au chocolat');
+      expect(adviceChocolate.toLowerCase(), contains('banyuls'));
+    });
+
+    test('"roast leg of lamb with thyme" matches Bordeaux red with ideal score and thyme notes', () {
+      final matches = WineFoodMatcher.findMatches(
+        bottles: allBottles,
+        dishQuery: 'roast leg of lamb with thyme',
+      );
+
+      expect(matches, isNotEmpty);
+      expect(matches.first.bottle.id, equals('b1'));
+      expect(matches.first.matchLevel, equals(FoodMatchLevel.ideal));
+      expect(matches.first.score, greaterThanOrEqualTo(90));
+      expect(matches.first.sommelierComment.toLowerCase(), contains('thym'));
+    });
+
+    test('Score differentiation across diverse red wines on lamb query', () {
+      final rhoneBottle = Bottle(
+        id: 'b_rhone',
+        cellarId: 'c1',
+        wineId: 'w_rhone',
+        addedBy: 'user1',
+        ownerId: 'user1',
+        status: 'in_cellar',
+        quantity: 2,
+        createdAt: DateTime.now(),
+        wine: const Wine(
+          id: 'w_rhone',
+          name: 'Jean-Louis Chave Hermitage',
+          appellation: 'Hermitage',
+          region: 'Vallée du Rhône',
+          country: 'France',
+          type: 'red',
+          vintage: 2017,
+          drinkStart: 2022,
+          drinkEnd: 2040,
+          grapes: [Grape(name: 'Syrah')],
+        ),
+      );
+
+      final bandolBottle = Bottle(
+        id: 'b_bandol',
+        cellarId: 'c1',
+        wineId: 'w_bandol',
+        addedBy: 'user1',
+        ownerId: 'user1',
+        status: 'in_cellar',
+        quantity: 2,
+        createdAt: DateTime.now(),
+        wine: const Wine(
+          id: 'w_bandol',
+          name: 'Domaine Tempier Bandol Rouge',
+          appellation: 'Bandol',
+          region: 'Provence',
+          country: 'France',
+          type: 'red',
+          vintage: 2018,
+          drinkStart: 2022,
+          drinkEnd: 2038,
+          grapes: [Grape(name: 'Mourvèdre'), Grape(name: 'Grenache')],
+        ),
+      );
+
+      final burgundyBottle = Bottle(
+        id: 'b_burgundy',
+        cellarId: 'c1',
+        wineId: 'w_burgundy',
+        addedBy: 'user1',
+        ownerId: 'user1',
+        status: 'in_cellar',
+        quantity: 1,
+        createdAt: DateTime.now(),
+        wine: const Wine(
+          id: 'w_burgundy',
+          name: 'Domaine Armand Rousseau Gevrey-Chambertin',
+          appellation: 'Gevrey-Chambertin',
+          region: 'Bourgogne',
+          country: 'France',
+          type: 'red',
+          vintage: 2019,
+          drinkStart: 2024,
+          drinkEnd: 2035,
+          grapes: [Grape(name: 'Pinot Noir')],
+        ),
+      );
+
+      final cellarReds = [bordeauxBottle, rhoneBottle, bandolBottle, burgundyBottle];
+      final matches = WineFoodMatcher.findMatches(
+        bottles: cellarReds,
+        dishQuery: 'roast leg of lamb with thyme',
+      );
+
+      expect(matches.length, equals(4));
+
+      // Check scores are discriminated and distinct
+      final scores = matches.map((m) => m.score).toList();
+      expect(scores.toSet().length, greaterThanOrEqualTo(3), reason: 'Scores should not all be identical flat numbers');
+
+      // The top 3 should be high matches (Bordeaux, Bandol, Rhône) >= 90
+      final topMatch = matches.first;
+      expect(topMatch.score, greaterThanOrEqualTo(93));
+
+      // Burgundy Pinot Noir should have a lower score than Bandol/Bordeaux/Rhône for roast lamb with thyme
+      final burgundyMatch = matches.firstWhere((m) => m.bottle.id == 'b_burgundy');
+      expect(burgundyMatch.score, lessThan(matches.first.score));
+      expect(burgundyMatch.score, inInclusiveRange(70, 85));
+    });
+
+    test('Multilingual sommelier advice for roast leg of lamb with thyme', () {
+      final adviceEn = WineFoodMatcher.getSommelierAdviceForDish('roast leg of lamb with thyme', 'en');
+      expect(adviceEn.toLowerCase(), contains('lamb'));
+      expect(adviceEn.toLowerCase(), contains('pauillac'));
+
+      final adviceFr = WineFoodMatcher.getSommelierAdviceForDish('gigot d\'agneau au thym', 'fr');
+      expect(adviceFr.toLowerCase(), contains('agneau'));
+      expect(adviceFr.toLowerCase(), contains('pauillac'));
+    });
   });
 }

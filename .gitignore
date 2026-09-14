@@ -28,3 +28,16 @@ test_assets/
 iphone_test_results/
 iphone_*.png
 *.apk
+*.aab
+*.jks
+*.keystore
+key.properties
+
+# === Secrets — NE JAMAIS COMMITTER (dépôt origin PUBLIC) ===
+# Ajouté lors du handover Antigravity → Claude (2026-09-14).
+# Ces fichiers contiennent des clés d'API et des mots de passe en clair.
+build_bundle.sh
+setup_playstore_keystore.sh
+# La console admin embarque un JWT service_role Supabase en dur.
+# Retirée du suivi git ET du déploiement web ; à reconstruire avec une auth serveur.
+admin_console/

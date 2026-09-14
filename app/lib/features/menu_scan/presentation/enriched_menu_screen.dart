@@ -8,6 +8,8 @@ import '../domain/menu_wine.dart';
 import 'menu_chat_assistant_sheet.dart';
 import 'menu_matchmaker_sheet.dart';
 import 'menu_wine_compare_sheet.dart';
+import 'menu_table_consensus_sheet.dart';
+import 'menu_flight_sheet.dart';
 
 class EnrichedMenuScreen extends ConsumerStatefulWidget {
   final ScannedMenu menu;
@@ -117,18 +119,19 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
   }
 
   void _editRestaurantName() {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final nameCtrl = TextEditingController(text: _menu.restaurantName);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Nom de l\'établissement'),
+        title: Text(isFr ? 'Nom de l\'établissement' : 'Venue Name'),
         content: TextField(
           controller: nameCtrl,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'Restaurant / Bar'),
+          decoration: InputDecoration(labelText: isFr ? 'Restaurant / Bar' : 'Restaurant / Bar'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(isFr ? 'Annuler' : 'Cancel')),
           FilledButton(
             onPressed: () {
               final newName = nameCtrl.text.trim();
@@ -145,7 +148,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
               }
               Navigator.pop(ctx);
             },
-            child: const Text('Valider'),
+            child: Text(isFr ? 'Valider' : 'Save'),
           ),
         ],
       ),
@@ -154,6 +157,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final filteredWines = _filterWines();
@@ -184,17 +188,69 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: _isCompactView ? 'Afficher la vue détaillée' : 'Afficher la vue compacte',
+            tooltip: _isCompactView
+                ? (isFr ? 'Afficher la vue détaillée' : 'Show detailed view')
+                : (isFr ? 'Afficher la vue compacte' : 'Show compact view'),
             icon: Icon(
               _isCompactView ? Icons.view_headline_rounded : Icons.view_agenda_outlined,
               color: const Color(0xFFD4AF37),
             ),
             onPressed: _toggleViewMode,
           ),
-          IconButton(
-            tooltip: 'Conseil Sommelier',
-            icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFFD4AF37)),
-            onPressed: () => MenuChatAssistantSheet.show(context, _menu),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF281832),
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              icon: const Icon(Icons.groups_rounded, size: 14, color: Color(0xFFD4AF37)),
+              label: Text(
+                isFr ? 'En groupe 👥' : 'Group 👥',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+              ),
+              onPressed: () => MenuTableConsensusSheet.show(context, menu: _menu),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFFD4AF37),
+                side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              icon: const Icon(Icons.flight_takeoff_rounded, size: 14, color: Color(0xFFD4AF37)),
+              label: Text(
+                isFr ? 'Flight ✈️' : 'Flight ✈️',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+              ),
+              onPressed: () => MenuFlightSheet.show(context, menu: _menu),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8B1E3F),
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFFD4AF37), width: 1.5),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                elevation: 3,
+                shadowColor: const Color(0xFF8B1E3F).withValues(alpha: 0.5),
+              ),
+              icon: const Icon(Icons.chat_bubble_rounded, size: 14, color: Color(0xFFD4AF37)),
+              label: Text(
+                isFr ? 'Chat 💬' : 'Chat 💬',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
+              ),
+              onPressed: () => MenuChatAssistantSheet.show(context, _menu),
+            ),
           ),
         ],
       ),
@@ -214,11 +270,15 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '${_menu.wines.length} références détectées',
+                        isFr
+                            ? '${_menu.wines.length} références détectées'
+                            : '${_menu.wines.length} references detected',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                       Text(
-                        '$whiteCount Blancs • $redCount Rouges • $sparklingCount Bulles',
+                        isFr
+                            ? '$whiteCount Blancs • $redCount Rouges • $sparklingCount Bulles'
+                            : '$whiteCount Whites • $redCount Reds • $sparklingCount Sparkling',
                         style: const TextStyle(fontSize: 11, color: Colors.grey),
                       ),
                     ],
@@ -246,7 +306,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          _isCompactView ? 'Compact' : 'Détaillé',
+                          _isCompactView ? (isFr ? 'Compact' : 'Compact') : (isFr ? 'Détaillé' : 'Detailed'),
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -261,6 +321,260 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
             ),
           ),
 
+          // 1b. Prominent Interactive "Chat with the Menu" Hero Banner
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF8B1E3F), Color(0xFF530E26)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFD4AF37), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF8B1E3F).withValues(alpha: 0.35),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => MenuChatAssistantSheet.show(context, _menu),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFFDF73), Color(0xFFD4AF37)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.chat_bubble_rounded, color: Color(0xFF5B0E2D), size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  isFr ? 'Discuter avec la Carte' : 'Chat with the Wine List',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD4AF37),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    isFr ? 'IA SOMMELIER' : 'AI SOMMELIER',
+                                    style: const TextStyle(
+                                      color: Color(0xFF5B0E2D),
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 9,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              isFr
+                                  ? 'Posez vos questions : accords mets & vins, conseils en direct...'
+                                  : 'Ask questions: food & wine pairings, live sommelier advice...',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.88),
+                                fontSize: 11.5,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFD4AF37), size: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // 1c. High Visibility Hero Actions: "Choose as a group" & "Flight Sommelier"
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                // Card 1: Choisir en groupe 👥
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => MenuTableConsensusSheet.show(context, menu: _menu),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF33163A), Color(0xFF1E0B24)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.8), width: 1.2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF8B1E3F).withValues(alpha: 0.25),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFD4AF37),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.groups_rounded, color: Color(0xFF33163A), size: 16),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    isFr ? 'Choisir en groupe 👥' : 'Choose as a group 👥',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12.5,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    isFr ? 'Consensus multi-palais' : 'Multi-palate consensus',
+                                    style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 10),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // Card 2: Mode Flight Dégustation ✈️
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => MenuFlightSheet.show(context, menu: _menu),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1E1F3B), Color(0xFF0F1024)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFF9C27B0).withValues(alpha: 0.6), width: 1.2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF9C27B0).withValues(alpha: 0.2),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFBA68C8),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.flight_takeoff_rounded, color: Color(0xFF1E1F3B), size: 16),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    isFr ? 'Flight Sommelier 🍷' : 'Wine Flight 🍷',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12.5,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    isFr ? '3 ou 5 verres en ordre' : '3 or 5 glasses in order',
+                                    style: const TextStyle(color: Color(0xFFCE93D8), fontSize: 10),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // 2. Search Field
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
@@ -268,7 +582,9 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
               controller: _searchCtrl,
               onChanged: (val) => setState(() => _searchQuery = val.trim()),
               decoration: InputDecoration(
-                hintText: 'Rechercher un vin, domaine, cépage, appellation...',
+                hintText: isFr
+                    ? 'Rechercher un vin, domaine, cépage, appellation...'
+                    : 'Search wine, estate, grape, appellation...',
                 prefixIcon: const Icon(Icons.search, size: 20),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -300,7 +616,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   FilterChip(
                     avatar: const Text('✨', style: TextStyle(fontSize: 13)),
                     label: Text(
-                      'Pépites & Bons plans ($flaggedCount)',
+                      isFr ? 'Pépites & Bons plans ($flaggedCount)' : 'Gems & Deals ($flaggedCount)',
                       style: TextStyle(
                         fontWeight: _onlyFlagged ? FontWeight.bold : FontWeight.w600,
                         color: _onlyFlagged ? const Color(0xFFD4AF37) : null,
@@ -321,7 +637,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   const SizedBox(width: 8),
                 ],
                 ChoiceChip(
-                  label: const Text('Tous'),
+                  label: Text(isFr ? 'Tous' : 'All'),
                   selected: _selectedColor == 'all',
                   onSelected: (_) => setState(() => _selectedColor = 'all'),
                 ),
@@ -329,7 +645,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   const SizedBox(width: 6),
                   ChoiceChip(
                     avatar: const Icon(Icons.circle, size: 12, color: Color(0xFF8B1E3F)),
-                    label: Text('Rouges ($redCount)'),
+                    label: Text(isFr ? 'Rouges ($redCount)' : 'Reds ($redCount)'),
                     selected: _selectedColor == 'red',
                     onSelected: (_) => setState(() {
                       _selectedColor = 'red';
@@ -343,7 +659,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   const SizedBox(width: 6),
                   ChoiceChip(
                     avatar: const Icon(Icons.circle, size: 12, color: Color(0xFFE8D08D)),
-                    label: Text('Blancs ($whiteCount)'),
+                    label: Text(isFr ? 'Blancs ($whiteCount)' : 'Whites ($whiteCount)'),
                     selected: _selectedColor == 'white',
                     onSelected: (_) => setState(() {
                       _selectedColor = 'white';
@@ -355,7 +671,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   const SizedBox(width: 6),
                   ChoiceChip(
                     avatar: const Icon(Icons.circle, size: 12, color: Color(0xFFD4AF37)),
-                    label: Text('Bulles ($sparklingCount)'),
+                    label: Text(isFr ? 'Bulles ($sparklingCount)' : 'Sparkling ($sparklingCount)'),
                     selected: _selectedColor == 'sparkling',
                     onSelected: (_) => setState(() {
                       _selectedColor = 'sparkling';
@@ -375,9 +691,9 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
               children: [
-                const Text(
-                  'Profil : ',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+                Text(
+                  isFr ? 'Profil : ' : 'Profile: ',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
                 ),
                 ..._sensoryFilters.where((tag) {
                   if (_selectedColor == 'red' && (tag == 'beurré' || tag == 'beurre')) return false;
@@ -385,10 +701,22 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   return true;
                 }).map((tag) {
                   final isSelected = _selectedTag == tag;
+                  final localizedLabel = isFr
+                      ? (tag[0].toUpperCase() + tag.substring(1))
+                      : switch (tag) {
+                          'minéral' => 'Mineral',
+                          'beurré' => 'Buttery',
+                          'tannique' => 'Tannic',
+                          'fruité' => 'Fruity',
+                          'léger' => 'Light',
+                          'puissant' => 'Bold',
+                          'boisé' => 'Oaked',
+                          _ => tag[0].toUpperCase() + tag.substring(1),
+                        };
                   return Padding(
                     padding: const EdgeInsets.only(right: 6.0),
                     child: FilterChip(
-                      label: Text(tag[0].toUpperCase() + tag.substring(1)),
+                      label: Text(localizedLabel),
                       selected: isSelected,
                       selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.2),
                       onSelected: (val) {
@@ -419,7 +747,10 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                       children: [
                         const Icon(Icons.filter_list_off, size: 48, color: Colors.grey),
                         const SizedBox(height: 12),
-                        const Text('Aucun vin ne correspond à vos filtres', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(
+                          isFr ? 'Aucun vin ne correspond à vos filtres' : 'No wines match your filters',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 6),
                         TextButton(
                           onPressed: () {
@@ -432,7 +763,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                               _searchQuery = '';
                             });
                           },
-                          child: const Text('Réinitialiser les filtres'),
+                          child: Text(isFr ? 'Réinitialiser les filtres' : 'Reset filters'),
                         ),
                       ],
                     ),
@@ -474,13 +805,35 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
         ),
         child: Row(
           children: [
+            // Chat Sommelier Button
+            Expanded(
+              flex: 4,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B1E3F),
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 2,
+                ),
+                onPressed: () => MenuChatAssistantSheet.show(context, _menu),
+                icon: const Icon(Icons.chat_bubble_rounded, size: 16, color: Color(0xFFD4AF37)),
+                label: Text(
+                  isFr ? 'Chat Menu' : 'Chat Menu',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+
             // Compare Button (active when >= 2 selected)
             Expanded(
-              flex: 5,
+              flex: 4,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
                   backgroundColor: _selectedWineIds.length >= 2
-                      ? const Color(0xFF8B1E3F)
+                      ? const Color(0xFF530E26)
                       : Colors.grey.withValues(alpha: 0.3),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -492,16 +845,16 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         MenuWineCompareSheet.show(context, selected);
                       }
                     : null,
-                icon: const Icon(Icons.radar, size: 18),
+                icon: const Icon(Icons.radar, size: 16),
                 label: Text(
                   _selectedWineIds.length >= 2
-                      ? 'Comparer (${_selectedWineIds.length})'
-                      : 'Sélectionner (min 2)',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ? (isFr ? 'Comparer (${_selectedWineIds.length})' : 'Compare (${_selectedWineIds.length})')
+                      : (isFr ? 'Comparer' : 'Compare'),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
 
             // Matchmaker Button
             Expanded(
@@ -516,12 +869,12 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   final pool = filteredWines.isNotEmpty ? filteredWines : _menu.wines;
                   MenuMatchmakerSheet.show(context, pool);
                 },
-                icon: const Icon(Icons.style_outlined, size: 18, color: Color(0xFFD4AF37)),
+                icon: const Icon(Icons.style_outlined, size: 16, color: Color(0xFFD4AF37)),
                 label: const Text(
                   'Matchmaker',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: 12,
                     color: Color(0xFFD4AF37),
                   ),
                 ),
@@ -755,7 +1108,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         Padding(
                           padding: const EdgeInsets.only(right: 4),
                           child: _buildCompactMetricPill(
-                            'Minéralité ${wine.metrics.minerality.toStringAsFixed(1)}',
+                            '${Localizations.localeOf(context).languageCode == 'fr' ? 'Minéralité' : 'Minerality'} ${wine.metrics.minerality.toStringAsFixed(1)}',
                             const Color(0xFF00897B),
                           ),
                         ),
@@ -975,7 +1328,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                           ),
                         if (wine.isWhite && wine.metrics.minerality > 0)
                           _buildMetricPill(
-                            'Minéralité ${wine.metrics.minerality.toStringAsFixed(1)}/10',
+                            '${Localizations.localeOf(context).languageCode == 'fr' ? 'Minéralité' : 'Minerality'} ${wine.metrics.minerality.toStringAsFixed(1)}/10',
                             const Color(0xFF00897B),
                           ),
                         ...wine.tags.take(3).map((t) => _buildTagPill(t, isDark)),
@@ -1027,7 +1380,9 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                             Icon(Icons.tune_rounded, size: 12, color: Colors.amber.shade900),
                             const SizedBox(width: 4),
                             Text(
-                              'Profil à compléter',
+                              Localizations.localeOf(context).languageCode == 'fr'
+                                  ? 'Profil à compléter'
+                                  : 'Complete profile',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,

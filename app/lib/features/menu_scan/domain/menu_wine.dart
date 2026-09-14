@@ -166,49 +166,77 @@ class MenuWineRadarMetrics {
         body.clamp(1.0, 10.0), // Axe 7: Corps & Puissance
       ];
 
-  /// Convert to standard 6-axis metrics for Red Wine Comparison (compat)
+  /// Convert to standard 8-axis metrics for Red Wine Comparison (compat)
   WineTasteRadarMetrics toRedRadarMetrics() {
     return WineTasteRadarMetrics(
-      body: tannins.clamp(1.0, 10.0),
-      acidity: body.clamp(1.0, 10.0),
-      fruit: acidity.clamp(1.0, 10.0),
-      oak: fruit.clamp(1.0, 10.0),
-      minerality: oak.clamp(1.0, 10.0),
-      sweetness: minerality.clamp(1.0, 10.0),
+      tannin: tannins.clamp(1.0, 10.0),
+      body: body.clamp(1.0, 10.0),
+      oak: oak.clamp(1.0, 10.0),
+      ripeFruit: fruit.clamp(1.0, 10.0),
+      spice: ((tannins + oak) / 2).clamp(1.0, 10.0),
+      freshFruit: acidity.clamp(1.0, 10.0),
+      minerality: minerality.clamp(1.0, 10.0),
+      acidity: acidity.clamp(1.0, 10.0),
     );
   }
 
-  /// Convert to standard 6-axis metrics for White Wine Comparison (compat)
+  /// Convert to standard 8-axis metrics for White Wine Comparison (compat)
   WineTasteRadarMetrics toWhiteRadarMetrics() {
     return WineTasteRadarMetrics(
-      body: minerality.clamp(1.0, 10.0),
+      tannin: 1.0,
+      body: body.clamp(1.0, 10.0),
+      oak: (butteriness > 0 ? butteriness : oak).clamp(1.0, 10.0),
+      ripeFruit: ((fruit + sweetness) / 2).clamp(1.0, 10.0),
+      spice: 2.0,
+      freshFruit: fruit.clamp(1.0, 10.0),
+      minerality: minerality.clamp(1.0, 10.0),
       acidity: acidity.clamp(1.0, 10.0),
-      fruit: fruit.clamp(1.0, 10.0),
-      oak: butteriness.clamp(1.0, 10.0),
-      minerality: oak.clamp(1.0, 10.0),
-      sweetness: body.clamp(1.0, 10.0),
     );
   }
 
-  static List<String> get redAxisLabels => [
-        'Tannins &\nStructure',
-        'Puissance\n& Corps',
-        'Fraîcheur\n& Acidité',
-        'Fruit &\nBaies',
-        'Boisé &\nÉlevage',
-        'Minéralité\n& Épices',
-        'Persistance\n& Rondeur',
-      ];
+  static List<String> redAxisLabelsLocalized([bool isFr = true]) => isFr
+      ? [
+          'Tannins &\nStructure',
+          'Puissance\n& Corps',
+          'Fraîcheur\n& Acidité',
+          'Fruit &\nBaies',
+          'Boisé &\nÉlevage',
+          'Minéralité\n& Épices',
+          'Persistance\n& Rondeur',
+        ]
+      : [
+          'Tannins &\nStructure',
+          'Body &\nPower',
+          'Freshness\n& Acidity',
+          'Fruit &\nBerries',
+          'Oak &\nComplexity',
+          'Minerality\n& Spices',
+          'Finish &\nRoundness',
+        ];
 
-  static List<String> get whiteAxisLabels => [
-        'Minéralité\n& Tension',
-        'Fraîcheur\n& Vivacité',
-        'Fruit &\nFleurs',
-        'Beurré &\nRondeur',
-        'Boisé &\nToasté',
-        'Douceur &\nSucre',
-        'Corps &\nPuissance',
-      ];
+  static List<String> whiteAxisLabelsLocalized([bool isFr = true]) => isFr
+      ? [
+          'Minéralité\n& Tension',
+          'Fraîcheur\n& Vivacité',
+          'Fruit &\nFleurs',
+          'Beurré &\nRondeur',
+          'Boisé &\nToasté',
+          'Douceur &\nSucre',
+          'Corps &\nPuissance',
+        ]
+      : [
+          'Minerality\n& Crispness',
+          'Freshness\n& Vivacity',
+          'Fruit &\nFloral',
+          'Buttery &\nRound',
+          'Oak &\nToasted',
+          'Sweetness\n& Sugar',
+          'Body &\nPower',
+        ];
+
+  static List<String> get redAxisLabels => redAxisLabelsLocalized(true);
+
+  static List<String> get whiteAxisLabels => whiteAxisLabelsLocalized(true);
 }
 
 /// A Wine recognized from a restaurant wine menu

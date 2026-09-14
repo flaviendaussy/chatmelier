@@ -41,6 +41,9 @@
   <link rel="preconnect" href="https://fvnybncauhbpsnikzeeq.supabase.co" crossorigin>
   <link rel="dns-prefetch" href="https://fvnybncauhbpsnikzeeq.supabase.co">
 
+  <!-- Preload App Logo for Instant Splash Render -->
+  <link rel="preload" href="logo_transparent.png" as="image">
+
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -78,9 +81,12 @@
       transition: opacity 0.4s ease-out;
     }
     .logo-icon {
-      font-size: 54px;
+      width: 92px;
+      height: 114px;
       margin-bottom: 16px;
-      animation: pulse 1.8s infinite ease-in-out;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 18px rgba(212, 175, 55, 0.25));
+      animation: pulse 2.2s infinite ease-in-out;
     }
     .app-title {
       font-size: 24px;
@@ -107,14 +113,14 @@
       to { transform: rotate(360deg); }
     }
     @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 0.9; }
-      50% { transform: scale(1.06); opacity: 1; }
+      0%, 100% { transform: scale(1); opacity: 0.95; }
+      50% { transform: scale(1.05); opacity: 1; }
     }
   </style>
 </head>
 <body>
   <div id="loading-indicator">
-    <div class="logo-icon">🍷</div>
+    <img class="logo-icon" src="logo_transparent.png" alt="Chatmelier" width="92" height="114">
     <div class="app-title">Chatmelier</div>
     <div class="app-subtitle">Sommelier Privé & Cave d'Exception</div>
     <div class="spinner"></div>

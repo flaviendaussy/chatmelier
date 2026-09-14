@@ -4,16 +4,19 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../config/constants.dart';
 import '../../../shared/services/gemini_model_registry.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../auth/data/ai_cost_tracker_service.dart';
 import '../domain/scan_result.dart';
+import 'label_image_optimizer.dart';
+import 'scan_cache_service.dart';
 
 class ScanService {
   final SupabaseClient _client;
   static const String _geminiApiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: '',
+    defaultValue: AppConstants.geminiApiKey,
   );
 
   ScanService(this._client);
@@ -66,20 +69,22 @@ class ScanService {
         throw Exception('Aucune photo fournie pour l\'analyse.');
       }
 
-      final base64Image = base64Encode(bytes);
-      final fileSizeKb = (bytes.length / 1024).round();
-      AppLogger.debug('SCAN_AI', 'Encoded image size: $fileSizeKb KB');
+      // 1. Optimize image: Central ROI crop + scale down to max 1024px + JPEG compression
+      final optimized = LabelImageOptimizer.optimize(bytes);
+      final optimizedBytes = optimized.bytes;
+      final sha256Hash = optimized.sha256Hash;
+      final mimeType = optimized.mimeType;
 
-      // Determine mime type
-      String mimeType = 'image/jpeg';
-      final pathLower = effectivePath.toLowerCase();
-      if (pathLower.endsWith('.png')) {
-        mimeType = 'image/png';
-      } else if (pathLower.endsWith('.webp')) {
-        mimeType = 'image/webp';
-      } else if (pathLower.endsWith('.heic') || pathLower.endsWith('.heif')) {
-        mimeType = 'image/heic';
+      // 2. Check local fingerprint cache
+      final cachedScan = await ScanCacheService().getCachedResult(sha256Hash);
+      if (cachedScan != null) {
+        AppLogger.info('SCAN_AI', 'Exact image hash match found in local cache ($sha256Hash), skipping AI scan entirely!');
+        return cachedScan;
       }
+
+      final base64Image = base64Encode(optimizedBytes);
+      final fileSizeKb = (optimizedBytes.length / 1024).round();
+      AppLogger.debug('SCAN_AI', 'Encoded optimized image size: $fileSizeKb KB (Hash: ${sha256Hash.substring(0, 10)}...)');
 
       final isEn = languageCode.toLowerCase().startsWith('en');
       final notesInst = isEn
@@ -167,17 +172,27 @@ Return strictly a valid JSON object matching this schema.''';
         }
       });
 
+      // If no local Gemini API key is configured, invoke Supabase Edge Function directly
+      if (_geminiApiKey.trim().isEmpty) {
+        AppLogger.info('SCAN_AI', 'No local Gemini API key configured, invoking Supabase Edge function directly...');
+        final fallbackResult = await _invokeEdgeFunction(base64Image, mimeType);
+        final duration = DateTime.now().difference(startTime).inMilliseconds;
+        AppLogger.info('SCAN_AI', 'Edge function scan succeeded in ${duration}ms');
+        await ScanCacheService().cacheResult(sha256Hash, fallbackResult);
+        return fallbackResult;
+      }
+
       final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.standardFlashPreferred);
 
-      // Attempt scanning: Try Direct Fast JSON OCR FIRST (1.5-3s), then Web Search tool fallback if needed
+      // Attempt scanning: Try Direct Fast JSON OCR FIRST (1-2s), then Web Search tool fallback if needed
       for (int attempt = 1; attempt <= 2; attempt++) {
+        final isSearch = attempt == 2;
+        final reqBody = isSearch ? requestBodyWithSearch : requestBodyDirect;
+        final timeoutSec = isSearch ? 18 : 12;
+
         for (final model in activeModels) {
-          // Pass 1: Direct JSON OCR (super fast, ~2s); Pass 2: Search tool fallback
-          for (final isSearch in [false, attempt == 2]) {
-            final reqBody = isSearch ? requestBodyWithSearch : requestBodyDirect;
-            final timeoutSec = isSearch ? 18 : 12;
-            try {
-              AppLogger.debug('SCAN_AI', 'Calling Gemini API (Attempt $attempt) with model: $model (Search tool: $isSearch, Timeout: ${timeoutSec}s)');
+          try {
+            AppLogger.debug('SCAN_AI', 'Calling Gemini API (Attempt $attempt) with model: $model (Search tool: $isSearch, Timeout: ${timeoutSec}s)');
               final url = Uri.parse(
                 'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
               );
@@ -197,7 +212,38 @@ Return strictly a valid JSON object matching this schema.''';
                   rawText = rawText.split('```')[1].split('```')[0].trim();
                 }
                 final parsed = jsonDecode(rawText) as Map<String, dynamic>;
-                final result = ScanResult.fromJson(parsed);
+                ScanResult result = ScanResult.fromJson(parsed);
+
+                // Deduplication check: cross-reference with existing catalog wine in Supabase
+                try {
+                  final rpcRes = await _client.rpc('find_cached_wine', params: {
+                    'p_producer': result.producer,
+                    'p_name': result.name,
+                    'p_vintage': result.vintage,
+                    'p_cuvee': result.cuveeParcel,
+                  });
+                  if (rpcRes is List && rpcRes.isNotEmpty) {
+                    final cached = rpcRes.first as Map<String, dynamic>;
+                    AppLogger.info('SCAN_AI', 'Found existing wine catalog entry for "${result.name}" in database, merging metadata');
+                    result = result.copyWith(
+                      tastingNotes: result.tastingNotes ?? cached['tasting_notes'] as String?,
+                      foodPairings: result.foodPairings.isEmpty
+                          ? (cached['food_pairings'] is List ? List<String>.from(cached['food_pairings']) : null)
+                          : result.foodPairings,
+                      idealDrinkingStart: result.idealDrinkingStart ?? cached['ideal_drinking_start'] as int?,
+                      idealDrinkingEnd: result.idealDrinkingEnd ?? cached['ideal_drinking_end'] as int?,
+                      peakDrinkingStart: result.peakDrinkingStart ?? cached['peak_drinking_start'] as int?,
+                      peakDrinkingEnd: result.peakDrinkingEnd ?? cached['peak_drinking_end'] as int?,
+                      estimatedMarketValue: result.estimatedMarketValue ?? (cached['estimated_market_value'] as num?)?.toDouble(),
+                      alcoholPct: result.alcoholPct ?? (cached['alcohol_pct'] as num?)?.toDouble(),
+                    );
+                  }
+                } catch (rpcErr) {
+                  AppLogger.debug('SCAN_AI', 'find_cached_wine lookup skipped: $rpcErr');
+                }
+
+                // Cache successful scan result locally
+                await ScanCacheService().cacheResult(sha256Hash, result);
 
                 final duration = DateTime.now().difference(startTime).inMilliseconds;
                 AppLogger.info('SCAN_AI', 'Scan succeeded on attempt $attempt via $model (Search: $isSearch) in ${duration}ms! Found: "${result.name}" (${result.vintage ?? "NM"}), Qty: ${result.detectedQuantity}');
@@ -227,18 +273,18 @@ Return strictly a valid JSON object matching this schema.''';
               AppLogger.warning('SCAN_AI', 'Model $model failed (Attempt $attempt, Search: $isSearch) with error: $modelErr');
             }
           }
+          if (attempt == 1) {
+            // Short delay before second pass
+            await Future.delayed(const Duration(milliseconds: 600));
+          }
         }
-        if (attempt == 1) {
-          // Short delay before second pass
-          await Future.delayed(const Duration(milliseconds: 600));
-        }
-      }
 
       // If all direct Gemini endpoints failed, try Supabase Edge function
       AppLogger.info('SCAN_AI', 'Direct Gemini calls failed. Attempting Supabase Edge Function fallback...');
       final fallbackResult = await _invokeEdgeFunction(base64Image, mimeType);
       final duration = DateTime.now().difference(startTime).inMilliseconds;
       AppLogger.info('SCAN_AI', 'Edge function scan succeeded in ${duration}ms');
+      await ScanCacheService().cacheResult(sha256Hash, fallbackResult);
       return fallbackResult;
     } catch (e, stack) {
       AppLogger.error('SCAN_AI', 'All scan methods failed for image: $effectivePath', e, stack);
@@ -341,6 +387,41 @@ Return strictly a valid JSON object matching this schema.''';
   }) async {
     AppLogger.info('SCAN_AI', 'Enriching wine data: $wineName ($vintage) by $producer');
 
+    // 1. Check Supabase wine catalog cache (0 token cost if already enriched)
+    try {
+      final cachedRows = await _client.rpc('find_cached_wine', params: {
+        'p_producer': producer,
+        'p_name': wineName,
+        'p_vintage': vintage,
+      });
+      if (cachedRows is List && cachedRows.isNotEmpty) {
+        final row = cachedRows.first as Map<String, dynamic>;
+        final tastingNotes = row['tasting_notes'] as String?;
+        if (tastingNotes != null && tastingNotes.isNotEmpty) {
+          AppLogger.info('SCAN_AI', 'Enrichment resolved from Supabase catalog cache for $wineName (0 API tokens consumed!)');
+          return {
+            'grapes': row['grapes'],
+            'appellation': row['appellation'],
+            'region': row['region'],
+            'sub_region': row['sub_region'],
+            'classification': row['classification'],
+            'tasting_notes': tastingNotes,
+            'food_pairings': row['food_pairings'] is List ? List<String>.from(row['food_pairings']) : <String>[],
+            'ideal_drinking_start': row['ideal_drinking_start'],
+            'ideal_drinking_end': row['ideal_drinking_end'],
+            'peak_drinking_start': row['peak_drinking_start'],
+            'peak_drinking_end': row['peak_drinking_end'],
+            'estimated_market_value': (row['estimated_market_value'] as num?)?.toDouble(),
+            'estimated_value_currency': 'EUR',
+            'alcohol_pct': (row['alcohol_pct'] as num?)?.toDouble(),
+            'ai_summary': row['ai_summary'],
+          };
+        }
+      }
+    } catch (e) {
+      AppLogger.debug('SCAN_AI', 'find_cached_wine check skipped: $e');
+    }
+
     final prompt = '''You are Chatmelier, the world-class sommelier and oenology AI engine.
 Provide comprehensive, verified sommelier data for:
 - Wine Name: $wineName
@@ -396,7 +477,7 @@ Return strictly a valid JSON object matching this schema.''';
     final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.litePreferred);
 
     for (final model in activeModels) {
-      for (final isSearch in [true, false]) {
+      for (final isSearch in [false, true]) {
         final reqBody = isSearch ? requestBodyWithSearch : requestBodyDirect;
         final timeoutSec = isSearch ? 18 : 8;
         try {

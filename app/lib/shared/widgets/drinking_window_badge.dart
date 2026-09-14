@@ -7,19 +7,30 @@ class DrinkingWindowBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     Color color;
     String label;
     switch (status) {
       case DrinkWindowStatus.inPeak:
-        color = Colors.green.shade700; label = 'À L\'APOGÉE ✨'; break;
+        color = Colors.green.shade700;
+        label = isFr ? 'À L\'APOGÉE ✨' : 'AT PEAK ✨';
+        break;
       case DrinkWindowStatus.drinkSoon:
-        color = Colors.orange.shade800; label = 'À BOIRE VITE ⏳'; break;
+        color = Colors.orange.shade800;
+        label = isFr ? 'À BOIRE VITE ⏰' : 'DRINK SOON ⏰';
+        break;
       case DrinkWindowStatus.tooYoung:
-        color = Colors.blue.shade700; label = 'TROP JEUNE ⏳'; break;
+        color = Colors.blue.shade700;
+        label = isFr ? 'TROP JEUNE ⏳' : 'TOO YOUNG ⏳';
+        break;
       case DrinkWindowStatus.aging:
-        color = Colors.teal.shade700; label = 'EN GARDE 🛡️'; break;
+        color = Colors.teal.shade700;
+        label = isFr ? 'EN GARDE ⏳' : 'AGING ⏳';
+        break;
       case DrinkWindowStatus.pastPeak:
-        color = Colors.red.shade800; label = 'DÉCLIN / PASSÉ ⚠️'; break;
+        color = Colors.red.shade800;
+        label = isFr ? 'DÉCLIN / PASSÉ ⚠️' : 'PAST PEAK ⚠️';
+        break;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

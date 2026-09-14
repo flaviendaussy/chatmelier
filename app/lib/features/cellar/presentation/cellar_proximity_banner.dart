@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/services/cellar_location_service.dart';
 import '../domain/cellar.dart';
 
 class CellarProximityBanner extends ConsumerStatefulWidget {
-  const CellarProximityBanner({super.key});
+  final CellarProximityMatch? initialMatch;
+  const CellarProximityBanner({super.key, this.initialMatch});
 
   @override
   ConsumerState<CellarProximityBanner> createState() => _CellarProximityBannerState();
@@ -19,9 +21,13 @@ class _CellarProximityBannerState extends ConsumerState<CellarProximityBanner> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkLocation();
-    });
+    if (widget.initialMatch != null) {
+      _proximityMatch = widget.initialMatch;
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkLocation();
+      });
+    }
   }
 
   Future<void> _checkLocation() async {
@@ -71,12 +77,16 @@ class _CellarProximityBannerState extends ConsumerState<CellarProximityBanner> {
     final match = _proximityMatch;
     if (match == null) return;
 
+    final l10n = AppLocalizations.of(context);
     ref.read(currentCellarIdProvider.notifier).state = match.cellar.id;
     ref.invalidate(bottlesProvider(match.cellar.id));
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('📍 Basculé automatiquement vers "${match.cellar.displayName}"'),
+        content: Text(
+          l10n?.proximitySwitchedSnack(match.cellar.displayName) ??
+              '📍 Basculé automatiquement vers "${match.cellar.displayName}"',
+        ),
         backgroundColor: const Color(0xFF2E7D32),
         duration: const Duration(seconds: 3),
       ),
@@ -97,6 +107,7 @@ class _CellarProximityBannerState extends ConsumerState<CellarProximityBanner> {
     final match = _proximityMatch;
     if (match == null) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context);
     final isWifi = match.matchType == ProximityMatchType.wifi;
     final accentColor = isWifi ? const Color(0xFF1976D2) : const Color(0xFF2E7D32);
 
@@ -138,7 +149,7 @@ class _CellarProximityBannerState extends ConsumerState<CellarProximityBanner> {
                 Row(
                   children: [
                     Text(
-                      'Cave détectée : ',
+                      l10n?.cellarDetected ?? 'Cave détectée : ',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade700,
@@ -158,7 +169,7 @@ class _CellarProximityBannerState extends ConsumerState<CellarProximityBanner> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  match.explanation,
+                  match.formatExplanation(l10n),
                   style: TextStyle(
                     fontSize: 11,
                     color: accentColor,
@@ -177,14 +188,17 @@ class _CellarProximityBannerState extends ConsumerState<CellarProximityBanner> {
               foregroundColor: accentColor,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             ),
-            child: const Text('Basculer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            child: Text(
+              l10n?.proximitySwitch ?? 'Basculer',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.close, size: 16),
             color: Colors.grey.shade600,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            tooltip: 'Ignorer',
+            tooltip: l10n?.proximityIgnore ?? 'Ignorer',
             onPressed: _dismiss,
           ),
         ],

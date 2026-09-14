@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/services/cellar_location_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/cellar.dart';
 
 class EditCellarDialog extends ConsumerStatefulWidget {
@@ -64,6 +65,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
 
   Future<void> _captureCurrentWifi() async {
     setState(() => _isDetectingWifi = true);
+    final l10n = AppLocalizations.of(context);
     try {
       final ssid = await CellarLocationService.getCurrentWifiSsid();
       if (ssid != null && ssid.isNotEmpty) {
@@ -71,7 +73,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('📡 Wi-Fi détecté et associé : "$ssid"'),
+              content: Text(l10n?.cellarWifiDetectedSuccess(ssid) ?? '📡 Wi-Fi détecté et associé : "$ssid"'),
               backgroundColor: const Color(0xFF2E7D32),
             ),
           );
@@ -79,8 +81,8 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Impossible de détecter le Wi-Fi (activez la localisation ou saisissez le nom manuellement)'),
+            SnackBar(
+              content: Text(l10n?.cellarWifiDetectionFailed ?? 'Impossible de détecter le Wi-Fi (activez la localisation ou saisissez le nom manuellement)'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -93,6 +95,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
 
   Future<void> _captureCurrentGps() async {
     setState(() => _isLocatingGps = true);
+    final l10n = AppLocalizations.of(context);
     try {
       final pos = await CellarLocationService.getCurrentPosition();
       if (pos != null) {
@@ -103,7 +106,8 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('📍 Coordonnées GPS capturées (${pos.latitude.toStringAsFixed(4)}, ${pos.longitude.toStringAsFixed(4)})'),
+              content: Text(l10n?.cellarGpsCoordsCaptured(pos.latitude.toStringAsFixed(4), pos.longitude.toStringAsFixed(4)) ??
+                  '📍 Coordonnées GPS capturées (${pos.latitude.toStringAsFixed(4)}, ${pos.longitude.toStringAsFixed(4)})'),
               backgroundColor: const Color(0xFF2E7D32),
             ),
           );
@@ -111,8 +115,8 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Position GPS inaccessible. Vérifiez les autorisations de localisation.'),
+            SnackBar(
+              content: Text(l10n?.cellarGpsInaccessible ?? 'Position GPS inaccessible. Vérifiez les autorisations de localisation.'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -125,6 +129,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context);
     setState(() => _isSaving = true);
 
     final name = _nameController.text.trim();
@@ -157,7 +162,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ Paramètres de la cave "$name" mis à jour'),
+            content: Text(l10n?.cellarUpdatedSuccess(name) ?? '✅ Paramètres de la cave "$name" mis à jour'),
             backgroundColor: const Color(0xFF2E7D32),
           ),
         );
@@ -167,7 +172,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la mise à jour : $e'),
+            content: Text(l10n?.cellarUpdateError('$e') ?? 'Erreur lors de la mise à jour : $e'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -178,6 +183,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return AlertDialog(
       title: Row(
@@ -193,7 +199,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Gérer la cave',
+              l10n?.cellarManageTitle ?? 'Gérer la cave',
               style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
@@ -211,43 +217,43 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
                 // 1. General info
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nom de la cave *',
-                    hintText: 'ex: Cave Principale, Cave de Bordeaux',
-                    prefixIcon: Icon(Icons.wine_bar),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n?.cellarNameLabel ?? 'Nom de la cave *',
+                    hintText: l10n?.cellarNameHint ?? 'ex: Cave Principale, Cave de Bordeaux',
+                    prefixIcon: const Icon(Icons.wine_bar),
+                    border: const OutlineInputBorder(),
                   ),
-                  validator: (val) => val == null || val.trim().isEmpty ? 'Veuillez saisir un nom' : null,
+                  validator: (val) => val == null || val.trim().isEmpty ? (l10n?.cellarNameRequired ?? 'Veuillez saisir un nom') : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _nicknameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Surnom / Alias (optionnel)',
-                    hintText: 'ex: Maison, Campagne, Cellier',
-                    prefixIcon: Icon(Icons.label_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n?.cellarNicknameLabel ?? 'Surnom / Alias (optionnel)',
+                    hintText: l10n?.cellarNicknameHint ?? 'ex: Maison, Campagne, Cellier',
+                    prefixIcon: const Icon(Icons.label_outline),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _locationController,
-                  decoration: const InputDecoration(
-                    labelText: 'Ville ou Emplacement',
-                    hintText: 'ex: Paris 15e, Beaune, Sous-sol',
-                    prefixIcon: Icon(Icons.location_city_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n?.cellarLocationLabel ?? 'Ville ou Emplacement',
+                    hintText: l10n?.cellarLocationHint ?? 'ex: Paris 15e, Beaune, Sous-sol',
+                    prefixIcon: const Icon(Icons.location_city_outlined),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _descriptionController,
                   maxLines: 2,
-                  decoration: const InputDecoration(
-                    labelText: 'Description / Remarques',
-                    hintText: 'ex: Température constante 12°C, hygrométrie 70%',
-                    prefixIcon: Icon(Icons.notes_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n?.cellarDescriptionLabel ?? 'Description / Remarques',
+                    hintText: l10n?.cellarDescriptionHint ?? 'ex: Température constante 12°C, hygrométrie 70%',
+                    prefixIcon: const Icon(Icons.notes_outlined),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
 
@@ -261,7 +267,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
                     const Icon(Icons.sensors, color: Color(0xFF8B1E3F), size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'Détection & Transition Automatique',
+                      l10n?.cellarAutoDetectionHeader ?? 'Détection & Transition Automatique',
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF8B1E3F),
@@ -271,7 +277,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Associez votre réseau Wi-Fi ou vos coordonnées GPS pour que l\'application bascule automatiquement sur cette cave dès que vous y êtes.',
+                  l10n?.cellarAutoDetectionDesc ?? 'Associez votre réseau Wi-Fi ou vos coordonnées GPS pour que l\'application bascule automatiquement sur cette cave dès que vous y êtes.',
                   style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 14),
@@ -280,15 +286,15 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
                 TextFormField(
                   controller: _wifiController,
                   decoration: InputDecoration(
-                    labelText: 'Réseau Wi-Fi (SSID)',
-                    hintText: 'ex: Livebox-Cave, Freebox_Maison',
+                    labelText: l10n?.cellarWifiLabel ?? 'Réseau Wi-Fi (SSID)',
+                    hintText: l10n?.cellarWifiHint ?? 'ex: Livebox-Cave, Freebox_Maison',
                     prefixIcon: const Icon(Icons.wifi),
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: _isDetectingWifi
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.my_location, color: Color(0xFF8B1E3F)),
-                      tooltip: 'Capturer le Wi-Fi actuel',
+                      tooltip: l10n?.cellarCaptureCurrentWifiTooltip ?? 'Capturer le Wi-Fi actuel',
                       onPressed: _isDetectingWifi ? null : _captureCurrentWifi,
                     ),
                   ),
@@ -302,11 +308,11 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
                       child: TextFormField(
                         controller: _latController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                        decoration: const InputDecoration(
-                          labelText: 'Latitude',
+                        decoration: InputDecoration(
+                          labelText: l10n?.cellarLatitudeLabel ?? 'Latitude',
                           hintText: '48.8566',
-                          prefixIcon: Icon(Icons.pin_drop_outlined, size: 20),
-                          border: OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.pin_drop_outlined, size: 20),
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                     ),
@@ -315,11 +321,11 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
                       child: TextFormField(
                         controller: _lonController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                        decoration: const InputDecoration(
-                          labelText: 'Longitude',
+                        decoration: InputDecoration(
+                          labelText: l10n?.cellarLongitudeLabel ?? 'Longitude',
                           hintText: '2.3522',
-                          prefixIcon: Icon(Icons.pin_drop_outlined, size: 20),
-                          border: OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.pin_drop_outlined, size: 20),
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                     ),
@@ -333,7 +339,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
                     icon: _isLocatingGps
                         ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.gps_fixed, size: 16),
-                    label: const Text('Définir avec ma position GPS actuelle'),
+                    label: Text(l10n?.cellarUseCurrentGps ?? 'Définir avec ma position GPS actuelle'),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -341,17 +347,17 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
                 // Detection Radius
                 DropdownButtonFormField<int>(
                   initialValue: _radiusMeters,
-                  decoration: const InputDecoration(
-                    labelText: 'Rayon de détection GPS',
-                    prefixIcon: Icon(Icons.radar),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n?.cellarRadiusLabel ?? 'Rayon de détection GPS',
+                    prefixIcon: const Icon(Icons.radar),
+                    border: const OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 100, child: Text('100 mètres (très précis)')),
-                    DropdownMenuItem(value: 300, child: Text('300 mètres (recommandé)')),
-                    DropdownMenuItem(value: 500, child: Text('500 mètres')),
-                    DropdownMenuItem(value: 1000, child: Text('1 kilomètre')),
-                    DropdownMenuItem(value: 3000, child: Text('3 kilomètres')),
+                  items: [
+                    DropdownMenuItem(value: 100, child: Text(l10n?.cellarRadiusPrecise ?? '100 mètres (très précis)')),
+                    DropdownMenuItem(value: 300, child: Text(l10n?.cellarRadiusRecommended ?? '300 mètres (recommandé)')),
+                    DropdownMenuItem(value: 500, child: Text(l10n?.cellarRadius500m ?? '500 mètres')),
+                    DropdownMenuItem(value: 1000, child: Text(l10n?.cellarRadius1km ?? '1 kilomètre')),
+                    DropdownMenuItem(value: 3000, child: Text(l10n?.cellarRadius3km ?? '3 kilomètres')),
                   ],
                   onChanged: (val) {
                     if (val != null) setState(() => _radiusMeters = val);
@@ -365,7 +371,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Annuler'),
+          child: Text(l10n?.cancel ?? 'Annuler'),
         ),
         FilledButton(
           onPressed: _isSaving ? null : _save,
@@ -375,7 +381,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
           ),
           child: _isSaving
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Enregistrer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              : Text(l10n?.save ?? 'Enregistrer', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );

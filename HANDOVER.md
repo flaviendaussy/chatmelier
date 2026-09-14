@@ -15,11 +15,24 @@ Trois secrets sont dans l'historique git **public** (`github.com/flaviendaussy/c
 visibilité PUBLIC, `origin/master` poussé). Les retirer du code ne les retire pas de
 l'historique : **seule la rotation les neutralise.**
 
-| Secret | Depuis | Commits | Action |
+| Secret | Depuis | Commits | État |
 |---|---|---|---|
-| **JWT `service_role` Supabase** | **2026-08-30** (15 jours) | `54a3707`, `976f320` | **Faire tourner la clé** dans le dashboard Supabase, puis auditer les journaux d'accès sur la fenêtre |
-| **Clé API Gemini** (celle de `build_bundle.sh`) | plus ancien | `df650a5`, `5697356`, `61776d5` | **Révoquer** dans Google AI Studio et regénérer |
-| Mot de passe keystore (`storePassword`) | — | `a9febdb` | Changer le mot de passe du keystore |
+| **JWT `service_role` Supabase** | 2026-08-30 → 2026-09-14 (15 j) | `54a3707`, `976f320` | ✅ **NEUTRALISÉ** le 2026-09-14 — clés legacy désactivées |
+| **Clé API Gemini** (celle de `build_bundle.sh`) | plus ancien | `df650a5`, `5697356`, `61776d5` | ⏳ **à révoquer** dans Google AI Studio |
+| Mot de passe keystore (`storePassword`) | — | `a9febdb` | ⏳ à changer (faible urgence : le `.jks` n'a jamais été committé) |
+
+**Neutralisation du `service_role` — ce qui a été fait et vérifié.**
+Les clés legacy JWT (`anon` + `service_role`) ont été désactivées depuis
+*Settings → API Keys → Disable legacy API keys*. Trois vérifications préalables :
+
+- **Aucun client publié n'utilisait la legacy.** Les cinq artefacts v1.2.1+52 → v1.3.4+67 et le
+  bundle web déployé n'embarquent que `sb_publishable_` (0 occurrence de JWT legacy).
+- **Les fonctions edge ont survécu.** Six des sept construisent leur client Supabase à partir des
+  variables injectées `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY`. Test avant/après sur
+  `chat` : réponse identique (`{"error":"Unauthorized"}`, HTTP 401 — émise par `chat/index.ts:24`,
+  donc après un `createClient` et un `auth.getUser()` réussis). Supabase remappe bien les
+  variables injectées vers le nouveau système de clés.
+- **Le token fuité est mort.** `/auth/v1/admin/users` → HTTP 401, `/rest/v1/profiles` → HTTP 401.
 
 Portée du `service_role` : contourne **toutes** les règles RLS sur **toutes** les tables, plus
 l'API d'administration des comptes (adresses e-mail de tous les utilisateurs, suppression,
@@ -94,8 +107,9 @@ Séquence : **S0** sécurité → **S1** élagage → **S2** données du goût �
 | Neutralisation des secrets dans le dépôt | ✅ fait | `18f111e` |
 | Retrait du court-circuit d'auth `/admin` | ✅ fait | `6446350` |
 | Rôle admin vérifié côté serveur | ✅ code fait | `6446350` |
+| Neutralisation du `service_role` fuité | ✅ fait le 2026-09-14 | clés legacy désactivées + vérifié 401 |
 | **Application de la migration 029** | ⏳ **à faire** | `supabase/migrations/029_…sql` |
-| **Rotation des trois secrets** | 🔴 **à faire — Flavien** | consoles Supabase / Google |
+| **Révocation de la clé Gemini** | ⏳ **à faire — Flavien** | Google AI Studio + `deploy_functions.sh` |
 
 **Migration 029 — à appliquer.** Tant qu'elle ne l'est pas, `isAdminProvider` renvoie `false`
 pour tout le monde (comportement voulu : fail-closed). Après application, s'accorder le rôle
@@ -138,3 +152,4 @@ Le détail de chaque étape est dans le plan.
 | 2026-09-14 | Claude | Audit complet (4 documents) et plan V2 « Au comptoir » | — |
 | 2026-09-14 | Claude | Checkpoint du travail Antigravity, neutralisation des secrets, purge de 104 Mo d'assets morts | `18f111e` + tag `v1.3.4+67` |
 | 2026-09-14 | Claude | S0 : retrait du contournement d'auth `/admin`, rôle admin vérifié côté serveur, migration 029 | `6446350` |
+| 2026-09-14 | Flavien | Désactivation des clés legacy Supabase — token `service_role` fuité neutralisé (vérifié 401) | — |

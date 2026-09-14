@@ -86,12 +86,23 @@ Séquence : **S0** sécurité → **S1** élagage → **S2** données du goût �
 
 ---
 
-## Suite prévue
+## S0 — état
 
-**S0 (reste à faire)** — rotation des clés *(Flavien)* ; suppression des 43 Mo de PNG morts et
-des variantes non `_square` des loaders (10 Mo) ; retrait des routes `/admin` et du
-court-circuit `router.dart:79` ; remplacement de `isAdmin` (aujourd'hui « l'e-mail contient
-*flavien* », `profile_screen.dart:1420,1535`) par un rôle vérifié côté serveur.
+| Item | État | Où |
+|---|---|---|
+| Purge des assets morts (−104 Mo) | ✅ fait | `18f111e` |
+| Neutralisation des secrets dans le dépôt | ✅ fait | `18f111e` |
+| Retrait du court-circuit d'auth `/admin` | ✅ fait | `6446350` |
+| Rôle admin vérifié côté serveur | ✅ code fait | `6446350` |
+| **Application de la migration 029** | ⏳ **à faire** | `supabase/migrations/029_…sql` |
+| **Rotation des trois secrets** | 🔴 **à faire — Flavien** | consoles Supabase / Google |
+
+**Migration 029 — à appliquer.** Tant qu'elle ne l'est pas, `isAdminProvider` renvoie `false`
+pour tout le monde (comportement voulu : fail-closed). Après application, s'accorder le rôle
+depuis le SQL Editor Supabase — la requête est en commentaire à la fin du fichier de migration.
+Aucune adresse e-mail n'est en dur : le dépôt est public.
+
+## Suite prévue
 
 **S1** — fork `chatmelier-cocktails`, parcage badges/scratchcard, suppression voice et changelog,
 correction du bug de pub récompensée (`review_screen.dart:110-138`).
@@ -114,6 +125,8 @@ Le détail de chaque étape est dans le plan.
 
 ## Journal
 
-| Date | Qui | Quoi |
-|---|---|---|
-| 2026-09-14 | Claude | Audit complet, plan V2, commit de handover et neutralisation des secrets dans le dépôt |
+| Date | Qui | Quoi | Commit |
+|---|---|---|---|
+| 2026-09-14 | Claude | Audit complet (4 documents) et plan V2 « Au comptoir » | — |
+| 2026-09-14 | Claude | Checkpoint du travail Antigravity, neutralisation des secrets, purge de 104 Mo d'assets morts | `18f111e` + tag `v1.3.4+67` |
+| 2026-09-14 | Claude | S0 : retrait du contournement d'auth `/admin`, rôle admin vérifié côté serveur, migration 029 | `6446350` |

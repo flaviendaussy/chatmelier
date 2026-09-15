@@ -18,7 +18,7 @@ l'historique : **seule la rotation les neutralise.**
 | Secret | Depuis | Commits | État |
 |---|---|---|---|
 | **JWT `service_role` Supabase** | 2026-08-30 → 2026-09-14 (15 j) | `54a3707`, `976f320` | ✅ **NEUTRALISÉ** le 2026-09-14 — clés legacy désactivées |
-| **Clé API Gemini** (celle de `build_bundle.sh`) | plus ancien | `df650a5`, `5697356`, `61776d5` | ⏳ **à révoquer** dans Google AI Studio |
+| **Clé API Gemini** (celle de `build_bundle.sh`) | plus ancien | `df650a5`, `5697356`, `61776d5` | ✅ **remplacée** le 2026-09-15 — secret Supabase mis à jour, fonction edge vérifiée HTTP 200 |
 | Mot de passe keystore (`storePassword`) | — | `a9febdb` | ⏳ à changer (faible urgence : le `.jks` n'a jamais été committé) |
 
 **Neutralisation du `service_role` — ce qui a été fait et vérifié.**
@@ -109,12 +109,42 @@ Séquence : **S0** sécurité → **S1** élagage → **S2** données du goût �
 | Rôle admin vérifié côté serveur | ✅ code fait | `6446350` |
 | Neutralisation du `service_role` fuité | ✅ fait le 2026-09-14 | clés legacy désactivées + vérifié 401 |
 | **Application de la migration 029** | ⏳ **à faire** | `supabase/migrations/029_…sql` |
-| **Révocation de la clé Gemini** | ⏳ **à faire — Flavien** | Google AI Studio + `deploy_functions.sh` |
+| Rotation de la clé Gemini | ✅ fait le 2026-09-15 | secret Supabase + fonction edge vérifiée |
+| **Prochain build mobile sans clé Gemini** | ⏳ à faire | `build_bundle.sh` ne l'exporte plus par défaut |
 
 **Migration 029 — à appliquer.** Tant qu'elle ne l'est pas, `isAdminProvider` renvoie `false`
 pour tout le monde (comportement voulu : fail-closed). Après application, s'accorder le rôle
 depuis le SQL Editor Supabase — la requête est en commentaire à la fin du fichier de migration.
 Aucune adresse e-mail n'est en dur : le dépôt est public.
+
+## ⚠️ Piège rencontré lors de la rotation Gemini — à ne pas refaire
+
+La première clé de remplacement avait été créée dans un **nouveau projet GCP**. Elle était
+valide, mais `generativelanguage.googleapis.com` la refusait :
+
+```
+HTTP 401 — "Request had invalid authentication credentials. Expected OAuth 2 access token…"
+reason: ACCESS_TOKEN_TYPE_UNSUPPORTED
+```
+
+Résultat : **panne totale du scan de carte**, web et mobile. Le web n'a aucune clé locale et
+dépend entièrement de la fonction edge ; le mobile tentait Gemini en direct avec l'ancienne clé
+révoquée puis se repliait sur la même fonction edge en panne.
+
+**Leçon.** Les clés au format `AQ.…` créées dans un projet GCP neuf ne sont pas acceptées en
+authentification par query param sur cette API. Créer la clé depuis **aistudio.google.com**, dans
+le projet par défaut — on obtient une clé `AIza…` qui fonctionne.
+
+**Test d'isolation à réutiliser**, qui sépare « la clé est mauvaise » de « le secret Supabase
+n'est pas à jour » :
+
+```bash
+read -rsp "Clé : " K && echo && curl -s -o /dev/null -w 'HTTP %{http_code}\n' "https://generativelanguage.googleapis.com/v1beta/models?key=$K" && unset K
+```
+
+**Test de bout en bout de la fonction edge** (image 1×1, coût négligeable, doit renvoyer
+`{"restaurant_name":null,"wines":[]}` en HTTP 200) : voir le corps de la commande dans
+l'historique de session — `POST /functions/v1/scan-menu` avec un JPEG minimal en base64.
 
 ## Dette d'hygiène repérée, non traitée
 
@@ -153,3 +183,4 @@ Le détail de chaque étape est dans le plan.
 | 2026-09-14 | Claude | Checkpoint du travail Antigravity, neutralisation des secrets, purge de 104 Mo d'assets morts | `18f111e` + tag `v1.3.4+67` |
 | 2026-09-14 | Claude | S0 : retrait du contournement d'auth `/admin`, rôle admin vérifié côté serveur, migration 029 | `6446350` |
 | 2026-09-14 | Flavien | Désactivation des clés legacy Supabase — token `service_role` fuité neutralisé (vérifié 401) | — |
+| 2026-09-15 | Flavien + Claude | Rotation de la clé Gemini. Première tentative en panne (clé `AQ.` d'un projet GCP neuf refusée par Google) ; résolue avec une clé `AIza` d'AI Studio. Fonction edge vérifiée HTTP 200 | — |

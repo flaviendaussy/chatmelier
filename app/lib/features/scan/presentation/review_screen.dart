@@ -99,42 +99,43 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
     // 🚀 UX Optimization: Parallelize AI image analysis in background WHILE the ad plays
     // User experiences ~0 seconds perceived waiting time after closing the video!
-    bool rewardEarned = false;
     ScanResult? analysisResult;
     final analysisFuture = _analyzeImage(runPrompts: false).then((res) {
       analysisResult = res;
       return res;
     });
 
-    // Try showing real Google AdMob Rewarded Video Ad first (on Android/iOS)
+    // AdMobService appelle SOIT onRewardEarned, SOIT onAdDismissed — jamais les deux
+    // (admob_service.dart:226-231). La récompense doit donc être traitée dans
+    // onRewardEarned : la version précédente la traitait dans onAdDismissed, si bien
+    // que l'utilisateur qui regardait la vidéo jusqu'au bout n'obtenait jamais les
+    // invites de fin d'analyse — confirmation du millésime, détection d'un carton de
+    // 6 bouteilles, alerte de doublon en cave. Celui qui coupait la vidéo, si.
     final showedAdMob = await AdMobService().showRewardedAd(
-      onRewardEarned: () {
-        rewardEarned = true;
-      },
-      onAdDismissed: () async {
+      onRewardEarned: () async {
         if (!mounted) return;
-        if (rewardEarned) {
-          final res = analysisResult ?? await analysisFuture;
-          if (res != null && mounted) {
-            await _runPostAnalysisPrompts(res);
-          }
-        } else {
-          debugPrint('[ReviewScreen] Rewarded ad dismissed without reward. Discarding analysis.');
-          setState(() {
-            _scanResult = null;
-            _nameCtrl.clear();
-            _producerCtrl.clear();
-            _vintageCtrl.clear();
-            _isAnalyzing = false;
-            _ignoreUndetected = true;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Vidéo interrompue. Regardez la vidéo jusqu\'au bout pour débloquer l\'analyse IA.'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        final res = analysisResult ?? await analysisFuture;
+        if (res != null && mounted) {
+          await _runPostAnalysisPrompts(res);
         }
+      },
+      onAdDismissed: () {
+        if (!mounted) return;
+        debugPrint('[ReviewScreen] Rewarded ad dismissed without reward. Discarding analysis.');
+        setState(() {
+          _scanResult = null;
+          _nameCtrl.clear();
+          _producerCtrl.clear();
+          _vintageCtrl.clear();
+          _isAnalyzing = false;
+          _ignoreUndetected = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vidéo interrompue. Regardez la vidéo jusqu\'au bout pour débloquer l\'analyse IA.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       },
     );
 

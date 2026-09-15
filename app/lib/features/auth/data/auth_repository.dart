@@ -157,6 +157,10 @@ class AuthRepository {
       OAuthProvider.google,
       redirectTo: redirectUrl,
       authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.inAppBrowserView,
+      // Sans ceci, Google réutilise silencieusement le dernier compte connecté sur
+      // l'appareil : quelqu'un qui s'est trompé de compte ne peut plus en changer,
+      // même après une déconnexion ou un redémarrage du téléphone.
+      queryParams: const {'prompt': 'select_account'},
     );
   }
 

@@ -195,6 +195,30 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
     }
   }
 
+  /// Déconnecte et ferme le dialogue, pour l'utilisateur qui s'est connecté avec le
+  /// mauvais compte. Le routeur le ramène alors sur /login, où une nouvelle connexion
+  /// Google proposera explicitement le choix du compte (`prompt=select_account`).
+  Future<void> _switchAccount() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try {
+      await ref.read(authRepositoryProvider).signOut();
+      if (!mounted) return;
+      navigator.pop();
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Déconnecté. Reconnectez-vous avec le compte de votre choix.'),
+        ),
+      );
+    } catch (e) {
+      AppLogger.error('AUTH', 'Error signing out from mandatory username dialog', e);
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('Déconnexion impossible : $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -336,6 +360,21 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                               ),
                               onPressed: (_isChecking || _isSaving) ? null : _submit,
+                            ),
+                            const SizedBox(height: 4),
+
+                            // Porte de sortie. Sans elle, l'utilisateur connecté avec le
+                            // mauvais compte est enfermé : le dialogue n'est pas dismissible,
+                            // le bouton retour est désactivé, et la seule déconnexion de l'app
+                            // se trouve dans l'écran profil — inatteignable d'ici.
+                            TextButton.icon(
+                              onPressed: (_isChecking || _isSaving) ? null : _switchAccount,
+                              icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                              label: const Text('Ce n\'est pas mon compte — en changer'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: isDark ? Colors.white70 : Colors.black54,
+                                minimumSize: const Size.fromHeight(44),
+                              ),
                             ),
                           ]),
                         ),

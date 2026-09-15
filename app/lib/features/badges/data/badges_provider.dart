@@ -5,7 +5,6 @@ import '../domain/badge.dart';
 import 'badge_evaluator.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../journal/presentation/journal_screen.dart';
-import '../../cocktails/data/bar_pantry_service.dart';
 
 import '../../../shared/providers/locale_provider.dart';
 
@@ -18,14 +17,12 @@ final userBadgesProgressProvider = Provider<List<BadgeProgress>>((ref) {
       ? allBottlesAsync.value!
       : currentBottles;
   final tastings = ref.watch(tastingLogProvider).value ?? const <TastingEntry>[];
-  final pantry = ref.watch(barPantryProvider);
   final locale = ref.watch(localeProvider);
   final isLatin = locale?.languageCode == 'la';
 
   return BadgeEvaluator.evaluate(
     bottles: bottles,
     tastings: tastings,
-    pantry: pantry,
     isLatin: isLatin,
   );
 });

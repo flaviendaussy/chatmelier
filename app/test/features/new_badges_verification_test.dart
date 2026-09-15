@@ -8,7 +8,7 @@ import 'package:chatmelier/features/cellar/domain/bottle.dart';
 void main() {
   group('🏅 New Badges & Complete Asset Catalog Verification', () {
     test('100% of badges in BadgeCatalog have an existing WebP asset on disk', () {
-      expect(BadgeCatalog.allBadges.length, greaterThanOrEqualTo(115));
+      expect(BadgeCatalog.allBadges.length, greaterThanOrEqualTo(110));
 
       for (final badge in BadgeCatalog.allBadges) {
         expect(badge.assetImagePath, isNotNull, reason: '${badge.id} has null assetImagePath');

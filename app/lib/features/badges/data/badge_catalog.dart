@@ -564,79 +564,6 @@ class BadgeCatalog {
       requiredCount: 1,
     ),
 
-    // ==========================================
-    // 🍸 MIXOLOGIE & COCKTAILS
-    // ==========================================
-    WineBadge(
-      id: 'cocktail_apprentice',
-      title: 'Apprenti Shaker',
-      titleEn: 'Shaker Apprentice',
-      emoji: '🍸',
-      assetImagePath: 'assets/badges/cocktail_apprentice.webp',
-      category: BadgeCategory.cocktails,
-      tier: BadgeTier.bronze,
-      description: 'Avoir dégusté ou réalisé au moins 1 cocktail dans l\'application.',
-      descriptionEn: 'Prepare your first hand-crafted cocktail.',
-      chatmelierLore:
-          '« La mixologie partage avec la sommellerie la quête de l\'équilibre précis entre acidité, sucres, amertume et dilution pour mettre en valeur les arômes des spiritueux. »',
-      requiredCount: 1,
-    ),
-    WineBadge(
-      id: 'cocktail_master',
-      title: 'Maître Mixologue',
-      titleEn: 'Master Mixologist',
-      emoji: '🍹',
-      assetImagePath: 'assets/badges/cocktail_master.webp',
-      category: BadgeCategory.cocktails,
-      tier: BadgeTier.silver,
-      description: 'Avoir dégusté ou préparé au moins 5 cocktails différents.',
-      descriptionEn: 'Concoct 5 classic cocktails using cellar bar ingredients.',
-      chatmelierLore:
-          '« Negroni, Old Fashioned, Daiquiri, Dry Martini, Manhattan... Vous maîtrisez les proportions classiques qui font la renommée des grands bars du monde entier. »',
-      requiredCount: 5,
-    ),
-    WineBadge(
-      id: 'cocktail_expert',
-      title: 'Grand Alchimiste du Shaker',
-      titleEn: 'Grand Shaker Alchemist',
-      emoji: '🧪',
-      assetImagePath: 'assets/badges/cocktail_expert.webp',
-      category: BadgeCategory.cocktails,
-      tier: BadgeTier.gold,
-      description: 'Avoir dégusté ou préparé au moins 15 cocktails différents.',
-      descriptionEn: 'Concoct 15 different cocktails.',
-      chatmelierLore:
-          '« Quinze recettes maîtrisées ! Des cocktails sours émulsionnés aux créations plus complexes associant bitters et spiritueux vieillis, vous manipulez jigger et cuillère à mélange avec dextérité. »',
-      requiredCount: 15,
-    ),
-    WineBadge(
-      id: 'cocktail_legend',
-      title: 'Légende du Comptoir',
-      titleEn: 'Bar Counter Legend',
-      emoji: '🌟',
-      assetImagePath: 'assets/badges/cocktail_legend.webp',
-      category: BadgeCategory.cocktails,
-      tier: BadgeTier.diamond,
-      description: 'Avoir exploré ou conçu au moins 30 cocktails différents.',
-      descriptionEn: 'Concoct 30 cocktails across multiple mixology styles.',
-      chatmelierLore:
-          '« Trente cocktails variés à votre répertoire ! Vous associez les saveurs avec une créativité remarquable et maîtrisez l\'art des accords et des présentations soignées. »',
-      requiredCount: 30,
-    ),
-    WineBadge(
-      id: 'cocktail_pantry',
-      title: 'Barman Prévoyant',
-      titleEn: 'Far-Sighted Bartender',
-      emoji: '🧊',
-      assetImagePath: 'assets/badges/cocktail_pantry.webp',
-      category: BadgeCategory.cocktails,
-      tier: BadgeTier.silver,
-      description: 'Avoir au moins 5 ingrédients en stock dans la Réserve du Bar (Bar Pantry).',
-      descriptionEn: 'Stock at least 10 ingredients in your bar pantry.',
-      chatmelierLore:
-          '« Bitters réputés, vermouth de qualité, agrumes frais et beaux glaçons : une réserve bien constituée est la clé d\'un accueil réussi pour toutes les occasions. »',
-      requiredCount: 5,
-    ),
 
     // ==========================================
     // 🥃 SPIRITUEUX & ALCOOLS FORTS
@@ -1488,34 +1415,6 @@ class BadgeCatalog {
     // ==========================================
     // 🍸 NOUVEAUX BADGES MIXOLOGIE & SPIRITUEUX
     // ==========================================
-    WineBadge(
-      id: 'cocktail_diy_shaker',
-      title: 'Système D & Shaker Maison',
-      titleEn: 'Home Shaker Ingenuity',
-      emoji: '🫙',
-      assetImagePath: 'assets/badges/cocktail_diy_shaker.webp',
-      category: BadgeCategory.cocktails,
-      tier: BadgeTier.bronze,
-      description: 'Avoir préparé un cocktail avec la méthode shaker maison ou bocal hermétique.',
-      descriptionEn: 'Craft a cocktail without needing fancy bar tools.',
-      chatmelierLore:
-          '« Pas besoin d\'équipement de bar étoilé pour réussir un cocktail harmonieux ! Un bocal de confiture bien fermé fait un shaker d\'exception. L\'ingéniosité au service du goût. »',
-      requiredCount: 1,
-    ),
-    WineBadge(
-      id: 'cocktail_spritz',
-      title: 'L\'Heure de l\'Apéritivo',
-      titleEn: 'Venetian Spritz Hour',
-      emoji: '🍹',
-      assetImagePath: 'assets/badges/cocktail_spritz.webp',
-      category: BadgeCategory.cocktails,
-      tier: BadgeTier.bronze,
-      description: 'Avoir préparé ou dégusté un cocktail de style Spritz, Negroni ou Americano.',
-      descriptionEn: 'Concoct a refreshing Aperol or Campari Spritz with Prosecco.',
-      chatmelierLore:
-          '« Né à Venise au XIXe siècle lorsque les soldats allongeaient le vin blanc d\'eau gazeuse ("spritzen"), le Spritz est devenu le rituel mondial de l\'amitié et du soleil couchant. »',
-      requiredCount: 1,
-    ),
     WineBadge(
       id: 'spirit_tequila_mezcal',
       title: 'L\'Or Sacré de l\'Agave',

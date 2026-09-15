@@ -8,7 +8,6 @@ enum BadgeCategory {
   regions,
   grapes,
   aging,
-  cocktails,
   spirits,
   looser,
   chatmelierSavant,
@@ -61,8 +60,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Cépages';
       case BadgeCategory.aging:
         return 'Garde & Apogée';
-      case BadgeCategory.cocktails:
-        return 'Mixologie';
       case BadgeCategory.spirits:
         return 'Spiritueux';
       case BadgeCategory.looser:
@@ -86,8 +83,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Grape Varieties';
       case BadgeCategory.aging:
         return 'Aging & Peak';
-      case BadgeCategory.cocktails:
-        return 'Mixology';
       case BadgeCategory.spirits:
         return 'Spirits';
       case BadgeCategory.looser:
@@ -111,8 +106,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Uvae Varietates';
       case BadgeCategory.aging:
         return 'Aetas & Fastigium';
-      case BadgeCategory.cocktails:
-        return 'Mixologia';
       case BadgeCategory.spirits:
         return 'Spiritus';
       case BadgeCategory.looser:
@@ -136,8 +129,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Vitigni';
       case BadgeCategory.aging:
         return 'Affinamento & Apice';
-      case BadgeCategory.cocktails:
-        return 'Mixology';
       case BadgeCategory.spirits:
         return 'Distillati';
       case BadgeCategory.looser:
@@ -161,8 +152,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Variedades de Uva';
       case BadgeCategory.aging:
         return 'Crianza & Apogeo';
-      case BadgeCategory.cocktails:
-        return 'Mixología';
       case BadgeCategory.spirits:
         return 'Espirituosos';
       case BadgeCategory.looser:
@@ -186,8 +175,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Varietats de Raïm';
       case BadgeCategory.aging:
         return 'Criança & Apogeu';
-      case BadgeCategory.cocktails:
-        return 'Mixologia';
       case BadgeCategory.spirits:
         return 'Espirituosos';
       case BadgeCategory.looser:
@@ -211,8 +198,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Castas';
       case BadgeCategory.aging:
         return 'Envelhecimento & Apogeu';
-      case BadgeCategory.cocktails:
-        return 'Mixologia';
       case BadgeCategory.spirits:
         return 'Destilados';
       case BadgeCategory.looser:
@@ -236,8 +221,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Druivenrassen';
       case BadgeCategory.aging:
         return 'Rijping & Hoogtepunt';
-      case BadgeCategory.cocktails:
-        return 'Mixologie';
       case BadgeCategory.spirits:
         return 'Gedistilleerd';
       case BadgeCategory.looser:
@@ -261,8 +244,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Rebsorten';
       case BadgeCategory.aging:
         return 'Reifung & Höhepunkt';
-      case BadgeCategory.cocktails:
-        return 'Mixologie';
       case BadgeCategory.spirits:
         return 'Spirituosen';
       case BadgeCategory.looser:
@@ -286,8 +267,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'ブドウ品種';
       case BadgeCategory.aging:
         return '熟成と飲み頃';
-      case BadgeCategory.cocktails:
-        return 'ミクソロジー';
       case BadgeCategory.spirits:
         return 'スピリッツ';
       case BadgeCategory.looser:
@@ -311,8 +290,6 @@ extension BadgeCategoryX on BadgeCategory {
         return '葡萄品种';
       case BadgeCategory.aging:
         return '陈年与巅峰';
-      case BadgeCategory.cocktails:
-        return '调酒艺术';
       case BadgeCategory.spirits:
         return '烈酒';
       case BadgeCategory.looser:
@@ -336,8 +313,6 @@ extension BadgeCategoryX on BadgeCategory {
         return '포도 품종';
       case BadgeCategory.aging:
         return '숙성 & 절정기';
-      case BadgeCategory.cocktails:
-        return '믹솔로지';
       case BadgeCategory.spirits:
         return '증류주';
       case BadgeCategory.looser:
@@ -361,8 +336,6 @@ extension BadgeCategoryX on BadgeCategory {
         return 'Druvsorter';
       case BadgeCategory.aging:
         return 'Lagring & Topp';
-      case BadgeCategory.cocktails:
-        return 'Mixologi';
       case BadgeCategory.spirits:
         return 'Spritdrycker';
       case BadgeCategory.looser:
@@ -386,8 +359,6 @@ extension BadgeCategoryX on BadgeCategory {
         return Icons.grain;
       case BadgeCategory.aging:
         return Icons.hourglass_top;
-      case BadgeCategory.cocktails:
-        return Icons.local_bar;
       case BadgeCategory.spirits:
         return Icons.wine_bar;
       case BadgeCategory.looser:

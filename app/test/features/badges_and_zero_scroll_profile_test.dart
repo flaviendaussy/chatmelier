@@ -11,7 +11,6 @@ import 'package:chatmelier/features/badges/presentation/badges_gallery_sheet.dar
 import 'package:chatmelier/features/cellar/domain/bottle.dart';
 import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/journal/domain/tasting_entry.dart';
-import 'package:chatmelier/features/cocktails/domain/bar_pantry_item.dart';
 import 'package:chatmelier/features/auth/presentation/profile_screen.dart';
 import 'package:chatmelier/shared/providers/auth_provider.dart';
 import 'package:chatmelier/features/auth/data/auth_repository.dart';
@@ -506,42 +505,6 @@ void main() {
       expect(bulles.isUnlocked, isTrue, reason: 'Bulles royales badge should be unlocked (>= 3 sparkling wines)');
     });
 
-    test('Evaluates Cocktails & Pantry Badges', () {
-      final List<TastingEntry> tastings = [
-        TastingEntry(
-          id: 't_cocktail1',
-          wineId: 'w_ck1',
-          wineName: 'Negroni Parfait',
-          wineType: 'Cocktail',
-          consumedAt: DateTime.now(),
-        ),
-        TastingEntry(
-          id: 't_cocktail2',
-          wineId: 'w_ck2',
-          wineName: 'Old Fashioned',
-          wineType: 'Cocktail',
-          consumedAt: DateTime.now(),
-        ),
-      ];
-
-      final pantry = [
-        const BarPantryItem(id: 'ice', name: 'Glaçons', category: PantryCategory.ice, quantity: 2),
-        const BarPantryItem(id: 'lime', name: 'Citron vert', category: PantryCategory.fruits, quantity: 4),
-        const BarPantryItem(id: 'mint', name: 'Menthe', category: PantryCategory.herbs, quantity: 1),
-        const BarPantryItem(id: 'mixer1', name: 'Tonic', category: PantryCategory.mixers, quantity: 1),
-        const BarPantryItem(id: 'syrup1', name: 'Sirop simple', category: PantryCategory.syrups, quantity: 1),
-      ];
-
-      final results = BadgeEvaluator.evaluate(bottles: const [], tastings: tastings, pantry: pantry);
-
-      final apprentice = results.firstWhere((p) => p.badge.id == 'cocktail_apprentice');
-      final master = results.firstWhere((p) => p.badge.id == 'cocktail_master');
-      final pantryBadge = results.firstWhere((p) => p.badge.id == 'cocktail_pantry');
-
-      expect(apprentice.isUnlocked, isTrue);
-      expect(master.currentCount, equals(2)); // 2 unique cocktails out of 5 required
-      expect(pantryBadge.isUnlocked, isTrue); // 5 stocked ingredients >= 5
-    });
   });
 
   group('Badges Gallery & Detail Presentation Widgets', () {

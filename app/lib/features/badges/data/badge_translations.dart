@@ -244,36 +244,6 @@ class BadgeTranslations {
       titleLa: 'Infanticidium Oenologicum 👶',
       descLa: 'Vinum nimis iuvene aperuisti ante maturitatem.',
     ),
-    'cocktail_apprentice': BadgeTranslationEntry(
-      titleEn: 'Shaker Apprentice',
-      descEn: 'Prepare your first hand-crafted cocktail.',
-      titleLa: 'Tiro Mixtor',
-      descLa: 'Primum mixtum poculum diligenter para.',
-    ),
-    'cocktail_master': BadgeTranslationEntry(
-      titleEn: 'Master Mixologist',
-      descEn: 'Concoct 5 classic cocktails using cellar bar ingredients.',
-      titleLa: 'Magister Mixologus',
-      descLa: 'Quinque praeclara pocula arte misce.',
-    ),
-    'cocktail_expert': BadgeTranslationEntry(
-      titleEn: 'Grand Shaker Alchemist',
-      descEn: 'Concoct 15 different cocktails.',
-      titleLa: 'Magnus Poculorum Alchemista',
-      descLa: 'Quindecim mixturas singulares compone.',
-    ),
-    'cocktail_legend': BadgeTranslationEntry(
-      titleEn: 'Bar Counter Legend',
-      descEn: 'Concoct 30 cocktails across multiple mixology styles.',
-      titleLa: 'Tabernae Legenda',
-      descLa: 'Triginta pocula perita manu ministrare.',
-    ),
-    'cocktail_pantry': BadgeTranslationEntry(
-      titleEn: 'Far-Sighted Bartender',
-      descEn: 'Stock at least 10 ingredients in your bar pantry.',
-      titleLa: 'Promptuarii Custos',
-      descLa: 'Decem elementa in promptuario tuo serva.',
-    ),
     'spirit_whisky': BadgeTranslationEntry(
       titleEn: 'Malt Gentleman',
       descEn: 'Taste Scotch single malt, Bourbon, or Rye whisky.',
@@ -591,18 +561,6 @@ class BadgeTranslations {
       descEn: 'Taste lychee-scented, exotic Gewurztraminer.',
       titleLa: 'Gewurztraminer Aromatites',
       descLa: 'Rosas et orientalia aromata in vino inveni.',
-    ),
-    'cocktail_diy_shaker': BadgeTranslationEntry(
-      titleEn: 'Home Shaker Ingenuity',
-      descEn: 'Craft a cocktail without needing fancy bar tools.',
-      titleLa: 'Ingeniosus Shaker Domesticus',
-      descLa: 'Arte domestica optimum poculum excogita.',
-    ),
-    'cocktail_spritz': BadgeTranslationEntry(
-      titleEn: 'Venetian Spritz Hour',
-      descEn: 'Concoct a refreshing Aperol or Campari Spritz with Prosecco.',
-      titleLa: 'Hora Spritz Veneti',
-      descLa: 'Aperol et spumans vinum in glacie misce.',
     ),
     'spirit_tequila_mezcal': BadgeTranslationEntry(
       titleEn: 'Agave Soul',

@@ -1,7 +1,6 @@
 import '../../cellar/domain/bottle.dart';
 import '../../cellar/domain/wine.dart';
 import '../../journal/domain/tasting_entry.dart';
-import '../../cocktails/domain/bar_pantry_item.dart';
 import '../domain/badge.dart';
 import 'badge_catalog.dart';
 
@@ -42,7 +41,6 @@ class BadgeEvaluator {
   static List<BadgeProgress> evaluate({
     required List<Bottle> bottles,
     required List<TastingEntry> tastings,
-    List<BarPantryItem>? pantry,
     bool isLatin = false,
   }) {
     final List<BadgeProgress> results = [];
@@ -951,77 +949,6 @@ class BadgeEvaluator {
           break;
 
         // ==========================================
-        // 🍸 MIXOLOGIE & COCKTAILS
-        // ==========================================
-        case 'cocktail_apprentice':
-          for (final t in tastings) {
-            final wType = (t.wineType ?? '').toLowerCase();
-            final name = (t.wineName ?? '').toLowerCase();
-            final app = (t.appellation ?? '').toLowerCase();
-            if (wType == 'cocktail' || app == 'cocktail' || name.startsWith('cocktail') || _isKnownCocktail(name)) {
-              count++;
-              contributing.add(_tastingToItem(t));
-            }
-          }
-          break;
-
-        case 'cocktail_master':
-        case 'cocktail_expert':
-        case 'cocktail_legend':
-          final cocktailNames = <String>{};
-          for (final t in tastings) {
-            final wType = (t.wineType ?? '').toLowerCase();
-            final name = (t.wineName ?? '').toLowerCase();
-            final app = (t.appellation ?? '').toLowerCase();
-            if (wType == 'cocktail' || app == 'cocktail' || _isKnownCocktail(name)) {
-              final key = t.wineName?.toLowerCase().trim() ?? t.id;
-              if (!cocktailNames.contains(key)) {
-                cocktailNames.add(key);
-                contributing.add(_tastingToItem(t));
-              }
-            }
-          }
-          count = cocktailNames.length;
-          break;
-
-        case 'cocktail_pantry':
-          if (pantry != null) {
-            final inStock = pantry.where((i) => i.inStock).toList();
-            count = inStock.length;
-            for (final item in inStock) {
-              contributing.add(ContributingItem(
-                id: item.id,
-                name: item.name,
-                type: 'Ingrédient Bar',
-                isTasting: false,
-              ));
-            }
-          }
-          break;
-
-        case 'cocktail_diy_shaker':
-          for (final t in tastings) {
-            final notes = (t.tastingNotes ?? '').toLowerCase();
-            final occ = (t.occasion ?? '').toLowerCase();
-            if (notes.contains('shaker maison') || notes.contains('diy shaker') || notes.contains('bocal') || notes.contains('système d') || occ.contains('diy shaker') || occ.contains('shaker maison')) {
-              count++;
-              contributing.add(_tastingToItem(t));
-            }
-          }
-          break;
-
-        case 'cocktail_spritz':
-          for (final t in tastings) {
-            final name = (t.wineName ?? '').toLowerCase();
-            final notes = (t.tastingNotes ?? '').toLowerCase();
-            if (name.contains('spritz') || name.contains('negroni') || name.contains('americano') || notes.contains('spritz') || notes.contains('negroni')) {
-              count++;
-              contributing.add(_tastingToItem(t));
-            }
-          }
-          break;
-
-        // ==========================================
         // 🥃 SPIRITUEUX & ALCOOLS FORTS
         // ==========================================
         case 'spirit_whisky':
@@ -1724,16 +1651,6 @@ class BadgeEvaluator {
     return results;
   }
 
-  static bool _isKnownCocktail(String name) {
-    const list = [
-      'mojito', 'margarita', 'negroni', 'old fashioned', 'daiquiri', 'martini',
-      'spritz', 'cosmopolitan', 'whiskey sour', 'whisky sour', 'pisco sour',
-      'moscow mule', 'gin tonic', 'gin fizz', 'manhattan', 'bloody mary',
-      'piña colada', 'pina colada', 'cuba libre', 'mai tai', 'caipirinha',
-      'bellini', 'french 75', 'espresso martini', 'sazerac', 'sidecar', 'boulevardier'
-    ];
-    return list.any((c) => name.contains(c));
-  }
 
   static bool _isWine(String type, String name, [String classification = '']) {
     final t = type.toLowerCase().trim();

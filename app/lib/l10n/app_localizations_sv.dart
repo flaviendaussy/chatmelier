@@ -472,9 +472,6 @@ class AppLocalizationsSv extends AppLocalizations {
   String get profileScratchcard => 'Världens Terroir-skrapkarta';
 
   @override
-  String get navBar => 'Bar';
-
-  @override
   String get navProfile => 'Min profil';
 
   @override
@@ -568,21 +565,6 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => 'Galleri';
-
-  @override
-  String get cocktailsTitle => 'Bar & Cocktails';
-
-  @override
-  String get cocktailsReadyToShake => 'Redo att skakas';
-
-  @override
-  String get cocktailsMissingOne => '1 saknas';
-
-  @override
-  String get cocktailsManagePantry => 'Hantera Barskafferi';
-
-  @override
-  String get cocktailsResetPantry => 'Återställ Barskafferi';
 
   @override
   String get save => 'Spara';

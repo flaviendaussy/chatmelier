@@ -459,9 +459,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get profileScratchcard => '세계 테루아 스크래치 맵';
 
   @override
-  String get navBar => '바';
-
-  @override
   String get navProfile => '프로필';
 
   @override
@@ -555,21 +552,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => '갤러리';
-
-  @override
-  String get cocktailsTitle => '바 & 칵테일';
-
-  @override
-  String get cocktailsReadyToShake => '지금 셰이킹 가능';
-
-  @override
-  String get cocktailsMissingOne => '재료 1개 부족';
-
-  @override
-  String get cocktailsManagePantry => '바 팬트리 관리';
-
-  @override
-  String get cocktailsResetPantry => '팬트리 재설정';
 
   @override
   String get save => '저장';

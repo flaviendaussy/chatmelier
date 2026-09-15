@@ -474,9 +474,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileScratchcard => 'Carte à Gratter des Terroirs';
 
   @override
-  String get navBar => 'Bar';
-
-  @override
   String get navProfile => 'Profil';
 
   @override
@@ -571,21 +568,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => 'Galerie';
-
-  @override
-  String get cocktailsTitle => 'Bar & Cocktails';
-
-  @override
-  String get cocktailsReadyToShake => 'Prêts à shaker';
-
-  @override
-  String get cocktailsMissingOne => '1 manquant';
-
-  @override
-  String get cocktailsManagePantry => 'Gérer ma Réserve';
-
-  @override
-  String get cocktailsResetPantry => 'Réinitialiser la Réserve';
 
   @override
   String get save => 'Enregistrer';

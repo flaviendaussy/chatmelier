@@ -458,9 +458,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get profileScratchcard => '世界のテロワールスクラッチマップ';
 
   @override
-  String get navBar => 'バー';
-
-  @override
   String get navProfile => 'マイページ';
 
   @override
@@ -553,21 +550,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => 'ギャラリー';
-
-  @override
-  String get cocktailsTitle => 'バー＆カクテル';
-
-  @override
-  String get cocktailsReadyToShake => 'すぐに作れる';
-
-  @override
-  String get cocktailsMissingOne => 'あと1つ不足';
-
-  @override
-  String get cocktailsManagePantry => 'バーの在庫管理';
-
-  @override
-  String get cocktailsResetPantry => '在庫をリセット';
 
   @override
   String get save => '保存';

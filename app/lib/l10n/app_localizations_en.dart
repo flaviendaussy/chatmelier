@@ -472,9 +472,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileScratchcard => 'World Terroirs Scratchcard';
 
   @override
-  String get navBar => 'Bar';
-
-  @override
   String get navProfile => 'Profile';
 
   @override
@@ -568,21 +565,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => 'Gallery';
-
-  @override
-  String get cocktailsTitle => 'Bar & Cocktails';
-
-  @override
-  String get cocktailsReadyToShake => 'Ready to Shake';
-
-  @override
-  String get cocktailsMissingOne => '1 missing';
-
-  @override
-  String get cocktailsManagePantry => 'Manage Bar Pantry';
-
-  @override
-  String get cocktailsResetPantry => 'Reset Bar Pantry';
 
   @override
   String get save => 'Save';

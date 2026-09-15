@@ -469,9 +469,6 @@ class AppLocalizationsLa extends AppLocalizations {
   String get profileScratchcard => 'Tabula Terroir';
 
   @override
-  String get navBar => 'Taberna';
-
-  @override
   String get navProfile => 'Profili';
 
   @override
@@ -565,21 +562,6 @@ class AppLocalizationsLa extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => 'Pinacotheca';
-
-  @override
-  String get cocktailsTitle => 'Taberna & Mixturae';
-
-  @override
-  String get cocktailsReadyToShake => 'Paratus ad Agitandum';
-
-  @override
-  String get cocktailsMissingOne => '1 deest';
-
-  @override
-  String get cocktailsManagePantry => 'Cura Promptuarium';
-
-  @override
-  String get cocktailsResetPantry => 'Restitue Promptuarium';
 
   @override
   String get save => 'Servare';

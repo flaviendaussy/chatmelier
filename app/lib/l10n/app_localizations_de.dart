@@ -476,9 +476,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileScratchcard => 'Welt-Terroir-Rubbelkarte';
 
   @override
-  String get navBar => 'Bar';
-
-  @override
   String get navProfile => 'Profil';
 
   @override
@@ -573,21 +570,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => 'Medaillen-Galerie';
-
-  @override
-  String get cocktailsTitle => 'Bar & Cocktails';
-
-  @override
-  String get cocktailsReadyToShake => 'Bereit zum Shaken';
-
-  @override
-  String get cocktailsMissingOne => '1 fehlt';
-
-  @override
-  String get cocktailsManagePantry => 'Vorrat verwalten';
-
-  @override
-  String get cocktailsResetPantry => 'Vorrat zurücksetzen';
 
   @override
   String get save => 'Speichern';

@@ -456,9 +456,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileScratchcard => '世界风土刮刮乐地图';
 
   @override
-  String get navBar => '酒吧';
-
-  @override
   String get navProfile => '个人';
 
   @override
@@ -551,21 +548,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => '勋章馆';
-
-  @override
-  String get cocktailsTitle => '酒吧与鸡尾酒';
-
-  @override
-  String get cocktailsReadyToShake => '立即调制';
-
-  @override
-  String get cocktailsMissingOne => '仅缺1种原料';
-
-  @override
-  String get cocktailsManagePantry => '管理吧台库存';
-
-  @override
-  String get cocktailsResetPantry => '重置吧台库存';
 
   @override
   String get save => '保存';

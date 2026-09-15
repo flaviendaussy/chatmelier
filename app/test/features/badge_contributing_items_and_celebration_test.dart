@@ -45,7 +45,7 @@ void main() {
       expect(item.displaySubtitle, contains('2021'));
     });
 
-    test('Populates contributingItems for tastings (Flight tasting & Cocktails)', () {
+    test('Populates contributingItems for tastings (Flight tasting)', () {
       final tasting = TastingEntry(
         id: 't_flight_1',
         wineId: 'w_flight_1',

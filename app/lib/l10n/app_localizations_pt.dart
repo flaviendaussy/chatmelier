@@ -475,9 +475,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get profileScratchcard => 'Mapa para Raspar dos Terroirs';
 
   @override
-  String get navBar => 'Bar';
-
-  @override
   String get navProfile => 'Perfil';
 
   @override
@@ -571,21 +568,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => 'Galeria';
-
-  @override
-  String get cocktailsTitle => 'Bar e Cocktails';
-
-  @override
-  String get cocktailsReadyToShake => 'Prontos para agitar';
-
-  @override
-  String get cocktailsMissingOne => 'Falta 1';
-
-  @override
-  String get cocktailsManagePantry => 'Gerir Reserva';
-
-  @override
-  String get cocktailsResetPantry => 'Repor Reserva';
 
   @override
   String get save => 'Guardar';

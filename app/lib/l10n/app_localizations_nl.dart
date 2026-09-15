@@ -472,9 +472,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get profileScratchcard => 'Terroir Kraskaart van de Wereld';
 
   @override
-  String get navBar => 'Bar';
-
-  @override
   String get navProfile => 'Profiel';
 
   @override
@@ -569,21 +566,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => 'Galerij';
-
-  @override
-  String get cocktailsTitle => 'Bar & Cocktails';
-
-  @override
-  String get cocktailsReadyToShake => 'Klaar om te shaken';
-
-  @override
-  String get cocktailsMissingOne => '1 ontbrekend';
-
-  @override
-  String get cocktailsManagePantry => 'Voorraad beheren';
-
-  @override
-  String get cocktailsResetPantry => 'Voorraad resetten';
 
   @override
   String get save => 'Opslaan';

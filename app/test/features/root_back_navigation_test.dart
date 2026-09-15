@@ -8,10 +8,10 @@ import 'package:chatmelier/config/navigator_keys.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Back navigation: /bar -> Cave (/) -> System Exit', (tester) async {
+  testWidgets('Back navigation: /chat -> Cave (/) -> System Exit', (tester) async {
     final testRouter = GoRouter(
       navigatorKey: rootNavigatorKey,
-      initialLocation: '/bar',
+      initialLocation: '/chat',
       routes: [
         ShellRoute(
           navigatorKey: shellNavigatorKey,
@@ -26,9 +26,9 @@ void main() {
               ),
             ),
             GoRoute(
-              path: '/bar',
+              path: '/chat',
               pageBuilder: (context, state) => const NoTransitionPage(
-                child: Scaffold(body: Text('Screen: Bar')),
+                child: Scaffold(body: Text('Screen: Chat')),
               ),
             ),
             GoRoute(
@@ -52,19 +52,19 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Initially on /bar
-    expect(find.text('Screen: Bar'), findsOneWidget);
+    expect(find.text('Screen: Chat'), findsOneWidget);
     expect(find.text('Screen: Cave'), findsNothing);
 
     // 2. Press back button: Non-cellar -> Cave
-    final backFromBarHandled = await tester.binding.handlePopRoute();
+    final backFromChatHandled = await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
 
     // Handled by PopScope
-    expect(backFromBarHandled, isTrue);
+    expect(backFromChatHandled, isTrue);
 
     // Navigated to Cave (accueil)
     expect(find.text('Screen: Cave'), findsOneWidget);
-    expect(find.text('Screen: Bar'), findsNothing);
+    expect(find.text('Screen: Chat'), findsNothing);
     expect(testRouter.state.matchedLocation, equals('/'));
 
     // 3. Press back button again: Cave -> System Exit
@@ -131,7 +131,7 @@ void main() {
   testWidgets('Bottom sheet opened on a tab is popped before navigating to Cave', (tester) async {
     final testRouter = GoRouter(
       navigatorKey: rootNavigatorKey,
-      initialLocation: '/bar',
+      initialLocation: '/chat',
       routes: [
         ShellRoute(
           navigatorKey: shellNavigatorKey,
@@ -146,7 +146,7 @@ void main() {
               ),
             ),
             GoRoute(
-              path: '/bar',
+              path: '/chat',
               pageBuilder: (context, state) => NoTransitionPage(
                 child: Scaffold(
                   body: Builder(
@@ -189,7 +189,7 @@ void main() {
     expect(back1Handled, isTrue);
     expect(find.text('Bar Bottom Sheet Content'), findsNothing);
     expect(find.text('Open Sheet'), findsOneWidget);
-    expect(testRouter.state.matchedLocation, equals('/bar'));
+    expect(testRouter.state.matchedLocation, equals('/chat'));
 
     // Back press 2: Bar -> Cave
     final back2Handled = await tester.binding.handlePopRoute();

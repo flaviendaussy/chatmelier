@@ -18,22 +18,19 @@ class AdaptiveAppShell extends ConsumerWidget {
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/bar') || location.startsWith('/cocktails')) {
-      return 1;
-    }
     if (location.startsWith('/chat')) {
-      return 2;
+      return 1;
     }
     if (location.startsWith('/journal') ||
         location.startsWith('/history') ||
         location.startsWith('/historique')) {
-      return 3;
+      return 2;
     }
     if (location.startsWith('/stats')) {
-      return 4;
+      return 3;
     }
     if (location.startsWith('/profile')) {
-      return 5;
+      return 4;
     }
     return 0;
   }
@@ -52,18 +49,15 @@ class AdaptiveAppShell extends ConsumerWidget {
         context.go('/');
         break;
       case 1:
-        context.go('/bar');
-        break;
-      case 2:
         context.go('/chat');
         break;
-      case 3:
+      case 2:
         context.go('/history');
         break;
-      case 4:
+      case 3:
         context.go('/stats');
         break;
-      case 5:
+      case 4:
         context.go('/profile');
         break;
     }
@@ -89,10 +83,10 @@ class AdaptiveAppShell extends ConsumerWidget {
       );
     } else {
       shell = _MobileAppShell(
-        currentIndex: currentIndex >= 4 ? 4 : currentIndex,
+        currentIndex: currentIndex >= 3 ? 3 : currentIndex,
         onNavigate: (i) {
-          if (i == 4) {
-            _onNavigate(context, 5);
+          if (i == 3) {
+            _onNavigate(context, 4);
           } else {
             _onNavigate(context, i);
           }
@@ -147,11 +141,6 @@ class _MobileAppShell extends ConsumerWidget {
         icon: Icons.wine_bar_outlined,
         activeIcon: Icons.wine_bar,
         label: l10n?.navCellar ?? 'Cave'
-      ),
-      (
-        icon: Icons.local_bar_outlined,
-        activeIcon: Icons.local_bar,
-        label: l10n?.navBar ?? 'Bar',
       ),
       (
         icon: Icons.auto_awesome_outlined,
@@ -434,11 +423,6 @@ class _TabletAppShell extends ConsumerWidget {
                 label: Text(l10n?.navCellar ?? (isFr ? 'Cave' : 'Cellar')),
               ),
               NavigationRailDestination(
-                icon: const Icon(Icons.local_bar_outlined),
-                selectedIcon: const Icon(Icons.local_bar, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navBar ?? (isFr ? 'Bar' : 'Bar')),
-              ),
-              NavigationRailDestination(
                 icon: const Icon(Icons.auto_awesome_outlined),
                 selectedIcon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
                 label: Text(l10n?.navChat ?? (isFr ? 'Chat' : 'Chat')),
@@ -630,45 +614,36 @@ class _DesktopAppShell extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       _SidebarNavItem(
-                        icon: Icons.local_bar_outlined,
-                        activeIcon: Icons.local_bar,
-                        label: l10n?.navBar ?? (isFr ? 'Bar' : 'Bar'),
+                        icon: Icons.auto_awesome_outlined,
+                        activeIcon: Icons.auto_awesome,
+                        label: l10n?.navChat ?? (isFr ? 'Chat' : 'Chat'),
                         isSelected: currentIndex == 1,
                         activeColor: const Color(0xFFD4AF37),
                         onTap: () => onNavigate(1),
                       ),
                       const SizedBox(height: 4),
                       _SidebarNavItem(
-                        icon: Icons.auto_awesome_outlined,
-                        activeIcon: Icons.auto_awesome,
-                        label: l10n?.navChat ?? (isFr ? 'Chat' : 'Chat'),
-                        isSelected: currentIndex == 2,
-                        activeColor: const Color(0xFFD4AF37),
-                        onTap: () => onNavigate(2),
-                      ),
-                      const SizedBox(height: 4),
-                      _SidebarNavItem(
                         icon: Icons.restaurant_menu_outlined,
                         activeIcon: Icons.restaurant_menu,
                         label: l10n?.navJournal ?? (isFr ? 'Dégust.' : 'Tasting'),
-                        isSelected: currentIndex == 3,
-                        onTap: () => onNavigate(3),
+                        isSelected: currentIndex == 2,
+                        onTap: () => onNavigate(2),
                       ),
                       const SizedBox(height: 4),
                       _SidebarNavItem(
                         icon: Icons.insights_outlined,
                         activeIcon: Icons.insights,
                         label: l10n?.navStats ?? (isFr ? 'Stats' : 'Stats'),
-                        isSelected: currentIndex == 4,
-                        onTap: () => onNavigate(4),
+                        isSelected: currentIndex == 3,
+                        onTap: () => onNavigate(3),
                       ),
                       const SizedBox(height: 4),
                       _SidebarNavItem(
                         icon: Icons.person_outline,
                         activeIcon: Icons.person,
                         label: l10n?.navProfile ?? (isFr ? 'Profil' : 'Profile'),
-                        isSelected: currentIndex == 5,
-                        onTap: () => onNavigate(5),
+                        isSelected: currentIndex == 4,
+                        onTap: () => onNavigate(4),
                       ),
                     ],
                   ),

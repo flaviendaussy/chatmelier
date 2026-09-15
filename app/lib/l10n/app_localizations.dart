@@ -996,12 +996,6 @@ abstract class AppLocalizations {
   /// **'World Terroirs Scratchcard'**
   String get profileScratchcard;
 
-  /// No description provided for @navBar.
-  ///
-  /// In en, this message translates to:
-  /// **'Bar'**
-  String get navBar;
-
   /// No description provided for @navProfile.
   ///
   /// In en, this message translates to:
@@ -1181,36 +1175,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gallery'**
   String get badgesShowcaseGallery;
-
-  /// No description provided for @cocktailsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Bar & Cocktails'**
-  String get cocktailsTitle;
-
-  /// No description provided for @cocktailsReadyToShake.
-  ///
-  /// In en, this message translates to:
-  /// **'Ready to Shake'**
-  String get cocktailsReadyToShake;
-
-  /// No description provided for @cocktailsMissingOne.
-  ///
-  /// In en, this message translates to:
-  /// **'1 missing'**
-  String get cocktailsMissingOne;
-
-  /// No description provided for @cocktailsManagePantry.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage Bar Pantry'**
-  String get cocktailsManagePantry;
-
-  /// No description provided for @cocktailsResetPantry.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset Bar Pantry'**
-  String get cocktailsResetPantry;
 
   /// No description provided for @save.
   ///

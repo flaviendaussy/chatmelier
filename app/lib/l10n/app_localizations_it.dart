@@ -475,9 +475,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get profileScratchcard => 'Mappa a Gratta e Vinci dei Terroir';
 
   @override
-  String get navBar => 'Bar';
-
-  @override
   String get navProfile => 'Profilo';
 
   @override
@@ -571,21 +568,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get badgesShowcaseGallery => 'Galleria';
-
-  @override
-  String get cocktailsTitle => 'Bar e Cocktail';
-
-  @override
-  String get cocktailsReadyToShake => 'Pronti da shakerare';
-
-  @override
-  String get cocktailsMissingOne => '1 mancante';
-
-  @override
-  String get cocktailsManagePantry => 'Gestisci Riserva';
-
-  @override
-  String get cocktailsResetPantry => 'Ripristina Riserva';
 
   @override
   String get save => 'Salva';

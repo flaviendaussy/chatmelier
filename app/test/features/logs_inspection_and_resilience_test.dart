@@ -4,8 +4,6 @@ import 'package:chatmelier/features/offline/data/offline_storage_service.dart';
 import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/cellar/domain/bottle.dart';
 import 'package:chatmelier/features/cellar/domain/cellar_group_by.dart';
-import 'package:chatmelier/features/cocktails/domain/cocktail.dart';
-import 'package:chatmelier/features/cocktails/data/custom_cocktail_service.dart';
 import 'package:chatmelier/shared/services/nearby_places_service.dart';
 import 'package:chatmelier/shared/services/cellar_location_service.dart';
 
@@ -129,53 +127,6 @@ void main() {
       expect(sections.length, 1);
       expect(sections.first.key, 'peak'); // Explicit peak window [2024-2028] contains 2026
       expect(sections.first.title, 'À l\'apogée (Idéal à boire)');
-    });
-  });
-
-  group('Cocktails Deduplication & Case-Insensitive Uniqueness', () {
-    test('CustomCocktailService prevents duplicate cocktails by id and name', () async {
-      final prefs = await SharedPreferences.getInstance();
-      final service = CustomCocktailService(prefs);
-
-      const cocktailA = Cocktail(
-        id: 'custom_negroni',
-        name: 'Negroni Parfait',
-        baseSpirit: 'Gin',
-        category: 'Classique',
-        glass: 'Old Fashioned',
-        method: 'Mélangé au verre',
-        garnish: 'Zeste d\'orange',
-        description: 'Un Negroni classique',
-        ingredients: [
-          CocktailIngredient(name: 'Gin', amount: 30, unit: 'ml', isSpirit: true),
-        ],
-        instructions: ['Mélanger avec des glaçons'],
-      );
-
-      await service.saveCocktail(cocktailA);
-      expect(service.getCustomCocktails().length, 1);
-
-      // Re-saving with matching lowercase name updates instead of duplicating
-      const cocktailB = Cocktail(
-        id: 'custom_diff_id',
-        name: 'negroni parfait',
-        baseSpirit: 'Gin',
-        category: 'Création - Negroni Revisité',
-        glass: 'Old Fashioned',
-        method: 'Mélangé au verre',
-        garnish: 'Zeste d\'orange',
-        description: 'Variante avec un trait de bitter',
-        ingredients: [
-          CocktailIngredient(name: 'Gin', amount: 30, unit: 'ml', isSpirit: true),
-        ],
-        instructions: ['Mélanger avec des glaçons'],
-      );
-
-      await service.saveCocktail(cocktailB);
-      final list = service.getCustomCocktails();
-      expect(list.length, 1);
-      expect(list.first.description, 'Variante avec un trait de bitter');
-      expect(list.first.category, 'Création - Negroni Revisité');
     });
   });
 

@@ -60,7 +60,6 @@ void main() {
       'Cabernet',
       'Pinot',
       'Chat',
-      'Bar & Cocktails',
       'Email',
       'Password',
       '🔑 Password',

@@ -21,7 +21,6 @@ import '../features/journal/presentation/journal_screen.dart';
 import '../features/stats/presentation/stats_screen.dart';
 import '../features/auth/presentation/ai_cost_estimator_screen.dart';
 import '../features/friends/presentation/friends_screen.dart';
-import '../features/cocktails/presentation/bar_cocktails_hub_screen.dart';
 import '../features/menu_scan/domain/menu_wine.dart';
 import '../features/menu_scan/presentation/menu_photo_capture_screen.dart';
 import '../features/menu_scan/presentation/enriched_menu_screen.dart';
@@ -167,18 +166,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: CellarScreen(),
-            ),
-          ),
-          GoRoute(
-            path: '/bar',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: BarCocktailsHubScreen(),
-            ),
-          ),
-          GoRoute(
-            path: '/cocktails',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: BarCocktailsHubScreen(),
             ),
           ),
           GoRoute(

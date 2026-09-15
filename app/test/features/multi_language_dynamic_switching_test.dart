@@ -22,7 +22,6 @@ import 'package:chatmelier/features/cellar/domain/bottle.dart';
 import 'package:chatmelier/features/cellar/domain/cellar_furniture.dart';
 import 'package:chatmelier/features/cellar/domain/cellar_sort_by.dart';
 import 'package:chatmelier/features/cellar/domain/cellar_group_by.dart';
-import 'package:chatmelier/features/cocktails/domain/bar_pantry_item.dart';
 
 class _MockAuthRepo implements AuthRepository {
   @override
@@ -170,7 +169,6 @@ void main() {
             builder: (context, state, child) => AdaptiveAppShell(child: child),
             routes: [
               GoRoute(path: '/', builder: (_, __) => const Scaffold(body: Text('Home Content'))),
-              GoRoute(path: '/bar', builder: (_, __) => const Scaffold(body: Text('Bar Content'))),
               GoRoute(path: '/chat', builder: (_, __) => const Scaffold(body: Text('Chat Content'))),
               GoRoute(path: '/history', builder: (_, __) => const Scaffold(body: Text('History Content'))),
               GoRoute(path: '/stats', builder: (_, __) => const Scaffold(body: Text('Stats Content'))),
@@ -201,7 +199,6 @@ void main() {
 
       // In French (default)
       expect(find.text('Cave'), findsWidgets);
-      expect(find.text('Bar'), findsWidgets);
       expect(find.text('Chat'), findsWidgets);
       expect(find.text('Degust.'), findsWidgets);
       expect(find.text('Profil'), findsWidgets);
@@ -227,7 +224,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Celler'), findsWidgets);
-      expect(find.text('Bar'), findsWidgets);
       expect(find.text('Xat'), findsWidgets);
       expect(find.text('Històric'), findsWidgets);
       expect(find.text('Perfil'), findsWidgets);
@@ -258,7 +254,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Cella'), findsWidgets);
-      expect(find.text('Taberna'), findsWidgets);
       expect(find.text('Colloquium'), findsWidgets);
       expect(find.text('Gustatio'), findsWidgets);
       expect(find.text('Profili'), findsWidgets);
@@ -373,7 +368,7 @@ void main() {
       expect(find.text('Ratio'), findsOneWidget);
     });
 
-    test('Cellar and Cocktail domain models localize correctly in English and French', () {
+    test('Cellar domain models localize correctly in English and French', () {
       // CellarSortBy
       expect(CellarSortBy.vintageAsc.localizedLabel(true), 'Millésime (Plus ancien)');
       expect(CellarSortBy.vintageAsc.localizedLabel(false), 'Vintage (Oldest)');
@@ -429,19 +424,6 @@ void main() {
       expect(boughtBottle.getProvenanceDisplay(true), '🏪 Caviste : La Maison du Whisky');
       expect(boughtBottle.getProvenanceDisplay(false), '🏪 Wine merchant: La Maison du Whisky');
 
-      // PantryCategory labels
-      expect(PantryCategory.ice.label(true), 'Glaçons & Glace');
-      expect(PantryCategory.ice.label(false), 'Ice & Cubes');
-      expect(PantryCategory.fruits.label(true), 'Agrumes & Fruits');
-      expect(PantryCategory.fruits.label(false), 'Citrus & Fruits');
-      expect(PantryCategory.herbs.label(true), 'Herbes & Épices');
-      expect(PantryCategory.herbs.label(false), 'Herbs & Spices');
-      expect(PantryCategory.mixers.label(true), 'Mixers & Softs');
-      expect(PantryCategory.mixers.label(false), 'Mixers & Sodas');
-      expect(PantryCategory.syrups.label(true), 'Sirops & Bitters');
-      expect(PantryCategory.syrups.label(false), 'Syrups & Bitters');
-      expect(PantryCategory.custom.label(true), 'Personnalisés');
-      expect(PantryCategory.custom.label(false), 'Custom');
     });
 
     testWidgets('Latin cellar & feedback localizations match expected classical church Latin', (tester) async {

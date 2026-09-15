@@ -217,10 +217,42 @@ mais à revoir.
   les commits de S0 dans 4 000 suppressions.
 - **`supabase/supabase/.temp/`** : artefacts de la CLI Supabase, détachés et ignorés dans `18f111e`.
 
+## S1 — ✅ CLOS le 2026-09-15
+
+| Étape | Commit |
+|---|---|
+| S1.1 badges découplés des cocktails | `a56c823` |
+| S1.2 Chatmelier cesse d'être mixologue | `e8d7f3f` |
+| S1.5 bug de pub récompensée | `bc18cb9` |
+| S1.4 parcage badges/scratchcard, suppression voice et changelog | `6e7ff00` |
+| S1.3 sortie des cocktails | `b45e930` |
+
+**Résultat :** 447 tests verts, 0 erreur d'analyse, assets embarqués **77,3 Mo → 14 Mo**,
+**onglet n° 2 de la navigation libre** pour « Restaurant ».
+
+**Pertes visibles à connaître :**
+- L'écran statistiques **perd sa carte des terroirs** (`_buildScratchMapCard`, ~220 lignes,
+  alimentée par le scratchcard parqué). Récupérable en extrayant le composant vers `cellar/`.
+- Le mode bureau perd l'entrée « Dictée vocale » de sa barre latérale — il y avait **trois**
+  points d'entrée vocaux, pas deux.
+
+**Reste à faire, non bloquant :** les 14 Mo d'assets restants sont les loaders, dont **11,5 Mo
+de `.gif`** qui ne servent que de repli à un WebP animé (`chatmelier_loader.dart`). Supprimables
+après vérification visuelle sur Android, iOS et web.
+
+## Fork cocktails
+
+`flaviendaussy/chatmelier-cocktails` — **privé**, un seul commit, sans historique.
+C'est un **instantané complet et fonctionnel** de l'app, pas une app cocktails épurée : la cave,
+le scan et le sommelier y sont encore. L'épuration se fera si le projet est repris. Identité
+renommée (`com.chatmelier.cocktails`, paquet `chatmelier_cocktails`) pour éviter tout conflit
+d'installation. Détail dans son README.
+
 ## Suite prévue
 
-**S1** — fork `chatmelier-cocktails`, parcage badges/scratchcard, suppression voice et changelog,
-correction du bug de pub récompensée (`review_screen.dart:110-138`).
+**S2** — réparation des données du goût : migration de l'échelle de notation, apprentissage
+symétrique, moyenne exponentielle, confiance par axe, hiérarchie de preuves, défauts du vin,
+suppression du mode « Ensemble », niveau « Gorgée » sur la dégustation externe.
 
 Le détail de chaque étape est dans le plan.
 

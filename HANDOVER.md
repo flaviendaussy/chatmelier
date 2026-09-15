@@ -146,6 +146,58 @@ read -rsp "Clé : " K && echo && curl -s -o /dev/null -w 'HTTP %{http_code}\n' "
 `{"restaurant_name":null,"wines":[]}` en HTTP 200) : voir le corps de la commande dans
 l'historique de session — `POST /functions/v1/scan-menu` avec un JPEG minimal en base64.
 
+## 🔴 DÉRIVE DES MIGRATIONS — découverte le 2026-09-15, non résolue
+
+En cherchant la trace d'un bug utilisateur dans `app_diagnostic_logs`, découverte que **la base
+de production ne contient presque aucune des 29 migrations du dossier.** Vérifié par appel REST :
+les fonctions ci-dessous n'ont **aucun `REVOKE`** dans leur migration, donc `EXECUTE` est accordé
+à `PUBLIC` par défaut — un HTTP 404 signifie qu'elles n'existent pas.
+
+| Objet attendu | Migration | En prod | Conséquence observée |
+|---|---|---|---|
+| `find_cached_wine()` | 005 | ❌ 404 | **Le cache de connaissances ne peut jamais toucher.** Chaque enrichissement relance un appel Gemini *groundé* à 3,25 c€. Le « Zero Re-billing » du README est fictif en production — et c'est le levier de coût n° 1 du plan V2 |
+| `delete_user_account()` | 023 | ❌ 404 | **Suppression de compte RGPD cassée** (`auth_repository.dart:463`), alors qu'un test l'affirme couverte |
+| `accept_invite()` | 004 | ❌ 404 | Acceptation d'invitation de cave cassée |
+| `tasting_log.co_tasters` | 015, 025 | ❌ 400 | Le chat ne peut pas lire l'historique de dégustation (`PostgrestException` récurrente dans les logs) |
+| `vineyard_knowledge_cache` | *aucune* | ❌ 404 | Table utilisée par le code mais **définie dans aucune migration** (`PGRST205` récurrent) |
+| RLS de 026 sur les logs | 026 | ❌ | 20 229 lignes de logs lisibles publiquement — voir ci-dessous |
+
+**Conséquence pour le plan V2 :** S2 prévoit deux nouvelles tables (`taste_evidence`,
+`taste_profile_history`). **Réconcilier l'état des migrations est un préalable**, sinon la dérive
+s'aggrave. À traiter avant S2, idéalement avant S1.
+
+## 🔴 Fuite des logs de diagnostic — correctif écrit, à appliquer
+
+`app_diagnostic_logs` était lisible en entier (20 229 lignes) avec la seule **clé publiable**,
+celle compilée dans chaque bundle client. Chaque ligne porte `user_id`, `device_id`, `platform`,
+`app_version` et un message libre.
+
+**Migration `030_fix_diagnostic_logs_exposure.sql` — à appliquer.** Active RLS, purge toute
+politique de lecture permissive, restreint la lecture à ses propres logs, garde l'insertion
+ouverte (l'app journalise aussi avant connexion), et retire `SELECT` à `anon` au niveau des
+privilèges de table.
+
+Vérification après application — doit renvoyer **0 ligne** :
+
+```bash
+curl -s -H "apikey: sb_publishable_P3P36VFswbjyOXxplwniPg_D_NuGYNF" "https://fvnybncauhbpsnikzeeq.supabase.co/rest/v1/app_diagnostic_logs?select=id&limit=1"
+```
+
+À noter : `profiles` est aussi lisible anonymement (24 lignes) mais **seules** les colonnes
+`id`, `display_name`, `avatar_url`, `created_at`, `default_currency`, `is_admin` sont exposées —
+ni e-mail, ni téléphone, ni pseudo. Les grants par colonne font leur travail. Faible gravité,
+mais à revoir.
+
+## Bugs de production visibles dans les logs, non corrigés
+
+- **`FRIENDS` : `TimeoutException after 0:00:03` en continu**, sur les demandes d'amis, les
+  requêtes de cave et les notifications — et chaque appel part **en double**. Un délai de 3 s est
+  très agressif en mobilité. C'est l'erreur la plus fréquente du journal.
+- **`ADMOB` : `AppOpenAd` échoue régulièrement** (`AdShowError`), et `RewardedAd` remonte
+  `No fill` — à garder en tête, le modèle économique repose sur ces publicités.
+- **Toutes les entrées portent `app_version: 1.2.0`** alors que la version publiée est 1.3.4+67.
+  Soit la version est figée dans le logger, soit le parc est très en retard — à trancher.
+
 ## Dette d'hygiène repérée, non traitée
 
 - **`mcp-server/node_modules/` est suivi par git** : 4 293 fichiers, 2,2 Mo. La règle
@@ -184,3 +236,5 @@ Le détail de chaque étape est dans le plan.
 | 2026-09-14 | Claude | S0 : retrait du contournement d'auth `/admin`, rôle admin vérifié côté serveur, migration 029 | `6446350` |
 | 2026-09-14 | Flavien | Désactivation des clés legacy Supabase — token `service_role` fuité neutralisé (vérifié 401) | — |
 | 2026-09-15 | Flavien + Claude | Rotation de la clé Gemini. Première tentative en panne (clé `AQ.` d'un projet GCP neuf refusée par Google) ; résolue avec une clé `AIza` d'AI Studio. Fonction edge vérifiée HTTP 200 | — |
+| 2026-09-15 | Claude | Correction du deadlock d'authentification signalé par une utilisatrice (dialogue de pseudo inéchappable + OAuth sans `select_account`) | `cbc89ac` |
+| 2026-09-15 | Claude | Découverte de la dérive des migrations et de la fuite des logs de diagnostic ; migration 030 écrite | ce commit |

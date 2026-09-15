@@ -1,20 +1,40 @@
 -- Migration 032: échelle de notation explicite et signaux de dégustation
 --
--- ⚠️  CETTE MIGRATION NE MODIFIE AUCUNE NOTE EXISTANTE. Elle ajoute la colonne qui
---     permettra de le faire, et la procédure de remplissage est en section 4, à exécuter
---     manuellement APRÈS avoir regardé les données. Voir la raison ci-dessous.
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- CE QUE CETTE MIGRATION CORRIGE, ET POURQUOI C'EST PLUS GRAVE QUE PRÉVU
+-- ═══════════════════════════════════════════════════════════════════════════════
 --
--- CONTEXTE
--- La migration 027 a élargi la contrainte de `rating` de ≤5 à ≤10 sans migrer les valeurs.
--- La table contient donc un mélange : les lignes antérieures sont sur 5, les suivantes sur 10.
--- Le client compensait par une heuristique (`tasting_entry.dart:66-70`) qui double toute note
--- ≤ 5 — correcte pour les anciennes lignes, fausse pour les nouvelles :
+-- La migration 027 devait élargir `rating` de NUMERIC(2,1) CHECK (<= 5) à
+-- NUMERIC(3,1) CHECK (<= 10). Elle n'a JAMAIS été appliquée en production — comme 023
+-- et comme les cinq colonnes que 031 a dû rattraper. La contrainte ≤ 5 tient donc
+-- toujours, et toutes les interfaces de saisie de l'app sont sur 10
+-- (Slider min:1 max:10 divisions:18, pas de 0,5 — questionnaire, dégustation externe,
+-- checkout, mode table).
 --
---     saisi 3,5/10 « décevant »   → lu 7,0/10, devient un vin aimé
---     saisi 5,0/10 « quelconque » → lu 10,0/10
+-- Conséquence : à chaque enregistrement, l'insert est rejeté par la contrainte, et le
+-- client retombe sur un dernier recours qui DIVISE LA NOTE PAR DEUX pour la faire
+-- passer. Toutes les notes en base sont donc à l'échelle /5, silencieusement.
 --
--- Résultat : toute la moitié basse de l'échelle est repliée sur la moitié haute, et le modèle
--- de goût ne peut apprendre aucun dégoût. C'est le verrou de tout le reste.
+-- Vérifié sur les données réelles du journal (3 entrées) :
+--
+--     curseur 5,5/10 → rejet → 5,5÷2 = 2,75 → NUMERIC(2,1) arrondit → 2,8 en base
+--     curseur 7,0/10 → rejet → 3,5
+--     curseur 10,0/10 → rejet → 5,0
+--
+--   2,75 n'est PAS une position possible du curseur (pas de 0,5) : c'est la signature
+--   arithmétique de la division. Les trois valeurs s'expliquent exactement par des
+--   positions de curseur valides divisées par deux.
+--
+-- L'heuristique du client (`tasting_entry.dart`, qui doublait toute note ≤ 5) ne créait
+-- donc pas le problème : elle le COMPENSAIT. La retirer sans élargir la contrainte
+-- afficherait toutes les notes deux fois trop basses. D'où l'ordre imposé ici :
+-- on marque l'échelle des lignes existantes, PUIS on élargit la contrainte.
+--
+-- Deux autres conséquences de la contrainte non élargie, corrigées du même coup :
+--   • `sommelier_table_mode_sheet.dart` et `cellar_repository.dart` écrivent sans repli :
+--     leurs enregistrements au-dessus de 5/10 échouaient purement et simplement.
+--   • Le modèle de goût ne pouvait apprendre aucun dégoût, toute la moitié basse de
+--     l'échelle étant repliée sur la moitié haute.
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 1. L'échelle devient explicite plutôt que devinée
@@ -25,8 +45,9 @@ ALTER TABLE public.tasting_log
     CHECK (rating_scale IN (5, 10));
 
 COMMENT ON COLUMN public.tasting_log.rating_scale IS
-  'Échelle sur laquelle `rating` a été saisi. 10 pour tout ce qui est écrit par le client '
-  'actuel. 5 pour les lignes antérieures à la migration 027, à corriger via la section 4.';
+  'Échelle sur laquelle `rating` a été saisi. 10 pour tout ce qui est écrit après cette '
+  'migration. 5 pour les lignes antérieures, que la contrainte ≤ 5 avait fait diviser '
+  'par deux à l''écriture — voir la section 4.';
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 2. Le coup de cœur cesse d'être encodé par une valeur de note
@@ -58,7 +79,7 @@ COMMENT ON COLUMN public.tasting_log.fault IS
   'Défaut identifié. Non nul ⇒ la ligne est exclue de l''apprentissage du profil de goût.';
 
 -- Conditions de service : la même bouteille ne donne pas la même chose à 16 °C et à 22 °C.
--- WineServiceAdvisor calcule déjà la recommandation ; on n''enregistrait jamais le réel.
+-- WineServiceAdvisor calcule déjà la recommandation ; on n'enregistrait jamais le réel.
 ALTER TABLE public.tasting_log
   ADD COLUMN IF NOT EXISTS served_temp TEXT
     CHECK (served_temp IS NULL OR served_temp IN ('cold', 'right', 'warm')),
@@ -68,38 +89,60 @@ CREATE INDEX IF NOT EXISTS idx_tasting_log_user_consumed
   ON public.tasting_log (user_id, consumed_at DESC);
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- 4. ⚠️  REMPLISSAGE DE L'ÉCHELLE — À FAIRE MANUELLEMENT, APRÈS INSPECTION
+-- 4. Marquage de l'échelle, puis élargissement de la contrainte
 -- ─────────────────────────────────────────────────────────────────────────────
 --
--- Je ne peux pas deviner à partir de quelle date les notes sont passées sur 10, et me
--- tromper corromprait des données réelles de façon irréversible. La procédure :
+-- Aucune date à deviner, aucune inspection manuelle : le test est le TYPE de la colonne.
+-- NUMERIC(2,1) ⇒ 027 n'a jamais tourné ⇒ la contrainte ≤ 5 a toujours tenu ⇒ AUCUNE ligne
+-- n'a jamais pu contenir une note sur 10, donc toutes sont sur 5. C'est déduit du schéma,
+-- pas estimé à partir des données.
 --
--- ÉTAPE A — Regarder la distribution, pour repérer la bascule :
+-- L'ordre compte : on marque AVANT d'élargir, sinon le critère de décision disparaît.
+-- Le bloc est atomique — si quoi que ce soit échoue, rien n'est marqué ni élargi.
+
+DO $$
+DECLARE
+  v_precision  INTEGER;
+  v_marquees   BIGINT := 0;
+BEGIN
+  SELECT numeric_precision INTO v_precision
+  FROM information_schema.columns
+  WHERE table_schema = 'public'
+    AND table_name   = 'tasting_log'
+    AND column_name  = 'rating';
+
+  IF v_precision = 2 THEN
+    -- La contrainte ≤ 5 tenait encore : tout l'historique est à l'échelle /5.
+    UPDATE public.tasting_log
+    SET rating_scale = 5
+    WHERE rating IS NOT NULL;
+    GET DIAGNOSTICS v_marquees = ROW_COUNT;
+
+    RAISE NOTICE 'Migration 027 jamais appliquée (rating était NUMERIC(2,1)). % ligne(s) marquée(s) à l''échelle /5.', v_marquees;
+  ELSE
+    RAISE NOTICE 'rating est déjà NUMERIC(%,1) : 027 avait été appliquée, aucune ligne marquée.', v_precision;
+  END IF;
+
+  -- Élargissement (idempotent) : c'est ce que 027 aurait dû faire.
+  ALTER TABLE public.tasting_log DROP CONSTRAINT IF EXISTS tasting_log_rating_check;
+  ALTER TABLE public.tasting_log ALTER COLUMN rating TYPE NUMERIC(3,1);
+  ALTER TABLE public.tasting_log ADD CONSTRAINT tasting_log_rating_check
+    CHECK (rating >= 0 AND rating <= 10);
+END $$;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 5. Vérification — à lire après exécution
+-- ─────────────────────────────────────────────────────────────────────────────
 --
---   SELECT date_trunc('month', consumed_at) AS mois,
---          count(*)                          AS n,
---          min(rating), max(rating), round(avg(rating), 2) AS moyenne,
---          count(*) FILTER (WHERE rating > 5) AS notes_sup_5
---   FROM public.tasting_log
---   WHERE rating IS NOT NULL
---   GROUP BY 1 ORDER BY 1;
---
--- Le premier mois où `notes_sup_5` devient non nul marque le passage à l'échelle /10.
---
--- ÉTAPE B — Marquer les lignes antérieures, en remplaçant la date :
---
---   UPDATE public.tasting_log
---   SET rating_scale = 5
---   WHERE consumed_at < 'AAAA-MM-JJ'::timestamptz
---     AND rating IS NOT NULL;
---
--- ÉTAPE C — Vérifier avant de considérer l'opération terminée :
+-- Aucune ligne en échelle /5 ne doit dépasser 5, et le type doit être NUMERIC(3,1) :
 --
 --   SELECT rating_scale, count(*), min(rating), max(rating)
 --   FROM public.tasting_log WHERE rating IS NOT NULL GROUP BY 1;
 --
--- Aucune ligne en `rating_scale = 5` ne devrait avoir `rating > 5`.
+--   SELECT numeric_precision, numeric_scale FROM information_schema.columns
+--   WHERE table_name = 'tasting_log' AND column_name = 'rating';   -- attendu : 3, 1
 --
--- Tant que l'étape B n'est pas faite, toutes les lignes sont traitées comme /10 : les
--- anciennes notes sur 5 seront lues deux fois trop basses. C'est un défaut assumé et
--- visible, préférable au défaut inverse — qui, lui, fabrique silencieusement des vins aimés.
+-- Limite assumée : les lignes écrites par la dégustation externe avec « coup de cœur »
+-- valaient `rating = 5.0` par convention, indistinguables d'un vrai 10/10 divisé. Elles
+-- se reliront donc 10/10. C'est le sens voulu dans les deux cas ; `is_favorite` empêche
+-- l'ambiguïté de se reproduire.

@@ -20,8 +20,9 @@ class TastingEntry {
   final bool isExternal; // true if tasted outside cellar
   final DateTime consumedAt;
 
-  /// Échelle sur laquelle [rating] a été saisi : 10 aujourd'hui, 5 pour les lignes
-  /// antérieures à la migration 027. Explicite plutôt que devinée — voir [displayRating].
+  /// Échelle sur laquelle [rating] a été saisi : 10 après la migration 032, 5 avant —
+  /// la contrainte `rating <= 5` n'ayant jamais été élargie en production, le client
+  /// divisait chaque note par deux pour réussir l'insert. Explicite plutôt que devinée.
   final int ratingScale;
 
   /// Coup de cœur. Était auparavant encodé par `rating = 5.0`, indistinguable d'un 5/10 tiède.
@@ -140,9 +141,12 @@ class TastingEntry {
       locationName: json['location_name'] as String?,
       isExternal: json['is_external'] == true,
       consumedAt: json['consumed_at'] != null ? DateTime.tryParse(json['consumed_at'].toString()) ?? DateTime.now() : DateTime.now(),
-      // Défaut à 10 : c'est l'échelle du client actuel. Les lignes héritées sont marquées
-      // à 5 par la procédure de la migration 032.
-      ratingScale: (json['rating_scale'] as num?)?.toInt() ?? 10,
+      // Absence de `rating_scale` ⇒ la migration 032 n'a pas tourné ⇒ la contrainte
+      // `rating <= 5` tient encore ⇒ le client a divisé la note par deux à l'écriture.
+      // Le défaut est donc 5, et non 10 : c'est la seule valeur cohérente avec une base
+      // qui n'a pas encore la colonne. Les lignes locales fabriquées par l'app portent
+      // explicitement `rating_scale: 10` et ne passent pas par ce défaut.
+      ratingScale: (json['rating_scale'] as num?)?.toInt() ?? 5,
       isFavorite: json['is_favorite'] == true,
       isBlind: json['is_blind'] == true,
       fault: json['fault'] as String?,

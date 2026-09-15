@@ -553,9 +553,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             debugPrint('Questionnaire tasting log core insert failed ($coreErr), retrying with normalized rating...');
             try {
               // Dernier recours pour une base restée sur l'ancienne contrainte ≤ 5.
-              // On divise, mais on ENREGISTRE l'échelle — c'est ce marquage qui manquait.
+              // On NE marque PAS l'échelle ici : si on en est arrivé à cet étage, c'est que
+              // la contrainte n'a pas été élargie, donc que la migration 032 n'a pas tourné,
+              // donc que la colonne `rating_scale` n'existe pas — l'ajouter ferait échouer
+              // cet insert aussi et la dégustation ne quitterait jamais l'appareil.
+              // La relecture s'en sort seule : colonne absente ⇒ échelle 5
+              // (voir TastingEntry.fromJson). Une fois 032 appliquée, cet étage ne sert plus.
               corePayload['rating'] = (ratingOutOf10 / 2.0).clamp(0.0, 5.0);
-              corePayload['rating_scale'] = 5;
               final inserted = await supabase
                   .from('tasting_log')
                   .insert(corePayload)

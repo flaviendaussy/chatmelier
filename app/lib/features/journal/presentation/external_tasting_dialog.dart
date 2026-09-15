@@ -491,11 +491,11 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 'id': tastingId,
                 'wine_id': wineId,
                 'user_id': user.id,
-                // Dernier recours, pour une base dont la contrainte serait restée à ≤ 5
-                // (migration 027 non appliquée). On divise, mais on ENREGISTRE l'échelle :
-                // c'est ce marquage qui manquait et qui a mélangé les échelles dans la table.
+                // Dernier recours, pour une base dont la contrainte est restée à ≤ 5
+                // (migration 027 jamais appliquée en production). On divise sans marquer
+                // l'échelle : arriver ici prouve que 032 n'a pas tourné, donc que la colonne
+                // `rating_scale` n'existe pas encore. La relecture la déduit de son absence.
                 'rating': (effectiveRating / 2.0).clamp(0.0, 5.0),
-                'rating_scale': 5,
                 'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
                 'food_paired': food.isNotEmpty ? food : null,
                 'tasting_notes': notes.isNotEmpty ? notes : null,

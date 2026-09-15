@@ -153,13 +153,30 @@ class ChatService {
       try {
         final tRes = await _client
             .from('tasting_log')
-            .select('rating, occasion, food_paired, tasting_notes, co_tasters, wines(name, producer, vintage, wine_type, region)')
+            .select('rating, rating_scale, occasion, food_paired, tasting_notes, co_tasters, wines(name, producer, vintage, wine_type, region)')
             .eq('user_id', user.id)
             .order('consumed_at', ascending: false)
             .limit(15);
         recentTastings = List<Map<String, dynamic>>.from(tRes);
       } catch (e) {
-        AppLogger.warning('CHAT_AI', 'Could not fetch remote tasting logs: $e');
+        // `rating_scale` arrive avec la migration 032. Son absence n'est pas un incident :
+        // c'est la preuve que la contrainte `rating <= 5` tient encore et donc que toutes
+        // les notes stockées sont sur 5. On le dit explicitement plutôt que de perdre
+        // l'historique du sommelier.
+        AppLogger.warning('CHAT_AI', 'Tasting log select with rating_scale failed ($e), retrying without it');
+        try {
+          final tRes = await _client
+              .from('tasting_log')
+              .select('rating, occasion, food_paired, tasting_notes, co_tasters, wines(name, producer, vintage, wine_type, region)')
+              .eq('user_id', user.id)
+              .order('consumed_at', ascending: false)
+              .limit(15);
+          recentTastings = List<Map<String, dynamic>>.from(tRes)
+              .map((t) => {...t, 'rating_scale': 5})
+              .toList();
+        } catch (e2) {
+          AppLogger.warning('CHAT_AI', 'Could not fetch remote tasting logs: $e2');
+        }
       }
     }
 
@@ -169,7 +186,15 @@ class ChatService {
       final coList = rawCo is List ? rawCo.map((e) => e.toString()).where((s) => s.isNotEmpty).toList() : <String>[];
       final coStr = coList.isNotEmpty ? ' [Partagé avec : ${coList.join(", ")}]' : '';
       final wType = w?['wine_type'] != null ? 'Type: ${w!['wine_type']}, ' : '';
-      return '- ${w?['name'] ?? "Vin"} (${w?['vintage'] ?? "NM"}, $wType${w?['region'] ?? ""}) : Note ${t['rating']}/5$coStr, Avis: "${t['tasting_notes'] ?? ""}", Plat: "${t['food_paired'] ?? ""}", Contexte: "${t['occasion'] ?? ""}"';
+      // Les lignes antérieures à la migration 032 sont stockées sur 5 : la contrainte
+      // `rating <= 5` faisait diviser la note par deux à l'écriture. On les ramène sur 10
+      // comme le fait `TastingEntry.displayRating`, sinon le sommelier lit un 5,5/10 en 2,8.
+      final rawRating = (t['rating'] as num?)?.toDouble();
+      final scale = (t['rating_scale'] as num?)?.toInt() ?? 10;
+      final noteStr = rawRating == null
+          ? 'non notée'
+          : '${(scale == 5 ? rawRating * 2 : rawRating).toStringAsFixed(1)}/10';
+      return '- ${w?['name'] ?? "Vin"} (${w?['vintage'] ?? "NM"}, $wType${w?['region'] ?? ""}) : Note $noteStr$coStr, Avis: "${t['tasting_notes'] ?? ""}", Plat: "${t['food_paired'] ?? ""}", Contexte: "${t['occasion'] ?? ""}"';
     }).join('\n');
 
     final langName = languageCode == 'en' ? 'English' : 'French (Français)';

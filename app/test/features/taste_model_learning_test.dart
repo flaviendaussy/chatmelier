@@ -217,6 +217,35 @@ void main() {
       expect(entry(rating: 2.5, scale: 5).displayRating, equals(5.0));
     });
 
+    test('une ligne sans rating_scale est lue sur 5, pas sur 10', () {
+      // Convention non évidente, et c'est précisément pourquoi elle est testée.
+      // L'absence de la colonne n'est pas une information manquante : c'est la preuve que
+      // la migration 032 n'a pas tourné, donc que la contrainte `rating <= 5` tient encore,
+      // donc que le client a divisé la note par deux pour réussir l'insert. Reprendre 10
+      // par défaut afficherait tout l'historique deux fois trop bas.
+      final heritee = TastingEntry.fromJson(const {
+        'id': 't1',
+        'wine_id': 'w1',
+        'rating': 2.8, // curseur à 5,5/10, divisé puis arrondi par NUMERIC(2,1)
+        'consumed_at': '2026-08-27T20:00:00Z',
+      });
+      expect(heritee.ratingScale, equals(5));
+      expect(heritee.displayRating, closeTo(5.6, 0.001),
+          reason: 'Observé en production : 2,8 en base correspond à un curseur à 5,5/10.');
+    });
+
+    test('une ligne écrite après 032 porte son échelle et n\'est pas doublée', () {
+      final moderne = TastingEntry.fromJson(const {
+        'id': 't2',
+        'wine_id': 'w1',
+        'rating': 3.5,
+        'rating_scale': 10,
+        'consumed_at': '2026-09-15T20:00:00Z',
+      });
+      expect(moderne.displayRating, equals(3.5),
+          reason: 'Une fois l\'échelle explicite, un 3,5 décevant reste un 3,5.');
+    });
+
     test('le défaut exclut la dégustation du modèle', () {
       final sain = TastingEntry(
           id: 'a', wineId: 'w', consumedAt: DateTime(2026, 9, 15), rating: 8.0);

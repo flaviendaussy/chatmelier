@@ -118,7 +118,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   bool _profilesLoaded = false;
 
   // Multi-taster mode
-  bool _separateTurns = true; // true = "Chacun son tour", false = "Ensemble"
+  // Chacun répond pour soi, toujours. Le mode « Ensemble » a été retiré : il recopiait
+  // les réponses d'une personne dans les profils des autres convives.
+  static const bool _separateTurns = true;
+
+  /// Défaut identifié sur la bouteille. Non nul ⇒ la dégustation est exclue du modèle
+  /// de goût : un vin bouchonné n'apprend rien sur le palais, et lui ferait même croire
+  /// qu'il déteste une région entière.
+  String? _fault;
   bool _isTransitioningToNextTaster = false;
   bool _isCompleted = false;
   final Map<String, TastingQuestionnaireResult> _completedResults = {};
@@ -272,6 +279,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   }
 
   void _resetAnswers() {
+    _fault = null;
     _emojiIndex = 3;
     _noteSlider = 7.0;
     _selectedAromas = {};
@@ -344,14 +352,22 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
     setState(() => _isSaving = true);
     try {
-      final service = ref.read(tasteProfileServiceProvider);
-      await service.applyQuestionnaireResult(
-        result: result,
-        wineRegion: widget.region,
-        wineGrapes: widget.wineGrapes,
-        wineType: widget.wineType,
-      );
-      AppLogger.info('QUESTIONNAIRE', 'Saved answers for ${profile.name}');
+      if (_fault != null) {
+        // Bouteille défectueuse : la dégustation est enregistrée dans le journal — elle a
+        // bien eu lieu — mais elle n'alimente PAS le profil de goût. Apprendre de ce vin
+        // enseignerait à la personne qu'elle déteste une région qu'elle n'a pas goûtée.
+        AppLogger.info('QUESTIONNAIRE',
+            'Profil non modifié pour ${profile.name} : bouteille défectueuse ($_fault)');
+      } else {
+        final service = ref.read(tasteProfileServiceProvider);
+        await service.applyQuestionnaireResult(
+          result: result,
+          wineRegion: widget.region,
+          wineGrapes: widget.wineGrapes,
+          wineType: widget.wineType,
+        );
+        AppLogger.info('QUESTIONNAIRE', 'Saved answers for ${profile.name}');
+      }
     } catch (e) {
       AppLogger.error('QUESTIONNAIRE', 'Error saving answers', e);
     }
@@ -385,67 +401,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       }
     }
 
-    // If "Ensemble" (shared answers), apply results to other profiles as well
-    if (!_separateTurns && _selectedProfiles.length > 1) {
-      final service = ref.read(tasteProfileServiceProvider);
-      for (int i = 1; i < _selectedProfiles.length; i++) {
-        final otherP = _selectedProfiles[i];
-        final cloned = TastingQuestionnaireResult(
-          emojiImpression: result.emojiImpression,
-          noteOutOf10: result.noteOutOf10,
-          perceivedAromas: result.perceivedAromas,
-          customAromas: result.customAromas,
-          foodPairingSynergy: result.foodPairingSynergy,
-          mouthfeelTexture: result.mouthfeelTexture,
-          fruitProfile: result.fruitProfile,
-          isExpressMode: result.isExpressMode,
-          aromaIntensity: result.aromaIntensity,
-          acidity: result.acidity,
-          tannins: result.tannins,
-          body: result.body,
-          length: result.length,
-          effervescence: result.effervescence,
-          wouldBuyAgain: result.wouldBuyAgain,
-          idealMoment: result.idealMoment,
-          whatLikedMost: result.whatLikedMost,
-          whatDislikedMost: result.whatDislikedMost,
-          profileId: otherP.id,
-          profileName: otherP.name,
-        );
-        try {
-          await service.applyQuestionnaireResult(
-            result: cloned,
-            wineRegion: widget.region,
-            wineGrapes: widget.wineGrapes,
-            wineType: widget.wineType,
-          );
-          _completedResults[otherP.id] = cloned;
-
-          if (otherP.friendUserId != null && widget.wineId != null) {
-            final supabase = ref.read(supabaseProvider);
-            await supabase.rpc('record_shared_tasting_log', params: {
-              'p_wine_id': widget.wineId,
-              'p_friend_user_id': otherP.friendUserId,
-              'p_rating': cloned.noteOutOf10,
-              if (_isValidUuid(widget.bottleId)) 'p_bottle_id': widget.bottleId,
-              if (_isValidUuid(widget.cellarId)) 'p_cellar_id': widget.cellarId,
-              'p_notes': cloned.perceivedAromas.isNotEmpty
-                  ? 'Dégustation partagée. Arômes : ${cloned.perceivedAromas.join(", ")}'
-                  : 'Dégustation partagée.',
-              'p_occasion': cloned.idealMoment,
-              'p_co_tasters': _selectedProfiles.map((p) => p.name).toList(),
-              if (_isValidUuid(widget.bottleOwnerId)) 'p_bottle_owner_id': widget.bottleOwnerId,
-              if (widget.bottleOwnerName != null) 'p_bottle_owner_name': widget.bottleOwnerName,
-              'p_is_external': false,
-              'p_questionnaire_data': cloned.toJson(),
-            });
-            _syncedFriendNames.add(otherP.name);
-          }
-        } catch (_) {}
-      }
-    }
-
-    // Check if next taster should answer or if all done
+    // Le mode « Ensemble » recopiait littéralement les réponses d'une personne — note
+    // comprise — dans tous les autres profils de la table. Un seul palais en corrompait
+    // cinq, et c'était le mode praticable : « Chacun son tour » impose de faire tourner
+    // le téléphone sur cinq étapes par convive. Retiré : fabriquer des préférences pour
+    // des gens qui n'ont rien répondu est pire que de ne rien enregistrer.
+    // La vraie réponse est la dégustation multi-appareils (S4).
     if (_separateTurns && _currentProfileIndex < _selectedProfiles.length - 1) {
       setState(() {
         _isSaving = false;
@@ -525,6 +486,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         'is_external': false,
         'rating_scale': 10,
         'is_blind': _isBlindTasting,
+        if (_fault != null) 'fault': _fault,
         'consumed_at': DateTime.now().toIso8601String(),
         'wines': {
           'name': widget.wineName,
@@ -548,6 +510,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           'is_external': false,
           'rating_scale': 10,
           'is_blind': _isBlindTasting,
+          if (_fault != null) 'fault': _fault,
           'consumed_at': DateTime.now().toIso8601String(),
         };
 
@@ -1002,46 +965,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                   ],
                 ),
                 const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ChoiceChip(
-                        avatar: const Icon(Icons.phone_android, size: 14),
-                        label: Text(
-                          l10n.tastingEachTurn,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        selected: _separateTurns,
-                        selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.2),
-                        checkmarkColor: const Color(0xFF8B1E3F),
-                        onSelected: (val) {
-                          if (val) setState(() => _separateTurns = true);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ChoiceChip(
-                        avatar: const Icon(Icons.celebration, size: 14),
-                        label: Text(
-                          l10n.tastingTogether,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        selected: !_separateTurns,
-                        selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.2),
-                        checkmarkColor: const Color(0xFF8B1E3F),
-                        onSelected: (val) {
-                          if (val) setState(() => _separateTurns = false);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
                 Text(
-                  _separateTurns
-                      ? (l10n.tastingEachTurnDesc)
-                      : (l10n.tastingTogetherDesc),
+                  l10n.tastingEachTurnDesc,
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ],
@@ -1342,6 +1267,100 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   // ===========================================================================
   // Step 2: Le Nez (Arômes) 🍇
   // ===========================================================================
+  /// Contrôle de défaut, posé **avant** les arômes.
+  ///
+  /// C'est le moment pédagogique le plus précieux du vin et il n'existait nulle part dans
+  /// l'application : aucune notion de bouchon, d'oxydation ni de réduction. Quelqu'un qui
+  /// ouvre une bouteille bouchonnée la note 2/10 et en conclut qu'il n'aime pas la région.
+  /// L'app lui enseignait quelque chose de faux.
+  Widget _buildFaultCheck(ThemeData theme) {
+    const faults = <({String id, String emoji, String label, String explain})>[
+      (
+        id: 'cork',
+        emoji: '📦',
+        label: 'Carton mouillé, cave humide',
+        explain: 'Goût de bouchon (TCA). Le vin n\'y est pour rien et ne s\'arrangera pas '
+            'à l\'aération — au restaurant, on peut demander une autre bouteille.',
+      ),
+      (
+        id: 'oxidation',
+        emoji: '🍎',
+        label: 'Pomme blette, vinaigre, xérès',
+        explain: 'Oxydation. La bouteille a pris l\'air, souvent par un bouchon défaillant '
+            'ou une garde trop longue.',
+      ),
+      (
+        id: 'reduction',
+        emoji: '🥚',
+        label: 'Allumette, œuf, chou',
+        explain: 'Réduction. Bonne nouvelle : elle se dissipe souvent à l\'aération. '
+            'Carafez vingt minutes et regoûtez avant de juger.',
+      ),
+    ];
+
+    final selected = faults.where((f) => f.id == _fault).firstOrNull;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _fault == null
+            ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35)
+            : const Color(0xFFB3261E).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: _fault == null
+              ? Colors.grey.withValues(alpha: 0.3)
+              : const Color(0xFFB3261E).withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Le vin sent-il l\'une de ces choses ?',
+            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Si oui, la bouteille est défectueuse — ce n\'est ni votre palais, ni le style du vin.',
+            style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11.5),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final f in faults)
+                FilterChip(
+                  label: Text('${f.emoji} ${f.label}', style: const TextStyle(fontSize: 11.5)),
+                  selected: _fault == f.id,
+                  selectedColor: const Color(0xFFB3261E).withValues(alpha: 0.18),
+                  checkmarkColor: const Color(0xFFB3261E),
+                  onSelected: (v) => setState(() => _fault = v ? f.id : null),
+                ),
+            ],
+          ),
+          if (selected != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              selected.explain,
+              style: theme.textTheme.bodySmall?.copyWith(fontSize: 12, height: 1.35),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Cette dégustation ne comptera pas dans votre profil de goût.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11.5,
+                fontStyle: FontStyle.italic,
+                color: const Color(0xFFB3261E),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildStep2Nez() {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
@@ -1359,6 +1378,9 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           l10n.tastingStepNezSubtitle,
           style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
+        const SizedBox(height: 16),
+
+        _buildFaultCheck(theme),
         const SizedBox(height: 16),
 
         Wrap(

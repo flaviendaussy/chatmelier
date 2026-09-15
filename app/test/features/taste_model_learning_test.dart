@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:chatmelier/features/auth/data/taste_profile_service.dart';
+import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/journal/domain/tasting_entry.dart';
 
@@ -142,6 +143,54 @@ void main() {
       final poidsCumul300 = 1 / 301;
       expect(poidsExp, greaterThan(poidsCumul300 * 50),
           reason: 'Après 300 dégustations, la cumulative n\'écoutait plus (0,33 %).');
+    });
+  });
+
+  group('🎯 Confiance par axe', () {
+    test('un axe jamais observé a une confiance nulle', () {
+      const profile = TasteProfile(id: 'p', name: 'Test');
+      for (final axis in TasteProfile.axisKeys) {
+        expect(profile.axisConfidence(axis), equals(0.0),
+            reason: '\$axis ne devrait rien affirmer sans observation.');
+      }
+      expect(profile.overallConfidence, equals(0.0));
+    });
+
+    test('la confiance croît vite au début puis sature', () {
+      double conf(int n) =>
+          TasteProfile(id: 'p', name: 'T', axisObservations: {'tannin': n})
+              .axisConfidence('tannin');
+
+      expect(conf(1), closeTo(0.17, 0.01), reason: 'Une dégustation donne déjà une idée grossière.');
+      expect(conf(5), closeTo(0.50, 0.01));
+      expect(conf(20), closeTo(0.80, 0.01));
+      // Strictement croissante, jamais 1 : on ne prétend jamais tout savoir.
+      expect(conf(50), lessThan(1.0));
+      expect(conf(50), greaterThan(conf(20)));
+    });
+
+    test('l\'axe le moins connu est celui où une dégustation apprendrait le plus', () {
+      const profile = TasteProfile(
+        id: 'p',
+        name: 'T',
+        axisObservations: {
+          'tannin': 12, 'body': 15, 'oak': 1, 'ripeFruit': 9,
+          'spice': 7, 'freshFruit': 14, 'minerality': 11, 'acidity': 16,
+        },
+      );
+      expect(profile.leastKnownAxis, equals('oak'),
+          reason: 'C\'est l\'entrée du moteur de frontière : où envoyer la personne.');
+    });
+
+    test('la confiance globale reflète un profil inégal', () {
+      const profile = TasteProfile(
+        id: 'p',
+        name: 'T',
+        axisObservations: {'tannin': 30, 'body': 30},
+      );
+      // Deux axes bien connus sur huit : la moyenne doit rester basse.
+      expect(profile.overallConfidence, lessThan(0.3),
+          reason: 'Bien connaître deux axes ne veut pas dire connaître le palais.');
     });
   });
 

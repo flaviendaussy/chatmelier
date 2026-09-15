@@ -40,9 +40,55 @@ class TasteProfile {
   final Map<String, int> cellarGrapes; // grape -> cellar inventory count (+5.0 multi-bottle)
   final Map<String, int> idealMoments; // momentId → count
   final int questionnairesCompleted; // total number of questionnaires answered
+
+  /// Nombre d'observations accumulées par axe sensoriel, clé = nom d'axe
+  /// (`tannin`, `body`, `oak`, `ripeFruit`, `spice`, `freshFruit`, `minerality`, `acidity`).
+  ///
+  /// Sert à calculer [axisConfidence]. Sans lui, les huit axes du radar s'affichent avec la
+  /// même netteté qu'ils reposent sur soixante dégustations ou sur deux — une fausse
+  /// précision qui rend le profil invérifiable, et ne donne à personne de raison de
+  /// continuer à nourrir l'application.
+  final Map<String, int> axisObservations;
   final String? friendUserId; // Set if this profile corresponds to a connected friend who has the app
 
   bool get hasApp => friendUserId != null && friendUserId!.isNotEmpty;
+
+  /// Les huit axes sensoriels, dans l'ordre du radar.
+  static const List<String> axisKeys = [
+    'tannin', 'body', 'oak', 'ripeFruit', 'spice', 'freshFruit', 'minerality', 'acidity',
+  ];
+
+  /// Confiance du modèle sur un axe, de 0 (aucune idée) à 1 (bien établi).
+  ///
+  /// Saturation douce : une observation donne déjà 0,17, cinq donnent 0,55, dix 0,71,
+  /// vingt 0,83. La courbe est délibérément généreuse au début — il faut peu de
+  /// dégustations pour avoir une idée grossière d'un palais — et lente ensuite, parce
+  /// qu'une certitude réelle demande d'avoir vu la personne dans des contextes variés.
+  ///
+  /// C'est cette valeur qui rend l'empreinte de palais nette là où le modèle a observé et
+  /// floue là où il devine, au lieu d'afficher partout la même fausse assurance.
+  double axisConfidence(String axis) {
+    final n = axisObservations[axis] ?? 0;
+    if (n <= 0) return 0.0;
+    return n / (n + 5.0);
+  }
+
+  /// Confiance moyenne sur les huit axes — utile pour décider si le profil mérite d'être
+  /// présenté comme un portrait ou comme une esquisse.
+  double get overallConfidence {
+    final sum = axisKeys.fold<double>(0, (acc, k) => acc + axisConfidence(k));
+    return sum / axisKeys.length;
+  }
+
+  /// L'axe le moins établi : c'est là qu'une dégustation apprendrait le plus.
+  /// Entrée du moteur de frontière (S4).
+  String get leastKnownAxis {
+    var worst = axisKeys.first;
+    for (final k in axisKeys) {
+      if (axisConfidence(k) < axisConfidence(worst)) worst = k;
+    }
+    return worst;
+  }
 
   const TasteProfile({
     required this.id,
@@ -68,6 +114,7 @@ class TasteProfile {
     this.cellarGrapes = const {},
     this.idealMoments = const {},
     this.questionnairesCompleted = 0,
+    this.axisObservations = const {},
     this.friendUserId,
   });
 
@@ -95,6 +142,7 @@ class TasteProfile {
     Map<String, int>? cellarGrapes,
     Map<String, int>? idealMoments,
     int? questionnairesCompleted,
+    Map<String, int>? axisObservations,
     String? friendUserId,
     bool clearFriendUserId = false,
   }) {
@@ -122,6 +170,7 @@ class TasteProfile {
       cellarGrapes: cellarGrapes ?? this.cellarGrapes,
       idealMoments: idealMoments ?? this.idealMoments,
       questionnairesCompleted: questionnairesCompleted ?? this.questionnairesCompleted,
+      axisObservations: axisObservations ?? this.axisObservations,
       friendUserId: clearFriendUserId ? null : (friendUserId ?? this.friendUserId),
     );
   }
@@ -150,6 +199,7 @@ class TasteProfile {
         'cellar_grapes': cellarGrapes,
         'ideal_moments': idealMoments,
         'questionnaires_completed': questionnairesCompleted,
+        'axis_observations': axisObservations,
         if (friendUserId != null) 'friend_user_id': friendUserId,
       };
 

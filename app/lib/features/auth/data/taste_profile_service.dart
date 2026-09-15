@@ -382,6 +382,26 @@ class TasteProfileService {
         }
       }
 
+      // Compter les observations par axe. Un axe n'est incrémenté que s'il a réellement
+      // reçu une valeur : les tanins, par exemple, ne sont renseignés que sur les rouges.
+      // C'est ce compte qui permet d'afficher la confiance du modèle plutôt qu'une
+      // fausse précision uniforme sur les huit axes.
+      final observations = Map<String, int>.from(profile.axisObservations);
+      void observe(String axis, double? before, double? after) {
+        if (after != null && after != before) {
+          observations[axis] = (observations[axis] ?? 0) + 1;
+        }
+      }
+
+      observe('acidity', profile.avgAcidityPreference, newAcidity);
+      observe('body', profile.avgBodyPreference, newBody);
+      observe('tannin', profile.avgTanninPreference, newTannin);
+      observe('oak', profile.avgOakPreference, newOak);
+      observe('ripeFruit', profile.avgRipeFruitPreference, newRipeFruit);
+      observe('spice', profile.avgSpicePreference, newSpice);
+      observe('freshFruit', profile.avgFreshFruitPreference, newFreshFruit);
+      observe('minerality', profile.avgMineralityPreference, newMinerality);
+
       profile = profile.copyWith(
         avgAcidityPreference: newAcidity,
         avgBodyPreference: newBody,
@@ -391,6 +411,7 @@ class TasteProfileService {
         avgSpicePreference: newSpice,
         avgFreshFruitPreference: newFreshFruit,
         avgMineralityPreference: newMinerality,
+        axisObservations: observations,
       );
     }
 

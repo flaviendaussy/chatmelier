@@ -248,6 +248,39 @@ le scan et le sommelier y sont encore. L'épuration se fera si le projet est rep
 renommée (`com.chatmelier.cocktails`, paquet `chatmelier_cocktails`) pour éviter tout conflit
 d'installation. Détail dans son README.
 
+## Vérification en direct sur émulateur — 2026-09-15
+
+AVD `chatmelier_pixel7` (Pixel 7, 1080×2400, android-36), build **profile**, GPU matériel.
+Outillage : `./tool/devtest.sh`. Instantané `logged_in` figé — la session survit à toute
+réinstallation, l'état est restaurable indéfiniment avec `./tool/devtest.sh restore`.
+
+| Vérifié | Résultat |
+|---|---|
+| Navigation après retrait du Bar | ✅ 4 onglets mobile : Cellar · Chat · Tasting · Profile. La renumérotation 6 → 5 tient |
+| Écran cave | ✅ 41 vins, 23 spiritueux, jauges d'apogée, `SpiritFillBar` intact sur le Porto |
+| Profil, onglet Palais | ✅ Taste Radar préservé, **vitrine « Trophées & Badges » disparue** |
+| Profil, onglet Outils | ✅ Scratchcard, Changelog et Console de diagnostic disparus |
+| **Migration 029 de bout en bout** | ✅ « AI Cost Estimation », protégé par `isAdmin`, est visible → `isAdminProvider` lit bien `is_admin` côté serveur |
+| Chat désintoxiqué | ✅ « Qu'est-ce que je peux préparer ce soir » → trois menus vin/plat avec de vraies bouteilles de la cave. Aucun cocktail, aucun jeton `[COCKTAIL_CARD]` |
+| Parcours invité | ✅ Consensus, Wine List, Flights, Food Match — aucun plantage |
+| Assets embarqués | ✅ 2,93 Mo mesurés par `unzip -l` (contre 77,3 Mo au départ) |
+
+### Anomalies observées, non corrigées
+
+- **Publicité plein écran au démarrage** (App Open Ad) : première chose que voit l'utilisateur à
+  l'ouverture. À arbitrer, d'autant que le modèle économique repose sur la pub.
+- **Mur de consentement à 210 partenaires** avant d'atteindre l'écran invité. Sur le parcours
+  d'acquisition (QR au restaurant), c'est de la friction lourde avant toute démonstration de valeur.
+- **Menu fictif reproduit en direct** : le code `TABLE-98931`, inexistant, affiche « Menu du
+  Restaurant » avec Chablis Laroche 48 €, Janasse et Bel-Air Graves — les trois vins codés en dur,
+  sans message d'erreur, les deux premiers à **79 % ex æquo**. Correction à l'audit : le champ de
+  saisie de code **existe** (`login_screen.dart:290`), contrairement à ce qui y était écrit — ce
+  qui aggrave le constat puisque l'interface invite à s'en servir.
+- **Chevauchement de rendu** sur le Taste Radar : le sous-titre « Oenological footprint & flavor
+  balance » passe sous le libellé d'axe « Tannins & Grip ».
+- **ANR en GPU logiciel** (`Input dispatching timed out`, 315 images sautées). Disparus en GPU
+  matériel — c'était l'émulateur, pas l'application.
+
 ## Suite prévue
 
 **S2** — réparation des données du goût : migration de l'échelle de notation, apprentissage

@@ -45,14 +45,14 @@ case "${1:-}" in
   up)
     # JAMAIS -no-window : voir tool/devtest.sh en tête de fichier.
     nohup emulator -avd "$AVD" -no-audio -no-boot-anim \
-      -gpu swiftshader_indirect -netdelay none -netspeed full \
+      -gpu host -netdelay none -netspeed full \
       > /tmp/chatmelier-emulator.log 2>&1 &
     wait_boot
     ;;
 
   restore)
     nohup emulator -avd "$AVD" -snapshot "$SNAPSHOT" -no-audio -no-boot-anim \
-      -gpu swiftshader_indirect -netdelay none -netspeed full \
+      -gpu host -netdelay none -netspeed full \
       > /tmp/chatmelier-emulator.log 2>&1 &
     wait_boot
     echo "↩️  état restauré depuis l'instantané « $SNAPSHOT »"

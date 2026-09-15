@@ -99,7 +99,7 @@ Séquence : **S0** sécurité → **S1** élagage → **S2** données du goût �
 
 ---
 
-## S0 — état
+## S0 — ✅ CLOS le 2026-09-15
 
 | Item | État | Où |
 |---|---|---|
@@ -108,7 +108,9 @@ Séquence : **S0** sécurité → **S1** élagage → **S2** données du goût �
 | Retrait du court-circuit d'auth `/admin` | ✅ fait | `6446350` |
 | Rôle admin vérifié côté serveur | ✅ code fait | `6446350` |
 | Neutralisation du `service_role` fuité | ✅ fait le 2026-09-14 | clés legacy désactivées + vérifié 401 |
-| **Application de la migration 029** | ⏳ **à faire** | `supabase/migrations/029_…sql` |
+| Migration 029 (rôle admin serveur) | ✅ appliquée le 2026-09-15 | vérifiée |
+| Migration 030 (fuite des logs) | ✅ appliquée le 2026-09-15 | vérifiée : lecture anonyme refusée |
+| Migration 031 (réconciliation schéma) | ✅ appliquée le 2026-09-15 | vérifiée : 5 colonnes + 2 fonctions |
 | Rotation de la clé Gemini | ✅ fait le 2026-09-15 | secret Supabase + fonction edge vérifiée |
 | **Prochain build mobile sans clé Gemini** | ⏳ à faire | `build_bundle.sh` ne l'exporte plus par défaut |
 

@@ -44,10 +44,6 @@ class ChatmelierLoader extends StatelessWidget {
       ? 'assets/animations/loader_detective_square.webp'
       : 'assets/animations/loader_sommelier_square.webp';
 
-  String get _assetGif => type == ChatmelierLoaderType.detective
-      ? 'assets/animations/loader_detective_square.gif'
-      : 'assets/animations/loader_sommelier_square.gif';
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -73,18 +69,14 @@ class ChatmelierLoader extends StatelessWidget {
             ),
           ],
         ),
+        // Les WebP sont animés (vérifié par loader_assets_animated_test).
+        // Le repli GIF a été retiré : 11,5 Mo pour un chemin qui ne se déclenchait pas.
         child: Image.asset(
           _assetWebp,
           fit: BoxFit.cover,
-          errorBuilder: (ctx, err, stack) {
-            return Image.asset(
-              _assetGif,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Center(
-                child: Icon(Icons.wine_bar, color: Color(0xFFD4AF37), size: 40),
-              ),
-            );
-          },
+          errorBuilder: (_, __, ___) => const Center(
+            child: Icon(Icons.wine_bar, color: Color(0xFFD4AF37), size: 40),
+          ),
         ),
       ),
     );

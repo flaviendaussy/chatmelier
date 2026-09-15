@@ -51,7 +51,6 @@ class _BadgesGallerySheetState extends ConsumerState<BadgesGallerySheet> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
-    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final allBadges = ref.watch(userBadgesProgressProvider);
     final stats = ref.watch(unlockedBadgesCountProvider);
 
@@ -396,7 +395,6 @@ class _BadgeDetailModal extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
-    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final badge = progress.badge;
     final tierColor = badge.tier.color;
     final isUnlocked = progress.isUnlocked;

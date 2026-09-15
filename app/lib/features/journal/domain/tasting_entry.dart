@@ -20,6 +20,27 @@ class TastingEntry {
   final bool isExternal; // true if tasted outside cellar
   final DateTime consumedAt;
 
+  /// Échelle sur laquelle [rating] a été saisi : 10 aujourd'hui, 5 pour les lignes
+  /// antérieures à la migration 027. Explicite plutôt que devinée — voir [displayRating].
+  final int ratingScale;
+
+  /// Coup de cœur. Était auparavant encodé par `rating = 5.0`, indistinguable d'un 5/10 tiède.
+  final bool isFavorite;
+
+  /// Dégustation à l'aveugle : la seule note non contaminée par l'étiquette, le prix ou la
+  /// réputation de l'appellation. Le mode existait dans le questionnaire, l'information était jetée.
+  final bool isBlind;
+
+  /// Défaut identifié ('cork', 'oxidation', 'reduction', 'other'). Non nul ⇒ la dégustation
+  /// est **exclue** de l'apprentissage du profil : une bouteille bouchonnée n'apprend rien
+  /// sur les goûts de la personne, et apprendrait même le contraire de la vérité.
+  final String? fault;
+
+  /// Conditions de service réellement appliquées ('cold', 'right', 'warm'), qui confondent
+  /// autrement la note avec la température de service.
+  final String? servedTemp;
+  final bool? wasDecanted;
+
   const TastingEntry({
     required this.id,
     this.bottleId,
@@ -41,6 +62,12 @@ class TastingEntry {
     this.locationName,
     this.isExternal = false,
     required this.consumedAt,
+    this.ratingScale = 10,
+    this.isFavorite = false,
+    this.isBlind = false,
+    this.fault,
+    this.servedTemp,
+    this.wasDecanted,
   });
 
   /// User-friendly label for bottle origin and ownership
@@ -62,12 +89,19 @@ class TastingEntry {
     return 'Ma Cave';
   }
 
-  /// Normalized rating on a 0..10 scale (legacy ratings stored out of 5 are scaled by 2).
+  /// Note ramenée sur 10, d'après l'échelle **enregistrée** et non devinée.
+  ///
+  /// L'ancienne version doublait toute note ≤ 5 pour rattraper les lignes héritées de
+  /// l'échelle /5. Correcte pour celles-là, elle transformait un 3,5/10 « décevant » en
+  /// 7,0/10 « aimé » — repliant toute la moitié basse de l'échelle sur la moitié haute et
+  /// rendant tout dégoût inapprenable. C'est désormais `rating_scale` qui tranche.
   double? get displayRating {
     if (rating == null) return null;
-    if (rating! <= 5.0 && rating! > 0) return rating! * 2;
-    return rating;
+    return ratingScale == 5 ? rating! * 2 : rating;
   }
+
+  /// Une dégustation n'apprend quelque chose sur le palais que si le vin était sain.
+  bool get isUsableForTasteModel => fault == null;
 
   /// Formatted rating string, e.g. "10/10" or "9.5/10"
   String get formattedRating {
@@ -106,6 +140,14 @@ class TastingEntry {
       locationName: json['location_name'] as String?,
       isExternal: json['is_external'] == true,
       consumedAt: json['consumed_at'] != null ? DateTime.tryParse(json['consumed_at'].toString()) ?? DateTime.now() : DateTime.now(),
+      // Défaut à 10 : c'est l'échelle du client actuel. Les lignes héritées sont marquées
+      // à 5 par la procédure de la migration 032.
+      ratingScale: (json['rating_scale'] as num?)?.toInt() ?? 10,
+      isFavorite: json['is_favorite'] == true,
+      isBlind: json['is_blind'] == true,
+      fault: json['fault'] as String?,
+      servedTemp: json['served_temp'] as String?,
+      wasDecanted: json['was_decanted'] as bool?,
     );
   }
 
@@ -123,6 +165,12 @@ class TastingEntry {
         if (bottleOwnerName != null) 'bottle_owner_name': bottleOwnerName,
         if (locationName != null) 'location_name': locationName,
         'is_external': isExternal,
+        'rating_scale': ratingScale,
+        'is_favorite': isFavorite,
+        'is_blind': isBlind,
+        if (fault != null) 'fault': fault,
+        if (servedTemp != null) 'served_temp': servedTemp,
+        if (wasDecanted != null) 'was_decanted': wasDecanted,
         'consumed_at': consumedAt.toIso8601String(),
         'wines': {
           'id': wineId,

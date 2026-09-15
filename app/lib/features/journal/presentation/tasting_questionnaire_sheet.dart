@@ -523,6 +523,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         if (cleanOwnerId != null) 'bottle_owner_id': cleanOwnerId,
         if (widget.bottleOwnerName != null) 'bottle_owner_name': widget.bottleOwnerName,
         'is_external': false,
+        'rating_scale': 10,
+        'is_blind': _isBlindTasting,
         'consumed_at': DateTime.now().toIso8601String(),
         'wines': {
           'name': widget.wineName,
@@ -544,6 +546,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           if (cleanOwnerId != null) 'bottle_owner_id': cleanOwnerId,
           if (widget.bottleOwnerName != null) 'bottle_owner_name': widget.bottleOwnerName,
           'is_external': false,
+          'rating_scale': 10,
+          'is_blind': _isBlindTasting,
           'consumed_at': DateTime.now().toIso8601String(),
         };
 
@@ -585,14 +589,18 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           } catch (coreErr) {
             debugPrint('Questionnaire tasting log core insert failed ($coreErr), retrying with normalized rating...');
             try {
+              // Dernier recours pour une base restée sur l'ancienne contrainte ≤ 5.
+              // On divise, mais on ENREGISTRE l'échelle — c'est ce marquage qui manquait.
               corePayload['rating'] = (ratingOutOf10 / 2.0).clamp(0.0, 5.0);
+              corePayload['rating_scale'] = 5;
               final inserted = await supabase
                   .from('tasting_log')
                   .insert(corePayload)
                   .select('*, wines(*)')
                   .maybeSingle();
               if (inserted != null) {
-                inserted['rating'] = ratingOutOf10;
+                // Ne pas réécrire `rating` ici : le cache contredirait la base. L'échelle
+                // enregistrée suffit à relire correctement (voir TastingEntry.displayRating).
                 await offlineStorage.addCachedTasting(inserted);
               } else {
                 await offlineStorage.addCachedTasting(localPayload);

@@ -8,6 +8,20 @@ import '../../cellar/domain/wine.dart';
 import '../../friends/domain/friend.dart';
 import '../../journal/domain/tasting_questionnaire_result.dart';
 
+/// Seuils d'apprentissage, sur l'échelle /10.
+///
+/// Entre les deux, la dégustation ne dit rien de tranché et le profil n'est pas modifié —
+/// c'est délibéré : un 6/10 n'est ni un goût ni un dégoût.
+const double kLikedThreshold = 7.5;
+const double kDislikedThreshold = 4.0;
+
+/// Facteur de lissage de la moyenne exponentielle des axes sensoriels.
+///
+/// 0,25 correspond à une demi-vie d'environ dix dégustations : le profil suit un palais qui
+/// évolue sans osciller à chaque bouteille. La moyenne cumulative qu'il remplace donnait à
+/// une dégustation un poids de 1/(n+1) — soit 0,33 % après trois cents, autant dire zéro.
+const double kAxisSmoothing = 0.25;
+
 final tasteProfileServiceProvider = Provider<TasteProfileService>((ref) {
   return TasteProfileService();
 });
@@ -163,11 +177,27 @@ class TasteProfileService {
     );
   }
 
+  /// Enregistre une dégustation dans le profil de goût.
+  ///
+  /// **Apprentissage symétrique.** La version précédente avait tout son corps à l'intérieur
+  /// d'un `if (rating >= 7.5)` : une note de 2/10 ne déclenchait rien, pas même le compteur.
+  /// Les favoris ne faisaient que s'accumuler, si bien qu'après cinquante dégustations le
+  /// profil « aimait » six types, six régions et huit cépages — et ne discriminait plus rien.
+  ///
+  /// Désormais une note basse **retire** ce qu'une note haute avait ajouté.
+  ///
+  /// [hadFault] : une bouteille bouchonnée ou oxydée n'apprend rien sur le palais de la
+  /// personne, et lui apprendrait même le contraire de la vérité. Elle est ignorée.
   Future<void> recordTastingExperience({
     required String nameOrId,
     required Wine wine,
     required double rating,
+    bool hadFault = false,
   }) async {
+    if (hadFault) {
+      AppLogger.info('TASTE_PROFILE', 'Dégustation ignorée (vin défectueux) pour $nameOrId');
+      return;
+    }
     try {
       final profiles = await getProfiles();
       final cleanQuery = nameOrId.trim().toLowerCase();
@@ -183,30 +213,41 @@ class TasteProfileService {
         }
       }
 
-      // If user loved the wine (rating >= 7.5), reinforce preferred regions, types, and grapes
-      if (rating >= 7.5) {
-        final favTypes = Set<String>.from(profile.favoriteTypes);
-        final favRegions = Set<String>.from(profile.favoriteRegions);
-        final favGrapes = Set<String>.from(profile.favoriteGrapes);
+      final favTypes = Set<String>.from(profile.favoriteTypes);
+      final favRegions = Set<String>.from(profile.favoriteRegions);
+      final favGrapes = Set<String>.from(profile.favoriteGrapes);
 
-        if (wine.type.isNotEmpty) {
-          favTypes.add(wine.type.toLowerCase().contains('blanc') ? 'Blanc' : (wine.type.toLowerCase().contains('ros') ? 'Rosé' : 'Rouge'));
-        }
-        if (wine.region.isNotEmpty && wine.region != 'Autre') {
-          favRegions.add(wine.region);
-        }
-        for (final g in wine.grapes) {
-          if (g.name.isNotEmpty) favGrapes.add(g.name);
-        }
+      final normalizedType = wine.type.isEmpty
+          ? null
+          : (wine.type.toLowerCase().contains('blanc')
+              ? 'Blanc'
+              : (wine.type.toLowerCase().contains('ros') ? 'Rosé' : 'Rouge'));
+      final region = (wine.region.isNotEmpty && wine.region != 'Autre') ? wine.region : null;
+      final grapes = wine.grapes.map((g) => g.name).where((n) => n.isNotEmpty).toList();
 
-        final updated = profile.copyWith(
-          favoriteTypes: favTypes.take(6).toList(),
-          favoriteRegions: favRegions.take(6).toList(),
-          favoriteGrapes: favGrapes.take(8).toList(),
-          questionnairesCompleted: profile.questionnairesCompleted + 1,
-        );
-        await updateProfile(updated);
+      if (rating >= kLikedThreshold) {
+        // Aimé : on renforce.
+        if (normalizedType != null) favTypes.add(normalizedType);
+        if (region != null) favRegions.add(region);
+        favGrapes.addAll(grapes);
+      } else if (rating <= kDislikedThreshold) {
+        // Déplu : on retire ce qui avait été ajouté. Le type de couleur est trop grossier
+        // pour être retiré sur une seule déception — on ne touche qu'aux régions et cépages,
+        // qui sont des signaux plus spécifiques.
+        if (region != null) favRegions.remove(region);
+        favGrapes.removeAll(grapes);
       }
+      // Entre les deux seuils, la dégustation ne dit rien de tranché : on n'ajoute ni ne retire.
+
+      final updated = profile.copyWith(
+        favoriteTypes: favTypes.take(6).toList(),
+        favoriteRegions: favRegions.take(6).toList(),
+        favoriteGrapes: favGrapes.take(8).toList(),
+        // Le compteur s'incrémente pour TOUTE dégustation, y compris décevante : il mesure
+        // l'expérience accumulée, pas le nombre de bons souvenirs.
+        questionnairesCompleted: profile.questionnairesCompleted + 1,
+      );
+      await updateProfile(updated);
     } catch (e) {
       AppLogger.warning('TASTE_PROFILE', 'Could not record tasting experience for $nameOrId: $e');
     }
@@ -514,9 +555,21 @@ class TasteProfileService {
 
   // — Private helpers —
 
+  /// Moyenne exponentielle d'un axe sensoriel.
+  ///
+  /// Remplace une moyenne cumulative `(courant × n + nouveau) / (n + 1)` qui gelait le profil :
+  /// le poids d'une dégustation y valait 1/(n+1), soit 1,96 % après cinquante et 0,33 % après
+  /// trois cents. Un palais qui évolue — ce qui est la norme les deux premières années —
+  /// devenait intraçable. Simulation sur le cas d'un palais basculant de 0,80 à 0,32 :
+  /// 120 dégustations contradictoires n'amenaient l'axe qu'à 0,400 ; l'exponentielle
+  /// y parvient en huit.
+  ///
+  /// Le paramètre `count` n'est plus utilisé pour la pondération — il est conservé dans la
+  /// signature parce que les appelants le passent, et parce qu'il sert à distinguer la
+  /// toute première observation (qui initialise l'axe) des suivantes.
   double _runningAvg(double? current, double newVal, int count) {
-    if (current == null || count == 0) return newVal;
-    return (current * count + newVal) / (count + 1);
+    if (current == null) return newVal;
+    return current * (1 - kAxisSmoothing) + newVal * kAxisSmoothing;
   }
 
   String _axisLabel(double val, String low, String high) {

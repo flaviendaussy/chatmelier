@@ -410,7 +410,10 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     final occasion = _contextController.text.trim();
     final notes = _notesController.text.trim();
     final food = _foodController.text.trim();
-    final effectiveRating = _isFavorite ? 5.0 : _rating;
+    // La note et le coup de cœur sont deux informations distinctes. Écrire `rating = 5.0`
+    // pour signifier « coup de cœur » le rendait indistinguable d'un 5/10 tiède, et
+    // l'heuristique de relecture le remontait ensuite à 10/10.
+    final effectiveRating = _rating;
 
     // 1. If user checked to remember this place & we have a location, save it!
     if (_rememberThisPlace && occasion.isNotEmpty && _currentPosition != null) {
@@ -461,6 +464,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             'co_tasters': _selectedCoTasters.toList(),
             'location_name': occasion.isNotEmpty ? occasion : null,
             'is_external': true,
+            'rating_scale': 10,
+            'is_favorite': _isFavorite,
             'consumed_at': DateTime.now().toIso8601String(),
           });
           savedOnline = true;
@@ -476,6 +481,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               'food_paired': food.isNotEmpty ? food : null,
               'tasting_notes': notes.isNotEmpty ? notes : null,
               'photo_url': _photoUrl,
+              'rating_scale': 10,
               'consumed_at': DateTime.now().toIso8601String(),
             });
             savedOnline = true;
@@ -485,7 +491,11 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 'id': tastingId,
                 'wine_id': wineId,
                 'user_id': user.id,
+                // Dernier recours, pour une base dont la contrainte serait restée à ≤ 5
+                // (migration 027 non appliquée). On divise, mais on ENREGISTRE l'échelle :
+                // c'est ce marquage qui manquait et qui a mélangé les échelles dans la table.
                 'rating': (effectiveRating / 2.0).clamp(0.0, 5.0),
+                'rating_scale': 5,
                 'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
                 'food_paired': food.isNotEmpty ? food : null,
                 'tasting_notes': notes.isNotEmpty ? notes : null,
@@ -523,6 +533,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           'co_tasters': _selectedCoTasters.toList(),
           'location_name': occasion.isNotEmpty ? occasion : null,
           'is_external': true,
+          'rating_scale': 10,
+          'is_favorite': _isFavorite,
         },
         createdAt: DateTime.now(),
       ));
@@ -541,6 +553,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         'co_tasters': _selectedCoTasters.toList(),
         'location_name': occasion.isNotEmpty ? occasion : null,
         'is_external': true,
+        'rating_scale': 10,
+        'is_favorite': _isFavorite,
         'consumed_at': DateTime.now().toIso8601String(),
         'wines': {
           'id': wineId,

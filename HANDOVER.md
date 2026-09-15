@@ -146,25 +146,34 @@ read -rsp "Clé : " K && echo && curl -s -o /dev/null -w 'HTTP %{http_code}\n' "
 `{"restaurant_name":null,"wines":[]}` en HTTP 200) : voir le corps de la commande dans
 l'historique de session — `POST /functions/v1/scan-menu` avec un JPEG minimal en base64.
 
-## 🔴 DÉRIVE DES MIGRATIONS — découverte le 2026-09-15, non résolue
+## 🔴 DÉRIVE DES MIGRATIONS — constat établi le 2026-09-15, correctif écrit
 
-En cherchant la trace d'un bug utilisateur dans `app_diagnostic_logs`, découverte que **la base
-de production ne contient presque aucune des 29 migrations du dossier.** Vérifié par appel REST :
-les fonctions ci-dessous n'ont **aucun `REVOKE`** dans leur migration, donc `EXECUTE` est accordé
-à `PUBLIC` par défaut — un HTTP 404 signifie qu'elles n'existent pas.
+Établi par comparaison entre `information_schema` en production et les 30 migrations du
+dossier. **Les 15 tables attendues existent et la RLS est active partout** — la dérive est plus
+étroite que ce que j'avais d'abord écrit, mais chacun de ses trois points est silencieux.
 
-| Objet attendu | Migration | En prod | Conséquence observée |
-|---|---|---|---|
-| `find_cached_wine()` | 005 | ❌ 404 | **Le cache de connaissances ne peut jamais toucher.** Chaque enrichissement relance un appel Gemini *groundé* à 3,25 c€. Le « Zero Re-billing » du README est fictif en production — et c'est le levier de coût n° 1 du plan V2 |
-| `delete_user_account()` | 023 | ❌ 404 | **Suppression de compte RGPD cassée** (`auth_repository.dart:463`), alors qu'un test l'affirme couverte |
-| `accept_invite()` | 004 | ❌ 404 | Acceptation d'invitation de cave cassée |
-| `tasting_log.co_tasters` | 015, 025 | ❌ 400 | Le chat ne peut pas lire l'historique de dégustation (`PostgrestException` récurrente dans les logs) |
-| `vineyard_knowledge_cache` | *aucune* | ❌ 404 | Table utilisée par le code mais **définie dans aucune migration** (`PGRST205` récurrent) |
-| RLS de 026 sur les logs | 026 | ❌ | 20 229 lignes de logs lisibles publiquement — voir ci-dessous |
+> **Correction d'un constat erroné.** J'ai d'abord annoncé que `find_cached_wine`,
+> `accept_invite` et `delete_user_account` étaient absentes, sur la foi de 404 renvoyés par des
+> appels RPC. **Faux pour les deux premières** : PostgREST répond 404 quand aucune *signature*
+> ne correspond, et je les appelais sans arguments. `find_cached_wine` et `accept_invite`
+> existent bien — le cache de connaissances fonctionne donc, contrairement à ce que j'avais
+> conclu. Seule `delete_user_account` était réellement absente.
 
-**Conséquence pour le plan V2 :** S2 prévoit deux nouvelles tables (`taste_evidence`,
-`taste_profile_history`). **Réconcilier l'état des migrations est un préalable**, sinon la dérive
-s'aggrave. À traiter avant S2, idéalement avant S1.
+| Manque réel | Migration | Conséquence |
+|---|---|---|
+| `tasting_log` : `co_tasters`, `is_external`, `location_name`, `bottle_owner_id`, `bottle_owner_name` | 015 | **Chaque dégustation perd silencieusement** avec qui elle a été faite, où, et si elle avait lieu hors de la cave. L'app attrape l'échec d'insertion et réinsère sans ces champs (`tasting_questionnaire_sheet.dart:562`), avec pour seule trace un `debugPrint` |
+| `delete_user_account()` | 023 | **Suppression de compte RGPD cassée** (`auth_repository.dart:467`) |
+| `cleanup_old_diagnostic_logs()` | 026 | Aucune purge — 20 229 lignes accumulées. RGPD art. 5(1)(e) |
+
+**Pourquoi 023 n'est jamais passée**, et c'est instructif : elle fait `DELETE FROM bar_pantries`
+(la table s'appelle `bar_pantry`) et `DELETE FROM user_overrides` (qui n'existe pas). La
+migration échouait à l'exécution. Elle est réécrite corrigée dans la 031.
+
+**Correctif : `031_reconcile_production_schema.sql`**, idempotente, à appliquer.
+
+**Hors périmètre, à trancher :** `vineyard_knowledge_cache` et `user_cocktails` sont utilisées
+par le code mais définies dans **aucune** migration. Leur absence est absorbée par des try/catch
+(`PGRST205` récurrent dans les logs). `user_cocktails` part de toute façon avec le fork cocktails.
 
 ## 🔴 Fuite des logs de diagnostic — correctif écrit, à appliquer
 

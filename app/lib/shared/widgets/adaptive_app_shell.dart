@@ -5,7 +5,6 @@ import '../../l10n/app_localizations.dart';
 import '../../features/cellar/presentation/cellar_switcher_sheet.dart';
 import '../../features/cellar/presentation/cellar_food_pairing_sheet.dart';
 import '../../features/journal/presentation/external_tasting_dialog.dart';
-import '../../features/voice/presentation/voice_dictation_sheet.dart';
 import '../providers/cellar_provider.dart';
 import '../providers/supabase_provider.dart';
 import '../utils/responsive_layout.dart';
@@ -33,7 +32,7 @@ class AdaptiveAppShell extends ConsumerWidget {
     if (location.startsWith('/stats')) {
       return 4;
     }
-    if (location.startsWith('/profile') || location.startsWith('/badges')) {
+    if (location.startsWith('/profile')) {
       return 5;
     }
     return 0;
@@ -253,22 +252,6 @@ class _MobileAppShell extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/scan/menu');
-              },
-            ),
-            const SizedBox(height: 8),
-            _ActionMenuItem(
-              icon: Icons.mic_outlined,
-              color: Colors.purple.shade700,
-              title: isFr ? 'Ajout Rapide à la Voix (Sommelier)' : 'Voice Sommelier Quick Add',
-              subtitle: isFr ? 'Dictez vos bouteilles naturellement à l\'IA' : 'Dictate your bottles naturally to the AI',
-              onTap: () {
-                Navigator.pop(ctx);
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => const VoiceDictationSheet(),
-                );
               },
             ),
             const SizedBox(height: 8),
@@ -732,12 +715,6 @@ class _DesktopAppShell extends ConsumerWidget {
                         },
                       ),
                       _SidebarActionItem(
-                        icon: Icons.mic_none,
-                        label: isFr ? 'Dictée vocale (Sommelier)' : 'Voice Sommelier',
-                        color: Colors.purple.shade700,
-                        onTap: () => VoiceDictationSheet.show(context),
-                      ),
-                      _SidebarActionItem(
                         icon: Icons.wine_bar,
                         label: l10n?.actionCheckoutBottle ?? (isFr ? 'Déguster / Sortir un vin' : 'Taste / Checkout wine'),
                         color: const Color(0xFFD4AF37),
@@ -748,12 +725,6 @@ class _DesktopAppShell extends ConsumerWidget {
                         label: isFr ? 'Déguster Hors-Cave' : 'Taste Out of Cellar',
                         color: const Color(0xFFE65100),
                         onTap: () => ExternalTastingDialog.show(context),
-                      ),
-                      _SidebarActionItem(
-                        icon: Icons.public,
-                        label: isFr ? 'Carte des Terroirs' : 'World Terroirs Map',
-                        color: const Color(0xFF2E7D32),
-                        onTap: () => context.push('/scratchcard'),
                       ),
                     ],
                   ),

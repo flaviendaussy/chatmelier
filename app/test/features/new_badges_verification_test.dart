@@ -14,7 +14,10 @@ void main() {
         expect(badge.assetImagePath, isNotNull, reason: '${badge.id} has null assetImagePath');
         expect(badge.assetImagePath!.isNotEmpty, isTrue, reason: '${badge.id} has empty assetImagePath');
 
-        final file = File(badge.assetImagePath!);
+        // Les assets de badges sont parqués hors du bundle (_parked_assets/) tant que
+        // la fonctionnalité est retirée de l'app. Le test garde son intérêt : il vérifie
+        // que catalogue et fichiers restent synchronisés pour le jour où elle revient.
+        final file = File(badge.assetImagePath!.replaceFirst('assets/', '_parked_assets/'));
         expect(file.existsSync(), isTrue, reason: 'Asset file does not exist on disk: ${badge.assetImagePath}');
       }
     });

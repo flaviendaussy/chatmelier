@@ -29,8 +29,6 @@ import '../../../shared/widgets/notification_bell_button.dart';
 import '../domain/user_profile.dart';
 import '../../notifications/presentation/notification_settings_sheet.dart';
 import '../../notifications/data/notification_preferences_service.dart';
-import '../../badges/presentation/badges_gallery_sheet.dart';
-import '../../badges/data/badge_unlock_tracker.dart';
 import '../../feedback/data/shake_feedback_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -50,23 +48,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _isLoading = true;
   bool _showPrivacyOptions = false;
   bool _isUploadingAvatar = false;
-  bool _badgeAnimationsEnabled = true;
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
     _checkPrivacyOptions();
-    _loadBadgeSettings();
-  }
-
-  Future<void> _loadBadgeSettings() async {
-    try {
-      final enabled = await BadgeUnlockTracker.areAnimationsEnabled();
-      if (mounted) {
-        setState(() => _badgeAnimationsEnabled = enabled);
-      }
-    } catch (_) {}
   }
 
   Future<void> _checkPrivacyOptions() async {
@@ -1106,9 +1093,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ),
 
-        // 🏆 BADGES & TROPHÉES SHOWCASE
-        const BadgesShowcaseCard(),
-
         // 📊 STATISTIQUES DE CAVE & ANALYSES
         Card(
           elevation: 2,
@@ -1372,28 +1356,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         const Divider(height: 28),
 
-        // Animations des Badges & Trophées
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          secondary: const Icon(Icons.emoji_events_outlined, color: Color(0xFFD4AF37)),
-          title: Text(
-            isFr ? 'Animations des Trophées 🏆' : 'Badge Unlock Animations 🏆',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(
-            isFr
-                ? 'Célébration festive lors du déblocage d\'une distinction'
-                : 'Celebratory animation when a badge is unlocked',
-            style: const TextStyle(fontSize: 12),
-          ),
-          value: _badgeAnimationsEnabled,
-          activeThumbColor: const Color(0xFFD4AF37),
-          onChanged: (val) async {
-            setState(() => _badgeAnimationsEnabled = val);
-            await BadgeUnlockTracker.setAnimationsEnabled(val);
-          },
-        ),
-
         // RGPD Consent options
         if (_showPrivacyOptions) ...[
           const Divider(height: 28),
@@ -1414,7 +1376,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // TAB 2 : OUTILS & DONNÉES (ZERO SCROLL)
   // =========================================================================
   Widget _buildToolsTab(BuildContext context, ThemeData theme, bool isDark, bool isFr) {
-    final l10n = AppLocalizations.of(context);
     // Statut admin décidé par le serveur (profiles.is_admin, migration 029).
     // Ferme par défaut pendant le chargement et en cas d'erreur.
     final isAdmin = ref.watch(isAdminProvider).value ?? false;
@@ -1469,25 +1430,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         const Divider(height: 12),
 
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.public, color: Colors.amber),
-          title: Text(l10n?.profileScratchcard ?? (isFr ? 'Planisphère des Terroirs à Gratter' : 'Scratch Map of Terroirs'), style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(isFr ? 'Révélez vos zones et appellations dégustées' : 'Reveal your tasted regions and appellations', style: const TextStyle(fontSize: 12)),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.push('/scratchcard'),
-        ),
-        const Divider(height: 12),
 
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.history_toggle_off, color: Colors.purple),
-          title: Text(l10n?.profileChangelog ?? (isFr ? 'Journal des versions & Changelog' : 'Release Notes & Changelog'), style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(isFr ? 'Bascule Vue Client / Vue Développeur' : 'Toggle Client View / Developer View', style: const TextStyle(fontSize: 12)),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.push('/changelog'),
-        ),
-        const Divider(height: 12),
 
         ListTile(
           contentPadding: EdgeInsets.zero,
@@ -1507,15 +1450,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             subtitle: Text(isFr ? 'Suivi des tokens et dépenses All-Time' : 'Token usage & all-time expenditure', style: const TextStyle(fontSize: 12)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/ai-costs'),
-          ),
-          const Divider(height: 12),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.terminal, color: Colors.teal),
-            title: Text(isFr ? 'Console & Logs de Diagnostic' : 'Diagnostic Console & Logs', style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(isFr ? 'Inspecter l\'historique des requêtes' : 'Inspect request and event history', style: const TextStyle(fontSize: 12)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/diagnostic-logs'),
           ),
         ],
       ],

@@ -6,7 +6,6 @@ import '../domain/badge.dart';
 import '../data/badges_provider.dart';
 import '../data/badge_unlock_tracker.dart';
 import 'badge_unlock_celebration_dialog.dart';
-import 'chatmelier_badge_video_dialog.dart';
 
 class BadgesGalleryPage extends StatelessWidget {
   const BadgesGalleryPage({super.key});
@@ -134,11 +133,6 @@ class _BadgesGallerySheetState extends ConsumerState<BadgesGallerySheet> {
                       ),
                     ],
                   ),
-                ),
-                IconButton(
-                  tooltip: isFr ? 'Cérémonie Vidéo du Chatmelier 🎬' : 'Chatmelier Video Ceremony 🎬',
-                  icon: const Icon(Icons.movie_filter_outlined, color: Color(0xFFD4AF37)),
-                  onPressed: () => ChatmelierBadgeVideoDialog.show(context),
                 ),
                 if (!widget.isPage)
                   IconButton(
@@ -613,20 +607,6 @@ class _BadgeDetailModal extends StatelessWidget {
               // Voir la cérémonie vidéo du Chatmelier
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFD4AF37),
-                    side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 11),
-                  ),
-                  icon: const Icon(Icons.movie_filter_outlined, size: 16, color: Color(0xFFD4AF37)),
-                  label: Text(
-                    isFr ? 'Cérémonie du Chatmelier 🎬' : 'Chatmelier Trophy Reveal 🎬',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                  onPressed: () => ChatmelierBadgeVideoDialog.show(context, progress: progress),
-                ),
               ),
               const SizedBox(height: 8),
 

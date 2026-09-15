@@ -680,9 +680,9 @@ void main() {
       expect(find.text('Outils'), findsOneWidget);
       expect(find.text('Compte'), findsOneWidget);
 
-      // Tab 0 (Palais & Badges) shows Radar and Badges Showcase
+      // Tab 0 montre le Radar des Goûts. La vitrine « Trophées & Badges » a été
+      // retirée de l'app (badges parqués) — voir HANDOVER.md.
       expect(find.text('Radar des Goûts'), findsOneWidget);
-      expect(find.text('Trophées & Badges'), findsOneWidget);
 
       // Switch to Tab 1: Réglages
       await tester.tap(find.text('Réglages'));
@@ -700,8 +700,8 @@ void main() {
 
       expect(find.textContaining('Mes Amis & Cartes des Goûts'), findsOneWidget);
       expect(find.textContaining('Exporter ma Cave'), findsOneWidget);
-      expect(find.textContaining('Carte à Gratter des Terroirs'), findsOneWidget);
-      expect(find.textContaining('Journal des versions'), findsOneWidget);
+      // « Carte à Gratter des Terroirs » et « Journal des versions » ont été retirées
+      // de l'app : scratchcard parqué, changelog supprimé — voir HANDOVER.md.
 
       // Switch to Tab 3: Compte
       await tester.tap(find.text('Compte'));

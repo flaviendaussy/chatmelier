@@ -231,11 +231,6 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             tooltip: isFr ? 'Dégustation Hors-Cave (Restaurant, Amis)' : 'Out-of-Cellar Tasting (Restaurant, Friends)',
             onPressed: () => ExternalTastingDialog.show(context),
           ),
-          IconButton(
-            icon: const Icon(Icons.public, color: Colors.amber),
-            tooltip: isFr ? 'Carte à Gratter des Terroirs' : 'Terroir Scratch Map',
-            onPressed: () => context.push('/scratchcard'),
-          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

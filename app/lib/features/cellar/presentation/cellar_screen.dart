@@ -26,7 +26,6 @@ import 'create_cellar_dialog.dart';
 import 'shelf_grid_view_sheet.dart';
 import '../data/favorite_wines_service.dart';
 import 'cellar_proximity_banner.dart';
-import '../../voice/presentation/voice_dictation_sheet.dart';
 import '../../auth/presentation/mandatory_username_dialog.dart';
 import '../../../shared/widgets/offline_sync_banner.dart';
 import '../../../shared/widgets/grape_chart.dart';
@@ -668,11 +667,6 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             },
           ),
           // Voice Dictation
-          IconButton(
-            icon: const Icon(Icons.mic, color: Color(0xFF8B1E3F)),
-            tooltip: isFr ? 'Dictée Vocale Mains Libres' : 'Hands-Free Voice Dictation',
-            onPressed: () => VoiceDictationSheet.show(context),
-          ),
           // View Mode Selector (Grid / Liste)
           PopupMenuButton<CellarViewMode>(
             icon: Icon(

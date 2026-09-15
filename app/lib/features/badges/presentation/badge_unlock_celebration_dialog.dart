@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/badge_unlock_tracker.dart';
 import '../domain/badge.dart';
-import 'chatmelier_badge_video_dialog.dart';
 
 /// Classy and celebratory dialog displayed when a badge is unlocked.
 /// Features champagne micro-effervescence, rotating luminous halo,
@@ -371,20 +370,6 @@ class _BadgeUnlockCelebrationDialogState extends State<BadgeUnlockCelebrationDia
                         // Video ceremony button
                         SizedBox(
                           width: double.infinity,
-                          child: OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFFD4AF37),
-                              side: BorderSide(color: const Color(0xFFD4AF37).withValues(alpha: 0.6)),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            icon: const Icon(Icons.movie_filter_outlined, size: 16, color: Color(0xFFD4AF37)),
-                            label: Text(
-                              isFr ? 'Voir la cérémonie en vidéo 🎬' : 'Watch video ceremony 🎬',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
-                            ),
-                            onPressed: () => ChatmelierBadgeVideoDialog.show(context, progress: widget.progress),
-                          ),
                         ),
                         const SizedBox(height: 12),
 

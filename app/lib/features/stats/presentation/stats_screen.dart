@@ -9,14 +9,11 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/wine_type_badge.dart';
 import '../../../shared/widgets/drinking_window_badge.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../cellar/domain/bottle.dart';
 import '../../cellar/domain/wine.dart';
-import '../../scratchcard/presentation/scratch_map_canvas.dart';
 import '../data/stats_repository.dart';
 import '../domain/cellar_stats.dart';
 
 final statsDisplayCurrencyProvider = StateProvider<String>((ref) => 'EUR');
-final statsMapModeProvider = StateProvider<String>((ref) => 'france');
 
 class StatsScreen extends ConsumerStatefulWidget {
   const StatsScreen({super.key});
@@ -51,7 +48,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     final userCellarsAsync = ref.watch(userCellarsProvider);
     final userCellars = userCellarsAsync.valueOrNull ?? [];
     final displayCurrency = ref.watch(statsDisplayCurrencyProvider);
-    final mapMode = ref.watch(statsMapModeProvider);
     final l10n = AppLocalizations.of(context);
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
@@ -214,7 +210,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               .where((b) => b.wine?.windowStatus == DrinkWindowStatus.drinkSoon)
               .toList();
 
-          final mapRegions = _buildMapRegions(mapMode, bottles, isFr);
 
           final isLarge = Responsive.isTabletOrDesktop(context);
 
@@ -244,7 +239,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     const SizedBox(height: 20),
 
                     // Embedded Terroirs Map Full Width
-                    _buildScratchMapCard(context, theme, isDark, mapMode, mapRegions, isFr),
                     const SizedBox(height: 20),
 
                     // Charts Row 1: Wine Colors + Drinking Window
@@ -347,7 +341,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     const SizedBox(height: 16),
 
                     // 2. EMBEDDED INTERACTIVE SCRATCH MAP
-                    _buildScratchMapCard(context, theme, isDark, mapMode, mapRegions, isFr),
                     const SizedBox(height: 16),
 
                     // 3. Sommelier KPI Counters Grid
@@ -530,85 +523,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= 2. EMBEDDED SCRATCH MAP CARD =================
-  Widget _buildScratchMapCard(BuildContext context, ThemeData theme, bool isDark, String mapMode, List<MapRegionData> regions, bool isFr) {
-    final unlockedCount = regions.where((r) => r.isUnlocked).length;
-    final totalCount = regions.length;
-    final pct = totalCount > 0 ? (unlockedCount / totalCount * 100).round() : 0;
-
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: isDark ? const Color(0xFF1B1622) : const Color(0xFFFAF6EE),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.public, color: Color(0xFFD4AF37), size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isFr ? 'Carte des Terroirs & Découvertes' : 'Terroirs & Discoveries Map',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
-                      Text(
-                        isFr
-                            ? '$unlockedCount / $totalCount terroirs explorés ($pct%)'
-                            : '$unlockedCount / $totalCount terroirs explored ($pct%)',
-                        style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-                // Mode Toggle
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'france', label: Text('🇫🇷', style: TextStyle(fontSize: 13))),
-                    ButtonSegment(value: 'world', label: Text('🌍', style: TextStyle(fontSize: 13))),
-                  ],
-                  selected: {mapMode},
-                  onSelectionChanged: (val) {
-                    ref.read(statsMapModeProvider.notifier).state = val.first;
-                  },
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  tooltip: isFr ? 'Plein écran' : 'Fullscreen',
-                  icon: const Icon(Icons.fullscreen, color: Color(0xFFD4AF37)),
-                  onPressed: () => context.push('/scratchcard'),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 280,
-            child: ScratchMapCanvas(
-              mapMode: mapMode,
-              regions: regions,
-              onRegionTapped: (region) => _showRegionModal(context, region, isFr),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ================= 3. KPI COUNTERS GRID =================
   Widget _buildKpiGrid(BuildContext context, ThemeData theme, CellarStats stats, AppLocalizations? l10n, bool isFr) {
     return Column(
@@ -1174,165 +1088,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   // ================= REGION EXTRACTION & MODAL =================
-  List<MapRegionData> _buildMapRegions(String mode, List<Bottle> bottles, bool isFr) {
-    if (mode == 'france') {
-      final bdxKeys = ['bordeaux', 'margaux', 'pauillac', 'pomerol', 'saint-émilion', 'saint-emilion', 'saint-julien', 'pessac', 'grave', 'médoc', 'medoc', 'sauternes'];
-      final bouKeys = ['bourgogne', 'burgundy', 'chablis', 'meursault', 'beaune', 'nuits', 'vosne', 'pommard', 'volnay', 'gevrey', 'mâcon'];
-      final beauKeys = ['beaujolais', 'morgon', 'fleurie', 'moulin-à-vent', 'brouilly', 'juliénas'];
-      final rhoKeys = ['rhône', 'rhone', 'châteauneuf', 'saint-joseph', 'hermitage', 'côte-rôtie', 'gigondas', 'vacqueyras', 'cornas'];
-      final chaKeys = ['champagne', 'reims', 'épernay'];
-      final loiKeys = ['loire', 'sancerre', 'pouilly', 'chinon', 'vouvray', 'saumur'];
-      final alsKeys = ['alsace', 'riesling', 'gewurztraminer', 'pinot gris'];
-      final juraKeys = ['jura', 'savoie', 'arbois', 'vin jaune'];
-      final langKeys = ['languedoc', 'roussillon', 'pic saint-loup', 'corbières'];
-      final sudOuestKeys = ['sud-ouest', 'sud ouest', 'cahors', 'madiran', 'jurançon'];
-      final proKeys = ['provence', 'bandol', 'cassis'];
-      final corKeys = ['corse', 'corsica', 'patrimonio', 'ajaccio'];
-
-      return [
-        _createRegion('champagne', 'Champagne', 'France', '🇫🇷', const Rect.fromLTWH(0.44, 0.14, 0.22, 0.14), chaKeys, bottles, isFr ? 'Effervescents de craie et de renommée mondiale.' : 'World-renowned chalky sparkling wines.'),
-        _createRegion('alsace', 'Alsace', 'France', '🇫🇷', const Rect.fromLTWH(0.72, 0.20, 0.16, 0.18), alsKeys, bottles, isFr ? 'Rieslings et cépages nobles sur coteaux vosgiens.' : 'Riesling and noble varietals on Vosges hillsides.'),
-        _createRegion('bourgogne', 'Bourgogne', 'France', '🇫🇷', const Rect.fromLTWH(0.55, 0.31, 0.20, 0.18), bouKeys, bottles, isFr ? 'Pinot Noir et Chardonnay sur terroirs classés UNESCO.' : 'Pinot Noir and Chardonnay on UNESCO-classified terroirs.'),
-        _createRegion('beaujolais', 'Beaujolais', 'France', '🇫🇷', const Rect.fromLTWH(0.57, 0.48, 0.10, 0.08), beauKeys, bottles, isFr ? 'Gamay sublime sur granites et schistes bleus.' : 'Sublime Gamay on granites and blue schist soils.'),
-        _createRegion('jura_savoie', 'Jura & Savoie', 'France', '🇫🇷', const Rect.fromLTWH(0.70, 0.46, 0.12, 0.14), juraKeys, bottles, isFr ? 'Vins de voile oxydatifs et terroirs d\'altitude.' : 'Oxidative flor wines and alpine terroirs.'),
-        _createRegion('loire', isFr ? 'Vallée de la Loire' : 'Loire Valley', 'France', '🇫🇷', const Rect.fromLTWH(0.24, 0.28, 0.28, 0.15), loiKeys, bottles, isFr ? 'Chenin Blanc, Sauvignon et Cabernet Franc.' : 'Chenin Blanc, Sauvignon Blanc, and Cabernet Franc.'),
-        _createRegion('bordeaux', 'Bordeaux', 'France', '🇫🇷', const Rect.fromLTWH(0.18, 0.52, 0.24, 0.18), bdxKeys, bottles, isFr ? 'Grands Crus Classés de la rive gauche et rive droite.' : 'Left and right bank classified Grands Crus.'),
-        _createRegion('sud_ouest', isFr ? 'Sud-Ouest' : 'South-West', 'France', '🇫🇷', const Rect.fromLTWH(0.20, 0.68, 0.22, 0.18), sudOuestKeys, bottles, isFr ? 'Cahors Tannat, Madiran et pépites authentiques.' : 'Cahors Tannat, Madiran, and authentic hidden gems.'),
-        _createRegion('rhone', isFr ? 'Vallée du Rhône' : 'Rhône Valley', 'France', '🇫🇷', const Rect.fromLTWH(0.54, 0.58, 0.18, 0.20), rhoKeys, bottles, isFr ? 'Syrah septentrionale et Grenache méridional.' : 'Northern Syrah and Southern Grenache blends.'),
-        _createRegion('languedoc_roussillon', 'Languedoc-Roussillon', 'France', '🇫🇷', const Rect.fromLTWH(0.40, 0.76, 0.24, 0.16), langKeys, bottles, isFr ? 'Vignoble solaire méditerranéen.' : 'Sunny Mediterranean terroirs and expressive crus.'),
-        _createRegion('provence', 'Provence', 'France', '🇫🇷', const Rect.fromLTWH(0.64, 0.76, 0.20, 0.14), proKeys, bottles, isFr ? 'Rosés gastronomiques et Bandols d\'anthologie.' : 'Gastronomic rosés and legendary Bandol reds.'),
-        _createRegion('corse', isFr ? 'Corse' : 'Corsica', 'France', '🇫🇷', const Rect.fromLTWH(0.86, 0.80, 0.12, 0.18), corKeys, bottles, isFr ? 'Niellucciu, Sciaccarellu et Vermentinu sur l\'Île de Beauté.' : 'Niellucciu, Sciaccarellu, and Vermentinu on the Isle of Beauty.'),
-      ];
-    } else {
-      // International countries
-      return [
-        _createRegion('italy', isFr ? 'Italie' : 'Italy', isFr ? 'Italie' : 'Italy', '🇮🇹', const Rect.fromLTWH(0.50, 0.28, 0.05, 0.07), ['ital', 'barolo', 'chianti', 'brunello'], bottles, isFr ? 'Barolo, Brunello et diversité des DOCG.' : 'Barolo, Brunello, and the rich diversity of DOCG appellations.'),
-        _createRegion('spain', isFr ? 'Espagne' : 'Spain', isFr ? 'Espagne' : 'Spain', '🇪🇸', const Rect.fromLTWH(0.45, 0.30, 0.05, 0.06), ['spain', 'espag', 'rioja', 'ribera', 'priorat'], bottles, isFr ? 'Tempranillo, Grenache et grands élevages.' : 'Tempranillo, Garnacha, and celebrated aged reserves.'),
-        _createRegion('usa', isFr ? 'États-Unis' : 'United States', 'USA', '🇺🇸', const Rect.fromLTWH(0.12, 0.28, 0.14, 0.12), ['usa', 'calif', 'napa', 'oregon', 'sonoma'], bottles, isFr ? 'Napa Valley Cabernet et Pinots d\'Oregon.' : 'Napa Valley Cabernet and expressive Oregon Pinots.'),
-        _createRegion('argentina', isFr ? 'Argentine' : 'Argentina', isFr ? 'Argentine' : 'Argentina', '🇦🇷', const Rect.fromLTWH(0.28, 0.68, 0.06, 0.14), ['argentin', 'mendoza', 'malbec'], bottles, isFr ? 'Malbec d\'altitude au pied des Andes.' : 'High-altitude Malbec grown at the foot of the Andes.'),
-        _createRegion('chile', isFr ? 'Chili' : 'Chile', isFr ? 'Chili' : 'Chile', '🇨🇱', const Rect.fromLTWH(0.26, 0.66, 0.04, 0.16), ['chili', 'chile', 'carmenere', 'colchagua'], bottles, isFr ? 'Carmenère et vallées côtières pacifiques.' : 'Carmenère and cool-climate Pacific coastal valleys.'),
-      ];
-    }
-  }
-
-  String _normalizeDiacritics(String str) {
-    return str
-        .toLowerCase()
-        .replaceAll(RegExp(r'[éèêë]'), 'e')
-        .replaceAll(RegExp(r'[àâä]'), 'a')
-        .replaceAll(RegExp(r'[îï]'), 'i')
-        .replaceAll(RegExp(r'[ôö]'), 'o')
-        .replaceAll(RegExp(r'[ùûü]'), 'u')
-        .replaceAll(RegExp(r'[ç]'), 'c')
-        .replaceAll(RegExp(r'[ÿ]'), 'y')
-        .replaceAll(RegExp(r'[\-]'), ' ');
-  }
-
-  MapRegionData _createRegion(String id, String name, String country, String flag, Rect bounds, List<String> keywords, List<Bottle> bottles, String desc) {
-    int owned = 0;
-    int drunk = 0;
-    String? topWine;
-
-    for (final b in bottles) {
-      final wine = b.wine;
-      final match = keywords.any((k) {
-        final normK = _normalizeDiacritics(k);
-        return (wine != null && _normalizeDiacritics(wine.region).contains(normK)) ||
-            (wine?.appellation != null && _normalizeDiacritics(wine!.appellation!).contains(normK)) ||
-            (wine != null && _normalizeDiacritics(wine.country).contains(normK)) ||
-            (wine != null && _normalizeDiacritics(wine.name).contains(normK));
-      });
-
-      if (match) {
-        if (b.isConsumed) {
-          drunk += b.quantity;
-        } else {
-          owned += b.quantity;
-        }
-        topWine ??= wine?.name;
-      }
-    }
-
-    return MapRegionData(
-      id: id,
-      name: name,
-      country: country,
-      flag: flag,
-      normalizedBounds: bounds,
-      isOwned: owned > 0,
-      isDrunk: drunk > 0,
-      ownedCount: owned,
-      drunkCount: drunk,
-      topWine: topWine,
-      description: desc,
-    );
-  }
-
-  void _showRegionModal(BuildContext context, MapRegionData region, bool isFr) {
-    final theme = Theme.of(context);
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(region.flag, style: const TextStyle(fontSize: 28)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(region.name, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(region.country, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-                Chip(
-                  label: Text(region.isUnlocked ? (isFr ? 'Exploré ✨' : 'Explored ✨') : (isFr ? 'À découvrir 🔒' : 'To discover 🔒')),
-                  backgroundColor: region.isUnlocked ? const Color(0xFFD4AF37).withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(region.description, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _ModalStatTile(label: isFr ? 'En cave' : 'In cellar', value: '${region.ownedCount} btl', icon: Icons.inventory_2),
-                _ModalStatTile(label: isFr ? 'Dégustées' : 'Tasted', value: '${region.drunkCount}', icon: Icons.wine_bar),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ModalStatTile extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _ModalStatTile({required this.label, required this.value, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: const Color(0xFFD4AF37), size: 22),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-      ],
-    );
-  }
 }
 
 class _StatKpiCard extends StatelessWidget {

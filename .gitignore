@@ -45,3 +45,6 @@ admin_console/
 # Artefacts temporaires de la CLI Supabase
 supabase/.temp/
 supabase/supabase/
+
+# Assets parqués — hors bundle, conservés pour un retour éventuel (badges, scratchcard)
+_parked_assets/

@@ -19,13 +19,9 @@ import '../features/checkout/presentation/consumption_review_screen.dart';
 import '../features/chat/presentation/chat_screen.dart';
 import '../features/journal/presentation/journal_screen.dart';
 import '../features/stats/presentation/stats_screen.dart';
-import '../features/changelog/presentation/changelog_screen.dart';
-import '../features/changelog/presentation/diagnostic_logs_screen.dart';
-import '../features/scratchcard/presentation/scratch_map_screen.dart';
 import '../features/auth/presentation/ai_cost_estimator_screen.dart';
 import '../features/friends/presentation/friends_screen.dart';
 import '../features/cocktails/presentation/bar_cocktails_hub_screen.dart';
-import '../features/badges/presentation/badges_gallery_sheet.dart';
 import '../features/menu_scan/domain/menu_wine.dart';
 import '../features/menu_scan/presentation/menu_photo_capture_screen.dart';
 import '../features/menu_scan/presentation/enriched_menu_screen.dart';
@@ -221,12 +217,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: ProfileScreen(),
             ),
           ),
-          GoRoute(
-            path: '/badges',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: BadgesGalleryPage(),
-            ),
-          ),
         ],
       ),
 
@@ -310,26 +300,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/invites',
         builder: (context, state) => const PendingInvitesScreen(),
-      ),
-      GoRoute(
-        path: '/changelog',
-        builder: (context, state) => const ChangelogScreen(),
-      ),
-      GoRoute(
-        path: '/scratchcard',
-        builder: (context, state) => const ScratchMapScreen(),
-      ),
-      GoRoute(
-        path: '/map',
-        builder: (context, state) => const ScratchMapScreen(),
-      ),
-      GoRoute(
-        path: '/terroirs',
-        builder: (context, state) => const ScratchMapScreen(),
-      ),
-      GoRoute(
-        path: '/diagnostic-logs',
-        builder: (context, state) => const DiagnosticLogsScreen(),
       ),
       GoRoute(
         path: '/ai-costs',

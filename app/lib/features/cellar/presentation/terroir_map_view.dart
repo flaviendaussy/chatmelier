@@ -3,6 +3,55 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../domain/terroir_geo_data.dart';
 
+/// Assombrit les tuiles claires d'OpenTopoMap pour l'ambiance sombre.
+///
+/// Un seul fournisseur sert les deux ambiances, ce qui évite d'en dépendre de deux et
+/// garde l'attribution unique. La matrice inverse la luminance puis la teinte légèrement
+/// vers le bleu nuit : le relief et l'hydrographie restent lisibles, contrairement au
+/// fond CARTO précédent qui était quasi noir avant même d'être filigrané.
+const ColorFilter kDarkTerroirTileFilter = ColorFilter.matrix(<double>[
+  -0.78, -0.10, -0.04, 0, 235,
+  -0.08, -0.80, -0.04, 0, 238,
+  -0.06, -0.10, -0.70, 0, 248,
+  0, 0, 0, 1, 0,
+]);
+
+/// Attribution exigée par la licence CC-BY-SA d'OpenTopoMap. Elle doit rester
+/// « deutlich sichtbar » — clairement visible — sur toute carte affichée.
+const String kTerroirTileAttribution =
+    '© OpenStreetMap · SRTM · rendu © OpenTopoMap (CC-BY-SA)';
+
+/// Mention de licence, posée en surimpression permanente sur la carte.
+///
+/// La licence CC-BY-SA d'OpenTopoMap exige une attribution « clairement visible ». Le
+/// `RichAttributionWidget` de flutter_map la replie derrière un bouton ⓘ, ce qui ne
+/// satisfait pas cette exigence : on l'affiche en clair, en petit, sur un fond
+/// translucide qui la garde lisible sur relief clair comme sombre.
+class _TileAttributionBadge extends StatelessWidget {
+  const _TileAttributionBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: 6,
+      bottom: 6,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.45),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          child: Text(
+            kTerroirTileAttribution,
+            style: TextStyle(fontSize: 8.5, height: 1.1, color: Colors.white70),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 enum TerroirMapTheme {
   darkMatter,
   openStreetMap,
@@ -84,34 +133,36 @@ class _TerroirMapViewState extends State<TerroirMapView> {
 
   String _getTileUrl(TerroirMapTheme theme) {
     switch (theme) {
+      // Un seul fournisseur pour les deux ambiances : OpenTopoMap, sans clé et
+      // explicitement utilisable commercialement (CC-BY-SA, attribution obligatoire).
+      // Le rendu sombre est obtenu par un filtre de couleur sur les mêmes tuiles —
+      // voir `darkTileFilter`. Voir aussi l'en-tête de `_getTileUrl` pour l'historique.
       case TerroirMapTheme.darkMatter:
-        return 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
+      case TerroirMapTheme.topoRelief:
+        return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
       case TerroirMapTheme.openStreetMap:
         return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
       case TerroirMapTheme.satellite:
         return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}';
-      case TerroirMapTheme.topoRelief:
-        return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
     }
   }
 
   List<String> _getTileSubdomains(TerroirMapTheme theme) {
     switch (theme) {
       case TerroirMapTheme.darkMatter:
-        return const ['a', 'b', 'c', 'd'];
+      case TerroirMapTheme.topoRelief:
+        return const ['a', 'b', 'c'];
       case TerroirMapTheme.openStreetMap:
         return const [];
       case TerroirMapTheme.satellite:
         return const [];
-      case TerroirMapTheme.topoRelief:
-        return const ['a', 'b', 'c'];
     }
   }
 
   String _getThemeName(TerroirMapTheme theme) {
     switch (theme) {
       case TerroirMapTheme.darkMatter:
-        return 'Dark';
+        return 'Relief sombre';
       case TerroirMapTheme.openStreetMap:
         return 'OSM';
       case TerroirMapTheme.satellite:
@@ -220,7 +271,13 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                           urlTemplate: _getTileUrl(_mapTheme),
                           subdomains: _getTileSubdomains(_mapTheme),
                           userAgentPackageName: 'com.chatmelier.app',
-                          maxZoom: 19,
+                          maxZoom: 17,
+                          tileBuilder: _mapTheme == TerroirMapTheme.darkMatter
+                              ? (context, tileWidget, tile) => ColorFiltered(
+                                    colorFilter: kDarkTerroirTileFilter,
+                                    child: tileWidget,
+                                  )
+                              : null,
                         ),
 
                         // Appellation Terroir Envelope & Cru Parcel Layer
@@ -371,6 +428,8 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                     ),
                   ),
                 ),
+
+                const _TileAttributionBadge(),
               ],
             ),
           ),
@@ -703,27 +762,29 @@ class _TerroirMapFullscreenScreenState
 
   String _getTileUrl(TerroirMapTheme theme) {
     switch (theme) {
+      // Un seul fournisseur pour les deux ambiances : OpenTopoMap, sans clé et
+      // explicitement utilisable commercialement (CC-BY-SA, attribution obligatoire).
+      // Le rendu sombre est obtenu par un filtre de couleur sur les mêmes tuiles —
+      // voir `darkTileFilter`. Voir aussi l'en-tête de `_getTileUrl` pour l'historique.
       case TerroirMapTheme.darkMatter:
-        return 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
+      case TerroirMapTheme.topoRelief:
+        return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
       case TerroirMapTheme.openStreetMap:
         return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
       case TerroirMapTheme.satellite:
         return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}';
-      case TerroirMapTheme.topoRelief:
-        return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
     }
   }
 
   List<String> _getTileSubdomains(TerroirMapTheme theme) {
     switch (theme) {
       case TerroirMapTheme.darkMatter:
-        return const ['a', 'b', 'c', 'd'];
+      case TerroirMapTheme.topoRelief:
+        return const ['a', 'b', 'c'];
       case TerroirMapTheme.openStreetMap:
         return const [];
       case TerroirMapTheme.satellite:
         return const [];
-      case TerroirMapTheme.topoRelief:
-        return const ['a', 'b', 'c'];
     }
   }
 

@@ -5,15 +5,28 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/app_logger.dart';
 
+/// Un trait d'annotation, exprimé **en coordonnées de l'image**, pas de l'écran.
+///
+/// Les points vont de 0 à 1 sur chaque axe, relativement à la capture. C'est ce qui les
+/// ancre : ils étaient auparavant stockés en pixels absolus du widget, si bien que
+/// n'importe quel changement de taille du conteneur les décalait. Ouvrir le clavier pour
+/// taper son commentaire réduit le canevas de moitié — l'entourage se déplaçait, et avec
+/// un grand clavier il sortait carrément du cadre et se faisait rogner. Signalé par un
+/// utilisateur le 2026-09-06 : « ça déplace l'entourage que j'ai fait au stylet, il
+/// devrait être ancré, ne plus bouger ».
+///
+/// [widthRatio] suit la même logique : une épaisseur exprimée en fraction de la largeur
+/// de l'image garde la même apparence à l'écran comme dans le fichier exporté, quelle que
+/// soit la taille à laquelle on dessine.
 class FeedbackStroke {
   final List<Offset> points;
   final Color color;
-  final double strokeWidth;
+  final double widthRatio;
 
   FeedbackStroke({
     required this.points,
     required this.color,
-    this.strokeWidth = 3.5,
+    required this.widthRatio,
   });
 }
 
@@ -101,17 +114,26 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
       // 1. Draw base screenshot
       canvas.drawImage(_decodedImage!, Offset.zero, Paint());
 
-      // 2. Draw user strokes scaled to image coordinates
+      // 2. Les traits, ramenés à la taille NATIVE de l'image.
+      //
+      // Le code précédent annonçait « scaled to image coordinates » mais dessinait les
+      // coordonnées de widget telles quelles sur un canevas aux dimensions de la capture.
+      // Sur un écran à 2,625 pixels par point, un trait tracé en (200, 300) atterrissait
+      // au pixel (200, 300) au lieu de (525, 787) : TOUTES les annotations envoyées
+      // étaient tirées vers le coin supérieur gauche. Ce n'était pas visible depuis
+      // l'app — seulement dans les rapports reçus.
       for (final stroke in _strokes) {
         final paint = Paint()
           ..color = stroke.color
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
-          ..strokeWidth = stroke.strokeWidth * (width / 360.0).clamp(1.0, 3.0)
+          ..strokeWidth = stroke.widthRatio * width
           ..style = PaintingStyle.stroke;
 
+        Offset vers(Offset p) => Offset(p.dx * width, p.dy * height);
+
         for (int i = 0; i < stroke.points.length - 1; i++) {
-          canvas.drawLine(stroke.points[i], stroke.points[i + 1], paint);
+          canvas.drawLine(vers(stroke.points[i]), vers(stroke.points[i + 1]), paint);
         }
       }
 
@@ -299,45 +321,65 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
               ),
               clipBehavior: Clip.antiAlias,
               child: widget.screenshotBytes != null
-                  ? LayoutBuilder(
-                      builder: (context, constraints) {
-                        return GestureDetector(
-                          onPanStart: (details) {
-                            setState(() {
-                              _strokes.add(
-                                FeedbackStroke(
-                                  points: [details.localPosition],
-                                  color: _selectedColor,
-                                  strokeWidth: _strokeWidth,
-                                ),
-                              );
-                            });
-                          },
-                          onPanUpdate: (details) {
-                            if (_strokes.isNotEmpty) {
-                              setState(() {
-                                _strokes.last.points.add(details.localPosition);
-                              });
-                            }
-                          },
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.memory(
-                                widget.screenshotBytes!,
-                                fit: BoxFit.contain,
-                              ),
-                              CustomPaint(
-                                painter: _AnnotationPainter(
-                                  strokes: _strokes,
-                                ),
-                                size: Size(constraints.maxWidth, constraints.maxHeight),
-                              ),
-                            ],
+                  // `AspectRatio` fait coïncider la zone de dessin avec l'image elle-même :
+                  // plus de bandes vides sur les côtés, donc les coordonnées normalisées
+                  // désignent exactement le même point de la capture quelle que soit la
+                  // taille à laquelle on l'affiche. Tant que l'image n'est pas décodée, on
+                  // ne connaît pas son rapport et on ne laisse pas dessiner — un trait posé
+                  // à ce moment-là ne saurait pas à quoi il se rattache.
+                  ? (_decodedImage == null
+                      ? const Center(child: CircularProgressIndicator())
+                      : Center(
+                          child: AspectRatio(
+                            aspectRatio:
+                                _decodedImage!.width / _decodedImage!.height,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                Offset normalise(Offset local) => Offset(
+                                      (local.dx / constraints.maxWidth).clamp(0.0, 1.0),
+                                      (local.dy / constraints.maxHeight).clamp(0.0, 1.0),
+                                    );
+
+                                return GestureDetector(
+                                  onPanStart: (details) {
+                                    setState(() {
+                                      _strokes.add(
+                                        FeedbackStroke(
+                                          points: [normalise(details.localPosition)],
+                                          color: _selectedColor,
+                                          widthRatio:
+                                              _strokeWidth / constraints.maxWidth,
+                                        ),
+                                      );
+                                    });
+                                  },
+                                  onPanUpdate: (details) {
+                                    if (_strokes.isNotEmpty) {
+                                      setState(() {
+                                        _strokes.last.points
+                                            .add(normalise(details.localPosition));
+                                      });
+                                    }
+                                  },
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Image.memory(
+                                        widget.screenshotBytes!,
+                                        fit: BoxFit.fill,
+                                      ),
+                                      CustomPaint(
+                                        painter: _AnnotationPainter(strokes: _strokes),
+                                        size: Size(constraints.maxWidth,
+                                            constraints.maxHeight),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        );
-                      },
-                    )
+                        ))
                   : Center(
                       child: Text(
                         l10n?.feedbackNoScreenshot ?? 'Aucune capture d\'écran disponible',
@@ -427,17 +469,21 @@ class _AnnotationPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Draw strokes
+    // Les traits sont stockés de 0 à 1 : on les ramène à la taille courante du canevas.
+    // C'est la même opération que dans `_renderAnnotatedImage`, avec la taille de l'image
+    // native — d'où un rendu identique à l'écran et dans le fichier exporté.
     for (final stroke in strokes) {
       final paint = Paint()
         ..color = stroke.color
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
-        ..strokeWidth = stroke.strokeWidth
+        ..strokeWidth = stroke.widthRatio * size.width
         ..style = PaintingStyle.stroke;
 
+      Offset vers(Offset p) => Offset(p.dx * size.width, p.dy * size.height);
+
       for (int i = 0; i < stroke.points.length - 1; i++) {
-        canvas.drawLine(stroke.points[i], stroke.points[i + 1], paint);
+        canvas.drawLine(vers(stroke.points[i]), vers(stroke.points[i + 1]), paint);
       }
     }
   }

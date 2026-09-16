@@ -862,6 +862,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get wineTypeDessert => 'Moelleux / Liquoreux 🍯';
 
   @override
+  String get bottleSizeCustom => 'Autre contenance…';
+
+  @override
+  String get bottleSizeCustomTitle => 'Contenance personnalisée';
+
+  @override
+  String get bottleSizeCustomLabel => 'Contenance en centilitres';
+
+  @override
+  String get bottleSizeCustomInvalid =>
+      'Entrez une contenance entre 1 et 3000 cl.';
+
+  @override
   String get wineTypeLiqueur => 'Liqueur 🍯';
 
   @override

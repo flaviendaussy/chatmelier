@@ -213,7 +213,15 @@ class BottleSize {
       return standardSizes.firstWhere((s) => s.code == '6L');
     }
 
-    // Fallback preserving code
+    // 9. Contenance libre : « 20cl », « 200ml », « 0.2L »…
+    //
+    // Le repli historique renvoyait `volumeLiters: 0.75` pour tout code inconnu, ce qui
+    // faisait compter une fiole de 20 cl comme une bouteille standard. Personne ne lisait
+    // encore ce champ, mais c'était une donnée fausse qui attendait son premier lecteur.
+    final libre = _parseVolume(norm);
+    if (libre != null) return fromLiters(libre);
+
+    // Dernier repli : on préserve le code sans prétendre en connaître le volume.
     final displayCode = code.trim();
     return BottleSize(
       code: code,
@@ -223,6 +231,71 @@ class BottleSize {
       shortNameFr: displayCode,
       shortNameEn: displayCode,
     );
+  }
+
+  /// Volume en litres à partir d'un code normalisé, ou nul si le code n'en est pas un.
+  ///
+  /// Accepte les trois unités qu'on écrit sur une étiquette : centilitres, millilitres et
+  /// litres. Les bornes écartent les saisies absurdes — au-delà de 30 L on est au-dessus
+  /// du Melchior, en dessous de 1 cl ce n'est plus une bouteille.
+  static double? _parseVolume(String norm) {
+    final m = RegExp(r'^(\d+(?:\.\d+)?)(cl|ml|l)$').firstMatch(norm);
+    if (m == null) return null;
+    final valeur = double.tryParse(m.group(1)!);
+    if (valeur == null || valeur <= 0) return null;
+    final litres = switch (m.group(2)!) {
+      'cl' => valeur / 100.0,
+      'ml' => valeur / 1000.0,
+      _ => valeur,
+    };
+    if (litres < 0.01 || litres > 30.0) return null;
+    return litres;
+  }
+
+  /// Contenance libre à partir d'un volume en litres.
+  ///
+  /// Rend d'abord un format standard si le volume en correspond à un — saisir « 75 cl »
+  /// à la main doit donner la bouteille standard, avec son nom, pas un doublon anonyme.
+  static BottleSize fromLiters(double litres) {
+    for (final s in standardSizes) {
+      if ((s.volumeLiters - litres).abs() < 0.001) return s;
+    }
+    final code = canonicalCode(litres);
+    return BottleSize(
+      code: code,
+      labelFr: _lisible(litres, francais: true),
+      labelEn: _lisible(litres, francais: false),
+      volumeLiters: litres,
+      shortNameFr: _lisible(litres, francais: true),
+      shortNameEn: _lisible(litres, francais: false),
+    );
+  }
+
+  /// Écriture lisible d'un volume, alignée sur les formats nommés : centilitres et
+  /// virgule décimale en français (« 20 cl », « 37,5 cl »), millilitres en anglais sous
+  /// le litre (« 200 ml »), litres au-dessus. Sans ça, une contenance libre s'affichait
+  /// « 20cl » au milieu de pastilles disant « 75 cl » — c'est le genre d'écart que l'œil
+  /// attrape immédiatement.
+  static String _lisible(double litres, {required bool francais}) {
+    String nombre(double v) {
+      final s = v.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
+      return francais ? s.replaceAll('.', ',') : s;
+    }
+
+    if (litres >= 1.0) return '${nombre(litres)} L';
+    return francais ? '${nombre(litres * 100)} cl' : '${nombre(litres * 1000)} ml';
+  }
+
+  /// Écriture canonique d'un volume : centilitres en dessous du litre, litres au-dessus.
+  /// C'est la convention des codes existants (`37.5cl`, `75cl`, `1.5L`, `3L`).
+  static String canonicalCode(double litres) {
+    String sansZeroInutile(double v) {
+      final s = v.toStringAsFixed(2);
+      return s.replaceFirst(RegExp(r'\.?0+$'), '');
+    }
+
+    if (litres < 1.0) return '${sansZeroInutile(litres * 100)}cl';
+    return '${sansZeroInutile(litres)}L';
   }
 
   bool get isStandard75cl => code == '75cl';

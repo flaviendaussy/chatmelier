@@ -10,6 +10,8 @@ import '../domain/wine.dart';
 import '../domain/wine_image_service.dart';
 import '../domain/wine_service_advisor.dart';
 import 'bottle_provenance_picker.dart';
+import 'custom_bottle_size_dialog.dart';
+import '../../../l10n/app_localizations.dart';
 
 class BottleEditSheet extends ConsumerStatefulWidget {
   final Bottle bottle;
@@ -1384,8 +1386,28 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: BottleSize.standardSizes.length,
+                // +1 : la dernière entrée est la contenance libre.
+                itemCount: BottleSize.standardSizes.length + 1,
                 itemBuilder: (ctx, i) {
+                  if (i == BottleSize.standardSizes.length) {
+                    final l10n = AppLocalizations.of(ctx)!;
+                    return ListTile(
+                      leading: const Icon(Icons.straighten, color: Color(0xFF8B1E3F)),
+                      title: Text(
+                        l10n.bottleSizeCustom,
+                        style: const TextStyle(fontStyle: FontStyle.italic),
+                      ),
+                      onTap: () async {
+                        final code = await showCustomBottleSizeDialog(
+                          ctx,
+                          currentCode: _bottleSize,
+                        );
+                        if (code == null) return;
+                        setState(() => _bottleSize = code);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                    );
+                  }
                   final s = BottleSize.standardSizes[i];
                   final isSelected = _bottleSize == s.code;
                   return ListTile(

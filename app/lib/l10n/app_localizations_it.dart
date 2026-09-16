@@ -862,6 +862,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get wineTypeDessert => 'Vino Dolce / Passito 🍯';
 
   @override
+  String get bottleSizeCustom => 'Altra capacità…';
+
+  @override
+  String get bottleSizeCustomTitle => 'Capacità personalizzata';
+
+  @override
+  String get bottleSizeCustomLabel => 'Capacità in centilitri';
+
+  @override
+  String get bottleSizeCustomInvalid =>
+      'Inserisci una capacità tra 1 e 3000 cl.';
+
+  @override
   String get wineTypeLiqueur => 'Liquore 🍯';
 
   @override

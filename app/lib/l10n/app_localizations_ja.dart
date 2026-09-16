@@ -835,6 +835,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get wineTypeDessert => 'デザート / 極甘口 🍯';
 
   @override
+  String get bottleSizeCustom => 'その他の容量…';
+
+  @override
+  String get bottleSizeCustomTitle => 'カスタム容量';
+
+  @override
+  String get bottleSizeCustomLabel => '容量（センチリットル）';
+
+  @override
+  String get bottleSizeCustomInvalid => '1〜3000 cl の範囲で入力してください。';
+
+  @override
   String get wineTypeLiqueur => 'リキュール 🍯';
 
   @override

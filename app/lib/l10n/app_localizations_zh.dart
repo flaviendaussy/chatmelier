@@ -832,6 +832,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get wineTypeDessert => '甜酒 / 贵腐 🍯';
 
   @override
+  String get bottleSizeCustom => '其他容量…';
+
+  @override
+  String get bottleSizeCustomTitle => '自定义容量';
+
+  @override
+  String get bottleSizeCustomLabel => '容量（厘升）';
+
+  @override
+  String get bottleSizeCustomInvalid => '请输入 1 至 3000 厘升之间的容量。';
+
+  @override
   String get wineTypeLiqueur => '利口酒 🍯';
 
   @override

@@ -23,6 +23,7 @@ import '../../offline/presentation/sync_provider.dart';
 import '../../offline/data/connectivity_service.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../monetization/admob_service.dart';
+import '../../cellar/presentation/custom_bottle_size_dialog.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
   final String imagePath;
@@ -2124,8 +2125,28 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             Expanded(
               child: ListView.builder(
                 controller: scrollController,
-                itemCount: BottleSize.standardSizes.length,
+                // +1 : la dernière entrée est la contenance libre.
+                itemCount: BottleSize.standardSizes.length + 1,
                 itemBuilder: (ctx, i) {
+                  if (i == BottleSize.standardSizes.length) {
+                    final l10n = AppLocalizations.of(ctx)!;
+                    return ListTile(
+                      leading: const Icon(Icons.straighten, color: Color(0xFF8B1E3F)),
+                      title: Text(
+                        l10n.bottleSizeCustom,
+                        style: const TextStyle(fontStyle: FontStyle.italic),
+                      ),
+                      onTap: () async {
+                        final code = await showCustomBottleSizeDialog(
+                          ctx,
+                          currentCode: _bottleSize,
+                        );
+                        if (code == null) return;
+                        setState(() => _bottleSize = code);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                    );
+                  }
                   final s = BottleSize.standardSizes[i];
                   final isSelected = _bottleSize == s.code;
                   return ListTile(

@@ -1656,6 +1656,30 @@ abstract class AppLocalizations {
   /// **'Dessert / Sweet 🍯'**
   String get wineTypeDessert;
 
+  /// No description provided for @bottleSizeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom size…'**
+  String get bottleSizeCustom;
+
+  /// No description provided for @bottleSizeCustomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom size'**
+  String get bottleSizeCustomTitle;
+
+  /// No description provided for @bottleSizeCustomLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity in centilitres'**
+  String get bottleSizeCustomLabel;
+
+  /// No description provided for @bottleSizeCustomInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a capacity between 1 and 3000 cl.'**
+  String get bottleSizeCustomInvalid;
+
   /// No description provided for @wineTypeLiqueur.
   ///
   /// In en, this message translates to:

@@ -863,6 +863,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get wineTypeDessert => 'Dessertwein / Edelsüß 🍯';
 
   @override
+  String get bottleSizeCustom => 'Andere Größe…';
+
+  @override
+  String get bottleSizeCustomTitle => 'Eigene Größe';
+
+  @override
+  String get bottleSizeCustomLabel => 'Inhalt in Zentilitern';
+
+  @override
+  String get bottleSizeCustomInvalid =>
+      'Geben Sie einen Inhalt zwischen 1 und 3000 cl ein.';
+
+  @override
   String get wineTypeLiqueur => 'Likör 🍯';
 
   @override

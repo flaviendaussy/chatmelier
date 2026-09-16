@@ -858,6 +858,18 @@ class AppLocalizationsSv extends AppLocalizations {
   String get wineTypeDessert => 'Dessertvin / Sött 🍯';
 
   @override
+  String get bottleSizeCustom => 'Annan volym…';
+
+  @override
+  String get bottleSizeCustomTitle => 'Egen volym';
+
+  @override
+  String get bottleSizeCustomLabel => 'Volym i centiliter';
+
+  @override
+  String get bottleSizeCustomInvalid => 'Ange en volym mellan 1 och 3000 cl.';
+
+  @override
   String get wineTypeLiqueur => 'Likör 🍯';
 
   @override

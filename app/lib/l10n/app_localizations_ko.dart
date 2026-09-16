@@ -837,6 +837,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get wineTypeDessert => '디저트 / 스위트 🍯';
 
   @override
+  String get bottleSizeCustom => '기타 용량…';
+
+  @override
+  String get bottleSizeCustomTitle => '사용자 지정 용량';
+
+  @override
+  String get bottleSizeCustomLabel => '용량 (센티리터)';
+
+  @override
+  String get bottleSizeCustomInvalid => '1에서 3000 cl 사이로 입력하세요.';
+
+  @override
   String get wineTypeLiqueur => '리큐어 🍯';
 
   @override

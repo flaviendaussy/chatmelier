@@ -850,6 +850,19 @@ class AppLocalizationsLa extends AppLocalizations {
   String get wineTypeDessert => 'Vinum Dulce 🍯';
 
   @override
+  String get bottleSizeCustom => 'Alia capacitas…';
+
+  @override
+  String get bottleSizeCustomTitle => 'Capacitas propria';
+
+  @override
+  String get bottleSizeCustomLabel => 'Capacitas in centilitris';
+
+  @override
+  String get bottleSizeCustomInvalid =>
+      'Capacitatem inter 1 et 3000 cl insere.';
+
+  @override
   String get wineTypeLiqueur => 'Liquor 🍯';
 
   @override

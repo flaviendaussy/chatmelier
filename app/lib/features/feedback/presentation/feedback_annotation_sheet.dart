@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/app_logger.dart';
@@ -164,16 +165,17 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
 
     try {
       final supabase = Supabase.instance.client;
-      final user = supabase.auth.currentUser;
-      final userId = user?.id ?? 'anonymous_tester';
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-
       String? uploadedImageUrl;
 
       // Render & upload annotated image if present
       final annotatedBytes = await _renderAnnotatedImage();
       if (annotatedBytes != null) {
-        final fileName = '$userId/feedback_$timestamp.png';
+        // Le chemin était `<user_id>/feedback_<horodatage>.png`, dans un bucket PUBLIC.
+        // L'URL d'une capture désignait donc son auteur, et suffisait à regrouper tout ce
+        // qu'une même personne avait envoyé. Un identifiant aléatoire retire ce lien sans
+        // rien coûter : la colonne `user_id` de la table reste disponible côté serveur
+        // pour qui a le droit de la lire.
+        final fileName = 'feedback/${const Uuid().v4()}.png';
         try {
           await supabase.storage.from('labels').uploadBinary(
             fileName,
@@ -187,9 +189,14 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
       }
 
       // Log to app diagnostic logs for Flavien to inspect
+      // `Testeur: <user_id>` figurait ici en clair. Le message est le champ le plus lu et
+      // le plus copié de la table : y inscrire l'identifiant annulait toute restriction
+      // d'accès posée sur la colonne `user_id`, qu'AppLogger renseigne déjà séparément.
       AppLogger.info(
         'USER_FEEDBACK',
-        'Commentaire: ${comment.isNotEmpty ? comment : "Sans commentaire"} | Capture: ${uploadedImageUrl ?? "aucune"} | Annotations: ${_strokes.isNotEmpty ? "oui" : "non"} | Testeur: $userId',
+        'Commentaire: ${comment.isNotEmpty ? comment : "Sans commentaire"} '
+            '| Capture: ${uploadedImageUrl ?? "aucune"} '
+            '| Annotations: ${_strokes.isNotEmpty ? "oui" : "non"}',
       );
       await AppLogger.flushToServer();
 

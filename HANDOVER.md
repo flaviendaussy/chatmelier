@@ -42,6 +42,25 @@ usurpation). Il était en outre servi en clair sur `chatmelier.github.io/admin_c
 Bonne nouvelle : **le fichier keystore `.jks` lui-même n'a jamais été committé** — personne ne
 peut signer d'APK à votre place avec le seul mot de passe.
 
+### Migrations à appliquer — dans cet ordre
+
+`029`, `030` et `031` ont été appliquées le 2026-09-15. Reste :
+
+| Migration | Ce qu'elle fait | Pourquoi maintenant |
+|---|---|---|
+| **`032_rating_scale_and_tasting_signals.sql`** | Élargit la contrainte `rating` à 10 (ce que 027 aurait dû faire), marque l'échelle des lignes existantes, ajoute `is_favorite`, `is_blind`, `fault`, `served_temp`, `was_decanted` | Sans elle, **chaque dégustation guidée est divisée par deux à l'écriture** et n'atteint même plus le serveur. Voir la section « L'échelle des notes » |
+
+**Aucune procédure manuelle n'est nécessaire** : le marquage de l'échelle est déterministe et
+automatique. Coller le fichier dans le SQL Editor suffit. La migration affiche un `NOTICE`
+indiquant combien de lignes ont été marquées.
+
+Vérification après exécution (attendu : `3, 1`) :
+
+```sql
+SELECT numeric_precision, numeric_scale FROM information_schema.columns
+WHERE table_name = 'tasting_log' AND column_name = 'rating';
+```
+
 **Réécriture d'historique ?** Possible (`git filter-repo` + force-push), mais elle ne récupère
 pas ce qui a déjà été cloné ou indexé par les robots qui scannent les dépôts publics en continu.
 La rotation reste la seule vraie remédiation. À décider séparément.
@@ -177,6 +196,52 @@ migration échouait à l'exécution. Elle est réécrite corrigée dans la 031.
 par le code mais définies dans **aucune** migration. Leur absence est absorbée par des try/catch
 (`PGRST205` récurrent dans les logs). `user_cocktails` part de toute façon avec le fork cocktails.
 
+## 🔴 L'ÉCHELLE DES NOTES — cause racine trouvée le 2026-09-16
+
+C'est le même défaut que la dérive ci-dessus, mais avec des conséquences qui vont bien plus
+loin : **la migration 027 n'a jamais été appliquée en production.** Elle devait élargir
+`tasting_log.rating` de `NUMERIC(2,1) CHECK (<= 5)` à `NUMERIC(3,1) CHECK (<= 10)`.
+
+Or **toutes** les interfaces de saisie de l'app sont sur 10 (`Slider min:1 max:10 divisions:18`,
+donc un pas de 0,5 — questionnaire, dégustation hors-cave, checkout, mode table). Chaque
+enregistrement était donc rejeté par la contrainte, et le client retombait sur un dernier
+recours qui **divise la note par deux** pour la faire passer.
+
+**La preuve, sur les trois entrées réelles du journal :**
+
+| Affiché en base | Curseur réel | Chaîne |
+|---|---|---|
+| 2,8 | **5,5/10** | rejet → 5,5 ÷ 2 = 2,75 → `NUMERIC(2,1)` arrondit → 2,8 |
+| 3,5 | **7,0/10** | rejet → 3,5 |
+| 5,0 | **10,0/10** | rejet → 5,0 |
+
+`2,75` n'est pas une position possible du curseur : c'est la signature arithmétique de la
+division. Les trois valeurs s'expliquent par des positions valides divisées par deux, et la
+prédiction a été confirmée à l'écran après correction (5,6/10 et 7/10 sur l'émulateur).
+
+**Ce que ça corrige dans mon propre travail précédent.** L'heuristique de `displayRating` qui
+doublait toute note ≤ 5 ne créait pas le problème : elle le **compensait**. L'avoir retirée sans
+élargir la contrainte affichait tout deux fois trop bas. C'était visible à l'écran et c'est ce
+qui a mis sur la piste.
+
+**Deux autres conséquences, corrigées du même coup :**
+
+- `sommelier_table_mode_sheet.dart` et `cellar_repository.dart` écrivent **sans repli** : leurs
+  enregistrements au-dessus de 5/10 échouaient purement et simplement.
+- Avec 031 appliquée mais pas 032, les trois étages d'insert du questionnaire échouaient en
+  cascade (`rating_scale` inconnu → contrainte → `rating_scale` à nouveau) : **les dégustations
+  guidées ne remontaient plus du tout au serveur**, elles restaient en cache local.
+
+**Convention adoptée, et testée car contre-intuitive :** l'absence de la colonne `rating_scale`
+n'est pas une information manquante, c'est la **preuve** que 032 n'a pas tourné, donc que la note
+a été divisée. Le défaut de lecture est donc 5, et non 10. C'est ce qui rend l'affichage correct
+**dès maintenant**, sans attendre la migration.
+
+**Correctif : `032_rating_scale_and_tasting_signals.sql`.** La procédure manuelle qui figurait
+en section 4 a disparu : il n'y a **plus de date à deviner**. Le critère de décision est le type
+de la colonne, lu avant l'élargissement — `NUMERIC(2,1)` prouve que tout l'historique est sur 5.
+Le marquage et l'élargissement sont dans un bloc atomique.
+
 ## 🔴 Fuite des logs de diagnostic — correctif écrit, à appliquer
 
 `app_diagnostic_logs` était lisible en entier (20 229 lignes) avec la seule **clé publiable**,
@@ -283,9 +348,18 @@ réinstallation, l'état est restaurable indéfiniment avec `./tool/devtest.sh r
 
 ## Suite prévue
 
-**S2** — réparation des données du goût : migration de l'échelle de notation, apprentissage
-symétrique, moyenne exponentielle, confiance par axe, hiérarchie de preuves, défauts du vin,
-suppression du mode « Ensemble », niveau « Gorgée » sur la dégustation externe.
+**S2 — fait :** échelle de notation (cause racine comprise et corrigée), apprentissage
+symétrique sur les deux chemins, moyenne exponentielle, confiance par axe (y compris sa
+sérialisation, qui manquait), défauts du vin traduits dans les 13 locales, suppression du mode
+« Ensemble », niveau « Gorgée » sur la dégustation hors-cave.
+
+**S2 — reste :** hiérarchie de preuves (rachat, quantité, délai `created_at → consumed_at`,
+exclusion de `source_type ∈ {gift, supermarket}`), ancrage des curseurs dans l'historique, et les
+deux tables `taste_evidence` / `taste_profile_history`.
+
+Puis **S3** (QR cassé, `table_sessions`, onglet Restaurant, pont cave ↔ restaurant),
+**S3 bis** (conversion du compte anonyme), **S4** (comptoir, moteur de frontière, empreinte de
+palais), **S5** (ratio revenu pub ÷ coût IA).
 
 Le détail de chaque étape est dans le plan.
 
@@ -314,3 +388,6 @@ Le détail de chaque étape est dans le plan.
 | 2026-09-15 | Flavien + Claude | Rotation de la clé Gemini. Première tentative en panne (clé `AQ.` d'un projet GCP neuf refusée par Google) ; résolue avec une clé `AIza` d'AI Studio. Fonction edge vérifiée HTTP 200 | — |
 | 2026-09-15 | Claude | Correction du deadlock d'authentification signalé par une utilisatrice (dialogue de pseudo inéchappable + OAuth sans `select_account`) | `cbc89ac` |
 | 2026-09-15 | Claude | Découverte de la dérive des migrations et de la fuite des logs de diagnostic ; migration 030 écrite | ce commit |
+| 2026-09-15 | Claude | S2 : apprentissage symétrique, moyenne exponentielle, confiance par axe | `799b35b`, `280034c`, `670356e` |
+| 2026-09-16 | Claude | **Cause racine de l'échelle des notes** : 027 jamais appliquée, toutes les notes divisées par deux à l'écriture. Migration 032 réécrite (plus de procédure manuelle) | `5ae7856` |
+| 2026-09-16 | Claude | Niveau « Gorgée » hors-cave, défauts traduits dans les 13 locales, sérialisation de la confiance par axe réparée | `a103edd` |

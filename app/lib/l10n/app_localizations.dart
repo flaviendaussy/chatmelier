@@ -3449,6 +3449,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Aeration timer ⏱️'**
   String get checkoutActionAerationTimer;
+
+  /// No description provided for @externalTastingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Out-of-Cellar Tasting'**
+  String get externalTastingTitle;
+
+  /// No description provided for @externalTastingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant, bar, at a friend\'s place... without touching your stock'**
+  String get externalTastingSubtitle;
+
+  /// No description provided for @externalTastingWithWhom.
+  ///
+  /// In en, this message translates to:
+  /// **'Who are you tasting this wine with?'**
+  String get externalTastingWithWhom;
+
+  /// No description provided for @externalTastingWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Where are you tasting this wine?'**
+  String get externalTastingWhere;
+
+  /// No description provided for @externalTastingSearchingPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for restaurants, bars & friends around you...'**
+  String get externalTastingSearchingPlaces;
+
+  /// No description provided for @externalTastingGpsActive.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS on'**
+  String get externalTastingGpsActive;
+
+  /// No description provided for @externalTastingPlaceGuess.
+  ///
+  /// In en, this message translates to:
+  /// **'You seem to be at: {place}'**
+  String externalTastingPlaceGuess(String place);
+
+  /// No description provided for @externalTastingFavoritePlaceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite spot remembered automatically by Chatmelier'**
+  String get externalTastingFavoritePlaceNote;
+
+  /// No description provided for @externalTastingChangePlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Change location'**
+  String get externalTastingChangePlace;
+
+  /// No description provided for @externalTastingOtherPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'At a friend\'s / Another place...'**
+  String get externalTastingOtherPlace;
+
+  /// No description provided for @externalTastingNoPlaceFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No restaurant detected in the immediate vicinity.'**
+  String get externalTastingNoPlaceFound;
+
+  /// No description provided for @externalTastingPlaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Whose place or where are you? *'**
+  String get externalTastingPlaceLabel;
+
+  /// No description provided for @externalTastingPlaceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Dimitri\'s place, My parents\', Country house...'**
+  String get externalTastingPlaceHint;
+
+  /// No description provided for @externalTastingRememberPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember \"{place}\" at this GPS position for your next visits'**
+  String externalTastingRememberPlace(String place);
+
+  /// No description provided for @externalTastingDefaultPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'At the restaurant'**
+  String get externalTastingDefaultPlace;
+
+  /// No description provided for @externalTastingAiIdentifyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identify with AI (Bar, Restaurant, Chalkboard)'**
+  String get externalTastingAiIdentifyTitle;
+
+  /// No description provided for @externalTastingAiIdentifyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a few words (e.g. \"Saint-Joseph Coursodon 2021\" or \"Bandol Terrebrune\") to pre-fill the form.'**
+  String get externalTastingAiIdentifyDesc;
+
+  /// No description provided for @externalTastingAiIdentifyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Saint-Joseph 2021 Coursodon...'**
+  String get externalTastingAiIdentifyHint;
+
+  /// No description provided for @externalTastingDetect.
+  ///
+  /// In en, this message translates to:
+  /// **'Detect'**
+  String get externalTastingDetect;
+
+  /// No description provided for @externalTastingAiScanningSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Detecting producer, vintage, grapes and notes...'**
+  String get externalTastingAiScanningSub;
+
+  /// No description provided for @externalTastingPhotoAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Label photo added'**
+  String get externalTastingPhotoAdded;
+
+  /// No description provided for @externalTastingPhotoAddedSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible in your tasting journal'**
+  String get externalTastingPhotoAddedSub;
+
+  /// No description provided for @externalTastingReplacePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get externalTastingReplacePhoto;
+
+  /// No description provided for @externalTastingDeletePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete photo'**
+  String get externalTastingDeletePhoto;
+
+  /// No description provided for @externalTastingScanLabelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the label (AI Scan)'**
+  String get externalTastingScanLabelTitle;
+
+  /// No description provided for @externalTastingScanLabelSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic wine recognition and journal entry'**
+  String get externalTastingScanLabelSub;
+
+  /// No description provided for @externalTastingScanLabelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Scan'**
+  String get externalTastingScanLabelButton;
+
+  /// No description provided for @externalTastingTakePhotoSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the label with the camera'**
+  String get externalTastingTakePhotoSub;
+
+  /// No description provided for @externalTastingPickGallerySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an existing photo'**
+  String get externalTastingPickGallerySub;
+
+  /// No description provided for @externalTastingWineNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wine name *'**
+  String get externalTastingWineNameLabel;
+
+  /// No description provided for @externalTastingWineNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Domaine de Terrebrune'**
+  String get externalTastingWineNameHint;
+
+  /// No description provided for @externalTastingProducerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Famille Delon'**
+  String get externalTastingProducerHint;
+
+  /// No description provided for @externalTastingRegionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Region / Appellation'**
+  String get externalTastingRegionLabel;
+
+  /// No description provided for @externalTastingRegionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Bandol Rouge'**
+  String get externalTastingRegionHint;
+
+  /// No description provided for @externalTastingRatingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasting rating:'**
+  String get externalTastingRatingLabel;
+
+  /// No description provided for @externalTastingFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Loved it'**
+  String get externalTastingFavorite;
+
+  /// No description provided for @externalTastingFoodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & Wine pairing'**
+  String get externalTastingFoodLabel;
+
+  /// No description provided for @externalTastingNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Impressions & Aromas perceived'**
+  String get externalTastingNotesLabel;
+
+  /// No description provided for @externalTastingNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Intense black fruit, silky tannins, beautiful length...'**
+  String get externalTastingNotesHint;
+
+  /// No description provided for @externalTastingSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Rate ✨'**
+  String get externalTastingSubmit;
+
+  /// No description provided for @externalTastingNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter at least the wine name.'**
+  String get externalTastingNameRequired;
+
+  /// No description provided for @externalTastingSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Out-of-cellar tasting saved! Chatmelier will remember it.'**
+  String get externalTastingSaved;
+
+  /// No description provided for @externalTastingAiRecognized.
+  ///
+  /// In en, this message translates to:
+  /// **'✨ Bottle recognized by AI: {name}'**
+  String externalTastingAiRecognized(String name);
+
+  /// No description provided for @externalTastingAiFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'✨ Form filled in by AI: {name}'**
+  String externalTastingAiFilled(String name);
+
+  /// No description provided for @externalTastingAnalysisError.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis error: {error}'**
+  String externalTastingAnalysisError(String error);
+
+  /// No description provided for @externalTastingSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String externalTastingSaveError(String error);
 }
 
 class _AppLocalizationsDelegate

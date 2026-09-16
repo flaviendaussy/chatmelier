@@ -1876,4 +1876,167 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get checkoutActionAerationTimer => 'Luftningstimer ⏱️';
+
+  @override
+  String get externalTastingTitle => 'Provning utanför källaren';
+
+  @override
+  String get externalTastingSubtitle =>
+      'Restaurang, bar, hemma hos vänner ... utan att röra ditt lager';
+
+  @override
+  String get externalTastingWithWhom => 'Vem provar du det här vinet med?';
+
+  @override
+  String get externalTastingWhere => 'Var provar du det här vinet?';
+
+  @override
+  String get externalTastingSearchingPlaces =>
+      'Söker restauranger, barer och vänner i närheten ...';
+
+  @override
+  String get externalTastingGpsActive => 'GPS på';
+
+  @override
+  String externalTastingPlaceGuess(String place) {
+    return 'Du verkar vara på: $place';
+  }
+
+  @override
+  String get externalTastingFavoritePlaceNote =>
+      'Favoritplats som Chatmelier sparat automatiskt';
+
+  @override
+  String get externalTastingChangePlace => 'Byt plats';
+
+  @override
+  String get externalTastingOtherPlace => 'Hemma hos en vän / Annan plats ...';
+
+  @override
+  String get externalTastingNoPlaceFound =>
+      'Ingen restaurang hittades i närheten.';
+
+  @override
+  String get externalTastingPlaceLabel => 'Hos vem eller var är du? *';
+
+  @override
+  String get externalTastingPlaceHint =>
+      'T.ex. Hemma hos Dimitri, Hos mina föräldrar, Lantstället ...';
+
+  @override
+  String externalTastingRememberPlace(String place) {
+    return 'Spara \"$place\" på den här GPS-positionen till nästa besök';
+  }
+
+  @override
+  String get externalTastingDefaultPlace => 'På restaurangen';
+
+  @override
+  String get externalTastingAiIdentifyTitle =>
+      'Identifiera med AI (bar, restaurang, krittavla)';
+
+  @override
+  String get externalTastingAiIdentifyDesc =>
+      'Skriv några ord (t.ex. \"Saint-Joseph Coursodon 2021\" eller \"Bandol Terrebrune\") för att fylla i formuläret i förväg.';
+
+  @override
+  String get externalTastingAiIdentifyHint =>
+      'T.ex. Saint-Joseph 2021 Coursodon ...';
+
+  @override
+  String get externalTastingDetect => 'Identifiera';
+
+  @override
+  String get externalTastingAiScanningSub =>
+      'Identifierar producent, årgång, druvor och noter ...';
+
+  @override
+  String get externalTastingPhotoAdded => 'Etikettfoto tillagt';
+
+  @override
+  String get externalTastingPhotoAddedSub => 'Syns i din provningsdagbok';
+
+  @override
+  String get externalTastingReplacePhoto => 'Byt ut';
+
+  @override
+  String get externalTastingDeletePhoto => 'Ta bort fotot';
+
+  @override
+  String get externalTastingScanLabelTitle =>
+      'Fotografera etiketten (AI-skanning)';
+
+  @override
+  String get externalTastingScanLabelSub =>
+      'Automatisk vinigenkänning och notering i dagboken';
+
+  @override
+  String get externalTastingScanLabelButton => 'AI-skanning';
+
+  @override
+  String get externalTastingTakePhotoSub => 'Fotografera etiketten med kameran';
+
+  @override
+  String get externalTastingPickGallerySub => 'Välj ett befintligt foto';
+
+  @override
+  String get externalTastingWineNameLabel => 'Vinets namn *';
+
+  @override
+  String get externalTastingWineNameHint => 'T.ex. Domaine de Terrebrune';
+
+  @override
+  String get externalTastingProducerHint => 'T.ex. Famille Delon';
+
+  @override
+  String get externalTastingRegionLabel => 'Område / Appellation';
+
+  @override
+  String get externalTastingRegionHint => 'T.ex. Bandol rouge';
+
+  @override
+  String get externalTastingRatingLabel => 'Provningsbetyg:';
+
+  @override
+  String get externalTastingFavorite => 'Hjärtefavorit';
+
+  @override
+  String get externalTastingFoodLabel => 'Mat- och vinkombination';
+
+  @override
+  String get externalTastingNotesLabel => 'Intryck och upplevda aromer';
+
+  @override
+  String get externalTastingNotesHint =>
+      'T.ex. Intensiv mörk frukt, silkeslena tanniner, lång eftersmak ...';
+
+  @override
+  String get externalTastingSubmit => 'Spara & betygsätt ✨';
+
+  @override
+  String get externalTastingNameRequired => 'Ange åtminstone vinets namn.';
+
+  @override
+  String get externalTastingSaved =>
+      'Provningen utanför källaren är sparad! Chatmelier kommer ihåg den.';
+
+  @override
+  String externalTastingAiRecognized(String name) {
+    return '✨ Flaskan identifierad av AI: $name';
+  }
+
+  @override
+  String externalTastingAiFilled(String name) {
+    return '✨ Formuläret ifyllt av AI: $name';
+  }
+
+  @override
+  String externalTastingAnalysisError(String error) {
+    return 'Analysfel: $error';
+  }
+
+  @override
+  String externalTastingSaveError(String error) {
+    return 'Fel: $error';
+  }
 }

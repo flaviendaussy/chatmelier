@@ -634,7 +634,9 @@ class SyncService {
     }
 
     // Always update local cache so user sees it in Journal
-    final cacheEntry = inserted ?? localFallback ?? payload;
+    // Seule la reponse du serveur vaut « synchronisee » ; les deux replis sont locaux.
+    final cacheEntry = inserted ??
+        {...(localFallback ?? payload), OfflineStorageService.pendingSyncKey: true};
     await _offlineStorage.addCachedTasting(cacheEntry);
     return inserted;
   }

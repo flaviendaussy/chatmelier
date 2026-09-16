@@ -17,6 +17,7 @@ import '../domain/tasting_pedagogy_engine.dart';
 import 'tasting_pedagogy_sheet.dart';
 import 'journal_screen.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../offline/data/offline_storage_service.dart';
 
 /// A 4-step paginated bottom sheet for structured post-tasting feedback.
 ///
@@ -471,6 +472,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       final offlineStorage = ref.read(offlineStorageServiceProvider);
 
       final localPayload = <String, dynamic>{
+        OfflineStorageService.pendingSyncKey: true,
         'id': DateTime.now().millisecondsSinceEpoch.toString(),
         'wine_id': widget.wineId,
         if (_isValidUuid(widget.bottleId)) 'bottle_id': widget.bottleId,

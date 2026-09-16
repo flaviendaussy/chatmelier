@@ -16,6 +16,7 @@ import '../../../shared/providers/cellar_provider.dart';
 
 import '../../../features/offline/domain/offline_action.dart';
 import '../../../features/offline/presentation/sync_provider.dart';
+import '../../offline/data/offline_storage_service.dart';
 
 final tastingLogProvider = FutureProvider<List<TastingEntry>>((ref) async {
   final supabase = ref.watch(supabaseProvider);
@@ -46,12 +47,23 @@ final tastingLogProvider = FutureProvider<List<TastingEntry>>((ref) async {
           .toList();
 
       if (remoteMaps.isNotEmpty) {
-        // Merge remote records with any local-only cached tastings that haven't synced yet
+        // Fusionner le serveur avec les dégustations encore en attente de synchronisation.
+        //
+        // Une entrée du cache absente du serveur peut signifier deux choses opposées :
+        // « pas encore partie » ou « supprimée ailleurs ». L'ancienne version supposait
+        // toujours la première, si bien qu'une dégustation effacée en base restait
+        // affichée indéfiniment — constaté sur appareil. Seul le marqueur tranche.
+        //
+        // Transition : les entrées mises en cache par une version antérieure n'ont pas le
+        // marqueur. On garde celles dont l'identifiant est horodaté plutôt qu'un UUID,
+        // preuve qu'elles ont été fabriquées localement et n'ont jamais atteint la base.
         final existingCached = offlineStorage.getCachedTastings();
         final remoteIds = remoteMaps.map((m) => m['id']?.toString()).whereType<String>().toSet();
         final localOnly = existingCached.where((m) {
           final id = m['id']?.toString();
-          return id != null && id.isNotEmpty && !remoteIds.contains(id);
+          if (id == null || id.isEmpty || remoteIds.contains(id)) return false;
+          if (m[OfflineStorageService.pendingSyncKey] == true) return true;
+          return !_looksLikeUuid(id);
         }).toList();
 
         final mergedMaps = [...remoteMaps, ...localOnly];
@@ -128,6 +140,14 @@ final tastingLogProvider = FutureProvider<List<TastingEntry>>((ref) async {
   entries.sort((a, b) => b.consumedAt.compareTo(a.consumedAt));
   return entries;
 });
+
+
+/// Un identifiant fabriqué localement est un horodatage, pas un UUID : c'est ce qui permet
+/// de reconnaître, parmi les entrées mises en cache avant l'introduction du marqueur de
+/// synchronisation, celles qui n'ont jamais atteint la base.
+bool _looksLikeUuid(String id) => RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+    ).hasMatch(id);
 
 class JournalScreen extends ConsumerStatefulWidget {
   const JournalScreen({super.key});

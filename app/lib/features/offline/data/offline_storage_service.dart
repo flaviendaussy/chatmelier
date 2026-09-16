@@ -316,6 +316,14 @@ class OfflineStorageService {
     await _prefs.setString(_kTastingsCacheKey, raw);
   }
 
+  /// Marque une degustation fabriquee localement, qui n'a pas encore atteint le serveur.
+  ///
+  /// Sans ce marqueur, la fusion du journal ne peut pas distinguer « jamais synchronisee »
+  /// de « supprimee sur le serveur », et conserve donc indefiniment une entree effacee
+  /// ailleurs. Verifie sur appareil : une degustation supprimee en base restait affichee.
+  /// Les reponses du serveur ne portent jamais cette cle.
+  static const String pendingSyncKey = '_pending_sync';
+
   Future<void> addCachedTasting(Map<String, dynamic> tasting) async {
     final list = getCachedTastings();
     final newId = tasting['id']?.toString();

@@ -21,6 +21,7 @@ import '../../notifications/data/local_notification_service.dart';
 import '../../journal/data/tasting_ai_assistant_service.dart';
 import '../../../config/router.dart';
 import '../data/post_tasting_notification_service.dart';
+import '../../offline/data/offline_storage_service.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   final String? bottleId;
@@ -371,6 +372,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final vintage = (wineMap?['vintage'] as num?)?.toInt() ?? int.tryParse(wineMap?['vintage']?.toString() ?? '');
 
       final localTastingEntry = <String, dynamic>{
+        OfflineStorageService.pendingSyncKey: true,
         'id': DateTime.now().millisecondsSinceEpoch.toString(),
         'wine_id': wineId ?? '',
         if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
@@ -721,6 +723,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           : 'Débouché • Dégustation à noter ultérieurement';
 
       final localDeferredEntry = <String, dynamic>{
+        OfflineStorageService.pendingSyncKey: true,
         'id': DateTime.now().millisecondsSinceEpoch.toString(),
         'wine_id': wineId ?? '',
         if (_isValidUuid(bottleId)) 'bottle_id': bottleId,

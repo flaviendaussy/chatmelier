@@ -1885,4 +1885,169 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get checkoutActionAerationTimer => 'Belüftungs-Timer ⏱️';
+
+  @override
+  String get externalTastingTitle => 'Verkostung außer Haus';
+
+  @override
+  String get externalTastingSubtitle =>
+      'Restaurant, Bar, bei Freunden ... ohne Ihren Bestand zu ändern';
+
+  @override
+  String get externalTastingWithWhom => 'Mit wem verkosten Sie diesen Wein?';
+
+  @override
+  String get externalTastingWhere => 'Wo verkosten Sie diesen Wein?';
+
+  @override
+  String get externalTastingSearchingPlaces =>
+      'Suche nach Restaurants, Bars & Freunden in Ihrer Nähe ...';
+
+  @override
+  String get externalTastingGpsActive => 'GPS aktiv';
+
+  @override
+  String externalTastingPlaceGuess(String place) {
+    return 'Sie scheinen hier zu sein: $place';
+  }
+
+  @override
+  String get externalTastingFavoritePlaceNote =>
+      'Lieblingsort, den Chatmelier automatisch gespeichert hat';
+
+  @override
+  String get externalTastingChangePlace => 'Ort wechseln';
+
+  @override
+  String get externalTastingOtherPlace => 'Bei Freunden / Anderer Ort ...';
+
+  @override
+  String get externalTastingNoPlaceFound =>
+      'In unmittelbarer Nähe wurde kein Restaurant erkannt.';
+
+  @override
+  String get externalTastingPlaceLabel => 'Bei wem oder wo sind Sie? *';
+
+  @override
+  String get externalTastingPlaceHint =>
+      'z. B. Bei Dimitri, Bei meinen Eltern, Landhaus ...';
+
+  @override
+  String externalTastingRememberPlace(String place) {
+    return '\"$place\" an dieser GPS-Position für Ihre nächsten Besuche merken';
+  }
+
+  @override
+  String get externalTastingDefaultPlace => 'Im Restaurant';
+
+  @override
+  String get externalTastingAiIdentifyTitle =>
+      'Mit KI erkennen (Bar, Restaurant, Tafel)';
+
+  @override
+  String get externalTastingAiIdentifyDesc =>
+      'Geben Sie ein paar Wörter ein (z. B. \"Saint-Joseph Coursodon 2021\" oder \"Bandol Terrebrune\"), um das Formular vorauszufüllen.';
+
+  @override
+  String get externalTastingAiIdentifyHint =>
+      'z. B. Saint-Joseph 2021 Coursodon ...';
+
+  @override
+  String get externalTastingDetect => 'Erkennen';
+
+  @override
+  String get externalTastingAiScanningSub =>
+      'Erkennung von Weingut, Jahrgang, Rebsorten und Noten ...';
+
+  @override
+  String get externalTastingPhotoAdded => 'Etikettenfoto hinzugefügt';
+
+  @override
+  String get externalTastingPhotoAddedSub =>
+      'Sichtbar in Ihrem Verkostungstagebuch';
+
+  @override
+  String get externalTastingReplacePhoto => 'Ersetzen';
+
+  @override
+  String get externalTastingDeletePhoto => 'Foto löschen';
+
+  @override
+  String get externalTastingScanLabelTitle => 'Etikett fotografieren (KI-Scan)';
+
+  @override
+  String get externalTastingScanLabelSub =>
+      'Automatische Weinerkennung und Eintrag ins Tagebuch';
+
+  @override
+  String get externalTastingScanLabelButton => 'KI-Scan';
+
+  @override
+  String get externalTastingTakePhotoSub =>
+      'Etikett mit der Kamera fotografieren';
+
+  @override
+  String get externalTastingPickGallerySub => 'Ein vorhandenes Foto auswählen';
+
+  @override
+  String get externalTastingWineNameLabel => 'Weinname *';
+
+  @override
+  String get externalTastingWineNameHint => 'z. B. Domaine de Terrebrune';
+
+  @override
+  String get externalTastingProducerHint => 'z. B. Famille Delon';
+
+  @override
+  String get externalTastingRegionLabel => 'Anbaugebiet / Appellation';
+
+  @override
+  String get externalTastingRegionHint => 'z. B. Bandol Rouge';
+
+  @override
+  String get externalTastingRatingLabel => 'Verkostungsnote:';
+
+  @override
+  String get externalTastingFavorite => 'Herzensfavorit';
+
+  @override
+  String get externalTastingFoodLabel => 'Speisen-Wein-Begleitung';
+
+  @override
+  String get externalTastingNotesLabel => 'Eindrücke & wahrgenommene Aromen';
+
+  @override
+  String get externalTastingNotesHint =>
+      'z. B. Intensive dunkle Frucht, seidige Tannine, langer Abgang ...';
+
+  @override
+  String get externalTastingSubmit => 'Speichern & bewerten ✨';
+
+  @override
+  String get externalTastingNameRequired =>
+      'Bitte geben Sie mindestens den Weinnamen an.';
+
+  @override
+  String get externalTastingSaved =>
+      'Verkostung außer Haus gespeichert! Chatmelier wird sich daran erinnern.';
+
+  @override
+  String externalTastingAiRecognized(String name) {
+    return '✨ Flasche von der KI erkannt: $name';
+  }
+
+  @override
+  String externalTastingAiFilled(String name) {
+    return '✨ Formular von der KI ausgefüllt: $name';
+  }
+
+  @override
+  String externalTastingAnalysisError(String error) {
+    return 'Analysefehler: $error';
+  }
+
+  @override
+  String externalTastingSaveError(String error) {
+    return 'Fehler: $error';
+  }
 }

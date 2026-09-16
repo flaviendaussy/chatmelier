@@ -21,6 +21,7 @@ import '../../cellar/domain/wine.dart';
 import 'journal_screen.dart';
 import '../domain/tasting_questionnaire_result.dart';
 import 'tasting_questionnaire_sheet.dart';
+import '../../offline/data/offline_storage_service.dart';
 
 class ExternalTastingDialog extends ConsumerStatefulWidget {
   final String? initialWineName;
@@ -105,34 +106,35 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   final Set<String> _selectedCoTasters = {};
 
   Future<void> _showAddCompanionDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController();
     try {
       final newName = await showDialog<String>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.person_add, color: Color(0xFF8B1E3F)),
-              SizedBox(width: 8),
-              Text('Ajouter un convive'),
+              const Icon(Icons.person_add, color: Color(0xFF8B1E3F)),
+              const SizedBox(width: 8),
+              Text(l10n.checkoutAddGuest),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Ajoutez un proche présent à cette dégustation hors cave (ex: Papa, Maman, Sophie...).',
-                style: TextStyle(fontSize: 13, color: Colors.grey),
+              Text(
+                l10n.checkoutAddGuestDialogDesc,
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: nameCtrl,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Prénom / Nom',
-                  hintText: 'ex: Papa',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.checkoutAddGuestNameLabel,
+                  hintText: l10n.checkoutAddGuestHint,
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
@@ -140,7 +142,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Annuler'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
@@ -148,7 +150,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 final text = nameCtrl.text.trim();
                 if (text.isNotEmpty) Navigator.pop(ctx, text);
               },
-              child: const Text('Ajouter'),
+              child: Text(l10n.add),
             ),
           ],
         ),
@@ -212,6 +214,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   }
 
   Future<void> _pickPhoto(ImageSource source) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final picker = ImagePicker();
       final picked = await picker.pickImage(source: source, imageQuality: 85);
@@ -258,7 +261,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✨ Bouteille reconnue par l\'IA : ${result.name}'),
+              content: Text(l10n.externalTastingAiRecognized(result.name)),
               backgroundColor: const Color(0xFF2E7D32),
             ),
           );
@@ -292,6 +295,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     final text = _quickSearchController.text.trim();
     if (text.isEmpty) return;
 
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isQuickAnalyzing = true);
     FocusScope.of(context).unfocus();
 
@@ -325,7 +329,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✨ Fiche complétée par l\'IA : ${result.name}'),
+            content: Text(l10n.externalTastingAiFilled(result.name)),
             backgroundColor: const Color(0xFF2E7D32),
           ),
         );
@@ -334,7 +338,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
       AppLogger.warning('EXTERNAL_TASTING', 'Quick text analysis error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur d\'analyse : $e')),
+          SnackBar(content: Text(l10n.externalTastingAnalysisError('$e'))),
         );
       }
     } finally {
@@ -363,6 +367,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           );
 
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       setState(() {
         _nearbyPlaces = places;
         _isLoadingPlaces = false;
@@ -374,7 +379,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             _selectedPlace = top;
             _contextController.text = top.name;
           } else {
-            _contextController.text = 'Au restaurant';
+            _contextController.text = l10n.externalTastingDefaultPlace;
           }
         } else {
           _showCustomPlaceInput = true;
@@ -406,10 +411,11 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   }
 
   Future<void> _saveTasting() async {
+    final l10n = AppLocalizations.of(context)!;
     final wineName = _nameController.text.trim();
     if (wineName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez indiquer au moins le nom du vin.')),
+        SnackBar(content: Text(l10n.externalTastingNameRequired)),
       );
       return;
     }
@@ -557,6 +563,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
 
       // Cache immediately locally for instant display and persistence
       await offlineStorage.addCachedTasting({
+        // Marque tant que `savedOnline` est faux : voir OfflineStorageService.pendingSyncKey.
+        if (!savedOnline) OfflineStorageService.pendingSyncKey: true,
         'id': tastingId,
         'wine_id': wineId,
         'user_id': user?.id,
@@ -669,19 +677,19 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Row(
                 children: [
-                  Text('🍷 ', style: TextStyle(fontSize: 18)),
+                  const Text('🍷 ', style: TextStyle(fontSize: 18)),
                   Expanded(
                     child: Text(
-                      'Dégustation hors cave enregistrée ! Le Chatmelier s\'en souviendra.',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      l10n.externalTastingSaved,
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
                 ],
               ),
-              backgroundColor: Color(0xFF8B1E3F),
+              backgroundColor: const Color(0xFF8B1E3F),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -692,7 +700,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
+          SnackBar(content: Text(l10n.externalTastingSaveError('$e'))),
         );
       }
     }
@@ -846,11 +854,11 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Dégustation Hors-Cave',
+                        l10n.externalTastingTitle,
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        'Restaurant, bar, chez des amis... sans modifier vos stocks',
+                        l10n.externalTastingSubtitle,
                         style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                       ),
                     ],
@@ -865,7 +873,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             // =================================================================
             // LIEU & GÉOLOCALISATION INTELLIGENTE (Chez Dimitri, Resto, etc.)
             // =================================================================
-            _buildLocationSection(theme, isDark),
+            _buildLocationSection(theme, isDark, l10n),
             const SizedBox(height: 16),
 
             // Convives, Famille & Amis Co-dégustateurs
@@ -875,7 +883,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Avec qui dégustez-vous ce vin ?',
+                    l10n.externalTastingWithWhom,
                     style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -883,16 +891,16 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                   style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
                   onPressed: _showAddCompanionDialog,
                   icon: const Icon(Icons.person_add, size: 15, color: Color(0xFF8B1E3F)),
-                  label: const Text(
-                    '+ Ajouter un convive',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
+                  label: Text(
+                    '+ ${l10n.checkoutAddGuest}',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 4),
             Text(
-              'Les goûts de chaque participant seront automatiquement enregistrés dans son profil.',
+              l10n.checkoutWhoTastedSubtitle,
               style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11),
             ),
             const SizedBox(height: 8),
@@ -958,7 +966,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 // Quick add ActionChip
                 ActionChip(
                   avatar: const Icon(Icons.add, size: 16, color: Color(0xFF8B1E3F)),
-                  label: const Text('Ajouter (Papa, Maman...)'),
+                  label: Text(l10n.checkoutAddGuestHint),
                   onPressed: _showAddCompanionDialog,
                 ),
               ],
@@ -968,13 +976,13 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             // =================================================================
             // PHOTO DE LA BOUTEILLE (SCAN / APPAREIL / GALERIE)
             // =================================================================
-            _buildPhotoSection(theme, isDark),
+            _buildPhotoSection(theme, isDark, l10n),
             const SizedBox(height: 16),
 
             // =================================================================
             // RECONNAISSANCE IA RAPIDE (ARDOISE BAR / TEXTE / LISTE)
             // =================================================================
-            _buildQuickAiSearchSection(theme, isDark),
+            _buildQuickAiSearchSection(theme, isDark, l10n),
             const SizedBox(height: 16),
 
             // Nom du vin & Millésime
@@ -985,8 +993,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                   child: TextField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      labelText: 'Nom du Vin *',
-                      hintText: 'Ex: Domaine de Terrebrune',
+                      labelText: l10n.externalTastingWineNameLabel,
+                      hintText: l10n.externalTastingWineNameHint,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),
@@ -999,7 +1007,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                     controller: _vintageController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'Millésime',
+                      labelText: l10n.bottleDetailVintage,
                       hintText: '2019',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
@@ -1017,8 +1025,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                   child: TextField(
                     controller: _producerController,
                     decoration: InputDecoration(
-                      labelText: 'Domaine / Producteur',
-                      hintText: 'Ex: Famille Delon',
+                      labelText: l10n.bottleDetailProducer,
+                      hintText: l10n.externalTastingProducerHint,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),
@@ -1029,8 +1037,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                   child: TextField(
                     controller: _regionController,
                     decoration: InputDecoration(
-                      labelText: 'Région / Appellation',
-                      hintText: 'Ex: Bandol Rouge',
+                      labelText: l10n.externalTastingRegionLabel,
+                      hintText: l10n.externalTastingRegionHint,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),
@@ -1044,11 +1052,11 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             Wrap(
               spacing: 8,
               children: [
-                _buildTypeChip('Rouge 🍷', 'red'),
-                _buildTypeChip('Blanc 🥂', 'white'),
-                _buildTypeChip('Rosé 🌸', 'rose'),
-                _buildTypeChip('Bulles ✨', 'sparkling'),
-                _buildTypeChip('Liquoreux 🍯', 'dessert'),
+                _buildTypeChip(l10n.wineTypeRed, 'red'),
+                _buildTypeChip(l10n.wineTypeWhite, 'white'),
+                _buildTypeChip(l10n.wineTypeRose, 'rose'),
+                _buildTypeChip(l10n.wineTypeSparkling, 'sparkling'),
+                _buildTypeChip(l10n.wineTypeDessert, 'dessert'),
               ],
             ),
             const SizedBox(height: 16),
@@ -1066,7 +1074,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 children: [
                   Row(
                     children: [
-                      const Text('Note de dégustation :', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(l10n.externalTastingRatingLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
                       const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -1086,7 +1094,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                           color: _isFavorite ? Colors.red : Colors.grey,
                           size: 16,
                         ),
-                        label: const Text('Coup de cœur', style: TextStyle(fontSize: 12)),
+                        label: Text(l10n.externalTastingFavorite, style: const TextStyle(fontSize: 12)),
                         selected: _isFavorite,
                         selectedColor: Colors.red.withValues(alpha: 0.15),
                         onSelected: (val) => setState(() => _isFavorite = val),
@@ -1114,8 +1122,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             TextField(
               controller: _foodController,
               decoration: InputDecoration(
-                labelText: 'Accord Met & Vin',
-                hintText: 'Ex: Côte de bœuf grillée, Risotto aux cèpes...',
+                labelText: l10n.externalTastingFoodLabel,
+                hintText: l10n.checkoutFoodHint,
                 prefixIcon: const Icon(Icons.dinner_dining, size: 20),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -1128,8 +1136,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               controller: _notesController,
               maxLines: 2,
               decoration: InputDecoration(
-                labelText: 'Impressions & Arômes ressentis',
-                hintText: 'Ex: Fruits noirs intenses, tanins soyeux, très belle longueur...',
+                labelText: l10n.externalTastingNotesLabel,
+                hintText: l10n.externalTastingNotesHint,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 contentPadding: const EdgeInsets.all(12),
               ),
@@ -1142,7 +1150,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Annuler'),
+                    child: Text(l10n.cancel),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1162,7 +1170,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                           )
                         : const Icon(Icons.arrow_forward),
                     label: Text(
-                      _isSaving ? 'Enregistrement...' : 'Enregistrer & Noter ✨',
+                      _isSaving ? l10n.tastingSaving : l10n.externalTastingSubmit,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     onPressed: _isSaving ? null : _saveTasting,
@@ -1180,7 +1188,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   // LOCATION & NEARBY SUGGESTIONS BUILDER
   // =========================================================================
 
-  Widget _buildLocationSection(ThemeData theme, bool isDark) {
+  Widget _buildLocationSection(ThemeData theme, bool isDark, AppLocalizations l10n) {
     if (_isLoadingPlaces) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1188,18 +1196,18 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            SizedBox(
+            const SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF8B1E3F)),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Recherche des restaurants, bars & amis autour de vous...',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                l10n.externalTastingSearchingPlaces,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ),
           ],
@@ -1216,7 +1224,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             const Icon(Icons.place, color: Color(0xFF8B1E3F), size: 18),
             const SizedBox(width: 6),
             Text(
-              'Où dégustez-vous ce vin ?',
+              l10n.externalTastingWhere,
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const Spacer(),
@@ -1227,12 +1235,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                   color: Colors.green.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.gps_fixed, size: 10, color: Colors.green),
-                    SizedBox(width: 4),
-                    Text('GPS actif', style: TextStyle(fontSize: 9, color: Colors.green, fontWeight: FontWeight.bold)),
+                    const Icon(Icons.gps_fixed, size: 10, color: Colors.green),
+                    const SizedBox(width: 4),
+                    Text(l10n.externalTastingGpsActive, style: const TextStyle(fontSize: 9, color: Colors.green, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -1259,19 +1267,19 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Vous semblez être : ${_selectedPlace!.name}',
+                        l10n.externalTastingPlaceGuess(_selectedPlace!.name),
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
                       ),
-                      const Text(
-                        'Lieu favori mémorisé automatiquement par Chatmelier',
-                        style: TextStyle(fontSize: 10.5, color: Colors.grey),
+                      Text(
+                        l10n.externalTastingFavoritePlaceNote,
+                        style: const TextStyle(fontSize: 10.5, color: Colors.grey),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit, size: 16),
-                  tooltip: 'Changer de lieu',
+                  tooltip: l10n.externalTastingChangePlace,
                   onPressed: () {
                     setState(() {
                       _showCustomPlaceInput = true;
@@ -1324,7 +1332,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 // Button to enter custom friend place (e.g. Chez Dimitri)
                 ActionChip(
                   avatar: const Icon(Icons.add_home, size: 16, color: Color(0xFF8B1E3F)),
-                  label: const Text('Chez un ami / Autre lieu...', style: TextStyle(fontSize: 11.5)),
+                  label: Text(l10n.externalTastingOtherPlace, style: const TextStyle(fontSize: 11.5)),
                   onPressed: () {
                     setState(() {
                       _showCustomPlaceInput = true;
@@ -1345,15 +1353,15 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Text(
-                'Aucun restaurant détecté à proximité immédiate.',
+                l10n.externalTastingNoPlaceFound,
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
               ),
             ),
           TextField(
             controller: _contextController,
             decoration: InputDecoration(
-              labelText: 'Chez qui ou où êtes-vous ? *',
-              hintText: 'Ex: Chez Dimitri, Chez mes parents, Maison de campagne...',
+              labelText: l10n.externalTastingPlaceLabel,
+              hintText: l10n.externalTastingPlaceHint,
               prefixIcon: const Icon(Icons.home_outlined, size: 20),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -1376,7 +1384,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                     child: GestureDetector(
                       onTap: () => setState(() => _rememberThisPlace = !_rememberThisPlace),
                       child: Text(
-                        'Mémoriser "${_contextController.text.trim()}" à cette position GPS pour vos prochaines visites',
+                        l10n.externalTastingRememberPlace(_contextController.text.trim()),
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
                       ),
                     ),
@@ -1389,7 +1397,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     );
   }
 
-  Widget _buildQuickAiSearchSection(ThemeData theme, bool isDark) {
+  Widget _buildQuickAiSearchSection(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1404,9 +1412,9 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             children: [
               const Icon(Icons.auto_awesome, color: Color(0xFF8B1E3F), size: 16),
               const SizedBox(width: 6),
-              const Text(
-                'Identifier avec l\'IA (Bar, Restaurant, Ardoise)',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+              Text(
+                l10n.externalTastingAiIdentifyTitle,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
               ),
               const Spacer(),
               if (_isQuickAnalyzing)
@@ -1419,7 +1427,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Entrez quelques mots (ex: "Saint-Joseph Coursodon 2021" ou "Bandol Terrebrune") pour pré-remplir la fiche.',
+            l10n.externalTastingAiIdentifyDesc,
             style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 10),
@@ -1429,7 +1437,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 child: TextField(
                   controller: _quickSearchController,
                   decoration: InputDecoration(
-                    hintText: 'Ex: Saint-Joseph 2021 Coursodon...',
+                    hintText: l10n.externalTastingAiIdentifyHint,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1446,7 +1454,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 ),
                 onPressed: _isQuickAnalyzing ? null : _quickAnalyzeFromText,
                 icon: const Icon(Icons.bolt, size: 16),
-                label: const Text('Détecter', style: TextStyle(fontSize: 12)),
+                label: Text(l10n.externalTastingDetect, style: const TextStyle(fontSize: 12)),
               ),
             ],
           ),
@@ -1455,7 +1463,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     );
   }
 
-  Widget _buildPhotoSection(ThemeData theme, bool isDark) {
+  Widget _buildPhotoSection(ThemeData theme, bool isDark, AppLocalizations l10n) {
     if (_isScanningPhoto) {
       return Container(
         width: double.infinity,
@@ -1465,26 +1473,26 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFD4AF37)),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            SizedBox(
+            const SizedBox(
               width: 28,
               height: 28,
               child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFFD4AF37)),
             ),
-            SizedBox(width: 14),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Analyse de l\'étiquette par l\'IA...',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
+                    l10n.scanAnalyzing,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Détection du domaine, millésime, cépages et notes...',
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                    l10n.externalTastingAiScanningSub,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
                   ),
                 ],
               ),
@@ -1523,19 +1531,19 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 16),
-                      SizedBox(width: 6),
+                      const Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 16),
+                      const SizedBox(width: 6),
                       Text(
-                        'Photo de l\'étiquette ajoutée',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        l10n.externalTastingPhotoAdded,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Visible dans votre journal de dégustation',
+                    l10n.externalTastingPhotoAddedSub,
                     style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 8),
@@ -1548,13 +1556,13 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                         ),
                         onPressed: () => _showPhotoPickerSheet(context),
                         icon: const Icon(Icons.refresh, size: 14),
-                        label: const Text('Remplacer', style: TextStyle(fontSize: 11.5)),
+                        label: Text(l10n.externalTastingReplacePhoto, style: const TextStyle(fontSize: 11.5)),
                       ),
                       const SizedBox(width: 8),
                       IconButton(
                         visualDensity: VisualDensity.compact,
                         icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
-                        tooltip: 'Supprimer la photo',
+                        tooltip: l10n.externalTastingDeletePhoto,
                         onPressed: () => setState(() => _photoUrl = null),
                       ),
                     ],
@@ -1593,12 +1601,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Photographier l\'étiquette (Scan IA)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                Text(
+                  l10n.externalTastingScanLabelTitle,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 Text(
-                  'Reconnaissance automatique du vin et ajout au journal',
+                  l10n.externalTastingScanLabelSub,
                   style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                 ),
               ],
@@ -1611,7 +1619,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             ),
             onPressed: () => _showPhotoPickerSheet(context),
             icon: const Icon(Icons.add_a_photo, size: 15),
-            label: const Text('Scan IA', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            label: Text(l10n.externalTastingScanLabelButton, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -1619,6 +1627,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   }
 
   void _showPhotoPickerSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -1630,8 +1639,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             children: [
               ListTile(
                 leading: const Icon(Icons.camera_alt, color: Color(0xFF8B1E3F)),
-                title: const Text('Prendre une photo'),
-                subtitle: const Text('Photographier l\'étiquette avec l\'appareil photo'),
+                title: Text(l10n.scanTakePhoto),
+                subtitle: Text(l10n.externalTastingTakePhotoSub),
                 onTap: () {
                   Navigator.pop(ctx);
                   _pickPhoto(ImageSource.camera);
@@ -1639,8 +1648,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library, color: Color(0xFFD4AF37)),
-                title: const Text('Choisir depuis la galerie'),
-                subtitle: const Text('Sélectionner une photo existante'),
+                title: Text(l10n.scanPickGallery),
+                subtitle: Text(l10n.externalTastingPickGallerySub),
                 onTap: () {
                   Navigator.pop(ctx);
                   _pickPhoto(ImageSource.gallery);

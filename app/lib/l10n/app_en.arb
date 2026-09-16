@@ -943,5 +943,93 @@
   "checkoutActionTastingTitle": "Taste this wine",
   "checkoutActionTastingSubtitle": "Express (1 page) or detailed sommelier format",
   "checkoutActionDeferredRemind": "Remind later 🌙",
-  "checkoutActionAerationTimer": "Aeration timer ⏱️"
+  "checkoutActionAerationTimer": "Aeration timer ⏱️",
+  "externalTastingTitle": "Out-of-Cellar Tasting",
+  "externalTastingSubtitle": "Restaurant, bar, at a friend's place... without touching your stock",
+  "externalTastingWithWhom": "Who are you tasting this wine with?",
+  "externalTastingWhere": "Where are you tasting this wine?",
+  "externalTastingSearchingPlaces": "Looking for restaurants, bars & friends around you...",
+  "externalTastingGpsActive": "GPS on",
+  "externalTastingPlaceGuess": "You seem to be at: {place}",
+  "@externalTastingPlaceGuess": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "externalTastingFavoritePlaceNote": "Favorite spot remembered automatically by Chatmelier",
+  "externalTastingChangePlace": "Change location",
+  "externalTastingOtherPlace": "At a friend's / Another place...",
+  "externalTastingNoPlaceFound": "No restaurant detected in the immediate vicinity.",
+  "externalTastingPlaceLabel": "Whose place or where are you? *",
+  "externalTastingPlaceHint": "e.g. Dimitri's place, My parents', Country house...",
+  "externalTastingRememberPlace": "Remember \"{place}\" at this GPS position for your next visits",
+  "@externalTastingRememberPlace": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "externalTastingDefaultPlace": "At the restaurant",
+  "externalTastingAiIdentifyTitle": "Identify with AI (Bar, Restaurant, Chalkboard)",
+  "externalTastingAiIdentifyDesc": "Type a few words (e.g. \"Saint-Joseph Coursodon 2021\" or \"Bandol Terrebrune\") to pre-fill the form.",
+  "externalTastingAiIdentifyHint": "e.g. Saint-Joseph 2021 Coursodon...",
+  "externalTastingDetect": "Detect",
+  "externalTastingAiScanningSub": "Detecting producer, vintage, grapes and notes...",
+  "externalTastingPhotoAdded": "Label photo added",
+  "externalTastingPhotoAddedSub": "Visible in your tasting journal",
+  "externalTastingReplacePhoto": "Replace",
+  "externalTastingDeletePhoto": "Delete photo",
+  "externalTastingScanLabelTitle": "Photograph the label (AI Scan)",
+  "externalTastingScanLabelSub": "Automatic wine recognition and journal entry",
+  "externalTastingScanLabelButton": "AI Scan",
+  "externalTastingTakePhotoSub": "Photograph the label with the camera",
+  "externalTastingPickGallerySub": "Pick an existing photo",
+  "externalTastingWineNameLabel": "Wine name *",
+  "externalTastingWineNameHint": "e.g. Domaine de Terrebrune",
+  "externalTastingProducerHint": "e.g. Famille Delon",
+  "externalTastingRegionLabel": "Region / Appellation",
+  "externalTastingRegionHint": "e.g. Bandol Rouge",
+  "externalTastingRatingLabel": "Tasting rating:",
+  "externalTastingFavorite": "Loved it",
+  "externalTastingFoodLabel": "Food & Wine pairing",
+  "externalTastingNotesLabel": "Impressions & Aromas perceived",
+  "externalTastingNotesHint": "e.g. Intense black fruit, silky tannins, beautiful length...",
+  "externalTastingSubmit": "Save & Rate ✨",
+  "externalTastingNameRequired": "Please enter at least the wine name.",
+  "externalTastingSaved": "Out-of-cellar tasting saved! Chatmelier will remember it.",
+  "externalTastingAiRecognized": "✨ Bottle recognized by AI: {name}",
+  "@externalTastingAiRecognized": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "externalTastingAiFilled": "✨ Form filled in by AI: {name}",
+  "@externalTastingAiFilled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "externalTastingAnalysisError": "Analysis error: {error}",
+  "@externalTastingAnalysisError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "externalTastingSaveError": "Error: {error}",
+  "@externalTastingSaveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

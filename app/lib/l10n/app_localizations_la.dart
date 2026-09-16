@@ -1851,4 +1851,167 @@ class AppLocalizationsLa extends AppLocalizations {
 
   @override
   String get checkoutActionAerationTimer => 'Aerationis mensura ⏱️';
+
+  @override
+  String get externalTastingTitle => 'Degustatio extra cellam';
+
+  @override
+  String get externalTastingSubtitle =>
+      'In taberna, in caupona, apud amicos... sine copiis mutatis';
+
+  @override
+  String get externalTastingWithWhom => 'Quibuscum hoc vinum degustas?';
+
+  @override
+  String get externalTastingWhere => 'Ubi hoc vinum degustas?';
+
+  @override
+  String get externalTastingSearchingPlaces =>
+      'Cauponae, tabernae amicique circum te quaeruntur...';
+
+  @override
+  String get externalTastingGpsActive => 'GPS vigens';
+
+  @override
+  String externalTastingPlaceGuess(String place) {
+    return 'Videris adesse: $place';
+  }
+
+  @override
+  String get externalTastingFavoritePlaceNote =>
+      'Locus dilectus a Chatmelier sponte memoratus';
+
+  @override
+  String get externalTastingChangePlace => 'Locum mutare';
+
+  @override
+  String get externalTastingOtherPlace => 'Apud amicum / Alius locus...';
+
+  @override
+  String get externalTastingNoPlaceFound => 'Nulla caupona prope inventa est.';
+
+  @override
+  String get externalTastingPlaceLabel => 'Apud quem aut ubi es? *';
+
+  @override
+  String get externalTastingPlaceHint =>
+      'Ut: Apud Dimitrium, Apud parentes meos, Villa rustica...';
+
+  @override
+  String externalTastingRememberPlace(String place) {
+    return '\"$place\" hoc loco GPS in posteros adventus memorare';
+  }
+
+  @override
+  String get externalTastingDefaultPlace => 'In caupona';
+
+  @override
+  String get externalTastingAiIdentifyTitle =>
+      'Per intellegentiam artificiosam agnoscere (taberna, caupona, tabula)';
+
+  @override
+  String get externalTastingAiIdentifyDesc =>
+      'Pauca verba insere (ut \"Saint-Joseph Coursodon 2021\" vel \"Bandol Terrebrune\") ut schedula praecompleatur.';
+
+  @override
+  String get externalTastingAiIdentifyHint =>
+      'Ut: Saint-Joseph 2021 Coursodon...';
+
+  @override
+  String get externalTastingDetect => 'Deprehendere';
+
+  @override
+  String get externalTastingAiScanningSub =>
+      'Praedium, annus, uvae notaeque deprehenduntur...';
+
+  @override
+  String get externalTastingPhotoAdded => 'Imago tituli addita';
+
+  @override
+  String get externalTastingPhotoAddedSub =>
+      'In ephemeride degustationis tuae conspicua';
+
+  @override
+  String get externalTastingReplacePhoto => 'Substituere';
+
+  @override
+  String get externalTastingDeletePhoto => 'Imaginem delere';
+
+  @override
+  String get externalTastingScanLabelTitle =>
+      'Titulum photographare (scrutatio IA)';
+
+  @override
+  String get externalTastingScanLabelSub =>
+      'Vinum sponte agnoscitur et ephemeridi additur';
+
+  @override
+  String get externalTastingScanLabelButton => 'Scrutatio IA';
+
+  @override
+  String get externalTastingTakePhotoSub => 'Titulum camera photographare';
+
+  @override
+  String get externalTastingPickGallerySub => 'Imaginem iam exstantem eligere';
+
+  @override
+  String get externalTastingWineNameLabel => 'Nomen vini *';
+
+  @override
+  String get externalTastingWineNameHint => 'Ut: Domaine de Terrebrune';
+
+  @override
+  String get externalTastingProducerHint => 'Ut: Famille Delon';
+
+  @override
+  String get externalTastingRegionLabel => 'Regio / Appellatio';
+
+  @override
+  String get externalTastingRegionHint => 'Ut: Bandol rubrum';
+
+  @override
+  String get externalTastingRatingLabel => 'Aestimatio degustationis:';
+
+  @override
+  String get externalTastingFavorite => 'Cordi fuit';
+
+  @override
+  String get externalTastingFoodLabel => 'Cibi et vini concordia';
+
+  @override
+  String get externalTastingNotesLabel => 'Sensus et odores percepti';
+
+  @override
+  String get externalTastingNotesHint =>
+      'Ut: Fructus nigri vehementes, tannina serica, longa persistentia...';
+
+  @override
+  String get externalTastingSubmit => 'Servare et aestimare ✨';
+
+  @override
+  String get externalTastingNameRequired => 'Nomen saltem vini indica.';
+
+  @override
+  String get externalTastingSaved =>
+      'Degustatio extra cellam servata est! Chatmelier meminerit.';
+
+  @override
+  String externalTastingAiRecognized(String name) {
+    return '✨ Lagoena ab IA agnita: $name';
+  }
+
+  @override
+  String externalTastingAiFilled(String name) {
+    return '✨ Schedula ab IA completa: $name';
+  }
+
+  @override
+  String externalTastingAnalysisError(String error) {
+    return 'Error in analysi: $error';
+  }
+
+  @override
+  String externalTastingSaveError(String error) {
+    return 'Erratum: $error';
+  }
 }

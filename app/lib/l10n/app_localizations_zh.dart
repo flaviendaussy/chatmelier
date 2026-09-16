@@ -1800,4 +1800,155 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get checkoutActionAerationTimer => '醒酒计时器 ⏱️';
+
+  @override
+  String get externalTastingTitle => '酒窖外品鉴';
+
+  @override
+  String get externalTastingSubtitle => '餐厅、酒吧、朋友家…… 不影响你的库存';
+
+  @override
+  String get externalTastingWithWhom => '你和谁一起品尝这款酒？';
+
+  @override
+  String get externalTastingWhere => '你在哪里品尝这款酒？';
+
+  @override
+  String get externalTastingSearchingPlaces => '正在搜索附近的餐厅、酒吧和好友……';
+
+  @override
+  String get externalTastingGpsActive => 'GPS 已启用';
+
+  @override
+  String externalTastingPlaceGuess(String place) {
+    return '你似乎正在：$place';
+  }
+
+  @override
+  String get externalTastingFavoritePlaceNote => 'Chatmelier 自动记住的常去地点';
+
+  @override
+  String get externalTastingChangePlace => '更换地点';
+
+  @override
+  String get externalTastingOtherPlace => '朋友家 / 其他地点……';
+
+  @override
+  String get externalTastingNoPlaceFound => '附近未检测到餐厅。';
+
+  @override
+  String get externalTastingPlaceLabel => '在谁家或在哪里？ *';
+
+  @override
+  String get externalTastingPlaceHint => '例：迪米特里家、父母家、乡下的房子……';
+
+  @override
+  String externalTastingRememberPlace(String place) {
+    return '把「$place」记在此 GPS 位置，供下次使用';
+  }
+
+  @override
+  String get externalTastingDefaultPlace => '在餐厅';
+
+  @override
+  String get externalTastingAiIdentifyTitle => '用 AI 识别（酒吧、餐厅、黑板菜单）';
+
+  @override
+  String get externalTastingAiIdentifyDesc =>
+      '输入几个关键词（例如「Saint-Joseph Coursodon 2021」或「Bandol Terrebrune」），即可预填表单。';
+
+  @override
+  String get externalTastingAiIdentifyHint => '例：Saint-Joseph 2021 Coursodon……';
+
+  @override
+  String get externalTastingDetect => '识别';
+
+  @override
+  String get externalTastingAiScanningSub => '正在识别酒庄、年份、葡萄品种与品鉴笔记……';
+
+  @override
+  String get externalTastingPhotoAdded => '已添加酒标照片';
+
+  @override
+  String get externalTastingPhotoAddedSub => '将显示在你的品鉴日志中';
+
+  @override
+  String get externalTastingReplacePhoto => '替换';
+
+  @override
+  String get externalTastingDeletePhoto => '删除照片';
+
+  @override
+  String get externalTastingScanLabelTitle => '拍摄酒标（AI 识别）';
+
+  @override
+  String get externalTastingScanLabelSub => '自动识别葡萄酒并记入日志';
+
+  @override
+  String get externalTastingScanLabelButton => 'AI 识别';
+
+  @override
+  String get externalTastingTakePhotoSub => '用相机拍摄酒标';
+
+  @override
+  String get externalTastingPickGallerySub => '从已有照片中选择';
+
+  @override
+  String get externalTastingWineNameLabel => '葡萄酒名称 *';
+
+  @override
+  String get externalTastingWineNameHint => '例：Domaine de Terrebrune';
+
+  @override
+  String get externalTastingProducerHint => '例：Famille Delon';
+
+  @override
+  String get externalTastingRegionLabel => '产区 / 法定产区';
+
+  @override
+  String get externalTastingRegionHint => '例：邦多勒红葡萄酒';
+
+  @override
+  String get externalTastingRatingLabel => '品鉴评分：';
+
+  @override
+  String get externalTastingFavorite => '心头好';
+
+  @override
+  String get externalTastingFoodLabel => '餐酒搭配';
+
+  @override
+  String get externalTastingNotesLabel => '印象与感受到的香气';
+
+  @override
+  String get externalTastingNotesHint => '例：浓郁黑色水果、丝滑单宁、余味悠长……';
+
+  @override
+  String get externalTastingSubmit => '保存并评分 ✨';
+
+  @override
+  String get externalTastingNameRequired => '请至少填写葡萄酒名称。';
+
+  @override
+  String get externalTastingSaved => '酒窖外品鉴已保存！Chatmelier 会记住它。';
+
+  @override
+  String externalTastingAiRecognized(String name) {
+    return '✨ AI 已识别酒款：$name';
+  }
+
+  @override
+  String externalTastingAiFilled(String name) {
+    return '✨ AI 已填好表单：$name';
+  }
+
+  @override
+  String externalTastingAnalysisError(String error) {
+    return '解析出错：$error';
+  }
+
+  @override
+  String externalTastingSaveError(String error) {
+    return '出错：$error';
+  }
 }

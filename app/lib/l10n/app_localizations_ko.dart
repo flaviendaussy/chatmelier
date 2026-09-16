@@ -1814,4 +1814,156 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get checkoutActionAerationTimer => '에어레이션 타이머 ⏱️';
+
+  @override
+  String get externalTastingTitle => '셀러 밖 시음';
+
+  @override
+  String get externalTastingSubtitle => '레스토랑, 바, 친구 집에서… 보유 재고는 그대로';
+
+  @override
+  String get externalTastingWithWhom => '이 와인을 누구와 함께 시음하나요?';
+
+  @override
+  String get externalTastingWhere => '이 와인을 어디에서 시음하나요?';
+
+  @override
+  String get externalTastingSearchingPlaces => '주변 레스토랑, 바, 친구를 찾는 중…';
+
+  @override
+  String get externalTastingGpsActive => 'GPS 켜짐';
+
+  @override
+  String externalTastingPlaceGuess(String place) {
+    return '현재 위치로 추정됩니다: $place';
+  }
+
+  @override
+  String get externalTastingFavoritePlaceNote =>
+      'Chatmelier가 자동으로 기억한 즐겨 찾는 장소';
+
+  @override
+  String get externalTastingChangePlace => '장소 변경';
+
+  @override
+  String get externalTastingOtherPlace => '친구 집 / 다른 장소…';
+
+  @override
+  String get externalTastingNoPlaceFound => '바로 근처에서 레스토랑을 찾지 못했습니다.';
+
+  @override
+  String get externalTastingPlaceLabel => '누구의 집 또는 어디에 있나요? *';
+
+  @override
+  String get externalTastingPlaceHint => '예: 디미트리네 집, 부모님 댁, 시골집…';
+
+  @override
+  String externalTastingRememberPlace(String place) {
+    return '이 GPS 위치에 \"$place\"을(를) 기억해 다음 방문에 사용';
+  }
+
+  @override
+  String get externalTastingDefaultPlace => '레스토랑에서';
+
+  @override
+  String get externalTastingAiIdentifyTitle => 'AI로 식별 (바, 레스토랑, 칠판 메뉴)';
+
+  @override
+  String get externalTastingAiIdentifyDesc =>
+      '몇 단어만 입력하면(예: \"Saint-Joseph Coursodon 2021\" 또는 \"Bandol Terrebrune\") 양식이 자동으로 채워집니다.';
+
+  @override
+  String get externalTastingAiIdentifyHint => '예: Saint-Joseph 2021 Coursodon…';
+
+  @override
+  String get externalTastingDetect => '인식';
+
+  @override
+  String get externalTastingAiScanningSub => '생산자, 빈티지, 품종, 테이스팅 노트를 인식하는 중…';
+
+  @override
+  String get externalTastingPhotoAdded => '라벨 사진을 추가했습니다';
+
+  @override
+  String get externalTastingPhotoAddedSub => '시음 일지에 표시됩니다';
+
+  @override
+  String get externalTastingReplacePhoto => '교체';
+
+  @override
+  String get externalTastingDeletePhoto => '사진 삭제';
+
+  @override
+  String get externalTastingScanLabelTitle => '라벨 촬영 (AI 스캔)';
+
+  @override
+  String get externalTastingScanLabelSub => '와인을 자동 인식해 일지에 추가합니다';
+
+  @override
+  String get externalTastingScanLabelButton => 'AI 스캔';
+
+  @override
+  String get externalTastingTakePhotoSub => '카메라로 라벨을 촬영합니다';
+
+  @override
+  String get externalTastingPickGallerySub => '기존 사진에서 선택';
+
+  @override
+  String get externalTastingWineNameLabel => '와인 이름 *';
+
+  @override
+  String get externalTastingWineNameHint => '예: Domaine de Terrebrune';
+
+  @override
+  String get externalTastingProducerHint => '예: Famille Delon';
+
+  @override
+  String get externalTastingRegionLabel => '지역 / 원산지 명칭';
+
+  @override
+  String get externalTastingRegionHint => '예: 방돌 레드';
+
+  @override
+  String get externalTastingRatingLabel => '시음 평점:';
+
+  @override
+  String get externalTastingFavorite => '마음에 쏙';
+
+  @override
+  String get externalTastingFoodLabel => '음식과의 페어링';
+
+  @override
+  String get externalTastingNotesLabel => '인상과 느낀 향';
+
+  @override
+  String get externalTastingNotesHint => '예: 진한 검은 과실, 실크 같은 타닌, 긴 여운…';
+
+  @override
+  String get externalTastingSubmit => '저장하고 평가하기 ✨';
+
+  @override
+  String get externalTastingNameRequired => '최소한 와인 이름을 입력해 주세요.';
+
+  @override
+  String get externalTastingSaved => '셀러 밖 시음을 저장했습니다! Chatmelier가 기억해 둘게요.';
+
+  @override
+  String externalTastingAiRecognized(String name) {
+    return '✨ AI가 보틀을 인식했습니다: $name';
+  }
+
+  @override
+  String externalTastingAiFilled(String name) {
+    return '✨ AI가 양식을 채웠습니다: $name';
+  }
+
+  @override
+  String externalTastingAnalysisError(String error) {
+    return '분석 오류: $error';
+  }
+
+  @override
+  String externalTastingSaveError(String error) {
+    return '오류: $error';
+  }
 }

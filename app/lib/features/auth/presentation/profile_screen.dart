@@ -966,6 +966,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           dislikedCharacteristics: const [],
           notes: '',
         );
+    // Même effet de bord que sur l'écran du radar plein écran : c'est ici qu'on atterrit,
+    // donc c'est ici que l'inventaire de cave doit être à jour avant le dessin.
+    ref.watch(cellarGrapeSyncProvider);
     final metrics = WineTasteRadarCalculator.compute(currentProfile);
 
     return ListView(

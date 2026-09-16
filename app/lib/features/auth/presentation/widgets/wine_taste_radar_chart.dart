@@ -24,6 +24,25 @@ class RadarChartDataset {
 
 /// 🕸️ Interactive Multi-Layer Spider / Radar Chart for Wine Taste Profiles
 class WineTasteRadarChart extends StatefulWidget {
+  /// Place réservée autour du tracé pour les libellés d'axes. Deux lignes de 9,5 px à
+  /// `height: 1.1` font ~21 px ; on garde de la marge pour les libellés qui reviennent
+  /// à la ligne.
+  static const double labelBand = 34.0;
+
+  /// Rayon du tracé pour une boîte donnée.
+  ///
+  /// Se déduit du plus **petit** côté, pas de la largeur. L'ancienne formule
+  /// (`size.width / 2 * 0.70`) débordait dès que la boîte était plus large que haute :
+  /// à 260 × 190 sur l'écran de profil, les libellés du haut et du bas tombaient 18 px
+  /// **en dehors** de la zone de dessin — « Tannins & Grip » recouvrait le sous-titre de
+  /// la carte et « Spice & Character » passait sous l'encadré suivant.
+  ///
+  /// Extrait de `paint` pour être vérifiable : c'est une règle géométrique, pas du rendu.
+  static double radiusFor(Size size, bool showLabels) {
+    final half = math.min(size.width, size.height) / 2;
+    return showLabels ? math.max(half - labelBand, 20.0) : half * 0.90;
+  }
+
   final List<RadarChartDataset> datasets;
   final List<String>? customAxisLabels;
   final double size;
@@ -124,12 +143,14 @@ class _RadarChartPainter extends CustomPainter {
 
   static const double maxVal = 10.0;
 
+
   @override
   void paint(Canvas canvas, Size size) {
     final labels = customAxisLabels ?? WineTasteRadarMetrics.axisLabels;
     final int numAxes = labels.length;
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width / 2) * (showLabels ? 0.70 : 0.90);
+
+    final radius = WineTasteRadarChart.radiusFor(size, showLabels);
 
     // 1. Draw Concentric Hexagonal Grids (levels 2, 4, 6, 8, 10)
     final gridPaint = Paint()
@@ -168,7 +189,7 @@ class _RadarChartPainter extends CustomPainter {
 
       if (showLabels) {
         // Label position slightly outside radius
-        final labelRadius = radius + 22;
+        final labelRadius = radius + (WineTasteRadarChart.labelBand * 0.6);
         final lx = center.dx + labelRadius * math.cos(angle);
         final ly = center.dy + labelRadius * math.sin(angle);
 

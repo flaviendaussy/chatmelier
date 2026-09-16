@@ -527,7 +527,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         ),
       );
 
-      final enriched = await scanService.enrichWineData(
+      // Version vérifiée : si le nom du vin contredit la région renvoyée, une seconde
+      // source est interrogée. Gardé par un budget strict — voir
+      // GroundedVerificationBudget. C'est ici que la contradiction « Crémant du Jura →
+      // Pauillac » remontée par un utilisateur est rattrapée.
+      final enriched = await scanService.enrichWineDataVerified(
         wineName: wine.name,
         producer: wine.producer,
         vintage: wine.vintage,

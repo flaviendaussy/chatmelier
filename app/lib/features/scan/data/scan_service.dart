@@ -11,6 +11,8 @@ import '../../auth/data/ai_cost_tracker_service.dart';
 import '../domain/scan_result.dart';
 import 'label_image_optimizer.dart';
 import 'scan_cache_service.dart';
+import '../domain/region_contradiction.dart';
+import '../domain/grounded_verification_budget.dart';
 
 class ScanService {
   final SupabaseClient _client;
@@ -374,6 +376,102 @@ Return strictly a valid JSON object matching this schema.''';
   }
 
   /// Enrich existing wine data with sommelier tasting notes, apogée window, and pairings
+
+  /// Enrichit un vin, et **ne croit pas la première réponse sur parole** quand le nom du
+  /// vin la contredit.
+  ///
+  /// Motivé par une remontée : un Crémant du Jura enrichi « Pauillac & Haut-Médoc ».
+  /// Le nom était resté juste, c'est la région qui était inventée.
+  ///
+  /// La règle : quand le nom d'un vin nomme lui-même une région et que l'enrichissement
+  /// en renvoie une autre, on redemande — **une seule fois, et sans redonner les indices
+  /// de région**, pour ne pas ancrer la seconde réponse sur la première erreur.
+  ///
+  /// Ce chemin coûte cher : chaque appel groundé est facturé 0,035 \$ forfaitaires, soit
+  /// 119× le coût en jetons. Il est donc gardé par trois verrous décrits dans
+  /// [GroundedVerificationBudget] — détection locale gratuite, jamais deux fois le même
+  /// vin, plafond quotidien. Sur un corpus de vingt vins correctement renseignés, il ne
+  /// se déclenche pas une seule fois (`region_contradiction_test.dart`).
+  ///
+  /// En cas de doute persistant, la première réponse est conservée mais marquée
+  /// `region_douteuse` : on préfère signaler qu'inventer.
+  Future<Map<String, dynamic>> enrichWineDataVerified({
+    required String wineName,
+    String? producer,
+    int? vintage,
+    String? country,
+    String? region,
+    String? subRegion,
+    String? appellation,
+    String? classification,
+    String? wineType,
+  }) async {
+    final premier = await enrichWineData(
+      wineName: wineName,
+      producer: producer,
+      vintage: vintage,
+      country: country,
+      region: region,
+      subRegion: subRegion,
+      appellation: appellation,
+      classification: classification,
+      wineType: wineType,
+    );
+
+    final contradiction = RegionContradictionDetector.detecter(
+      nomDuVin: wineName,
+      regionEnrichie: premier['region']?.toString(),
+      appellationEnrichie: premier['appellation']?.toString(),
+    );
+    if (contradiction == null) return premier;
+
+    final budget = await GroundedVerificationBudget.ouvrir();
+    if (!budget.peutVerifier(wineName)) {
+      AppLogger.info('SCAN_AI',
+          'Contradiction de région non vérifiée (déjà vue ou plafond atteint) : $contradiction');
+      return {...premier, 'region_douteuse': true};
+    }
+
+    AppLogger.warning('SCAN_AI', 'Contradiction de région détectée : $contradiction — '
+        'seconde source demandée');
+    // Marqué AVANT l'appel : si celui-ci échoue, on ne doit pas le relancer en boucle.
+    await budget.enregistrerVerification(wineName);
+
+    final second = await enrichWineData(
+      wineName: wineName,
+      producer: producer,
+      vintage: vintage,
+      wineType: wineType,
+      // Volontairement sans country/region/subRegion/appellation : la première réponse
+      // s'est trompée dessus, les redonner reviendrait à souffler la mauvaise réponse.
+    );
+
+    final contradictionRestante = RegionContradictionDetector.detecter(
+      nomDuVin: wineName,
+      regionEnrichie: second['region']?.toString(),
+      appellationEnrichie: second['appellation']?.toString(),
+    );
+
+    if (contradictionRestante == null &&
+        (second['region']?.toString().trim().isNotEmpty ?? false)) {
+      AppLogger.info('SCAN_AI',
+          'Seconde source cohérente avec le nom : région corrigée en ${second['region']}');
+      // On garde le premier enrichissement (plus complet car guidé) et on n'en remplace
+      // que ce qui était faux.
+      return {
+        ...premier,
+        'region': second['region'],
+        if (second['appellation'] != null) 'appellation': second['appellation'],
+        if (second['country'] != null) 'country': second['country'],
+        if (second['sub_region'] != null) 'sub_region': second['sub_region'],
+      };
+    }
+
+    AppLogger.warning('SCAN_AI',
+        'Seconde source toujours en contradiction avec le nom : fiche marquée douteuse');
+    return {...premier, 'region_douteuse': true};
+  }
+
   Future<Map<String, dynamic>> enrichWineData({
     required String wineName,
     String? producer,

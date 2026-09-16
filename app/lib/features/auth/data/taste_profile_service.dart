@@ -8,6 +8,7 @@ import '../domain/taste_evidence.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../cellar/domain/bottle.dart';
 import '../domain/cellar_behaviour_evidence.dart';
+import '../domain/cellar_concentration.dart';
 import '../../cellar/domain/wine.dart';
 import '../../friends/domain/friend.dart';
 import '../../journal/domain/tasting_questionnaire_result.dart';
@@ -53,6 +54,8 @@ final cellarGrapeSyncProvider = FutureProvider<void>((ref) async {
   );
   // Et ce que les gestes révèlent : les rachats entrent dans les favoris explicites.
   await service.applyCellarBehaviour(primary.id, bottles);
+  // Et ce que la composition révèle : appellations, cépages, façons de boire.
+  await service.applyCellarConcentration(primary.id, bottles);
   ref.invalidate(tasteProfilesListProvider);
 });
 
@@ -652,6 +655,68 @@ class TasteProfileService {
     AppLogger.info('TASTE_PROFILE',
         'Rachats appliqués : régions=${regions.keys.join(", ")} '
         'cépages=${cepages.keys.join(", ")}');
+  }
+
+  /// Applique ce que la COMPOSITION de la cave révèle, indépendamment du rachat.
+  ///
+  /// Une cave n'est pas un échantillon aléatoire : c'est une suite de choix. Se fournir
+  /// surtout en Saint-Joseph, ou accumuler quinze Syrah, en dit autant qu'une note — et
+  /// souvent plus tôt, puisqu'on achète avant de déguster.
+  ///
+  /// Seules les régions et les cépages entrent dans les favoris : ce sont les deux
+  /// dimensions que le profil sait porter. Les autres — appellation, type,
+  /// classification, bande d'âge — sont enregistrées au registre, où elles expliquent le
+  /// profil sans prétendre le piloter.
+  Future<void> applyCellarConcentration(String profileId, List<Bottle> bottles) async {
+    final signaux = CellarConcentration.detecter(bottles);
+    if (signaux.isEmpty) return;
+
+    final profiles = await getProfiles();
+    final idx = profiles.indexWhere((p) => p.id == profileId);
+    if (idx == -1) return;
+
+    final p = profiles[idx];
+    final favRegions = Set<String>.from(p.favoriteRegions);
+    final favGrapes = Set<String>.from(p.favoriteGrapes);
+    final avant = favRegions.length + favGrapes.length;
+
+    final nouveaux = <ConcentrationSignal>[];
+    for (final s in signaux) {
+      final connu = switch (s.dimension) {
+        'region' => !favRegions.add(s.valeur),
+        'cepage' => !favGrapes.add(s.valeur),
+        _ => p.concentrationsConnues.contains(s.cible),
+      };
+      if (!connu) nouveaux.add(s);
+    }
+
+    if (nouveaux.isEmpty) return;
+
+    profiles[idx] = p.copyWith(
+      favoriteRegions: favRegions.take(6).toList(),
+      favoriteGrapes: favGrapes.take(8).toList(),
+      concentrationsConnues: {
+        ...p.concentrationsConnues,
+        ...nouveaux.map((s) => s.cible),
+      }.toList(),
+    );
+    if (favRegions.length + favGrapes.length != avant ||
+        nouveaux.isNotEmpty) {
+      await saveProfiles(profiles);
+    }
+
+    final maintenant = DateTime.now();
+    await (await TasteEvidenceLedger.ouvrir()).ajouter([
+      for (final s in nouveaux)
+        TasteEvidenceEntry(
+          quand: maintenant,
+          source: 'cave',
+          cible: s.cible,
+          effet: s.effet,
+        ),
+    ]);
+    AppLogger.info('TASTE_PROFILE',
+        'Concentrations de cave : ${nouveaux.join(" · ")}');
   }
 
   /// Compte les cépages réellement **choisis** et encore en cave.

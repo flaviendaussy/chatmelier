@@ -49,6 +49,12 @@ class TasteProfile {
   /// précision qui rend le profil invérifiable, et ne donne à personne de raison de
   /// continuer à nourrir l'application.
   final Map<String, int> axisObservations;
+
+  /// Concentrations de cave déjà constatées ('appellation:Saint-Joseph', 'age:Jeune…').
+  ///
+  /// Sert uniquement à ne pas réécrire la même entrée au registre à chaque chargement de
+  /// la cave : le fournisseur se déclenche à chaque ouverture de l'écran de profil.
+  final List<String> concentrationsConnues;
   final String? friendUserId; // Set if this profile corresponds to a connected friend who has the app
 
   bool get hasApp => friendUserId != null && friendUserId!.isNotEmpty;
@@ -115,6 +121,7 @@ class TasteProfile {
     this.idealMoments = const {},
     this.questionnairesCompleted = 0,
     this.axisObservations = const {},
+    this.concentrationsConnues = const [],
     this.friendUserId,
   });
 
@@ -143,6 +150,7 @@ class TasteProfile {
     Map<String, int>? idealMoments,
     int? questionnairesCompleted,
     Map<String, int>? axisObservations,
+    List<String>? concentrationsConnues,
     String? friendUserId,
     bool clearFriendUserId = false,
   }) {
@@ -171,6 +179,7 @@ class TasteProfile {
       idealMoments: idealMoments ?? this.idealMoments,
       questionnairesCompleted: questionnairesCompleted ?? this.questionnairesCompleted,
       axisObservations: axisObservations ?? this.axisObservations,
+      concentrationsConnues: concentrationsConnues ?? this.concentrationsConnues,
       friendUserId: clearFriendUserId ? null : (friendUserId ?? this.friendUserId),
     );
   }
@@ -200,6 +209,7 @@ class TasteProfile {
         'ideal_moments': idealMoments,
         'questionnaires_completed': questionnairesCompleted,
         'axis_observations': axisObservations,
+        'concentrations_connues': concentrationsConnues,
         if (friendUserId != null) 'friend_user_id': friendUserId,
       };
 
@@ -231,6 +241,10 @@ class TasteProfile {
       // par axe était recalculé à chaque enregistrement puis perdu au rechargement, donc
       // la confiance affichée serait restée nulle en permanence.
       axisObservations: _castIntMap(json['axis_observations']),
+      concentrationsConnues: (json['concentrations_connues'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
       questionnairesCompleted: ((json['questionnaires_completed'] ?? json['questionnairesCompleted']) as num?)?.toInt() ?? 0,
       friendUserId: json['friend_user_id']?.toString(),
     );

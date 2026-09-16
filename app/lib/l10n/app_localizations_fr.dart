@@ -859,7 +859,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get wineTypeSparkling => 'Bulles 🍾';
 
   @override
-  String get wineTypeDessert => 'Moelleux 🍯';
+  String get wineTypeDessert => 'Moelleux / Liquoreux 🍯';
 
   @override
   String get wineTypeLiqueur => 'Liqueur 🍯';

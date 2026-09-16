@@ -1314,6 +1314,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sipSectionTitle => '🍷 ひと口';
 
   @override
+  String get tasteConfidenceUnknown => 'あなたの味覚はまだわかりません。にじみは推測している部分です。';
+
+  @override
+  String tasteConfidenceKnown(String percent) {
+    return '味覚の把握度 $percent %。ぼかしはまだ推測している部分です。';
+  }
+
+  @override
+  String tasteConfidenceFrontier(String axis) {
+    return '最もわかっていないもの：$axis。';
+  }
+
+  @override
   String get sipSectionSubtitle => '2回タップするだけで、この一杯があなたの味覚プロファイルに何かを教えます。';
 
   @override

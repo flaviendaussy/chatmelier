@@ -1305,6 +1305,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sipSectionTitle => '🍷 这一口';
 
   @override
+  String get tasteConfidenceUnknown => '我还不了解你的口味——光晕表示我在猜测的部分。';
+
+  @override
+  String tasteConfidenceKnown(String percent) {
+    return '口味了解度 $percent%。模糊处是我仍在猜测的部分。';
+  }
+
+  @override
+  String tasteConfidenceFrontier(String axis) {
+    return '我最不了解的是：$axis。';
+  }
+
+  @override
   String get sipSectionSubtitle => '轻点两下，这一杯就能为你的口味档案添上一笔。';
 
   @override

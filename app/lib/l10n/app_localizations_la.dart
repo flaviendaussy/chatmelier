@@ -1343,6 +1343,20 @@ class AppLocalizationsLa extends AppLocalizations {
   String get sipSectionTitle => '🍷 Haustus';
 
   @override
+  String get tasteConfidenceUnknown =>
+      'Palatum tuum nondum novi — nimbus ostendit quid coniciam.';
+
+  @override
+  String tasteConfidenceKnown(String percent) {
+    return 'Palatum $percent centesimis notum. Nubes signat quid adhuc coniciam.';
+  }
+
+  @override
+  String tasteConfidenceFrontier(String axis) {
+    return 'Quod minime novi: $axis.';
+  }
+
+  @override
   String get sipSectionSubtitle =>
       'Duo tactus, et hic calix indici palati tui aliquid docet.';
 

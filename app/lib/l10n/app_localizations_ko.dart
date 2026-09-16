@@ -1318,6 +1318,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sipSectionTitle => '🍷 한 모금';
 
   @override
+  String get tasteConfidenceUnknown => '아직 당신의 미각을 모릅니다. 번짐은 제가 추측하는 부분입니다.';
+
+  @override
+  String tasteConfidenceKnown(String percent) {
+    return '미각 파악도 $percent%. 흐릿한 부분은 아직 추측 중입니다.';
+  }
+
+  @override
+  String tasteConfidenceFrontier(String axis) {
+    return '가장 모르는 것: $axis.';
+  }
+
+  @override
   String get sipSectionSubtitle => '두 번만 누르면 이 한 잔이 당신의 취향 프로필에 무언가를 알려줍니다.';
 
   @override

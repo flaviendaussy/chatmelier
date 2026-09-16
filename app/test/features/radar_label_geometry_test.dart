@@ -74,4 +74,32 @@ void main() {
         greaterThan(tailleTexte * hauteurLigne * lignes),
         reason: 'Sinon un libellé sur deux lignes dépasse quand même.');
   });
+
+  group("🌫️ Halo d'incertitude", () {
+    test('un axe bien connu ne produit aucun halo', () {
+      expect(WineTasteRadarChart.uncertaintyMargin(1.0), equals(0.0),
+          reason: 'Suggérer une incertitude là où le modèle a observé serait aussi '
+              'malhonnête que de prétendre savoir là où il devine.');
+    });
+
+    test("un axe jamais observé s'affiche au maximum de flou", () {
+      expect(WineTasteRadarChart.uncertaintyMargin(0.0), equals(2.5));
+    });
+
+    test('le halo se resserre à mesure que les observations arrivent', () {
+      // Confiance = n/(n+5) : 1 dégustation ≈ 0,17, 5 ≈ 0,50, 20 ≈ 0,80.
+      final m1 = WineTasteRadarChart.uncertaintyMargin(1 / 6);
+      final m5 = WineTasteRadarChart.uncertaintyMargin(0.5);
+      final m20 = WineTasteRadarChart.uncertaintyMargin(20 / 25);
+      expect(m1, greaterThan(m5));
+      expect(m5, greaterThan(m20));
+      expect(m20, greaterThan(0.0),
+          reason: 'Même à 20 dégustations, on ne prétend jamais tout savoir.');
+    });
+
+    test('une confiance hors bornes ne casse pas le tracé', () {
+      expect(WineTasteRadarChart.uncertaintyMargin(-1.0), equals(2.5));
+      expect(WineTasteRadarChart.uncertaintyMargin(42.0), equals(0.0));
+    });
+  });
 }

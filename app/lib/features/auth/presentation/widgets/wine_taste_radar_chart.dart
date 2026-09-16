@@ -10,12 +10,22 @@ class RadarChartDataset {
   final Color color;
   final bool isVisible;
 
+  /// Confiance du modele sur chaque axe, de 0 (aucune idee) a 1 (bien etabli), dans le
+  /// meme ordre que [values].
+  ///
+  /// Quand elle est fournie, le trace s'entoure d'un halo dont l'epaisseur porte
+  /// l'incertitude : net la ou le modele a observe, flou la ou il devine. Sans ca, les
+  /// huit axes s'affichent avec la meme autorite visuelle qu'on ait 0 ou 50 degustations
+  /// derriere -- ce qui est une fausse precision, pas une simplification.
+  final List<double>? confidences;
+
   const RadarChartDataset({
     required this.label,
     this.metrics,
     this.customValues,
     required this.color,
     this.isVisible = true,
+    this.confidences,
   });
 
   List<double> get values =>
@@ -38,6 +48,11 @@ class WineTasteRadarChart extends StatefulWidget {
   /// la carte et « Spice & Character » passait sous l'encadré suivant.
   ///
   /// Extrait de `paint` pour être vérifiable : c'est une règle géométrique, pas du rendu.
+  /// Amplitude du halo sur un axe, en unites de l'echelle (sur 10), pour une confiance
+  /// donnee. Confiance 1 => 0 : le trace est net, on ne suggere aucune incertitude.
+  static double uncertaintyMargin(double confidence) =>
+      (1.0 - confidence.clamp(0.0, 1.0)) * _RadarChartPainter.uncertaintyReach;
+
   static double radiusFor(Size size, bool showLabels) {
     final half = math.min(size.width, size.height) / 2;
     return showLabels ? math.max(half - labelBand, 20.0) : half * 0.90;
@@ -143,6 +158,11 @@ class _RadarChartPainter extends CustomPainter {
 
   static const double maxVal = 10.0;
 
+  /// Amplitude du halo sur un axe totalement inconnu, en unites de l'echelle (sur 10).
+  /// +/- 2,5 points : assez visible pour qu'on lise "je ne sais pas", assez borne pour
+  /// que le trace reste lisible.
+  static const double uncertaintyReach = 2.5;
+
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -240,6 +260,47 @@ class _RadarChartPainter extends CustomPainter {
         }
       }
       polyPath.close();
+
+      // Halo d'incertitude : une bande autour du trace, d'autant plus large et floue que
+      // le modele a peu observe cet axe. Dessinee AVANT le polygone pour rester derriere.
+      final conf = ds.confidences;
+      if (conf != null) {
+        final outer = Path();
+        final inner = Path();
+        for (int i = 0; i < numAxes; i++) {
+          final angle = (i * 2 * math.pi / numAxes) - (math.pi / 2);
+          final rawVal = i < values.length ? values[i] : 5.0;
+          final c = (i < conf.length ? conf[i] : 0.0).clamp(0.0, 1.0);
+          final marge = WineTasteRadarChart.uncertaintyMargin(c);
+
+          double rayonPour(double v) =>
+              radius * (v.clamp(0.5, maxVal) / maxVal) * animProgress;
+
+          final rOut = rayonPour(rawVal + marge);
+          final rIn = rayonPour(rawVal - marge);
+          final xo = center.dx + rOut * math.cos(angle);
+          final yo = center.dy + rOut * math.sin(angle);
+          final xi = center.dx + rIn * math.cos(angle);
+          final yi = center.dy + rIn * math.sin(angle);
+          if (i == 0) {
+            outer.moveTo(xo, yo);
+            inner.moveTo(xi, yi);
+          } else {
+            outer.lineTo(xo, yo);
+            inner.lineTo(xi, yi);
+          }
+        }
+        outer.close();
+        inner.close();
+        final bande = Path.combine(PathOperation.difference, outer, inner);
+        canvas.drawPath(
+          bande,
+          Paint()
+            ..color = ds.color.withAlpha(46)
+            ..style = PaintingStyle.fill
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5.0),
+        );
+      }
 
       // Semi-transparent Fill
       final fillPaint = Paint()

@@ -2532,6 +2532,24 @@ abstract class AppLocalizations {
   /// **'🍷 The sip'**
   String get sipSectionTitle;
 
+  /// No description provided for @tasteConfidenceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'I don\'t know your palate yet — the halo shows what I\'m guessing.'**
+  String get tasteConfidenceUnknown;
+
+  /// No description provided for @tasteConfidenceKnown.
+  ///
+  /// In en, this message translates to:
+  /// **'Palate known at {percent}%. The blur marks what I\'m still guessing.'**
+  String tasteConfidenceKnown(String percent);
+
+  /// No description provided for @tasteConfidenceFrontier.
+  ///
+  /// In en, this message translates to:
+  /// **'What I know least: {axis}.'**
+  String tasteConfidenceFrontier(String axis);
+
   /// No description provided for @sipSectionSubtitle.
   ///
   /// In en, this message translates to:

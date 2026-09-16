@@ -117,6 +117,51 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+
+  /// Dit à voix haute ce que le halo montre : jusqu'où le modèle sait, et où il devine.
+  ///
+  /// Un radar sans cette phrase affiche ses huit axes avec la même autorité qu'on ait
+  /// une dégustation ou cinquante derrière. Le modèle devient lisible seulement s'il
+  /// admet ce qu'il ignore — et l'axe le moins connu est exactement l'endroit où une
+  /// prochaine bouteille apprendrait le plus.
+  Widget _buildConfidenceLine(ThemeData theme, TasteProfile profile) {
+    final l10n = AppLocalizations.of(context)!;
+    final lang = Localizations.localeOf(context).languageCode;
+    final confiance = profile.overallConfidence;
+
+    final String texte;
+    if (confiance < 0.05) {
+      texte = l10n.tasteConfidenceUnknown;
+    } else {
+      final labels = WineTasteRadarMetrics.localizedAxisLabels(lang);
+      final idx = TasteProfile.axisKeys.indexOf(profile.leastKnownAxis);
+      final axe = (idx >= 0 && idx < labels.length)
+          ? labels[idx].replaceAll('\n', ' ')
+          : profile.leastKnownAxis;
+      texte = '${l10n.tasteConfidenceKnown((confiance * 100).round().toString())} '
+          '${l10n.tasteConfidenceFrontier(axe)}';
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.blur_on_rounded, size: 15, color: Colors.grey.withValues(alpha: 0.8)),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            texte,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: 11,
+              height: 1.3,
+              color: Colors.grey,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   String _tasteProfileSummary([dynamic lang]) {
     final langCode = (lang is String && lang.isNotEmpty)
         ? lang
@@ -1034,12 +1079,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             label: _displayName.isNotEmpty ? _displayName : (isFr ? 'Mes Goûts' : 'My Taste'),
                             color: const Color(0xFF8B1E3F),
                             metrics: metrics,
+                            confidences: TasteProfile.axisKeys
+                                .map(currentProfile.axisConfidence)
+                                .toList(),
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 8),
+
+                _buildConfidenceLine(theme, currentProfile),
                 const SizedBox(height: 8),
 
                 // Summary of current preferences

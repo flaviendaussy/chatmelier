@@ -1358,6 +1358,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sipSectionTitle => '🍷 De slok';
 
   @override
+  String get tasteConfidenceUnknown =>
+      'Ik ken uw smaak nog niet — de halo toont wat ik gis.';
+
+  @override
+  String tasteConfidenceKnown(String percent) {
+    return 'Smaak voor $percent% bekend. De vervaging toont wat ik nog gis.';
+  }
+
+  @override
+  String tasteConfidenceFrontier(String axis) {
+    return 'Wat ik het minst ken: $axis.';
+  }
+
+  @override
   String get sipSectionSubtitle =>
       'Twee tikken, en dit glas leert uw smaakprofiel iets.';
 

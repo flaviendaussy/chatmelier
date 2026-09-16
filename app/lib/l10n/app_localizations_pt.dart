@@ -1360,6 +1360,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sipSectionTitle => '🍷 O gole';
 
   @override
+  String get tasteConfidenceUnknown =>
+      'Ainda não conheço o seu paladar — o halo mostra o que estou a adivinhar.';
+
+  @override
+  String tasteConfidenceKnown(String percent) {
+    return 'Paladar conhecido a $percent %. A desfocagem marca o que ainda adivinho.';
+  }
+
+  @override
+  String tasteConfidenceFrontier(String axis) {
+    return 'O que menos conheço: $axis.';
+  }
+
+  @override
   String get sipSectionSubtitle =>
       'Dois toques, e este copo ensina algo ao seu perfil de gosto.';
 

@@ -6,6 +6,7 @@ import '../../../shared/utils/app_logger.dart';
 import '../domain/taste_profile.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../cellar/domain/bottle.dart';
+import '../domain/cellar_behaviour_evidence.dart';
 import '../../cellar/domain/wine.dart';
 import '../../friends/domain/friend.dart';
 import '../../journal/domain/tasting_questionnaire_result.dart';
@@ -49,6 +50,8 @@ final cellarGrapeSyncProvider = FutureProvider<void>((ref) async {
     primary.id,
     TasteProfileService.cellarGrapeStock(bottles),
   );
+  // Et ce que les gestes révèlent : les rachats entrent dans les favoris explicites.
+  await service.applyCellarBehaviour(primary.id, bottles);
   ref.invalidate(tasteProfilesListProvider);
 });
 
@@ -531,6 +534,45 @@ class TasteProfileService {
     updatedWish[grape] = (updatedWish[grape] ?? 0) + 1;
     profiles[idx] = p.copyWith(wishlistGrapes: updatedWish);
     await saveProfiles(profiles);
+  }
+
+
+  /// Applique au profil ce que la cave révèle des gestes, et non des déclarations.
+  ///
+  /// Hiérarchie de preuves : **un rachat vaut plus qu'une bonne note.** Noter 9/10 coûte
+  /// un geste ; revenir acheter le même vin six mois plus tard coûte de l'argent et une
+  /// décision prise en connaissance de cause. Un vin racheté entre donc directement dans
+  /// les favoris, sans attendre qu'une dégustation soit saisie.
+  ///
+  /// Ne touche qu'aux favoris explicites. L'inventaire de cépages, lui, alimente le
+  /// radar par un autre champ ([syncCellarGrapes]) : les deux ne se recouvrent pas.
+  Future<void> applyCellarBehaviour(String profileId, List<Bottle> bottles) async {
+    final regions = CellarBehaviourEvidence.regionsRachetees(bottles);
+    final cepages = CellarBehaviourEvidence.cepagesRachetes(bottles);
+    if (regions.isEmpty && cepages.isEmpty) return;
+
+    final profiles = await getProfiles();
+    final idx = profiles.indexWhere((p) => p.id == profileId);
+    if (idx == -1) return;
+
+    final p = profiles[idx];
+    final favRegions = Set<String>.from(p.favoriteRegions);
+    final favGrapes = Set<String>.from(p.favoriteGrapes);
+    final avant = favRegions.length + favGrapes.length;
+
+    favRegions.addAll(regions.keys);
+    favGrapes.addAll(cepages.keys);
+
+    if (favRegions.length + favGrapes.length == avant) return;
+
+    profiles[idx] = p.copyWith(
+      favoriteRegions: favRegions.take(6).toList(),
+      favoriteGrapes: favGrapes.take(8).toList(),
+    );
+    await saveProfiles(profiles);
+    AppLogger.info('TASTE_PROFILE',
+        'Rachats appliqués : régions=${regions.keys.join(", ")} '
+        'cépages=${cepages.keys.join(", ")}');
   }
 
   /// Compte les cépages réellement **choisis** et encore en cave.

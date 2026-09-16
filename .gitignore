@@ -41,6 +41,12 @@ setup_playstore_keystore.sh
 # La console admin embarque un JWT service_role Supabase en dur.
 # Retirée du suivi git ET du déploiement web ; à reconstruire avec une auth serveur.
 admin_console/
+# Chaînes de connexion. Celle du rôle de lecture des remontées vit normalement dans
+# ~/.chatmelier/feedback.env, hors du dépôt — ces motifs sont une ceinture de sécurité
+# au cas où un fichier d'environnement atterrirait ici par accident.
+*.env
+!.env.example
+.chatmelier/
 
 # Artefacts temporaires de la CLI Supabase
 supabase/.temp/

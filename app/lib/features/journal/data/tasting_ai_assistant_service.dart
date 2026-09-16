@@ -170,7 +170,13 @@ Réponds STRICTEMENT sous forme d'un objet JSON :
           if (item is Map<String, dynamic>) {
             final name = item['profile_name']?.toString() ?? (tasterNames.isNotEmpty ? tasterNames.first : 'Moi');
             final note = (item['note'] as num?)?.toDouble().clamp(1.0, 10.0) ?? 7.0;
-            final emoji = (item['emoji_impression'] as num?)?.toInt().clamp(0, 4) ?? (note >= 8.5 ? 4 : (note >= 7.0 ? 3 : 2));
+            // Même correspondance que le curseur du questionnaire. Il en existait une
+            // seconde ici, avec d'autres seuils (7,0 au lieu de 7,5 pour 😊), si bien que
+            // deux personnes ayant mis 7,0/10 se voyaient attribuer des émojis différents
+            // selon qu'elles avaient bougé le curseur ou dicté leur commentaire.
+            // Remonté par un utilisateur le 2026-09-08.
+            final emoji = (item['emoji_impression'] as num?)?.toInt().clamp(0, 4) ??
+                TastingQuestionnaireResult.emojiIndexForRating(note);
             final rawAromas = item['aromas'] as List?;
             final Set<String> aromas = {};
             if (rawAromas != null) {
@@ -527,7 +533,8 @@ Reste concis, chaleureux et convivial. Pas de puces, pas de JSON, juste le texte
     final profile = TastingParsedProfile(
       profileName: primaryName,
       noteOutOf10: note,
-      emojiImpression: note >= 8.5 ? 4 : (note >= 7.0 ? 3 : 2),
+      // Voir plus haut : une seule correspondance note → émoji dans toute l'app.
+      emojiImpression: TastingQuestionnaireResult.emojiIndexForRating(note),
       perceivedAromas: detectedAromas,
       acidity: lower.contains('acide') || lower.contains('vif') ? 0.75 : 0.5,
       tannins: isRed ? (lower.contains('tannique') || lower.contains('râpeux') ? 0.8 : 0.5) : null,

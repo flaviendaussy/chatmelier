@@ -746,7 +746,19 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                             ),
                             const SizedBox(width: 8),
-                            Expanded(child: WineTypeBadge(type: type)),
+                            // La pastille garde sa largeur naturelle. Étirée, elle
+                            // remplissait l'espace que ne prend pas le texte du compte —
+                            // donc « 1 btl (1%) », plus court, produisait une pastille
+                            // PLUS LARGE que « 35 btl (39%) ». La longueur codait l'inverse
+                            // de la valeur, et la légende se lisait comme un graphique en
+                            // barres. Remonté par un utilisateur le 2026-09-06.
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: WineTypeBadge(type: type),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Text('$count btl ($pct%)', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                           ],
                         ),

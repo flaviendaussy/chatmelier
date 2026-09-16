@@ -20,7 +20,7 @@ l'historique : **seule la rotation les neutralise.**
 | **JWT `service_role` Supabase** | 2026-08-30 → 2026-09-14 (15 j) | `54a3707`, `976f320` | ✅ **NEUTRALISÉ** le 2026-09-14 — clés legacy désactivées |
 | **Clé API Gemini** (celle de `build_bundle.sh`) | plus ancien | `df650a5`, `5697356`, `61776d5` | ✅ **remplacée** le 2026-09-15 — secret Supabase mis à jour, fonction edge vérifiée HTTP 200 |
 | Mot de passe keystore (`storePassword`) | — | `a9febdb` | ⏳ à changer (faible urgence : le `.jks` n'a jamais été committé) |
-| **Compte de seed `flavien@chatmelier.app` / `Secret1234`** | depuis `007` | `007_seed_test_user.sql` | ⏳ **dépendances vidées le 2026-09-16, compte pas encore supprimé.** Confirmé présent en production, non administrateur, dernière connexion le 2026-09-05. Migration neutralisée (`da92004`) |
+| **Compte de seed `flavien@chatmelier.app` / `Secret1234`** | depuis `007` | `007_seed_test_user.sql` | ✅ **supprimé le 2026-09-16** (vérifié : 0 ligne). Confirmé présent en production, non administrateur, dernière connexion le 2026-09-05. Migration neutralisée (`da92004`) |
 
 **Neutralisation du `service_role` — ce qui a été fait et vérifié.**
 Les clés legacy JWT (`anon` + `service_role`) ont été désactivées depuis
@@ -55,7 +55,12 @@ Ses dépendances ont été vidées — nécessaire car les clés étrangères ve
 (`cellars.owner_id`, `bottles.added_by`, `tasting_log.user_id`, `chat_messages.user_id`)
 n'ont **aucune clause `ON DELETE`** : la suppression échoue tant que caves et bouteilles
 subsistent. `delete_user_account()` ne sert à rien ici, elle ne supprime que l'appelant
-(`auth.uid()`). La suppression du compte lui-même reste à faire.
+(`auth.uid()`). Compte supprimé ensuite, vérifié à 0 ligne.
+
+Cette absence de `ON DELETE` est une dette à part entière : **supprimer un compte demande
+aujourd'hui un script manuel**, alors que la suppression RGPD est censée être
+automatique. `delete_user_account()` couvre le cas de l'utilisateur qui se supprime
+lui-même, mais rien ne couvre une suppression administrative.
 
 Le vrai piège de cette migration n'était pas la création du compte mais sa branche
 `ELSE`, qui **réinitialisait le mot de passe** si le compte existait déjà : la rejouer

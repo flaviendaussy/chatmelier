@@ -349,13 +349,30 @@ réinstallation, l'état est restaurable indéfiniment avec `./tool/devtest.sh r
 ## Suite prévue
 
 **S2 — fait :** échelle de notation (cause racine comprise et corrigée), apprentissage
-symétrique sur les deux chemins, moyenne exponentielle, confiance par axe (y compris sa
-sérialisation, qui manquait), défauts du vin traduits dans les 13 locales, suppression du mode
-« Ensemble », niveau « Gorgée » sur la dégustation hors-cave.
+symétrique sur les deux chemins, moyenne exponentielle, confiance par axe (sa sérialisation
+manquait, elle aussi), défauts du vin traduits dans les 13 locales, suppression du mode
+« Ensemble », niveau « Gorgée » sur la dégustation hors-cave, inventaire de cave branché avec
+exclusion de `source_type ∈ {gift, supermarket}`, et **le radar qui admet ce qu'il ignore**
+(halo d'incertitude + phrase de confiance).
 
-**S2 — reste :** hiérarchie de preuves (rachat, quantité, délai `created_at → consumed_at`,
-exclusion de `source_type ∈ {gift, supermarket}`), ancrage des curseurs dans l'historique, et les
-deux tables `taste_evidence` / `taste_profile_history`.
+**S2 — reste :** le rachat et le délai `created_at → consumed_at` (la quantité et l'exclusion
+des cadeaux sont faites), l'ancrage des curseurs dans l'historique, et les deux tables
+`taste_evidence` / `taste_profile_history`.
+
+### Un motif qui s'est répété trois fois, à surveiller
+
+Trois fonctionnalités de ce dépôt étaient **complètes et inertes** : du code correct, testé pour
+deux d'entre elles, mais qui n'atteignait jamais l'utilisateur.
+
+| Fonctionnalité | Pourquoi elle ne servait à rien |
+|---|---|
+| Confiance par axe | `toJson` l'écrivait, `fromJson` ne la relisait pas — perdue à chaque rechargement |
+| Confiance par axe (suite) | Une fois persistée, elle n'était **affichée nulle part** |
+| `syncCellarGrapes` | Aucun appelant, alors que le radar pondérait son résultat jusqu'à 3,3 points |
+
+Aucun test unitaire ne pouvait les attraper : ils vérifiaient le calcul, pas le chemin jusqu'à
+l'écran. C'est le test en direct sur émulateur qui les a révélées. À garder comme réflexe :
+**après avoir écrit une fonctionnalité, vérifier qu'on la voit.**
 
 Puis **S3** (QR cassé, `table_sessions`, onglet Restaurant, pont cave ↔ restaurant),
 **S3 bis** (conversion du compte anonyme), **S4** (comptoir, moteur de frontière, empreinte de
@@ -391,3 +408,6 @@ Le détail de chaque étape est dans le plan.
 | 2026-09-15 | Claude | S2 : apprentissage symétrique, moyenne exponentielle, confiance par axe | `799b35b`, `280034c`, `670356e` |
 | 2026-09-16 | Claude | **Cause racine de l'échelle des notes** : 027 jamais appliquée, toutes les notes divisées par deux à l'écriture. Migration 032 réécrite (plus de procédure manuelle) | `5ae7856` |
 | 2026-09-16 | Claude | Niveau « Gorgée » hors-cave, défauts traduits dans les 13 locales, sérialisation de la confiance par axe réparée | `a103edd` |
+| 2026-09-16 | Claude | Inventaire de cave branché (cadeaux et supermarché exclus) ; débordement des libellés du radar corrigé | `a692927`, `0fe16da` |
+| 2026-09-16 | Claude | **Le radar admet ce qu'il ignore** : halo d'incertitude + phrase de confiance, traduits dans les 13 locales | `d847ed7` |
+| 2026-09-16 | Claude | Déduction d'échelle affinée pour ne pas doubler les dégustations restées en cache local | `46a8972` |

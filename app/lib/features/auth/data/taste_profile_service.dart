@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../domain/taste_profile.dart';
+import '../domain/taste_evidence.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../cellar/domain/bottle.dart';
 import '../domain/cellar_behaviour_evidence.dart';
@@ -272,6 +273,32 @@ class TasteProfileService {
         questionnairesCompleted: profile.questionnairesCompleted + 1,
       );
       await updateProfile(updated);
+
+      final registre = await TasteEvidenceLedger.ouvrir();
+      final maintenant = DateTime.now();
+      final aime = rating >= kLikedThreshold;
+      final deplu = rating <= kDislikedThreshold;
+      if (aime || deplu) {
+        final verbe = aime ? 'ajouté' : 'retiré';
+        await registre.ajouter([
+          if (region != null)
+            TasteEvidenceEntry(
+              quand: maintenant,
+              source: 'degustation',
+              cible: 'region:$region',
+              effet: '$verbe après une note de ${rating.toStringAsFixed(1)}/10.',
+              vin: wine.name,
+            ),
+          for (final g in grapes)
+            TasteEvidenceEntry(
+              quand: maintenant,
+              source: 'degustation',
+              cible: 'cepage:$g',
+              effet: '$verbe après une note de ${rating.toStringAsFixed(1)}/10.',
+              vin: wine.name,
+            ),
+        ]);
+      }
     } catch (e) {
       AppLogger.warning('TASTE_PROFILE', 'Could not record tasting experience for $nameOrId: $e');
     }
@@ -433,6 +460,36 @@ class TasteProfileService {
       observe('freshFruit', profile.avgFreshFruitPreference, newFreshFruit);
       observe('minerality', profile.avgMineralityPreference, newMinerality);
 
+      // Tracer ce qui a réellement bougé, avant d'écraser les anciennes valeurs : c'est
+      // le seul moment où l'on dispose de l'avant et de l'après.
+      final tracesAxes = <TasteEvidenceEntry>[];
+      final maintenant = DateTime.now();
+      void tracer(String axe, double? avant, double? apres) {
+        if (apres == null || apres == avant) return;
+        final sens = avant == null
+            ? 'renseigné à ${apres.toStringAsFixed(2)}'
+            : '${apres > avant ? 'monté' : 'descendu'} '
+                'de ${avant.toStringAsFixed(2)} à ${apres.toStringAsFixed(2)}';
+        tracesAxes.add(TasteEvidenceEntry(
+          quand: maintenant,
+          source: result.isExpressMode ? 'gorgee' : 'degustation',
+          cible: 'axe:$axe',
+          effet: '$sens (note ${result.noteOutOf10.toStringAsFixed(1)}/10).',
+        ));
+      }
+
+      tracer('acidity', profile.avgAcidityPreference, newAcidity);
+      tracer('body', profile.avgBodyPreference, newBody);
+      tracer('tannin', profile.avgTanninPreference, newTannin);
+      tracer('oak', profile.avgOakPreference, newOak);
+      tracer('ripeFruit', profile.avgRipeFruitPreference, newRipeFruit);
+      tracer('spice', profile.avgSpicePreference, newSpice);
+      tracer('freshFruit', profile.avgFreshFruitPreference, newFreshFruit);
+      tracer('minerality', profile.avgMineralityPreference, newMinerality);
+      if (tracesAxes.isNotEmpty) {
+        await (await TasteEvidenceLedger.ouvrir()).ajouter(tracesAxes);
+      }
+
       profile = profile.copyWith(
         avgAcidityPreference: newAcidity,
         avgBodyPreference: newBody,
@@ -570,6 +627,28 @@ class TasteProfileService {
       favoriteGrapes: favGrapes.take(8).toList(),
     );
     await saveProfiles(profiles);
+
+    final maintenant = DateTime.now();
+    final registre = await TasteEvidenceLedger.ouvrir();
+    await registre.ajouter([
+      for (final r in regions.keys)
+        if (!p.favoriteRegions.contains(r))
+          TasteEvidenceEntry(
+            quand: maintenant,
+            source: 'rachat',
+            cible: 'region:$r',
+            effet: 'Vous y êtes revenu : ${regions[r]} vin racheté.',
+          ),
+      for (final c in cepages.keys)
+        if (!p.favoriteGrapes.contains(c))
+          TasteEvidenceEntry(
+            quand: maintenant,
+            source: 'rachat',
+            cible: 'cepage:$c',
+            effet: 'Vous y êtes revenu : ${cepages[c]} vin racheté.',
+          ),
+    ]);
+
     AppLogger.info('TASTE_PROFILE',
         'Rachats appliqués : régions=${regions.keys.join(", ")} '
         'cépages=${cepages.keys.join(", ")}');

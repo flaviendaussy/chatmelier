@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../domain/taste_profile.dart';
 import '../domain/taste_evidence.dart';
+import '../domain/taste_profile_history.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../cellar/domain/bottle.dart';
 import '../domain/cellar_behaviour_evidence.dart';
@@ -56,6 +57,13 @@ final cellarGrapeSyncProvider = FutureProvider<void>((ref) async {
   await service.applyCellarBehaviour(primary.id, bottles);
   // Et ce que la composition révèle : appellations, cépages, façons de boire.
   await service.applyCellarConcentration(primary.id, bottles);
+
+  // Fige l'état du mois. Idempotent : rappeler ne fait que remplacer l'instantané du
+  // mois courant. Posé maintenant pour qu'il y ait quelque chose à montrer dans un an —
+  // c'est la fonctionnalité qu'il faut écrire le plus tôt et afficher le plus tard.
+  await (await TasteProfileHistory.ouvrir())
+      .capturer(await service.getPrimaryProfile());
+
   ref.invalidate(tasteProfilesListProvider);
 });
 

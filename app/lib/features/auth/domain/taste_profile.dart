@@ -73,6 +73,22 @@ class TasteProfile {
   ///
   /// C'est cette valeur qui rend l'empreinte de palais nette là où le modèle a observé et
   /// floue là où il devine, au lieu d'afficher partout la même fausse assurance.
+  /// La valeur d'un axe par sa clé, ou nul s'il n'a jamais été renseigné.
+  ///
+  /// Les huit axes sont huit champs distincts ; sans cet accesseur, tout ce qui veut les
+  /// parcourir — l'historique, le registre, le radar — doit répéter le même switch.
+  double? valeurAxe(String axis) => switch (axis) {
+        'acidity' => avgAcidityPreference,
+        'body' => avgBodyPreference,
+        'tannin' => avgTanninPreference,
+        'oak' => avgOakPreference,
+        'ripeFruit' => avgRipeFruitPreference,
+        'spice' => avgSpicePreference,
+        'freshFruit' => avgFreshFruitPreference,
+        'minerality' => avgMineralityPreference,
+        _ => null,
+      };
+
   double axisConfidence(String axis) {
     final n = axisObservations[axis] ?? 0;
     if (n <= 0) return 0.0;

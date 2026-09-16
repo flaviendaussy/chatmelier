@@ -55,7 +55,6 @@ class _TileAttributionBadge extends StatelessWidget {
 enum TerroirMapTheme {
   darkMatter,
   openStreetMap,
-  satellite,
   topoRelief,
 }
 
@@ -89,6 +88,11 @@ class _TerroirMapViewState extends State<TerroirMapView> {
   final MapController _mapController = MapController();
   TerroirMapTheme _mapTheme = TerroirMapTheme.darkMatter;
   bool _showHexagons = true;
+
+  /// Vrai quand le centre du terroir est sorti du champ visible. La carte est
+  /// entièrement manipulable : on peut donc déraper loin de l'appellation qu'on voulait
+  /// montrer, et plus rien à l'écran ne dit où elle est. D'où le bandeau de retour.
+  bool _cibleHorsChamp = false;
 
   late TerroirGeoProfile _profile;
   late List<TerroirHexPolygon> _hexagons;
@@ -142,8 +146,6 @@ class _TerroirMapViewState extends State<TerroirMapView> {
         return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
       case TerroirMapTheme.openStreetMap:
         return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-      case TerroirMapTheme.satellite:
-        return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}';
     }
   }
 
@@ -154,8 +156,6 @@ class _TerroirMapViewState extends State<TerroirMapView> {
         return const ['a', 'b', 'c'];
       case TerroirMapTheme.openStreetMap:
         return const [];
-      case TerroirMapTheme.satellite:
-        return const [];
     }
   }
 
@@ -165,8 +165,6 @@ class _TerroirMapViewState extends State<TerroirMapView> {
         return 'Relief sombre';
       case TerroirMapTheme.openStreetMap:
         return 'OSM';
-      case TerroirMapTheme.satellite:
-        return 'Satellite';
       case TerroirMapTheme.topoRelief:
         return 'Relief';
     }
@@ -178,8 +176,6 @@ class _TerroirMapViewState extends State<TerroirMapView> {
         return Icons.dark_mode_outlined;
       case TerroirMapTheme.openStreetMap:
         return Icons.map_outlined;
-      case TerroirMapTheme.satellite:
-        return Icons.satellite_alt_outlined;
       case TerroirMapTheme.topoRelief:
         return Icons.terrain_outlined;
     }
@@ -263,6 +259,14 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                         interactionOptions: const InteractionOptions(
                           flags: InteractiveFlag.all,
                         ),
+                        // Le terroir est le sujet de la carte : dès qu'il sort du champ,
+                        // on doit pouvoir y revenir sans chercher.
+                        onPositionChanged: (camera, hasGesture) {
+                          final dehors = !camera.visibleBounds.contains(_profile.center);
+                          if (dehors != _cibleHorsChamp) {
+                            setState(() => _cibleHorsChamp = dehors);
+                          }
+                        },
                       ),
                       children: [
                         // Dynamic Base Tile Layer
@@ -285,11 +289,14 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                           PolygonLayer(
                             polygons: [
                               // Smooth Organic Appellation Boundary
+                              // Remplissage plus franc qu'auparavant (0,15) : sur un
+                              // fond topographique chargé, une teinte à 15 % disparaît
+                              // complètement et l'appellation devient indiscernable.
                               Polygon(
                                 points: _appellationBoundary,
-                                color: _profile.accentColor.withValues(alpha: 0.15),
-                                borderColor: _profile.accentColor.withValues(alpha: 0.85),
-                                borderStrokeWidth: 2.0,
+                                color: _profile.accentColor.withValues(alpha: 0.28),
+                                borderColor: _profile.accentColor,
+                                borderStrokeWidth: 3.0,
                               ),
                               // Cru Parcel Core
                               ..._hexagons.where((h) => h.isCenterCru).map((hex) {
@@ -430,6 +437,62 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                 ),
 
                 const _TileAttributionBadge(),
+
+                // Retour à l'appellation, uniquement quand elle n'est plus à l'écran.
+                // Sans ça, la carte reste manipulable mais on perd son sujet : dézoomer
+                // ou se déplacer suffit à ne plus savoir quel terroir on regardait.
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 26,
+                  child: IgnorePointer(
+                    ignoring: !_cibleHorsChamp,
+                    child: AnimatedOpacity(
+                      opacity: _cibleHorsChamp ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 220),
+                      child: Center(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: _recenter,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.82),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                    color: _profile.accentColor, width: 1.4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Pas `my_location` : le bouton de recentrage la porte
+                                  // déjà, et « recadrer sur le sujet » se lit mieux ici.
+                                  const Icon(Icons.center_focus_strong,
+                                      size: 14, color: Colors.white),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      'Revenir sur ${_profile.name}',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 11.5,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -771,8 +834,6 @@ class _TerroirMapFullscreenScreenState
         return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
       case TerroirMapTheme.openStreetMap:
         return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-      case TerroirMapTheme.satellite:
-        return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}';
     }
   }
 
@@ -782,8 +843,6 @@ class _TerroirMapFullscreenScreenState
       case TerroirMapTheme.topoRelief:
         return const ['a', 'b', 'c'];
       case TerroirMapTheme.openStreetMap:
-        return const [];
-      case TerroirMapTheme.satellite:
         return const [];
     }
   }
@@ -822,10 +881,6 @@ class _TerroirMapFullscreenScreenState
               const PopupMenuItem(
                 value: TerroirMapTheme.openStreetMap,
                 child: Text('🗺️ OpenStreetMap (OSM)'),
-              ),
-              const PopupMenuItem(
-                value: TerroirMapTheme.satellite,
-                child: Text('🛰️ Vue Satellite (Esri)'),
               ),
               const PopupMenuItem(
                 value: TerroirMapTheme.topoRelief,

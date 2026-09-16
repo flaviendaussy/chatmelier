@@ -62,7 +62,6 @@ final allUserBottlesProvider = FutureProvider<List<Bottle>>((ref) async {
 enum MapTileTheme {
   darkMatter,
   openStreetMap,
-  satellite,
   topoRelief,
 }
 
@@ -382,16 +381,6 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
                     Icon(Icons.dark_mode_outlined, size: 18, color: Color(0xFF8B1E3F)),
                     SizedBox(width: 10),
                     Text('Sommelier Dark (CartoDB)'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: MapTileTheme.satellite,
-                child: Row(
-                  children: [
-                    Icon(Icons.satellite_alt_outlined, size: 18, color: Colors.blueAccent),
-                    SizedBox(width: 10),
-                    Text('Satellite HD (ArcGIS)'),
                   ],
                 ),
               ),
@@ -958,26 +947,23 @@ class _ScratchMapScreenState extends ConsumerState<ScratchMapScreen> with Ticker
 
   String _getTileUrlTemplate(MapTileTheme theme) {
     switch (theme) {
+      // Même fournisseur unique que la carte de terroir : OpenTopoMap, sans clé et
+      // commercialement utilisable. CARTO filigrane désormais toutes ses tuiles.
       case MapTileTheme.darkMatter:
-        return 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
-      case MapTileTheme.satellite:
-        return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-      case MapTileTheme.openStreetMap:
-        return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
       case MapTileTheme.topoRelief:
         return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+      case MapTileTheme.openStreetMap:
+        return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     }
   }
 
   List<String> _getTileSubdomains(MapTileTheme theme) {
     switch (theme) {
       case MapTileTheme.darkMatter:
-        return const ['a', 'b', 'c', 'd'];
-      case MapTileTheme.satellite:
-      case MapTileTheme.openStreetMap:
-        return const [];
       case MapTileTheme.topoRelief:
         return const ['a', 'b', 'c'];
+      case MapTileTheme.openStreetMap:
+        return const [];
     }
   }
 }

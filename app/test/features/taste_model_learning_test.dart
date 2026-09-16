@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:chatmelier/features/auth/data/taste_profile_service.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
+import 'package:chatmelier/features/cellar/domain/bottle.dart';
 import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/journal/domain/tasting_entry.dart';
 import 'package:chatmelier/features/journal/domain/tasting_questionnaire_result.dart';
@@ -378,6 +379,74 @@ void main() {
           reason: 'applyQuestionnaireResult n\'ajoutait que sur les bonnes notes : les '
               'favoris ne pouvaient que s\'accumuler, même après deux déceptions.');
       expect(after.favoriteGrapes, isNot(contains('Malbec')));
+    });
+  });
+
+  group('🍇 Inventaire de cave — ce qui compte comme goût', () {
+    Bottle bottleOf({
+      required String grape,
+      int quantity = 1,
+      String? source,
+      String status = 'in_cellar',
+    }) =>
+        Bottle(
+          id: 'b_${grape}_${source ?? 'none'}_$status',
+          cellarId: 'c1',
+          wineId: 'w_$grape',
+          addedBy: 'u1',
+          ownerId: 'u1',
+          createdAt: DateTime(2026, 9, 1),
+          quantity: quantity,
+          sourceType: source,
+          status: status,
+          wine: Wine(
+            id: 'w_$grape',
+            name: 'Cuvée $grape',
+            type: 'Rouge',
+            country: 'France',
+            region: 'Test',
+            grapes: [Grape(name: grape)],
+          ),
+        );
+
+    test('un cadeau ne dit rien du goût de celui qui le reçoit', () {
+      final stock = TasteProfileService.cellarGrapeStock([
+        bottleOf(grape: 'Syrah', quantity: 3),
+        bottleOf(grape: 'Merlot', quantity: 6, source: 'gift'),
+      ]);
+      expect(stock['Syrah'], equals(3));
+      expect(stock.containsKey('Merlot'), isFalse,
+          reason: 'Six bouteilles offertes pesaient plus lourd que trois choisies : '
+              'le radar apprenait le goût de celui qui offre.');
+    });
+
+    test('un achat de dépannage en supermarché ne compte pas non plus', () {
+      final stock = TasteProfileService.cellarGrapeStock([
+        bottleOf(grape: 'Gamay', quantity: 2, source: 'supermarket'),
+      ]);
+      expect(stock, isEmpty);
+    });
+
+    test('un achat chez un caviste ou au domaine compte pleinement', () {
+      final stock = TasteProfileService.cellarGrapeStock([
+        bottleOf(grape: 'Chenin', quantity: 2, source: 'merchant'),
+        bottleOf(grape: 'Chenin', quantity: 4, source: 'estate'),
+      ]);
+      expect(stock['Chenin'], equals(6), reason: 'Les quantités du même cépage se cumulent.');
+    });
+
+    test('une bouteille bue ne compte plus dans l\'inventaire', () {
+      final stock = TasteProfileService.cellarGrapeStock([
+        bottleOf(grape: 'Riesling', quantity: 1, status: 'consumed'),
+      ]);
+      expect(stock, isEmpty,
+          reason: 'La dégustation la compte déjà, et bien mieux : la compter ici aussi '
+              'ferait peser deux fois la même bouteille.');
+    });
+
+    test('une bouteille sans origine renseignée compte — on ne présume pas du cadeau', () {
+      final stock = TasteProfileService.cellarGrapeStock([bottleOf(grape: 'Mondeuse')]);
+      expect(stock['Mondeuse'], equals(1));
     });
   });
 }

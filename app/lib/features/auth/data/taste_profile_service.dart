@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../domain/taste_profile.dart';
+import '../../../shared/providers/cellar_provider.dart';
+import '../../cellar/domain/bottle.dart';
 import '../../cellar/domain/wine.dart';
 import '../../friends/domain/friend.dart';
 import '../../journal/domain/tasting_questionnaire_result.dart';
@@ -29,6 +31,25 @@ final tasteProfileServiceProvider = Provider<TasteProfileService>((ref) {
 final tasteProfilesListProvider = FutureProvider<List<TasteProfile>>((ref) async {
   final service = ref.watch(tasteProfileServiceProvider);
   return service.getProfiles();
+});
+
+/// Recalcule l'inventaire de cépages du profil principal à partir de la cave.
+///
+/// `syncCellarGrapes` existait mais n'avait **aucun appelant** : `cellarGrapes` restait donc
+/// toujours vide, alors que le radar lui accorde jusqu'à 3,3 points sur un axe
+/// (`wine_taste_radar.dart:433`). Le bloc était pondéré lourdement et ne s'exécutait jamais.
+///
+/// À observer depuis les écrans qui affichent le radar : la synchronisation devient un effet
+/// de bord du chargement de la cave, sans bouton ni geste supplémentaire.
+final cellarGrapeSyncProvider = FutureProvider<void>((ref) async {
+  final bottles = await ref.watch(bottlesProvider(null).future);
+  final service = ref.watch(tasteProfileServiceProvider);
+  final primary = await service.getPrimaryProfile();
+  await service.syncCellarGrapes(
+    primary.id,
+    TasteProfileService.cellarGrapeStock(bottles),
+  );
+  ref.invalidate(tasteProfilesListProvider);
 });
 
 class TasteProfileService {
@@ -510,6 +531,34 @@ class TasteProfileService {
     updatedWish[grape] = (updatedWish[grape] ?? 0) + 1;
     profiles[idx] = p.copyWith(wishlistGrapes: updatedWish);
     await saveProfiles(profiles);
+  }
+
+  /// Compte les cépages réellement **choisis** et encore en cave.
+  ///
+  /// Posséder plusieurs bouteilles d'un cépage est un signal d'intention fort — c'est
+  /// pourquoi le radar le pondère lourdement (`wine_taste_radar.dart:433`). Mais il n'est
+  /// un signal de goût que si la personne a choisi la bouteille :
+  ///
+  ///  - **`gift`** : un cadeau dit le goût de celui qui l'offre, pas celui qui le reçoit.
+  ///    C'est l'inversion la plus grossière que le modèle puisse faire.
+  ///  - **`supermarket`** : achat de dépannage, guidé par ce qui était en rayon.
+  ///
+  /// Les bouteilles bues (`consumed`) sont exclues aussi : elles sont déjà comptées, et
+  /// bien mieux, par la dégustation elle-même. Ne compter que ce qui reste en cave évite
+  /// de faire peser deux fois la même bouteille.
+  static Map<String, int> cellarGrapeStock(List<Bottle> bottles) {
+    const excluded = {'gift', 'supermarket'};
+    final stock = <String, int>{};
+    for (final b in bottles) {
+      if (!b.isInCellar || b.quantity <= 0) continue;
+      if (excluded.contains(b.sourceType)) continue;
+      for (final grape in b.wine?.grapes ?? const <Grape>[]) {
+        final name = grape.name.trim();
+        if (name.isEmpty) continue;
+        stock[name] = (stock[name] ?? 0) + b.quantity;
+      }
+    }
+    return stock;
   }
 
   /// Sync cellar grape inventory bottle counts (+5.0 multi-bottle high intent weight)

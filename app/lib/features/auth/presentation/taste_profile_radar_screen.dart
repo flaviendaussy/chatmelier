@@ -90,6 +90,10 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    // Effet de bord : réaligne l'inventaire de cépages sur la cave avant de dessiner le
+    // radar, qui pondère cet inventaire. Sans cet appel, `cellarGrapes` restait vide et
+    // toute une branche du calcul ne s'exécutait jamais.
+    ref.watch(cellarGrapeSyncProvider);
     final profilesAsync = ref.watch(tasteProfilesListProvider);
 
     return Container(

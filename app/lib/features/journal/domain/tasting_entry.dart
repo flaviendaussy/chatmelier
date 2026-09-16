@@ -141,12 +141,7 @@ class TastingEntry {
       locationName: json['location_name'] as String?,
       isExternal: json['is_external'] == true,
       consumedAt: json['consumed_at'] != null ? DateTime.tryParse(json['consumed_at'].toString()) ?? DateTime.now() : DateTime.now(),
-      // Absence de `rating_scale` ⇒ la migration 032 n'a pas tourné ⇒ la contrainte
-      // `rating <= 5` tient encore ⇒ le client a divisé la note par deux à l'écriture.
-      // Le défaut est donc 5, et non 10 : c'est la seule valeur cohérente avec une base
-      // qui n'a pas encore la colonne. Les lignes locales fabriquées par l'app portent
-      // explicitement `rating_scale: 10` et ne passent pas par ce défaut.
-      ratingScale: (json['rating_scale'] as num?)?.toInt() ?? 5,
+      ratingScale: _deduceScale(json),
       isFavorite: json['is_favorite'] == true,
       isBlind: json['is_blind'] == true,
       fault: json['fault'] as String?,
@@ -186,4 +181,38 @@ class TastingEntry {
           if (wineType != null) 'type': wineType,
         },
       };
+
+  /// Déduit l'échelle d'une ligne qui ne la porte pas explicitement.
+  ///
+  /// L'absence de `rating_scale` n'est pas une information manquante : c'est la preuve que
+  /// la migration 032 n'a pas tourné, donc que la contrainte `rating <= 5` tient encore,
+  /// donc que le client a divisé la note par deux pour réussir l'insert. Le défaut est
+  /// donc 5, et non 10. Deux exceptions, toutes deux démontrables :
+  ///
+  ///  1. **Une note > 5 était impossible côté serveur** sous cette contrainte. Une telle
+  ///     valeur ne peut donc venir que du cache local, qui conserve la note pleine.
+  ///  2. **Les charges locales du questionnaire et du checkout portent un identifiant
+  ///     horodaté**, pas un UUID : elles n'ont jamais transité par la base, et stockent
+  ///     elles aussi la note pleine.
+  ///
+  /// Reste un cas indécidable : une entrée locale non synchronisée, écrite par une version
+  /// antérieure de l'app avec un identifiant UUID *et* une note ≤ 5/10. Aucune information
+  /// disponible ne permet de trancher ; elle sera lue sur 5. Le cas se referme dès que la
+  /// migration 032 est appliquée, puisque toute ligne porte alors son échelle.
+  static int _deduceScale(Map<String, dynamic> json) {
+    final explicite = (json['rating_scale'] as num?)?.toInt();
+    if (explicite != null) return explicite;
+
+    final note = (json['rating'] as num?)?.toDouble();
+    if (note != null && note > 5.0) return 10;
+
+    final id = json['id']?.toString() ?? '';
+    final estUuid = RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+    ).hasMatch(id);
+    if (id.isNotEmpty && !estUuid) return 10;
+
+    return 5;
+  }
+
 }

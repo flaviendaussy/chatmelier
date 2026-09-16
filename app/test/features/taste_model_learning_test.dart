@@ -242,7 +242,8 @@ void main() {
       // donc que le client a divisé la note par deux pour réussir l'insert. Reprendre 10
       // par défaut afficherait tout l'historique deux fois trop bas.
       final heritee = TastingEntry.fromJson(const {
-        'id': 't1',
+        // UUID : une vraie ligne serveur, donc passée par la division de l'insert.
+        'id': '9c1e77aa-0b2d-4c31-9f55-6ad3e2b18c40',
         'wine_id': 'w1',
         'rating': 2.8, // curseur à 5,5/10, divisé puis arrondi par NUMERIC(2,1)
         'consumed_at': '2026-08-27T20:00:00Z',
@@ -252,9 +253,48 @@ void main() {
           reason: 'Observé en production : 2,8 en base correspond à un curseur à 5,5/10.');
     });
 
+    test('une note > 5 sans échelle vient forcément du cache local', () {
+      // La contrainte `rating <= 5` rendait cette valeur impossible côté serveur : elle ne
+      // peut donc venir que d'une entrée locale non synchronisée, qui garde la note pleine.
+      final locale = TastingEntry.fromJson(const {
+        'id': '3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f607',
+        'wine_id': 'w1',
+        'rating': 8.5,
+        'consumed_at': '2026-08-01T20:00:00Z',
+      });
+      expect(locale.ratingScale, equals(10));
+      expect(locale.displayRating, equals(8.5),
+          reason: 'La doubler donnerait 17/10.');
+    });
+
+    test('un identifiant horodaté trahit une charge locale jamais partie en base', () {
+      // `tasting_questionnaire_sheet.dart` fabrique ces identifiants avec
+      // DateTime.now().millisecondsSinceEpoch — jamais un UUID.
+      final locale = TastingEntry.fromJson(const {
+        'id': '1757900000000',
+        'wine_id': 'w1',
+        'rating': 4.0,
+        'consumed_at': '2026-08-01T20:00:00Z',
+      });
+      expect(locale.ratingScale, equals(10),
+          reason: 'Même sous 5, un identifiant non-UUID prouve que la ligne n\'a jamais '
+              'subi la division de l\'insert.');
+    });
+
+    test('une ligne serveur héritée reste lue sur 5', () {
+      final serveur = TastingEntry.fromJson(const {
+        'id': '3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f607',
+        'wine_id': 'w1',
+        'rating': 2.8,
+        'consumed_at': '2026-08-01T20:00:00Z',
+      });
+      expect(serveur.ratingScale, equals(5));
+      expect(serveur.displayRating, closeTo(5.6, 0.001));
+    });
+
     test('une ligne écrite après 032 porte son échelle et n\'est pas doublée', () {
       final moderne = TastingEntry.fromJson(const {
-        'id': 't2',
+        'id': 'b7d4e2f1-3a5c-4e89-b012-7f6a5c4d3e21',
         'wine_id': 'w1',
         'rating': 3.5,
         'rating_scale': 10,

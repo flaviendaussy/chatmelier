@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../../../config/router.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/services/cellar_location_service.dart';
 import '../../../shared/services/nearby_places_service.dart';
@@ -18,6 +19,7 @@ import '../../auth/domain/taste_profile.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../cellar/domain/wine.dart';
 import 'journal_screen.dart';
+import '../domain/tasting_questionnaire_result.dart';
 import 'tasting_questionnaire_sheet.dart';
 
 class ExternalTastingDialog extends ConsumerStatefulWidget {
@@ -83,6 +85,19 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   double _rating = 8.5;
   bool _isFavorite = false;
   bool _isSaving = false;
+
+  // — Niveau « Gorgée » —
+  // Cet écran est le plus utilisé du produit (8 points d'entrée) et ne captait jusqu'ici
+  // aucune donnée sensorielle : il n'apprenait donc rien au modèle, alors que ce sont les
+  // dégustations au restaurant qui décrivent le mieux un palais en situation réelle.
+  // Trois touches facultatives suffisent, car les micro-touches sont déjà câblées sur les
+  // axes du profil (voir TasteProfileService.applyQuestionnaireResult).
+  String? _mouthfeelTexture;
+  String? _fruitProfile;
+  String? _wouldBuyAgain;
+
+  bool get _hasSipData =>
+      _mouthfeelTexture != null || _fruitProfile != null || _wouldBuyAgain != null;
 
   // Friends & Co-tasters
   List<Friend> _friends = [];
@@ -584,17 +599,54 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         );
         final tasteService = ref.read(tasteProfileServiceProvider);
         final primaryProfile = await tasteService.getPrimaryProfile();
-        await tasteService.recordTastingExperience(
-          nameOrId: primaryProfile.id,
-          wine: standaloneWine,
-          rating: effectiveRating,
-        );
-        for (final coTaster in _selectedCoTasters) {
-          await tasteService.recordTastingExperience(
-            nameOrId: coTaster,
-            wine: standaloneWine,
-            rating: effectiveRating,
+
+        // Avec une gorgée renseignée, la dégustation passe par le même chemin que le
+        // questionnaire complet : les micro-touches sont déjà câblées sur les axes du
+        // profil, et l'écran cesse d'être un puits sans apprentissage. Sans elle, on garde
+        // le chemin court, qui n'apprend que la région et le cépage.
+        // Les deux chemins incrémentent le compteur : appeler les deux le doublerait.
+        Future<void> learn(String profileId, String profileName) {
+          if (!_hasSipData) {
+            return tasteService.recordTastingExperience(
+              nameOrId: profileId,
+              wine: standaloneWine,
+              rating: effectiveRating,
+            );
+          }
+          return tasteService.applyQuestionnaireResult(
+            result: TastingQuestionnaireResult(
+              emojiImpression:
+                  TastingQuestionnaireResult.emojiIndexForRating(effectiveRating),
+              noteOutOf10: effectiveRating,
+              // La gorgée ne mesure ni les arômes ni la bouche : on ne prétend pas le
+              // contraire. Les champs restent nuls ou vides plutôt que neutres.
+              perceivedAromas: const {},
+              aromaIntensity: 0.5,
+              acidity: null,
+              body: null,
+              length: 0.5,
+              wouldBuyAgain: _wouldBuyAgain ?? 'maybe',
+              idealMoment: 'repas',
+              whatLikedMost: const {},
+              whatDislikedMost: const {},
+              mouthfeelTexture: _mouthfeelTexture,
+              fruitProfile: _fruitProfile,
+              isExpressMode: true,
+              profileId: profileId,
+              profileName: profileName,
+            ),
+            wineRegion: region.isNotEmpty && region != 'Autre' ? region : null,
+            wineGrapes: null,
+            wineType: _wineType,
           );
+        }
+
+        await learn(primaryProfile.id, primaryProfile.name);
+        for (final coTaster in _selectedCoTasters) {
+          // Les convives sont désignés par leur nom : `applyQuestionnaireResult` cherche un
+          // profil par identifiant, donc on résout d'abord.
+          final profile = await tasteService.addOrGetProfileByName(coTaster);
+          await learn(profile.id, profile.name);
         }
         ref.invalidate(tasteProfilesListProvider);
       } catch (e) {
@@ -646,9 +698,106 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     }
   }
 
+  /// Niveau « Gorgée » : capture sensorielle minimale pour l'écran hors-cave.
+  ///
+  /// Tout est facultatif — c'est la condition pour que l'écran reste rapide au restaurant.
+  /// Mais dès qu'une seule touche est posée, la dégustation passe par
+  /// `applyQuestionnaireResult` et alimente les axes du profil, au lieu de ne transmettre
+  /// qu'une note. Les options et leur traduction existaient déjà pour le questionnaire
+  /// complet : on les réutilise telles quelles plutôt que d'inventer un second vocabulaire.
+  Widget _buildSipLevel(ThemeData theme, AppLocalizations l10n) {
+    Widget group({
+      required String title,
+      required List<({String id, String emoji, String label})> options,
+      required String? selected,
+      required void Function(String?) onPick,
+    }) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final o in options)
+                FilterChip(
+                  label: Text('${o.emoji} ${o.label}', style: const TextStyle(fontSize: 11.5)),
+                  selected: selected == o.id,
+                  selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
+                  checkmarkColor: const Color(0xFF8B1E3F),
+                  onSelected: (v) => setState(() => onPick(v ? o.id : null)),
+                ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF8B1E3F).withValues(alpha: 0.22)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.sipSectionTitle,
+            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            l10n.sipSectionSubtitle,
+            style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11.5),
+          ),
+          const SizedBox(height: 12),
+          group(
+            title: TastingQuestionnaireResult.mouthfeelTitle(l10n),
+            options: TastingQuestionnaireResult.textureOptions
+                .map((o) => (id: o.id, emoji: o.emoji, label: o.localizedLabel(l10n)))
+                .toList(),
+            selected: _mouthfeelTexture,
+            onPick: (v) => _mouthfeelTexture = v,
+          ),
+          const SizedBox(height: 12),
+          group(
+            title: TastingQuestionnaireResult.fruitProfileTitle(l10n),
+            options: TastingQuestionnaireResult.fruitProfileOptions
+                .map((o) => (id: o.id, emoji: o.emoji, label: o.localizedLabel(l10n)))
+                .toList(),
+            selected: _fruitProfile,
+            onPick: (v) => _fruitProfile = v,
+          ),
+          const SizedBox(height: 12),
+          group(
+            title: l10n.tastingBuyAgain,
+            options: [
+              (id: 'yes', emoji: '', label: l10n.tastingBuyAgainYes),
+              (id: 'maybe', emoji: '', label: l10n.tastingBuyAgainMaybe),
+              (id: 'no', emoji: '', label: l10n.tastingBuyAgainNo),
+            ],
+            selected: _wouldBuyAgain,
+            onPick: (v) => _wouldBuyAgain = v,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
@@ -956,6 +1105,9 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 ],
               ),
             ),
+            const SizedBox(height: 14),
+
+            _buildSipLevel(theme, l10n),
             const SizedBox(height: 14),
 
             // Plat dégusté avec

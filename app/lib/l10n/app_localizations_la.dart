@@ -1231,6 +1231,39 @@ class AppLocalizationsLa extends AppLocalizations {
       'Calicem circumage et odores exhalantes percipe.';
 
   @override
+  String get tastingFaultTitle => 'Num vinum aliquid horum olet?';
+
+  @override
+  String get tastingFaultSubtitle =>
+      'Si ita est, lagoena vitiosa est — nec palatum tuum nec vini genus in culpa est.';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 Charta umida, cella mucida';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      'Vitium suberis (TCA). Vinum innocens est nec aeratione sanabitur — in caupona aliam lagoenam poscere licet.';
+
+  @override
+  String get tastingFaultOxidationLabel =>
+      '🍎 Malum marcidum, acetum, vinum Xericum';
+
+  @override
+  String get tastingFaultOxidationExplain =>
+      'Oxidatio. Lagoena aerem hausit, saepe per suber vitiosum aut nimis longam custodiam.';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 Sulphuratum, ovum, brassica';
+
+  @override
+  String get tastingFaultReductionExplain =>
+      'Reductio. Nuntius bonus: aere saepe evanescit. Viginti minuta defunde et iterum gusta priusquam iudices.';
+
+  @override
+  String get tastingFaultExcluded =>
+      'Haec degustatio in tuum palati indicem non computabitur.';
+
+  @override
   String get tastingAromaIntensity => 'Odoris vis:';
 
   @override
@@ -1305,6 +1338,13 @@ class AppLocalizationsLa extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ Decretum';
+
+  @override
+  String get sipSectionTitle => '🍷 Haustus';
+
+  @override
+  String get sipSectionSubtitle =>
+      'Duo tactus, et hic calix indici palati tui aliquid docet.';
 
   @override
   String get tastingBuyAgain => 'Visne iterum hoc emere?';

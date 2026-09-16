@@ -1251,6 +1251,38 @@ class AppLocalizationsCa extends AppLocalizations {
       'Fes girar la copa i capta les aromes que se\'n desprenen.';
 
   @override
+  String get tastingFaultTitle => 'El vi fa olor d\'alguna d\'aquestes coses?';
+
+  @override
+  String get tastingFaultSubtitle =>
+      'Si és així, l\'ampolla és defectuosa: no és culpa del teu paladar ni de l\'estil del vi.';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 Cartró humit, celler florit';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      'Gust de suro (TCA). El vi no en té la culpa i no millorarà amb l\'aireació; en un restaurant pots demanar una altra ampolla.';
+
+  @override
+  String get tastingFaultOxidationLabel => '🍎 Poma passada, vinagre, xerès';
+
+  @override
+  String get tastingFaultOxidationExplain =>
+      'Oxidació. L\'ampolla ha pres aire, sovint per un tap defectuós o una guarda massa llarga.';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 Llumí, ou, col';
+
+  @override
+  String get tastingFaultReductionExplain =>
+      'Reducció. Bona notícia: sol desaparèixer amb l\'aire. Decanta vint minuts i torna a tastar abans de jutjar.';
+
+  @override
+  String get tastingFaultExcluded =>
+      'Aquest tast no comptarà per al teu perfil de gust.';
+
+  @override
   String get tastingAromaIntensity => 'Intensitat aromàtica:';
 
   @override
@@ -1325,6 +1357,13 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ Veredicte final';
+
+  @override
+  String get sipSectionTitle => '🍷 El glop';
+
+  @override
+  String get sipSectionSubtitle =>
+      'Dos tocs, i aquesta copa ensenya alguna cosa al teu perfil de gust.';
 
   @override
   String get tastingBuyAgain => 'Tornaries a comprar aquesta ampolla?';

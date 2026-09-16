@@ -1277,28 +1277,23 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   /// l'application : aucune notion de bouchon, d'oxydation ni de réduction. Quelqu'un qui
   /// ouvre une bouteille bouchonnée la note 2/10 et en conclut qu'il n'aime pas la région.
   /// L'app lui enseignait quelque chose de faux.
-  Widget _buildFaultCheck(ThemeData theme) {
-    const faults = <({String id, String emoji, String label, String explain})>[
+  Widget _buildFaultCheck(ThemeData theme, AppLocalizations l10n) {
+    // Les libellés portent leur emoji : ils vivent dans les .arb, comme les arômes.
+    final faults = <({String id, String label, String explain})>[
       (
         id: 'cork',
-        emoji: '📦',
-        label: 'Carton mouillé, cave humide',
-        explain: 'Goût de bouchon (TCA). Le vin n\'y est pour rien et ne s\'arrangera pas '
-            'à l\'aération — au restaurant, on peut demander une autre bouteille.',
+        label: l10n.tastingFaultCorkLabel,
+        explain: l10n.tastingFaultCorkExplain,
       ),
       (
         id: 'oxidation',
-        emoji: '🍎',
-        label: 'Pomme blette, vinaigre, xérès',
-        explain: 'Oxydation. La bouteille a pris l\'air, souvent par un bouchon défaillant '
-            'ou une garde trop longue.',
+        label: l10n.tastingFaultOxidationLabel,
+        explain: l10n.tastingFaultOxidationExplain,
       ),
       (
         id: 'reduction',
-        emoji: '🥚',
-        label: 'Allumette, œuf, chou',
-        explain: 'Réduction. Bonne nouvelle : elle se dissipe souvent à l\'aération. '
-            'Carafez vingt minutes et regoûtez avant de juger.',
+        label: l10n.tastingFaultReductionLabel,
+        explain: l10n.tastingFaultReductionExplain,
       ),
     ];
 
@@ -1321,12 +1316,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Le vin sent-il l\'une de ces choses ?',
+            l10n.tastingFaultTitle,
             style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 2),
           Text(
-            'Si oui, la bouteille est défectueuse — ce n\'est ni votre palais, ni le style du vin.',
+            l10n.tastingFaultSubtitle,
             style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11.5),
           ),
           const SizedBox(height: 10),
@@ -1336,7 +1331,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             children: [
               for (final f in faults)
                 FilterChip(
-                  label: Text('${f.emoji} ${f.label}', style: const TextStyle(fontSize: 11.5)),
+                  label: Text(f.label, style: const TextStyle(fontSize: 11.5)),
                   selected: _fault == f.id,
                   selectedColor: const Color(0xFFB3261E).withValues(alpha: 0.18),
                   checkmarkColor: const Color(0xFFB3261E),
@@ -1352,7 +1347,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             ),
             const SizedBox(height: 6),
             Text(
-              'Cette dégustation ne comptera pas dans votre profil de goût.',
+              l10n.tastingFaultExcluded,
               style: theme.textTheme.bodySmall?.copyWith(
                 fontSize: 11.5,
                 fontStyle: FontStyle.italic,
@@ -1384,7 +1379,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         ),
         const SizedBox(height: 16),
 
-        _buildFaultCheck(theme),
+        _buildFaultCheck(theme, l10n),
         const SizedBox(height: 16),
 
         Wrap(

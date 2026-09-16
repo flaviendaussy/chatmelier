@@ -1246,6 +1246,38 @@ class AppLocalizationsSv extends AppLocalizations {
       'Snurra glaset och fånga de aromlager som frigörs.';
 
   @override
+  String get tastingFaultTitle => 'Luktar vinet av något av detta?';
+
+  @override
+  String get tastingFaultSubtitle =>
+      'Då är flaskan defekt – det beror varken på din smak eller på vinets stil.';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 Fuktig kartong, unken källare';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      'Korksmak (TCA). Vinet kan inte hjälpa det och luftning hjälper inte – på restaurang kan du be om en annan flaska.';
+
+  @override
+  String get tastingFaultOxidationLabel => '🍎 Brunt äpple, vinäger, sherry';
+
+  @override
+  String get tastingFaultOxidationExplain =>
+      'Oxidation. Flaskan har fått luft, ofta genom en trasig kork eller för lång lagring.';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 Tändsticka, ägg, kål';
+
+  @override
+  String get tastingFaultReductionExplain =>
+      'Reduktion. Goda nyheter: den försvinner ofta med luft. Dekantera i tjugo minuter och smaka igen innan du dömer.';
+
+  @override
+  String get tastingFaultExcluded =>
+      'Den här provningen räknas inte in i din smakprofil.';
+
+  @override
   String get tastingAromaIntensity => 'Aromintensitet:';
 
   @override
@@ -1320,6 +1352,13 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ Slutligt omdöme';
+
+  @override
+  String get sipSectionTitle => '🍷 Klunken';
+
+  @override
+  String get sipSectionSubtitle =>
+      'Två tryck, så lär det här glaset din smakprofil något.';
 
   @override
   String get tastingBuyAgain => 'Skulle du köpa denna flaska igen?';

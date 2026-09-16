@@ -2322,6 +2322,60 @@ abstract class AppLocalizations {
   /// **'Which aromas did you perceive? (Multiple choices possible)'**
   String get tastingStepNezSubtitle;
 
+  /// No description provided for @tastingFaultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Does the wine smell of any of these?'**
+  String get tastingFaultTitle;
+
+  /// No description provided for @tastingFaultSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If so, the bottle is faulty — it\'s neither your palate nor the wine\'s style.'**
+  String get tastingFaultSubtitle;
+
+  /// No description provided for @tastingFaultCorkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'📦 Damp cardboard, musty cellar'**
+  String get tastingFaultCorkLabel;
+
+  /// No description provided for @tastingFaultCorkExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Cork taint (TCA). The wine is blameless and airing won\'t help — at a restaurant, you can ask for another bottle.'**
+  String get tastingFaultCorkExplain;
+
+  /// No description provided for @tastingFaultOxidationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'🍎 Bruised apple, vinegar, sherry'**
+  String get tastingFaultOxidationLabel;
+
+  /// No description provided for @tastingFaultOxidationExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxidation. The bottle has taken in air, often through a failing cork or too long in the cellar.'**
+  String get tastingFaultOxidationExplain;
+
+  /// No description provided for @tastingFaultReductionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'🥚 Struck match, egg, cabbage'**
+  String get tastingFaultReductionLabel;
+
+  /// No description provided for @tastingFaultReductionExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduction. Good news: it often blows off with air. Decant for twenty minutes and taste again before judging.'**
+  String get tastingFaultReductionExplain;
+
+  /// No description provided for @tastingFaultExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'This tasting won\'t count towards your taste profile.'**
+  String get tastingFaultExcluded;
+
   /// No description provided for @tastingAromaIntensity.
   ///
   /// In en, this message translates to:
@@ -2471,6 +2525,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'✅ Final Verdict'**
   String get tastingStepVerdictTitle;
+
+  /// No description provided for @sipSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'🍷 The sip'**
+  String get sipSectionTitle;
+
+  /// No description provided for @sipSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Two taps, and this glass teaches your taste profile something.'**
+  String get sipSectionSubtitle;
 
   /// No description provided for @tastingBuyAgain.
   ///

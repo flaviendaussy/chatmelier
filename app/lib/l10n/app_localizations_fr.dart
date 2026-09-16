@@ -1251,6 +1251,38 @@ class AppLocalizationsFr extends AppLocalizations {
       'Quels arômes avez-vous perçus ? (Plusieurs choix possibles)';
 
   @override
+  String get tastingFaultTitle => 'Le vin sent-il l\'une de ces choses ?';
+
+  @override
+  String get tastingFaultSubtitle =>
+      'Si oui, la bouteille est défectueuse — ce n\'est ni votre palais, ni le style du vin.';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 Carton mouillé, cave humide';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      'Goût de bouchon (TCA). Le vin n\'y est pour rien et ne s\'arrangera pas à l\'aération — au restaurant, on peut demander une autre bouteille.';
+
+  @override
+  String get tastingFaultOxidationLabel => '🍎 Pomme blette, vinaigre, xérès';
+
+  @override
+  String get tastingFaultOxidationExplain =>
+      'Oxydation. La bouteille a pris l\'air, souvent par un bouchon défaillant ou une garde trop longue.';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 Allumette, œuf, chou';
+
+  @override
+  String get tastingFaultReductionExplain =>
+      'Réduction. Bonne nouvelle : elle se dissipe souvent à l\'aération. Carafez vingt minutes et regoûtez avant de juger.';
+
+  @override
+  String get tastingFaultExcluded =>
+      'Cette dégustation ne comptera pas dans votre profil de goût.';
+
+  @override
   String get tastingAromaIntensity => 'Intensité aromatique :';
 
   @override
@@ -1325,6 +1357,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ Verdict Final';
+
+  @override
+  String get sipSectionTitle => '🍷 La gorgée';
+
+  @override
+  String get sipSectionSubtitle =>
+      'Deux touches, et ce verre apprend quelque chose à votre profil de goût.';
 
   @override
   String get tastingBuyAgain => 'Rachèteriez-vous cette bouteille ?';

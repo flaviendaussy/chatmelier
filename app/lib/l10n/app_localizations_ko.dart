@@ -1209,6 +1209,37 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tastingStepNezSubtitle => '스월링 후 글라스에서 피어오르는 다채로운 향기를 감상하세요.';
 
   @override
+  String get tastingFaultTitle => '와인에서 다음과 같은 냄새가 나나요?';
+
+  @override
+  String get tastingFaultSubtitle =>
+      '그렇다면 병에 결함이 있는 것입니다. 당신의 미각 탓도, 와인의 스타일 탓도 아닙니다.';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 젖은 골판지, 퀴퀴한 지하실';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      '코르크 오염(TCA). 와인 탓이 아니며 공기와 접촉해도 나아지지 않습니다. 레스토랑에서는 다른 병을 요청할 수 있습니다.';
+
+  @override
+  String get tastingFaultOxidationLabel => '🍎 갈변한 사과, 식초, 셰리';
+
+  @override
+  String get tastingFaultOxidationExplain =>
+      '산화. 코르크 불량이나 지나치게 긴 숙성으로 병에 공기가 들어갔습니다.';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 성냥, 달걀, 양배추';
+
+  @override
+  String get tastingFaultReductionExplain =>
+      '환원취. 좋은 소식은 공기와 만나면 대개 사라진다는 점입니다. 20분간 디캔팅한 뒤 다시 맛보세요.';
+
+  @override
+  String get tastingFaultExcluded => '이 시음은 취향 프로필에 반영되지 않습니다.';
+
+  @override
   String get tastingAromaIntensity => '향의 강도:';
 
   @override
@@ -1282,6 +1313,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ 최종 판정';
+
+  @override
+  String get sipSectionTitle => '🍷 한 모금';
+
+  @override
+  String get sipSectionSubtitle => '두 번만 누르면 이 한 잔이 당신의 취향 프로필에 무언가를 알려줍니다.';
 
   @override
   String get tastingBuyAgain => '이 와인을 다시 구매하시겠습니까?';

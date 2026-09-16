@@ -1255,6 +1255,38 @@ class AppLocalizationsIt extends AppLocalizations {
       'Fai roteare il calice e cogli i sentori che salgono al naso.';
 
   @override
+  String get tastingFaultTitle => 'Il vino ha uno di questi odori?';
+
+  @override
+  String get tastingFaultSubtitle =>
+      'Se sì, la bottiglia è difettosa: non dipende dal tuo palato né dallo stile del vino.';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 Cartone bagnato, cantina ammuffita';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      'Sentore di tappo (TCA). Il vino non c\'entra e non migliorerà con l\'aerazione: al ristorante puoi chiedere un\'altra bottiglia.';
+
+  @override
+  String get tastingFaultOxidationLabel => '🍎 Mela ammaccata, aceto, sherry';
+
+  @override
+  String get tastingFaultOxidationExplain =>
+      'Ossidazione. La bottiglia ha preso aria, spesso per un tappo difettoso o un affinamento troppo lungo.';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 Fiammifero, uovo, cavolo';
+
+  @override
+  String get tastingFaultReductionExplain =>
+      'Riduzione. Buona notizia: spesso svanisce con l\'aria. Decanta venti minuti e riassaggia prima di giudicare.';
+
+  @override
+  String get tastingFaultExcluded =>
+      'Questa degustazione non conterà per il tuo profilo di gusto.';
+
+  @override
   String get tastingAromaIntensity => 'Intensità aromatica:';
 
   @override
@@ -1329,6 +1361,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ Verdetto finale';
+
+  @override
+  String get sipSectionTitle => '🍷 Il sorso';
+
+  @override
+  String get sipSectionSubtitle =>
+      'Due tocchi, e questo calice insegna qualcosa al tuo profilo di gusto.';
 
   @override
   String get tastingBuyAgain => 'Ricompreresti questa bottiglia?';

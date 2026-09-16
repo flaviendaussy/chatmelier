@@ -5,6 +5,7 @@ import 'package:chatmelier/features/auth/data/taste_profile_service.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/journal/domain/tasting_entry.dart';
+import 'package:chatmelier/features/journal/domain/tasting_questionnaire_result.dart';
 
 /// Verrouille les trois corrections du modèle de goût (S2).
 ///
@@ -182,6 +183,22 @@ void main() {
           reason: 'C\'est l\'entrée du moteur de frontière : où envoyer la personne.');
     });
 
+    test('le compte par axe survit à un aller-retour de sérialisation', () {
+      // Sans ce test, la confiance par axe restait nulle en production : `toJson` écrivait
+      // bien `axis_observations`, mais `fromJson` ne le relisait pas. Le compte était donc
+      // recalculé à chaque enregistrement puis perdu au rechargement — une fonctionnalité
+      // entièrement inerte, qu'aucun test en mémoire ne pouvait attraper.
+      const avant = TasteProfile(
+        id: 'p',
+        name: 'T',
+        axisObservations: {'tannin': 12, 'oak': 3},
+      );
+      final apres = TasteProfile.fromJson(avant.toJson());
+      expect(apres.axisObservations, equals({'tannin': 12, 'oak': 3}));
+      expect(apres.axisConfidence('tannin'), closeTo(avant.axisConfidence('tannin'), 1e-9));
+      expect(apres.leastKnownAxis, equals(avant.leastKnownAxis));
+    });
+
     test('la confiance globale reflète un profil inégal', () {
       const profile = TasteProfile(
         id: 'p',
@@ -257,6 +274,110 @@ void main() {
           fault: 'cork');
       expect(sain.isUsableForTasteModel, isTrue);
       expect(bouchonne.isUsableForTasteModel, isFalse);
+    });
+  });
+
+  group('🥃 Niveau « Gorgée » — la dégustation hors-cave apprend enfin', () {
+    TastingQuestionnaireResult sip({
+      required String profileId,
+      double note = 8.0,
+      String? texture,
+      String? fruit,
+    }) =>
+        TastingQuestionnaireResult(
+          emojiImpression: 3,
+          noteOutOf10: note,
+          perceivedAromas: const {},
+          aromaIntensity: 0.5,
+          // La gorgée ne mesure pas la bouche : ces axes restent explicitement nuls.
+          acidity: null,
+          body: null,
+          length: 0.5,
+          wouldBuyAgain: 'yes',
+          idealMoment: 'repas',
+          whatLikedMost: const {},
+          whatDislikedMost: const {},
+          mouthfeelTexture: texture,
+          fruitProfile: fruit,
+          isExpressMode: true,
+          profileId: profileId,
+          profileName: 'Moi',
+        );
+
+    test('une gorgée sans mesure de bouche n\'invente aucune observation', () async {
+      final service = TasteProfileService();
+      final profile = await service.getPrimaryProfile();
+
+      await service.applyQuestionnaireResult(result: sip(profileId: profile.id));
+
+      final after = await service.getPrimaryProfile();
+      expect(after.axisObservations['acidity'] ?? 0, equals(0),
+          reason: 'Avant, acidity et body étaient appliqués sans condition : une gorgée '
+              'poussait les deux axes vers 0,5 et comptait comme une observation. Le modèle '
+              'gagnait de la confiance sans avoir rien mesuré.');
+      expect(after.axisObservations['body'] ?? 0, equals(0));
+      expect(after.avgAcidityPreference, isNull);
+      expect(after.questionnairesCompleted, equals(1),
+          reason: 'La dégustation compte comme expérience, même sans mesure sensorielle.');
+    });
+
+    test('une micro-touche alimente exactement les axes qu\'elle décrit', () async {
+      final service = TasteProfileService();
+      final profile = await service.getPrimaryProfile();
+
+      // « Vif & Salivant » décrit l'acidité et la minéralité, rien d'autre.
+      await service.applyQuestionnaireResult(
+        result: sip(profileId: profile.id, texture: 'crisp_salivating'),
+      );
+
+      final after = await service.getPrimaryProfile();
+      expect(after.axisObservations['acidity'], equals(1));
+      expect(after.axisObservations['minerality'], equals(1));
+      expect(after.avgAcidityPreference, closeTo(0.85, 0.001));
+      expect(after.axisObservations['body'] ?? 0, equals(0),
+          reason: 'Le toucher de bouche ne dit rien du corps : ne rien affirmer.');
+      expect(after.axisObservations['oak'] ?? 0, equals(0));
+    });
+
+    test('deux touches se cumulent sans se contredire', () async {
+      final service = TasteProfileService();
+      final profile = await service.getPrimaryProfile();
+
+      await service.applyQuestionnaireResult(
+        result: sip(profileId: profile.id, texture: 'dense_structured', fruit: 'deep_ripe'),
+      );
+
+      final after = await service.getPrimaryProfile();
+      expect(after.avgBodyPreference, isNotNull,
+          reason: 'Les deux touches décrivent un vin ample : le corps doit être renseigné.');
+      expect(after.avgRipeFruitPreference, closeTo(0.85, 0.001));
+      expect(after.axisObservations['body'], equals(1),
+          reason: 'Un axe touché par deux micro-touches dans la même dégustation ne compte '
+              'qu\'une observation : c\'est une seule bouteille goûtée.');
+    });
+
+    test('le chemin questionnaire retire aussi un favori sur une déception', () async {
+      final service = TasteProfileService();
+      final profile = await service.getPrimaryProfile();
+
+      await service.applyQuestionnaireResult(
+        result: sip(profileId: profile.id, note: 9.0),
+        wineRegion: 'Cahors',
+        wineGrapes: ['Malbec'],
+      );
+      var after = await service.getPrimaryProfile();
+      expect(after.favoriteRegions, contains('Cahors'));
+
+      await service.applyQuestionnaireResult(
+        result: sip(profileId: profile.id, note: 2.0),
+        wineRegion: 'Cahors',
+        wineGrapes: ['Malbec'],
+      );
+      after = await service.getPrimaryProfile();
+      expect(after.favoriteRegions, isNot(contains('Cahors')),
+          reason: 'applyQuestionnaireResult n\'ajoutait que sur les bonnes notes : les '
+              'favoris ne pouvaient que s\'accumuler, même après deux déceptions.');
+      expect(after.favoriteGrapes, isNot(contains('Malbec')));
     });
   });
 }

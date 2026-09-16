@@ -1245,6 +1245,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'Which aromas did you perceive? (Multiple choices possible)';
 
   @override
+  String get tastingFaultTitle => 'Does the wine smell of any of these?';
+
+  @override
+  String get tastingFaultSubtitle =>
+      'If so, the bottle is faulty — it\'s neither your palate nor the wine\'s style.';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 Damp cardboard, musty cellar';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      'Cork taint (TCA). The wine is blameless and airing won\'t help — at a restaurant, you can ask for another bottle.';
+
+  @override
+  String get tastingFaultOxidationLabel => '🍎 Bruised apple, vinegar, sherry';
+
+  @override
+  String get tastingFaultOxidationExplain =>
+      'Oxidation. The bottle has taken in air, often through a failing cork or too long in the cellar.';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 Struck match, egg, cabbage';
+
+  @override
+  String get tastingFaultReductionExplain =>
+      'Reduction. Good news: it often blows off with air. Decant for twenty minutes and taste again before judging.';
+
+  @override
+  String get tastingFaultExcluded =>
+      'This tasting won\'t count towards your taste profile.';
+
+  @override
   String get tastingAromaIntensity => 'Aromatic intensity:';
 
   @override
@@ -1319,6 +1351,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ Final Verdict';
+
+  @override
+  String get sipSectionTitle => '🍷 The sip';
+
+  @override
+  String get sipSectionSubtitle =>
+      'Two taps, and this glass teaches your taste profile something.';
 
   @override
   String get tastingBuyAgain => 'Would you buy this bottle again?';

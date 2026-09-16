@@ -1199,6 +1199,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tastingStepNezSubtitle => '轻摇酒杯，捕捉酒液升腾出的多层次芬芳与微小香气。';
 
   @override
+  String get tastingFaultTitle => '这款酒有以下气味吗？';
+
+  @override
+  String get tastingFaultSubtitle => '如果有，说明这瓶酒有瑕疵——既不是你的味觉问题，也不是酒的风格。';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 潮湿纸板、霉味地窖';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      '木塞污染（TCA）。这不是酒的问题，醒酒也无济于事——在餐厅可以要求换一瓶。';
+
+  @override
+  String get tastingFaultOxidationLabel => '🍎 烂苹果、醋、雪莉酒';
+
+  @override
+  String get tastingFaultOxidationExplain => '氧化。瓶中进了空气，通常是软木塞失效或陈年过久所致。';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 火柴、鸡蛋、卷心菜';
+
+  @override
+  String get tastingFaultReductionExplain => '还原味。好消息：接触空气后往往会散去。醒酒二十分钟后再品尝判断。';
+
+  @override
+  String get tastingFaultExcluded => '本次品鉴不会计入你的口味档案。';
+
+  @override
   String get tastingAromaIntensity => '香气浓郁度:';
 
   @override
@@ -1272,6 +1300,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ 终局裁决';
+
+  @override
+  String get sipSectionTitle => '🍷 这一口';
+
+  @override
+  String get sipSectionSubtitle => '轻点两下，这一杯就能为你的口味档案添上一笔。';
 
   @override
   String get tastingBuyAgain => '您未来还会回购这款佳酿吗？';

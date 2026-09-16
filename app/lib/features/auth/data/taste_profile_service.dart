@@ -307,8 +307,15 @@ class TasteProfileService {
 
     // 5. Update palate axis running averages (for liked wines, note ≥ 5)
     if (result.noteOutOf10 >= 5.0) {
-      double? newAcidity = _runningAvg(profile.avgAcidityPreference, result.acidity, n);
-      double? newBody = _runningAvg(profile.avgBodyPreference, result.body, n);
+      // Une gorgée qui n'a pas mesuré la bouche ne doit rien apprendre sur ces deux axes :
+      // les appliquer avec une valeur neutre créerait une observation, donc de la confiance,
+      // à partir de rien. On laisse l'axe exactement où il était.
+      double? newAcidity = result.acidity == null
+          ? profile.avgAcidityPreference
+          : _runningAvg(profile.avgAcidityPreference, result.acidity!, n);
+      double? newBody = result.body == null
+          ? profile.avgBodyPreference
+          : _runningAvg(profile.avgBodyPreference, result.body!, n);
       double? newTannin = profile.avgTanninPreference;
       double? newOak = profile.avgOakPreference;
       double? newRipeFruit = profile.avgRipeFruitPreference;
@@ -451,6 +458,25 @@ class TasteProfileService {
           profile = profile.copyWith(favoriteTypes: types);
         }
       }
+    }
+
+    // 7 bis. Symétrie : une déception retire ce qu'un enthousiasme avait ajouté.
+    // `recordTastingExperience` le fait déjà ; sans cet équivalent ici, le chemin du
+    // questionnaire restait un cliquet — les favoris ne pouvaient que s'accumuler, et une
+    // région détestée deux fois de suite y figurait toujours.
+    if (result.noteOutOf10 <= kDislikedThreshold) {
+      if (wineRegion != null && wineRegion.isNotEmpty) {
+        final regions = List<String>.from(profile.favoriteRegions)
+          ..removeWhere((r) => r.toLowerCase() == wineRegion.toLowerCase());
+        profile = profile.copyWith(favoriteRegions: regions);
+      }
+      if (wineGrapes != null && wineGrapes.isNotEmpty) {
+        final lowered = wineGrapes.map((g) => g.toLowerCase()).toSet();
+        final grapes = List<String>.from(profile.favoriteGrapes)
+          ..removeWhere((g) => lowered.contains(g.toLowerCase()));
+        profile = profile.copyWith(favoriteGrapes: grapes);
+      }
+      // Le type de couleur n'est pas retiré : trop grossier pour une seule déception.
     }
 
     // 8. Auto-discover dislikes & Aversions (Hard negative filtering)

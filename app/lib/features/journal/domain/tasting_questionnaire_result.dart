@@ -11,9 +11,14 @@ class TastingQuestionnaireResult {
   final double aromaIntensity; // 0.0 (discret) → 1.0 (explosif)
 
   // — Step 3: La Bouche (Équilibre) —
-  final double acidity; // 0.0 (mou) → 1.0 (vif/tranchant)
+  /// 0.0 (mou) → 1.0 (vif/tranchant). **Nul si la bouche n'a pas été mesurée** — c'est le
+  /// cas du niveau « Gorgée » de la dégustation hors-cave, qui ne pose que les micro-touches.
+  /// Sans cette distinction, une gorgée non mesurée poussait l'axe vers 0,5 et comptait
+  /// comme une observation : le modèle gagnait de la confiance sans avoir rien appris.
+  final double? acidity;
   final double? tannins; // 0.0 (fondus) → 1.0 (puissants) — only for reds, null for whites/sparkling/rosé
-  final double body; // 0.0 (léger) → 1.0 (puissant)
+  /// 0.0 (léger) → 1.0 (puissant). Nul si non mesuré — voir [acidity].
+  final double? body;
   final double length; // 0.0 (courte) → 1.0 (interminable)
   final double? effervescence; // 0.0 (fine) → 1.0 (vive) — only for sparkling
 
@@ -41,9 +46,9 @@ class TastingQuestionnaireResult {
     required this.noteOutOf10,
     required this.perceivedAromas,
     required this.aromaIntensity,
-    required this.acidity,
+    this.acidity,
     this.tannins,
-    required this.body,
+    this.body,
     required this.length,
     this.effervescence,
     required this.wouldBuyAgain,
@@ -65,9 +70,9 @@ class TastingQuestionnaireResult {
     'aromas': perceivedAromas.toList(),
     'custom_aromas': customAromas,
     'aroma_intensity': aromaIntensity,
-    'acidity': acidity,
+    if (acidity != null) 'acidity': acidity,
     if (tannins != null) 'tannins': tannins,
-    'body': body,
+    if (body != null) 'body': body,
     'length': length,
     'effervescence': effervescence,
     'would_buy_again': wouldBuyAgain,
@@ -98,9 +103,9 @@ class TastingQuestionnaireResult {
           ? List<String>.from((rawCustom as List).map((e) => e.toString()))
           : const <String>[],
       aromaIntensity: (json['aroma_intensity'] as num?)?.toDouble() ?? 0.5,
-      acidity: (json['acidity'] as num?)?.toDouble() ?? 0.5,
+      acidity: (json['acidity'] as num?)?.toDouble(),
       tannins: (json['tannins'] as num?)?.toDouble(),
-      body: (json['body'] as num?)?.toDouble() ?? 0.5,
+      body: (json['body'] as num?)?.toDouble(),
       length: (json['length'] as num?)?.toDouble() ?? 0.5,
       effervescence: (json['effervescence'] as num?)?.toDouble(),
       wouldBuyAgain: (json['would_buy_again'] as String?) ?? 'maybe',

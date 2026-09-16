@@ -1254,6 +1254,38 @@ class AppLocalizationsDe extends AppLocalizations {
       'Schwenken Sie das Glas und erfassen Sie die aufsteigenden Aromenschichten.';
 
   @override
+  String get tastingFaultTitle => 'Riecht der Wein nach einem dieser Dinge?';
+
+  @override
+  String get tastingFaultSubtitle =>
+      'Dann ist die Flasche fehlerhaft – es liegt weder an Ihrem Gaumen noch am Stil des Weins.';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 Feuchte Pappe, muffiger Keller';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      'Korkschmecker (TCA). Der Wein kann nichts dafür und Belüften hilft nicht – im Restaurant dürfen Sie eine andere Flasche verlangen.';
+
+  @override
+  String get tastingFaultOxidationLabel => '🍎 Überreifer Apfel, Essig, Sherry';
+
+  @override
+  String get tastingFaultOxidationExplain =>
+      'Oxidation. Die Flasche hat Luft gezogen, oft durch einen schadhaften Korken oder zu lange Lagerung.';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 Streichholz, Ei, Kohl';
+
+  @override
+  String get tastingFaultReductionExplain =>
+      'Reduktion. Gute Nachricht: Sie verfliegt oft an der Luft. Zwanzig Minuten dekantieren und vor dem Urteil erneut probieren.';
+
+  @override
+  String get tastingFaultExcluded =>
+      'Diese Verkostung fließt nicht in Ihr Geschmacksprofil ein.';
+
+  @override
   String get tastingAromaIntensity => 'Aromenintensität:';
 
   @override
@@ -1328,6 +1360,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ Gesamturteil';
+
+  @override
+  String get sipSectionTitle => '🍷 Der Schluck';
+
+  @override
+  String get sipSectionSubtitle =>
+      'Zwei Tipps, und dieses Glas bringt Ihrem Geschmacksprofil etwas bei.';
 
   @override
   String get tastingBuyAgain => 'Würden Sie diesen Wein nachkaufen?';

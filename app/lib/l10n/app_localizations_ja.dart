@@ -1205,6 +1205,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tastingStepNezSubtitle => 'グラスを回して立ち上るアロマとニュアンスを感じ取ってください。';
 
   @override
+  String get tastingFaultTitle => 'ワインから次のような香りがしますか？';
+
+  @override
+  String get tastingFaultSubtitle =>
+      'その場合、ボトルに欠陥があります。あなたの味覚のせいでも、ワインの個性でもありません。';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 湿った段ボール、カビ臭い蔵';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      'ブショネ（TCA）。ワインに罪はなく、空気に触れさせても直りません。レストランでは別のボトルを頼めます。';
+
+  @override
+  String get tastingFaultOxidationLabel => '🍎 傷んだリンゴ、酢、シェリー';
+
+  @override
+  String get tastingFaultOxidationExplain =>
+      '酸化。コルクの不良や長すぎる熟成により、ボトルに空気が入っています。';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 マッチ、卵、キャベツ';
+
+  @override
+  String get tastingFaultReductionExplain =>
+      '還元臭。朗報です。空気に触れると消えることが多く、20分デキャンタージュしてから改めて味わってください。';
+
+  @override
+  String get tastingFaultExcluded => 'この試飲はあなたの味覚プロファイルには反映されません。';
+
+  @override
   String get tastingAromaIntensity => '香りの強さ:';
 
   @override
@@ -1278,6 +1309,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ 総合判定';
+
+  @override
+  String get sipSectionTitle => '🍷 ひと口';
+
+  @override
+  String get sipSectionSubtitle => '2回タップするだけで、この一杯があなたの味覚プロファイルに何かを教えます。';
 
   @override
   String get tastingBuyAgain => 'このボトルをまた購入したいですか？';

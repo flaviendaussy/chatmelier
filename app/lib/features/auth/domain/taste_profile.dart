@@ -227,6 +227,10 @@ class TasteProfile {
       wishlistGrapes: _castIntMap(json['wishlist_grapes']),
       cellarGrapes: _castIntMap(json['cellar_grapes']),
       idealMoments: _castIntMap(json['ideal_moments']),
+      // `toJson` écrivait déjà `axis_observations`, mais rien ne le relisait : le compte
+      // par axe était recalculé à chaque enregistrement puis perdu au rechargement, donc
+      // la confiance affichée serait restée nulle en permanence.
+      axisObservations: _castIntMap(json['axis_observations']),
       questionnairesCompleted: ((json['questionnaires_completed'] ?? json['questionnairesCompleted']) as num?)?.toInt() ?? 0,
       friendUserId: json['friend_user_id']?.toString(),
     );

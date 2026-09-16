@@ -1247,6 +1247,38 @@ class AppLocalizationsNl extends AppLocalizations {
       'Wals het glas en neem de opstijgende geurlagen waar.';
 
   @override
+  String get tastingFaultTitle => 'Ruikt de wijn naar een van deze dingen?';
+
+  @override
+  String get tastingFaultSubtitle =>
+      'Dan is de fles defect — het ligt niet aan uw smaak of aan de stijl van de wijn.';
+
+  @override
+  String get tastingFaultCorkLabel => '📦 Vochtig karton, muffe kelder';
+
+  @override
+  String get tastingFaultCorkExplain =>
+      'Kurksmaak (TCA). De wijn kan er niets aan doen en luchten helpt niet — in een restaurant mag u een andere fles vragen.';
+
+  @override
+  String get tastingFaultOxidationLabel => '🍎 Bruine appel, azijn, sherry';
+
+  @override
+  String get tastingFaultOxidationExplain =>
+      'Oxidatie. De fles heeft lucht gekregen, vaak door een falende kurk of te lange bewaring.';
+
+  @override
+  String get tastingFaultReductionLabel => '🥚 Lucifer, ei, kool';
+
+  @override
+  String get tastingFaultReductionExplain =>
+      'Reductie. Goed nieuws: het verdwijnt vaak door lucht. Decanteer twintig minuten en proef opnieuw voordat u oordeelt.';
+
+  @override
+  String get tastingFaultExcluded =>
+      'Deze proeverij telt niet mee voor uw smaakprofiel.';
+
+  @override
   String get tastingAromaIntensity => 'Aromatische intensiteit:';
 
   @override
@@ -1321,6 +1353,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tastingStepVerdictTitle => '✅ Eindconclusie';
+
+  @override
+  String get sipSectionTitle => '🍷 De slok';
+
+  @override
+  String get sipSectionSubtitle =>
+      'Twee tikken, en dit glas leert uw smaakprofiel iets.';
 
   @override
   String get tastingBuyAgain => 'Zou u deze fles opnieuw kopen?';

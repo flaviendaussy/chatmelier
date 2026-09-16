@@ -20,6 +20,7 @@ l'historique : **seule la rotation les neutralise.**
 | **JWT `service_role` Supabase** | 2026-08-30 → 2026-09-14 (15 j) | `54a3707`, `976f320` | ✅ **NEUTRALISÉ** le 2026-09-14 — clés legacy désactivées |
 | **Clé API Gemini** (celle de `build_bundle.sh`) | plus ancien | `df650a5`, `5697356`, `61776d5` | ✅ **remplacée** le 2026-09-15 — secret Supabase mis à jour, fonction edge vérifiée HTTP 200 |
 | Mot de passe keystore (`storePassword`) | — | `a9febdb` | ⏳ à changer (faible urgence : le `.jks` n'a jamais été committé) |
+| **Compte de seed `flavien@chatmelier.app` / `Secret1234`** | depuis `007` | `007_seed_test_user.sql` | ⏳ **dépendances vidées le 2026-09-16, compte pas encore supprimé.** Confirmé présent en production, non administrateur, dernière connexion le 2026-09-05. Migration neutralisée (`da92004`) |
 
 **Neutralisation du `service_role` — ce qui a été fait et vérifié.**
 Les clés legacy JWT (`anon` + `service_role`) ont été désactivées depuis
@@ -42,13 +43,35 @@ usurpation). Il était en outre servi en clair sur `chatmelier.github.io/admin_c
 Bonne nouvelle : **le fichier keystore `.jks` lui-même n'a jamais été committé** — personne ne
 peut signer d'APK à votre place avec le seul mot de passe.
 
+### Le compte de seed — clos le 2026-09-16
+
+`007_seed_test_user.sql` créait `flavien@chatmelier.app` avec le mot de passe
+`Secret1234` en clair, dans un dépôt public. Le compte **existait bien en production**.
+Il n'était pas administrateur, et sa dernière connexion datait du 2026-09-05 — un jour
+sans aucun commit, donc impossible de conclure s'il s'agissait d'un test interne ou non ;
+les journaux de diagnostic ne contenaient aucune trace de ce compte.
+
+Ses dépendances ont été vidées — nécessaire car les clés étrangères vers `profiles`
+(`cellars.owner_id`, `bottles.added_by`, `tasting_log.user_id`, `chat_messages.user_id`)
+n'ont **aucune clause `ON DELETE`** : la suppression échoue tant que caves et bouteilles
+subsistent. `delete_user_account()` ne sert à rien ici, elle ne supprime que l'appelant
+(`auth.uid()`). La suppression du compte lui-même reste à faire.
+
+Le vrai piège de cette migration n'était pas la création du compte mais sa branche
+`ELSE`, qui **réinitialisait le mot de passe** si le compte existait déjà : la rejouer
+aurait réarmé la faille après toute correction manuelle. Corps mis hors service en
+`da92004`.
+
+`Secret1234` reste dans l'historique git public. Sans le compte, c'est sans objet — mais
+ça compte dans la décision de réécrire l'historique, qui reste ouverte.
+
 ### Migrations à appliquer — dans cet ordre
 
-`029`, `030` et `031` ont été appliquées le 2026-09-15. Reste :
+`029`, `030`, `031` et **`032`** ont été appliquées. Reste :
 
 | Migration | Ce qu'elle fait | Pourquoi maintenant |
 |---|---|---|
-| **`032_rating_scale_and_tasting_signals.sql`** | Élargit la contrainte `rating` à 10 (ce que 027 aurait dû faire), marque l'échelle des lignes existantes, ajoute `is_favorite`, `is_blind`, `fault`, `served_temp`, `was_decanted` | Sans elle, **chaque dégustation guidée est divisée par deux à l'écriture** et n'atteint même plus le serveur. Voir la section « L'échelle des notes » |
+| *(aucune)* | — | `032` appliquée le 2026-09-16. Vérifié : `rating` est passé en `NUMERIC(3,1)`, trois lignes marquées à l'échelle 5. Test de bout en bout sur appareil : une nouvelle dégustation s'écrit **8,5/10** au lieu de 4,25 |
 
 **Aucune procédure manuelle n'est nécessaire** : le marquage de l'échelle est déterministe et
 automatique. Coller le fichier dans le SQL Editor suffit. La migration affiche un `NOTICE`

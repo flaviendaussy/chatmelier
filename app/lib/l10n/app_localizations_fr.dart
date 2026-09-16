@@ -1379,6 +1379,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Je ne connais pas encore votre palais — le halo montre ce que je devine.';
 
   @override
+  String get tasteEvidenceTitle => 'D\'où vient ce profil';
+
+  @override
+  String get tasteEvidenceEmpty =>
+      'Aucune trace pour l\'instant. Votre profil se construira à mesure que vous dégusterez.';
+
+  @override
+  String get tasteEvidenceOpen => 'Voir d\'où vient ce profil';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return 'Palais connu à $percent %. Le flou marque ce que je devine encore.';
   }

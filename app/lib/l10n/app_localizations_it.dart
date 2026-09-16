@@ -1383,6 +1383,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'Non conosco ancora il tuo palato: l\'alone mostra ciò che sto indovinando.';
 
   @override
+  String get tasteEvidenceTitle => 'Da dove viene questo profilo';
+
+  @override
+  String get tasteEvidenceEmpty =>
+      'Ancora nessuna traccia. Il tuo profilo si costruisce degustando.';
+
+  @override
+  String get tasteEvidenceOpen => 'Vedi da dove viene questo profilo';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return 'Palato noto al $percent %. La sfocatura segna ciò che sto ancora indovinando.';
   }

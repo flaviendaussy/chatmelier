@@ -1320,6 +1320,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tasteConfidenceUnknown => '我还不了解你的口味——光晕表示我在猜测的部分。';
 
   @override
+  String get tasteEvidenceTitle => '这份档案的来源';
+
+  @override
+  String get tasteEvidenceEmpty => '暂无记录。你品鉴得越多，档案越完整。';
+
+  @override
+  String get tasteEvidenceOpen => '查看档案来源';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return '口味了解度 $percent%。模糊处是我仍在猜测的部分。';
   }

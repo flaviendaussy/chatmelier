@@ -1329,6 +1329,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tasteConfidenceUnknown => 'あなたの味覚はまだわかりません。にじみは推測している部分です。';
 
   @override
+  String get tasteEvidenceTitle => 'このプロファイルの根拠';
+
+  @override
+  String get tasteEvidenceEmpty => 'まだ記録がありません。味わうほどにプロファイルが育ちます。';
+
+  @override
+  String get tasteEvidenceOpen => '根拠を見る';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return '味覚の把握度 $percent %。ぼかしはまだ推測している部分です。';
   }

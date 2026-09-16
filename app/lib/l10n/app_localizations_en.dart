@@ -1373,6 +1373,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'I don\'t know your palate yet — the halo shows what I\'m guessing.';
 
   @override
+  String get tasteEvidenceTitle => 'Where this profile comes from';
+
+  @override
+  String get tasteEvidenceEmpty =>
+      'Nothing recorded yet. Your profile builds up as you taste.';
+
+  @override
+  String get tasteEvidenceOpen => 'See where this profile comes from';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return 'Palate known at $percent%. The blur marks what I\'m still guessing.';
   }

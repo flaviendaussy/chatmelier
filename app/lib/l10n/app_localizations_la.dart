@@ -1360,6 +1360,16 @@ class AppLocalizationsLa extends AppLocalizations {
       'Palatum tuum nondum novi — nimbus ostendit quid coniciam.';
 
   @override
+  String get tasteEvidenceTitle => 'Unde hic index oriatur';
+
+  @override
+  String get tasteEvidenceEmpty =>
+      'Nihil adhuc notatum. Index tuus degustando crescit.';
+
+  @override
+  String get tasteEvidenceOpen => 'Vide unde hic index oriatur';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return 'Palatum $percent centesimis notum. Nubes signat quid adhuc coniciam.';
   }

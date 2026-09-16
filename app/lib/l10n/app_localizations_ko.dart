@@ -1333,6 +1333,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tasteConfidenceUnknown => '아직 당신의 미각을 모릅니다. 번짐은 제가 추측하는 부분입니다.';
 
   @override
+  String get tasteEvidenceTitle => '이 프로필의 근거';
+
+  @override
+  String get tasteEvidenceEmpty => '아직 기록이 없습니다. 시음할수록 프로필이 쌓입니다.';
+
+  @override
+  String get tasteEvidenceOpen => '근거 보기';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return '미각 파악도 $percent%. 흐릿한 부분은 아직 추측 중입니다.';
   }

@@ -1375,6 +1375,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ik ken uw smaak nog niet — de halo toont wat ik gis.';
 
   @override
+  String get tasteEvidenceTitle => 'Waar dit profiel vandaan komt';
+
+  @override
+  String get tasteEvidenceEmpty =>
+      'Nog niets vastgelegd. Uw profiel groeit terwijl u proeft.';
+
+  @override
+  String get tasteEvidenceOpen => 'Bekijk waar dit profiel vandaan komt';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return 'Smaak voor $percent% bekend. De vervaging toont wat ik nog gis.';
   }

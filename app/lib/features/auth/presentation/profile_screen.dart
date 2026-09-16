@@ -30,6 +30,7 @@ import '../domain/user_profile.dart';
 import '../../notifications/presentation/notification_settings_sheet.dart';
 import '../../notifications/data/notification_preferences_service.dart';
 import '../../feedback/data/shake_feedback_service.dart';
+import 'taste_evidence_sheet.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -142,23 +143,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           '${l10n.tasteConfidenceFrontier(axe)}';
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(Icons.blur_on_rounded, size: 15, color: Colors.grey.withValues(alpha: 0.8)),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            texte,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
-              height: 1.3,
-              color: Colors.grey,
-              fontStyle: FontStyle.italic,
+    // La phrase affirme quelque chose sur le palais : c'est donc l'endroit naturel pour
+    // demander « d'où sors-tu ça ? ». Un modèle lisible doit être interrogeable là où il
+    // se prononce, pas depuis un écran de réglages.
+    return InkWell(
+      onTap: () => showTasteEvidenceSheet(context),
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.blur_on_rounded,
+                size: 15, color: Colors.grey.withValues(alpha: 0.8)),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: '$texte '),
+                    TextSpan(
+                      text: l10n.tasteEvidenceOpen,
+                      style: const TextStyle(
+                        color: Color(0xFF8B1E3F),
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: 11,
+                  height: 1.3,
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 

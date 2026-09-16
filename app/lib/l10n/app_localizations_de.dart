@@ -1382,6 +1382,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ich kenne Ihren Gaumen noch nicht – der Halo zeigt, was ich vermute.';
 
   @override
+  String get tasteEvidenceTitle => 'Woher dieses Profil kommt';
+
+  @override
+  String get tasteEvidenceEmpty =>
+      'Noch nichts erfasst. Ihr Profil entsteht beim Verkosten.';
+
+  @override
+  String get tasteEvidenceOpen => 'Sehen, woher dieses Profil kommt';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return 'Gaumen zu $percent % bekannt. Die Unschärfe zeigt, was ich noch vermute.';
   }

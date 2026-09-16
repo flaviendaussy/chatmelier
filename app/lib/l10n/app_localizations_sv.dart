@@ -1373,6 +1373,16 @@ class AppLocalizationsSv extends AppLocalizations {
       'Jag känner inte din smak än – halon visar vad jag gissar.';
 
   @override
+  String get tasteEvidenceTitle => 'Varifrån profilen kommer';
+
+  @override
+  String get tasteEvidenceEmpty =>
+      'Inget registrerat än. Din profil byggs upp när du provar.';
+
+  @override
+  String get tasteEvidenceOpen => 'Se varifrån profilen kommer';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return 'Smaken känd till $percent %. Oskärpan visar vad jag fortfarande gissar.';
   }

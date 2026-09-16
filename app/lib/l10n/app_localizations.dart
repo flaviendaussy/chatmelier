@@ -2562,6 +2562,24 @@ abstract class AppLocalizations {
   /// **'I don\'t know your palate yet — the halo shows what I\'m guessing.'**
   String get tasteConfidenceUnknown;
 
+  /// No description provided for @tasteEvidenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where this profile comes from'**
+  String get tasteEvidenceTitle;
+
+  /// No description provided for @tasteEvidenceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recorded yet. Your profile builds up as you taste.'**
+  String get tasteEvidenceEmpty;
+
+  /// No description provided for @tasteEvidenceOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'See where this profile comes from'**
+  String get tasteEvidenceOpen;
+
   /// No description provided for @tasteConfidenceKnown.
   ///
   /// In en, this message translates to:

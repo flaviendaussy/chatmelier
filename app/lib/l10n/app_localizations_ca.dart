@@ -1379,6 +1379,16 @@ class AppLocalizationsCa extends AppLocalizations {
       'Encara no conec el teu paladar: el halo mostra el que endevino.';
 
   @override
+  String get tasteEvidenceTitle => 'D\'on ve aquest perfil';
+
+  @override
+  String get tasteEvidenceEmpty =>
+      'Encara no hi ha cap traça. El teu perfil es construeix tastant.';
+
+  @override
+  String get tasteEvidenceOpen => 'Veure d\'on ve aquest perfil';
+
+  @override
   String tasteConfidenceKnown(String percent) {
     return 'Paladar conegut al $percent %. El difuminat marca el que encara endevino.';
   }

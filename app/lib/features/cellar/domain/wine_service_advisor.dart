@@ -405,6 +405,15 @@ class WineOenologyAdvisor {
     // domaine et le millésime ; on retient la référence quand l'écart est tel que
     // l'IA se trompe plus probablement qu'elle ne sait quelque chose.
     // ═══════════════════════════════════════════════════════════════════════
+    // Un vin sans millésime n'a pas de courbe de garde : l'assemblage est fait pour être
+    // bu à sa sortie. Le code invente pourtant un millésime (`annee - 3`) et applique la
+    // fenêtre de la catégorie — d'où un champagne brut sans année crédité de vingt-cinq
+    // ans, alors qu'un brut non millésimé se boit dans les trois à cinq ans.
+    //
+    // On ne peut pas supprimer la courbe ici sans toucher la fiche ; on borne donc la
+    // catégorie à ce qu'un assemblage sans année peut raisonnablement tenir.
+    final sansMillesime = vintage == null;
+
     final reference = AgingReference.chercher(
       pays: country,
       region: region,
@@ -437,10 +446,20 @@ class WineOenologyAdvisor {
     }
 
     if (!iaUtilisable && reference != null) {
-      final start = v + reference.debut;
-      final pStart = v + reference.picDebut;
-      final pEnd = v + reference.picFin;
-      final end = v + reference.fin;
+      final borne = sansMillesime
+          ? AgingProfile(
+              id: '${reference.id}:nm',
+              libelle: reference.libelle,
+              debut: 0,
+              picDebut: math.min(reference.picDebut, 1),
+              picFin: math.min(reference.picFin, 3),
+              fin: math.min(reference.fin, 5),
+            )
+          : reference;
+      final start = v + borne.debut;
+      final pStart = v + borne.picDebut;
+      final pEnd = v + borne.picFin;
+      final end = v + borne.fin;
       return WineDrinkingWindowData(
         vintage: v,
         drinkStart: start,
@@ -448,8 +467,9 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 4, currentYear + 2),
-        agingPotentialText:
-            '${reference.debut} à ${reference.fin} ans (Apogée optimale : $pStart - $pEnd)',
+        agingPotentialText: sansMillesime
+            ? 'Sans millésime — à boire dans les ${borne.fin} ans'
+            : '${borne.debut} à ${borne.fin} ans (Apogée optimale : $pStart - $pEnd)',
       );
     }
 

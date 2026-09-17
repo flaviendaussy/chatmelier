@@ -120,15 +120,31 @@ class AgingReference {
 
     const superieur = [
       'reserva', 'reserve', 'vieilles vignes', 'old vine', 'superiore',
-      'superior', 'crianza', 'spatlese', 'kabinett', 'classico',
+      'superior', 'spatlese', 'kabinett', 'classico',
       'vieille vigne', 'grande cuvee', 'tete de cuvee',
     ];
+
+    // Un second vin se boit AVANT le grand vin, pas après : il est vinifié pour être
+    // accessible. Sans cette détection, « Les Hauts de Lynch-Moussas » héritait des
+    // vingt-deux ans d'un Haut-Médoc de garde.
+    const secondVin = [
+      'les hauts de', 'le petit', 'la petite', 'esprit de', 'second vin',
+      'reserve de la', 'pagodes de', 'clarence de', 'carruades',
+      'chapelle de', 'fleur de', 'moulin de', 'alter ego',
+    ];
+    for (final m in secondVin) {
+      if (t.contains(m)) return WineTier.entree;
+    }
     for (final m in superieur) {
       if (t.contains(m)) return WineTier.superieur;
     }
 
+    // « Crianza » n'est PAS un rang supérieur : c'est le premier échelon de
+    // vieillissement espagnol, sous Reserva et Gran Reserva. Le classer en supérieur
+    // donnait vingt-sept ans à un Ribera del Duero Crianza, qui en tient cinq à douze.
     const entree = [
       'joven', 'primeur', 'nouveau', 'novello', 'vin de soif', 'glou',
+      'crianza',
     ];
     for (final m in entree) {
       if (t.contains(m)) return WineTier.entree;
@@ -271,6 +287,20 @@ class AgingReference {
       appellations: ['morgon', 'moulin-a-vent', 'fleurie', 'brouilly',
         'chenas', 'julienas', 'chiroubles', 'saint-amour', 'regnie',
         'cote de brouilly', 'lantignie', 'beaujolais'],
+    ),
+    // Les appellations régionales de Bourgogne se boivent bien avant les villages :
+    // « Bourgogne », « Hautes Côtes », « Coteaux Bourguignons ». Sans cette règle, un
+    // Hautes Côtes de Nuits recevait les vingt ans d'un Gevrey-Chambertin.
+    _Regle(
+      AgingProfile(
+          id: 'fr_bourgogne_regionale',
+          libelle: 'Bourgogne régional',
+          debut: 1,
+          picDebut: 3,
+          picFin: 7,
+          fin: 10),
+      appellations: ['hautes cotes', 'coteaux bourguignons', 'bourgogne rouge',
+        'bourgogne passetoutgrain'],
     ),
     _Regle(
       AgingProfile(
@@ -500,6 +530,16 @@ class AgingReference {
           picFin: 15,
           fin: 25),
       appellations: ['champagne'],
+    ),
+    _Regle(
+      AgingProfile(
+          id: 'cava_prosecco',
+          libelle: 'Cava & Prosecco',
+          debut: 0,
+          picDebut: 1,
+          picFin: 3,
+          fin: 5),
+      appellations: ['prosecco', 'cava', 'asti', 'lambrusco'],
     ),
     _Regle(
       AgingProfile(

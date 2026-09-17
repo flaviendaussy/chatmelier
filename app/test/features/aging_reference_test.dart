@@ -192,13 +192,61 @@ void main() {
     });
   });
 
+  group('🔎 Revue bouteille par bouteille d\'une cave réelle', () {
+    test('un champagne sans millésime ne se garde pas vingt-cinq ans', () {
+      // Sans millésime, le code en invente un (`année - 3`) puis applique la fenêtre de
+      // la catégorie. Un brut non millésimé y récoltait vingt-cinq ans ; il se boit dans
+      // les trois à cinq.
+      final w = WineOenologyAdvisor.computeDrinkingWindow(
+          wineType: 'sparkling', vintage: null, appellation: 'Champagne');
+      expect(w.drinkEnd - w.vintage, lessThanOrEqualTo(5));
+      expect(w.agingPotentialText, contains('Sans millésime'));
+    });
+
+    test('un second vin se boit avant le grand vin', () {
+      // « Les Hauts de Lynch-Moussas » héritait des vingt-deux ans d'un Haut-Médoc de
+      // garde. Un second vin est vinifié pour être accessible.
+      final second = fenetre(
+          type: 'red', millesime: 2018, region: 'Bordeaux',
+          appellation: 'Haut-Médoc', nom: 'Les Hauts de Lynch-Moussas');
+      final grand = fenetre(
+          type: 'red', millesime: 2018, region: 'Bordeaux',
+          appellation: 'Haut-Médoc', nom: 'Château Lynch-Moussas');
+      expect(second.fin, lessThan(grand.fin));
+      expect(second.fin, lessThanOrEqualTo(15));
+    });
+
+    test('Crianza est le premier échelon espagnol, pas le haut', () {
+      // Joven < Crianza < Reserva < Gran Reserva. Classer Crianza en supérieur donnait
+      // vingt-sept ans à un Ribera del Duero qui en tient cinq à douze.
+      expect(AgingReference.rangDe(nom: 'Tinto Crianza'), WineTier.entree);
+      final f = fenetre(
+          type: 'red', millesime: 2023, pays: 'Espagne',
+          appellation: 'Ribera del Duero', nom: 'Tinto Crianza');
+      expect(f.fin, lessThanOrEqualTo(14));
+    });
+
+    test('une appellation régionale de Bourgogne n\'est pas un village', () {
+      final regional = fenetre(
+          type: 'red', millesime: 2022, region: 'Bourgogne',
+          appellation: 'Bourgogne Hautes Côtes de Nuits');
+      final village = fenetre(
+          type: 'red', millesime: 2022, region: 'Bourgogne',
+          appellation: 'Gevrey-Chambertin');
+      expect(regional.fin, lessThan(village.fin));
+      expect(regional.fin, lessThanOrEqualTo(12));
+    });
+  });
+
   group('🏅 Les mentions de rang', () {
     test('le sommet prime sur le supérieur', () {
       // « Gran Reserva » contient « reserva » : tester « reserva » d'abord classerait
       // tous les Gran Reserva en supérieur.
       expect(AgingReference.rangDe(nom: 'Rioja Gran Reserva'), WineTier.sommet);
       expect(AgingReference.rangDe(nom: 'Rioja Reserva'), WineTier.superieur);
-      expect(AgingReference.rangDe(nom: 'Rioja Crianza'), WineTier.superieur);
+      // Crianza est le PREMIER échelon de vieillissement espagnol, pas un rang
+      // supérieur — voir la revue de cave plus haut.
+      expect(AgingReference.rangDe(nom: 'Rioja Crianza'), WineTier.entree);
       expect(AgingReference.rangDe(nom: 'Rioja Joven'), WineTier.entree);
       expect(AgingReference.rangDe(nom: 'Rioja'), WineTier.standard);
     });

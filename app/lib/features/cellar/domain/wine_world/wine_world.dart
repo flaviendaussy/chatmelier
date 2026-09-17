@@ -107,9 +107,19 @@ class WineWorld {
       for (final ref in r.references) {
         for (final cle in [ref.nom, ...ref.alias]) {
           final c = _norm(cle);
-          // Au moins quatre caractères : en deçà, un fragment de nom de cuvée
-          // déclencherait n'importe quoi.
-          if (c.length < 4 || !texte.contains(c)) continue;
+          if (c.isEmpty) continue;
+          // Un libellé court — « DRC », « KWV », « Ott » — doit rester atteignable : le
+          // rejeter sur sa seule longueur en faisait des entrées MORTES, présentes dans
+          // la base mais qu'aucune recherche ne pouvait renvoyer.
+          //
+          // Ce qui protège des fragments n'est pas la longueur mais la frontière de
+          // mot : « ott » dans « Domaines Ott » oui, dans « Lotte » non. Au-delà de
+          // quatre caractères la sous-chaîne suffit, les collisions y étant improbables
+          // et les étiquettes rarement écrites à l'identique.
+          final trouve = c.length >= 5
+              ? texte.contains(c)
+              : _contientMotEntier(texte, c);
+          if (!trouve) continue;
           // À champ égal, le libellé le plus long reste le plus précis :
           // « Penfolds Grange » avant « Penfolds ».
           if (c.length > meilleureLongueur) {
@@ -143,6 +153,24 @@ class WineWorld {
     final r = WineWorld.region(
       pays: pays, region: region, appellation: appellation, cepages: cepages);
     return r?.elevagePour(_couleur(type));
+  }
+
+  /// `motif` apparaît-il comme une suite de mots entiers dans `texte` ?
+  static bool _contientMotEntier(String texte, String motif) {
+    final mots = texte.split(' ').where((m) => m.isNotEmpty).toList();
+    final cibles = motif.split(' ').where((m) => m.isNotEmpty).toList();
+    if (cibles.isEmpty || cibles.length > mots.length) return false;
+    for (var i = 0; i <= mots.length - cibles.length; i++) {
+      var ok = true;
+      for (var j = 0; j < cibles.length; j++) {
+        if (mots[i + j] != cibles[j]) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) return true;
+    }
+    return false;
   }
 
   static String _couleur(String? type) {

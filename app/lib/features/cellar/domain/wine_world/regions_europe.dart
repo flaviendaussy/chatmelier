@@ -105,7 +105,7 @@ const List<RegionVin> regionsEurope = [
     references: [
       ReferenceVin(nom: 'Kracher',
           longevite: AgingProfile(id: 'kracher', libelle: 'Kracher TBA',
-              debut: 4, picDebut: 12, picFin: 35, fin: 55)),
+              debut: 4, picDebut: 12, picFin: 35, fin: 38)),
       ReferenceVin(nom: 'Moric'),
     ],
   ),

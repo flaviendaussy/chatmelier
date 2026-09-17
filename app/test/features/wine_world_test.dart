@@ -52,14 +52,18 @@ void main() {
           equals('Penfolds Grange'));
     });
 
-    test('un fragment court ne déclenche rien', () {
-      // Seuil de quatre caractères : en deçà, un morceau de nom de cuvée ferait
-      // reconnaître n'importe quel domaine. « Ott » en fait trois — ce vin ne sera donc
-      // pas rattaché à Domaines Ott, et c'est le comportement voulu : mieux vaut ne rien
-      // affirmer que rattacher à tort.
-      expect(WineWorld.reference(nom: 'Cuvée Ott de la Maison'), isNull);
+    test('un fragment de mot ne déclenche rien, un mot entier oui', () {
+      // Ce qui protège des fragments n'est pas la longueur du libellé mais la frontière
+      // de mot. Un seuil de longueur rendait « DRC », « KWV » et « Ott » INATTEIGNABLES :
+      // présents dans la base, mais qu'aucune recherche ne pouvait renvoyer. C'est un
+      // invariant d'accessibilité qui l'a révélé, pas un test d'exemple.
+      expect(WineWorld.reference(nom: 'Domaine Lotte Villeneuve'), isNull,
+          reason: '« ott » est ici enfoui dans « Lotte » : ce n\'est pas un mot.');
       expect(WineWorld.reference(nom: 'Le Petit Chose'), isNull);
-      // Le nom complet, lui, est reconnu.
+
+      // Les libellés courts redeviennent utilisables, ce qui est le but.
+      expect(WineWorld.reference(nom: 'DRC La Tâche')?.nom,
+          equals('Domaine de la Romanée-Conti'));
       expect(WineWorld.reference(nom: 'Domaines Ott Clos Mireille')?.nom,
           equals('Domaines Ott'));
     });

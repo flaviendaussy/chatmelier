@@ -54,7 +54,7 @@ const List<RegionVin> regionsIberie = [
           elevage: Elevage(ContenantElevage.barrique, 72)),
       ReferenceVin(nom: 'Pingus',
           longevite: AgingProfile(id: 'pingus', libelle: 'Pingus',
-              debut: 6, picDebut: 12, picFin: 30, fin: 45)),
+              debut: 6, picDebut: 12, picFin: 30, fin: 38)),
       ReferenceVin(nom: 'Pesquera'),
       ReferenceVin(nom: 'Protos', raison: RaisonDePresence.grandVolume),
     ],
@@ -203,7 +203,7 @@ const List<RegionVin> regionsIberie = [
     references: [
       ReferenceVin(nom: 'Barca Velha',
           longevite: AgingProfile(id: 'barca_velha', libelle: 'Barca Velha',
-              debut: 8, picDebut: 15, picFin: 35, fin: 50)),
+              debut: 8, picDebut: 15, picFin: 35, fin: 38)),
       ReferenceVin(nom: 'Quinta do Crasto'),
       ReferenceVin(nom: 'Niepoort'),
     ],

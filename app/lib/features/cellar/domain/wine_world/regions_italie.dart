@@ -97,7 +97,7 @@ const List<RegionVin> regionsItalie = [
       ReferenceVin(nom: 'Ornellaia'),
       ReferenceVin(nom: 'Masseto',
           longevite: AgingProfile(id: 'masseto', libelle: 'Masseto',
-              debut: 6, picDebut: 12, picFin: 30, fin: 45)),
+              debut: 6, picDebut: 12, picFin: 30, fin: 38)),
       ReferenceVin(nom: 'Tignanello'),
     ],
   ),
@@ -226,7 +226,7 @@ const List<RegionVin> regionsItalie = [
     references: [
       ReferenceVin(nom: 'Emidio Pepe',
           longevite: AgingProfile(id: 'emidio_pepe', libelle: 'Emidio Pepe',
-              debut: 5, picDebut: 12, picFin: 30, fin: 45)),
+              debut: 5, picDebut: 12, picFin: 30, fin: 38)),
       ReferenceVin(nom: 'Valentini'),
     ],
   ),

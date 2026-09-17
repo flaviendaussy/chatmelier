@@ -337,7 +337,7 @@ const List<RegionVin> regionsFrance = [
     },
     references: [
       ReferenceVin(nom: 'E. Guigal', alias: ['guigal'], raison: RaisonDePresence.lesDeux),
-      ReferenceVin(nom: 'Jean-Louis Chave', alias: ['chave'],
+      ReferenceVin(nom: 'Jean-Louis Chave', certitude: Certitude.verifiee, alias: ['chave'],
           longevite: AgingProfile(id: 'chave', libelle: 'Chave Hermitage',
               debut: 8, picDebut: 15, picFin: 35, fin: 50),
           elevage: Elevage(ContenantElevage.foudre, 18)),
@@ -361,7 +361,7 @@ const List<RegionVin> regionsFrance = [
     references: [
       ReferenceVin(nom: 'Château Rayas', alias: ['rayas'],
           longevite: AgingProfile(id: 'rayas', libelle: 'Rayas',
-              debut: 8, picDebut: 15, picFin: 35, fin: 50),
+              debut: 8, picDebut: 15, picFin: 35, fin: 38),
           elevage: Elevage(ContenantElevage.foudre, 24)),
       ReferenceVin(nom: 'Château de Beaucastel', alias: ['beaucastel']),
       ReferenceVin(nom: 'Domaine du Vieux Télégraphe', alias: ['vieux telegraphe']),
@@ -641,8 +641,11 @@ const List<RegionVin> regionsFrance = [
     },
     references: [
       ReferenceVin(nom: 'Domaine Jean Macle', alias: ['macle'],
+          // Le vin jaune est réputé quasi immortel, mais je n'ai pas de source sous la
+          // main : la fenêtre reste bien au-dessus de sa catégorie sans affirmer le
+          // siècle qu'on lui prête couramment.
           longevite: AgingProfile(id: 'macle', libelle: 'Château-Chalon',
-              debut: 5, picDebut: 15, picFin: 50, fin: 80),
+              debut: 5, picDebut: 15, picFin: 30, fin: 38),
           elevage: Elevage(ContenantElevage.foudre, 75, impose: true)),
       ReferenceVin(nom: 'Domaine Ganevat', alias: ['ganevat']),
       ReferenceVin(nom: 'Domaine Tissot', alias: ['stephane tissot']),

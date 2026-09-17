@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'wine_service_advisor.dart';
 
 enum DrinkWindowStatus { tooYoung, aging, inPeak, drinkSoon, pastPeak }
 
@@ -466,104 +467,52 @@ class Wine {
   /// is tracked instead of an oenological wine drinking window / apogée.
   bool get tracksFillLevel => isSpirit || isFortified;
 
+  /// La fenêtre de garde effective de ce vin, corrigée.
+  ///
+  /// **Un seul chemin de calcul.** Il en existait trois : la courbe de la fiche, cette
+  /// méthode, et les valeurs brutes en base. Chacun avait son propre repli, et ils ne
+  /// donnaient pas le même résultat — un Margaux 1987 pouvait afficher une courbe
+  /// corrigée 1991-2009 et, juste à côté, un badge « PASSÉ L'APOGÉE » calculé sur les
+  /// 1989-1999 d'origine.
+  ///
+  /// Tout passe désormais par `WineOenologyAdvisor.computeDrinkingWindow`, qui confronte
+  /// la valeur stockée à ce que la catégorie et le domaine impliquent.
+  WineDrinkingWindowData get fenetreEffective =>
+      WineOenologyAdvisor.computeDrinkingWindow(
+        wineType: type,
+        vintage: vintage,
+        country: country,
+        region: region,
+        appellation: appellation,
+        classification: classification,
+        wineName: name,
+        producer: producer,
+        grapes: grapes.map((g) => g.name).toList(),
+        explicitDrinkStart: drinkStart,
+        explicitDrinkEnd: drinkEnd,
+        explicitPeakStart: peakStart,
+        explicitPeakEnd: peakEnd,
+      );
+
   DrinkWindowStatus get windowStatus {
     final currentYear = DateTime.now().year;
-    final wType = type.toLowerCase();
 
-    // 1. Resolve or compute effective drinking window
-    int? effectiveDrinkStart = drinkStart;
-    int? effectiveDrinkEnd = drinkEnd;
-    int? effectivePeakStart = peakStart;
-    int? effectivePeakEnd = peakEnd;
+    // Les vins dont on suit le niveau plutôt que l'apogée — spiritueux, vins mutés —
+    // n'ont pas de fenêtre de garde au sens où l'entend cet écran.
+    if (tracksFillLevel) return DrinkWindowStatus.inPeak;
 
-    // Validate explicit drinking windows against the vintage (e.g. if user edited vintage)
-    if (vintage != null) {
-      if (effectiveDrinkStart != null && effectiveDrinkStart < vintage!) {
-        effectiveDrinkStart = null;
-      }
-      if (effectiveDrinkEnd != null && (effectiveDrinkEnd < vintage! || (effectiveDrinkStart != null && effectiveDrinkEnd < effectiveDrinkStart))) {
-        effectiveDrinkEnd = null;
-      }
-      if (effectivePeakStart != null && effectivePeakStart < vintage!) {
-        effectivePeakStart = null;
-      }
-      if (effectivePeakEnd != null && effectivePeakEnd < vintage!) {
-        effectivePeakEnd = null;
-      }
-    }
-
-    // Fallback: If no valid explicit window is stored, estimate from enological properties
-    if (effectiveDrinkStart == null || effectiveDrinkEnd == null) {
-      if (vintage != null) {
-        final v = vintage!;
-        if (wType.contains('rosé') || wType.contains('rose')) {
-          // Rosé: short freshness window (1 to 3 years)
-          effectiveDrinkStart = v;
-          effectiveDrinkEnd = v + 3;
-          effectivePeakStart = v + 1;
-          effectivePeakEnd = v + 2;
-        } else if (wType.contains('white') || wType.contains('blanc') || wType.contains('sparkling')) {
-          final isGrandBlanc = region.toLowerCase().contains('bourgogne') ||
-              appellation?.toLowerCase().contains('chablis grand cru') == true ||
-              appellation?.toLowerCase().contains('meursault') == true ||
-              appellation?.toLowerCase().contains('montrachet') == true ||
-              region.toLowerCase().contains('pessac');
-          if (isGrandBlanc) {
-            // Grand white: 8-15 years aging potential
-            effectiveDrinkStart = v + 3;
-            effectiveDrinkEnd = v + 15;
-            effectivePeakStart = v + 6;
-            effectivePeakEnd = v + 10;
-          } else {
-            // Fresh white / NV sparkling: 2-5 years
-            effectiveDrinkStart = v + 1;
-            effectiveDrinkEnd = v + 5;
-            effectivePeakStart = v + 2;
-            effectivePeakEnd = v + 3;
-          }
-        } else if (wType.contains('dessert') ||
-            wType.contains('moelleux') ||
-            wType.contains('liquoreux') ||
-            wType.contains('fortified')) {
-          // Sweet / Fortified: very long aging potential (15 to 40+ years)
-          effectiveDrinkStart = v + 4;
-          effectiveDrinkEnd = v + 35;
-          effectivePeakStart = v + 10;
-          effectivePeakEnd = v + 25;
-        } else {
-          // Red wines: differentiate by region/appellation potential
-          final isGrandCru = (classification?.toLowerCase().contains('cru') == true) ||
-              region.toLowerCase().contains('bordeaux') ||
-              appellation?.toLowerCase().contains('bandol') == true ||
-              appellation?.toLowerCase().contains('hermitage') == true ||
-              appellation?.toLowerCase().contains('côte-rôtie') == true ||
-              appellation?.toLowerCase().contains('cornas') == true ||
-              appellation?.toLowerCase().contains('barolo') == true;
-          if (isGrandCru) {
-            // Long aging red (10 to 25+ years)
-            effectiveDrinkStart = v + 4;
-            effectiveDrinkEnd = v + 22;
-            effectivePeakStart = v + 8;
-            effectivePeakEnd = v + 16;
-          } else {
-            // Everyday / medium red (3 to 8 years)
-            effectiveDrinkStart = v + 2;
-            effectiveDrinkEnd = v + 8;
-            effectivePeakStart = v + 4;
-            effectivePeakEnd = v + 6;
-          }
-        }
-      } else {
-        return DrinkWindowStatus.inPeak;
-      }
-    }
+    final f = fenetreEffective;
+    final effectiveDrinkStart = f.drinkStart;
+    final effectiveDrinkEnd = f.drinkEnd;
+    final effectivePeakStart = f.peakStart;
+    final effectivePeakEnd = f.peakEnd;
 
     final start = effectiveDrinkStart;
     final end = effectiveDrinkEnd;
     final totalSpan = end - start;
 
-    int pStart = effectivePeakStart ?? (start + (totalSpan * 0.35).round());
-    int pEnd = effectivePeakEnd ?? (start + (totalSpan * 0.65).round());
+    int pStart = effectivePeakStart;
+    int pEnd = effectivePeakEnd;
     if (pEnd < pStart) pEnd = pStart;
 
     // -------------------------------------------------------------------------

@@ -5,6 +5,10 @@ import '../../features/cellar/domain/cellar_furniture.dart';
 import '../../features/offline/presentation/sync_provider.dart';
 import '../../features/offline/data/offline_storage_service.dart';
 import 'supabase_provider.dart';
+import 'package:flutter/foundation.dart';
+import '../../features/cellar/domain/apogee_backfill.dart';
+import '../../features/cellar/domain/wine.dart';
+import '../utils/app_logger.dart';
 
 final cellarRepositoryProvider = Provider<CellarRepository>((ref) {
   final supabase = ref.watch(supabaseProvider);
@@ -100,6 +104,45 @@ final bottlesProvider = FutureProvider.family<List<Bottle>, String?>((ref, cella
     return [];
   }
   return repo.getBottles(cellarId);
+});
+
+/// Réécrit en base les apogées que la correction juge fausses.
+///
+/// Déclenché au chargement de la cave, une fois par ouverture. Volontairement silencieux
+/// et sans blocage : si le réseau manque ou qu'une écriture échoue, on réessaiera à la
+/// prochaine ouverture. Rien dans l'affichage n'en dépend — l'app lit déjà tout à travers
+/// la correction ; cette écriture sert les AUTRES lecteurs de la base (version web,
+/// versions installées plus anciennes, exports, contexte du sommelier IA).
+///
+/// `wines` étant un catalogue partagé, une fiche corrigée pour une personne l'est pour
+/// toutes celles qui scanneront le même vin.
+final apogeeBackfillProvider = FutureProvider<int>((ref) async {
+  final bottles = await ref.watch(bottlesProvider(null).future);
+  final vins = <String, Wine>{};
+  for (final b in bottles) {
+    final w = b.wine;
+    if (w != null && w.id.isNotEmpty) vins[w.id] = w;
+  }
+  if (vins.isEmpty) return 0;
+
+  final corrections = ApogeeBackfill.aCorriger(vins.values.toList());
+  if (corrections.isEmpty) return 0;
+
+  final client = ref.watch(supabaseProvider);
+  var ecrites = 0;
+  for (final c in corrections) {
+    try {
+      await client.from('wines').update(c.payload).eq('id', c.wineId);
+      ecrites++;
+    } catch (e) {
+      // Une fiche non corrigée reste affichée juste dans l'app : l'échec n'a pas de
+      // conséquence visible, il sera retenté au prochain chargement.
+      debugPrint('Backfill apogée ignoré pour ${c.wineId} : $e');
+    }
+  }
+  AppLogger.info('APOGEE_BACKFILL',
+      '$ecrites fenêtre(s) corrigée(s) sur ${corrections.length} détectée(s)');
+  return ecrites;
 });
 
 final bottleDetailProvider = FutureProvider.family<Bottle, String>((ref, id) async {

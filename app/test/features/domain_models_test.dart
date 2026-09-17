@@ -29,7 +29,25 @@ void main() {
 
       expect(fromJson.name, 'Château Margaux');
       expect(fromJson.vintage, 2015);
-      expect(fromJson.windowStatus, DrinkWindowStatus.inPeak);
+      // Un Château Margaux 2015 a onze ans : il est EN ÉVOLUTION, pas à son apogée.
+      // Ce test attendait `inPeak` parce qu'il se fiait à la fenêtre stockée
+      // (apogée 2025-2029), qui est précisément le genre de valeur trop courte remontée
+      // par un utilisateur. La fenêtre est désormais confrontée à ce que le domaine
+      // implique : un premier cru du Médoc culmine vers trente ans.
+      expect(fromJson.windowStatus, DrinkWindowStatus.aging);
+
+      // Un vin réellement à son apogée, lui, est bien reconnu : cépage et région
+      // modestes, donc une fenêtre courte que la correction ne rallonge pas.
+      final vraimentAlApogee = Wine(
+        id: 'w1b',
+        name: 'Cuvée de test',
+        type: 'red',
+        country: 'France',
+        region: 'Côtes du Rhône',
+        appellation: 'Côtes du Rhône',
+        vintage: currentYear - 4,
+      );
+      expect(vraimentAlApogee.windowStatus, DrinkWindowStatus.inPeak);
       expect(fromJson.estimatedMarketValue, 650.0);
 
       final wineYoung = Wine(

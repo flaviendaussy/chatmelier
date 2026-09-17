@@ -578,6 +578,10 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
     final activeCellarId = resolvedCellarId;
     final bottles = ref.watch(bottlesProvider(activeCellarId));
+    // Effet de bord silencieux : réécrit en base les apogées que la correction juge
+    // fausses, au bénéfice des lecteurs qui n'ont pas cette correction — version web,
+    // versions installées plus anciennes, exports.
+    ref.watch(apogeeBackfillProvider);
 
     final canPopCellar = !_showSearchBar && !(_tabController != null && _tabController!.index > 0);
 

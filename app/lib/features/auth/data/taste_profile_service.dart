@@ -224,11 +224,16 @@ class TasteProfileService {
   ///
   /// [hadFault] : une bouteille bouchonnée ou oxydée n'apprend rien sur le palais de la
   /// personne, et lui apprendrait même le contraire de la vérité. Elle est ignorée.
+  ///
+  /// [tastingId] : l'entrée de journal d'où vient cette dégustation. Sans lui, le registre
+  /// sait qu'une conviction existe mais pas de quelle dégustation elle vient — et supprimer
+  /// cette dégustation ne pourrait rien défaire.
   Future<void> recordTastingExperience({
     required String nameOrId,
     required Wine wine,
     required double rating,
     bool hadFault = false,
+    String? tastingId,
   }) async {
     if (hadFault) {
       AppLogger.info('TASTE_PROFILE', 'Dégustation ignorée (vin défectueux) pour $nameOrId');
@@ -299,6 +304,7 @@ class TasteProfileService {
               cible: 'region:$region',
               effet: '$verbe après une note de ${rating.toStringAsFixed(1)}/10.',
               vin: wine.name,
+              tastingId: tastingId,
             ),
           for (final g in grapes)
             TasteEvidenceEntry(
@@ -307,6 +313,7 @@ class TasteProfileService {
               cible: 'cepage:$g',
               effet: '$verbe après une note de ${rating.toStringAsFixed(1)}/10.',
               vin: wine.name,
+              tastingId: tastingId,
             ),
         ]);
       }
@@ -332,6 +339,8 @@ class TasteProfileService {
     String? wineRegion,
     List<String>? wineGrapes,
     String? wineType,
+    String? tastingId,
+    String? wineName,
   }) async {
     final profiles = await getProfiles();
     final idx = profiles.indexWhere((p) => p.id == result.profileId);
@@ -486,6 +495,12 @@ class TasteProfileService {
           source: result.isExpressMode ? 'gorgee' : 'degustation',
           cible: 'axe:$axe',
           effet: '$sens (note ${result.noteOutOf10.toStringAsFixed(1)}/10).',
+          vin: wineName,
+          tastingId: tastingId,
+          // L'avant et l'après en clair : la moyenne exponentielle ne se remonte pas, donc
+          // le seul moyen de pouvoir défaire ce pas est de l'avoir noté en le faisant.
+          avant: avant,
+          apres: apres,
         ));
       }
 
@@ -519,14 +534,30 @@ class TasteProfileService {
     updatedMoments[result.idealMoment] = (updatedMoments[result.idealMoment] ?? 0) + 1;
     profile = profile.copyWith(idealMoments: updatedMoments);
 
+    // Ce que cette dégustation ajoute ou retire aux favoris, tracé pour pouvoir être défait.
+    // Contrairement aux axes, l'appartenance à un ensemble s'annule exactement : il suffit
+    // de savoir ce qui a été mis pour savoir quoi enlever.
+    final tracesFavoris = <TasteEvidenceEntry>[];
+    final horodatage = DateTime.now();
+    void tracerFavori(String cible, String effet) => tracesFavoris.add(TasteEvidenceEntry(
+          quand: horodatage,
+          source: result.isExpressMode ? 'gorgee' : 'degustation',
+          cible: cible,
+          effet: effet,
+          vin: wineName,
+          tastingId: tastingId,
+        ));
+
     // 7. Auto-discover favorites (conservative: on high ratings + would buy again)
     if (result.noteOutOf10 >= 7.5 && result.wouldBuyAgain != 'no') {
+      final note = result.noteOutOf10.toStringAsFixed(1);
       // Add region if not already present
       if (wineRegion != null && wineRegion.isNotEmpty) {
         final regions = List<String>.from(profile.favoriteRegions);
         if (!regions.any((r) => r.toLowerCase() == wineRegion.toLowerCase())) {
           regions.add(wineRegion);
           profile = profile.copyWith(favoriteRegions: regions);
+          tracerFavori('region:$wineRegion', 'ajouté après une note de $note/10.');
         }
       }
 
@@ -536,6 +567,7 @@ class TasteProfileService {
         for (final g in wineGrapes) {
           if (g.isNotEmpty && !grapes.any((x) => x.toLowerCase() == g.toLowerCase())) {
             grapes.add(g);
+            tracerFavori('cepage:$g', 'ajouté après une note de $note/10.');
           }
         }
         profile = profile.copyWith(favoriteGrapes: grapes);
@@ -557,15 +589,24 @@ class TasteProfileService {
     // questionnaire restait un cliquet — les favoris ne pouvaient que s'accumuler, et une
     // région détestée deux fois de suite y figurait toujours.
     if (result.noteOutOf10 <= kDislikedThreshold) {
+      final note = result.noteOutOf10.toStringAsFixed(1);
       if (wineRegion != null && wineRegion.isNotEmpty) {
         final regions = List<String>.from(profile.favoriteRegions)
           ..removeWhere((r) => r.toLowerCase() == wineRegion.toLowerCase());
+        if (regions.length != profile.favoriteRegions.length) {
+          tracerFavori('region:$wineRegion', 'retiré après une note de $note/10.');
+        }
         profile = profile.copyWith(favoriteRegions: regions);
       }
       if (wineGrapes != null && wineGrapes.isNotEmpty) {
         final lowered = wineGrapes.map((g) => g.toLowerCase()).toSet();
         final grapes = List<String>.from(profile.favoriteGrapes)
           ..removeWhere((g) => lowered.contains(g.toLowerCase()));
+        if (grapes.length != profile.favoriteGrapes.length) {
+          for (final g in wineGrapes) {
+            tracerFavori('cepage:$g', 'retiré après une note de $note/10.');
+          }
+        }
         profile = profile.copyWith(favoriteGrapes: grapes);
       }
       // Le type de couleur n'est pas retiré : trop grossier pour une seule déception.
@@ -582,6 +623,10 @@ class TasteProfileService {
       }
     }
     profile = profile.copyWith(dislikedCharacteristics: newDislikes);
+
+    if (tracesFavoris.isNotEmpty) {
+      await (await TasteEvidenceLedger.ouvrir()).ajouter(tracesFavoris);
+    }
 
     // Save
     profiles[idx] = profile;

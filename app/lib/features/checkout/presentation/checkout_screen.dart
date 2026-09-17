@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/providers/supabase_provider.dart';
@@ -371,9 +372,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final wineName = wineMap?['name'] as String? ?? 'Vin dégusté';
       final vintage = (wineMap?['vintage'] as num?)?.toInt() ?? int.tryParse(wineMap?['vintage']?.toString() ?? '');
 
+      // Un identifiant décidé ici, et non par le serveur : c'est lui qui relie la ligne
+      // distante, l'entrée du cache et les traces laissées au registre de goût. Sans cette
+      // identité commune, supprimer une dégustation ne pourrait pas défaire ce qu'elle a fait.
+      final tastingId = const Uuid().v4();
+
       final localTastingEntry = <String, dynamic>{
         OfflineStorageService.pendingSyncKey: true,
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'id': tastingId,
         'wine_id': wineId ?? '',
         if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
         'user_id': user?.id,
@@ -399,6 +405,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       // 1. Record tasting log
       if (user != null && wineId != null && wineId.isNotEmpty) {
         final payload = <String, dynamic>{
+          'id': tastingId,
           'wine_id': wineId,
           if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
           'user_id': user.id,
@@ -428,6 +435,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         } catch (insertErr) {
           debugPrint('Tasting log primary insert notice ($insertErr), retrying with core schema...');
           final corePayload = <String, dynamic>{
+            'id': tastingId,
             'wine_id': wineId,
             if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
             'user_id': user.id,
@@ -547,12 +555,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             nameOrId: primaryProfile.id,
             wine: wineObj,
             rating: _rating,
+            tastingId: tastingId,
           );
           for (final coTaster in _selectedCoTasters) {
             await tasteService.recordTastingExperience(
               nameOrId: coTaster,
               wine: wineObj,
               rating: _rating,
+              tastingId: tastingId,
             );
           }
           ref.invalidate(tasteProfilesListProvider);

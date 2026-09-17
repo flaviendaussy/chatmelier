@@ -15,6 +15,10 @@ import '../../../shared/widgets/gaussian_drinking_curve.dart';
 import '../../../shared/widgets/grape_chart.dart';
 import '../domain/tasting_pedagogy_engine.dart';
 import 'tasting_pedagogy_sheet.dart';
+import 'journal_screen.dart';
+import '../data/tasting_deletion_service.dart';
+import '../../auth/data/taste_profile_service.dart';
+import '../../../config/router.dart';
 
 class TastingEntryDetailScreen extends ConsumerStatefulWidget {
   final TastingEntry entry;
@@ -70,6 +74,59 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
           type: widget.entry.wineType ?? 'red',
         );
       });
+    }
+  }
+
+  /// Demande confirmation, en disant ce que la suppression emporte avec elle.
+  ///
+  /// Une dégustation n'est pas qu'une ligne de journal : elle a nourri le profil de goût.
+  /// Annoncer « supprimer ? » sans le dire laisserait croire à un geste anodin.
+  Future<void> _confirmerSuppression({required bool isFr}) async {
+    final nom = widget.entry.wineName ?? (isFr ? 'ce vin' : 'this wine');
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isFr ? 'Supprimer cette dégustation ?' : 'Delete this tasting?'),
+        content: Text(isFr
+            ? '$nom disparaîtra de votre journal, et ce qu\'il a appris à votre profil de '
+                'goût sera défait autant que possible.'
+            : '$nom will disappear from your journal, and what it taught your taste profile '
+                'will be undone as far as possible.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(isFr ? 'Annuler' : 'Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(isFr ? 'Supprimer' : 'Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+
+    final resultat =
+        await ref.read(tastingDeletionServiceProvider).supprimer(widget.entry.id);
+    ref.invalidate(tastingLogProvider);
+    ref.invalidate(tasteProfilesListProvider);
+    if (!mounted) return;
+
+    final reste = TastingDeletionService.phraseDesRestes(resultat.restes);
+    Navigator.of(context).pop();
+    final messenger = rootNavigatorKey.currentContext;
+    if (messenger != null && messenger.mounted) {
+      ScaffoldMessenger.of(messenger).showSnackBar(SnackBar(
+        content: Text(
+          reste == null
+              ? (isFr ? 'Dégustation supprimée.' : 'Tasting deleted.')
+              : (isFr ? 'Dégustation supprimée. $reste' : 'Tasting deleted. $reste'),
+        ),
+        duration: reste == null ? const Duration(seconds: 3) : const Duration(seconds: 6),
+      ));
     }
   }
 
@@ -159,6 +216,26 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                 icon: const Icon(Icons.share_outlined),
                 tooltip: isFr ? 'Partager cette dégustation' : 'Share this tasting',
                 onPressed: () => _shareTasting(isFr: isFr),
+              ),
+              // La suppression vit dans le menu et non en clair : elle doit être atteignable
+              // sans être à portée de pouce distrait.
+              PopupMenuButton<String>(
+                tooltip: isFr ? 'Plus d\'options' : 'More options',
+                onSelected: (v) {
+                  if (v == 'supprimer') _confirmerSuppression(isFr: isFr);
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'supprimer',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete_outline, size: 20),
+                        const SizedBox(width: 12),
+                        Text(isFr ? 'Supprimer' : 'Delete'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(

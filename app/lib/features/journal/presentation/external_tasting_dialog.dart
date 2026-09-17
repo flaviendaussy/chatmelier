@@ -619,6 +619,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               nameOrId: profileId,
               wine: standaloneWine,
               rating: effectiveRating,
+              tastingId: tastingId,
             );
           }
           return tasteService.applyQuestionnaireResult(
@@ -646,6 +647,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             wineRegion: region.isNotEmpty && region != 'Autre' ? region : null,
             wineGrapes: null,
             wineType: _wineType,
+            tastingId: tastingId,
+            wineName: wineName,
           );
         }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:uuid/uuid.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/providers/supabase_provider.dart';
@@ -130,6 +131,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   bool _isTransitioningToNextTaster = false;
   bool _isCompleted = false;
   final Map<String, TastingQuestionnaireResult> _completedResults = {};
+
+  /// L'identité de cette dégustation, décidée à l'ouverture de la feuille.
+  ///
+  /// Les réponses alimentent le profil AVANT que la ligne de journal ne soit écrite. Sans
+  /// un identifiant fixé d'avance, les traces laissées au registre de goût ne pourraient
+  /// pas être rattachées à l'entrée du journal — et supprimer celle-ci ne défairait rien.
+  final String _tastingId = const Uuid().v4();
   final Set<String> _syncedFriendNames = {};
 
   // Current answering profile index (for multi-profile flow)
@@ -366,6 +374,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           wineRegion: widget.region,
           wineGrapes: widget.wineGrapes,
           wineType: widget.wineType,
+          tastingId: _tastingId,
+          wineName: widget.wineName,
         );
         AppLogger.info('QUESTIONNAIRE', 'Saved answers for ${profile.name}');
       }
@@ -473,7 +483,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
       final localPayload = <String, dynamic>{
         OfflineStorageService.pendingSyncKey: true,
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'id': _tastingId,
         'wine_id': widget.wineId,
         if (_isValidUuid(widget.bottleId)) 'bottle_id': widget.bottleId,
         'user_id': user.id,
@@ -498,6 +508,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
       try {
         final payload = <String, dynamic>{
+          'id': _tastingId,
           'wine_id': widget.wineId,
           if (_isValidUuid(widget.bottleId)) 'bottle_id': widget.bottleId,
           'user_id': user.id,
@@ -530,6 +541,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         } catch (insertErr) {
           debugPrint('Questionnaire tasting log insert failed ($insertErr), retrying with core schema...');
           final corePayload = <String, dynamic>{
+            'id': _tastingId,
             'wine_id': widget.wineId,
             if (_isValidUuid(widget.bottleId)) 'bottle_id': widget.bottleId,
             'user_id': user.id,

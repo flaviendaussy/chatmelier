@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -216,10 +217,14 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
         notesSummary.writeln('Impression : ${_commentController.text.trim()}');
       }
 
+      // Identité commune à la ligne distante et aux traces de goût : voir checkout_screen.
+      final tastingId = const Uuid().v4();
+
       bool savedOnline = false;
       if (userId != null) {
         try {
           await supabase.from('tasting_log').insert({
+            'id': tastingId,
             'wine_id': wine.id,
             'bottle_id': widget.bottle.id,
             'user_id': userId,
@@ -269,6 +274,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
           nameOrId: primaryProfile.id,
           wine: wine,
           rating: _userRating,
+          tastingId: tastingId,
         );
         ref.invalidate(tasteProfilesListProvider);
       } catch (_) {}

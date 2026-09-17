@@ -262,7 +262,15 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                         // Le terroir est le sujet de la carte : dès qu'il sort du champ,
                         // on doit pouvoir y revenir sans chercher.
                         onPositionChanged: (camera, hasGesture) {
-                          final dehors = !camera.visibleBounds.contains(_profile.center);
+                          // `hasGesture` est faux tant que personne n'a bougé la carte.
+                          // Sans cette garde, le bandeau apparaissait DÈS L'OUVERTURE :
+                          // le premier `onPositionChanged` survient avant que la carte
+                          // ait ses dimensions définitives, et des bornes dégénérées ne
+                          // contiennent rien — pas même leur propre centre. On annonçait
+                          // donc « revenir sur… » alors qu'on y était.
+                          if (!hasGesture && !_cibleHorsChamp) return;
+                          final dehors =
+                              !camera.visibleBounds.contains(_profile.center);
                           if (dehors != _cibleHorsChamp) {
                             setState(() => _cibleHorsChamp = dehors);
                           }

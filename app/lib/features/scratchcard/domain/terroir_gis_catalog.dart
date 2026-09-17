@@ -272,8 +272,12 @@ class TerroirGISCatalog {
       country: 'France',
       countryCode: 'FR',
       flag: '🇫🇷',
-      center: LatLng(43.3500, 5.9500), // Bandol / Aix / Corse
-      defaultZoom: 9.0,
+      // Centré sur Bandol même (43,14 / 5,75) et non sur un point de compromis entre
+      // Bandol, Aix et la Corse : la carte doit montrer le terroir du vin qu'on regarde,
+      // pas le barycentre d'une zone administrative. À 80 km de décalage, on affichait
+      // Beaumont-de-Pertuis pour une bouteille de Bandol.
+      center: LatLng(43.1400, 5.7500),
+      defaultZoom: 10.0,
       aliases: [
         'provence', 'bandol', 'cassis', 'coteaux d\'aix', 'palette', 'bellet', 'côtes de provence',
         'corse', 'corsica', 'patrimonio', 'ajaccio', 'calvi', 'sartène', 'porto-vecchio'

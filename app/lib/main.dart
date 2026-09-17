@@ -10,7 +10,27 @@ import 'features/monetization/admob_service.dart';
 import 'shared/utils/app_logger.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final binding = WidgetsFlutterBinding.ensureInitialized();
+
+  // Publie l'arbre sémantique en build de test, sans attendre un lecteur d'écran.
+  //
+  // Sans ça, `adb shell uiautomator dump` ne voit qu'un canevas vide : Flutter dessine
+  // tout lui-même et ne décrit son contenu que si un client d'accessibilité écoute.
+  // Conséquence pratique : vérifier un écran imposait une CAPTURE D'IMAGE, coûteuse, et
+  // naviguer à l'aveugle par coordonnées — avec les erreurs que ça entraîne.
+  //
+  // Avec la sémantique publiée, l'écran devient du TEXTE : lisible, greppable, et
+  // surtout assertable par un script plutôt que par un œil humain.
+  //
+  // Jamais en release : c'est un coût de performance pour un bénéfice de test.
+  assert(() {
+    binding.ensureSemantics();
+    return true;
+  }());
+  if (const bool.fromEnvironment('dart.vm.product') == false &&
+      const String.fromEnvironment('CHATMELIER_SEMANTICS', defaultValue: 'off') == 'on') {
+    binding.ensureSemantics();
+  }
   if (kIsWeb) {
     usePathUrlStrategy();
   }

@@ -12,6 +12,12 @@
 #   ./tool/devtest.sh restore   redémarre sur l'état figé
 #   ./tool/devtest.sh install   compile en profile et installe
 #   ./tool/devtest.sh shot NOM  capture d'écran dans /tmp/chatmelier-shots/
+#
+# ⚠️  AVANT DE PRENDRE UNE CAPTURE, ESSAYER `./tool/screen.sh`.
+#     L'écran s'y lit EN TEXTE — dix à quinze fois moins cher qu'une image — et se pilote
+#     par libellé plutôt que par coordonnées. La capture ne sert qu'à ce qu'elle seule
+#     montre : une mise en page, un chevauchement, une couleur.
+#     Elle exige un build avec --dart-define=CHATMELIER_SEMANTICS=on (voir `install`).
 #   ./tool/devtest.sh logs      erreurs Flutter et plantages natifs
 #
 # L'instantané « logged_in » contient une session d'authentification : il vit
@@ -65,7 +71,9 @@ case "${1:-}" in
 
   install)
     cd "$DIR/app"
-    flutter build apk --profile --target-platform android-x64 2>&1 | tail -2
+    # La sémantique rend l'écran lisible en texte par ./tool/screen.sh.
+    flutter build apk --profile --target-platform android-x64 \
+      --dart-define=CHATMELIER_SEMANTICS=on 2>&1 | tail -2
     # -r préserve les données de l'app, donc la session connectée.
     adb install -r -t build/app/outputs/flutter-apk/app-profile.apk 2>&1 | tail -1
     ;;

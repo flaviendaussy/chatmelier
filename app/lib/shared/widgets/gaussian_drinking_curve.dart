@@ -29,6 +29,8 @@ class GaussianDrinkingCurve extends StatelessWidget {
     final window = WineOenologyAdvisor.computeDrinkingWindow(
       wineType: wine.type,
       vintage: wine.vintage,
+      country: wine.country,
+      grapes: wine.grapes.map((g) => g.name).toList(),
       region: wine.region,
       appellation: wine.appellation,
       classification: wine.classification,

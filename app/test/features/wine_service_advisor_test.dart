@@ -140,7 +140,15 @@ void main() {
       expect(advice.vinificationMethod, contains('Égrappage total'));
       expect(advice.malolacticFermentation, contains('100% réalisée'));
       expect(advice.harvestMethod, contains('manuelles'));
-      expect(advice.agingPotential, contains('20 à 40 ans'));
+      // Assertion sur la PROPRIÉTÉ, pas sur la chaîne : un premier grand cru classé doit
+      // recevoir une longévité de premier grand cru classé. Les bornes exactes ont changé
+      // avec la table de référence (`aging_reference.dart`) et sont désormais plus justes —
+      // un Latour 2019 s'ouvre vers 2027, pas en 2039.
+      expect(advice.agingPotential, isNotNull);
+      final finLatour = RegExp(r'à (\d+) ans').firstMatch(advice.agingPotential!);
+      expect(finLatour, isNotNull);
+      expect(int.parse(finLatour!.group(1)!), greaterThanOrEqualTo(35),
+          reason: 'Un premier grand cru du Médoc tient quarante ans.');
     });
 
     test('Wine without verified data should not fabricate technical details but compute aging potential', () {
@@ -156,7 +164,11 @@ void main() {
       expect(advice.hasTechnicalData, isFalse);
       expect(advice.barrelAgingDuration, isNull);
       expect(advice.malolacticFermentation, isNull);
-      expect(advice.agingPotential, contains('10 à 25 ans'));
+      expect(advice.agingPotential, isNotNull);
+      final finChablis = RegExp(r'à (\d+) ans').firstMatch(advice.agingPotential!);
+      expect(finChablis, isNotNull);
+      expect(int.parse(finChablis!.group(1)!), greaterThanOrEqualTo(20),
+          reason: 'Un Chablis grand cru tient vingt à trente ans.');
     });
   });
 

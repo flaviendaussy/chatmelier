@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'aging_reference.dart';
 
 class WineServiceAdvice {
   final int minTemp;
@@ -372,10 +373,12 @@ class WineOenologyAdvisor {
   static WineDrinkingWindowData computeDrinkingWindow({
     required String? wineType,
     int? vintage,
+    String? country,
     String? region,
     String? appellation,
     String? classification,
     String? wineName,
+    List<String> grapes = const [],
     int? explicitDrinkStart,
     int? explicitDrinkEnd,
     int? explicitPeakStart,
@@ -384,8 +387,75 @@ class WineOenologyAdvisor {
     final currentYear = DateTime.now().year;
     final v = vintage ?? (currentYear - 3);
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // Contrôle de plausibilité de la fenêtre fournie par l'enrichissement.
+    //
+    // Constaté sur une cave réelle de 41 bouteilles : 78 % des fenêtres renvoyées par
+    // l'IA sont plus courtes que ce que la catégorie du vin implique, de 4,3 ans en
+    // moyenne. Un Margaux 1987 y recevait une apogée 1989-1991 — deux ans après la
+    // vendange — et un Château Mazetier 2019 sept ans de vie contre vingt-deux.
+    //
+    // Le code acceptait cette fenêtre dès qu'elle était cohérente AVEC ELLE-MÊME
+    // (`debut >= millesime`), sans jamais la confronter à l'appellation. Le savoir
+    // métier n'était consulté que si l'IA ne répondait rien — l'inverse de ce qu'il
+    // faudrait.
+    //
+    // La référence sert donc d'ENVELOPPE : on garde la réponse de l'IA quand elle
+    // tombe dans la fourchette de sa catégorie, parce qu'elle peut connaître le
+    // domaine et le millésime ; on retient la référence quand l'écart est tel que
+    // l'IA se trompe plus probablement qu'elle ne sait quelque chose.
+    // ═══════════════════════════════════════════════════════════════════════
+    final reference = AgingReference.chercher(
+      pays: country,
+      region: region,
+      appellation: appellation,
+      type: wineType,
+      cepages: grapes,
+    )?.pourRang(AgingReference.rangDe(
+      nom: wineName,
+      classification: classification,
+      appellation: appellation,
+    ));
+
+    // Une fenêtre qui commence avant la vendange est impossible, pas discutable.
+    // Constaté en cave : un « Pur Ju 2024 » avec un début en 2023.
+    final debutValide = explicitDrinkStart != null && explicitDrinkStart >= v;
+    var iaUtilisable = debutValide &&
+        explicitDrinkEnd != null &&
+        explicitDrinkEnd >= explicitDrinkStart;
+
+    if (iaUtilisable && reference != null) {
+      final vieIa = explicitDrinkEnd - v;
+      final vieRef = reference.fin;
+      // Tolérance volontairement large : la référence décrit une catégorie, pas un vin.
+      // Un domaine sérieux ou un millésime faible justifient un écart — pas un facteur
+      // deux.
+      final rapport = vieRef == 0 ? 1.0 : vieIa / vieRef;
+      if (rapport < 0.55 || rapport > 1.8) {
+        iaUtilisable = false;
+      }
+    }
+
+    if (!iaUtilisable && reference != null) {
+      final start = v + reference.debut;
+      final pStart = v + reference.picDebut;
+      final pEnd = v + reference.picFin;
+      final end = v + reference.fin;
+      return WineDrinkingWindowData(
+        vintage: v,
+        drinkStart: start,
+        drinkEnd: end,
+        peakStart: pStart,
+        peakEnd: pEnd,
+        maxYear: math.max(end + 4, currentYear + 2),
+        agingPotentialText:
+            '${reference.debut} à ${reference.fin} ans (Apogée optimale : $pStart - $pEnd)',
+      );
+    }
+
     // If explicit start and end are provided in the wine model and are consistent with vintage
-    if (explicitDrinkStart != null &&
+    if (iaUtilisable &&
+        explicitDrinkStart != null &&
         explicitDrinkEnd != null &&
         explicitDrinkStart >= v &&
         explicitDrinkEnd >= explicitDrinkStart) {

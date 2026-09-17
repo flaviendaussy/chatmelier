@@ -582,6 +582,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     // fausses, au bénéfice des lecteurs qui n'ont pas cette correction — version web,
     // versions installées plus anciennes, exports.
     ref.watch(apogeeBackfillProvider);
+    ref.watch(elevageBackfillProvider);
 
     final canPopCellar = !_showSearchBar && !(_tabController != null && _tabController!.index > 0);
 

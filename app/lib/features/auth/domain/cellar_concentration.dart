@@ -67,6 +67,7 @@ class CellarConcentration {
       'type': {},
       'classification': {},
       'age': {},
+      'elevage': {},
     };
 
     for (final b in retenues) {
@@ -83,6 +84,7 @@ class CellarConcentration {
       compter('type', w.type);
       compter('classification', w.classification);
       compter('age', _bandeDAge(w.vintage));
+      compter('elevage', _styleDElevage(w.elevageType, w.elevageMois));
       for (final g in w.grapes) {
         compter('cepage', g.name);
       }
@@ -105,6 +107,40 @@ class CellarConcentration {
 
     signaux.sort((a, b) => b.part.compareTo(a.part));
     return signaux;
+  }
+
+  /// L'élevage ramené à un style perceptible.
+  ///
+  /// Une cave pleine de vins longuement élevés sous bois et une cave de vins d'inox
+  /// décrivent deux goûts opposés — l'un cherche la patine et la vanille, l'autre le
+  /// fruit et la tension. C'est le signal que réclamait « beaucoup de vins élevés
+  /// 18 mois », et il fallait d'abord capter le champ pour pouvoir le lire.
+  ///
+  /// Le contenant compte plus que la durée : douze mois en barrique marquent davantage
+  /// que vingt-quatre en foudre. D'où un croisement des deux plutôt qu'une simple durée.
+  static String? _styleDElevage(String? type, int? mois) {
+    if (type == null) return null;
+    switch (type) {
+      case 'barrique':
+        if (mois == null) return 'Élevé en barrique';
+        if (mois >= 18) return 'Bois long (18 mois et plus)';
+        if (mois >= 10) return 'Bois moyen (10-17 mois)';
+        return 'Bois court (moins de 10 mois)';
+      case 'foudre':
+        return mois != null && mois >= 18
+            ? 'Grand contenant, élevage long'
+            : 'Grand contenant, bois discret';
+      case 'inox':
+      case 'beton':
+        return 'Sans bois, fruit préservé';
+      case 'amphore':
+      case 'oeuf':
+        return 'Amphore ou œuf';
+      case 'bouteille':
+        return null; // Les effervescents : l'élevage ne décrit pas un goût choisi.
+      default:
+        return null;
+    }
   }
 
   /// Le millésime ramené à une bande d'âge lisible.

@@ -88,9 +88,19 @@ class WineWorld {
   /// C'est le niveau qui règle les cas où un domaine s'écarte de sa catégorie :
   /// « Bandol rosé » donne quatorze ans, Terrebrune en tient vingt.
   static ReferenceVin? reference({String? nom, String? producteur}) {
-    final t = _norm('${nom ?? ''} ${producteur ?? ''}');
-    if (t.isEmpty) return null;
+    // Le NOM du vin est cherché en premier, et il l'emporte sur le producteur.
+    //
+    // La spécificité n'est pas la longueur du libellé : « Domaine de La Tour du Bon »
+    // fait vingt-cinq caractères et « En Sol » six, mais c'est la cuvée qui décrit le
+    // vin. Cette cuvée est élevée en amphores quand le domaine élève en foudre — la
+    // faire perdre au profit du nom de domaine donnait une réponse fausse.
+    final parLeNom = _chercherDans(_norm(nom));
+    if (parLeNom != null) return parLeNom;
+    return _chercherDans(_norm(producteur));
+  }
 
+  static ReferenceVin? _chercherDans(String texte) {
+    if (texte.isEmpty) return null;
     ReferenceVin? meilleure;
     var meilleureLongueur = 0;
     for (final r in regions) {
@@ -99,7 +109,9 @@ class WineWorld {
           final c = _norm(cle);
           // Au moins quatre caractères : en deçà, un fragment de nom de cuvée
           // déclencherait n'importe quoi.
-          if (c.length < 4 || !t.contains(c)) continue;
+          if (c.length < 4 || !texte.contains(c)) continue;
+          // À champ égal, le libellé le plus long reste le plus précis :
+          // « Penfolds Grange » avant « Penfolds ».
           if (c.length > meilleureLongueur) {
             meilleureLongueur = c.length;
             meilleure = ref;
@@ -108,6 +120,46 @@ class WineWorld {
       }
     }
     return meilleure;
+  }
+
+  /// L'élevage de ce vin : celui du domaine s'il est connu, sinon celui de sa région.
+  ///
+  /// Beaucoup d'appellations IMPOSENT une durée minimale — Barolo dix-huit mois sous
+  /// bois, Brunello vingt-quatre, Rioja Crianza douze. Là où l'enrichissement ne dit
+  /// rien, le cahier des charges, lui, est connu : c'est une source déterministe et
+  /// gratuite, et `Elevage.impose` distingue le fait de l'estimation.
+  static Elevage? elevage({
+    String? pays,
+    String? region,
+    String? appellation,
+    String? nom,
+    String? producteur,
+    String? type,
+    List<String> cepages = const [],
+  }) {
+    final duDomaine = reference(nom: nom, producteur: producteur)?.elevage;
+    if (duDomaine != null) return duDomaine;
+
+    final r = WineWorld.region(
+      pays: pays, region: region, appellation: appellation, cepages: cepages);
+    return r?.elevagePour(_couleur(type));
+  }
+
+  static String _couleur(String? type) {
+    final t = _norm(type);
+    if (t.contains('fortifi') || t.contains('mute')) return 'fortified';
+    if (t.contains('moelleux') ||
+        t.contains('liquoreux') ||
+        t.contains('sweet') ||
+        t.contains('dessert')) {
+      return 'sweet';
+    }
+    if (t.contains('bulle') || t.contains('sparkl') || t.contains('effervesc')) {
+      return 'sparkling';
+    }
+    if (t.contains('ros')) return 'rose';
+    if (t.contains('blanc') || t.contains('white')) return 'white';
+    return 'red';
   }
 
   /// Combien de régions et de références, par pays. Sert au test de couverture.

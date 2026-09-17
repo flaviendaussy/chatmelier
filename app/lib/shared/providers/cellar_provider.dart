@@ -7,6 +7,7 @@ import '../../features/offline/data/offline_storage_service.dart';
 import 'supabase_provider.dart';
 import 'package:flutter/foundation.dart';
 import '../../features/cellar/domain/apogee_backfill.dart';
+import '../../features/cellar/domain/elevage_backfill.dart';
 import '../../features/cellar/domain/wine.dart';
 import '../utils/app_logger.dart';
 
@@ -142,6 +143,39 @@ final apogeeBackfillProvider = FutureProvider<int>((ref) async {
   }
   AppLogger.info('APOGEE_BACKFILL',
       '$ecrites fenêtre(s) corrigée(s) sur ${corrections.length} détectée(s)');
+  return ecrites;
+});
+
+/// Renseigne l'élevage des vins qui n'en ont pas.
+///
+/// Même mécanisme que la correction d'apogée, et même raison de ne pas le faire en SQL :
+/// les valeurs viennent d'une table de 90 régions écrite en Dart. Beaucoup d'appellations
+/// imposent une durée minimale — c'est un fait du cahier des charges, pas une estimation,
+/// et `Elevage.impose` le distingue.
+final elevageBackfillProvider = FutureProvider<int>((ref) async {
+  final bottles = await ref.watch(bottlesProvider(null).future);
+  final vins = <String, Wine>{};
+  for (final b in bottles) {
+    final w = b.wine;
+    if (w != null && w.id.isNotEmpty) vins[w.id] = w;
+  }
+  if (vins.isEmpty) return 0;
+
+  final corrections = ElevageBackfill.aCompleter(vins.values.toList());
+  if (corrections.isEmpty) return 0;
+
+  final client = ref.watch(supabaseProvider);
+  var ecrites = 0;
+  for (final c in corrections) {
+    try {
+      await client.from('wines').update(c.payload).eq('id', c.wineId);
+      ecrites++;
+    } catch (e) {
+      debugPrint('Backfill élevage ignoré pour ${c.wineId} : $e');
+    }
+  }
+  AppLogger.info('ELEVAGE_BACKFILL',
+      '$ecrites élevage(s) renseigné(s) sur ${corrections.length} détecté(s)');
   return ecrites;
 });
 

@@ -168,6 +168,19 @@ class Wine {
   final List<String> sourcesVerified;
   final bool isVerifiedOnline;
   final String? barrelAging;
+
+  /// Contenant d'élevage, sous forme structurée : 'inox', 'beton', 'barrique',
+  /// 'foudre', 'amphore', 'oeuf', 'bouteille'.
+  ///
+  /// `barrelAging` existait déjà, mais en texte libre (« 18 à 24 mois en barriques »),
+  /// inexploitable pour raisonner. Et sur 79 vins réels, il était renseigné ZÉRO fois :
+  /// aucune migration ne crée la colonne et l'enrichissement ne la remplit pas. D'où
+  /// deux champs structurés, alimentés par le cahier des charges de l'appellation quand
+  /// l'IA ne dit rien.
+  final String? elevageType;
+
+  /// Durée d'élevage en mois.
+  final int? elevageMois;
   final String? vinificationMethod;
   final String? malolacticFermentation;
   final String? harvestMethod;
@@ -205,6 +218,8 @@ class Wine {
     this.sourcesVerified = const [],
     this.isVerifiedOnline = false,
     this.barrelAging,
+    this.elevageType,
+    this.elevageMois,
     this.vinificationMethod,
     this.malolacticFermentation,
     this.harvestMethod,
@@ -326,6 +341,8 @@ class Wine {
       sourcesVerified: (json['sources_verified'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
       isVerifiedOnline: json['is_verified_online'] as bool? ?? false,
       barrelAging: json['barrel_aging'] as String?,
+      elevageType: json['elevage_type'] as String?,
+      elevageMois: (json['elevage_months'] as num?)?.toInt(),
       vinificationMethod: json['vinification_method'] as String?,
       malolacticFermentation: json['malolactic_fermentation'] as String?,
       harvestMethod: json['harvest_method'] as String?,
@@ -606,6 +623,8 @@ class Wine {
     'sources_verified': sourcesVerified,
     'is_verified_online': isVerifiedOnline,
     if (barrelAging != null) 'barrel_aging': barrelAging,
+    if (elevageType != null) 'elevage_type': elevageType,
+    if (elevageMois != null) 'elevage_months': elevageMois,
     if (vinificationMethod != null) 'vinification_method': vinificationMethod,
     if (terroirSoil != null) 'terroir_soil': terroirSoil,
     'is_technical_data_verified': isTechnicalDataVerified,
@@ -643,6 +662,8 @@ class Wine {
     List<String>? sourcesVerified,
     bool? isVerifiedOnline,
     String? barrelAging,
+    String? elevageType,
+    int? elevageMois,
     String? vinificationMethod,
     String? malolacticFermentation,
     String? harvestMethod,
@@ -680,6 +701,8 @@ class Wine {
       sourcesVerified: sourcesVerified ?? this.sourcesVerified,
       isVerifiedOnline: isVerifiedOnline ?? this.isVerifiedOnline,
       barrelAging: barrelAging ?? this.barrelAging,
+      elevageType: elevageType ?? this.elevageType,
+      elevageMois: elevageMois ?? this.elevageMois,
       vinificationMethod: vinificationMethod ?? this.vinificationMethod,
       malolacticFermentation: malolacticFermentation ?? this.malolacticFermentation,
       harvestMethod: harvestMethod ?? this.harvestMethod,

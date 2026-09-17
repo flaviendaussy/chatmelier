@@ -266,6 +266,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatChipTonight => '🍷 今晚适合开哪瓶酒？';
 
   @override
+  String chatChipDuo(String a, String b) {
+    return '🍷 今晚给$a和$b喝什么？';
+  }
+
+  @override
+  String chatChipSolo(String a) {
+    return '🍷 今晚给$a和我喝什么？';
+  }
+
+  @override
   String get chatChipSteak => '🥩 配牛排的最佳葡萄酒';
 
   @override

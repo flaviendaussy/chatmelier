@@ -268,6 +268,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatChipTonight => '🍷 今夜何を飲むべき？';
 
   @override
+  String chatChipDuo(String a, String b) {
+    return '🍷 今夜、$aさんと$bさんには何を？';
+  }
+
+  @override
+  String chatChipSolo(String a) {
+    return '🍷 今夜、$aさんと私には何を？';
+  }
+
+  @override
   String get chatChipSteak => '🥩 ステーキに合う手持ちのワイン';
 
   @override

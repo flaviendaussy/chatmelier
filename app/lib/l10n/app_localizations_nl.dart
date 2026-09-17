@@ -281,6 +281,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get chatChipTonight => '🍷 Wat zal ik vanavond drinken?';
 
   @override
+  String chatChipDuo(String a, String b) {
+    return '🍷 Wat drinken $a en $b vanavond?';
+  }
+
+  @override
+  String chatChipSolo(String a) {
+    return '🍷 Wat drinken $a en ik vanavond?';
+  }
+
+  @override
   String get chatChipSteak => '🥩 Wijnadvies bij een malse biefstuk';
 
   @override

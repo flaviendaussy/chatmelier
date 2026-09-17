@@ -280,6 +280,16 @@ class AppLocalizationsSv extends AppLocalizations {
   String get chatChipTonight => '🍷 Vad ska jag dricka ikväll?';
 
   @override
+  String chatChipDuo(String a, String b) {
+    return '🍷 Vad ska $a och $b dricka i kväll?';
+  }
+
+  @override
+  String chatChipSolo(String a) {
+    return '🍷 Vad ska $a och jag dricka i kväll?';
+  }
+
+  @override
   String get chatChipSteak => '🥩 Matcha med en god biff';
 
   @override

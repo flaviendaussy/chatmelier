@@ -334,11 +334,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final profiles = ref.watch(tasteProfilesListProvider).value ?? [];
     final names = profiles.map((p) => p.name).where((n) => n.trim().isNotEmpty && n != 'Moi').toList();
-    final duoChipText = names.length >= 2
-        ? '🍷 Que boire ce soir pour ${names[0]} et ${names[1]} ?'
-        : (names.length == 1
-            ? '🍷 Que boire ce soir pour ${names[0]} et moi ?'
-            : '🍷 Quel vin ouvrir ce soir ?');
+    // Suggestion adressée aux convives enregistrés. Nulle s'il n'y en a aucun : le repli
+    // précédent était une chaîne FRANÇAISE CODÉE EN DUR, affichée juste à côté de la
+    // version traduite de la même question — un anglophone voyait donc « What should I
+    // drink tonight? » suivi de « Quel vin ouvrir ce soir ? ». Deux fois la même chose,
+    // en deux langues.
+    final String? duoChipText = l10n == null
+        ? null
+        : (names.length >= 2
+            ? l10n.chatChipDuo(names[0], names[1])
+            : (names.length == 1 ? l10n.chatChipSolo(names[0]) : null));
 
     final isOnline = ref.watch(isOnlineProvider);
 
@@ -412,7 +417,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             children: [
-              _buildChip(duoChipText),
+              if (duoChipText != null) _buildChip(duoChipText),
               _buildChip(
                   l10n?.chatChipTonight ?? '🍾 Que devrais-je boire ce soir ?'),
               _buildChip(l10n?.chatChipSteak ??

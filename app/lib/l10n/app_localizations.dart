@@ -624,6 +624,18 @@ abstract class AppLocalizations {
   /// **'🍷 What should I drink tonight?'**
   String get chatChipTonight;
 
+  /// No description provided for @chatChipDuo.
+  ///
+  /// In en, this message translates to:
+  /// **'🍷 What should {a} and {b} drink tonight?'**
+  String chatChipDuo(String a, String b);
+
+  /// No description provided for @chatChipSolo.
+  ///
+  /// In en, this message translates to:
+  /// **'🍷 What should {a} and I drink tonight?'**
+  String chatChipSolo(String a);
+
   /// No description provided for @chatChipSteak.
   ///
   /// In en, this message translates to:

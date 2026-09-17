@@ -30,6 +30,7 @@ class GaussianDrinkingCurve extends StatelessWidget {
       wineType: wine.type,
       vintage: wine.vintage,
       country: wine.country,
+      producer: wine.producer,
       grapes: wine.grapes.map((g) => g.name).toList(),
       region: wine.region,
       appellation: wine.appellation,

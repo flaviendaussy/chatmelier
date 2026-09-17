@@ -1,3 +1,5 @@
+import 'wine_world/wine_world.dart';
+
 /// Rang d'un vin dans sa propre appellation.
 ///
 /// Deux Margaux n'ont pas la même longévité : un cru classé tient trente ans là où un
@@ -170,6 +172,17 @@ class AgingReference {
     final pay = _norm(pays);
     final couleur = _couleurDe(type);
     final ceps = cepages.map(_norm).toList();
+
+    // La base de régions fait autorité : elle est plus fine et couvre quinze pays, là où
+    // les règles ci-dessous sont l'ancienne table franco-centrée. Celles-ci restent en
+    // second rideau pour les cas qu'elle ne connaît pas encore.
+    final depuisBase = WineWorld.region(
+      pays: pays,
+      region: '${region ?? ''} ${sousRegion ?? ''}',
+      appellation: appellation,
+      cepages: cepages,
+    )?.longevitePour(couleur);
+    if (depuisBase != null) return depuisBase;
 
     for (final r in _regles) {
       if (r.couleur != null && r.couleur != couleur) continue;

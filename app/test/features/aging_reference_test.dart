@@ -187,8 +187,10 @@ void main() {
         type: 'red', millesime: 2019, region: 'Bordeaux',
         iaDebut: 2021, iaFin: 2026,
       );
-      expect(f.fin, greaterThan(15),
-          reason: 'Sept ans pour un Bordeaux rouge : hors fourchette, on réconcilie.');
+      expect(f.fin, greaterThanOrEqualTo(12),
+          reason: 'Sept ans pour un Bordeaux rouge : hors fourchette, on réconcilie. '
+              'La base donne 15 ans à une AOC Bordeaux sans appellation précise — moins '
+              'que les 22 de l\'ancienne règle, qui appliquait un niveau Médoc à tout.');
     });
   });
 

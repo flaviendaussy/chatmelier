@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'aging_reference.dart';
+import 'wine_world/wine_world.dart';
 
 class WineServiceAdvice {
   final int minTemp;
@@ -378,6 +379,7 @@ class WineOenologyAdvisor {
     String? appellation,
     String? classification,
     String? wineName,
+    String? producer,
     List<String> grapes = const [],
     int? explicitDrinkStart,
     int? explicitDrinkEnd,
@@ -414,17 +416,24 @@ class WineOenologyAdvisor {
     // catégorie à ce qu'un assemblage sans année peut raisonnablement tenir.
     final sansMillesime = vintage == null;
 
-    final reference = AgingReference.chercher(
+    // Un domaine nommé prime sur sa catégorie : « Bandol rosé » donne quatorze ans, mais
+    // Terrebrune en tient vingt. C'est le seul niveau qui permette de ne pas se limiter
+    // à des moyennes d'appellation.
+    final refNommee = WineWorld.reference(nom: wineName, producteur: producer);
+    final longeviteNommee = refNommee?.longevite;
+
+    final reference = longeviteNommee ??
+        AgingReference.chercher(
       pays: country,
       region: region,
       appellation: appellation,
       type: wineType,
       cepages: grapes,
-    )?.pourRang(AgingReference.rangDe(
-      nom: wineName,
-      classification: classification,
-      appellation: appellation,
-    ));
+        )?.pourRang(AgingReference.rangDe(
+          nom: wineName,
+          classification: classification,
+          appellation: appellation,
+        ));
 
     // Une fenêtre qui commence avant la vendange est impossible, pas discutable.
     // Constaté en cave : un « Pur Ju 2024 » avec un début en 2023.

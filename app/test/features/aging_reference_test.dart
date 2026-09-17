@@ -122,6 +122,45 @@ void main() {
     });
   });
 
+  group('🌹 Les rosés ne sont pas une seule catégorie', () {
+    test('un Bandol rosé n\'est pas un rosé de soif', () {
+      // Porté par le mourvèdre, il tient 5 à 10 ans — et Domaine de Terrebrune en sert
+      // couramment des bouteilles de vingt ans. Il tombait dans le rosé générique :
+      // trois ans, soit la pire erreur possible sur ce vin.
+      final bandol = fenetre(
+          type: 'Rosé', millesime: 2022, region: 'Provence', appellation: 'Bandol',
+          nom: 'Domaine de Terrebrune');
+      final provence = fenetre(
+          type: 'Rosé', millesime: 2022, region: 'Provence',
+          appellation: 'Côtes de Provence');
+      expect(bandol.fin, greaterThanOrEqualTo(10));
+      expect(bandol.fin, greaterThan(provence.fin + 5));
+    });
+
+    test('un Tavel n\'hérite pas de la garde des crus du Rhône', () {
+      // Tavel figurait parmi les crus du Rhône méridional, règle sans contrainte de
+      // couleur : ce rosé y recevait vingt ans.
+      final f = fenetre(type: 'Rosé', millesime: 2023, appellation: 'Tavel');
+      expect(f.fin, lessThanOrEqualTo(10));
+    });
+
+    test('un Bandol blanc se garde aussi', () {
+      final f = fenetre(
+          type: 'Blanc', millesime: 2022, region: 'Provence', appellation: 'Bandol');
+      expect(f.fin, greaterThanOrEqualTo(10));
+    });
+  });
+
+  test('le mourvèdre espagnol vaut le mourvèdre français', () {
+    // Jumilla, Yecla, Alicante : même cépage que le Bandol, même aptitude à la garde,
+    // et absents de la table — ils tombaient dans le générique espagnol.
+    final f = fenetre(
+        type: 'red', millesime: 2019, pays: 'Espagne', appellation: 'Jumilla',
+        nom: 'Clio', cepages: ['Monastrell']);
+    expect(f.fin, greaterThanOrEqualTo(14),
+        reason: 'El Nido « Clio » est donné pour 10 à 15 ans.');
+  });
+
   group('🛡️ Ce que l\'enveloppe rejette', () {
     test('une fenêtre qui commence avant la vendange est impossible', () {
       // Constaté en cave : un « Pur Ju 2024 » avec un début en 2023.

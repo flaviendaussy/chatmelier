@@ -306,7 +306,19 @@ class AgingReference {
           picFin: 14,
           fin: 20),
       appellations: ['chateauneuf', 'gigondas', 'vacqueyras', 'cairanne',
-        'lirac', 'tavel'],
+        'lirac'],
+    ),
+    // Tavel figurait parmi les crus du Rhône, qui n'ont pas de contrainte de couleur :
+    // ce rosé y recevait vingt ans. Il en tient trois à huit.
+    _Regle(
+      AgingProfile(
+          id: 'fr_tavel',
+          libelle: 'Tavel',
+          debut: 1,
+          picDebut: 2,
+          picFin: 6,
+          fin: 8),
+      appellations: ['tavel'],
     ),
     _Regle(
       AgingProfile(
@@ -322,14 +334,40 @@ class AgingReference {
     ),
     _Regle(
       AgingProfile(
-          id: 'fr_bandol',
-          libelle: 'Bandol',
+          id: 'fr_bandol_rouge',
+          libelle: 'Bandol rouge',
           debut: 4,
           picDebut: 8,
           picFin: 18,
           fin: 25),
       appellations: ['bandol'],
       couleur: 'red',
+    ),
+    // Le Bandol rosé est l'exception qui justifie de ne pas traiter « rosé » comme une
+    // seule catégorie : porté par le mourvèdre, il tient 5 à 10 ans, et Terrebrune en
+    // sert couramment des bouteilles de vingt ans. Sans cette règle il tombait dans le
+    // rosé générique — trois ans — soit la pire erreur possible sur ce vin.
+    _Regle(
+      AgingProfile(
+          id: 'fr_bandol_rose',
+          libelle: 'Bandol rosé',
+          debut: 1,
+          picDebut: 3,
+          picFin: 9,
+          fin: 14),
+      appellations: ['bandol'],
+      couleur: 'rose',
+    ),
+    _Regle(
+      AgingProfile(
+          id: 'fr_bandol_blanc',
+          libelle: 'Bandol blanc',
+          debut: 1,
+          picDebut: 3,
+          picFin: 9,
+          fin: 14),
+      appellations: ['bandol'],
+      couleur: 'white',
     ),
     _Regle(
       AgingProfile(
@@ -573,6 +611,18 @@ class AgingReference {
           picFin: 18,
           fin: 25),
       appellations: ['priorat', 'montsant'],
+    ),
+    // Le mourvèdre espagnol — même cépage que le Bandol, même aptitude à la garde.
+    _Regle(
+      AgingProfile(
+          id: 'es_monastrell',
+          libelle: 'Monastrell du Levant',
+          debut: 2,
+          picDebut: 5,
+          picFin: 12,
+          fin: 16),
+      appellations: ['jumilla', 'yecla', 'alicante', 'bullas', 'almansa'],
+      cepages: ['monastrell'],
     ),
     _Regle(
       AgingProfile(

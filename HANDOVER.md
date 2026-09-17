@@ -402,7 +402,42 @@ Aucun test unitaire ne pouvait les attraper : ils vérifiaient le calcul, pas le
 l'écran. C'est le test en direct sur émulateur qui les a révélées. À garder comme réflexe :
 **après avoir écrit une fonctionnalité, vérifier qu'on la voit.**
 
-Puis **S3** (QR cassé, `table_sessions`, onglet Restaurant, pont cave ↔ restaurant),
+### S3 — à faire EN PREMIER, avant le reste
+
+Décidé par Flavien le 2026-09-17, avant toute autre chose dans S3.
+
+**1. Tout doit être supprimable.** Aujourd'hui on ne peut pas supprimer une dégustation
+depuis l'app — aucun `delete` sur `tasting_log` nulle part dans `lib/`. Une dégustation
+saisie par erreur est donc définitive, sur tous les appareils, quoi qu'on fasse en base.
+Le principe posé est général : **si l'utilisateur veut supprimer quelque chose, il doit
+pouvoir le faire.** À passer en revue sur tous les objets — dégustations, bouteilles,
+caves, profils de goût, remontées, photos.
+
+**2. Le bucket des captures reste public.** L'identifiant utilisateur a été retiré des URL
+et des messages (`ae932c3`), mais n'importe qui avec le lien accède encore aux captures.
+Le rendre privé demande une fonction de signature d'URL, sans quoi le dépouillement des
+remontées devient impossible.
+
+### Deux demandes produit, même date
+
+**Réordonner la fiche d'un vin.** Aujourd'hui la valeur marchande arrive avant tout le
+reste. L'ordre voulu : d'abord les **actions** — service et conseils de dégustation —
+puis la **description**, puis l'**apogée** et le **terroir**. Ce qu'on fait avec la
+bouteille avant ce qu'elle vaut.
+
+**Sortir une bouteille pour l'offrir.** Un troisième motif de sortie, à côté de
+« consommée » et « perdue » :
+
+- au moment d'offrir, choisir entre **sauter toute la dégustation** ou la **reporter**,
+  au cas où la personne l'ouvre en notre présence ;
+- si elle est offerte, proposer d'**enregistrer à qui**.
+
+C'est aussi ce qui manque pour que `source_type = 'gift'` ait un pendant en sortie : on
+sait recevoir un cadeau, on ne sait pas en faire un.
+
+---
+
+Puis le reste de **S3** (QR cassé, `table_sessions`, onglet Restaurant, pont cave ↔ restaurant),
 **S3 bis** (conversion du compte anonyme), **S4** (comptoir, moteur de frontière, empreinte de
 palais), **S5** (ratio revenu pub ÷ coût IA).
 

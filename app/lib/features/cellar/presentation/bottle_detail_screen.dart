@@ -1052,25 +1052,14 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                 tooltip: isFr ? 'Chercher données manquantes / Vérifier avec l\'IA' : 'Find missing data / Verify with AI',
                 onPressed: _isEnriching ? null : () => _enrichWineData(wine),
               ),
-              IconButton(
-                icon: const Icon(Icons.share),
-                onPressed: () {
-                  // Share bottle details
-                },
-              ),
-              if (!isViewOnly)
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                  tooltip: isFr ? 'Supprimer définitivement' : 'Delete permanently',
-                  onPressed: () {
-                    DeleteBottleDialog.show(
-                      context,
-                      bottle: bottleObj,
-                      cellarId: bottleObj.cellarId,
-                      onDeleted: () => context.pop(),
-                    );
-                  },
-                ),
+              // Deux icônes retirées d'ici, et non déplacées :
+              //
+              // — « Partager » avait un `onPressed` vide. Un bouton qui ne fait rien est
+              //   pire que pas de bouton : on appuie, on n'obtient rien, et on ne sait pas
+              //   si c'est l'app ou soi.
+              // — « Supprimer » existait deux fois sur le même écran. Celle d'en bas porte
+              //   son nom en toutes lettres ; celle-ci était une corbeille rouge à portée
+              //   de pouce, sans autre garde-fou que la boîte de confirmation.
             ],
           ),
 
@@ -1269,430 +1258,81 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
 
                   const SizedBox(height: 16),
 
-                  // ================= ACTIONS: AI ENRICHMENT & EDIT ALL FIELDS =================
-                  Row(
-                    children: [
-                      // Enrichment Button
-                      Expanded(
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _isEnriching ? null : () => _enrichWineData(wine),
-                            borderRadius: BorderRadius.circular(16),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  if (_isEnriching)
-                                    const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Color(0xFFD4AF37),
-                                      ),
-                                    )
-                                  else
-                                    const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 20),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          isFr ? 'Recherche IA' : 'AI Search',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFFD4AF37),
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                        Text(
-                                          isFr ? 'Cépages & Apogée' : 'Grapes & Peak',
-                                          style: const TextStyle(fontSize: 10, color: Colors.grey),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                  // ================= AGIR SUR CETTE BOUTEILLE =================
+                  // Les deux gestes du moment : la boire, ou la servir. Le reste — en ajouter
+                  // un exemplaire, la supprimer — relève de la tenue de cave et attend en bas.
+                  if (!isConsumed && !ref.watch(currentCellarRoleProvider.select((r) => r == 'viewer'))) ...[
+                    // La boire : action principale, la seule en plein contraste.
+                    FilledButton.icon(
+                      onPressed: () {
+                        HapticFeedback.heavyImpact();
+                        context.push('/checkout?bottleId=${widget.id}');
+                      },
+                      icon: const Icon(Icons.wine_bar, color: Colors.white, size: 22),
+                      label: Text(
+                        '${l10n?.bottleDetailDrinkButton ?? (isFr ? "Sortir cette bouteille" : "Checkout this bottle")} 🍷',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          letterSpacing: 0.3,
                         ),
                       ),
-                      if (!isViewOnly) ...[
-                        const SizedBox(width: 10),
-                        // Edit All Fields Button
-                        Expanded(
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () => _showFullEditSheet(wine, bottleObj),
-                              borderRadius: BorderRadius.circular(16),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF8B1E3F).withValues(alpha: 0.10),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.35),
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.edit_note, color: Color(0xFF8B1E3F), size: 22),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            isFr ? 'Modifier la fiche' : 'Edit Details',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF8B1E3F),
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                          Text(
-                                            isFr ? 'Tous les champs' : 'All fields',
-                                            style: const TextStyle(fontSize: 10, color: Colors.grey),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  // ================= CHAT ABOUT THIS BOTTLE =================
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: () {
-                        final vStr = wine.vintage != null && wine.vintage! > 0 ? '${wine.vintage}' : '';
-                        final uri = Uri(
-                          path: '/chat',
-                          queryParameters: {
-                            'bottleId': bottleObj.id,
-                            'wineName': wine.name,
-                            'vintage': vStr,
-                            'producer': wine.producer ?? '',
-                            'region': wine.region,
-                            'appellation': wine.appellation ?? '',
-                            'wineType': wine.type,
-                          },
-                        );
-                        context.push(uri.toString());
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              const Color(0xFF8B1E3F).withValues(alpha: 0.12),
-                              const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: const Color(0xFFD4AF37).withValues(alpha: 0.5),
-                            width: 1.2,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFFD4AF37)),
-                            const SizedBox(width: 8),
-                            Text(
-                              isFr ? '💬 Discuter de ce vin avec le Chatmelier' : '💬 Chat about this wine with Chatmelier',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: Color(0xFFD4AF37),
-                              ),
-                            ),
-                          ],
-                        ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF8B1E3F),
+                        foregroundColor: Colors.white,
+                        elevation: 3,
+                        shadowColor: const Color(0xFF8B1E3F).withValues(alpha: 0.4),
+                        minimumSize: const Size.fromHeight(54),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 12),
 
-                  // ================= VALUATION & PRICE CARD =================
-                  Card(
-                    elevation: 1,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    // La servir maintenant : température, carafage, notes de service.
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        HapticFeedback.mediumImpact();
+                        SommelierTableModeSheet.show(context, bottle: bottleObj);
+                      },
+                      icon: const Icon(Icons.room_service_outlined, color: Color(0xFFD4AF37)),
+                      label: Text(
+                        isFr ? 'Mode Sommelier à Table (Service & Notes)' : 'Table Sommelier Mode (Service & Notes)',
+                        style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFD4AF37), width: 1.4),
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ] else if (!isConsumed)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            children: [
-                              Icon(Icons.trending_up, color: theme.colorScheme.primary, size: 20),
-                              const SizedBox(width: 8),
-                              Text(isFr ? 'Estimation & Valeur patrimoniale' : 'Valuation & Asset Value', style: theme.textTheme.titleMedium),
-                              const Spacer(),
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined, size: 18),
-                                tooltip: isFr ? 'Modifier prix ou devise' : 'Edit price or currency',
-                                onPressed: _showEditPriceDialog,
-                              ),
-                              Flexible(
-                                child: Text(
-                                  '$quantity ${isFr ? (quantity > 1 ? "bouteilles en cave" : "bouteille en cave") : (quantity > 1 ? "bottles in cellar" : "bottle in cellar")}',
-                                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 24),
-                          Row(
-                            children: [
-                              // Purchase Price Paid
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      l10n?.bottleDetailPurchasePrice ?? (isFr ? 'Prix d\'achat' : 'Purchase price'),
-                                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      isViewOnly
-                                          ? (isFr ? 'Confidentiel' : 'Confidential')
-                                          : (purchasePrice != null 
-                                              ? CurrencyHelper.formatPrice(purchasePrice, currency: currency, decimals: 2) 
-                                              : (isFr ? 'Non renseigné' : 'Not set')),
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: isViewOnly
-                                            ? theme.colorScheme.onSurfaceVariant
-                                            : (purchasePrice != null ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(height: 40, width: 1, color: theme.dividerColor, margin: const EdgeInsets.symmetric(horizontal: 8)),
-                              // Estimated Market Value
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          l10n?.bottleDetailEstimatedValue ?? (isFr ? 'Valeur estimée' : 'Estimated value'),
-                                          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        const Icon(Icons.verified, size: 14, color: Colors.blue),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      isViewOnly
-                                          ? (isFr ? 'Confidentiel' : 'Confidential')
-                                          : (wine.estimatedMarketValue != null
-                                              ? CurrencyHelper.formatPrice(wine.estimatedMarketValue, currency: currency, decimals: 2)
-                                              : (isFr ? 'Estimation...' : 'Estimating...')),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: isViewOnly ? theme.colorScheme.onSurfaceVariant : Colors.green.shade700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (!isViewOnly && wine.lastValuationDate != null) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              isFr
-                                  ? 'Indice de marché vérifié • Actualisé semestriellement (${DateFormat.yMMMd().format(wine.lastValuationDate!)})'
-                                  : 'Verified market index • Updated semi-annually (${DateFormat.yMMMd().format(wine.lastValuationDate!)})',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 11,
-                                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-                              ),
+                          Icon(Icons.visibility, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                          const SizedBox(width: 8),
+                          Text(
+                            isFr ? 'Mode consultation (lecture seule)' : 'View-only mode (read-only)',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
-                          ],
+                          ),
                         ],
                       ),
                     ),
-                  ),
                   const SizedBox(height: 16),
 
                   // ================= QUICK SOMMAIRE NAVIGATION =================
                   _buildQuickNavBar(context, wine, isFr),
-
-                  // ================= CRITIC SCORES / RANKINGS =================
-                  if (wine.criticScores.isNotEmpty) ...[
-                    Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.star, color: Colors.amber, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  isFr
-                                      ? 'Notes & Distinctions des Guides (${wine.vintage ?? "NM"})'
-                                      : 'Ratings & Guide Awards (${wine.vintage ?? "NV"})',
-                                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            ...wine.criticScores.take(5).map((score) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.primaryContainer,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      score.score,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.onPrimaryContainer,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          score.source,
-                                          style: const TextStyle(fontWeight: FontWeight.w600),
-                                        ),
-                                        if (score.reviewer != null)
-                                          Text(
-                                            score.reviewer!,
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: theme.colorScheme.onSurfaceVariant,
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (score.year != null)
-                                    Text(
-                                      '${score.year}',
-                                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                                    ),
-                                ],
-                              ),
-                            )),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // ================= DRINKING WINDOW GAUSSIAN CURVE (Only for wines) =================
-                  if (!wine.tracksFillLevel) ...[
-                    Container(
-                      key: _apogeeKey,
-                      child: Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 20),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    isFr
-                                        ? (wine.vintage != null && wine.vintage! > 0
-                                            ? 'Garde & Fenêtre d\'Apogée'
-                                            : 'Garde & Maturité (Non Millésimé)')
-                                        : (wine.vintage != null && wine.vintage! > 0
-                                            ? 'Aging & Peak Drinking Window'
-                                            : 'Aging & Maturity (Non-Vintage)'),
-                                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  if (wine.userOverrides.any((k) => k.contains('drinking') || k.contains('peak'))) ...[
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(Icons.lock_outline, size: 11, color: Colors.green),
-                                          const SizedBox(width: 3),
-                                          Text(isFr ? 'Personnalisé' : 'Custom', style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                  const Spacer(),
-                                  IconButton(
-                                    icon: const Icon(Icons.help_outline, size: 18, color: Colors.grey),
-                                    tooltip: isFr ? 'Qu\'est-ce que l\'apogée ?' : 'What is the peak window?',
-                                    onPressed: () => _showApogeeExplanationDialog(context),
-                                  ),
-                                  if (!isViewOnly)
-                                    IconButton(
-                                      icon: const Icon(Icons.edit_outlined, size: 18),
-                                      tooltip: isFr ? 'Modifier les dates d\'apogée et de garde' : 'Edit peak and drinking window dates',
-                                      onPressed: () => _showFullEditSheet(wine, bottleObj),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              GaussianDrinkingCurve(wine: wine),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
 
                   // ================= SOMMELIER SERVICE & TEMPERATURE ADVICE =================
                   Container(
@@ -1925,6 +1565,275 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+
+                  // ================= TASTING NOTES & FOOD PAIRINGS =================
+                  if (wine.tastingNotes != null || wine.foodPairings.isNotEmpty) ...[
+                    Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.menu_book, color: Color(0xFF8B1E3F), size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n?.bottleDetailTastingNotes ?? (isFr ? 'Profil Sommelier' : 'Sommelier Profile'),
+                                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        isFr ? 'Fiche œnologique & aromatique (IA & Guides)' : 'Oenological & aromatic profile (AI & Guides)',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (!isViewOnly)
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined, size: 18),
+                                    tooltip: isFr ? 'Modifier le profil sommelier' : 'Edit sommelier profile',
+                                    onPressed: () => _showFullEditSheet(wine, bottleObj),
+                                  ),
+                              ],
+                            ),
+                            if (wine.tastingNotes != null) ...[
+                              const SizedBox(height: 10),
+                              Text(
+                                wine.tastingNotes!,
+                                style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
+                              ),
+                            ],
+                            if (wine.foodPairings.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              Text(
+                                wine.tracksFillLevel
+                                    ? (isFr ? 'Accords & Dégustation conseillés' : 'Recommended pairings & tasting')
+                                    : (l10n?.bottleDetailFoodPairings ?? (isFr ? 'Accords Mets & Vins conseillés' : 'Recommended Food & Wine Pairings')),
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: theme.brightness == Brightness.dark ? const Color(0xFFE25C74) : const Color(0xFF8B1E3F),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 6,
+                                children: wine.foodPairings.map((pairing) => Chip(
+                                  avatar: const Icon(Icons.restaurant, size: 14),
+                                  label: Text(pairing),
+                                  visualDensity: VisualDensity.compact,
+                                )).toList(),
+                              ),
+                            ],
+                            const SizedBox(height: 14),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFFD4AF37),
+                                  side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                icon: const Text('👨‍🍳', style: TextStyle(fontSize: 16)),
+                                label: Text(
+                                  isFr ? 'Que cuisiner avec ce vin ? (Accords Inversés)' : 'What to cook with this wine? (Reverse Pairings)',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                                onPressed: () => WineReverseFoodPairingSheet.show(context, wine),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // ================= VERIFIED VINEYARD KNOWLEDGE (TRANSVERSAL 1-YEAR CACHE) =================
+                  if (!wine.isSpirit && (wine.producer != null && wine.producer!.trim().isNotEmpty)) ...[
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final producer = wine.producer!.trim();
+                        final vineyardAsync = ref.watch(vineyardKnowledgeProvider(producer));
+
+                        return vineyardAsync.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (vk) {
+                            if (vk == null) return const SizedBox.shrink();
+                            final verifiedDateStr = '${vk.verifiedAt.day.toString().padLeft(2, '0')}/${vk.verifiedAt.month.toString().padLeft(2, '0')}/${vk.verifiedAt.year}';
+                            final expiryDays = vk.daysUntilExpiry;
+
+                            return Card(
+                              elevation: 1,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.terrain_outlined, color: Color(0xFF8B1E3F), size: 20),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                isFr ? 'Histoire & Terroir du Domaine' : 'Estate History & Terroir',
+                                                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                              ),
+                                              Text(
+                                                isFr ? 'Base transversale partagée • Re-vérification annuelle' : 'Shared transversal knowledge • Annual re-verification',
+                                                style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, color: Colors.grey),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green.withAlpha(25),
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(color: Colors.green.withAlpha(60)),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.verified, color: Colors.green, size: 14),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                isFr ? 'Vérifié le $verifiedDateStr' : 'Verified on $verifiedDateStr',
+                                                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.green),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      vk.terroirDescription,
+                                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 6,
+                                      children: [
+                                        if (vk.soilType != null)
+                                          Chip(
+                                            avatar: const Text('🪨', style: TextStyle(fontSize: 12)),
+                                            label: Text('${isFr ? "Sols" : "Soils"} : ${vk.soilType}', style: const TextStyle(fontSize: 11)),
+                                            backgroundColor: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                                            visualDensity: VisualDensity.compact,
+                                          ),
+                                        if (vk.viticultureStyle != null)
+                                          Chip(
+                                            avatar: const Text('🌿', style: TextStyle(fontSize: 12)),
+                                            label: Text('${isFr ? "Culture" : "Farming"} : ${vk.viticultureStyle}', style: const TextStyle(fontSize: 11)),
+                                            backgroundColor: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                                            visualDensity: VisualDensity.compact,
+                                          ),
+                                        Chip(
+                                          avatar: const Icon(Icons.schedule, size: 13, color: Colors.grey),
+                                          label: Text(isFr ? 'Valable encore $expiryDays jours' : 'Valid for $expiryDays more days', style: const TextStyle(fontSize: 10.5, color: Colors.grey)),
+                                          backgroundColor: Colors.transparent,
+                                          side: BorderSide(color: Colors.grey.withAlpha(50)),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // ================= DRINKING WINDOW GAUSSIAN CURVE (Only for wines) =================
+                  if (!wine.tracksFillLevel) ...[
+                    Container(
+                      key: _apogeeKey,
+                      child: Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    isFr
+                                        ? (wine.vintage != null && wine.vintage! > 0
+                                            ? 'Garde & Fenêtre d\'Apogée'
+                                            : 'Garde & Maturité (Non Millésimé)')
+                                        : (wine.vintage != null && wine.vintage! > 0
+                                            ? 'Aging & Peak Drinking Window'
+                                            : 'Aging & Maturity (Non-Vintage)'),
+                                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  if (wine.userOverrides.any((k) => k.contains('drinking') || k.contains('peak'))) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.lock_outline, size: 11, color: Colors.green),
+                                          const SizedBox(width: 3),
+                                          Text(isFr ? 'Personnalisé' : 'Custom', style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: const Icon(Icons.help_outline, size: 18, color: Colors.grey),
+                                    tooltip: isFr ? 'Qu\'est-ce que l\'apogée ?' : 'What is the peak window?',
+                                    onPressed: () => _showApogeeExplanationDialog(context),
+                                  ),
+                                  if (!isViewOnly)
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined, size: 18),
+                                      tooltip: isFr ? 'Modifier les dates d\'apogée et de garde' : 'Edit peak and drinking window dates',
+                                      onPressed: () => _showFullEditSheet(wine, bottleObj),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              GaussianDrinkingCurve(wine: wine),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // ================= TERROIR & GEOGRAPHY MAP =================
                   Container(
@@ -2172,115 +2081,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                  // ================= VERIFIED VINEYARD KNOWLEDGE (TRANSVERSAL 1-YEAR CACHE) =================
-                  if (!wine.isSpirit && (wine.producer != null && wine.producer!.trim().isNotEmpty)) ...[
-                    Consumer(
-                      builder: (context, ref, _) {
-                        final producer = wine.producer!.trim();
-                        final vineyardAsync = ref.watch(vineyardKnowledgeProvider(producer));
-
-                        return vineyardAsync.when(
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, __) => const SizedBox.shrink(),
-                          data: (vk) {
-                            if (vk == null) return const SizedBox.shrink();
-                            final verifiedDateStr = '${vk.verifiedAt.day.toString().padLeft(2, '0')}/${vk.verifiedAt.month.toString().padLeft(2, '0')}/${vk.verifiedAt.year}';
-                            final expiryDays = vk.daysUntilExpiry;
-
-                            return Card(
-                              elevation: 1,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.terrain_outlined, color: Color(0xFF8B1E3F), size: 20),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                isFr ? 'Histoire & Terroir du Domaine' : 'Estate History & Terroir',
-                                                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                              ),
-                                              Text(
-                                                isFr ? 'Base transversale partagée • Re-vérification annuelle' : 'Shared transversal knowledge • Annual re-verification',
-                                                style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, color: Colors.grey),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Colors.green.withAlpha(25),
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: Colors.green.withAlpha(60)),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(Icons.verified, color: Colors.green, size: 14),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                isFr ? 'Vérifié le $verifiedDateStr' : 'Verified on $verifiedDateStr',
-                                                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.green),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      vk.terroirDescription,
-                                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 6,
-                                      children: [
-                                        if (vk.soilType != null)
-                                          Chip(
-                                            avatar: const Text('🪨', style: TextStyle(fontSize: 12)),
-                                            label: Text('${isFr ? "Sols" : "Soils"} : ${vk.soilType}', style: const TextStyle(fontSize: 11)),
-                                            backgroundColor: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-                                            visualDensity: VisualDensity.compact,
-                                          ),
-                                        if (vk.viticultureStyle != null)
-                                          Chip(
-                                            avatar: const Text('🌿', style: TextStyle(fontSize: 12)),
-                                            label: Text('${isFr ? "Culture" : "Farming"} : ${vk.viticultureStyle}', style: const TextStyle(fontSize: 11)),
-                                            backgroundColor: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-                                            visualDensity: VisualDensity.compact,
-                                          ),
-                                        Chip(
-                                          avatar: const Icon(Icons.schedule, size: 13, color: Colors.grey),
-                                          label: Text(isFr ? 'Valable encore $expiryDays jours' : 'Valid for $expiryDays more days', style: const TextStyle(fontSize: 10.5, color: Colors.grey)),
-                                          backgroundColor: Colors.transparent,
-                                          side: BorderSide(color: Colors.grey.withAlpha(50)),
-                                          visualDensity: VisualDensity.compact,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // ================= TASTING NOTES & FOOD PAIRINGS =================
-                  if (wine.tastingNotes != null || wine.foodPairings.isNotEmpty) ...[
+                  // ================= CRITIC SCORES / RANKINGS =================
+                  if (wine.criticScores.isNotEmpty) ...[
                     Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -2291,87 +2093,179 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                           children: [
                             Row(
                               children: [
-                                const Icon(Icons.menu_book, color: Color(0xFF8B1E3F), size: 20),
+                                const Icon(Icons.star, color: Colors.amber, size: 20),
                                 const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l10n?.bottleDetailTastingNotes ?? (isFr ? 'Profil Sommelier' : 'Sommelier Profile'),
-                                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        isFr ? 'Fiche œnologique & aromatique (IA & Guides)' : 'Oenological & aromatic profile (AI & Guides)',
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                Text(
+                                  isFr
+                                      ? 'Notes & Distinctions des Guides (${wine.vintage ?? "NM"})'
+                                      : 'Ratings & Guide Awards (${wine.vintage ?? "NV"})',
+                                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                 ),
-                                if (!isViewOnly)
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined, size: 18),
-                                    tooltip: isFr ? 'Modifier le profil sommelier' : 'Edit sommelier profile',
-                                    onPressed: () => _showFullEditSheet(wine, bottleObj),
-                                  ),
                               ],
                             ),
-                            if (wine.tastingNotes != null) ...[
-                              const SizedBox(height: 10),
-                              Text(
-                                wine.tastingNotes!,
-                                style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
+                            const SizedBox(height: 12),
+                            ...wine.criticScores.take(5).map((score) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primaryContainer,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      score.score,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.onPrimaryContainer,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          score.source,
+                                          style: const TextStyle(fontWeight: FontWeight.w600),
+                                        ),
+                                        if (score.reviewer != null)
+                                          Text(
+                                            score.reviewer!,
+                                            style: theme.textTheme.bodySmall?.copyWith(
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (score.year != null)
+                                    Text(
+                                      '${score.year}',
+                                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                    ),
+                                ],
                               ),
-                            ],
-                            if (wine.foodPairings.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              Text(
-                                wine.tracksFillLevel
-                                    ? (isFr ? 'Accords & Dégustation conseillés' : 'Recommended pairings & tasting')
-                                    : (l10n?.bottleDetailFoodPairings ?? (isFr ? 'Accords Mets & Vins conseillés' : 'Recommended Food & Wine Pairings')),
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  color: theme.brightness == Brightness.dark ? const Color(0xFFE25C74) : const Color(0xFF8B1E3F),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 6,
-                                children: wine.foodPairings.map((pairing) => Chip(
-                                  avatar: const Icon(Icons.restaurant, size: 14),
-                                  label: Text(pairing),
-                                  visualDensity: VisualDensity.compact,
-                                )).toList(),
-                              ),
-                            ],
-                            const SizedBox(height: 14),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFFD4AF37),
-                                  side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                icon: const Text('👨‍🍳', style: TextStyle(fontSize: 16)),
-                                label: Text(
-                                  isFr ? 'Que cuisiner avec ce vin ? (Accords Inversés)' : 'What to cook with this wine? (Reverse Pairings)',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                ),
-                                onPressed: () => WineReverseFoodPairingSheet.show(context, wine),
-                              ),
-                            ),
+                            )),
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
                   ],
+
+                  // ================= VALUATION & PRICE CARD =================
+                  Card(
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.trending_up, color: theme.colorScheme.primary, size: 20),
+                              const SizedBox(width: 8),
+                              Text(isFr ? 'Estimation & Valeur patrimoniale' : 'Valuation & Asset Value', style: theme.textTheme.titleMedium),
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 18),
+                                tooltip: isFr ? 'Modifier prix ou devise' : 'Edit price or currency',
+                                onPressed: _showEditPriceDialog,
+                              ),
+                              Flexible(
+                                child: Text(
+                                  '$quantity ${isFr ? (quantity > 1 ? "bouteilles en cave" : "bouteille en cave") : (quantity > 1 ? "bottles in cellar" : "bottle in cellar")}',
+                                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 24),
+                          Row(
+                            children: [
+                              // Purchase Price Paid
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n?.bottleDetailPurchasePrice ?? (isFr ? 'Prix d\'achat' : 'Purchase price'),
+                                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      isViewOnly
+                                          ? (isFr ? 'Confidentiel' : 'Confidential')
+                                          : (purchasePrice != null 
+                                              ? CurrencyHelper.formatPrice(purchasePrice, currency: currency, decimals: 2) 
+                                              : (isFr ? 'Non renseigné' : 'Not set')),
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: isViewOnly
+                                            ? theme.colorScheme.onSurfaceVariant
+                                            : (purchasePrice != null ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(height: 40, width: 1, color: theme.dividerColor, margin: const EdgeInsets.symmetric(horizontal: 8)),
+                              // Estimated Market Value
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          l10n?.bottleDetailEstimatedValue ?? (isFr ? 'Valeur estimée' : 'Estimated value'),
+                                          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Icon(Icons.verified, size: 14, color: Colors.blue),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      isViewOnly
+                                          ? (isFr ? 'Confidentiel' : 'Confidential')
+                                          : (wine.estimatedMarketValue != null
+                                              ? CurrencyHelper.formatPrice(wine.estimatedMarketValue, currency: currency, decimals: 2)
+                                              : (isFr ? 'Estimation...' : 'Estimating...')),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: isViewOnly ? theme.colorScheme.onSurfaceVariant : Colors.green.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (!isViewOnly && wine.lastValuationDate != null) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              isFr
+                                  ? 'Indice de marché vérifié • Actualisé semestriellement (${DateFormat.yMMMd().format(wine.lastValuationDate!)})'
+                                  : 'Verified market index • Updated semi-annually (${DateFormat.yMMMd().format(wine.lastValuationDate!)})',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 11,
+                                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
                   // ================= PHYSICAL LOCATION & MODE SHELVES =================
                   if (bottleObj.hasLocation) ...[
@@ -2628,70 +2522,177 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  // ================= SOURCES CITATIONS =================
-                  if (wine.sourcesVerified.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        'Sources : ${wine.sourcesVerified.join(", ")}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                          fontStyle: FontStyle.italic,
+                  // ================= CHAT ABOUT THIS BOTTLE =================
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () {
+                        final vStr = wine.vintage != null && wine.vintage! > 0 ? '${wine.vintage}' : '';
+                        final uri = Uri(
+                          path: '/chat',
+                          queryParameters: {
+                            'bottleId': bottleObj.id,
+                            'wineName': wine.name,
+                            'vintage': vStr,
+                            'producer': wine.producer ?? '',
+                            'region': wine.region,
+                            'appellation': wine.appellation ?? '',
+                            'wineType': wine.type,
+                          },
+                        );
+                        context.push(uri.toString());
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color(0xFF8B1E3F).withValues(alpha: 0.12),
+                              const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.5),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFFD4AF37)),
+                            const SizedBox(width: 8),
+                            Text(
+                              isFr ? '💬 Discuter de ce vin avec le Chatmelier' : '💬 Chat about this wine with Chatmelier',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Color(0xFFD4AF37),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                  ],
+                  ),
+                  const SizedBox(height: 16),
 
-                  // Action Buttons
+                  // ================= ACTIONS: AI ENRICHMENT & EDIT ALL FIELDS =================
+                  Row(
+                    children: [
+                      // Enrichment Button
+                      Expanded(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _isEnriching ? null : () => _enrichWineData(wine),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  if (_isEnriching)
+                                    const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Color(0xFFD4AF37),
+                                      ),
+                                    )
+                                  else
+                                    const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          isFr ? 'Recherche IA' : 'AI Search',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFFD4AF37),
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        Text(
+                                          isFr ? 'Cépages & Apogée' : 'Grapes & Peak',
+                                          style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (!isViewOnly) ...[
+                        const SizedBox(width: 10),
+                        // Edit All Fields Button
+                        Expanded(
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _showFullEditSheet(wine, bottleObj),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF8B1E3F).withValues(alpha: 0.10),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.35),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.edit_note, color: Color(0xFF8B1E3F), size: 22),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            isFr ? 'Modifier la fiche' : 'Edit Details',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF8B1E3F),
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          Text(
+                                            isFr ? 'Tous les champs' : 'All fields',
+                                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // ================= TENIR LA CAVE =================
                   if (!isConsumed && !ref.watch(currentCellarRoleProvider.select((r) => r == 'viewer'))) ...[
-                    // 1. Bouton Principal : Sortir cette bouteille (Haute visibilité & contraste)
-                    FilledButton.icon(
-                      onPressed: () {
-                        HapticFeedback.heavyImpact();
-                        context.push('/checkout?bottleId=${widget.id}');
-                      },
-                      icon: const Icon(Icons.wine_bar, color: Colors.white, size: 22),
-                      label: Text(
-                        '${l10n?.bottleDetailDrinkButton ?? (isFr ? "Sortir cette bouteille" : "Checkout this bottle")} 🍷',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF8B1E3F),
-                        foregroundColor: Colors.white,
-                        elevation: 3,
-                        shadowColor: const Color(0xFF8B1E3F).withValues(alpha: 0.4),
-                        minimumSize: const Size.fromHeight(54),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // 2. Mode Sommelier à Table
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        HapticFeedback.mediumImpact();
-                        SommelierTableModeSheet.show(context, bottle: bottleObj);
-                      },
-                      icon: const Icon(Icons.room_service_outlined, color: Color(0xFFD4AF37)),
-                      label: Text(
-                        isFr ? 'Mode Sommelier à Table (Service & Notes)' : 'Table Sommelier Mode (Service & Notes)',
-                        style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFD4AF37), width: 1.4),
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // 3. Ajouter un exemplaire
+                    // En ajouter un exemplaire.
                     FilledButton.tonalIcon(
                       onPressed: () {
                         HapticFeedback.lightImpact();
@@ -2709,7 +2710,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // 4. Supprimer
+                    // La retirer de la cave, pour de bon.
                     OutlinedButton.icon(
                       onPressed: () {
                         HapticFeedback.mediumImpact();
@@ -2731,28 +2732,22 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
-                  ] else if (!isConsumed)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.visibility, size: 16, color: theme.colorScheme.onSurfaceVariant),
-                          const SizedBox(width: 8),
-                          Text(
-                            isFr ? 'Mode consultation (lecture seule)' : 'View-only mode (read-only)',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
+                  ],
+
+                  // ================= SOURCES CITATIONS =================
+                  if (wine.sourcesVerified.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        'Sources : ${wine.sourcesVerified.join(", ")}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 24),
+                  ],
                   const SizedBox(height: 32),
                 ],
               ),

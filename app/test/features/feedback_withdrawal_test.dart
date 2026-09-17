@@ -45,27 +45,36 @@ void main() {
   });
 
   group('🧹 Retirer emporte aussi la capture', () {
-    test('le chemin du bucket se retrouve depuis l\'URL publique', () {
-      expect(
-        FeedbackHistoryService.cheminDeLaCapture(
-            'https://x.supabase.co/storage/v1/object/public/labels/feedback/abc.png'),
-        equals('feedback/abc.png'),
-        reason: 'sans le chemin, l\'image resterait accessible à qui connaît son URL',
-      );
+    test('un chemin nu désigne le bucket privé', () {
+      final ou = EmplacementCapture.depuis(
+          '3f2b1c00-0000-4000-8000-000000000000/abc.png');
+      expect(ou!.bucket, equals('feedback'));
+      expect(ou.chemin, equals('3f2b1c00-0000-4000-8000-000000000000/abc.png'));
+    });
+
+    test('une ancienne URL publique garde son bucket d\'origine', () {
+      final ou = EmplacementCapture.depuis(
+          'https://x.supabase.co/storage/v1/object/public/labels/feedback/abc.png');
+      expect(ou!.bucket, equals('labels'),
+          reason: 'les remontées d\'avant la migration 036 vivent encore dans labels');
+      expect(ou.chemin, equals('feedback/abc.png'));
     });
 
     test('les paramètres de requête ne font pas partie du chemin', () {
       expect(
-        FeedbackHistoryService.cheminDeLaCapture(
-            'https://x.supabase.co/storage/v1/object/public/labels/feedback/abc.png?t=1'),
+        EmplacementCapture.depuis(
+                'https://x.supabase.co/storage/v1/object/public/labels/feedback/abc.png?t=1')!
+            .chemin,
         equals('feedback/abc.png'),
       );
     });
 
-    test('pas de capture, pas de chemin', () {
-      expect(FeedbackHistoryService.cheminDeLaCapture(null), isNull);
-      expect(FeedbackHistoryService.cheminDeLaCapture(''), isNull);
-      expect(FeedbackHistoryService.cheminDeLaCapture('https://ailleurs/photo.png'), isNull);
+    test('pas de capture, pas d\'emplacement', () {
+      expect(EmplacementCapture.depuis(null), isNull);
+      expect(EmplacementCapture.depuis(''), isNull);
+      expect(EmplacementCapture.depuis('aucune'), isNull);
+      expect(EmplacementCapture.depuis('https://ailleurs/photo.png'), isNull,
+          reason: 'une URL qui ne vient pas du stockage ne désigne aucun objet');
     });
   });
 }

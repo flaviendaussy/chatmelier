@@ -165,24 +165,29 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
 
     try {
       final supabase = Supabase.instance.client;
-      String? uploadedImageUrl;
+      String? capture;
 
       // Render & upload annotated image if present
       final annotatedBytes = await _renderAnnotatedImage();
-      if (annotatedBytes != null) {
-        // Le chemin était `<user_id>/feedback_<horodatage>.png`, dans un bucket PUBLIC.
-        // L'URL d'une capture désignait donc son auteur, et suffisait à regrouper tout ce
-        // qu'une même personne avait envoyé. Un identifiant aléatoire retire ce lien sans
-        // rien coûter : la colonne `user_id` de la table reste disponible côté serveur
-        // pour qui a le droit de la lire.
-        final fileName = 'feedback/${const Uuid().v4()}.png';
+      final userId = supabase.auth.currentUser?.id;
+      if (annotatedBytes != null && userId != null) {
+        // Bucket PRIVÉ (migration 036). Une capture d'écran n'est pas une photo
+        // d'étiquette : elle montre tout ce qu'on avait sous les yeux. Dans `labels`, un
+        // nom aléatoire rendait l'URL indevinable, pas privée — qui l'avait une fois
+        // l'avait pour toujours, y compris après la suppression de la ligne.
+        //
+        // Le dossier reprend l'identifiant de la personne : dans un bucket public c'était
+        // une fuite, ici c'est précisément ce qui permet à la RLS de dire « les siennes,
+        // et rien d'autre ». Ce qui est journalisé est le CHEMIN, pas une URL : il ne
+        // donne accès à rien sans signature.
+        final chemin = '$userId/${const Uuid().v4()}.png';
         try {
-          await supabase.storage.from('labels').uploadBinary(
-            fileName,
+          await supabase.storage.from('feedback').uploadBinary(
+            chemin,
             annotatedBytes,
             fileOptions: const FileOptions(contentType: 'image/png', upsert: true),
           );
-          uploadedImageUrl = supabase.storage.from('labels').getPublicUrl(fileName);
+          capture = chemin;
         } catch (uploadErr) {
           debugPrint('Storage upload note: $uploadErr');
         }
@@ -195,7 +200,7 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
       AppLogger.info(
         'USER_FEEDBACK',
         'Commentaire: ${comment.isNotEmpty ? comment : "Sans commentaire"} '
-            '| Capture: ${uploadedImageUrl ?? "aucune"} '
+            '| Capture: ${capture ?? "aucune"} '
             '| Annotations: ${_strokes.isNotEmpty ? "oui" : "non"}',
       );
       await AppLogger.flushToServer();

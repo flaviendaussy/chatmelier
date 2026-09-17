@@ -152,6 +152,35 @@ class _LigneState extends ConsumerState<_Ligne> {
         '${d.month.toString().padLeft(2, '0')}/${d.year}';
 
     return ListTile(
+      // La vignette est ce qui rend le retrait décidable : une capture peut montrer plus
+      // que ce dont on se souvient, et personne ne devrait avoir à se fier à sa mémoire
+      // pour savoir ce qu'il a envoyé.
+      leading: r.capture == null
+          ? null
+          : SizedBox(
+              width: 44,
+              height: 44,
+              child: FutureBuilder<String?>(
+                future: ref
+                    .read(feedbackHistoryServiceProvider)
+                    .urlDeLaCapture(r.capture),
+                builder: (context, snap) {
+                  final url = snap.data;
+                  if (url == null) {
+                    return const Icon(Icons.image_outlined, size: 28);
+                  }
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.image_not_supported_outlined, size: 28),
+                    ),
+                  );
+                },
+              ),
+            ),
       title: Text(
         r.commentaire,
         maxLines: 3,

@@ -13,6 +13,16 @@
 # lignes `tag = 'USER_FEEDBACK'`, et pas la colonne `user_id` : ni les caves, ni les
 # dégustations, ni les adresses e-mail ne sont accessibles avec ces identifiants.
 #
+# LES CAPTURES. Depuis la migration 036, le champ « Capture: » n'est plus une URL mais un
+# CHEMIN dans le bucket PRIVÉ `feedback` (`<user_id>/<uuid>.png`). C'est voulu : une
+# capture d'écran montre tout ce que la personne avait sous les yeux, et un nom de fichier
+# aléatoire dans un bucket public rendait l'URL indevinable, pas privée.
+#   · à la main : Dashboard → Storage → bucket `feedback` → coller le chemin
+#   · par programme : la fonction edge `sign-feedback-capture` signe une URL de 5 minutes
+#     après avoir vérifié `profiles.is_admin` côté serveur.
+# Les remontées antérieures portent encore une URL publique du bucket `labels` : elles
+# restent ouvrables telles quelles.
+#
 # Mise en place :
 #   1. sudo apt install postgresql-client
 #   2. SQL Editor :  CREATE ROLE chatmelier_feedback_ro LOGIN PASSWORD '…';
@@ -60,7 +70,7 @@ case "${1:---last}" in
     ;;
 
   --help|-h)
-    sed -n '3,25p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
+    sed -n '3,33p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
     ;;
 
   *)

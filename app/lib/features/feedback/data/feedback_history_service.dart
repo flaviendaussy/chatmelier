@@ -12,7 +12,12 @@ class RetourEnvoye {
   /// Le commentaire seul, extrait du message journalisé.
   final String commentaire;
 
-  /// L'URL de la capture jointe, s'il y en avait une.
+  /// La capture jointe, s'il y en avait une.
+  ///
+  /// Deux formes coexistent : un CHEMIN dans le bucket privé `feedback` (depuis la
+  /// migration 036), ou une ancienne URL publique du bucket `labels`. Les anciennes
+  /// remontées ne sont pas réécrites — leurs URL circulent déjà et le dépouillement en
+  /// cours perdrait ses pièces jointes.
   final String? capture;
 
   const RetourEnvoye({
@@ -75,9 +80,8 @@ class FeedbackHistoryService {
 
   /// Retire un retour : la ligne ET la capture.
   ///
-  /// Supprimer la ligne sans l'image laisserait la capture d'écran accessible dans un
-  /// bucket public à qui en connaît l'URL — un retrait qui ne retire rien de ce qui
-  /// compte le plus.
+  /// Supprimer la ligne sans l'image laisserait la capture d'écran dans le stockage — un
+  /// retrait qui ne retire pas ce qui compte le plus.
   Future<bool> retirer(RetourEnvoye retour) async {
     try {
       await _client.from('app_diagnostic_logs').delete().eq('id', retour.id);
@@ -85,26 +89,65 @@ class FeedbackHistoryService {
       AppLogger.warning('FEEDBACK', 'Retrait impossible (${retour.id}): $e');
       return false;
     }
-    final chemin = cheminDeLaCapture(retour.capture);
-    if (chemin != null) {
+    final ou = EmplacementCapture.depuis(retour.capture);
+    if (ou != null) {
       try {
-        await _client.storage.from('labels').remove([chemin]);
+        await _client.storage.from(ou.bucket).remove([ou.chemin]);
       } catch (e) {
         // La ligne est partie ; l'image résiduelle est signalée, pas masquée.
-        AppLogger.warning('FEEDBACK', 'Capture non supprimée ($chemin): $e');
+        AppLogger.warning('FEEDBACK', 'Capture non supprimée (${ou.chemin}): $e');
       }
     }
     return true;
   }
 
-  /// Retrouve le chemin dans le bucket à partir de l'URL publique.
-  static String? cheminDeLaCapture(String? url) {
-    if (url == null || url.isEmpty) return null;
-    const marqueur = '/labels/';
-    final i = url.indexOf(marqueur);
+  /// Une URL pour afficher sa propre capture, valable quelques minutes.
+  ///
+  /// Le bucket est privé : il n'existe pas d'URL permanente à montrer. La RLS autorise
+  /// chacun à relire son propre dossier, donc la signature se fait avec la session de la
+  /// personne — aucun secret ne quitte le serveur.
+  Future<String?> urlDeLaCapture(String? capture) async {
+    final ou = EmplacementCapture.depuis(capture);
+    if (ou == null) return null;
+    if (ou.bucket != 'feedback') return capture; // ancienne URL publique, déjà affichable
+    try {
+      return await _client.storage
+          .from(ou.bucket)
+          .createSignedUrl(ou.chemin, 300);
+    } catch (e) {
+      AppLogger.warning('FEEDBACK', 'Signature impossible (${ou.chemin}): $e');
+      return null;
+    }
+  }
+}
+
+/// Où vit une capture : dans quel bucket, sous quel chemin.
+class EmplacementCapture {
+  final String bucket;
+  final String chemin;
+  const EmplacementCapture(this.bucket, this.chemin);
+
+  /// Lit les deux formes possibles sans avoir à demander laquelle c'est.
+  ///
+  /// Une ancienne remontée porte une URL publique complète ; une nouvelle porte un simple
+  /// chemin dans le bucket privé. La présence de `://` suffit à trancher.
+  static EmplacementCapture? depuis(String? valeur) {
+    if (valeur == null || valeur.isEmpty || valeur == 'aucune') return null;
+
+    if (!valeur.contains('://')) {
+      // Chemin nu : bucket privé `feedback`, sous le dossier de son auteur.
+      final propre = valeur.split('?').first;
+      return propre.isEmpty ? null : EmplacementCapture('feedback', propre);
+    }
+
+    // URL publique historique : .../object/public/<bucket>/<chemin>
+    const marqueur = '/public/';
+    final i = valeur.indexOf(marqueur);
     if (i < 0) return null;
-    final chemin = url.substring(i + marqueur.length).split('?').first;
-    return chemin.isEmpty ? null : chemin;
+    final reste = valeur.substring(i + marqueur.length).split('?').first;
+    final coupe = reste.indexOf('/');
+    if (coupe <= 0 || coupe == reste.length - 1) return null;
+    return EmplacementCapture(reste.substring(0, coupe), reste.substring(coupe + 1));
   }
 }
 

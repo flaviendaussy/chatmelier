@@ -30,6 +30,8 @@ import '../domain/user_profile.dart';
 import '../../notifications/presentation/notification_settings_sheet.dart';
 import '../../notifications/data/notification_preferences_service.dart';
 import '../../feedback/data/shake_feedback_service.dart';
+import '../../feedback/data/feedback_history_service.dart';
+import '../../feedback/presentation/mes_retours_sheet.dart';
 import 'taste_evidence_sheet.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -1518,6 +1520,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           trailing: const Icon(Icons.chevron_right),
           onTap: () => ShakeFeedbackService.instance.triggerFeedback(context),
         ),
+
+        // N'apparaît qu'à qui a déjà envoyé quelque chose : personne ne doit découvrir un
+        // écran vide pour une fonctionnalité qu'il n'a jamais utilisée.
+        Consumer(builder: (context, ref, _) {
+          // `valueOrNull` et non `value` : sur une erreur (hors ligne, session absente)
+          // `value` relance l'exception et emporterait tout l'onglet avec elle. Ne rien
+          // proposer vaut mieux qu'un écran blanc.
+          final retours = ref.watch(mesRetoursProvider).valueOrNull ?? const [];
+          if (retours.isEmpty) return const SizedBox.shrink();
+          return ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.history_outlined, color: Colors.orange),
+            title: Text(isFr ? 'Mes retours envoyés' : 'My sent reports',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(
+              isFr
+                  ? '${retours.length} envoyé${retours.length > 1 ? 's' : ''} · à retirer si vous le souhaitez'
+                  : '${retours.length} sent · withdraw them if you wish',
+              style: const TextStyle(fontSize: 12),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => MesRetoursSheet.show(context),
+          );
+        }),
 
         if (isAdmin) ...[
           const Divider(height: 12),

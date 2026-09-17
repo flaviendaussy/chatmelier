@@ -66,33 +66,38 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.didChangeDependencies();
     if (!_initialized) {
       _initialized = true;
-      if (_messages.isEmpty) {
-        final isFr = Localizations.localeOf(context).languageCode == 'fr';
-        if (widget.wineName != null && widget.wineName!.isNotEmpty) {
-          final parts = [
-            if (widget.producer != null && widget.producer!.isNotEmpty) widget.producer!,
-            widget.wineName!,
-            if (widget.vintage != null && widget.vintage!.isNotEmpty) widget.vintage!,
-          ];
-          final wineTitle = parts.join(' ');
-          _messages.add(ChatMessage(
-            id: 'bottle_welcome',
-            role: 'assistant',
-            content: isFr
-                ? 'Bonjour ! Je suis prêt à vous conseiller sur ce $wineTitle 🍷. Que souhaitez-vous savoir ? Ses accords mets-vins idéaux, son potentiel de garde, son temps de carafage ou son terroir ?'
-                : 'Hello! I am ready to advise you on this $wineTitle 🍷. What would you like to know? Ideal food pairings, aging potential, decanting time, or its terroir?',
-            createdAt: DateTime.now(),
-          ));
-        } else {
-          final l10n = AppLocalizations.of(context);
-          _messages.add(ChatMessage(
-            id: 'welcome',
-            role: 'assistant',
-            content: l10n?.chatGreeting ??
-                'Bonjour ! Je suis Chatmelier. Posez-moi vos questions sur les accords mets-vins, l\'apogée de vos bouteilles, ou demandez-moi des recommandations basées sur votre cave actuelle.',
-            createdAt: DateTime.now(),
-          ));
-        }
+      _ajouterMessageAccueil();
+    }
+  }
+
+  /// Le message d'ouverture, celui qu'on revoit aussi après avoir effacé la conversation.
+  void _ajouterMessageAccueil() {
+    if (_messages.isEmpty) {
+      final isFr = Localizations.localeOf(context).languageCode == 'fr';
+      if (widget.wineName != null && widget.wineName!.isNotEmpty) {
+        final parts = [
+          if (widget.producer != null && widget.producer!.isNotEmpty) widget.producer!,
+          widget.wineName!,
+          if (widget.vintage != null && widget.vintage!.isNotEmpty) widget.vintage!,
+        ];
+        final wineTitle = parts.join(' ');
+        _messages.add(ChatMessage(
+          id: 'bottle_welcome',
+          role: 'assistant',
+          content: isFr
+              ? 'Bonjour ! Je suis prêt à vous conseiller sur ce $wineTitle 🍷. Que souhaitez-vous savoir ? Ses accords mets-vins idéaux, son potentiel de garde, son temps de carafage ou son terroir ?'
+              : 'Hello! I am ready to advise you on this $wineTitle 🍷. What would you like to know? Ideal food pairings, aging potential, decanting time, or its terroir?',
+          createdAt: DateTime.now(),
+        ));
+      } else {
+        final l10n = AppLocalizations.of(context);
+        _messages.add(ChatMessage(
+          id: 'welcome',
+          role: 'assistant',
+          content: l10n?.chatGreeting ??
+              'Bonjour ! Je suis Chatmelier. Posez-moi vos questions sur les accords mets-vins, l\'apogée de vos bouteilles, ou demandez-moi des recommandations basées sur votre cave actuelle.',
+          createdAt: DateTime.now(),
+        ));
       }
     }
   }
@@ -103,6 +108,60 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Efface la conversation, après avoir dit ce que cela change vraiment.
+  ///
+  /// L'historique n'est pas décoratif : il est réinjecté dans chaque requête. « Effacer »
+  /// veut donc dire que l'IA repart de zéro, et c'est ce qu'il faut annoncer.
+  Future<void> _confirmerEffacementConversation({required bool isFr}) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isFr ? 'Effacer la conversation ?' : 'Clear conversation?'),
+        content: Text(isFr
+            ? 'Vos échanges seront supprimés, et le sommelier repartira de zéro : il ne se '
+                'souviendra plus de ce qui a été dit.'
+            : 'Your messages will be deleted, and the sommelier will start over: it will no '
+                'longer remember what was said.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(isFr ? 'Annuler' : 'Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(isFr ? 'Effacer' : 'Clear'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+
+    final cellarId = ref.read(currentCellarIdProvider);
+    if (cellarId == null) return;
+    try {
+      await ref.read(chatServiceProvider).clearChatHistory(cellarId);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(isFr
+            ? 'La conversation n\'a pas pu être effacée. Réessayez une fois connecté.'
+            : 'The conversation could not be cleared. Try again once online.'),
+      ));
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      _messages.clear();
+      _ajouterMessageAccueil();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(isFr ? 'Conversation effacée.' : 'Conversation cleared.'),
+    ));
   }
 
   Future<void> _loadHistory() async {
@@ -313,6 +372,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ? (isFr ? 'Profils de Goût (${names.take(2).join(' & ')})' : 'Taste Profiles (${names.take(2).join(' & ')})')
         : (isFr ? 'Profils de Goût & Invités' : 'Taste Profiles & Guests');
 
+    final isFrTitle = Localizations.localeOf(context).languageCode == 'fr';
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n?.chatTitle ?? 'Chatmelier IA'),
@@ -321,6 +381,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             icon: const Icon(Icons.people_outline, color: Color(0xFFD4AF37)),
             tooltip: profileTooltip,
             onPressed: () => TasteProfilesDialog.show(context),
+          ),
+          PopupMenuButton<String>(
+            tooltip: isFrTitle ? 'Plus d\'options' : 'More options',
+            onSelected: (v) {
+              if (v == 'effacer') _confirmerEffacementConversation(isFr: isFrTitle);
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'effacer',
+                child: Row(
+                  children: [
+                    const Icon(Icons.delete_sweep_outlined, size: 20),
+                    const SizedBox(width: 12),
+                    Text(isFrTitle ? 'Effacer la conversation' : 'Clear conversation'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

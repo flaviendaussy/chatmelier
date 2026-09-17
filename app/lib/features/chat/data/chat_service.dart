@@ -615,6 +615,22 @@ SOMMELIER RULES:
     }
   }
 
+  /// Efface la conversation d'une cave.
+  ///
+  /// Ce n'est pas qu'un nettoyage d'affichage : les dix derniers messages sont réinjectés
+  /// dans chaque requête (voir `_buildContext`). Tant qu'ils existent, l'IA continue de
+  /// répondre à la lumière d'une conversation qu'on croyait effacée.
+  Future<void> clearChatHistory(String cellarId) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+    await _client
+        .from('chat_messages')
+        .delete()
+        .eq('cellar_id', cellarId)
+        .eq('user_id', user.id);
+    AppLogger.info('CHAT_AI', 'Conversation effacée pour la cave $cellarId');
+  }
+
   Future<List<ChatMessage>> getChatHistory(String cellarId) async {
     final user = _client.auth.currentUser;
     if (user == null) return [];

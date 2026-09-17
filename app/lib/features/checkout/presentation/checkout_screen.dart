@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../../cellar/domain/bottle.dart';
+import 'gift_exit_sheet.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/providers/supabase_provider.dart';
@@ -1285,6 +1287,36 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
 
+  /// Offrir plutôt que boire.
+  ///
+  /// La feuille est délibérément ailleurs : la sortie pour dégustation demande une note,
+  /// des convives, des arômes ; l'offrande demande un nom et une décision. Fondre les deux
+  /// dans cet écran aurait imposé le premier formulaire à la seconde intention.
+  Future<void> _offrirCetteBouteille() async {
+    final b = _selectedBottle;
+    if (b == null) return;
+    final wine = b['wines'] as Map<String, dynamic>? ?? {};
+    final offert = await GiftExitSheet.show(
+      context,
+      bottle: Bottle.fromJson(b),
+      wineName: wine['name']?.toString() ?? 'Vin',
+      vintage: (wine['vintage'] as num?)?.toInt() ??
+          int.tryParse(wine['vintage']?.toString() ?? ''),
+      producer: wine['producer']?.toString(),
+      region: wine['region']?.toString(),
+      wineType: (wine['type'] ?? wine['wine_type'])?.toString(),
+    );
+    if (offert != true || !mounted) return;
+
+    final cellarId = b['cellar_id']?.toString() ?? ref.read(currentCellarIdProvider);
+    if (cellarId != null) notifyCellarChanged(ref, cellarId);
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(isFr ? 'Bouteille offerte 🎁' : 'Bottle given 🎁'),
+    ));
+    if (mounted) Navigator.of(context).maybePop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1491,7 +1523,28 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            // Une bouteille peut sortir de la cave sans être bue. Jusqu'ici le seul chemin
+            // passait par ici, donc par une note : on notait un vin qu'on n'avait pas
+            // goûté, et cette note partait nourrir le profil de goût. Un lien discret
+            // plutôt qu'un second bouton — l'immense majorité des sorties sont des
+            // dégustations, et cet écran ne doit pas se dédoubler pour l'exception.
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                onPressed: _offrirCetteBouteille,
+                icon: const Icon(Icons.card_giftcard, size: 16),
+                label: Text(
+                  isFr
+                      ? 'Vous l\'offrez plutôt ? →'
+                      : 'Giving it away instead? →',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
 
             // =========================================================================
             // HERO TASTING CARD ("Taste this wine" / "Déguster ce vin")

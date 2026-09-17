@@ -23,6 +23,13 @@ class Bottle {
   final String? position;
   final String status;
   final DateTime? consumedAt;
+
+  /// À qui la bouteille a été offerte, et quand.
+  ///
+  /// Distincts de `consumedAt` : une bouteille offerte n'a pas été bue, et l'écrire comme
+  /// si elle l'avait été ferait entrer un vin jamais goûté dans l'histoire du palais.
+  final String? giftedTo;
+  final DateTime? giftedAt;
   final DateTime createdAt;
   final Wine? wine;
   final String? ownerName;
@@ -51,6 +58,8 @@ class Bottle {
     this.position,
     this.status = 'in_cellar',
     this.consumedAt,
+    this.giftedTo,
+    this.giftedAt,
     required this.createdAt,
     this.wine,
     this.ownerName,
@@ -128,6 +137,10 @@ class Bottle {
       consumedAt: (json['consumed_at'] ?? json['consumedAt']) != null
           ? DateTime.tryParse((json['consumed_at'] ?? json['consumedAt']).toString())
           : null,
+      giftedTo: (json['gifted_to'] ?? json['giftedTo']) as String?,
+      giftedAt: (json['gifted_at'] ?? json['giftedAt']) != null
+          ? DateTime.tryParse((json['gifted_at'] ?? json['giftedAt']).toString())
+          : null,
       createdAt: (json['created_at'] ?? json['createdAt']) != null
           ? (DateTime.tryParse((json['created_at'] ?? json['createdAt']).toString()) ?? DateTime.now())
           : DateTime.now(),
@@ -160,6 +173,8 @@ class Bottle {
         if (position != null) 'position': position,
         'status': status,
         if (consumedAt != null) 'consumed_at': consumedAt!.toIso8601String(),
+        if (giftedTo != null) 'gifted_to': giftedTo,
+        if (giftedAt != null) 'gifted_at': giftedAt!.toIso8601String(),
         'created_at': createdAt.toIso8601String(),
         if (wine != null) 'wines': wine!.toJson(),
         if (ownerName != null) 'profiles': {'display_name': ownerName},
@@ -172,6 +187,7 @@ class Bottle {
 
   bool get isInCellar => status == 'in_cellar';
   bool get isConsumed => status == 'consumed';
+  bool get isGifted => status == 'gifted';
   double get fillFraction => (fillLevel.clamp(0, 100)) / 100.0;
   bool get isSpiritBottle => wine?.isSpirit ?? false;
   bool get tracksFillLevel => (wine?.tracksFillLevel ?? false) || isSpiritBottle;
@@ -282,6 +298,8 @@ class Bottle {
     String? position,
     String? status,
     DateTime? consumedAt,
+    String? giftedTo,
+    DateTime? giftedAt,
     DateTime? createdAt,
     Wine? wine,
     String? ownerName,
@@ -310,6 +328,8 @@ class Bottle {
       position: position ?? this.position,
       status: status ?? this.status,
       consumedAt: consumedAt ?? this.consumedAt,
+      giftedTo: giftedTo ?? this.giftedTo,
+      giftedAt: giftedAt ?? this.giftedAt,
       createdAt: createdAt ?? this.createdAt,
       wine: wine ?? this.wine,
       ownerName: ownerName ?? this.ownerName,

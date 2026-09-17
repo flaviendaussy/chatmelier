@@ -356,9 +356,15 @@ class PostTastingNotificationService {
   }
 
   Future<void> _saveAll(SharedPreferences prefs, List<PendingTastingNotification> notifications) async {
-    // Purge notifications older than 48h to avoid infinite accumulation
+    // Purge sur `scheduledAt` et non sur `checkedOutAt`.
+    //
+    // La purge visait l'accumulation : une relance qu'on n'a jamais ouverte doit finir par
+    // disparaître. Mais la mesurer depuis la SORTIE de la bouteille effaçait tout report
+    // de plus de 48 h AVANT qu'il ne sonne — la relance était enregistrée, puis oubliée,
+    // sans que rien ne le signale. Une échéance qui n'est pas encore arrivée n'est pas
+    // périmée : c'est celle qui a sonné il y a deux jours qui l'est.
     final cutoff = DateTime.now().subtract(const Duration(hours: 48));
-    notifications.removeWhere((n) => n.checkedOutAt.isBefore(cutoff));
+    notifications.removeWhere((n) => n.scheduledAt.isBefore(cutoff));
     await prefs.setString(_storageKey, jsonEncode(notifications.map((n) => n.toJson()).toList()));
   }
 

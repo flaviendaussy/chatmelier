@@ -1233,6 +1233,36 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     ),
                   ],
 
+                  // Ce qu'est devenue la bouteille, quand elle a été offerte.
+                  //
+                  // « Proposer de log à qui il est offert » ne vaut que si on peut le
+                  // relire : une information qu'on saisit et qui n'est jamais réaffichée
+                  // n'est pas une trace, c'est un formulaire.
+                  if (bottleObj.isGifted && (bottleObj.giftedTo ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.card_giftcard, size: 15, color: Color(0xFF8B1E3F)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            bottleObj.giftedAt != null
+                                ? (isFr
+                                    ? 'Offerte à ${bottleObj.giftedTo} le ${_formatDateCourte(bottleObj.giftedAt!)}'
+                                    : 'Given to ${bottleObj.giftedTo} on ${_formatDateCourte(bottleObj.giftedAt!)}')
+                                : (isFr
+                                    ? 'Offerte à ${bottleObj.giftedTo}'
+                                    : 'Given to ${bottleObj.giftedTo}'),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF8B1E3F),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
                   // Bottle Fill View (Spirits, Liqueurs & Fortified/Mutés)
                   if (wine.tracksFillLevel) ...[
                     const SizedBox(height: 14),
@@ -2756,6 +2786,12 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         ],
       ),
     );
+  }
+
+  static String _formatDateCourte(DateTime d) {
+    final l = d.toLocal();
+    return '${l.day.toString().padLeft(2, '0')}/'
+        '${l.month.toString().padLeft(2, '0')}/${l.year}';
   }
 
   Widget _buildQuickNavBar(BuildContext context, Wine wine, bool isFr) {

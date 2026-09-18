@@ -881,7 +881,10 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 child: _buildActionTile(
                   context,
                   icon: Icons.inventory_2_outlined,
-                  title: isFr ? 'Sortir de\nma cave' : 'Check out\ncellar bottle',
+                  // Quatre tuiles au lieu de trois : les titres doivent tenir. « Check out
+                  // cellar bottle » se coupait après « cellar », ce qui laissait un
+                  // libellé tronqué sur l'action la plus utilisée de l'écran.
+                  title: isFr ? 'Sortir de\nma cave' : 'From my\ncellar',
                   subtitle: isFr ? 'Boire un flacon' : 'Drink a bottle',
                   badgeColor: const Color(0xFF8B1E3F),
                   onTap: () => context.push('/checkout'),
@@ -893,7 +896,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 child: _buildActionTile(
                   context,
                   icon: Icons.restaurant,
-                  title: isFr ? 'Déguster\nhors-cave' : 'Taste\nout-of-cellar',
+                  title: isFr ? 'Déguster\nailleurs' : 'Taste\nelsewhere',
                   subtitle: isFr ? 'Resto ou amis' : 'Resto or friends',
                   badgeColor: Colors.orange.shade800,
                   onTap: () => ExternalTastingDialog.show(context),

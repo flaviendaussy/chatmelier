@@ -7,6 +7,7 @@ import '../../auth/presentation/taste_profiles_dialog.dart';
 import '../domain/menu_wine.dart';
 import '../domain/cellar_bridge.dart';
 import '../data/cellar_context_provider.dart';
+import '../data/recent_menus_store.dart';
 import 'menu_chat_assistant_sheet.dart';
 import 'menu_matchmaker_sheet.dart';
 import 'menu_wine_compare_sheet.dart';
@@ -64,6 +65,12 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     _menu = widget.menu;
     _loadViewPreference();
     WidgetsBinding.instance.addPostFrameCallback((_) => _croiserAvecMaCave());
+    // Conserver la carte dès son ouverture, et non à la sortie : on quitte cet écran de
+    // mille façons — retour, appel entrant, app tuée — et une seule d'entre elles serait
+    // passée par un `dispose`.
+    RecentMenusStore.ouvrir()
+        .then((s) => s.enregistrer(widget.menu))
+        .catchError((_) {});
   }
 
   /// Annote la carte avec ce que la cave et le journal savent.

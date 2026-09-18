@@ -9,6 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../domain/tasting_entry.dart';
 import 'external_tasting_dialog.dart';
 import '../../menu_scan/presentation/join_table_sheet.dart';
+import '../../menu_scan/data/recent_menus_store.dart';
 import 'tasting_questionnaire_sheet.dart';
 import 'tasting_entry_detail_screen.dart';
 import '../../cellar/data/favorite_wines_service.dart';
@@ -928,6 +929,61 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
               ),
             ],
           ),
+          // Rouvrir la dernière carte scannée.
+          //
+          // Une carte ne survivait pas à la fermeture de son écran : sortir pour prendre
+          // un appel obligeait à tout rescanner — nouvel appel IA, nouvelles photos, et
+          // la table ouverte perdue au passage. N'apparaît que s'il y a une carte à
+          // rouvrir.
+          Consumer(builder: (context, ref, _) {
+            final recentes = ref.watch(recentMenusProvider).valueOrNull ?? const [];
+            if (recentes.isEmpty) return const SizedBox.shrink();
+            final derniere = recentes.first;
+            return Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Material(
+                color: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => context.push('/scan/menu/result', extra: derniere),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    child: Row(
+                      children: [
+                        Icon(Icons.history_rounded,
+                            size: 20, color: Colors.teal.shade700),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isFr
+                                    ? 'Rouvrir « ${derniere.restaurantName} »'
+                                    : 'Reopen "${derniere.restaurantName}"',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                              Text(
+                                isFr
+                                    ? '${derniere.wines.length} vins · sans rescanner'
+                                    : '${derniere.wines.length} wines · no rescan needed',
+                                style: const TextStyle(
+                                    fontSize: 11, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, size: 18),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+
           const SizedBox(height: 10),
           // 4. Sommelier Accord Mets & Vins Shortcut
           Material(

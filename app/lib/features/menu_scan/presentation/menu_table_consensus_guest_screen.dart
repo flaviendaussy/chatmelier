@@ -85,52 +85,20 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
       resolved = MenuTableSessionManager.decodeMenuPayload(rawData);
     }
 
-    // Fallback menu de secours pour éviter tout écran blanc
-    resolved ??= ScannedMenu(
-      id: 'fallback_guest_menu',
-      restaurantName: 'Menu du Restaurant',
-      pagePhotoPaths: const [],
-      wines: const [
-        MenuWine(
-          id: 'w_fallback_1',
-          name: 'Domaine Laroche Chablis Premier Cru',
-          producer: 'Domaine Laroche',
-          wineType: 'Blanc',
-          appellation: 'Chablis',
-          region: 'Bourgogne',
-          vintage: 2021,
-          bottlePrice: 48.0,
-          isGem: true,
-          metrics: MenuWineRadarMetrics(acidity: 8.5, minerality: 9.0, body: 5.5, fruit: 6.5, oak: 2.0),
-        ),
-        MenuWine(
-          id: 'w_fallback_2',
-          name: 'Château Bel-Air Graves',
-          producer: 'Château Bel-Air',
-          wineType: 'Rouge',
-          appellation: 'Graves',
-          region: 'Bordeaux',
-          vintage: 2019,
-          bottlePrice: 42.0,
-          isDeal: true,
-          metrics: MenuWineRadarMetrics(tannins: 7.0, body: 7.5, acidity: 5.5, fruit: 7.0, oak: 6.0),
-        ),
-        MenuWine(
-          id: 'w_fallback_3',
-          name: 'Domaine de la Janasse Côtes du Rhône',
-          producer: 'Domaine de la Janasse',
-          wineType: 'Rouge',
-          appellation: 'Côtes du Rhône',
-          region: 'Rhône',
-          vintage: 2022,
-          bottlePrice: 34.0,
-          metrics: MenuWineRadarMetrics(tannins: 4.5, fruit: 8.0, body: 6.5, acidity: 5.0),
-        ),
-      ],
-      scannedAt: DateTime.now(),
-    );
-
+    // PAS DE MENU DE SECOURS.
+    //
+    // Il y avait ici trois vins inventés — un Chablis, un Graves, un Côtes du Rhône —
+    // affichés sous le titre « Menu du Restaurant ». Quand le décodage échouait (ce qui
+    // était le cas sur TOUS les navigateurs, `gzip` de dart:io n'existant pas sous
+    // dart2js), l'invité voyait donc une carte imaginaire présentée comme celle de
+    // l'établissement où il dînait, et pouvait voter pour un vin que le restaurant ne
+    // sert pas. « Éviter l'écran blanc » ne justifie pas de mentir sur ce qu'on montre.
+    //
+    // Un menu nul déclenche l'écran d'erreur, qui dit ce qui s'est passé et propose de
+    // rescanner.
     _menu = resolved;
+
+
 
     // Hôte initial par défaut
     _guests.add(const GuestProfile(
@@ -215,9 +183,60 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
     }
   }
 
+  /// Ce qu'on affiche quand la carte n'a pas pu être lue.
+  ///
+  /// Une vraie erreur, et non trois vins inventés sous le titre « Menu du Restaurant » :
+  /// l'invité a le droit de savoir qu'il ne regarde pas la carte de l'établissement où il
+  /// est assis. Le message dit quoi faire — redemander le QR — plutôt que de nommer une
+  /// cause technique qui ne lui sert à rien.
+  Widget _ecranCarteIllisible(bool isFr) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF140F1A),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1F1528),
+        elevation: 0,
+        title: Text(isFr ? 'Carte indisponible' : 'Menu unavailable'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.qr_code_scanner_rounded,
+                  size: 56, color: Color(0xFFD4AF37)),
+              const SizedBox(height: 20),
+              Text(
+                isFr
+                    ? 'Cette carte n\'a pas pu être chargée'
+                    : 'This menu could not be loaded',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isFr
+                    ? 'Le lien est incomplet ou a expiré. Demandez à la personne qui a '
+                        'scanné la carte de réafficher son QR code, puis scannez-le à nouveau.'
+                    : 'The link is incomplete or has expired. Ask whoever scanned the menu '
+                        'to show their QR code again, then scan it once more.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    if (_menu == null || _menu!.wines.isEmpty) return _ecranCarteIllisible(isFr);
     final menu = _menu!;
 
     return DefaultTabController(

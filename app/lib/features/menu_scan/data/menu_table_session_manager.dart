@@ -1,5 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
+
+import 'package:archive/archive.dart';
+
 import '../domain/menu_wine.dart';
 
 class MenuTableSessionManager {
@@ -14,6 +16,11 @@ class MenuTableSessionManager {
   static ScannedMenu? getSession(String sessionId) {
     return _activeSessions[sessionId.toUpperCase().trim()];
   }
+
+  /// Un dixième suffit : la précision au centième ne déplace aucun classement et
+  /// alourdit la matrice du QR, qu'il faut pouvoir scanner d'un téléphone à travers une
+  /// table de restaurant.
+  static double _d1(double v) => double.parse(v.toStringAsFixed(1));
 
   /// Compresse et encode un ScannedMenu dans une charge utile URL-safe compacte et optimisée pour QR code
   static String encodeMenuPayload(ScannedMenu menu) {
@@ -36,6 +43,11 @@ class MenuTableSessionManager {
         }
       }
 
+      // Le moteur de consensus a besoin des MÉTRIQUES : sans elles il note tous les
+      // vins à la même valeur par défaut, l'écart entre le premier et le dernier tombe à
+      // deux points sur sept vins, et une aversion déclarée aux tanins ne change rien au
+      // classement. Les cépages et les prix au verre suivent la même logique — ce qui
+      // n'est pas embarqué n'existe pas pour l'invité.
       final compactList = selectedWines.map((w) => [
         w.name,
         w.wineType,
@@ -47,6 +59,20 @@ class MenuTableSessionManager {
         w.isGem ? 1 : 0,
         w.isDeal ? 1 : 0,
         w.sommelierComment ?? '',
+        // Métriques, arrondies au dixième : la précision au centième ne change aucun
+        // classement et alourdit la matrice du QR.
+        [
+          _d1(w.metrics.tannins),
+          _d1(w.metrics.acidity),
+          _d1(w.metrics.body),
+          _d1(w.metrics.fruit),
+          _d1(w.metrics.oak),
+          _d1(w.metrics.minerality),
+          _d1(w.metrics.butteriness),
+          _d1(w.metrics.sweetness),
+        ],
+        w.grapes.take(4).join(','),
+        [for (final g in w.glassPrices.take(3)) [g.format, _d1(g.price)]],
       ]).toList();
 
       final jsonMap = {
@@ -56,7 +82,10 @@ class MenuTableSessionManager {
 
       final jsonStr = jsonEncode(jsonMap);
       final bytes = utf8.encode(jsonStr);
-      final compressed = gzip.encode(bytes);
+      // GZipEncoder du paquet `archive`, et non `gzip` de dart:io : ce dernier lève
+      // UnsupportedError une fois compilé par dart2js. `decodeMenuPayload` renvoyait donc
+      // null sur TOUT navigateur, et l'invité basculait en silence sur un menu fictif.
+      final compressed = GZipEncoder().encode(bytes);
       return base64Url.encode(compressed);
     } catch (_) {
       // Fallback simple base64 si compression échoue
@@ -90,11 +119,20 @@ class MenuTableSessionManager {
       } catch (_) {
         compressed = base64.decode(sanitized);
       }
-      List<int> bytes;
-      try {
-        bytes = gzip.decode(compressed);
-      } catch (_) {
-        bytes = compressed;
+      // Une charge peut être compressée (cas normal) ou non (repli d'encodage, et
+      // anciennes URL). On le décide sur le NOMBRE MAGIQUE gzip — 0x1f 0x8b — et non en
+      // attendant qu'un décodeur lève une exception : selon la plateforme, décompresser
+      // des octets qui ne sont pas du gzip lève, ou rend une liste vide. Le second cas
+      // passait à travers le `catch` et produisait un JSON illisible.
+      final estGzip =
+          compressed.length > 2 && compressed[0] == 0x1f && compressed[1] == 0x8b;
+      List<int> bytes = compressed;
+      if (estGzip) {
+        try {
+          bytes = GZipDecoder().decodeBytes(compressed);
+        } catch (_) {
+          bytes = compressed;
+        }
       }
       final jsonStr = utf8.decode(bytes);
       final dynamic decoded = jsonDecode(jsonStr);
@@ -119,6 +157,27 @@ class MenuTableSessionManager {
             final isDeal = item.length > 8 ? (item[8] == 1 || item[8] == '1' || item[8] == true) : false;
             final sommelierComment = item.length > 9 && item[9]?.toString().isNotEmpty == true ? item[9].toString() : null;
 
+            // Les champs ajoutés en fin de liste : une charge utile ancienne s'arrête
+            // avant, et garde donc les valeurs par défaut sans rien casser.
+            final metrics = item.length > 10 && item[10] is List
+                ? _metriquesDepuis(item[10] as List)
+                : const MenuWineRadarMetrics();
+            final grapes = item.length > 11 && item[11]?.toString().isNotEmpty == true
+                ? item[11].toString().split(',').where((g) => g.isNotEmpty).toList()
+                : <String>[];
+            final glassPrices = <MenuWineGlassPrice>[];
+            if (item.length > 12 && item[12] is List) {
+              for (final g in item[12] as List) {
+                if (g is List && g.length >= 2) {
+                  final prix = double.tryParse(g[1]?.toString() ?? '');
+                  if (prix != null && prix > 0) {
+                    glassPrices.add(MenuWineGlassPrice(
+                        format: g[0]?.toString() ?? 'Verre', price: prix));
+                  }
+                }
+              }
+            }
+
             wines.add(MenuWine(
               id: 'decoded_${wines.length}',
               name: name,
@@ -132,6 +191,9 @@ class MenuTableSessionManager {
               isGem: isGem,
               isDeal: isDeal,
               sommelierComment: sommelierComment,
+              metrics: metrics,
+              grapes: grapes,
+              glassPrices: glassPrices,
             ));
           }
         }
@@ -151,6 +213,26 @@ class MenuTableSessionManager {
     }
 
     return null;
+  }
+
+  /// Relit les huit métriques dans l'ordre où elles ont été écrites.
+  ///
+  /// Une liste plus courte que prévu — charge utile tronquée, version antérieure — laisse
+  /// les axes manquants à leur valeur par défaut plutôt que de faire échouer tout le
+  /// décodage : perdre un axe vaut mieux que perdre la carte.
+  static MenuWineRadarMetrics _metriquesDepuis(List m) {
+    double at(int i, double defaut) =>
+        i < m.length ? (double.tryParse(m[i]?.toString() ?? '') ?? defaut) : defaut;
+    return MenuWineRadarMetrics(
+      tannins: at(0, 0.0),
+      acidity: at(1, 5.0),
+      body: at(2, 5.0),
+      fruit: at(3, 5.5),
+      oak: at(4, 3.0),
+      minerality: at(5, 5.0),
+      butteriness: at(6, 0.0),
+      sweetness: at(7, 1.5),
+    );
   }
 
   /// Génère l'URL complète pour le QR Code avec session et données embarquées

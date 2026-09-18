@@ -25,6 +25,10 @@ dependencies:
   fl_chart: ^0.70.0
   intl: '>=0.19.0 <1.0.0'
   uuid: ^4.5.0
+  # Compression EN DART PUR. `gzip` de dart:io lève UnsupportedError une fois compilé par
+  # dart2js : le QR de table ne se décodait sur AUCUN navigateur (voir
+  # menu_table_session_manager.dart).
+  archive: ^4.0.0
   json_annotation: ^4.9.0
   freezed_annotation: ^2.4.0
   flutter_animate: ^4.5.0

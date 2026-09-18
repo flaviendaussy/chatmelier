@@ -497,6 +497,11 @@ void main() {
       // Tap Receive link button
       final sendBtn = find.text('Recevoir mon lien de connexion');
       expect(sendBtn, findsOneWidget);
+      // Amener le bouton dans le viewport avant de le toucher : l'écran est défilant, et
+      // un test qui tape à l'aveugle se casse au premier élément ajouté au-dessus — ce
+      // qui vient d'arriver en remontant le bouton Google.
+      await tester.ensureVisible(sendBtn);
+      await tester.pumpAndSettle();
       await tester.tap(sendBtn);
       await tester.pumpAndSettle();
 

@@ -475,6 +475,73 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                     ),
                   ),
 
+                  // GOOGLE EN PREMIER, ET NON TOUT EN BAS.
+                  //
+                  // Il était relégué sous un `TabBarView` de 380 pixels, derrière un
+                  // diviseur « OU », en bouton gris avec l'icône générique
+                  // `Icons.g_mobiledata`. Il fallait faire défiler pour le trouver, et une
+                  // fois trouvé rien ne disait que c'était Google. C'est pourtant la
+                  // connexion la plus rapide de toutes : aucun mot de passe à retenir,
+                  // aucune boîte mail à ouvrir.
+                  //
+                  // Fond blanc et « G » aux quatre couleurs : c'est à ça qu'on le
+                  // reconnaît d'un coup d'œil, pas à un libellé.
+                  Material(
+                    color: Colors.white,
+                    elevation: 1.5,
+                    shadowColor: Colors.black.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: _isLoading ? null : _googleLogin,
+                      child: Container(
+                        height: 52,
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFDADCE0)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const _LogoGoogle(taille: 20),
+                            const SizedBox(width: 12),
+                            Text(
+                              l10n?.loginGoogleButton ?? 'Continuer avec Google',
+                              style: const TextStyle(
+                                color: Color(0xFF3C4043),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Le diviseur sépare maintenant Google de ce qui suit, au lieu de
+                  // l'enterrer après.
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          l10n?.loginOrDivider ?? 'OU',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      const Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+
                   // Auth Method Tabs
                   Container(
                     decoration: BoxDecoration(
@@ -654,34 +721,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                     ),
                   ),
 
-                  // Divider
-                  Row(
-                    children: [
-                      const Expanded(child: Divider()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          l10n?.loginOrDivider ?? 'OU',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      const Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Google Sign-In Button
-                  OutlinedButton.icon(
-                    onPressed: _isLoading ? null : _googleLogin,
-                    icon: const Icon(Icons.g_mobiledata, size: 28),
-                    label: Text(l10n?.loginGoogleButton ?? 'Continuer avec Google'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
 
                   // Register link
                   Center(
@@ -698,4 +738,61 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       ),
     );
   }
+}
+
+/// Le « G » de Google, dessiné plutôt qu'importé.
+///
+/// Pas d'asset à ajouter au bundle pour vingt pixels, et surtout : les quatre couleurs
+/// sont ce qui rend le bouton reconnaissable avant même qu'on ait lu le mot « Google ».
+/// L'icône générique `Icons.g_mobiledata` qui servait jusqu'ici ne dit rien à personne.
+class _LogoGoogle extends StatelessWidget {
+  final double taille;
+  const _LogoGoogle({required this.taille});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: taille,
+      height: taille,
+      child: CustomPaint(painter: _PeintreG()),
+    );
+  }
+}
+
+class _PeintreG extends CustomPainter {
+  // Les quatre couleurs de la marque.
+  static const _bleu = Color(0xFF4285F4);
+  static const _vert = Color(0xFF34A853);
+  static const _jaune = Color(0xFFFBBC05);
+  static const _rouge = Color(0xFFEA4335);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = size.width / 2;
+    final centre = Offset(r, r);
+    final trait = size.width * 0.22;
+    final rayon = r - trait / 2;
+    final boite = Rect.fromCircle(center: centre, radius: rayon);
+
+    final p = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = trait
+      ..strokeCap = StrokeCap.butt;
+
+    // Quatre arcs, dans l'ordre horaire du logo.
+    canvas.drawArc(boite, -0.30, -1.30, false, p..color = _rouge);
+    canvas.drawArc(boite, -1.60, -1.35, false, p..color = _jaune);
+    canvas.drawArc(boite, -2.95, -1.35, false, p..color = _vert);
+    canvas.drawArc(boite, 1.75, -1.45, false, p..color = _bleu);
+
+    // La barre horizontale du G, qui le distingue d'un simple anneau.
+    final barre = Paint()..color = _bleu;
+    canvas.drawRect(
+      Rect.fromLTWH(centre.dx, centre.dy - trait / 2, rayon + trait / 2, trait),
+      barre,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:chatmelier/features/auth/domain/wine_taste_radar.dart';
+import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
 import 'package:chatmelier/features/sommelier/domain/guest_matcher_engine.dart';
 
 /// Ce qu'un convive emporte en rejoignant une table.
@@ -10,6 +11,8 @@ import 'package:chatmelier/features/sommelier/domain/guest_matcher_engine.dart';
 /// voyagent, encore faut-il qu'elles arrivent intactes — sinon la table vote sur une
 /// caricature des goûts de chacun.
 void main() {
+  _carteQuiTraverse();
+
   group('🧳 Le profil d\'un convive fait le voyage', () {
     final radar = const WineTasteRadarMetrics(
       tannin: 8.5,
@@ -71,6 +74,75 @@ void main() {
       expect(json.keys,
           unorderedEquals(['name', 'archetype', 'favorite_types', 'favorite_grapes',
               'disliked', 'radar']));
+    });
+  });
+}
+
+/// La carte qui traverse le serveur.
+///
+/// `open_table_session` écrit `menu.toJson()` en JSONB, `join_table_session` le rend, et
+/// l'invité le relit avec `ScannedMenu.fromJson`. Ce chemin n'a pas le plafond de seize
+/// vins du QR — encore faut-il que rien ne se perde en route.
+void _carteQuiTraverse() {
+  group('📋 La carte survit au passage par la base', () {
+    test('un vin complet revient complet', () {
+      final origine = ScannedMenu(
+        id: 'm1',
+        restaurantName: 'Le Comptoir',
+        pagePhotoPaths: const [],
+        scannedAt: DateTime(2026, 9, 18),
+        wines: [
+          MenuWine(
+            id: 'w1',
+            name: 'Bandol Rouge',
+            producer: 'Domaine de Terrebrune',
+            wineType: 'Rouge',
+            vintage: 2019,
+            appellation: 'Bandol',
+            region: 'Provence',
+            bottlePrice: 78,
+            grapes: const ['Mourvèdre', 'Grenache'],
+            glassPrices: const [MenuWineGlassPrice(format: '125ml', price: 12)],
+            metrics: const MenuWineRadarMetrics(
+                tannins: 8.5, acidity: 5.5, body: 8.0, oak: 6.0),
+            tags: const ['tannique'],
+            isGem: true,
+          ),
+        ],
+      );
+
+      final relu = ScannedMenu.fromJson(origine.toJson());
+      final w = relu.wines.single;
+
+      expect(relu.restaurantName, equals('Le Comptoir'));
+      expect(w.name, equals('Bandol Rouge'));
+      expect(w.producer, equals('Domaine de Terrebrune'));
+      expect(w.bottlePrice, equals(78));
+      expect(w.grapes, contains('Mourvèdre'));
+      expect(w.glassPrices.single.price, equals(12));
+      expect(w.metrics.tannins, closeTo(8.5, 0.001),
+          reason: 'sans les métriques, le consensus note tous les vins pareil');
+      expect(w.isGem, isTrue);
+    });
+
+    test('une carte de cinquante vins passe entière', () {
+      // Le plafond de seize ne valait que pour l'URL du QR.
+      final grande = ScannedMenu(
+        id: 'm2',
+        restaurantName: 'Grande carte',
+        pagePhotoPaths: const [],
+        scannedAt: DateTime(2026, 9, 18),
+        wines: [
+          for (var i = 0; i < 50; i++)
+            MenuWine(
+                id: 'w$i',
+                name: 'Vin $i',
+                producer: 'Domaine $i',
+                wineType: 'Rouge',
+                bottlePrice: 30.0 + i),
+        ],
+      );
+      expect(ScannedMenu.fromJson(grande.toJson()).wines, hasLength(50));
     });
   });
 }

@@ -59,7 +59,25 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: GoRouterRefreshStream(supabase.auth.onAuthStateChange),
     redirect: (context, state) {
       final session = supabase.auth.currentSession;
-      final isLoggedIn = session != null;
+
+      // UNE SESSION ANONYME N'EST PAS UN COMPTE.
+      //
+      // Le garde testait `session != null`. Depuis que rejoindre une table ouvre un
+      // compte anonyme, ce test devenait vrai pour un invité de passage — avec deux
+      // conséquences, l'une gênante et l'autre bloquante :
+      //
+      //   · il était déposé dans la cave, un écran qui suppose un compte, où la création
+      //     de cave lui est désormais refusée par la RLS (migration 039) : il aurait vu
+      //     des échecs sans explication ;
+      //   · `isLoggedIn && isAuthRoute → '/'` l'empêchait d'atteindre /login et /register.
+      //     Il se retrouvait enfermé dans un compte anonyme, sans aucun chemin visible
+      //     pour s'inscrire — exactement la conversion qu'on venait de construire.
+      //
+      // Un anonyme est donc traité comme un visiteur : les parcours invités lui sont
+      // ouverts, le reste demande un vrai compte. Ce n'est pas une restriction ajoutée,
+      // c'est l'état antérieur préservé.
+      final estAnonyme = session?.user.isAnonymous ?? false;
+      final isLoggedIn = session != null && !estAnonyme;
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
       final isInviteRoute = state.matchedLocation.startsWith('/invite/');

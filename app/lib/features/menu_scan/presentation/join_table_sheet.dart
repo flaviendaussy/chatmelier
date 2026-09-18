@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/providers/auth_provider.dart';
 import '../../auth/data/taste_profile_service.dart';
+import '../../auth/domain/evening_summary.dart';
+import '../../auth/presentation/keep_evening_sheet.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../data/table_session_service.dart';
 import 'menu_table_consensus_guest_screen.dart';
@@ -80,13 +82,31 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
             profil: profil,
           );
       if (!mounted) return;
-      Navigator.of(context).pop();
-      Navigator.of(context).push(MaterialPageRoute(
+
+      // Ce que le palais savait AVANT la soirée. La différence, au retour, est ce qu'on
+      // pourra annoncer sans exagérer.
+      final avant = await ref.read(tasteProfileServiceProvider).getPrimaryProfile();
+      final compteAvant = avant.questionnairesCompleted;
+      if (!mounted) return;
+
+      final navigateur = Navigator.of(context);
+      navigateur.pop();
+      await navigateur.push(MaterialPageRoute(
         builder: (_) => MenuTableConsensusGuestScreen(
           initialSessionId: t.sessionId,
           prechargedMenu: t.menu,
         ),
       ));
+
+      // Au retour de la table : la soirée est finie, c'est le moment de proposer de la
+      // garder. Ni pendant — on interromprait le repas — ni plus tard, quand plus rien
+      // ne rappellera pourquoi ça vaut la peine.
+      if (!mounted) return;
+      await _proposerDeGarder(
+        depart: compteAvant,
+        lieu: t.menu.restaurantName,
+        isFr: isFr,
+      );
     } on TableSessionException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -102,6 +122,29 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
                 : 'Could not reach the server. Check your connection.');
       });
     }
+  }
+
+  /// Propose de garder la soirée, si elle a laissé quelque chose et si le compte est
+  /// encore anonyme.
+  Future<void> _proposerDeGarder({
+    required int depart,
+    required String lieu,
+    required bool isFr,
+  }) async {
+    final auth = ref.read(authRepositoryProvider);
+    // Un compte déjà nommé n'a rien à convertir ; sans session du tout, il n'y a rien à
+    // garder côté serveur, et promettre le contraire serait faux.
+    if (!auth.aUneSession || !auth.estAnonyme) return;
+
+    final apres = await ref.read(tasteProfileServiceProvider).getPrimaryProfile();
+    final lignes = EveningSummary.lignes(
+      profil: apres,
+      verresGoutes: (apres.questionnairesCompleted - depart).clamp(0, 99),
+      nomDuLieu: lieu.trim().isEmpty ? null : lieu.trim(),
+    );
+    if (lignes.isEmpty || !mounted) return;
+
+    await KeepEveningSheet.show(context, cequiSeraGarde: lignes);
   }
 
   @override

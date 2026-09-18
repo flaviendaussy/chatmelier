@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../shared/providers/auth_provider.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../data/table_session_service.dart';
@@ -50,6 +51,15 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
       _enCours = true;
       _erreur = null;
     });
+
+    // Un compte, sans formulaire. Ouvert ICI et non au démarrage : ce geste est le
+    // premier qui produit quelque chose à garder — les verres de ce soir, le palais qui
+    // se dessine. Ouvrir un compte à chaque lancement gonflerait la facture pour des gens
+    // qui n'ont rien fait.
+    //
+    // S'il échoue (réglage Supabase absent, réseau coupé), on rejoint quand même : la
+    // table fonctionne, seule la mémoire de la soirée manquera.
+    await ref.read(authRepositoryProvider).assurerUneSession();
 
     // Le profil de goût part avec : c'est tout l'intérêt. Une table qui ne connaît pas
     // les palais de ses convives ne fait qu'un sondage à main levée.

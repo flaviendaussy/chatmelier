@@ -91,6 +91,61 @@ class AuthRepository {
     return 'chatmelier://login-callback';
   }
 
+  /// Ouvre un compte anonyme, invisible et immédiat.
+  ///
+  /// **Pourquoi un vrai compte plutôt qu'un stockage local.** Tout ce qui s'accumule le
+  /// temps d'une soirée — les verres goûtés, le palais qui se dessine, la conversation
+  /// avec le sommelier — est écrit côté serveur sous un vrai `user_id`, avec la RLS
+  /// habituelle. La conversion se réduit alors à ajouter une adresse au compte existant :
+  /// aucun code de migration local → serveur à écrire, aucune perte, l'historique reste
+  /// identique.
+  ///
+  /// **Ce que ça coûte.** Ces comptes comptent dans les MAU Supabase, donc dans la
+  /// facture. Une purge des comptes anonymes inactifs et non convertis est indispensable
+  /// (voir la migration des sessions de table). Et les connexions anonymes sont
+  /// désactivées par défaut dans Supabase : sans le réglage, cet appel échoue.
+  Future<User?> signInAnonymously() async {
+    final res = await _client.auth.signInAnonymously();
+    AppLogger.info('AUTH', 'Compte anonyme ouvert: ${res.user?.id}');
+    return res.user;
+  }
+
+  /// Y a-t-il déjà quelqu'un — même sans nom ?
+  bool get aUneSession => _client.auth.currentSession != null;
+
+  /// La personne connectée est-elle anonyme ?
+  bool get estAnonyme => _client.auth.currentUser?.isAnonymous ?? false;
+
+  /// S'assure qu'une session existe, en en ouvrant une anonyme au besoin.
+  ///
+  /// À appeler au premier geste qui produit quelque chose à garder — rejoindre une table,
+  /// scanner une carte — et non au démarrage : ouvrir un compte à chaque lancement
+  /// gonflerait la facture pour des gens qui n'ont rien fait.
+  Future<User?> assurerUneSession() async {
+    final actuel = _client.auth.currentUser;
+    if (actuel != null) return actuel;
+    try {
+      return await signInAnonymously();
+    } catch (e) {
+      // Réglage Supabase absent, réseau coupé : l'app continue sans compte, comme avant.
+      AppLogger.warning('AUTH', 'Session anonyme impossible: $e');
+      return null;
+    }
+  }
+
+  /// Transforme le compte anonyme en compte nommé, sans rien déplacer.
+  ///
+  /// `updateUser(email:)` sur le compte existant : l'identifiant ne change pas, donc les
+  /// dégustations, le profil de goût et les conversations restent rattachés à la même
+  /// personne. C'est tout l'intérêt d'avoir ouvert un vrai compte dès le départ.
+  Future<void> convertirEnCompte(String email) async {
+    final user = _client.auth.currentUser;
+    if (user == null) throw StateError('aucune session à convertir');
+    if (!user.isAnonymous) return; // déjà nommé : rien à faire
+    await _client.auth.updateUser(UserAttributes(email: email.trim()));
+    AppLogger.info('AUTH', 'Compte anonyme ${user.id} converti vers $email');
+  }
+
   /// Passwordless Connection Link (Magic Link) Email Authentication
   Future<void> sendMagicLink(String email) async {
     final redirectUrl = _getRedirectUrl();

@@ -28,8 +28,21 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
   String _searchQuery = '';
   String _selectedColor = 'all'; // 'all', 'red', 'white', 'rose', 'sparkling'
   String? _selectedTag; // e.g. 'minéral', 'beurré', 'tannique', etc.
-  double? _maxPrice; // null = any
-  bool _onlyFlagged = false; // Filter on sommelier flagged gems / deals / profile matches
+  /// Plafond de prix. Existait déjà dans le filtrage — et n'avait aucune interface : il
+  /// n'était jamais écrit, seulement remis à zéro. Un filtre budget sur une carte de
+  /// restaurant est pourtant le premier geste de beaucoup de gens.
+  double? _maxPrice;
+
+  /// Le drapeau du sommelier retenu, s'il y en a un.
+  ///
+  /// Un seul interrupteur « Pépites & Bons plans » fusionnait les deux, ce qui est
+  /// exactement à l'envers du besoin : une pépite est une cuvée rare qu'on accepte de
+  /// payer, un bon plan une bouteille au prix juste. Qui cherche l'une ne cherche pas
+  /// l'autre.
+  MenuWineFlagType? _filtreDrapeau;
+
+  /// Ne montrer que les vins que la cave ou le journal reconnaissent.
+  bool _seulementConnus = false;
   bool _isCompactView = true; // High density compact mode for viewing many wines simultaneously
   final Set<String> _selectedWineIds = {};
 
@@ -99,10 +112,91 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     super.dispose();
   }
 
+  /// Une puce de filtre pour un drapeau, rendue seulement si la carte en porte.
+  List<Widget> _puceDeDrapeau(
+      MenuWineFlagType type, String emoji, String libelle, bool isDark) {
+    final n = _menu.wines.where((w) => w.flag?.type == type).length;
+    if (n == 0) return const [];
+    final actif = _filtreDrapeau == type;
+    return [
+      FilterChip(
+        avatar: Text(emoji, style: const TextStyle(fontSize: 13)),
+        label: Text('$libelle ($n)',
+            style: TextStyle(
+              fontWeight: actif ? FontWeight.bold : FontWeight.w600,
+              color: actif ? const Color(0xFFD4AF37) : null,
+            )),
+        selected: actif,
+        selectedColor: const Color(0xFFD4AF37).withValues(alpha: 0.22),
+        checkmarkColor: const Color(0xFFD4AF37),
+        side: BorderSide(
+          color: actif
+              ? const Color(0xFFD4AF37)
+              : (isDark ? Colors.white24 : Colors.grey.shade300),
+        ),
+        onSelected: (val) => setState(() => _filtreDrapeau = val ? type : null),
+      ),
+      const SizedBox(width: 8),
+    ];
+  }
+
+  /// « Ce que je connais déjà » : le filtre que seul ce produit peut offrir.
+  List<Widget> _puceDesConnus(bool isFr, bool isDark) {
+    final n = _menu.wines.where((w) => w.pontDeCave != null).length;
+    if (n == 0) return const [];
+    return [
+      FilterChip(
+        avatar: const Text('📓', style: TextStyle(fontSize: 13)),
+        label: Text(isFr ? 'Vous connaissez ($n)' : 'You know ($n)',
+            style: TextStyle(
+              fontWeight: _seulementConnus ? FontWeight.bold : FontWeight.w600,
+              color: _seulementConnus ? const Color(0xFF6A4C93) : null,
+            )),
+        selected: _seulementConnus,
+        selectedColor: const Color(0xFF6A4C93).withValues(alpha: 0.22),
+        checkmarkColor: const Color(0xFF6A4C93),
+        side: BorderSide(
+          color: _seulementConnus
+              ? const Color(0xFF6A4C93)
+              : (isDark ? Colors.white24 : Colors.grey.shade300),
+        ),
+        onSelected: (val) => setState(() => _seulementConnus = val),
+      ),
+      const SizedBox(width: 8),
+    ];
+  }
+
+  /// Trois plafonds de prix, tirés de la carte elle-même.
+  ///
+  /// Des seuils fixes (20/50/100 €) seraient absurdes sur une carte de bistrot comme sur
+  /// une carte étoilée. Les quartiles des prix réellement présents découpent toujours la
+  /// carte en trois tiers qui veulent dire quelque chose ici.
+  List<double> get _plafondsDePrix {
+    final prix = _menu.wines
+        .map((w) => w.bottlePrice ?? w.primaryGlassPrice)
+        .whereType<double>()
+        .where((p) => p > 0)
+        .toList()
+      ..sort();
+    if (prix.length < 6) return const [];
+    double quantile(double q) => prix[(prix.length * q).floor().clamp(0, prix.length - 1)];
+    final seuils = <double>[];
+    for (final q in const [0.33, 0.66]) {
+      final v = (quantile(q) / 5).ceil() * 5.0;
+      if (v > 0 && !seuils.contains(v)) seuils.add(v);
+    }
+    return seuils;
+  }
+
   List<MenuWine> _filterWines() {
     return _menu.wines.where((wine) {
-      // 0. Only flagged gems / deals / profile matches
-      if (_onlyFlagged && wine.flag == null) {
+      // 0. Drapeau du sommelier, par nature
+      if (_filtreDrapeau != null && wine.flag?.type != _filtreDrapeau) {
+        return false;
+      }
+
+      // 0 bis. Ce que je connais déjà
+      if (_seulementConnus && wine.pontDeCave == null) {
         return false;
       }
 
@@ -189,7 +283,6 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     final redCount = _menu.wines.where((w) => w.isRed).length;
     final whiteCount = _menu.wines.where((w) => w.isWhite).length;
     final sparklingCount = _menu.wines.where((w) => w.isSparkling).length;
-    final flaggedCount = _menu.wines.where((w) => w.flag != null).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -636,27 +729,40 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
               children: [
-                if (flaggedCount > 0) ...[
+                // Une puce par nature de drapeau, et seulement si la carte en contient.
+                // Un menu sans bonne affaire n'affiche pas de puce « Bons plans » : mieux
+                // vaut un filtre de moins qu'un filtre qui ne filtre rien.
+                ..._puceDeDrapeau(MenuWineFlagType.deal, '💎',
+                    isFr ? 'Bons plans' : 'Deals', isDark),
+                ..._puceDeDrapeau(MenuWineFlagType.gem, '✨',
+                    isFr ? 'Pépites' : 'Gems', isDark),
+                ..._puceDeDrapeau(MenuWineFlagType.tasteMatch, '🎯',
+                    isFr ? 'Pour vous' : 'For you', isDark),
+                ..._puceDesConnus(isFr, isDark),
+                // Le budget, enfin atteignable. Les seuils viennent de la carte.
+                for (final plafond in _plafondsDePrix) ...[
                   FilterChip(
-                    avatar: const Text('✨', style: TextStyle(fontSize: 13)),
                     label: Text(
-                      isFr ? 'Pépites & Bons plans ($flaggedCount)' : 'Gems & Deals ($flaggedCount)',
+                      '≤ ${plafond.toStringAsFixed(0)} €',
                       style: TextStyle(
-                        fontWeight: _onlyFlagged ? FontWeight.bold : FontWeight.w600,
-                        color: _onlyFlagged ? const Color(0xFFD4AF37) : null,
+                        fontWeight: _maxPrice == plafond
+                            ? FontWeight.bold
+                            : FontWeight.w600,
+                        color: _maxPrice == plafond
+                            ? const Color(0xFF2E7D32)
+                            : null,
                       ),
                     ),
-                    selected: _onlyFlagged,
-                    selectedColor: const Color(0xFFD4AF37).withValues(alpha: 0.22),
-                    checkmarkColor: const Color(0xFFD4AF37),
+                    selected: _maxPrice == plafond,
+                    selectedColor: const Color(0xFF2E7D32).withValues(alpha: 0.18),
+                    checkmarkColor: const Color(0xFF2E7D32),
                     side: BorderSide(
-                      color: _onlyFlagged
-                          ? const Color(0xFFD4AF37)
+                      color: _maxPrice == plafond
+                          ? const Color(0xFF2E7D32)
                           : (isDark ? Colors.white24 : Colors.grey.shade300),
                     ),
-                    onSelected: (val) {
-                      setState(() => _onlyFlagged = val);
-                    },
+                    onSelected: (val) =>
+                        setState(() => _maxPrice = val ? plafond : null),
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -779,7 +885,8 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         TextButton(
                           onPressed: () {
                             setState(() {
-                              _onlyFlagged = false;
+                              _filtreDrapeau = null;
+                              _seulementConnus = false;
                               _selectedColor = 'all';
                               _selectedTag = null;
                               _maxPrice = null;

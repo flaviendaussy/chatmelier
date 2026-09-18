@@ -1959,6 +1959,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                           explicitPeakStart: wine.peakStart,
                           explicitPeakEnd: wine.peakEnd,
                           explicitBarrelAging: wine.barrelAging,
+                          elevageType: wine.elevageType,
+                          elevageMois: wine.elevageMois,
                           explicitVinification: wine.vinificationMethod,
                           explicitMalolactic: wine.malolacticFermentation,
                           explicitHarvest: wine.harvestMethod,

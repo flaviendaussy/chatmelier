@@ -326,6 +326,29 @@ class WineServiceAdvisor {
   }
 }
 
+/// Dit l'élevage en français, à partir du contenant et de la durée.
+///
+/// Renvoie nul si on ne sait rien : la fiche affiche alors « non fourni », ce qui est
+/// vrai, plutôt qu'une phrase creuse.
+String? _phraseDElevage(String? type, int? mois) {
+  final nom = _nomDuContenant(type);
+  if (nom == null && mois == null) return null;
+  if (nom == null) return '$mois mois';
+  if (mois == null || mois <= 0) return nom;
+  return '$mois mois en $nom';
+}
+
+String? _nomDuContenant(String? type) => switch (type) {
+      'inox' => 'cuve inox',
+      'beton' => 'cuve béton',
+      'barrique' => 'barrique de chêne',
+      'foudre' => 'foudre de chêne',
+      'amphore' => 'amphore',
+      'oeuf' => 'œuf béton',
+      'bouteille' => 'bouteille (sur lattes)',
+      _ => null,
+    };
+
 class OenologyAdvice {
   final String? barrelAgingDuration;
   final String? barrelType;
@@ -778,6 +801,15 @@ class WineOenologyAdvisor {
     int? explicitPeakStart,
     int? explicitPeakEnd,
     String? explicitBarrelAging,
+
+    /// L'élevage structuré, tel que la migration 034 le stocke et que le backfill le
+    /// remplit depuis la table des 90 régions.
+    ///
+    /// Sans ces deux paramètres, les colonnes étaient écrites et jamais lues : la fiche
+    /// continuait d'afficher « données techniques non fournies par le domaine » sur un
+    /// Bandol dont le cahier des charges impose dix-huit mois de foudre.
+    String? elevageType,
+    int? elevageMois,
     String? explicitVinification,
     String? explicitMalolactic,
     String? explicitHarvest,
@@ -796,15 +828,19 @@ class WineOenologyAdvisor {
       explicitPeakEnd: explicitPeakEnd,
     );
 
-    final hasData = explicitBarrelAging != null ||
+    // Le texte libre du domaine prime quand il existe : il est plus précis que la règle
+    // d'appellation. Sinon on compose la phrase à partir du contenant et de la durée.
+    final elevageDit = explicitBarrelAging ?? _phraseDElevage(elevageType, elevageMois);
+
+    final hasData = elevageDit != null ||
         explicitVinification != null ||
         explicitMalolactic != null ||
         explicitHarvest != null ||
         explicitTerroirSoil != null;
 
     return OenologyAdvice(
-      barrelAgingDuration: explicitBarrelAging,
-      barrelType: null,
+      barrelAgingDuration: elevageDit,
+      barrelType: _nomDuContenant(elevageType),
       vinificationMethod: explicitVinification,
       malolacticFermentation: explicitMalolactic,
       harvestMethod: explicitHarvest,

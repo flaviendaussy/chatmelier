@@ -51,6 +51,21 @@ class LogEntry {
   }
 }
 
+
+/// La version de l'app, telle qu'elle part avec chaque remontée.
+///
+/// Elle était écrite en dur — « 1.2.0 » — et ne bougeait plus depuis longtemps : toutes
+/// les remontées d'utilisateurs portaient le même numéro, y compris celles venues de
+/// builds séparés par des mois. Impossible, en dépouillant, de savoir si un bug était
+/// déjà corrigé.
+///
+/// Les scripts de build la passent en `--dart-define` depuis `pubspec.yaml`. Le repli
+/// nomme franchement le cas où personne ne l'a passée, plutôt que d'inventer un numéro.
+const String versionApp = String.fromEnvironment(
+  'CHATMELIER_VERSION',
+  defaultValue: 'dev',
+);
+
 class AppLogger {
   static final List<LogEntry> _logs = [];
   static const int _maxLogs = 600;
@@ -141,7 +156,7 @@ class AppLogger {
           'user_id': user?.id,
           'device_id': kIsWeb ? 'Web Browser' : defaultTargetPlatform.name,
           'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
-          'app_version': '1.2.0',
+          'app_version': versionApp,
           'tag': e.tag,
           'level': e.level.name,
           'message': e.message,

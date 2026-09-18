@@ -16,7 +16,8 @@ VERSION=$(grep '^version: ' "$DIR/app/pubspec.yaml" | awk '{print $2}')
 
 flutter build apk --release \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-  --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+  --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+  --dart-define=CHATMELIER_VERSION="$VERSION"
 
 cp "$DIR/app/build/app/outputs/flutter-apk/app-release.apk" "$DIR/app/build/app/outputs/flutter-apk/chatmelier-v$VERSION.apk"
 cp "$DIR/app/build/app/outputs/flutter-apk/app-release.apk" "$DIR/app/build/app/outputs/flutter-apk/chatmelier-latest.apk"

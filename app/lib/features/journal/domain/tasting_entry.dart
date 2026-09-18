@@ -3,6 +3,14 @@ class TastingEntry {
   final String? bottleId;
   final String wineId;
   final String? wineName;
+
+  /// Le domaine. Il arrivait de la base — la requête joint `wines` — et était jeté ici.
+  ///
+  /// C'est pourtant le signal le plus sûr pour reconnaître un vin : deux « Bandol Rouge »
+  /// de domaines différents ne sont pas le même vin, et deux désignations d'un même
+  /// domaine le sont presque toujours. Sans lui, le pont cave ↔ restaurant ne pouvait
+  /// rapprocher que par recoupement de mots.
+  final String? producer;
   final int? vintage;
   final String? region;
   final String? country;
@@ -47,6 +55,7 @@ class TastingEntry {
     this.bottleId,
     required this.wineId,
     this.wineName,
+    this.producer,
     this.vintage,
     this.region,
     this.country,
@@ -125,6 +134,7 @@ class TastingEntry {
       bottleId: json['bottle_id'] as String?,
       wineId: json['wine_id'] as String? ?? '',
       wineName: wineMap?['name'] as String? ?? json['wine_name'] as String? ?? json['name'] as String?,
+      producer: wineMap?['producer'] as String? ?? json['producer'] as String?,
       vintage: (wineMap?['vintage'] as num?)?.toInt() ?? (json['vintage'] as num?)?.toInt() ?? int.tryParse(json['vintage']?.toString() ?? ''),
       region: wineMap?['region'] as String? ?? json['region'] as String?,
       country: wineMap?['country'] as String? ?? json['country'] as String?,
@@ -174,6 +184,7 @@ class TastingEntry {
         'wines': {
           'id': wineId,
           if (wineName != null) 'name': wineName,
+          if (producer != null) 'producer': producer,
           if (vintage != null) 'vintage': vintage,
           if (region != null) 'region': region,
           if (country != null) 'country': country,

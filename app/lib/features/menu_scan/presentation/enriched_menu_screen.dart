@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../shared/utils/currency_helper.dart';
 import '../../auth/presentation/taste_profiles_dialog.dart';
 import '../domain/menu_wine.dart';
+import '../domain/cellar_bridge.dart';
+import '../data/cellar_context_provider.dart';
 import 'menu_chat_assistant_sheet.dart';
 import 'menu_matchmaker_sheet.dart';
 import 'menu_wine_compare_sheet.dart';
@@ -48,6 +50,28 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     super.initState();
     _menu = widget.menu;
     _loadViewPreference();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _croiserAvecMaCave());
+  }
+
+  /// Annote la carte avec ce que la cave et le journal savent.
+  ///
+  /// Après le premier rendu, et sans bloquer : la carte doit s'afficher tout de suite,
+  /// les annotations arrivent quand elles peuvent. Si la cave est illisible — hors ligne,
+  /// aucune cave choisie — la carte reste une carte utilisable.
+  Future<void> _croiserAvecMaCave() async {
+    try {
+      final contexte = await ref.read(cellarContextProvider.future);
+      if (!mounted || contexte.estVide) return;
+      setState(() {
+        _menu = ScannedMenu(
+          id: _menu.id,
+          restaurantName: _menu.restaurantName,
+          pagePhotoPaths: _menu.pagePhotoPaths,
+          scannedAt: _menu.scannedAt,
+          wines: CellarBridgeEngine.lier(_menu.wines, contexte),
+        );
+      });
+    } catch (_) {}
   }
 
   Future<void> _loadViewPreference() async {
@@ -1038,6 +1062,49 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     ),
                 ],
               ),
+
+              // Ce que VOTRE cave et VOTRE journal disent de ce vin.
+              //
+              // Sur sa propre ligne, et non fondu dans le badge du sommelier : « le
+              // sommelier remarque » et « vous savez déjà » répondent à deux questions
+              // différentes, et la seconde vaut souvent plus que la première.
+              if (wine.pontDeCave != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 34, top: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(wine.pontDeCave!.emoji,
+                          style: const TextStyle(fontSize: 11)),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: RichText(
+                          text: TextSpan(
+                            style: const TextStyle(fontSize: 11, height: 1.25),
+                            children: [
+                              TextSpan(
+                                text: wine.pontDeCave!.libelle,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF6A4C93),
+                                ),
+                              ),
+                              if (wine.pontDeCave!.detail != null)
+                                TextSpan(
+                                  text: ' — ${wine.pontDeCave!.detail}',
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
               // Line 2: Origin & Producer + Glass Price / Match score
               Padding(

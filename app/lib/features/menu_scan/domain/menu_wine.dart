@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../shared/utils/currency_helper.dart';
 import '../../auth/domain/taste_profile.dart';
+import 'cellar_bridge.dart';
 import '../../auth/domain/wine_taste_radar.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 
@@ -34,6 +35,10 @@ enum MenuWineFlagType {
   tasteMatch, // Accord parfait avec le profil utilisateur
 }
 
+/// Déclaré dans `cellar_bridge.dart` : ce que la cave et le journal ont à dire d'un vin
+/// de la carte. Séparé du drapeau éditorial, et non fondu dedans : « le sommelier
+/// remarque » et « vous savez déjà » répondent à deux questions différentes et ne doivent
+/// pas se disputer une seule place.
 class MenuWineFlag {
   final MenuWineFlagType type;
   final String label;
@@ -264,6 +269,9 @@ class MenuWine {
   final double? estimatedRetailPrice; // Approx wine merchant/caviste price
   final MenuWineFlag? flag; // Active badge computed by MenuFlaggingEngine
 
+  /// Ce que VOTRE cave et VOTRE journal disent de ce vin. Voir `CellarBridgeEngine`.
+  final LienAvecMaCave? pontDeCave;
+
   const MenuWine({
     required this.id,
     required this.name,
@@ -287,6 +295,7 @@ class MenuWine {
     this.dealReason,
     this.estimatedRetailPrice,
     this.flag,
+    this.pontDeCave,
   });
 
   /// Normalized unique lookup key to prevent re-searching in Gemini
@@ -389,6 +398,7 @@ class MenuWine {
     String? dealReason,
     double? estimatedRetailPrice,
     MenuWineFlag? flag,
+    LienAvecMaCave? pontDeCave,
   }) {
     return MenuWine(
       id: id ?? this.id,
@@ -413,6 +423,7 @@ class MenuWine {
       dealReason: dealReason ?? this.dealReason,
       estimatedRetailPrice: estimatedRetailPrice ?? this.estimatedRetailPrice,
       flag: flag ?? this.flag,
+      pontDeCave: pontDeCave ?? this.pontDeCave,
     );
   }
 

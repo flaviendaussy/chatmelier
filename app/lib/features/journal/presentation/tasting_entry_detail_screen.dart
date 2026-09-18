@@ -17,6 +17,7 @@ import '../domain/tasting_pedagogy_engine.dart';
 import 'tasting_pedagogy_sheet.dart';
 import 'journal_screen.dart';
 import '../data/tasting_deletion_service.dart';
+import '../../offline/presentation/sync_provider.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../../config/router.dart';
 
@@ -31,6 +32,10 @@ class TastingEntryDetailScreen extends ConsumerStatefulWidget {
 
 class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScreen> {
   Wine? _wine;
+
+  /// Le lieu corrigé, tant que l'écran est ouvert. L'entrée reçue est immuable ; recharger
+  /// tout le journal pour un champ texte serait disproportionné.
+  String? _lieu;
 
   @override
   void initState() {
@@ -81,6 +86,71 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
   ///
   /// Une dégustation n'est pas qu'une ligne de journal : elle a nourri le profil de goût.
   /// Annoncer « supprimer ? » sans le dire laisserait croire à un geste anodin.
+  /// Corrige le lieu d'une dégustation.
+  ///
+  /// La devinette vaut mieux qu'un champ vide — on ouvre rarement une bouteille sans être
+  /// quelque part — mais elle se trompe : un point à moins de quatre-vingts mètres peut
+  /// être une rue plutôt qu'une maison. Le rattrapage est ici.
+  Future<void> _modifierLeLieu({required bool isFr}) async {
+    final champ = TextEditingController(
+        text: _lieu ?? widget.entry.locationName ?? '');
+    final nouveau = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isFr ? 'Lieu de dégustation' : 'Tasting location'),
+        content: TextField(
+          controller: champ,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
+            hintText: isFr ? 'Chez Paul, Le Comptoir…' : 'At Paul\'s, Le Comptoir…',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(isFr ? 'Annuler' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, champ.text.trim()),
+            child: Text(isFr ? 'Enregistrer' : 'Save'),
+          ),
+        ],
+      ),
+    );
+    if (nouveau == null || !mounted) return;
+
+    setState(() => _lieu = nouveau);
+    try {
+      await ref.read(supabaseProvider).from('tasting_log').update({
+        'location_name': nouveau.isEmpty ? null : nouveau,
+        'occasion': nouveau.isEmpty ? null : nouveau,
+      }).eq('id', widget.entry.id);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(isFr
+            ? 'Le lieu n\'a pas pu être enregistré. Réessayez une fois connecté.'
+            : 'The location could not be saved. Try again once online.'),
+      ));
+      return;
+    }
+
+    // Le cache local, sinon le journal réafficherait l'ancien lieu à la prochaine ouverture.
+    final offline = ref.read(offlineStorageServiceProvider);
+    final cache = offline.getCachedTastings();
+    for (final t in cache) {
+      if (t['id']?.toString() == widget.entry.id) {
+        t['location_name'] = nouveau.isEmpty ? null : nouveau;
+        t['occasion'] = nouveau.isEmpty ? null : nouveau;
+      }
+    }
+    await offline.saveCachedTastings(cache);
+    ref.invalidate(tastingLogProvider);
+  }
+
   Future<void> _confirmerSuppression({required bool isFr}) async {
     final nom = widget.entry.wineName ?? (isFr ? 'ce vin' : 'this wine');
     final ok = await showDialog<bool>(
@@ -449,15 +519,21 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                         const SizedBox(height: 16),
 
                         // Lieu de dégustation (Où)
-                        if (entry.locationName != null && entry.locationName!.isNotEmpty) ...[
-                          _buildContextRow(
-                            icon: Icons.place,
-                            iconColor: Colors.blue,
-                            label: isFr ? 'Lieu de dégustation' : 'Tasting location',
-                            value: entry.locationName!,
-                          ),
-                          const SizedBox(height: 12),
-                        ],
+                        //
+                        // Modifiable, et affiché même vide. Il était deviné depuis la
+                        // position — un lieu à moins de 80 m — et parfois à côté : « Joubert
+                        // Street » pour un dîner chez des amis. Deviner est utile ; ne pas
+                        // pouvoir corriger ne l'est pas.
+                        _buildContextRow(
+                          icon: Icons.place,
+                          iconColor: Colors.blue,
+                          label: isFr ? 'Lieu de dégustation' : 'Tasting location',
+                          value: (_lieu ?? entry.locationName ?? '').isEmpty
+                              ? (isFr ? 'Non renseigné' : 'Not set')
+                              : (_lieu ?? entry.locationName!),
+                          onEdit: () => _modifierLeLieu(isFr: isFr),
+                        ),
+                        const SizedBox(height: 12),
 
                         // Invités / Co-dégustateurs (Avec qui)
                         if (entry.coTasters.isNotEmpty) ...[
@@ -919,6 +995,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
     required Color iconColor,
     required String label,
     required String value,
+    VoidCallback? onEdit,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -938,6 +1015,13 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
             ],
           ),
         ),
+        if (onEdit != null)
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            tooltip: 'Modifier',
+            onPressed: onEdit,
+          ),
       ],
     );
   }

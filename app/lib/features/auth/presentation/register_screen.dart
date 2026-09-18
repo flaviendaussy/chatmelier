@@ -17,6 +17,46 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   bool _isLoading = false;
 
+  /// Le formulaire complet est replié par défaut.
+  ///
+  /// Créer un compte demandait un nom, une adresse et un mot de passe — trois champs et
+  /// un secret à inventer, avant d'avoir rien vu de l'app. Le lien par e-mail crée le
+  /// compte aussi bien, avec un seul champ et rien à retenir. Le mot de passe reste
+  /// possible pour qui le préfère, il cesse simplement d'être le chemin par défaut.
+  bool _avecMotDePasse = false;
+  bool _lienEnvoye = false;
+
+  /// Crée le compte par lien e-mail. `signInWithOtp` crée l'utilisateur s'il n'existe
+  /// pas : inscription et connexion sont le même geste, ce qui retire au passage l'écran
+  /// « avez-vous déjà un compte ? » à quoi personne ne sait répondre.
+  Future<void> _envoyerLeLien() async {
+    final email = emailCtrl.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez renseigner une adresse email valide')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(authRepositoryProvider).sendMagicLink(email);
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _lienEnvoye = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Envoi impossible : $e'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     emailCtrl.dispose();
@@ -192,48 +232,119 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 16),
-            TextField(
-              controller: nameCtrl,
-              decoration: InputDecoration(
-                labelText: l10n?.registerNameLabel ?? 'Nom d\'affichage / Prénom',
-                prefixIcon: const Icon(Icons.person_outline),
-                border: const OutlineInputBorder(),
+
+            if (_lienEnvoye) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.mark_email_read_outlined,
+                        color: Color(0xFF10B981), size: 32),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Lien envoyé à ${emailCtrl.text.trim()}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Ouvrez-le depuis ce téléphone et vous y êtes. Pensez aux spams.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: l10n?.loginEmailLabel ?? 'Adresse Email',
-                prefixIcon: const Icon(Icons.email_outlined),
-                border: const OutlineInputBorder(),
+              const SizedBox(height: 16),
+              Center(
+                child: TextButton(
+                  onPressed: () => setState(() => _lienEnvoye = false),
+                  child: const Text('Changer d\'adresse'),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passCtrl,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: l10n?.loginPasswordLabel ?? 'Mot de passe (min 6 caractères)',
-                prefixIcon: const Icon(Icons.lock_outline),
-                border: const OutlineInputBorder(),
+            ] else ...[
+              TextField(
+                controller: emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: l10n?.loginEmailLabel ?? 'Adresse Email',
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+                onSubmitted: (_) => _avecMotDePasse ? null : _envoyerLeLien(),
               ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _isLoading ? null : _register,
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF8B1E3F),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
+              // Le chemin par mot de passe, replié : deux champs de plus et un secret à
+              // inventer, pour qui y tient.
+              if (_avecMotDePasse) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                    labelText: l10n?.registerNameLabel ?? 'Nom d\'affichage / Prénom',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: passCtrl,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText:
+                        l10n?.loginPasswordLabel ?? 'Mot de passe (min 6 caractères)',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _isLoading
+                    ? null
+                    : (_avecMotDePasse ? _register : _envoyerLeLien),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B1E3F),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape:
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text(
+                  _isLoading
+                      ? 'Un instant…'
+                      : (_avecMotDePasse
+                          ? (l10n?.registerSubmitButton ?? 'Créer mon compte')
+                          : 'Recevoir mon lien de connexion'),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.white),
+                ),
               ),
-              child: Text(
-                _isLoading ? 'Création en cours...' : (l10n?.registerSubmitButton ?? 'Créer mon compte'),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+              const SizedBox(height: 10),
+              Center(
+                child: TextButton(
+                  onPressed: () =>
+                      setState(() => _avecMotDePasse = !_avecMotDePasse),
+                  child: Text(
+                    _avecMotDePasse
+                        ? 'Plutôt un lien par e-mail'
+                        : 'Je préfère un mot de passe',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
               ),
-            ),
+            ],
+
             const SizedBox(height: 16),
             Center(
               child: TextButton.icon(

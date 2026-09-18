@@ -519,19 +519,37 @@ void main() {
       expect(find.text('Pas encore inscrit ? Créer un compte en 1 clic'), findsOneWidget);
     });
 
-    testWidgets('Combinaison 5.4: RegisterScreen renders with contrast-compliant FilledButton', (tester) async {
+    testWidgets('Combinaison 5.4: s\'inscrire ne demande qu\'une adresse', (tester) async {
+      // Le formulaire réclamait un nom, une adresse ET un mot de passe — trois champs et
+      // un secret à inventer avant d'avoir rien vu de l'app. Le lien par e-mail crée le
+      // compte aussi bien, avec un seul champ.
       await tester.pumpWidget(createTestWidget(const RegisterScreen()));
       await tester.pumpAndSettle();
 
       expect(find.text('Créer un compte'), findsWidgets);
-      expect(find.byType(TextField), findsNWidgets(3)); // Name, Email, Password
+      expect(find.byType(TextField), findsOneWidget,
+          reason: 'l\'adresse suffit : le reste est du zèle');
 
       final createBtn = find.byType(FilledButton);
       expect(createBtn, findsOneWidget);
-
       final filledButton = tester.widget<FilledButton>(createBtn);
-      expect(filledButton.style?.backgroundColor?.resolve({}), equals(const Color(0xFF8B1E3F)));
+      expect(filledButton.style?.backgroundColor?.resolve({}),
+          equals(const Color(0xFF8B1E3F)));
       expect(filledButton.style?.foregroundColor?.resolve({}), equals(Colors.white));
+    });
+
+    testWidgets('Combinaison 5.5: le mot de passe reste possible, sans être imposé',
+        (tester) async {
+      await tester.pumpWidget(createTestWidget(const RegisterScreen()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Je préfère un mot de passe'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TextField), findsNWidgets(3),
+          reason: 'qui tient au mot de passe doit pouvoir en mettre un');
+      expect(find.text('Plutôt un lien par e-mail'), findsOneWidget,
+          reason: 'et pouvoir revenir en arrière');
     });
   });
 }

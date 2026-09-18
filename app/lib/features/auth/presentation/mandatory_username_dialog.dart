@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
-import '../../../shared/widgets/international_phone_input.dart';
 import '../domain/user_profile.dart';
 
 class MandatoryUsernameDialog extends ConsumerStatefulWidget {
@@ -47,16 +46,54 @@ class MandatoryUsernameDialog extends ConsumerStatefulWidget {
         return; // Profile already has valid username
       }
 
+      // Reporté récemment ? On se tait.
+      if (await _reporteRecemment(user.id)) return;
+
       // If missing across all tiers, prompt the user
       if (!context.mounted) return;
       await showDialog(
         context: context,
-        barrierDismissible: false, // Mandatory prompt
+        // Différable. Cette boîte s'ouvrait immédiatement après l'inscription, sans
+        // échappatoire : premier écran de l'app, on venait de s'inscrire, et on se
+        // retrouvait devant un formulaire bloquant. Or le pseudo ne sert qu'à être
+        // retrouvé par ses amis — une fonctionnalité dont personne n'a besoin à cet
+        // instant précis. Le demander reste utile ; l'exiger fait fermer l'app.
+        barrierDismissible: true,
         builder: (ctx) => const MandatoryUsernameDialog(),
       );
     } catch (e) {
       AppLogger.warning('AUTH', 'Error checking username prompt requirement: $e');
     }
+  }
+
+  /// Combien de temps on se tait après un « plus tard ».
+  ///
+  /// Une semaine : assez pour ne pas harceler, assez court pour que la question revienne
+  /// avant qu'on ait vraiment besoin du pseudo — c'est-à-dire avant qu'un ami cherche à
+  /// nous retrouver.
+  static const Duration delaiDeReport = Duration(days: 7);
+
+  static String _cleDeReport(String userId) => 'username_prompt_deferred_$userId';
+
+  static Future<bool> _reporteRecemment(String userId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final brut = prefs.getString(_cleDeReport(userId));
+      if (brut == null) return false;
+      final quand = DateTime.tryParse(brut);
+      if (quand == null) return false;
+      return DateTime.now().difference(quand) < delaiDeReport;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<void> reporter(String userId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+          _cleDeReport(userId), DateTime.now().toIso8601String());
+    } catch (_) {}
   }
 
   @override
@@ -66,7 +103,6 @@ class MandatoryUsernameDialog extends ConsumerStatefulWidget {
 class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialog> {
   final _usernameController = TextEditingController();
   final _displayNameController = TextEditingController();
-  String _formattedPhoneNumber = '';
   final _formKey = GlobalKey<FormState>();
 
   bool _isChecking = false;
@@ -104,15 +140,6 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
       return;
     }
 
-    final phone = _formattedPhoneNumber.trim();
-    final phoneErr = UserProfile.validatePhoneNumber(phone.isNotEmpty ? phone : null);
-    if (phoneErr != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(phoneErr), backgroundColor: Colors.red),
-      );
-      return;
-    }
-
     setState(() {
       _isChecking = true;
       _usernameError = null;
@@ -131,23 +158,6 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
       return;
     }
 
-    // 2. Check Phone number availability across all users if provided
-    if (phone.isNotEmpty) {
-      final phoneAvailable = await repo.isPhoneAvailable(phone, excludeUserId: user?.id);
-      if (!phoneAvailable) {
-        setState(() => _isChecking = false);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Ce numéro de téléphone est déjà associé à un autre compte.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        return;
-      }
-    }
-
     setState(() {
       _isChecking = false;
       _isSaving = true;
@@ -159,7 +169,6 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
       await repo.updateProfile(
         displayName: name,
         username: rawUser,
-        phoneNumber: phone.isNotEmpty ? phone : null,
         email: user?.email,
       );
 
@@ -227,7 +236,8 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
     final bottomInset = media.viewInsets.bottom;
 
     return PopScope(
-      canPop: false, // Prevent back button dismissal without completing profile
+      // Le retour arrière fonctionne : voir `barrierDismissible` plus haut.
+      canPop: true,
       child: AnimatedPadding(
         padding: EdgeInsets.fromLTRB(
           16,
@@ -328,17 +338,16 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                               ),
                             ),
-                            const SizedBox(height: 12),
-
-                            // Phone Number Field
-                            InternationalPhoneInput(
-                              labelText: 'Numéro de téléphone (optionnel)',
-                              helperText: 'Pour retrouver vos contacts plus facilement',
-                              onChanged: (val) {
-                                _formattedPhoneNumber = val;
-                              },
-                            ),
                             const SizedBox(height: 20),
+
+                            // LE NUMÉRO DE TÉLÉPHONE N'EST PLUS ICI.
+                            //
+                            // Il ne sert qu'à retrouver ses contacts — une fonctionnalité
+                            // qui n'intéresse personne à la seconde où l'on découvre
+                            // l'app. Le demander à l'inscription, c'est réclamer une
+                            // donnée personnelle avant d'avoir rendu le moindre service.
+                            // Il se renseigne depuis Profil → Compte, là où il sert.
+
 
                             // Submit Button
                             FilledButton.icon(
@@ -363,10 +372,30 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                             ),
                             const SizedBox(height: 4),
 
-                            // Porte de sortie. Sans elle, l'utilisateur connecté avec le
-                            // mauvais compte est enfermé : le dialogue n'est pas dismissible,
-                            // le bouton retour est désactivé, et la seule déconnexion de l'app
-                            // se trouve dans l'écran profil — inatteignable d'ici.
+                            // La sortie. Sans elle, « différable » n'est qu'une intention :
+                            // fermer par le bouton retour ne dit pas à l'app de se taire,
+                            // et la boîte reviendrait au prochain passage dans la cave.
+                            TextButton(
+                              onPressed: (_isChecking || _isSaving)
+                                  ? null
+                                  : () async {
+                                      final user = ref.read(currentUserProvider);
+                                      if (user != null) {
+                                        await MandatoryUsernameDialog.reporter(user.id);
+                                      }
+                                      if (context.mounted) Navigator.of(context).pop();
+                                    },
+                              child: const Text(
+                                'Plus tard',
+                                style: TextStyle(fontSize: 13, color: Colors.grey),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+
+                            // Se déconnecter, pour qui s'est trompé de compte. Distinct de
+                            // « Plus tard » : l'un reporte la question, l'autre change de
+                            // personne. La seule déconnexion de l'app vit dans l'écran
+                            // profil, qu'on ne peut pas atteindre d'ici.
                             TextButton.icon(
                               onPressed: (_isChecking || _isSaving) ? null : _switchAccount,
                               icon: const Icon(Icons.swap_horiz_rounded, size: 18),

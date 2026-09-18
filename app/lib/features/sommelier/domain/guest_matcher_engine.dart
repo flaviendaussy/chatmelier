@@ -15,6 +15,15 @@ class GuestProfile {
   final List<String> dislikedCharacteristics;
   final String archetype;
 
+  /// Le radar d'un convive venu d'ailleurs.
+  ///
+  /// Un invité qui rejoint une table depuis son téléphone n'apporte pas son `TasteProfile`
+  /// entier — celui-ci est local à son appareil. Il apporte ses huit axes, qui sont tout
+  /// ce dont le moteur de consensus a besoin. Sans ce champ, un convive distant retombait
+  /// sur le radar grossier déduit de son archétype, et la table votait sur une caricature
+  /// de son goût.
+  final WineTasteRadarMetrics? radarDistant;
+
   const GuestProfile({
     required this.id,
     required this.name,
@@ -24,7 +33,61 @@ class GuestProfile {
     this.favoriteGrapes = const [],
     this.dislikedCharacteristics = const [],
     this.archetype = 'Curieux & Éclectique',
+    this.radarDistant,
   });
+
+  /// Ce qu'un convive emporte avec lui en rejoignant une table.
+  ///
+  /// Volontairement maigre : un nom, des préférences déclarées et huit nombres. Pas
+  /// l'historique de dégustations, pas la cave, pas l'identifiant de compte — rien de ce
+  /// que les autres convives n'ont pas besoin de savoir pour choisir une bouteille.
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'archetype': archetype,
+        'favorite_types': favoriteTypes,
+        'favorite_grapes': favoriteGrapes,
+        'disliked': dislikedCharacteristics,
+        'radar': {
+          'tannin': radar.tannin,
+          'body': radar.body,
+          'oak': radar.oak,
+          'ripe_fruit': radar.ripeFruit,
+          'spice': radar.spice,
+          'fresh_fruit': radar.freshFruit,
+          'minerality': radar.minerality,
+          'acidity': radar.acidity,
+        },
+      };
+
+  factory GuestProfile.fromJson(String id, Map<String, dynamic> json) {
+    final r = json['radar'];
+    double axe(String cle, double defaut) => r is Map
+        ? (double.tryParse(r[cle]?.toString() ?? '') ?? defaut)
+        : defaut;
+    List<String> liste(String cle) =>
+        (json[cle] as List?)?.map((e) => e.toString()).toList() ?? const [];
+
+    return GuestProfile(
+      id: id,
+      name: (json['name'] ?? 'Convive').toString(),
+      archetype: (json['archetype'] ?? 'Curieux & Éclectique').toString(),
+      favoriteTypes: liste('favorite_types'),
+      favoriteGrapes: liste('favorite_grapes'),
+      dislikedCharacteristics: liste('disliked'),
+      radarDistant: r is Map
+          ? WineTasteRadarMetrics(
+              tannin: axe('tannin', 5.0),
+              body: axe('body', 5.0),
+              oak: axe('oak', 3.0),
+              ripeFruit: axe('ripe_fruit', 5.0),
+              spice: axe('spice', 4.0),
+              freshFruit: axe('fresh_fruit', 5.5),
+              minerality: axe('minerality', 5.0),
+              acidity: axe('acidity', 5.5),
+            )
+          : null,
+    );
+  }
 
   factory GuestProfile.fromTasteProfile(TasteProfile tp, {String? avatarUrl}) {
     return GuestProfile(
@@ -54,6 +117,9 @@ class GuestProfile {
   }
 
   WineTasteRadarMetrics get radar {
+    // Le radar transmis prime : il vient d'un vrai profil, mesuré sur l'appareil de son
+    // propriétaire, là où l'archétype n'est qu'une étiquette.
+    if (radarDistant != null) return radarDistant!;
     if (tasteProfile != null) {
       return tasteProfile!.radarMetrics;
     }

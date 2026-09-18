@@ -11,10 +11,17 @@ class MenuTableConsensusGuestScreen extends StatefulWidget {
   final String? initialSessionId;
   final String? initialData;
 
+  /// La carte déjà reçue du serveur, quand on est arrivé par un code plutôt que par un QR.
+  ///
+  /// Elle est complète : le plafond de seize vins ne valait que pour ce qui devait tenir
+  /// dans une URL. Une table côté serveur n'a pas cette contrainte.
+  final ScannedMenu? prechargedMenu;
+
   const MenuTableConsensusGuestScreen({
     super.key,
     this.initialSessionId,
     this.initialData,
+    this.prechargedMenu,
   });
 
   @override
@@ -77,8 +84,9 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
       }
     }
 
-    ScannedMenu? resolved;
-    if (sessionId != null && sessionId.isNotEmpty) {
+    // La carte reçue du serveur prime sur tout : elle est complète et à jour.
+    ScannedMenu? resolved = widget.prechargedMenu;
+    if (resolved == null && sessionId != null && sessionId.isNotEmpty) {
       resolved = MenuTableSessionManager.getSession(sessionId);
     }
     if (resolved == null && rawData != null && rawData.isNotEmpty) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/data/taste_profile_service.dart';
@@ -6,6 +8,7 @@ import '../domain/menu_wine.dart';
 import '../domain/menu_table_matcher_engine.dart';
 import '../../blind_battle/presentation/widgets/stylized_chatmelier_qr.dart';
 import '../data/menu_table_session_manager.dart';
+import '../data/table_session_service.dart';
 
 class MenuTableConsensusSheet extends ConsumerStatefulWidget {
   final ScannedMenu menu;
@@ -31,12 +34,74 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
   bool _showQrCode = false;
   late final String _tableSessionId;
 
+  /// Le code délivré par le serveur, quand la table a pu être ouverte.
+  ///
+  /// L'ancien « code de partage » était fabriqué ici à partir de l'horodatage et ne
+  /// correspondait à rien : on invitait les convives à le saisir alors qu'aucun écran ne
+  /// pouvait le résoudre. Celui-ci se tape et fonctionne.
+  String? _codeServeur;
+  bool _ouvertureEnCours = true;
+
+  /// Les convives qui ont rejoint depuis leur propre téléphone.
+  Timer? _sondage;
+
   @override
   void initState() {
     super.initState();
     _tableSessionId = 'TABLE-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
     MenuTableSessionManager.registerSession(_tableSessionId, widget.menu);
     WidgetsBinding.instance.addPostFrameCallback((_) => _initHostAndDemo());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ouvrirLaTable());
+  }
+
+  @override
+  void dispose() {
+    _sondage?.cancel();
+    super.dispose();
+  }
+
+  /// Ouvre la table côté serveur, et se met à écouter qui arrive.
+  Future<void> _ouvrirLaTable() async {
+    try {
+      final t = await ref.read(tableSessionServiceProvider).ouvrir(
+            restaurantName: widget.menu.restaurantName,
+            menu: widget.menu,
+          );
+      if (!mounted) return;
+      setState(() {
+        _codeServeur = t.code;
+        _ouvertureEnCours = false;
+      });
+      // Sondage plutôt que temps réel : une politique RLS ne peut pas recevoir le code en
+      // paramètre, et l'ouvrir à tous laisserait lister les tables en cours. Quatre
+      // convives autour d'une table ne justifient pas d'y sacrifier ça — six secondes
+      // suffisent à ce que l'arrivée d'un ami paraisse immédiate.
+      _sondage = Timer.periodic(const Duration(seconds: 6), (_) => _rafraichirConvives());
+    } catch (_) {
+      if (!mounted) return;
+      // La table reste utilisable en local : l'hôte garde son écran, ses convives ajoutés
+      // à la main et son consensus. Seule l'invitation à distance manque, et on le dit.
+      setState(() => _ouvertureEnCours = false);
+    }
+  }
+
+  Future<void> _rafraichirConvives() async {
+    final code = _codeServeur;
+    if (code == null || !mounted) return;
+    final distants = await ref.read(tableSessionServiceProvider).convives(code);
+    if (!mounted || distants.isEmpty) return;
+    setState(() {
+      for (final g in distants) {
+        final deja = _tableGuests.indexWhere(
+            (x) => x.name.trim().toLowerCase() == g.name.trim().toLowerCase());
+        if (deja >= 0) {
+          _tableGuests[deja] = g;
+        } else {
+          _tableGuests.add(g);
+        }
+      }
+    });
+    _calculateConsensus();
   }
 
   Future<void> _initHostAndDemo() async {
@@ -375,12 +440,16 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
           ListTile(
             leading: const Icon(Icons.qr_code_rounded, color: Color(0xFFD4AF37), size: 28),
             title: const Text(
-              'Inviter la table à scanner le QR Code',
+              'Inviter la table',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
             ),
-            subtitle: const Text(
-              'Chaque ami rejoint avec ses préférences gustatives',
-              style: TextStyle(color: Colors.white54, fontSize: 11),
+            subtitle: Text(
+              _ouvertureEnCours
+                  ? 'Ouverture de la table…'
+                  : (_codeServeur != null
+                      ? 'Code $_codeServeur — ou faites scanner le QR'
+                      : 'Hors ligne : ajoutez vos convives à la main ci-dessus'),
+              style: const TextStyle(color: Colors.white54, fontSize: 11),
             ),
             trailing: IconButton(
               icon: Icon(_showQrCode ? Icons.expand_less : Icons.expand_more, color: const Color(0xFFD4AF37)),
@@ -389,6 +458,38 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
           ),
           if (_showQrCode) ...[
             const Divider(color: Colors.white12, height: 1),
+            // Le code d'abord, le QR ensuite. Une photo échoue pour mille raisons — écran
+            // rayé, lumière basse, téléphone sans appareil photo ; six caractères dits à
+            // voix haute, non.
+            if (_codeServeur != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Column(
+                  children: [
+                    const Text('CODE DE LA TABLE',
+                        style: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 10,
+                            letterSpacing: 1.4,
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    SelectableText(
+                      _codeServeur!,
+                      style: const TextStyle(
+                        color: Color(0xFFD4AF37),
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 6,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'À saisir dans Chatmelier, onglet Dégustation',
+                      style: TextStyle(color: Colors.white38, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
               child: StylizedChatmelierQr(
@@ -399,8 +500,15 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                   sessionId: _tableSessionId,
                   menu: widget.menu,
                 ),
-                shareMessage: 'Rejoins notre table sur Chatmelier pour choisir le vin idéal ensemble ! Entre le code $_tableSessionId ou clique ici : ${MenuTableSessionManager.buildQrUrl(sessionId: _tableSessionId, menu: widget.menu)}',
-                shareSubject: 'Table Chatmelier - Code $_tableSessionId',
+                shareMessage: _codeServeur != null
+                    ? 'Rejoins notre table sur Chatmelier pour choisir le vin ensemble ! '
+                        'Code : $_codeServeur — ou clique ici : '
+                        '${MenuTableSessionManager.buildQrUrl(sessionId: _tableSessionId, menu: widget.menu)}'
+                    : 'Rejoins notre table sur Chatmelier pour choisir le vin ensemble ! '
+                        '${MenuTableSessionManager.buildQrUrl(sessionId: _tableSessionId, menu: widget.menu)}',
+                shareSubject: _codeServeur != null
+                    ? 'Table Chatmelier — code $_codeServeur'
+                    : 'Table Chatmelier',
                 size: 260,
               ),
             ),

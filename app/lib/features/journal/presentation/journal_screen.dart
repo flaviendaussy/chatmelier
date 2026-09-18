@@ -8,6 +8,7 @@ import '../../../shared/utils/responsive_layout.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/tasting_entry.dart';
 import 'external_tasting_dialog.dart';
+import '../../menu_scan/presentation/join_table_sheet.dart';
 import 'tasting_questionnaire_sheet.dart';
 import 'tasting_entry_detail_screen.dart';
 import '../../cellar/data/favorite_wines_service.dart';
@@ -907,6 +908,22 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                   subtitle: isFr ? 'Carte des vins' : 'Wine list',
                   badgeColor: Colors.teal.shade700,
                   onTap: () => context.push('/scan/menu'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // 4. Rejoindre une table ouverte par quelqu'un d'autre.
+              //
+              // Le QR restait la seule porte d'entrée, et il échoue pour des raisons
+              // banales : écran rayé, lumière basse, téléphone sans appareil photo,
+              // invité arrivé après le dessert.
+              Expanded(
+                child: _buildActionTile(
+                  context,
+                  icon: Icons.groups_rounded,
+                  title: isFr ? 'Rejoindre\nune table' : 'Join\na table',
+                  subtitle: isFr ? 'Avec un code' : 'With a code',
+                  badgeColor: const Color(0xFF6A4C93),
+                  onTap: () => JoinTableSheet.show(context),
                 ),
               ),
             ],

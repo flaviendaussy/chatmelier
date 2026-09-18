@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
@@ -309,6 +310,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/ai-costs',
         builder: (context, state) => const AiCostEstimatorScreen(),
+      ),
+      // La console d'administration. L'écran ne porte AUCUNE clé : il appelle des
+      // fonctions SQL qui vérifient `profiles.is_admin` côté serveur (migration 041).
+      // Y arriver sans le droit ne montre donc qu'un refus, pas des données.
+      GoRoute(
+        path: '/admin/console',
+        builder: (context, state) => const AdminDashboardScreen(),
       ),
       GoRoute(
         path: '/friends',

@@ -1549,6 +1549,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const Divider(height: 12),
           ListTile(
             contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.insights_rounded, color: Color(0xFF8B1E3F)),
+            title: Text(isFr ? 'Console' : 'Console',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(
+                isFr
+                    ? 'Actifs par jour, ce qu\'ils font, répartitions'
+                    : 'Daily actives, what they do, breakdowns',
+                style: const TextStyle(fontSize: 12)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/admin/console'),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
             title: Text(isFr ? 'Estimation des Coûts IA (Gemini)' : 'AI Cost Estimation (Gemini)', style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(isFr ? 'Suivi des tokens et dépenses All-Time' : 'Token usage & all-time expenditure', style: const TextStyle(fontSize: 12)),

@@ -332,6 +332,11 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     }
   }
 
+  TastingQuestionnaireResult? _resultatDuMaitreDeCave() => resultatDuMaitreDeCave(
+        _completedResults,
+        (id) => _allProfiles.any((p) => p.id == id && p.isPrimary),
+      );
+
   Future<void> _submitCurrentProfile() async {
     final profile = _selectedProfiles.isNotEmpty
         ? _selectedProfiles[_currentProfileIndex]
@@ -472,7 +477,15 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
     // 2. Insert primary tasting log into tasting_log table
     if (user != null && widget.wineId != null) {
-      final primaryResult = _completedResults.values.firstOrNull;
+      // La ligne de journal est CELLE DU MAÎTRE DE CAVE, pas celle du premier qui a
+      // répondu.
+      //
+      // `_completedResults` est rempli dans l'ordre où les convives remplissent le
+      // questionnaire. Prendre la première valeur inscrivait donc la note de quelqu'un
+      // d'autre : goûté à trois, noté 7,5, et le journal affichait le 9 de Paul. Les
+      // profils de goût, eux, étaient justes — chacun reçoit le sien — d'où un écran qui
+      // se contredisait lui-même sans que rien ne le signale.
+      final primaryResult = _resultatDuMaitreDeCave();
       final cleanOwnerId = _isValidUuid(widget.bottleOwnerId) ? widget.bottleOwnerId : null;
       final ratingOutOf10 = primaryResult?.noteOutOf10 ?? 8.0;
       final tastingNotes = primaryResult != null && primaryResult.perceivedAromas.isNotEmpty

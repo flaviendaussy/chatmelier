@@ -316,35 +316,44 @@ class TastingPedagogySheet extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // What the user perceived
-                          Text(
-                            l10n?.tastingWhatYouDetected ?? 'CE QUE VOUS AVEZ DÉCELÉ :',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white60 : Colors.black54,
-                              letterSpacing: 0.8,
+                          // La confrontation, faite pour la personne plutôt que laissée
+                          // à son œil : deux listes côte à côte demandaient de croiser de
+                          // tête des pastilles dans deux vocabulaires. C'est le travail
+                          // que la machine sait faire, et il était demandé.
+                          if (report.comparaisonAromes.isNotEmpty) ...[
+                            _blocAromes(
+                              theme, isDark,
+                              titre: 'BIEN VU',
+                              couleur: const Color(0xFF2E7D32),
+                              aromes: report.comparaisonAromes
+                                  .where((a) => a.verdict == VerdictArome.bienVu)
+                                  .toList(),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          if (report.userAromas.isNotEmpty) ...[
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: report.userAromas.map((a) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF722F37).withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: const Color(0xFF722F37).withValues(alpha: 0.4)),
-                                  ),
-                                  child: Text(
-                                    a,
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                  ),
-                                );
-                              }).toList(),
+                            _blocAromes(
+                              theme, isDark,
+                              titre: 'À CÔTÉ',
+                              couleur: const Color(0xFFB3261E),
+                              aromes: report.comparaisonAromes
+                                  .where((a) => a.verdict == VerdictArome.aCote)
+                                  .toList(),
+                            ),
+                            _blocAromes(
+                              theme, isDark,
+                              titre: 'À CHERCHER LA PROCHAINE FOIS',
+                              couleur: const Color(0xFFE08B00),
+                              aromes: report.comparaisonAromes
+                                  .where((a) => a.verdict == VerdictArome.manque)
+                                  .toList(),
+                            ),
+                            // Ni juste ni faux : un nez n'est pas un QCM, et sanctionner
+                            // le plausible apprendrait à se taire plutôt qu'à sentir.
+                            _blocAromes(
+                              theme, isDark,
+                              titre: 'VOTRE PART',
+                              couleur: isDark ? Colors.white54 : Colors.black45,
+                              aromes: report.comparaisonAromes
+                                  .where((a) => a.verdict == VerdictArome.plausible)
+                                  .toList(),
                             ),
                           ] else ...[
                             Text(
@@ -369,39 +378,7 @@ class TastingPedagogySheet extends StatelessWidget {
                               style: const TextStyle(fontSize: 12),
                             ),
                           ],
-
-                          const Divider(height: 24),
-
-                          // Theoretical Archetype for this terroir
-                          Text(
-                            l10n?.tastingArchetypeSignature ?? 'SIGNATURE ARCHÉTYPALE DU FLACON :',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFD4AF37),
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            children: report.archetypeAromas.map((arch) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF2E2938) : Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
-                                ),
-                                child: Text(
-                                  arch,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           Text(
                             report.archetypePalate,
                             style: theme.textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
@@ -594,6 +571,57 @@ class TastingPedagogySheet extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  /// Une colonne de la confrontation : son titre, sa couleur, ses arômes.
+  ///
+  /// Rien ne s'affiche quand la colonne est vide — une rubrique « À côté » sans contenu
+  /// installerait un reproche qui n'a pas lieu d'être.
+  Widget _blocAromes(
+    ThemeData theme,
+    bool isDark, {
+    required String titre,
+    required Color couleur,
+    required List<AromeCompare> aromes,
+  }) {
+    if (aromes.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            titre,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: couleur,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final a in aromes)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: couleur.withValues(alpha: isDark ? 0.18 : 0.10),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: couleur.withValues(alpha: 0.5)),
+                  ),
+                  child: Text(
+                    a.libelle,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

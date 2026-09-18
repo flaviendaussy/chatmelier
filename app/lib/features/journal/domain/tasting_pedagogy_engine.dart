@@ -1,4 +1,6 @@
 import '../../cellar/domain/wine.dart';
+import 'tasting_questionnaire_result.dart';
+import '../../cellar/domain/wine_world/wine_world.dart';
 
 enum FlavorOriginCategory { grape, oak, terroir, age }
 
@@ -48,6 +50,35 @@ class ScientificPillar {
   });
 }
 
+/// Le sort d'un arôme, une fois confronté à la signature du vin.
+enum VerdictArome {
+  /// Décelé, et attendu : bien vu.
+  bienVu,
+
+  /// Décelé, sans être ni typique ni contradictoire. Un nez n'est pas un QCM : sentir la
+  /// réglisse sur un bandol n'est ni juste ni faux, et le sanctionner apprendrait à se
+  /// taire plutôt qu'à sentir.
+  plausible,
+
+  /// Décelé alors que le vin va dans l'autre sens.
+  aCote,
+
+  /// Attendu, mais pas décelé. C'est la colonne qui fait progresser.
+  manque,
+}
+
+/// Un arôme et ce qu'il dit de la dégustation.
+class AromeCompare {
+  final String id;
+  final String libelle;
+  final VerdictArome verdict;
+  const AromeCompare({
+    required this.id,
+    required this.libelle,
+    required this.verdict,
+  });
+}
+
 class TastingPedagogyReport {
   final Wine wine;
   final String? userAppearance;
@@ -61,6 +92,14 @@ class TastingPedagogyReport {
   final String archetypePalate;
 
   final List<String> matchingAromas;
+
+  /// Ce qui a été décelé et ce qui a été manqué, arôme par arôme.
+  ///
+  /// L'écran montrait deux listes côte à côte — « ce que vous avez décelé » et « la
+  /// signature du flacon » — en laissant faire la comparaison de tête. Elle demande de
+  /// croiser deux séries de pastilles dans deux vocabulaires différents, ce qui est
+  /// précisément le travail que la machine sait faire.
+  final List<AromeCompare> comparaisonAromes;
   final List<NuanceItem> hiddenNuancesToDiscover;
   final int acuityScore; // 0 - 100%
   final String sommelierPraise;
@@ -78,12 +117,127 @@ class TastingPedagogyReport {
     required this.archetypeAromas,
     required this.archetypePalate,
     required this.matchingAromas,
+    this.comparaisonAromes = const [],
     required this.hiddenNuancesToDiscover,
     required this.acuityScore,
     required this.sommelierPraise,
     required this.scientificPillars,
     this.flavorOrigins = const [],
   });
+}
+
+/// Le style d'un vin, déduit de ce qu'on sait de son origine.
+///
+/// **Pourquoi ce n'est pas qu'un détail de rangement.** La classification se faisait par
+/// mots trouvés dans le nom : « bordeaux », « bandol », « cabernet »… Un Margaux nommé
+/// « Margaux » n'en contient aucun — le moteur le rangeait donc parmi les rouges
+/// délicats, lui prêtait des « esters du Pinot Noir » et des « terroirs calcaires de
+/// Bourgogne », et attendait de lui des arômes de sous-bois et de végétal noble. Un
+/// utilisateur l'a vu et l'a signalé.
+///
+/// La table des régions sait, elle, que Margaux est du Médoc, planté en Cabernet
+/// Sauvignon et élevé dix-huit mois en barrique. Elle est déjà là, déjà testée : s'en
+/// passer revenait à maintenir une seconde connaissance du vignoble, plus pauvre, dans un
+/// fichier de pédagogie.
+///
+/// Les anciens mots-clés restent en première ligne : savoir plus ne doit jamais faire
+/// perdre une réponse qu'on donnait déjà.
+class StyleDuVin {
+  final RegionVin? region;
+  final Elevage? elevage;
+
+  /// Rouge de structure : tanins denses, garde, boisé assumé.
+  final bool rougePuissant;
+
+  /// Blanc tendu : pas de bois, minéralité et acidité en avant.
+  final bool blancTendu;
+
+  const StyleDuVin({
+    this.region,
+    this.elevage,
+    required this.rougePuissant,
+    required this.blancTendu,
+  });
+
+  /// Cépages qui donnent de la structure. Leur seule présence dans l'encépagement d'une
+  /// région suffit : un Saint-Émilion est un merlot de garde, pas un vin délicat.
+  static const Set<String> cepagesDeStructure = {
+    'cabernet sauvignon', 'merlot', 'petit verdot', 'carmenere', 'carménère',
+    'mourvedre', 'mourvèdre', 'monastrell', 'syrah', 'shiraz', 'grenache', 'garnacha',
+    'carignan', 'tannat', 'malbec', 'cot', 'côt', 'negrette', 'négrette',
+    'fer servadou', 'nebbiolo', 'sangiovese', 'nielluccio', 'aglianico',
+    'tempranillo', 'touriga nacional', 'petite sirah', 'zinfandel', 'primitivo',
+    'mondeuse',
+    // Volontairement ABSENTS : le cabernet franc et le pinot noir seuls. Un « cabernet »
+    // générique rangeait le Chinon parmi les bordeaux — or la Loire en fait un vin de
+    // soie. Le cabernet sauvignon, lui, est listé en toutes lettres plus haut : les
+    // assemblages bordelais restent donc capturés par lui ou par le merlot.
+  };
+
+  /// Contenants qui n'apportent pas de bois. C'est le signal le plus sûr pour les blancs :
+  /// un Chablis et un Meursault partagent le chardonnay et ne partagent rien d'autre.
+  static const Set<ContenantElevage> sansBois = {
+    ContenantElevage.inox,
+    ContenantElevage.beton,
+    ContenantElevage.amphore,
+    ContenantElevage.oeuf,
+  };
+
+  static StyleDuVin depuis(Wine wine, String type, String nameLower) {
+    final cepages = wine.grapes.map((g) => g.name).toList();
+    final region = WineWorld.region(
+      pays: wine.country,
+      region: wine.region,
+      appellation: wine.appellation,
+      cepages: cepages,
+    );
+    final elevage = WineWorld.elevage(
+      pays: wine.country,
+      region: wine.region,
+      appellation: wine.appellation,
+      nom: wine.name,
+      producteur: wine.producer,
+      type: wine.type,
+      cepages: cepages,
+    );
+
+    bool structurant(String c) {
+      final n = c.toLowerCase();
+      return cepagesDeStructure.any((x) => n.contains(x));
+    }
+
+    final motsRougePuissant = nameLower.contains('bordeaux') ||
+        nameLower.contains('bandol') ||
+        nameLower.contains('terrebrune') ||
+        nameLower.contains('mourvèdre') ||
+        nameLower.contains('mourvedre') ||
+        nameLower.contains('cabernet') ||
+        nameLower.contains('syrah') ||
+        nameLower.contains('rioja') ||
+        nameLower.contains('cahors') ||
+        nameLower.contains('madiran');
+
+    final motsBlancTendu = nameLower.contains('chablis') ||
+        nameLower.contains('sancerre') ||
+        nameLower.contains('sauvignon') ||
+        nameLower.contains('riesling') ||
+        nameLower.contains('albarino') ||
+        nameLower.contains('muscadet');
+
+    // Le cépage déclaré sur la bouteille prime sur celui de la région : un pinot noir
+    // planté en Languedoc reste un pinot noir.
+    final cepagesConnus = cepages.isNotEmpty ? cepages : (region?.cepages ?? const []);
+
+    return StyleDuVin(
+      region: region,
+      elevage: elevage,
+      rougePuissant: type.contains('red') &&
+          (motsRougePuissant || cepagesConnus.any(structurant)),
+      blancTendu: type.contains('white') &&
+          (motsBlancTendu ||
+              (elevage != null && sansBois.contains(elevage.contenant))),
+    );
+  }
 }
 
 class TastingPedagogyEngine {
@@ -107,9 +261,9 @@ class TastingPedagogyEngine {
     final currentYear = DateTime.now().year;
     final age = wine.vintage != null ? (currentYear - wine.vintage!) : 4;
     final isOld = age >= 8;
+    final style = StyleDuVin.depuis(wine, type, nameLower);
 
     String archetypeAppearance;
-    List<String> archetypeAromas;
     String archetypePalate;
     final hiddenNuances = <NuanceItem>[];
     final pillars = <ScientificPillar>[];
@@ -127,7 +281,6 @@ class TastingPedagogyEngine {
     // ==========================================
     if (type.contains('spark') || nameLower.contains('champagne') || nameLower.contains('crémant') || nameLower.contains('cava')) {
       archetypeAppearance = isOld ? 'Doré éclatant aux reflets ambrés' : 'Or pâle cristallin à cordon de bulles très fin';
-      archetypeAromas = ['🧈 Beurre / Brioche', '🍯 Miel / Cire', '🪨 Minéral / Craie', '🍋 Agrumes / Zeste', '🍒 Fruits rouges'];
       archetypePalate = 'Attaque vive et crémeuse, effervescence soyeuse, finale saline et crayeuse d\'une grande persistance.';
 
       expectedAcidity = 0.82;
@@ -168,9 +321,8 @@ class TastingPedagogyEngine {
     // ==========================================
     // 2. VINS ROUGES PUISSANTS & TANNIQUES (Bordeaux, Bandol, Rhône Sud, Cahors, Madiran, Rioja)
     // ==========================================
-    else if (type.contains('red') && (nameLower.contains('bordeaux') || nameLower.contains('bandol') || nameLower.contains('terrebrune') || nameLower.contains('mourvèdre') || nameLower.contains('mourvedre') || nameLower.contains('cabernet') || nameLower.contains('syrah') || nameLower.contains('rioja') || nameLower.contains('cahors') || nameLower.contains('madiran'))) {
+    else if (style.rougePuissant) {
       archetypeAppearance = isOld ? 'Grenat profond avec reflets tuilés / brique' : 'Pourpre sombre et profond, reflets violacés';
-      archetypeAromas = ['🫐 Fruits noirs', '🪵 Boisé / Chêne', '🌶️ Poivre / Épices', '🌲 Sous-bois / Humus', '☕ Cacao / Torréfaction'];
       archetypePalate = 'Attaque ample et charnue, tanins denses et structurés, finale puissante imprégnée d\'épices et de bois noble.';
 
       expectedAcidity = 0.52;
@@ -230,7 +382,6 @@ class TastingPedagogyEngine {
     // ==========================================
     else if (type.contains('red')) {
       archetypeAppearance = isOld ? 'Rubis évolué avec disque tuilé translucide' : 'Rubis brillant et limpide, d\'intensité moyenne';
-      archetypeAromas = ['🍒 Fruits rouges', '🌸 Floral / Violette', '🌲 Sous-bois / Humus', '🌿 Végétal noble', '🪵 Boisé / Chêne'];
       archetypePalate = 'Attaque soyeuse et dentelée, tanins fins comme de la soie, équilibre frais et finale saline très aérienne.';
 
       expectedAcidity = 0.72;
@@ -271,9 +422,8 @@ class TastingPedagogyEngine {
     // ==========================================
     // 4. VINS BLANCS SECS & MINÉRAUX (Chablis, Sancerre, Riesling, Muscadet, Rías Baixas)
     // ==========================================
-    else if (type.contains('white') && (nameLower.contains('chablis') || nameLower.contains('sancerre') || nameLower.contains('sauvignon') || nameLower.contains('riesling') || nameLower.contains('albarino') || nameLower.contains('muscadet'))) {
+    else if (style.blancTendu) {
       archetypeAppearance = 'Or pâle aux reflets verts scintillants';
-      archetypeAromas = ['🍋 Agrumes / Zeste', '🪨 Minéral / Craie', '🌸 Floral / Violette', '🌿 Végétal noble', '🍯 Miel / Cire'];
       archetypePalate = 'Attaque droite, ciselée et tranchante, tension saline magistrale, finale vibrante d\'agrumes et de pierre à fusil.';
 
       expectedAcidity = 0.85;
@@ -316,7 +466,6 @@ class TastingPedagogyEngine {
     // ==========================================
     else if (type.contains('white')) {
       archetypeAppearance = 'Or doré brillant et profond';
-      archetypeAromas = ['🧈 Beurre / Brioche', '🪵 Boisé / Chêne', '🍯 Miel / Cire', '🍋 Agrumes / Zeste', '🌸 Floral / Violette'];
       archetypePalate = 'Attaque ample, grasse et onctueuse, matière riche tapissant le palais, rehaussée par un boisé fin et une finale vanillée.';
 
       expectedAcidity = 0.58;
@@ -354,7 +503,6 @@ class TastingPedagogyEngine {
     // ==========================================
     else {
       archetypeAppearance = 'Robe rose saumonée, limpide et brillante';
-      archetypeAromas = ['🍒 Fruits rouges', '🍋 Agrumes / Zeste', '🌸 Floral / Violette', '🌶️ Poivre / Épices'];
       archetypePalate = 'Bouche croquante et rafraîchissante, équilibre entre fruit acidulé et fine trame saline en finale.';
 
       expectedAcidity = 0.65;
@@ -382,7 +530,27 @@ class TastingPedagogyEngine {
     // =========================================================================
     // ORIGINE DES GOÛTS : CÉPAGE PAR CÉPAGE, TONNEAU & TERROIR
     // =========================================================================
-    final flavorOrigins = _buildFlavorOrigins(wine, type, isOld, nameLower);
+    final flavorOrigins = _buildFlavorOrigins(wine, type, isOld, nameLower, style);
+
+    // La signature attendue, dite dans le VOCABULAIRE DU QUESTIONNAIRE.
+    //
+    // Elle était écrite à la main, branche par branche, dans des mots que l'app ne
+    // propose nulle part : « Sous-bois / Humus », « Végétal noble », « Cacao /
+    // Torréfaction ». Un utilisateur l'a relevé — « ces choix n'étaient pas là pendant la
+    // dégustation, si ? ». Non : comparer ce qu'il a coché à une liste où il n'aurait
+    // jamais pu cocher rendait la comparaison à la fois injuste et incompréhensible.
+    //
+    // Les identifiants de cible, eux, existaient déjà et servaient au score d'acuité. La
+    // liste affichée en dérive désormais : une seule source, et chaque arôme attendu est
+    // une pastille que la personne aurait pu choisir.
+    final archetypeAromas = libellesDesAromes(targetAromaIds);
+
+    // La comparaison, faite ici plutôt que laissée à l'œil.
+    final comparaison = _comparerAromes(
+      percus: perceivedAromaIds ?? const {},
+      cibles: targetAromaIds,
+      discordants: discordantAromaIds,
+    );
 
     // =========================================================================
     // CALCUL DE CONCORDANCE SENSORIELLE (ACUITÉ DISCRIMINANTE & AUTHENTIQUE)
@@ -483,6 +651,7 @@ class TastingPedagogyEngine {
       userRating: userRating,
       archetypeAppearance: archetypeAppearance,
       archetypeAromas: archetypeAromas,
+      comparaisonAromes: comparaison,
       archetypePalate: archetypePalate,
       matchingAromas: matchingAromas,
       hiddenNuancesToDiscover: hiddenNuances,
@@ -495,7 +664,122 @@ class TastingPedagogyEngine {
 
   /// Builds pedagogical breakdown cards explaining where the tastes come from:
   /// grape varieties, oak aging, bottle age, and terroir.
-  static List<FlavorOriginCard> _buildFlavorOrigins(Wine wine, String type, bool isOld, String nameLower) {
+  /// Confronte ce qui a été décelé à ce que le vin annonce.
+  ///
+  /// Trois colonnes et non deux : entre « juste » et « faux » il y a le plausible, et
+  /// c'est le plus grand des trois. Sentir la réglisse sur un bandol n'est ni typique ni
+  /// contradictoire ; le compter comme une erreur apprendrait à se taire plutôt qu'à
+  /// sentir. Seul ce que le vin contredit vraiment est marqué à côté.
+  static List<AromeCompare> _comparerAromes({
+    required Set<String> percus,
+    required Set<String> cibles,
+    required Set<String> discordants,
+  }) {
+    if (percus.isEmpty && cibles.isEmpty) return const [];
+    final out = <AromeCompare>[];
+
+    String? libelle(String id) {
+      final l = libellesDesAromes([id]);
+      return l.isEmpty ? null : l.first;
+    }
+
+    for (final id in percus) {
+      final l = libelle(id);
+      if (l == null) continue;
+      out.add(AromeCompare(
+        id: id,
+        libelle: l,
+        verdict: cibles.contains(id)
+            ? VerdictArome.bienVu
+            : (discordants.contains(id)
+                ? VerdictArome.aCote
+                : VerdictArome.plausible),
+      ));
+    }
+    for (final id in cibles) {
+      if (percus.contains(id)) continue;
+      final l = libelle(id);
+      if (l == null) continue;
+      out.add(AromeCompare(id: id, libelle: l, verdict: VerdictArome.manque));
+    }
+    return out;
+  }
+
+  /// Ce que l'élevage a fait à ce vin — ou rien, si on ne le sait pas.
+  ///
+  /// Ordre des sources :
+  /// 1. le domaine ou l'appellation, quand la table les connaît (un Barolo est élevé
+  ///    dix-huit mois sous bois parce que son cahier des charges l'impose) ;
+  /// 2. le texte libre d'élevage ou les notes de dégustation, s'ils parlent de bois ;
+  /// 3. rien. Ne pas savoir est un état légitime, et le taire vaut mieux que l'inventer.
+  static FlavorOriginCard? _carteElevage(
+      Wine wine, bool isRed, String nameLower, StyleDuVin style) {
+    const carteBois = FlavorOriginCard(
+      title: 'Élevage en Fût de Chêne (Temps en Tonneau)',
+      icon: '🪵',
+      category: FlavorOriginCategory.oak,
+      badgeText: 'Micro-oxygénation & Vanilline',
+      sensoryContribution: 'Assouplissement des tanins rugueux, apport d\'arômes de vanille bourbon, pain grillé, cacao et clou de girofle.',
+      detailedWhy: 'Le temps passé en tonneau opère deux métamorphoses capitales :\n1. L\'assouplissement tactile : la porosité naturelle du chêne assure une micro-oxygénation lente qui polymérise les tanins, les rendant fondus au lieu d\'être agressifs.\n2. L\'empreinte aromatique : la chauffe du bois au feu de tonnelier libère de la vanilline (vanille), du gaïacol (notes grillées/fumées) et de l\'eugénol (épices douces).',
+    );
+    const carteSansBois = FlavorOriginCard(
+      title: 'Élevage en Cuve Inox (Sans contact boisé)',
+      icon: '✨',
+      category: FlavorOriginCategory.oak,
+      badgeText: 'Pureté du fruit',
+      sensoryContribution: 'Préservation intégrale du fruit frais, vivacité intacte et franchise absolue du terroir.',
+      detailedWhy: 'La cuve thermo-régulée protège le vin de toute oxydation et n\'apporte aucun tanin extérieur, assurant une pureté cristalline des arômes primaires du raisin.',
+    );
+
+    // 1. Ce que la table sait du domaine ou de l'appellation.
+    final e = style.elevage;
+    if (e != null) {
+      final boise = !StyleDuVin.sansBois.contains(e.contenant);
+      final duree = e.mois > 0
+          ? '${e.mois} mois'
+          : 'une durée que le cahier des charges ne fixe pas';
+      final source = e.impose
+          ? 'Durée imposée par le cahier des charges de l\'appellation'
+          : 'Élevage usuel de l\'appellation';
+      return FlavorOriginCard(
+        title: boise
+            ? 'Élevage en ${_nomContenant(e.contenant)} ($duree)'
+            : 'Élevage en ${_nomContenant(e.contenant)} (sans contact boisé)',
+        icon: boise ? '🪵' : '✨',
+        category: FlavorOriginCategory.oak,
+        badgeText: e.impose ? 'Cahier des charges' : 'Usage de l\'appellation',
+        sensoryContribution: boise
+            ? carteBois.sensoryContribution
+            : carteSansBois.sensoryContribution,
+        detailedWhy: '$source : $duree en ${_nomContenant(e.contenant).toLowerCase()}.\n\n'
+            '${boise ? carteBois.detailedWhy : carteSansBois.detailedWhy}',
+      );
+    }
+
+    // 2. Ce que le texte libre laisse entendre.
+    final texte = '${wine.barrelAging ?? ""} ${wine.tastingNotes ?? ""} $nameLower'.toLowerCase();
+    const motsDuBois = ['fût', 'fut ', 'barrique', 'oak', 'bois', 'chêne', 'chene', 'tonneau'];
+    if (motsDuBois.any(texte.contains)) return carteBois;
+
+    const motsSansBois = ['cuve inox', 'inox', 'béton', 'beton', 'amphore', 'sans bois'];
+    if (motsSansBois.any(texte.contains)) return carteSansBois;
+
+    // 3. On ne sait pas. On ne dit rien : mieux vaut une carte de moins qu'une
+    //    affirmation fausse sur la bouteille qu'on a dans le verre.
+    return null;
+  }
+
+  static String _nomContenant(ContenantElevage c) => switch (c) {
+        ContenantElevage.inox => 'Cuve Inox',
+        ContenantElevage.beton => 'Cuve Béton',
+        ContenantElevage.barrique => 'Barrique de Chêne',
+        ContenantElevage.foudre => 'Foudre de Chêne',
+        ContenantElevage.amphore => 'Amphore',
+        ContenantElevage.oeuf => 'Œuf Béton',
+        ContenantElevage.bouteille => 'Bouteille (sur lattes)',
+      };
+
+  static List<FlavorOriginCard> _buildFlavorOrigins(Wine wine, String type, bool isOld, String nameLower, StyleDuVin style) {
     final cards = <FlavorOriginCard>[];
     final isRed = type.contains('red');
     final isWhite = type.contains('white');
@@ -706,38 +990,17 @@ class TastingPedagogyEngine {
       ));
     }
 
-    // --- 2. OAK BARREL / ÉLEVAGE EN TONNEAU ---
-    final barrelText = '${wine.barrelAging ?? ""} ${wine.tastingNotes ?? ""}'.toLowerCase();
-    final hasOak = barrelText.contains('fût') ||
-        barrelText.contains('barrique') ||
-        barrelText.contains('oak') ||
-        barrelText.contains('bois') ||
-        barrelText.contains('chêne') ||
-        barrelText.contains('tonneau') ||
-        nameLower.contains('barrique') ||
-        nameLower.contains('chêne') ||
-        nameLower.contains('fût') ||
-        (isRed && (nameLower.contains('bordeaux') || nameLower.contains('bandol') || nameLower.contains('rioja') || nameLower.contains('bourgogne')));
-
-    if (hasOak) {
-      cards.add(const FlavorOriginCard(
-        title: 'Élevage en Fût de Chêne (Temps en Tonneau)',
-        icon: '🪵',
-        category: FlavorOriginCategory.oak,
-        badgeText: 'Micro-oxygénation & Vanilline',
-        sensoryContribution: 'Assouplissement des tanins rugueux, apport d\'arômes de vanille bourbon, pain grillé, cacao et clou de girofle.',
-        detailedWhy: 'Le temps passé en tonneau opère deux métamorphoses capitales :\n1. L\'assouplissement tactile : la porosité naturelle du chêne assure une micro-oxygénation lente qui polymérise les tanins, les rendant fondus au lieu d\'être agressifs.\n2. L\'empreinte aromatique : la chauffe du bois au feu de tonnelier libère de la vanilline (vanille), du gaïacol (notes grillées/fumées) et de l\'eugénol (épices douces).',
-      ));
-    } else {
-      cards.add(const FlavorOriginCard(
-        title: 'Élevage en Cuve Inox (Sans contact boisé)',
-        icon: '✨',
-        category: FlavorOriginCategory.oak,
-        badgeText: 'Pureté du fruit',
-        sensoryContribution: 'Préservation intégrale du fruit frais, vivacité intacte et franchise absolue du terroir.',
-        detailedWhy: 'La cuve thermo-régulée protège le vin de toute oxydation et n\'apporte aucun tanin extérieur, assurant une pureté cristalline des arômes primaires du raisin.',
-      ));
-    }
+    // --- 2. ÉLEVAGE ---
+    //
+    // La branche « sinon » de ce bloc AFFIRMAIT l'inox : faute d'avoir trouvé le mot
+    // « barrique » quelque part, elle annonçait « aucun tanin extérieur, pureté
+    // cristalline » — sur un Margaux. L'absence de preuve était présentée comme la preuve
+    // du contraire, et un utilisateur l'a relevé : « tu parles d'élevage en cuve inox
+    // (sans bois) pour ce margaux. c'est vrai ???? ». Non.
+    //
+    // Trois sources, de la plus sûre à la plus faible, et le silence en dernier recours.
+    final carteElevage = _carteElevage(wine, isRed, nameLower, style);
+    if (carteElevage != null) cards.add(carteElevage);
 
     // --- 3. BOTTLE AGE & TERTIARY BOUQUET ---
     if (isOld) {

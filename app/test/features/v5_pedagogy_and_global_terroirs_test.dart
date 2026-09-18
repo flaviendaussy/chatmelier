@@ -62,7 +62,12 @@ void main() {
       final report = TastingPedagogyEngine.analyze(
         wine: sampleBandol,
         userAppearance: 'Pourpre intense',
-        userAromas: ['🫐 Fruits noirs', '🌶️ Poivre / Épices', '🪵 Boisé / Chêne'],
+        // Le vocabulaire est celui que le questionnaire propose vraiment. Les libellés
+        // précédents — « Poivre / Épices », « Minéral / Craie », « Beurre / Brioche » —
+        // n'existaient que dans les listes écrites à la main du moteur : on testait donc
+        // une comparaison avec des mots qu'aucun utilisateur ne pouvait cocher.
+        userAromas: ['🫐 Fruits noirs', '🌶️ Épices vives / Poivre', '🪵 Boisé / Vanille'],
+        perceivedAromaIds: const {'fruits_noirs', 'epices_vives', 'boise'},
         userStructure: 'Tanins fermes et structurés',
         userCaudalies: 8,
         userRating: 9.0,
@@ -72,7 +77,7 @@ void main() {
       expect(report.acuityScore, greaterThanOrEqualTo(80));
       expect(report.sommelierPraise, isNotEmpty);
       expect(report.archetypeAromas, contains('🫐 Fruits noirs'));
-      expect(report.archetypeAromas, contains('🌶️ Poivre / Épices'));
+      expect(report.archetypeAromas, contains('🌶️ Épices vives / Poivre'));
 
       // Check scientific pillars
       expect(report.scientificPillars, isNotEmpty);
@@ -87,7 +92,8 @@ void main() {
       final report = TastingPedagogyEngine.analyze(
         wine: sampleChablis,
         userAppearance: 'Or pâle',
-        userAromas: ['🍋 Agrumes / Zeste', '🪨 Minéral / Craie'],
+        userAromas: ['🍋 Agrumes', '⛰️ Minéral / Pierre'],
+        perceivedAromaIds: const {'agrumes', 'mineral'},
         userStructure: 'Vivacité et fraîcheur saline',
         userCaudalies: 7,
         userRating: 8.5,
@@ -102,7 +108,8 @@ void main() {
       final report = TastingPedagogyEngine.analyze(
         wine: sampleChampagne,
         userAppearance: 'Doré éclatant',
-        userAromas: ['🧈 Beurre / Brioche', '🍯 Miel / Cire'],
+        userAromas: ['🧈 Beurré / Brioche', '🍯 Miel / Confiture'],
+        perceivedAromaIds: const {'beurre', 'miel'},
         userStructure: 'Équilibre parfait',
         userCaudalies: 9,
         userRating: 9.5,

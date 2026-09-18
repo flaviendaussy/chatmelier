@@ -529,3 +529,39 @@ class FruitProfileOption {
     }
   }
 }
+
+/// À qui appartient la ligne de journal, quand plusieurs personnes ont répondu.
+///
+/// Le questionnaire guidé peut être rempli à plusieurs autour de la même bouteille. Une
+/// seule ligne part pourtant au journal — celle du maître de cave, puisque c'est son
+/// journal. Choisir « le premier qui a répondu » y inscrivait la note d'un convive :
+/// goûté à trois, noté 7,5, et le journal affichait le 9 de quelqu'un d'autre. Les
+/// profils de goût, eux, restaient justes — chacun reçoit le sien — d'où un écran qui se
+/// contredisait sans que rien ne le signale.
+///
+/// [reponses] est ordonné par ordre de réponse ; [estPrincipal] dit si un identifiant de
+/// profil est celui du maître de cave.
+TastingQuestionnaireResult? resultatDuMaitreDeCave(
+  Map<String, TastingQuestionnaireResult> reponses,
+  bool Function(String profileId) estPrincipal,
+) {
+  for (final e in reponses.entries) {
+    if (estPrincipal(e.key)) return e.value;
+  }
+  // Repli : une dégustation lancée sans profil principal identifié vaut mieux avec une
+  // note qu'avec aucune ligne.
+  return reponses.values.isEmpty ? null : reponses.values.first;
+}
+
+/// Les libellés « emoji + nom » d'une série d'identifiants d'arômes.
+///
+/// Le vocabulaire des arômes n'a qu'un seul lieu : [TastingQuestionnaireResult.aromaOptions].
+/// Tout ce qui parle d'arômes à la personne doit en venir, sous peine de lui demander de
+/// reconnaître des mots qu'on ne lui a jamais proposés.
+List<String> libellesDesAromes(Iterable<String> ids) {
+  final parId = {for (final o in TastingQuestionnaireResult.aromaOptions) o.id: o};
+  return [
+    for (final id in ids)
+      if (parId[id] != null) '${parId[id]!.emoji} ${parId[id]!.label}',
+  ];
+}

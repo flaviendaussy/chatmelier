@@ -46,6 +46,11 @@ lancement public.
   conversations) depuis Profil → Compte.
 - **Sous-traitants** : accord de traitement (DPA) avec Supabase et Google ; vérifier la
   région d'hébergement du projet Supabase.
+- **Recherche d'amis — fuite de données personnelles.** `AuthRepository.searchUsers`
+  télécharge les 50 premiers profils **complets** (e-mail, téléphone compris) et filtre
+  sur l'appareil. Tout compte connecté peut donc lire ces champs. À remplacer par une
+  fonction serveur qui cherche en base et ne renvoie que prénom, pseudo et avatar, et
+  restreindre la lecture de `profiles` en conséquence.
 - **Consentement** : UMP (AdMob) est en place sur mobile ; sur le web, informer sur le
   `localStorage` (session, préférences) et l'absence de publicité.
 - **Mineurs** : voir section 3 — la vérification d'âge sert aussi ici.
@@ -69,6 +74,10 @@ lancement public.
   quelques e-mails par heure, et l'inscription passe désormais par lien de connexion. Au
   premier afflux, les liens n'arriveraient plus.
 - **Sauvegardes** : activer le PITR (Point-In-Time Recovery) du projet Supabase.
+- **Fonctions de la carte ouvertes** : `scan-menu` et `menu-chat` (28/09) acceptent tout
+  appelant, avec une limite de débit en mémoire qui repart à zéro à chaque démarrage à
+  froid. Chaque appel coûte des jetons Gemini. Avant l'ouverture publique : quota par
+  compte (anonyme compris) tenu en base.
 - **Alertes** : une alerte quand le taux d'ERROR dépasse un seuil (la console
   d'administration les montre, mais personne ne la regarde à 3 h du matin).
 - **Connexion de dépouillement** : `tool/feedback.sh` passe par le Session pooler (IPv4) ;

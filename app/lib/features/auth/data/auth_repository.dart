@@ -12,12 +12,12 @@ class AuthRepository {
   User? get currentUser => _client.auth.currentUser;
 
   Future<void> signIn(String email, String password) async {
-    AppLogger.info('AUTH', 'Signing in with password for $email');
+    AppLogger.info('AUTH', 'Signing in with password for ${masquerEmail(email)}');
     await _client.auth.signInWithPassword(email: email, password: password);
   }
 
   Future<AuthResponse> signUp(String email, String password, String displayName, {String? username}) async {
-    AppLogger.info('AUTH', 'Signing up user $email');
+    AppLogger.info('AUTH', 'Signing up user ${masquerEmail(email)}');
     final cleanUsername = username?.replaceAll('@', '').trim().toLowerCase();
     final res = await _client.auth.signUp(
       email: email,
@@ -100,13 +100,13 @@ class AuthRepository {
     if (user == null) throw StateError('aucune session à convertir');
     if (!user.isAnonymous) return; // déjà nommé : rien à faire
     await _client.auth.updateUser(UserAttributes(email: email.trim()));
-    AppLogger.info('AUTH', 'Compte anonyme ${user.id} converti vers $email');
+    AppLogger.info('AUTH', 'Compte anonyme ${user.id} converti vers ${masquerEmail(email)}');
   }
 
   /// Passwordless Connection Link (Magic Link) Email Authentication
   Future<void> sendMagicLink(String email) async {
     final redirectUrl = _getRedirectUrl();
-    AppLogger.info('AUTH', 'Sending connection link to $email (redirect: $redirectUrl, platform: ${kIsWeb ? "web" : defaultTargetPlatform.name})');
+    AppLogger.info('AUTH', 'Sending connection link to ${masquerEmail(email)} (redirect: $redirectUrl, platform: ${kIsWeb ? "web" : defaultTargetPlatform.name})');
     await _client.auth.signInWithOtp(
       email: email,
       emailRedirectTo: redirectUrl,
@@ -116,7 +116,7 @@ class AuthRepository {
   /// Send password reset link to user's email
   Future<void> resetPasswordForEmail(String email) async {
     final redirectUrl = _getRedirectUrl();
-    AppLogger.info('AUTH', 'Sending password reset email to $email (redirect: $redirectUrl)');
+    AppLogger.info('AUTH', 'Sending password reset email to ${masquerEmail(email)} (redirect: $redirectUrl)');
     await _client.auth.resetPasswordForEmail(
       email.trim(),
       redirectTo: redirectUrl,
@@ -127,7 +127,8 @@ class AuthRepository {
   Future<void> verifyEmailOtp(String email, String token) async {
     final cleanEmail = email.trim().toLowerCase();
     final cleanToken = token.trim();
-    AppLogger.info('AUTH', 'Verifying email OTP ($cleanToken) for $cleanEmail');
+    // Jamais le code lui-même dans les journaux : ils sont lisibles au dépouillement.
+    AppLogger.info('AUTH', 'Verifying email OTP for ${masquerEmail(cleanEmail)}');
 
     // 1. Try OtpType.email (numerical OTP code)
     try {
@@ -414,11 +415,14 @@ class AuthRepository {
     } catch (_) {}
 
     // 3. Remote Postgres profiles table Update with fallback
+    //
+    // JAMAIS le téléphone ni l'e-mail dans `profiles` : la table est lisible par tous,
+    // sans compte (politique « Public profiles are viewable by everyone »). Le 29/09,
+    // douze adresses e-mail y étaient exposées par le repli `meta://` ci-dessous. Ils
+    // restent sur l'appareil et dans le compte d'authentification, pas dans l'annuaire.
     final updates = <String, dynamic>{
       'display_name': displayName,
       if (cleanUsername != null && cleanUsername.isNotEmpty) 'username': cleanUsername,
-      if (cleanPhone != null && cleanPhone.isNotEmpty) 'phone_number': cleanPhone,
-      if (cleanEmail != null && cleanEmail.isNotEmpty) 'email': cleanEmail,
       if (avatarUrl != null) 'avatar_url': avatarUrl,
       if (defaultCurrency != null) 'default_currency': defaultCurrency,
       if (tasteProfileData != null) 'taste_profile': tasteProfileData,
@@ -430,9 +434,11 @@ class AuthRepository {
     } catch (e) {
       AppLogger.warning('AUTH', 'Could not update all profile columns, attempting fallback encoding: $e');
       
-      // Fallback: encode username & phone inside avatar_url meta URI if no custom avatar photo is set
+      // Repli : le pseudo seul, encodé dans avatar_url faute de colonne `username` en
+      // production. Le pseudo est public par nature ; le téléphone et l'e-mail ne le sont
+      // pas, et ce repli les y écrivait (voir plus haut).
       final metaAvatar = (avatarUrl == null || avatarUrl.isEmpty || avatarUrl.startsWith('meta://'))
-          ? 'meta://?u=${cleanUsername ?? ""}&p=${Uri.encodeComponent(cleanPhone ?? "")}&e=${Uri.encodeComponent(cleanEmail ?? "")}'
+          ? UserProfile.avatarPseudoSeul(cleanUsername)
           : avatarUrl;
 
       try {
@@ -485,4 +491,13 @@ class AuthRepository {
     } catch (_) {}
     AppLogger.info('AUTH', 'Account deletion complete and session terminated.');
   }
+}
+
+/// Une adresse e-mail pour les journaux : assez pour s'y retrouver, pas assez pour l'avoir.
+/// « flavien.daussy@gmail.com » devient « f…@gmail.com ».
+String masquerEmail(String email) {
+  final e = email.trim();
+  final at = e.indexOf('@');
+  if (at <= 0) return '…';
+  return '${e[0]}…${e.substring(at)}';
 }

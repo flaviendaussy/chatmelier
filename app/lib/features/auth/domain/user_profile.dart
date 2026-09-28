@@ -85,6 +85,11 @@ class UserProfile {
         createdAt: createdAt ?? this.createdAt,
       );
 
+  /// Le repli `meta://` réduit au pseudo : faute de colonne `username` en production, le
+  /// pseudo voyage dans `avatar_url`. Jamais le téléphone ni l'e-mail : `profiles` est
+  /// lisible par tous, sans compte.
+  static String avatarPseudoSeul(String? username) => 'meta://?u=${Uri.encodeComponent(username ?? '')}';
+
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     String? username = json['username'] as String?;
     String? phone = json['phone_number'] as String?;

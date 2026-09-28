@@ -12,6 +12,8 @@ import 'features/monetization/admob_service.dart';
 import 'shared/providers/premium_provider.dart';
 
 import 'features/feedback/data/shake_feedback_service.dart';
+import 'features/config/garde_de_version.dart';
+import 'shared/utils/app_logger.dart';
 
 class ChatmelierApp extends ConsumerWidget {
   const ChatmelierApp({super.key});
@@ -76,7 +78,11 @@ class ChatmelierApp extends ConsumerWidget {
         });
         return RepaintBoundary(
           key: ShakeFeedbackService.rootRepaintBoundaryKey,
-          child: child ?? const SizedBox.shrink(),
+          // Pendant la phase de test : une version trop ancienne est bloquée (045).
+          child: GardeDeVersion(
+            versionInstallee: versionApp,
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
     );

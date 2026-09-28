@@ -11,7 +11,11 @@
 --
 -- Pendant la phase de test, les testeurs ont accepté d'être identifiables. Ce rôle voit
 -- donc toutes les lignes de `app_diagnostic_logs`, avec `user_id`, et peut relier un
--- identifiant à un prénom via `profiles` (id, display_name, username — rien d'autre).
+-- identifiant à un prénom via `profiles` (id, display_name — rien d'autre).
+--
+-- `username` n'est pas accordé : la colonne n'existe pas en production (la migration 017
+-- qui la crée n'y a jamais été appliquée), et une seule colonne absente fait échouer
+-- toute la migration, le SQL Editor exécutant le script en une transaction.
 --
 -- Ce qu'il ne voit toujours pas : les caves, les dégustations, les conversations, les
 -- adresses e-mail. Et il reste en lecture seule.
@@ -38,8 +42,8 @@ CREATE POLICY feedback_ro_select
   TO chatmelier_feedback_ro
   USING (true);
 
--- 3. Qui est qui : trois colonnes de `profiles`, pas une de plus.
-GRANT SELECT (id, display_name, username) ON public.profiles TO chatmelier_feedback_ro;
+-- 3. Qui est qui : deux colonnes de `profiles`, pas une de plus.
+GRANT SELECT (id, display_name) ON public.profiles TO chatmelier_feedback_ro;
 
 DROP POLICY IF EXISTS feedback_ro_profiles ON public.profiles;
 CREATE POLICY feedback_ro_profiles
@@ -54,7 +58,7 @@ CREATE POLICY feedback_ro_profiles
 --   DROP POLICY feedback_ro_select ON public.app_diagnostic_logs;
 --   CREATE POLICY feedback_ro_select ON public.app_diagnostic_logs
 --     FOR SELECT TO chatmelier_feedback_ro USING (tag = 'USER_FEEDBACK');
---   REVOKE SELECT (id, display_name, username) ON public.profiles FROM chatmelier_feedback_ro;
+--   REVOKE SELECT (id, display_name) ON public.profiles FROM chatmelier_feedback_ro;
 --   DROP POLICY feedback_ro_profiles ON public.profiles;
 --
 -- Vérification (en tant que postgres, dans le SQL Editor) :

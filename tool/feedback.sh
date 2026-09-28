@@ -10,7 +10,7 @@
 #
 #   Depuis la migration 043 (phase de test) — tous les niveaux, et qui :
 #   ./tool/feedback.sh --errors [jours]              WARNING + ERROR groupés (défaut 10 j)
-#   ./tool/feedback.sh --user <prénom|pseudo> [j]    fil chronologique d'une personne
+#   ./tool/feedback.sh --user <prénom> [jours]       fil chronologique d'une personne
 #   ./tool/feedback.sh --around "2026-09-23 19:07" [minutes] [prénom]
 #                                                    tout ce qui s'est passé autour d'un instant
 #
@@ -91,7 +91,7 @@ case "${1:---last}" in
     run -P pager=off -c "
       WITH l AS (
         SELECT l.level, l.tag, l.created_at, l.app_version,
-               coalesce(p.display_name, p.username, left(l.user_id::text, 8), '—') AS qui,
+               coalesce(p.display_name, left(l.user_id::text, 8), '—') AS qui,
                left(regexp_replace(l.message,
                  '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9]+', '#', 'g'), 150) AS forme
         FROM public.app_diagnostic_logs l
@@ -109,7 +109,7 @@ case "${1:---last}" in
     ;;
 
   --user)
-    [ $# -ge 2 ] || { echo "❌ --user attend un prénom ou un pseudo" >&2; exit 1; }
+    [ $# -ge 2 ] || { echo "❌ --user attend un prénom" >&2; exit 1; }
     nom="${2//\'/\'\'}"; jours="${3:-10}"
     case "$jours" in ''|*[!0-9]*) echo "❌ « $jours » n'est pas un nombre de jours" >&2; exit 1 ;; esac
     run -P pager=off -c "
@@ -117,7 +117,7 @@ case "${1:---last}" in
              l.platform, l.app_version, left(l.message, 170) AS message
       FROM public.app_diagnostic_logs l
       JOIN public.profiles p ON p.id = l.user_id
-      WHERE (p.display_name ILIKE '%$nom%' OR p.username ILIKE '%$nom%')
+      WHERE p.display_name ILIKE '%$nom%'
         AND l.created_at >= now() - interval '$jours days'
       ORDER BY l.created_at
       LIMIT 400;"
@@ -128,10 +128,10 @@ case "${1:---last}" in
     instant="${2//\'/}"; minutes="${3:-15}"; nom="${4//\'/\'\'}"
     case "$minutes" in ''|*[!0-9]*) echo "❌ « $minutes » n'est pas un nombre de minutes" >&2; exit 1 ;; esac
     filtre=""
-    [ -n "$nom" ] && filtre="AND (p.display_name ILIKE '%$nom%' OR p.username ILIKE '%$nom%')"
+    [ -n "$nom" ] && filtre="AND p.display_name ILIKE '%$nom%'"
     run -P pager=off -c "
       SELECT to_char(l.created_at, 'DD/MM HH24:MI:SS') AS quand,
-             coalesce(p.display_name, p.username, left(l.user_id::text, 8), '—') AS qui,
+             coalesce(p.display_name, left(l.user_id::text, 8), '—') AS qui,
              l.level, l.tag, left(l.message, 150) AS message,
              left(coalesce(l.error_details, ''), 120) AS detail
       FROM public.app_diagnostic_logs l

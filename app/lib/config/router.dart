@@ -152,7 +152,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return MenuTableConsensusGuestScreen(
             initialSessionId: sessionId,
             initialData: data,
-            codeTable: state.uri.queryParameters['code'],
+            codeTable: state.uri.queryParameters['table'],
           );
         },
       ),
@@ -164,7 +164,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return MenuTableConsensusGuestScreen(
             initialSessionId: sessionId,
             initialData: data,
-            codeTable: state.uri.queryParameters['code'],
+            codeTable: state.uri.queryParameters['table'],
           );
         },
       ),

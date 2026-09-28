@@ -240,6 +240,9 @@ class MenuTableSessionManager {
   /// [code] est le code de la table côté serveur. Sans lui, l'invité arrivé par le QR
   /// avait la carte mais ne rejoignait jamais la table : l'hôte ne le voyait pas (Caro,
   /// 23/09). La carte embarquée reste en secours, pour un invité sans réseau.
+  ///
+  /// Le paramètre s'appelle `table` et surtout pas `code` : sur le web, Supabase lit un
+  /// `?code=` comme le retour d'une connexion OAuth (PKCE) et tenterait de l'échanger.
   static String buildQrUrl({
     required String sessionId,
     required ScannedMenu menu,
@@ -248,7 +251,7 @@ class MenuTableSessionManager {
   }) {
     final payload = encodeMenuPayload(menu);
     final normSession = sessionId.toUpperCase().trim();
-    final avecCode = code != null && code.trim().isNotEmpty ? '&code=${code.trim().toUpperCase()}' : '';
+    final avecCode = code != null && code.trim().isNotEmpty ? '&table=${code.trim().toUpperCase()}' : '';
     if (payload.isNotEmpty) {
       return '$baseUrl?session=$normSession$avecCode&data=$payload';
     }

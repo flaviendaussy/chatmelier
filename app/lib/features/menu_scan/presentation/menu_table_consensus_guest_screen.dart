@@ -18,7 +18,8 @@ class MenuTableConsensusGuestScreen extends ConsumerStatefulWidget {
   final String? initialSessionId;
   final String? initialData;
 
-  /// Code de la table côté serveur (six caractères), porté par le QR ou saisi à la main.
+  /// Code de la table côté serveur (six caractères), porté par le QR (`?table=`) ou saisi
+  /// à la main.
   /// Avec lui, l'invité rejoint vraiment la table — l'hôte le voit arriver — et voit les
   /// autres convives. Sans lui (ancien QR, pas de réseau), la table reste locale.
   final String? codeTable;
@@ -68,7 +69,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   final TextEditingController _dishSearchCtrl = TextEditingController();
   String _selectedDishCategory = 'viande';
 
-  /// Code serveur de la table, s'il est connu (paramètre, ou `?code=` de l'URL).
+  /// Code serveur de la table, s'il est connu (paramètre, ou `?table=` de l'URL).
   String? _code;
   Timer? _sondage;
 
@@ -121,7 +122,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       final baseUri = Uri.base;
       sessionId ??= baseUri.queryParameters['session'] ?? baseUri.queryParameters['s'];
       rawData ??= baseUri.queryParameters['data'] ?? baseUri.queryParameters['d'];
-      code ??= baseUri.queryParameters['code'];
+      code ??= baseUri.queryParameters['table'];
 
       if ((sessionId == null || rawData == null || code == null) && baseUri.hasFragment) {
         try {
@@ -129,7 +130,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           final fragUri = Uri.parse(frag);
           sessionId ??= fragUri.queryParameters['session'] ?? fragUri.queryParameters['s'];
           rawData ??= fragUri.queryParameters['data'] ?? fragUri.queryParameters['d'];
-          code ??= fragUri.queryParameters['code'];
+          code ??= fragUri.queryParameters['table'];
         } catch (_) {}
       }
     }

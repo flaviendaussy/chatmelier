@@ -28,6 +28,11 @@ class GuestProfile {
   /// classement — on ne devine pas les goûts de quelqu'un qui n'a rien dit.
   final bool sansPreferences;
 
+  /// Ses avis au matchmaker de table : clé du vin (`MenuWine.cacheKey`) → avis
+  /// (`AvisDeTable.name`). Ils voyagent dans le profil envoyé à la table, et pèsent plus
+  /// que ce que le moteur devine.
+  final Map<String, String> avis;
+
   const GuestProfile({
     required this.id,
     required this.name,
@@ -39,7 +44,23 @@ class GuestProfile {
     this.archetype = 'Curieux & Éclectique',
     this.radarDistant,
     this.sansPreferences = false,
+    this.avis = const {},
   });
+
+  /// Le même convive, sous un autre identifiant, un autre prénom ou avec d'autres avis.
+  GuestProfile copie({String? id, String? name, Map<String, String>? avis}) => GuestProfile(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        avatarUrl: avatarUrl,
+        tasteProfile: tasteProfile,
+        favoriteTypes: favoriteTypes,
+        favoriteGrapes: favoriteGrapes,
+        dislikedCharacteristics: dislikedCharacteristics,
+        archetype: archetype,
+        radarDistant: radarDistant,
+        sansPreferences: sansPreferences,
+        avis: avis ?? this.avis,
+      );
 
   /// Ce qu'un convive emporte avec lui en rejoignant une table.
   ///
@@ -53,6 +74,7 @@ class GuestProfile {
         'favorite_grapes': favoriteGrapes,
         'disliked': dislikedCharacteristics,
         if (sansPreferences) 'sans_preferences': true,
+        if (avis.isNotEmpty) 'avis': avis,
         'radar': {
           'tannin': radar.tannin,
           'body': radar.body,
@@ -81,6 +103,9 @@ class GuestProfile {
       favoriteGrapes: liste('favorite_grapes'),
       dislikedCharacteristics: liste('disliked'),
       sansPreferences: json['sans_preferences'] == true,
+      avis: json['avis'] is Map
+          ? {for (final e in (json['avis'] as Map).entries) e.key.toString(): e.value.toString()}
+          : const {},
       radarDistant: r is Map
           ? WineTasteRadarMetrics(
               tannin: axe('tannin', 5.0),

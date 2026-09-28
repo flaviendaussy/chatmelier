@@ -9,6 +9,8 @@ import '../domain/menu_table_matcher_engine.dart';
 import '../../blind_battle/presentation/widgets/stylized_chatmelier_qr.dart';
 import '../data/menu_table_session_manager.dart';
 import '../data/table_session_service.dart';
+import '../domain/table_matchmaker.dart';
+import 'table_matchmaker_sheet.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 
@@ -91,6 +93,43 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
   /// Le prénom sous lequel l'hôte s'est assis à sa propre table (voir [_inscrireLHote]).
   String? _nomHoteInscrit;
 
+  /// L'identifiant de l'hôte dans `_tableGuests`, et ses avis au matchmaker de table.
+  String? _idHote;
+  Map<String, AvisDeTable> _avisHote = {};
+
+  /// Le matchmaker de la table, pour l'hôte : ses avis pèsent chez lui et, par le
+  /// serveur, chez chaque invité.
+  Future<void> _ouvrirLeMatchmaker() async {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    final hote = _tableGuests.where((g) => g.id == _idHote).firstOrNull ??
+        (_tableGuests.isNotEmpty ? _tableGuests.first : null);
+    if (hote == null) return;
+    final avis = await TableMatchmakerSheet.show(
+      context,
+      candidats: TableMatchmaker.candidats(widget.menu.wines, _tableGuests),
+      moi: hote,
+      isFr: isFr,
+      avisDeja: _avisHote,
+    );
+    if (avis == null || !mounted) return;
+    _avisHote = avis;
+    final avecAvis = hote.copie(avis: {for (final e in avis.entries) e.key: e.value.name});
+    setState(() {
+      final i = _tableGuests.indexWhere((g) => g.id == hote.id);
+      if (i >= 0) _tableGuests[i] = avecAvis;
+    });
+    _calculateConsensus();
+
+    final code = _codeServeur;
+    final nom = _nomHoteInscrit;
+    if (code == null || nom == null) return;
+    try {
+      await ref.read(tableSessionServiceProvider).rejoindre(code: code, nom: nom, profil: avecAvis);
+    } catch (e) {
+      AppLogger.warning('TABLE', 'Avis de l\'hôte non transmis à la table $code: $e');
+    }
+  }
+
   /// L'hôte s'assoit à sa propre table, sous son prénom et avec son vrai palais.
   ///
   /// Sans cela, les invités ne le voyaient pas : leur écran calculait le consensus avec
@@ -143,6 +182,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       final primary = profiles.firstWhere((p) => p.isPrimary, orElse: () => profiles.first);
       if (mounted) {
         final host = GuestProfile.fromTasteProfile(primary);
+        _idHote = host.id;
         setState(() {
           if (!_tableGuests.any((g) => g.id == host.id)) {
             _tableGuests.add(host);
@@ -151,6 +191,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       }
     } catch (_) {
       if (mounted) {
+        _idHote = 'host_me';
         setState(() {
           _tableGuests.add(const GuestProfile(
             id: 'host_me',
@@ -412,6 +453,24 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                   }).toList(),
                 ),
                 const SizedBox(height: 24),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFD4AF37).withValues(alpha: 0.18),
+                      foregroundColor: const Color(0xFFD4AF37),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _ouvrirLeMatchmaker,
+                    icon: const Icon(Icons.how_to_vote_rounded),
+                    label: Text(Localizations.localeOf(context).languageCode == 'fr'
+                        ? (_avisHote.isEmpty ? 'Le matchmaker de la table' : 'Revoir mes ${_avisHote.length} avis')
+                        : (_avisHote.isEmpty ? 'The table matchmaker' : 'Review my ${_avisHote.length} views')),
+                  ),
+                ),
+                const SizedBox(height: 16),
 
                 // Les 3 meilleures bouteilles qui matchent
                 const Row(

@@ -11,6 +11,8 @@ import '../../auth/data/taste_profile_service.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import 'palais_express.dart';
+import 'table_matchmaker_sheet.dart';
+import '../domain/table_matchmaker.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../domain/menu_wine.dart';
 import '../domain/food_pairing_engine.dart';
@@ -63,6 +65,9 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   TasteProfile? _palaisDuCompte;
   PalaisSaisi? _monPalais;
   bool _sansPreferences = false;
+
+  /// Ses avis au matchmaker de table (clé du vin → avis).
+  Map<String, AvisDeTable> _mesAvis = {};
   ScannedMenu? _menu;
   final List<GuestProfile> _guests = [];
   List<MenuTableMatchResult> _top3 = [];
@@ -294,6 +299,34 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
     _recalculateConsensus();
     if (_code != null) unawaited(_rejoindreLaTable(name, newGuest));
+  }
+
+  /// Sa propre place à table : la copie locale, ou celle venue du serveur.
+  GuestProfile _moiATable() {
+    for (final g in _guests) {
+      if (g.id == 'guest_me') return g;
+      if (_monNomAssis != null && g.name.trim().toLowerCase() == _monNomAssis!.toLowerCase()) return g;
+    }
+    final saisi = _nameCtrl.text.trim();
+    return GuestProfile(id: 'guest_me', name: saisi.isEmpty ? (_isFr ? 'Convive' : 'Guest') : saisi);
+  }
+
+  /// Le matchmaker de la table, depuis son téléphone : ses avis partent à la table.
+  Future<void> _ouvrirLeMatchmaker() async {
+    final menu = _menu;
+    if (menu == null) return;
+    final moi = _moiATable();
+    final avis = await TableMatchmakerSheet.show(
+      context,
+      candidats: TableMatchmaker.candidats(menu.wines, _guests),
+      moi: moi,
+      isFr: _isFr,
+      avisDeja: _mesAvis,
+    );
+    if (avis == null || !mounted) return;
+    _mesAvis = avis;
+    final avecAvis = moi.copie(avis: {for (final e in avis.entries) e.key: e.value.name});
+    _rejoindre((nom) => avecAvis.copie(id: 'guest_me', name: nom));
   }
 
   /// La carte d'arrivée, selon où en est l'invité.
@@ -724,6 +757,27 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           }).toList(),
         ),
         const SizedBox(height: 24),
+
+        // Le matchmaker de la table : chacun donne son avis, rien n'est écarté.
+        if (_hasJoined) ...[
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.tonalIcon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFD4AF37).withValues(alpha: 0.18),
+                foregroundColor: const Color(0xFFD4AF37),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: _ouvrirLeMatchmaker,
+              icon: const Icon(Icons.how_to_vote_rounded),
+              label: Text(_mesAvis.isEmpty
+                  ? (isFr ? 'Donner mon avis sur les vins' : 'Give my view on the wines')
+                  : (isFr ? 'Revoir mes ${_mesAvis.length} avis' : 'Review my ${_mesAvis.length} views')),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
 
         // TOP 3 BOUTEILLES DU RESTAURANT
         Row(

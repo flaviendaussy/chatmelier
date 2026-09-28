@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import 'menu_wine.dart';
+import 'table_matchmaker.dart';
 
 class MenuTableMatchResult {
   final MenuWine menuWine;
@@ -35,8 +36,8 @@ class MenuTableMatcherEngine {
     return vin.wineType.toLowerCase().contains(p);
   }
 
-  /// Calcule et classe les 3 meilleures bouteilles de la carte du restaurant pour le consensus de la table.
-  static List<MenuTableMatchResult> rankTop3WinesForTable({
+  /// Toute la carte, classée pour la table (sans les raisons, rédigées pour le podium).
+  static List<MenuTableMatchResult> classerLaCarte({
     required List<MenuWine> menuWines,
     required List<GuestProfile> guests,
     bool isFr = true,
@@ -44,8 +45,9 @@ class MenuTableMatcherEngine {
     if (menuWines.isEmpty || guests.isEmpty) return [];
 
     // Ceux qui n'ont rien dit de leurs goûts ne votent pas : leur prêter un palais moyen
-    // tirerait la table vers des vins tièdes. S'ils sont seuls, on classe quand même.
-    final votants = [for (final g in guests) if (!g.sansPreferences) g];
+    // tirerait la table vers des vins tièdes. S'ils sont seuls, on classe quand même. Un
+    // avis donné au matchmaker de table, lui, fait voter.
+    final votants = [for (final g in guests) if (!g.sansPreferences || g.avis.isNotEmpty) g];
     final jury = votants.isEmpty ? guests : votants;
 
     final results = <MenuTableMatchResult>[];
@@ -91,8 +93,16 @@ class MenuTableMatcherEngine {
 
     // Tri décroissant par harmonie collective
     results.sort((a, b) => b.harmonyScore.compareTo(a.harmonyScore));
+    return results;
+  }
 
-    final finalistes = results.take(3).toList();
+  /// Les trois meilleures bouteilles pour la table, avec leurs raisons.
+  static List<MenuTableMatchResult> rankTop3WinesForTable({
+    required List<MenuWine> menuWines,
+    required List<GuestProfile> guests,
+    bool isFr = true,
+  }) {
+    final finalistes = classerLaCarte(menuWines: menuWines, guests: guests, isFr: isFr).take(3).toList();
     final raisons = RedactionDesRaisons.rediger(finalistes, guests, isFr: isFr);
     return [
       for (var i = 0; i < finalistes.length; i++)
@@ -183,7 +193,9 @@ class MenuTableMatcherEngine {
       }
     }
 
-    return score.clamp(10.0, 100.0);
+    // Son avis au matchmaker de table pèse plus que ce que le moteur devine.
+    final avis = AvisDeTable.depuis(guest.avis[wine.cacheKey]);
+    return TableMatchmaker.avecAvis(score.clamp(10.0, 100.0), avis).clamp(10.0, 100.0);
   }
 }
 

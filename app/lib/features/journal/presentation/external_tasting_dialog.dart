@@ -84,6 +84,11 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
 
   String _wineType = 'red';
   double _rating = 8.5;
+
+  /// Faux tant que le curseur n'a pas été touché : 8,5 n'est que sa position de départ,
+  /// pas une note. Sans note, la dégustation est gardée mais n'entre pas dans le profil.
+  bool _noteTouchee = false;
+  double? get _noteSaisie => _noteTouchee ? _rating : null;
   bool _isFavorite = false;
   bool _isSaving = false;
 
@@ -434,7 +439,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     // La note et le coup de cœur sont deux informations distinctes. Écrire `rating = 5.0`
     // pour signifier « coup de cœur » le rendait indistinguable d'un 5/10 tiède, et
     // l'heuristique de relecture le remontait ensuite à 10/10.
-    final effectiveRating = _rating;
+    final effectiveRating = _noteSaisie;
 
     // 1. If user checked to remember this place & we have a location, save it!
     if (_rememberThisPlace && occasion.isNotEmpty && _currentPosition != null) {
@@ -525,7 +530,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 // (migration 027 jamais appliquée en production). On divise sans marquer
                 // l'échelle : arriver ici prouve que 032 n'a pas tourné, donc que la colonne
                 // `rating_scale` n'existe pas encore. La relecture la déduit de son absence.
-                'rating': (effectiveRating / 2.0).clamp(0.0, 5.0),
+                'rating': effectiveRating == null ? null : (effectiveRating / 2.0).clamp(0.0, 5.0),
                 'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
                 'food_paired': food.isNotEmpty ? food : null,
                 'tasting_notes': notes.isNotEmpty ? notes : null,
@@ -623,7 +628,9 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         // profil, et l'écran cesse d'être un puits sans apprentissage. Sans elle, on garde
         // le chemin court, qui n'apprend que la région et le cépage.
         // Les deux chemins incrémentent le compteur : appeler les deux le doublerait.
-        Future<void> learn(String profileId, String profileName) {
+        Future<void> learn(String profileId, String profileName) async {
+          // Sans note, rien à apprendre : on n'invente pas un avis.
+          if (effectiveRating == null) return;
           if (!_hasSipData) {
             return tasteService.recordTastingExperience(
               nameOrId: profileId,
@@ -1096,7 +1103,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          '${_rating.toStringAsFixed(1)} / 10',
+                          _noteTouchee ? '${_rating.toStringAsFixed(1)} / 10' : '— / 10',
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                       ),
@@ -1121,8 +1128,18 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                     divisions: 18,
                     activeColor: const Color(0xFFD4AF37),
                     label: '${_rating.toStringAsFixed(1)} / 10',
-                    onChanged: (val) => setState(() => _rating = val),
+                    onChanged: (val) => setState(() {
+                      _rating = val;
+                      _noteTouchee = true;
+                    }),
                   ),
+                  if (!_noteTouchee)
+                    Text(
+                      Localizations.localeOf(context).languageCode == 'fr'
+                          ? 'Pas de note ? La dégustation est gardée, mais n\'entre pas dans votre profil.'
+                          : 'No rating? The tasting is kept, but won\'t shape your profile.',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
                 ],
               ),
             ),

@@ -234,6 +234,20 @@ void main() {
     expect(base.degustations.keys, [action.id]);
   });
 
+  test('une dégustation sans note arrive sans note — pas de 5,0 inventé', () async {
+    final vin = const Uuid().v4();
+    base.wines[vin] = {'id': vin, 'name': 'Penfolds Bin 389', 'wine_type': 'red'};
+    final action = degustationExterne(wineId: vin);
+    action.data.remove('rating');
+    await stockage.queueAction(action);
+
+    final resultat = await synchroniser();
+
+    expect(resultat.failed, 0, reason: resultat.errors.join('\n'));
+    expect(base.degustations[action.id]!.containsKey('rating'), isTrue);
+    expect(base.degustations[action.id]!['rating'], isNull);
+  });
+
   test('une réponse perdue ne crée pas de doublon : la ligne déjà écrite est relue', () async {
     final vin = const Uuid().v4();
     base.wines[vin] = {'id': vin, 'name': 'Château Margaux', 'wine_type': 'red'};

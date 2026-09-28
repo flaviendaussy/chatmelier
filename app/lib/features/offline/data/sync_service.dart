@@ -394,7 +394,8 @@ class SyncService {
     final data = action.data;
     final rawBottleId = data['bottle_id']?.toString();
     final isExternal = data['is_external'] == true || rawBottleId == null || rawBottleId.isEmpty;
-    final rating = (data['rating'] as num?)?.toDouble() ?? 5.0;
+    // Pas de note inventée : une dégustation sans note reste sans note.
+    final rating = (data['rating'] as num?)?.toDouble();
     final notes = data['notes'] as String? ?? data['tasting_notes'] as String?;
     final foodPaired = data['food_paired'] as String?;
     final occasion = data['occasion'] as String? ?? (isExternal ? 'Dégustation hors cave' : 'Dégustation');
@@ -706,8 +707,11 @@ class SyncService {
           .maybeSingle();
     } catch (e2) {
       // Attempt 3: rating scale normalization if rating check constraint fails (0..5 vs 0..10)
-      final ratingVal = (corePayload['rating'] as num?)?.toDouble() ?? 5.0;
-      final demiNote = {...corePayload, 'rating': (ratingVal / 2.0).clamp(0.0, 5.0)};
+      final ratingVal = (corePayload['rating'] as num?)?.toDouble();
+      final demiNote = {
+        ...corePayload,
+        'rating': ratingVal == null ? null : (ratingVal / 2.0).clamp(0.0, 5.0),
+      };
       try {
         return await _supabase
             .from('tasting_log')

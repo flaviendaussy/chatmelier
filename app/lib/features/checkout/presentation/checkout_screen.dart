@@ -48,6 +48,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   // Dégustation form fields
   int _consumeCount = 1;
   double _rating = 8.5;
+
+  /// Vrai dès que la personne a touché le curseur. Tant qu'il est faux, aucune note
+  /// n'est enregistrée : 8,5 n'était que la position de départ du curseur, et une sortie
+  /// rapide l'écrivait comme une vraie note — la « fausse dégustation » du Penfolds.
+  bool _noteTouchee = false;
+  double? get _noteSaisie => _noteTouchee ? _rating : null;
   final _foodController = TextEditingController();
   final _notesController = TextEditingController();
   bool _isSubmitting = false;
@@ -386,7 +392,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
         'user_id': user?.id,
         if (_isValidUuid(effectiveCellarId)) 'cellar_id': effectiveCellarId,
-        'rating': _rating,
+        'rating': _noteSaisie,
         'food_paired': _foodController.text.trim(),
         'tasting_notes': _notesController.text.trim(),
         'co_tasters': _selectedCoTasters.toList(),
@@ -412,7 +418,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
           'user_id': user.id,
           if (_isValidUuid(effectiveCellarId)) 'cellar_id': effectiveCellarId,
-          'rating': _rating,
+          'rating': _noteSaisie,
           'food_paired': _foodController.text.trim(),
           'tasting_notes': _notesController.text.trim(),
           'co_tasters': _selectedCoTasters.toList(),
@@ -442,7 +448,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
             'user_id': user.id,
             if (_isValidUuid(effectiveCellarId)) 'cellar_id': effectiveCellarId,
-            'rating': _rating,
+            'rating': _noteSaisie,
             'food_paired': _foodController.text.trim(),
             'tasting_notes': _notesController.text.trim(),
             'consumed_at': payload['consumed_at'],
@@ -462,14 +468,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           } catch (coreErr) {
             debugPrint('Tasting log core insert notice ($coreErr), retrying with normalized rating...');
             try {
-              corePayload['rating'] = (_rating / 2.0).clamp(0.0, 5.0);
+              if (_noteSaisie != null) corePayload['rating'] = (_noteSaisie! / 2.0).clamp(0.0, 5.0);
               final inserted = await supabase
                   .from('tasting_log')
                   .insert(corePayload)
                   .select('*, wines(*)')
                   .maybeSingle();
               if (inserted != null) {
-                inserted['rating'] = _rating;
+                inserted['rating'] = _noteSaisie;
                 await offlineStorage.addCachedTasting(inserted);
               } else {
                 await offlineStorage.addCachedTasting(localTastingEntry);
@@ -530,7 +536,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             'region': wineMap?['region'] as String?,
             'country': wineMap?['country'] as String?,
             'appellation': wineMap?['appellation'] as String?,
-            'rating': _rating.toDouble(),
+            'rating': _noteSaisie,
             'food_paired': _foodController.text.trim(),
             'tasting_notes': _notesController.text.trim(),
             'co_tasters': _selectedCoTasters.toList(),
@@ -547,23 +553,25 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       notifyCellarChanged(ref, cellarId);
       ref.invalidate(tastingLogProvider);
 
-      // Reinforce taste profiles for primary user and all participants
+      // Reinforce taste profiles for primary user and all participants.
+      // Sans note, rien à apprendre : une sortie sans noter ne touche pas au profil.
+      final note = _noteSaisie;
       try {
-        if (wineMap != null) {
+        if (wineMap != null && note != null) {
           final wineObj = Wine.fromJson(wineMap);
           final tasteService = ref.read(tasteProfileServiceProvider);
           final primaryProfile = await tasteService.getPrimaryProfile();
           await tasteService.recordTastingExperience(
             nameOrId: primaryProfile.id,
             wine: wineObj,
-            rating: _rating,
+            rating: note,
             tastingId: tastingId,
           );
           for (final coTaster in _selectedCoTasters) {
             await tasteService.recordTastingExperience(
               nameOrId: coTaster,
               wine: wineObj,
-              rating: _rating,
+              rating: note,
               tastingId: tastingId,
             );
           }
@@ -741,7 +749,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
         'user_id': user?.id,
         if (_isValidUuid(effectiveCellarId)) 'cellar_id': effectiveCellarId,
-        'rating': _rating,
+        'rating': _noteSaisie,
         'food_paired': _foodController.text.trim(),
         'tasting_notes': deferredNotes,
         'co_tasters': _selectedCoTasters.toList(),
@@ -764,7 +772,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
           'user_id': user.id,
           if (_isValidUuid(effectiveCellarId)) 'cellar_id': effectiveCellarId,
-          'rating': _rating,
+          'rating': _noteSaisie,
           'food_paired': _foodController.text.trim(),
           'tasting_notes': deferredNotes,
           'co_tasters': _selectedCoTasters.toList(),
@@ -793,7 +801,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
             'user_id': user.id,
             if (_isValidUuid(effectiveCellarId)) 'cellar_id': effectiveCellarId,
-            'rating': _rating,
+            'rating': _noteSaisie,
             'food_paired': _foodController.text.trim(),
             'tasting_notes': deferredNotes,
             'consumed_at': payload['consumed_at'],
@@ -860,7 +868,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             'wine_name': wineName,
             'vintage': vintage,
             'region': region,
-            'rating': _rating.toDouble(),
+            'rating': _noteSaisie,
             'tasting_notes': deferredNotes,
             'co_tasters': _selectedCoTasters.toList(),
             if (ownerId != null) 'bottle_owner_id': ownerId,
@@ -1750,7 +1758,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             const Icon(Icons.star, size: 16, color: Colors.white),
                             const SizedBox(width: 4),
                             Text(
-                              '${_rating.toStringAsFixed(1)} / 10',
+                              _noteTouchee ? '${_rating.toStringAsFixed(1)} / 10' : '— / 10',
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                           ],
@@ -1767,7 +1775,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     activeColor: const Color(0xFFD4AF37),
                     label: '${_rating.toStringAsFixed(1)} / 10',
                     onChanged: (val) {
-                      setState(() => _rating = val);
+                      setState(() {
+                        _rating = val;
+                        _noteTouchee = true;
+                      });
                     },
                   ),
                   Row(
@@ -1775,7 +1786,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     children: [
                       const Text('1.0', style: TextStyle(fontSize: 11, color: Colors.grey)),
                       Text(
-                        _rating >= 9.5
+                        !_noteTouchee
+                            ? (Localizations.localeOf(context).languageCode == 'fr'
+                                ? 'Touchez le curseur pour noter'
+                                : 'Move the slider to rate')
+                            : _rating >= 9.5
                             ? (l10n?.ratingExceptional ?? '🏆 Exceptionnel')
                             : (_rating >= 8.5
                                 ? (l10n?.ratingRemarkable ?? '✨ Remarquable')
@@ -1857,7 +1872,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     label: Text(
                       _isSubmitting
                           ? (l10n?.checkoutFastExitSubmitting ?? 'Sortie en cours...')
-                          : (l10n?.checkoutFastExit ?? 'Sortie rapide sans questionnaire ⚡'),
+                          : !_noteTouchee
+                              ? (Localizations.localeOf(context).languageCode == 'fr'
+                                  ? 'Sortir sans noter ⚡'
+                                  : 'Exit without rating ⚡')
+                              : (l10n?.checkoutFastExit ?? 'Sortie rapide sans questionnaire ⚡'),
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,

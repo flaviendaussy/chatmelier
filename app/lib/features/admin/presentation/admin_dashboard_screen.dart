@@ -3,14 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/admin_metrics_service.dart';
+import '../data/admin_personnes_service.dart';
 import '../domain/admin_metrics.dart';
+import 'admin_onglets.dart';
 
 /// La console d'administration : qui utilise l'app, et pour quoi faire.
 ///
-/// **Ce qu'elle ne montre pas, délibérément.** Aucun identifiant, aucune adresse, aucun
-/// contenu de message. Savoir que douze personnes ont scanné une carte mardi ne demande
-/// pas de savoir lesquelles — et les agrégats répondent à toutes les questions qu'on se
-/// pose vraiment en regardant grandir un produit.
+/// **Vue d'ensemble** : des agrégats, sans identifiant ni contenu (migration 041).
+/// **Personnes, Fonctionnalités, Erreurs** : le détail nominatif de la phase de test
+/// (migration 044) — les testeurs ont accepté d'être visibles. Un interrupteur serveur
+/// (`app_config.admin_detail_nominatif`) l'opacifie d'un geste, et le bandeau en tête de
+/// chaque écran rappelle dans quel mode on regarde.
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
 
@@ -21,37 +24,78 @@ class AdminDashboardScreen extends ConsumerWidget {
     final jours = ref.watch(adminPeriodeProvider);
     final async = ref.watch(adminTableauProvider);
 
-    return Scaffold(
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Console'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Actualiser',
-            onPressed: () => ref.invalidate(adminTableauProvider),
+            onPressed: () {
+              ref.invalidate(adminTableauProvider);
+              ref.invalidate(adminPersonnesProvider);
+              ref.invalidate(adminUsagesProvider);
+              ref.invalidate(adminErreursProvider);
+              ref.invalidate(adminNominatifProvider);
+            },
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(52),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-            child: Row(
-              children: [
-                for (final e in _periodes.entries) ...[
-                  ChoiceChip(
-                    label: Text(e.value),
-                    selected: jours == e.key,
-                    onSelected: (_) =>
-                        ref.read(adminPeriodeProvider.notifier).state = e.key,
-                  ),
-                  const SizedBox(width: 8),
+          preferredSize: const Size.fromHeight(100),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+                child: Row(
+                  children: [
+                    for (final e in _periodes.entries) ...[
+                      ChoiceChip(
+                        label: Text(e.value),
+                        selected: jours == e.key,
+                        onSelected: (_) =>
+                            ref.read(adminPeriodeProvider.notifier).state = e.key,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  ],
+                ),
+              ),
+              const TabBar(
+                isScrollable: true,
+                tabs: [
+                  Tab(text: 'Vue d\'ensemble'),
+                  Tab(text: 'Personnes'),
+                  Tab(text: 'Fonctionnalités'),
+                  Tab(text: 'Erreurs'),
                 ],
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-      body: async.when(
+      body: Column(
+        children: [
+          const BandeauModeTest(),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _vueDEnsemble(ref, async, jours),
+                const OngletPersonnes(),
+                const OngletFonctionnalites(),
+                const OngletErreurs(),
+              ],
+            ),
+          ),
+        ],
+      ),
+      ),
+    );
+  }
+
+  Widget _vueDEnsemble(WidgetRef ref, AsyncValue<TableauDeBord> async, int jours) {
+    return async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _Refus(erreur: e.toString()),
         data: (t) => t.estVide
@@ -92,7 +136,6 @@ class AdminDashboardScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-      ),
     );
   }
 }

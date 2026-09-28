@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import '../domain/menu_wine.dart';
 import '../domain/menu_flight_engine.dart';
+import '../../../shared/utils/app_logger.dart';
 
 class MenuFlightSheet extends StatefulWidget {
   final ScannedMenu menu;
@@ -9,6 +10,8 @@ class MenuFlightSheet extends StatefulWidget {
   const MenuFlightSheet({super.key, required this.menu});
 
   static Future<void> show(BuildContext context, {required ScannedMenu menu}) {
+    // Trace d'usage : la console d'administration compte ce qui ne laisse rien en base.
+    AppLogger.info('USAGE', 'flights');
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,

@@ -324,6 +324,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       avisDeja: _mesAvis,
     );
     if (avis == null || !mounted) return;
+    if (avis.isNotEmpty) AppLogger.info('USAGE', 'matchmaker_de_table');
     _mesAvis = avis;
     final avecAvis = moi.copie(avis: {for (final e in avis.entries) e.key: e.value.name});
     _rejoindre((nom) => avecAvis.copie(id: 'guest_me', name: nom));
@@ -1535,7 +1536,10 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       selectedColor: const Color(0xFF8B1E3F),
       backgroundColor: Colors.black26,
       side: BorderSide(color: isSelected ? const Color(0xFFD4AF37) : Colors.white12),
-      onSelected: (_) => setState(() => _selectedDishCategory = category),
+      onSelected: (_) {
+        AppLogger.info('USAGE', 'accords_mets_vins');
+        setState(() => _selectedDishCategory = category);
+      },
     );
   }
 

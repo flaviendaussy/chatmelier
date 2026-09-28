@@ -4,6 +4,7 @@ import '../../../shared/utils/currency_helper.dart';
 import '../domain/menu_table_matcher_engine.dart';
 import '../domain/menu_wine.dart';
 import 'menu_wine_compare_sheet.dart';
+import '../../../shared/utils/app_logger.dart';
 
 class MenuMatchmakerSheet extends StatefulWidget {
   final List<MenuWine> allWines;
@@ -11,6 +12,8 @@ class MenuMatchmakerSheet extends StatefulWidget {
   const MenuMatchmakerSheet({super.key, required this.allWines});
 
   static Future<void> show(BuildContext context, List<MenuWine> wines) {
+    // Trace d'usage : la console d'administration compte ce qui ne laisse rien en base.
+    AppLogger.info('USAGE', 'matchmaker');
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,

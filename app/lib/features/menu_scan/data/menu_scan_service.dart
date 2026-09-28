@@ -593,8 +593,12 @@ Consignes absolues :
           isSearchGrounded: false,
         );
       }
+      // La question et le début de la réponse : la console d'administration les montre
+      // dans le fil de la personne (phase de test — à retirer avant la production).
+      String extrait(String t) => t.length > 300 ? '${t.substring(0, 300)}…' : t;
       AppLogger.info('MENU_CHAT',
-          'menu-chat answered in ${DateTime.now().difference(debut).inMilliseconds}ms via $modele');
+          'menu-chat answered in ${DateTime.now().difference(debut).inMilliseconds}ms via $modele'
+          ' — Q : ${extrait(question)} — R : ${extrait(reponse.trim())}');
       return reponse.trim();
     } catch (e, stack) {
       AppLogger.error('MENU_CHAT',

@@ -17,7 +17,9 @@ règle a été tenue.
 | Quoi | Où | Retour arrière |
 |---|---|---|
 | Le rôle de dépouillement `chatmelier_feedback_ro` lit **tous** les journaux, avec `user_id`, et les prénoms de `profiles` | migration 043 | Bloc « Retour arrière » en fin de `043_readonly_all_logs.sql` : revenir à `tag = 'USER_FEEDBACK'`, révoquer `user_id`, `error_details`, `metadata` et `profiles`. |
-| Console d'administration **nominative** : noms, fil d'activité par personne, conversations avec le sommelier | migration 044 (à venir), `lib/features/admin/` | Passer `app_config.admin_detail_nominatif` à faux ; pseudonymiser (identifiant court au lieu du nom) ; **retirer la lecture des conversations** ; ne garder que des agrégats (déjà servis par la 041). |
+| Console d'administration **nominative** : prénoms, fil d'activité par personne, conversations avec le sommelier (questions et réponses), erreurs par personne | migration 044, `lib/features/admin/` | D'abord `UPDATE app_config SET valeur = 'false' WHERE cle = 'admin_detail_nominatif'` : les prénoms deviennent « Personne a1b2c3 », conversations et textes des retours ne sortent plus. Puis supprimer `admin_conversations` et `admin_fil_personne` (bloc « Retour arrière » de la 044) ; ne garder que des agrégats (041). |
+| **Questions au sommelier de la carte dans les journaux** : la question et le début de la réponse sont écrits dans `app_diagnostic_logs` (tag `MENU_CHAT`) pour le fil de la console | `menu_scan_service.dart`, `_demanderAuSommelierDistant` | Ne journaliser que la durée et le modèle ; purger les lignes `MENU_CHAT` existantes. |
+| Traces d'usage (`USAGE` : matchmaker, flights, consensus…) rattachées à un compte | journaux applicatifs | Acceptable en production si la politique de confidentialité les mentionne ; sinon les journaliser sans `user_id`. |
 | Mise à jour **obligatoire** au démarrage | point 4.3 du plan (à venir), table `app_config` | Repasser en simple invitation, refusable. Une app publique ne bloque pas ses utilisateurs pour une version mineure. |
 
 ## 2. RGPD
@@ -46,11 +48,12 @@ lancement public.
   conversations) depuis Profil → Compte.
 - **Sous-traitants** : accord de traitement (DPA) avec Supabase et Google ; vérifier la
   région d'hébergement du projet Supabase.
-- **Recherche d'amis — fuite de données personnelles.** `AuthRepository.searchUsers`
-  télécharge les 50 premiers profils **complets** (e-mail, téléphone compris) et filtre
-  sur l'appareil. Tout compte connecté peut donc lire ces champs. À remplacer par une
-  fonction serveur qui cherche en base et ne renvoie que prénom, pseudo et avatar, et
-  restreindre la lecture de `profiles` en conséquence.
+- **Recherche d'amis — annuaire ouvert.** `AuthRepository.searchUsers` télécharge les
+  50 premiers profils et filtre sur l'appareil : tout compte connecté peut lister les
+  prénoms et avatars de tous les utilisateurs (en production, `profiles` ne porte ni
+  e-mail ni téléphone — vérifié le 28/09 dans le catalogue). Et au-delà de 50 comptes,
+  la recherche ne trouve plus personne. À remplacer par une fonction serveur qui cherche
+  en base, ne renvoie que les correspondances, et restreindre la lecture de `profiles`.
 - **Consentement** : UMP (AdMob) est en place sur mobile ; sur le web, informer sur le
   `localStorage` (session, préférences) et l'absence de publicité.
 - **Mineurs** : voir section 3 — la vérification d'âge sert aussi ici.

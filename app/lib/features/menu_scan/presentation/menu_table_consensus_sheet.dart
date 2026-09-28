@@ -20,6 +20,8 @@ class MenuTableConsensusSheet extends ConsumerStatefulWidget {
   const MenuTableConsensusSheet({super.key, required this.menu});
 
   static Future<void> show(BuildContext context, {required ScannedMenu menu}) {
+    // Trace d'usage : la console d'administration compte ce qui ne laisse rien en base.
+    AppLogger.info('USAGE', 'consensus_de_table');
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -112,6 +114,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       avisDeja: _avisHote,
     );
     if (avis == null || !mounted) return;
+    if (avis.isNotEmpty) AppLogger.info('USAGE', 'matchmaker_de_table');
     _avisHote = avis;
     final avecAvis = hote.copie(avis: {for (final e in avis.entries) e.key: e.value.name});
     setState(() {

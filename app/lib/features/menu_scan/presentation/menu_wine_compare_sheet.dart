@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../shared/utils/currency_helper.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../domain/menu_wine.dart';
+import '../../../shared/utils/app_logger.dart';
 
 class MenuWineCompareSheet extends StatefulWidget {
   final List<MenuWine> selectedWines;
@@ -9,6 +10,8 @@ class MenuWineCompareSheet extends StatefulWidget {
   const MenuWineCompareSheet({super.key, required this.selectedWines});
 
   static Future<void> show(BuildContext context, List<MenuWine> wines) {
+    // Trace d'usage : la console d'administration compte ce qui ne laisse rien en base.
+    AppLogger.info('USAGE', 'comparaison_de_vins');
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,

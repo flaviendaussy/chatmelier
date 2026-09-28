@@ -27,6 +27,7 @@ import 'shelf_grid_view_sheet.dart';
 import '../data/favorite_wines_service.dart';
 import 'cellar_proximity_banner.dart';
 import '../../auth/presentation/mandatory_username_dialog.dart';
+import '../../auth/presentation/palais_de_depart_sheet.dart';
 import '../../../shared/widgets/offline_sync_banner.dart';
 import '../../../shared/widgets/grape_chart.dart';
 import '../../../shared/utils/responsive_layout.dart';
@@ -71,8 +72,10 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     _loadSortByPreference();
     _loadViewModePreference();
     _loadTotalCostsPreference();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      MandatoryUsernameDialog.checkAndPromptIfNeeded(context, ref);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await MandatoryUsernameDialog.checkAndPromptIfNeeded(context, ref);
+      // Puis, une seule fois et seulement pour un palais vierge : le palais de départ.
+      if (mounted) await PalaisDeDepartSheet.proposerSiBesoin(context, ref);
     });
   }
 

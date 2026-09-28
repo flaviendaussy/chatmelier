@@ -50,6 +50,12 @@ class TasteProfile {
   /// continuer à nourrir l'application.
   final Map<String, int> axisObservations;
 
+  /// Le palais que la personne a DÉCLARÉ à la première ouverture (six curseurs), par
+  /// axe, sur 0–10. Un a priori, pas une observation : `axisObservations` reste à 0, la
+  /// confiance affichée reste nulle, et dès la première vraie dégustation d'un axe la
+  /// déclaration n'y pèse plus que 15 % (voir `WineTasteRadarCalculator.compute`).
+  final Map<String, double> palaisDeDepart;
+
   /// Concentrations de cave déjà constatées ('appellation:Saint-Joseph', 'age:Jeune…').
   ///
   /// Sert uniquement à ne pas réécrire la même entrée au registre à chaque chargement de
@@ -137,6 +143,7 @@ class TasteProfile {
     this.idealMoments = const {},
     this.questionnairesCompleted = 0,
     this.axisObservations = const {},
+    this.palaisDeDepart = const {},
     this.concentrationsConnues = const [],
     this.friendUserId,
   });
@@ -166,6 +173,7 @@ class TasteProfile {
     Map<String, int>? idealMoments,
     int? questionnairesCompleted,
     Map<String, int>? axisObservations,
+    Map<String, double>? palaisDeDepart,
     List<String>? concentrationsConnues,
     String? friendUserId,
     bool clearFriendUserId = false,
@@ -195,6 +203,7 @@ class TasteProfile {
       idealMoments: idealMoments ?? this.idealMoments,
       questionnairesCompleted: questionnairesCompleted ?? this.questionnairesCompleted,
       axisObservations: axisObservations ?? this.axisObservations,
+      palaisDeDepart: palaisDeDepart ?? this.palaisDeDepart,
       concentrationsConnues: concentrationsConnues ?? this.concentrationsConnues,
       friendUserId: clearFriendUserId ? null : (friendUserId ?? this.friendUserId),
     );
@@ -225,6 +234,7 @@ class TasteProfile {
         'ideal_moments': idealMoments,
         'questionnaires_completed': questionnairesCompleted,
         'axis_observations': axisObservations,
+        if (palaisDeDepart.isNotEmpty) 'palais_de_depart': palaisDeDepart,
         'concentrations_connues': concentrationsConnues,
         if (friendUserId != null) 'friend_user_id': friendUserId,
       };
@@ -257,6 +267,12 @@ class TasteProfile {
       // par axe était recalculé à chaque enregistrement puis perdu au rechargement, donc
       // la confiance affichée serait restée nulle en permanence.
       axisObservations: _castIntMap(json['axis_observations']),
+      palaisDeDepart: (json['palais_de_depart'] is Map)
+          ? {
+              for (final e in (json['palais_de_depart'] as Map).entries)
+                if (e.value is num) e.key.toString(): (e.value as num).toDouble(),
+            }
+          : const {},
       concentrationsConnues: (json['concentrations_connues'] as List?)
               ?.map((e) => e.toString())
               .toList() ??

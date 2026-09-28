@@ -259,40 +259,30 @@ class TasteAffinityResult {
 class WineTasteRadarCalculator {
   /// Computes the 8-axis taste radar metrics for a given [TasteProfile].
   static WineTasteRadarMetrics compute(TasteProfile profile) {
-    double tannin = 5.0;
-    double body = 5.0;
-    double oak = 3.5;
-    double ripeFruit = 5.0;
-    double spice = 4.0;
-    double freshFruit = 5.0;
-    double minerality = 5.0;
-    double acidity = 5.0;
+    // 1. Les moyennes observées, mêlées au palais de départ déclaré s'il existe.
+    //
+    // Sans observation, un axe prend la valeur déclarée (confiance nulle : le radar le
+    // dessine flou). Dès la première dégustation, la déclaration ne pèse plus que 15 %,
+    // puis 10 % ; à la troisième elle s'efface. Sans déclaration, rien ne change.
+    final depart = profile.palaisDeDepart;
+    double axe(String cle, double neutre, double? moyenne) {
+      final declare = depart[cle];
+      if (moyenne == null) return declare ?? neutre;
+      final observe = (moyenne * 10.0).clamp(1.0, 10.0);
+      if (declare == null) return observe;
+      final n = profile.axisObservations[cle] ?? 0;
+      final poids = n >= 3 ? 0.0 : 0.3 / (1 + n);
+      return declare * poids + observe * (1 - poids);
+    }
 
-    // 1. Incorporate explicit averages if set
-    if (profile.avgTanninPreference != null) {
-      tannin = (profile.avgTanninPreference! * 10.0).clamp(1.0, 10.0);
-    }
-    if (profile.avgBodyPreference != null) {
-      body = (profile.avgBodyPreference! * 10.0).clamp(1.0, 10.0);
-    }
-    if (profile.avgOakPreference != null) {
-      oak = (profile.avgOakPreference! * 10.0).clamp(1.0, 10.0);
-    }
-    if (profile.avgRipeFruitPreference != null) {
-      ripeFruit = (profile.avgRipeFruitPreference! * 10.0).clamp(1.0, 10.0);
-    }
-    if (profile.avgSpicePreference != null) {
-      spice = (profile.avgSpicePreference! * 10.0).clamp(1.0, 10.0);
-    }
-    if (profile.avgFreshFruitPreference != null) {
-      freshFruit = (profile.avgFreshFruitPreference! * 10.0).clamp(1.0, 10.0);
-    }
-    if (profile.avgMineralityPreference != null) {
-      minerality = (profile.avgMineralityPreference! * 10.0).clamp(1.0, 10.0);
-    }
-    if (profile.avgAcidityPreference != null) {
-      acidity = (profile.avgAcidityPreference! * 10.0).clamp(1.0, 10.0);
-    }
+    double tannin = axe('tannin', 5.0, profile.avgTanninPreference);
+    double body = axe('body', 5.0, profile.avgBodyPreference);
+    double oak = axe('oak', 3.5, profile.avgOakPreference);
+    double ripeFruit = axe('ripeFruit', 5.0, profile.avgRipeFruitPreference);
+    double spice = axe('spice', 4.0, profile.avgSpicePreference);
+    double freshFruit = axe('freshFruit', 5.0, profile.avgFreshFruitPreference);
+    double minerality = axe('minerality', 5.0, profile.avgMineralityPreference);
+    double acidity = axe('acidity', 5.0, profile.avgAcidityPreference);
 
     // 2. Favorite types influence
     for (final t in profile.favoriteTypes) {

@@ -182,6 +182,24 @@ class TasteProfileService {
     return newProfile;
   }
 
+  /// Le palais déclaré à la première ouverture : un a priori, pas une observation.
+  ///
+  /// Les axes vont dans `palaisDeDepart` (0–10) et nulle part ailleurs : aucune moyenne
+  /// n'est touchée, aucune observation n'est comptée, et la confiance reste nulle. Les
+  /// couleurs aimées ne remplacent pas celles que le profil connaît déjà.
+  Future<void> enregistrerPalaisDeDepart({
+    required Map<String, double> axes,
+    List<String> couleurs = const [],
+    List<String> aversions = const [],
+  }) async {
+    final p = await getPrimaryProfile();
+    await updateProfile(p.copyWith(
+      palaisDeDepart: axes,
+      favoriteTypes: p.favoriteTypes.isEmpty ? couleurs : p.favoriteTypes,
+      dislikedCharacteristics: {...p.dislikedCharacteristics, ...aversions}.toList(),
+    ));
+  }
+
   Future<void> updateProfile(TasteProfile updated) async {
     final profiles = await getProfiles();
     final index = profiles.indexWhere((p) => p.id == updated.id);

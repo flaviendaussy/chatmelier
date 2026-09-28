@@ -105,12 +105,16 @@ class PalaisExpress extends StatefulWidget {
   /// Nul une fois assis : on met à jour ses goûts, on ne les refuse plus.
   final VoidCallback? onJusteMonPrenom;
 
+  /// Le texte du refus (« Juste mon prénom… » à table, « Plus tard » ailleurs).
+  final String? libelleRefus;
+
   const PalaisExpress({
     super.key,
     required this.isFr,
     required this.libelleValider,
     required this.onValider,
     this.onJusteMonPrenom,
+    this.libelleRefus,
     this.initial = const PalaisSaisi(),
   });
 
@@ -270,7 +274,8 @@ class _PalaisExpressState extends State<PalaisExpress> {
             child: TextButton(
               onPressed: widget.onJusteMonPrenom,
               child: Text(
-                fr ? 'Juste mon prénom — je préciserai plus tard' : 'Just my name — I\'ll add my tastes later',
+                widget.libelleRefus ??
+                    (fr ? 'Juste mon prénom — je préciserai plus tard' : 'Just my name — I\'ll add my tastes later'),
                 style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ),

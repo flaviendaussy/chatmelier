@@ -200,12 +200,12 @@ class RedactionDesRaisons {
     for (var i = 0; i < finalistes.length; i++) {
       final r = finalistes[i];
       final autres = [for (var j = 0; j < tous.length; j++) if (j != i) tous[j]];
-      var distinction = _ceQuiLeDistingue(r.menuWine, autres, isFr);
+      var distinction = ceQuiLeDistingue(r.menuWine, autres, isFr);
       // Le premier sans trait saillant est premier pour une raison : l'équilibre.
       if (distinction.isEmpty && i == 0 && convives.length > 1) {
         distinction = isFr ? 'le meilleur compromis de la table' : 'the best compromise for the table';
       }
-      final prix = _prix(r.menuWine, tous, isFr);
+      final prix = placeEnPrix(r.menuWine, tous, isFr);
 
       final seconde = [
         if (distinction.isNotEmpty) distinction,
@@ -289,7 +289,7 @@ class RedactionDesRaisons {
   /// Ce qui distingue ce vin des autres finalistes : sa couleur s'il est seul de sa
   /// couleur, sinon l'axe sur lequel il est le plus à l'écart — à condition d'en être
   /// l'extrême, sans quoi « le plus frais des trois » serait faux.
-  static String _ceQuiLeDistingue(MenuWine vin, List<MenuWine> autres, bool fr) {
+  static String ceQuiLeDistingue(MenuWine vin, List<MenuWine> autres, bool fr) {
     if (autres.isEmpty) return '';
     final lot = fr ? (autres.length == 1 ? 'des deux' : 'des trois') : (autres.length == 1 ? 'of the two' : 'of the three');
 
@@ -339,7 +339,7 @@ class RedactionDesRaisons {
   }
 
   /// Où il se place en prix parmi les finalistes.
-  static String _prix(MenuWine vin, List<MenuWine> tous, bool fr) {
+  static String placeEnPrix(MenuWine vin, List<MenuWine> tous, bool fr) {
     final p = vin.bottlePrice;
     if (p == null) return '';
     final affiche = vin.formaterPrix(p);

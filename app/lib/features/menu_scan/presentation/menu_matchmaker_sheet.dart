@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../shared/utils/currency_helper.dart';
+import '../domain/menu_table_matcher_engine.dart';
 import '../domain/menu_wine.dart';
+import 'menu_wine_compare_sheet.dart';
 
 class MenuMatchmakerSheet extends StatefulWidget {
   final List<MenuWine> allWines;
@@ -57,6 +59,17 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
   late List<MenuWine> _currentPool;
   final Set<String> _askedQuestionIds = {};
   final List<String> _recordedChoices = [];
+
+  /// Chaque réponse donnée, oui comme non, par question : c'est d'elles que part le
+  /// « pourquoi ce choix ». `_recordedChoices` ne gardait que les « oui », en libellés
+  /// français — rien ne correspondait en anglais, et un « non » ne disait rien.
+  final Map<String, bool> _reponses = {};
+
+  /// Devise de la carte, portée par ses vins (nulle pour une carte scannée avant le 28/09).
+  String? get _devise => widget.allWines.map((w) => w.devise).whereType<String>().firstOrNull;
+
+  /// Un prix dans la devise de la carte, avec ses centimes s'il en a.
+  String _prix(double v) => CurrencyHelper.formatPrice(v, currency: _devise, decimals: v % 1 == 0 ? 0 : 2);
   bool _isFinished = false;
   _MatchmakerQuestion? _activeQuestion;
   int _lastEliminatedDelta = 0;
@@ -405,6 +418,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     final eliminated = prevCount - nextPool.length;
 
     _askedQuestionIds.add(currentQ.id);
+    _reponses[currentQ.id] = answerYes;
 
     if (answerYes) {
       _recordedChoices.add(currentQ.userPreferenceLabelFr);
@@ -432,6 +446,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
       _currentPool = List<MenuWine>.from(widget.allWines);
       _askedQuestionIds.clear();
       _recordedChoices.clear();
+      _reponses.clear();
       _isGlassSelected = false;
       _selectedBudgetLimit = null;
       _noPriceLimit = false;
@@ -445,30 +460,80 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     });
   }
 
-  String _buildJustification(MenuWine wine, bool isFr) {
-    final reasons = <String>[];
-    if (wine.isRed && _recordedChoices.contains('Vin Rouge')) {
-      reasons.add(isFr ? 'parfaitement dans votre registre de vin rouge' : 'matching your red wine preference');
+  /// Pourquoi ce vin : ce que VOUS avez répondu, avec ses chiffres ; ce qui le distingue
+  /// des autres finalistes ; sa place en prix, dans la devise de la carte.
+  ///
+  /// L'ancienne version ne couvrait que quatre « oui », en libellés français : pour Caro
+  /// (26/09), il ne restait que « pour un tarif de … € » — en Écosse.
+  String _buildJustification(MenuWine wine, List<MenuWine> finalistes, bool isFr) {
+    final m = wine.metrics;
+    String n(double v) => '${v.round()}/10';
+    final raisons = <String>[];
+    for (final MapEntry(key: id, value: oui) in _reponses.entries) {
+      switch (id) {
+        case 'color_red':
+          if (oui && wine.isRed) raisons.add(isFr ? 'vous vouliez du rouge' : 'you wanted red');
+          if (!oui && !wine.isRed) raisons.add(isFr ? 'pas de rouge, comme demandé' : 'no red, as asked');
+        case 'sparkling':
+          if (oui && wine.isSparkling) raisons.add(isFr ? 'des bulles, comme demandé' : 'bubbles, as asked');
+        case 'rose':
+          if (oui && wine.isRose) raisons.add(isFr ? 'le rosé que vous vouliez' : 'the rosé you wanted');
+        case 'tannins':
+          if (wine.isRed) {
+            raisons.add(oui
+                ? (isFr ? 'de la structure (tanins ${n(m.tannins)})' : 'structure (tannins ${n(m.tannins)})')
+                : (isFr ? 'tout en souplesse (tanins ${n(m.tannins)})' : 'supple (tannins ${n(m.tannins)})'));
+          }
+        case 'minerality':
+          if (oui) {
+            raisons.add(isFr
+                ? 'la minéralité que vous cherchiez (${n(m.minerality)})'
+                : 'the minerality you were after (${n(m.minerality)})');
+          }
+        case 'butteriness':
+          if (oui) {
+            raisons.add(isFr ? 'du gras et du beurré (${n(m.butteriness)})' : 'rich and buttery (${n(m.butteriness)})');
+          }
+        case 'light_fruity':
+          if (oui) {
+            raisons.add(isFr
+                ? 'léger et fruité (corps ${n(m.body)}, fruit ${n(m.fruit)})'
+                : 'light and fruity (body ${n(m.body)}, fruit ${n(m.fruit)})');
+          }
+        case 'oak':
+          raisons.add(oui
+              ? (isFr ? 'l\'élevage sous bois que vous aimez (${n(m.oak)})' : 'the oak you like (${n(m.oak)})')
+              : (isFr ? 'peu de bois, comme vous préférez (${n(m.oak)})' : 'little oak, as you prefer (${n(m.oak)})'));
+        case 'by_the_glass':
+          if (oui && wine.primaryGlassPrice != null) {
+            raisons.add(isFr
+                ? 'servi au verre (${_prix(wine.primaryGlassPrice!)})'
+                : 'served by the glass (${_prix(wine.primaryGlassPrice!)})');
+          }
+      }
     }
-    if (wine.tags.contains('minéral') || _recordedChoices.contains('Minéral & Vif')) {
-      reasons.add(isFr ? 'avec cette belle trame minérale et vive recherchée' : 'with the crisp, lively minerality you were looking for');
-    }
-    if (wine.tags.contains('beurré') || _recordedChoices.contains('Beurré & Rond')) {
-      reasons.add(isFr ? 'offrant des arômes beurrés et une gourmandise soyeuse' : 'offering rich butteriness and silky texture');
-    }
-    if (wine.tags.contains('tannique') || _recordedChoices.contains('Tannique & Structuré')) {
-      reasons.add(isFr ? 'doté de tanins nobles et d\'une charpente équilibrée' : 'structured with noble tannins and balanced body');
-    }
-    if (wine.bottlePrice != null) {
-      reasons.add(isFr ? 'pour un tarif de ${CurrencyHelper.formatPrice(wine.bottlePrice!)}' : 'priced at ${CurrencyHelper.formatPrice(wine.bottlePrice!)}');
+    final limite = _selectedBudgetLimit;
+    final prixRetenu = _isGlassSelected ? (wine.primaryGlassPrice ?? wine.bottlePrice) : wine.bottlePrice;
+    if (limite != null && !_noPriceLimit && prixRetenu != null && prixRetenu <= limite) {
+      raisons.add(isFr ? 'dans votre budget' : 'within your budget');
     }
 
-    if (reasons.isEmpty) {
+    final autres = [for (final w in finalistes) if (!identical(w, wine)) w];
+    final seconde = [
+      RedactionDesRaisons.ceQuiLeDistingue(wine, autres, isFr),
+      RedactionDesRaisons.placeEnPrix(wine, finalistes, isFr),
+    ].where((e) => e.isNotEmpty).join(', ');
+
+    final phrases = [
+      if (raisons.isNotEmpty) '${isFr ? 'Pourquoi ce choix' : 'Why this choice'} : ${raisons.join(', ')}.',
+      if (seconde.isNotEmpty) '${seconde[0].toUpperCase()}${seconde.substring(1)}.',
+    ];
+    if (phrases.isEmpty) {
       return isFr
-          ? 'Ce cru se distingue sur cette carte par son équilibre exemplaire et son profil aromatique très harmonieux.'
-          : 'This wine stands out on this list for its exemplary balance and harmonious aromatic profile.';
+          ? 'Ce cru se distingue sur cette carte par son équilibre et son profil aromatique harmonieux.'
+          : 'This wine stands out on this list for its balance and harmonious aromatic profile.';
     }
-    return isFr ? 'Pourquoi ce choix : ${reasons.join(', ')}.' : 'Why this choice: ${reasons.join(', ')}.';
+    return phrases.join(' ');
   }
 
   @override
@@ -853,7 +918,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
             child: Text(
               _noPriceLimit
                   ? (isFr ? '✨ Pas de limite de budget' : '✨ No budget limit')
-                  : '${isFr ? 'Budget max : ' : 'Max budget: '}${CurrencyHelper.formatPrice(currentVal)}',
+                  : '${isFr ? 'Budget max : ' : 'Max budget: '}${_prix(currentVal)}',
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
@@ -894,7 +959,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  CurrencyHelper.formatPrice(min),
+                  _prix(min),
                   style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
                 ),
                 ChoiceChip(
@@ -907,7 +972,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   },
                 ),
                 Text(
-                  CurrencyHelper.formatPrice(max),
+                  _prix(max),
                   style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
                 ),
               ],
@@ -953,7 +1018,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
         return p == null || p <= limit;
       }).toList();
       if (nextPool.isEmpty) nextPool = _currentPool;
-      _recordedChoices.add('Budget max : ${CurrencyHelper.formatPrice(limit)}');
+      _recordedChoices.add('Budget max : ${_prix(limit)}');
     }
 
     final eliminated = prevCount - nextPool.length;
@@ -1020,7 +1085,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
 
           // Winners Cards with Sommelier Justification
           ...winners.map((wine) {
-            final justification = _buildJustification(wine, isFr);
+            final justification = _buildJustification(wine, winners, isFr);
 
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
@@ -1128,6 +1193,22 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
           }),
 
           const SizedBox(height: 12),
+
+          // Ce qui les distingue, sur un même radar.
+          if (winners.length >= 2) ...[
+            FilledButton.tonalIcon(
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              onPressed: () => MenuWineCompareSheet.show(context, winners),
+              icon: const Icon(Icons.compare_arrows),
+              label: Text(isFr
+                  ? 'Comparer les ${winners.length} finalistes'
+                  : 'Compare the ${winners.length} finalists'),
+            ),
+            const SizedBox(height: 10),
+          ],
 
           // Restart Button
           OutlinedButton.icon(

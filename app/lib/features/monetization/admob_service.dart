@@ -197,9 +197,13 @@ class AdMobService {
   /// Displays the preloaded Google AdMob Rewarded Video ad.
   /// Returns `true` if AdMob ad was launched.
   /// Returns `false` if AdMob is unavailable (Web, not preloaded, offline, etc.).
+  /// [onAdFailedToShow] distingue la pub qui n'a pas pu s'afficher (la faute n'est pas à la
+  /// personne) de celle qu'on a fermée avant la récompense. Sans lui, les deux aboutissent
+  /// à [onAdDismissed], comme avant.
   Future<bool> showRewardedAd({
     required VoidCallback onRewardEarned,
     required VoidCallback onAdDismissed,
+    VoidCallback? onAdFailedToShow,
   }) async {
     if (!AdMobConfig.isPlatformSupported || _rewardedAd == null) {
       AppLogger.info('ADMOB', 'Native AdMob rewarded ad not available (isPlatformSupported: ${AdMobConfig.isPlatformSupported}, isReady: ${_rewardedAd != null}).');
@@ -234,7 +238,7 @@ class AdMobService {
         AppLogger.warning('ADMOB', 'RewardedAd failed to show: code=${error.code}, message=${error.message}');
         ad.dispose();
         preloadRewardedAd();
-        onAdDismissed();
+        (onAdFailedToShow ?? onAdDismissed)();
       },
     );
 

@@ -10,6 +10,7 @@ import '../../../shared/providers/premium_provider.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../monetization/admob_service.dart';
 import '../data/menu_scan_service.dart';
+import '../domain/menu_wine.dart';
 
 class MenuPhotoCaptureScreen extends ConsumerStatefulWidget {
   const MenuPhotoCaptureScreen({super.key});
@@ -124,46 +125,82 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
     setState(() => _capturedPages.removeAt(index));
   }
 
+  /// Vrai du premier appui jusqu'à la fin de l'analyse : un second appui ne relance rien.
+  /// Le 18/09 à 23:31:10, deux analyses sont parties à la même seconde — la pub n'avait
+  /// pas chargé, `showRewardedAd` avait rendu la main aussitôt — et chacune se paie.
+  bool _analyseDemandee = false;
+
   Future<void> _startAnalysis() async {
-    if (_capturedPages.isEmpty) return;
+    if (_capturedPages.isEmpty || _analyseDemandee) return;
+    _analyseDemandee = true;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
-    final isPremium = ref.read(premiumProvider);
+    try {
+      // La carte part à l'analyse AVANT la vidéo : le temps de la pub n'est plus du temps
+      // perdu. Jusqu'ici l'analyse ne démarrait qu'à la fermeture de la pub (journaux du
+      // 23/09 : pub fermée à 19:05:18, analyse lancée à 19:05:18).
+      final analyse = _executeAnalysis();
 
-    if (!isPremium) {
-      // 1. Mode gratuit : affichage d'une publicité AdMob vidéo récompensée ou fallback web
-      final showedAdMob = await AdMobService().showRewardedAd(
-        onRewardEarned: () {
-          if (mounted) _executeAnalysis();
-        },
-        onAdDismissed: () {
-          if (mounted) {
-            final isFr = Localizations.localeOf(context).languageCode == 'fr';
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  isFr
-                      ? 'Le visionnage de la vidéo est requis pour le scan en mode gratuit.'
-                      : 'Watching the video is required for scanning in free mode.',
-                ),
-              ),
-            );
-          }
-        },
-      );
-
-      // Si AdMob n'a pas pu être affiché (pas de pub disponible, web ou hors-ligne) :
-      // Pas de fausses pubs, analyse directe !
-      if (!showedAdMob && mounted) {
-        _executeAnalysis();
+      var videoRegardee = false;
+      var recompense = true;
+      if (!ref.read(premiumProvider)) {
+        final issue = Completer<bool>();
+        final pubMontree = await AdMobService().showRewardedAd(
+          onRewardEarned: () {
+            videoRegardee = true;
+            if (!issue.isCompleted) issue.complete(true);
+          },
+          onAdDismissed: () {
+            if (!issue.isCompleted) issue.complete(false);
+          },
+          // Une pub qui ne s'affiche pas n'est pas la faute de la personne : on laisse passer.
+          onAdFailedToShow: () {
+            if (!issue.isCompleted) issue.complete(true);
+          },
+        );
+        // Pas de pub disponible (web, hors ligne, pas d'inventaire) : pas de fausse pub,
+        // l'analyse continue simplement.
+        if (pubMontree) recompense = await issue.future;
       }
-    } else {
-      // 2. Mode Supporter / Premium : analyse instantanée directe sans publicité
-      _executeAnalysis();
+
+      final (menu, erreur) = await analyse;
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+
+      if (!recompense) {
+        messenger.showSnackBar(SnackBar(
+          content: Text(isFr
+              ? 'Le visionnage de la vidéo est requis pour le scan en mode gratuit.'
+              : 'Watching the video is required for scanning in free mode.'),
+        ));
+        return;
+      }
+      if (menu == null) {
+        messenger.showSnackBar(SnackBar(
+          content: Text(isFr ? 'Erreur d\'analyse du menu : $erreur' : 'Menu analysis failed: $erreur'),
+          backgroundColor: Colors.red.shade800,
+        ));
+        return;
+      }
+
+      context.pushReplacement('/scan/menu/result', extra: menu);
+      if (videoRegardee) {
+        messenger.showSnackBar(SnackBar(
+          content: Text(isFr
+              ? 'Pendant la vidéo, Chatmelier a lu votre carte : pas une seconde de perdue.'
+              : 'While the video played, Chatmelier read your menu — no time lost.'),
+        ));
+      }
+    } finally {
+      _analyseDemandee = false;
     }
   }
 
-  Future<void> _executeAnalysis() async {
+  /// Lance l'analyse et rend la carte, ou l'erreur. Ne navigue pas et n'affiche rien :
+  /// pendant une pub, un message d'erreur passerait inaperçu sous la vidéo.
+  Future<(ScannedMenu?, Object?)> _executeAnalysis() async {
     final restName = _restaurantController.text.trim().isNotEmpty ? _restaurantController.text.trim() : null;
+    final currentLang = Localizations.localeOf(context).languageCode;
     setState(() {
       _isAnalyzing = true;
       _currentStatusStep = 'Chatmelier analyse le menu...';
@@ -178,7 +215,6 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       final profiles = await ref.read(tasteProfilesListProvider.future);
       final activeProfile = profiles.isNotEmpty ? profiles.first : null;
 
-      final currentLang = Localizations.localeOf(context).languageCode;
       final resultMenu = await scanService.analyzeMenuPages(
         imagePaths: paths,
         imageBytesList: bytesList,
@@ -191,23 +227,11 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
           }
         },
       );
-
-      _stopStatusTimer();
-
-      if (mounted) {
-        context.pushReplacement('/scan/menu/result', extra: resultMenu);
-      }
+      return (resultMenu, null);
     } catch (e) {
-      _stopStatusTimer();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur d\'analyse du menu : $e'),
-            backgroundColor: Colors.red.shade800,
-          ),
-        );
-      }
+      return (null, e);
     } finally {
+      _stopStatusTimer();
       if (mounted) setState(() => _isAnalyzing = false);
     }
   }

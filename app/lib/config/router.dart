@@ -169,8 +169,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/scan/menu/result',
         builder: (context, state) {
-          final menu = state.extra as ScannedMenu;
-          return EnrichedMenuScreen(menu: menu);
+          // `extra` n'est pas toujours une ScannedMenu : restauré après que le système a
+          // tué l'app, ou rejoué par le navigateur, il revient sérialisé en Map — d'où le
+          // plantage du 18/09 (« _Map<String, dynamic> is not a subtype of ScannedMenu »).
+          final extra = state.extra;
+          if (extra is ScannedMenu) return EnrichedMenuScreen(menu: extra);
+          if (extra is Map) {
+            return EnrichedMenuScreen(menu: ScannedMenu.fromJson(Map<String, dynamic>.from(extra)));
+          }
+          return const DerniereCarteOuScan();
         },
       ),
 

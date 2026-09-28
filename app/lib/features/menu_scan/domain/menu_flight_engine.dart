@@ -112,6 +112,17 @@ class MenuFlightEngine {
 
     final usedIds = <String>{};
 
+    // Un flight « 100 % » d'une couleur ne se complète jamais avec une autre : mieux vaut
+    // deux verres annoncés comme tels qu'un blanc au milieu d'un flight de rouges.
+    final uneSeuleCouleur = color != FlightWineColor.mix;
+    bool deLaCouleur(MenuWine w) => switch (color) {
+          FlightWineColor.white => _isWhite(w) || (_isSparkling(w) && !_isRose(w)),
+          FlightWineColor.rose => _isRose(w),
+          FlightWineColor.red => _isRed(w),
+          FlightWineColor.mix => true,
+        };
+    final secours = uneSeuleCouleur ? wines.where(deLaCouleur).toList() : wines;
+
     MenuWine? pickWine(List<MenuWine> pool, {bool fromEnd = false}) {
       final available = pool.where((w) => !usedIds.contains(w.name)).toList();
       if (available.isEmpty) return null;
@@ -134,9 +145,9 @@ class MenuFlightEngine {
         storyline = 'Une traversée lumineuse des cépages blancs de $restName, de la vivacité minérale aux textures les plus riches.';
 
         if (targetCount == 3) {
-          final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(wines);
-          final w2 = pickWine(whites) ?? pickWine(wines);
-          final w3 = pickWine(whites, fromEnd: true) ?? pickWine(sweetOrSpirit) ?? pickWine(wines);
+          final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(secours);
+          final w2 = pickWine(whites) ?? pickWine(secours);
+          final w3 = pickWine(whites, fromEnd: true) ?? pickWine(sweetOrSpirit) ?? pickWine(secours);
           selectedWines = [w1, w2, w3].whereType<MenuWine>().toList();
           descriptors = [
             ('1. L\'Ouverture Minérale', 'Tension & Salinité', 'Éveille le palais avec vivacité et pureté cristalline.'),
@@ -144,11 +155,11 @@ class MenuFlightEngine {
             ('3. L\'Apogée Gastronomique', 'Volume & Élevage Noble', 'Grand blanc de repas, texture beurrée et finale profonde.'),
           ];
         } else {
-          final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(wines);
-          final w2 = pickWine(whites) ?? pickWine(wines);
-          final w3 = pickWine(whites) ?? pickWine(wines);
-          final w4 = pickWine(whites, fromEnd: true) ?? pickWine(whites) ?? pickWine(wines);
-          final w5 = pickWine(sweetOrSpirit) ?? pickWine(whites, fromEnd: true) ?? pickWine(wines);
+          final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(secours);
+          final w2 = pickWine(whites) ?? pickWine(secours);
+          final w3 = pickWine(whites) ?? pickWine(secours);
+          final w4 = pickWine(whites, fromEnd: true) ?? pickWine(whites) ?? pickWine(secours);
+          final w5 = pickWine(sweetOrSpirit) ?? pickWine(whites, fromEnd: true) ?? pickWine(secours);
           selectedWines = [w1, w2, w3, w4, w5].whereType<MenuWine>().toList();
           descriptors = [
             ('1. L\'Éveil Pétillant', 'Bulles & Salinité', 'Fraîcheur éclatante et bulles fines pour ouvrir la dégustation.'),
@@ -168,9 +179,9 @@ class MenuFlightEngine {
 
         final sparklingRose = sparkling.where((w) => _isRose(w)).toList();
         if (targetCount == 3) {
-          final w1 = pickWine(sparklingRose) ?? pickWine(roses) ?? pickWine(whites) ?? pickWine(wines);
-          final w2 = pickWine(roses) ?? pickWine(wines);
-          final w3 = pickWine(roses, fromEnd: true) ?? pickWine(reds) ?? pickWine(wines);
+          final w1 = pickWine(sparklingRose) ?? pickWine(roses) ?? pickWine(secours);
+          final w2 = pickWine(roses) ?? pickWine(secours);
+          final w3 = pickWine(roses, fromEnd: true) ?? pickWine(secours);
           selectedWines = [w1, w2, w3].whereType<MenuWine>().toList();
           descriptors = [
             ('1. La Fraîcheur Saline', 'Agrumes & Pétale de Rose', 'Rosé aérien, groseille croquante et vivacité désaltérante.'),
@@ -178,11 +189,11 @@ class MenuFlightEngine {
             ('3. Le Rosé de Gastronomie', 'Structure & Vin de Repas', 'Matière généreuse et racée, idéal pour accompagner les mets.'),
           ];
         } else {
-          final w1 = pickWine(sparklingRose) ?? pickWine(roses) ?? pickWine(whites) ?? pickWine(wines);
-          final w2 = pickWine(roses) ?? pickWine(wines);
-          final w3 = pickWine(roses) ?? pickWine(wines);
-          final w4 = pickWine(roses, fromEnd: true) ?? pickWine(roses) ?? pickWine(wines);
-          final w5 = pickWine(roses, fromEnd: true) ?? pickWine(reds) ?? pickWine(wines);
+          final w1 = pickWine(sparklingRose) ?? pickWine(roses) ?? pickWine(secours);
+          final w2 = pickWine(roses) ?? pickWine(secours);
+          final w3 = pickWine(roses) ?? pickWine(secours);
+          final w4 = pickWine(roses, fromEnd: true) ?? pickWine(roses) ?? pickWine(secours);
+          final w5 = pickWine(roses, fromEnd: true) ?? pickWine(secours);
           selectedWines = [w1, w2, w3, w4, w5].whereType<MenuWine>().toList();
           descriptors = [
             ('1. L\'Éveil Rosé', 'Bulles Fines & Baies Rouges', 'Effervescence délicate et notes de framboise sauvage.'),
@@ -201,9 +212,9 @@ class MenuFlightEngine {
         storyline = 'Une ascension sensorielle à travers les grands cépages rouges de $restName, du fruit croquant aux flacons de noble garde.';
 
         if (targetCount == 3) {
-          final w1 = pickWine(reds) ?? pickWine(wines);
-          final w2 = pickWine(reds) ?? pickWine(wines);
-          final w3 = pickWine(reds, fromEnd: true) ?? pickWine(wines);
+          final w1 = pickWine(reds) ?? pickWine(secours);
+          final w2 = pickWine(reds) ?? pickWine(secours);
+          final w3 = pickWine(reds, fromEnd: true) ?? pickWine(secours);
           selectedWines = [w1, w2, w3].whereType<MenuWine>().toList();
           descriptors = [
             ('1. Le Fruit Croquant', 'Finesse & Tanins Soyeux', 'Arômes de cerise fraîche, tanins fins et pureté désaltérante.'),
@@ -211,11 +222,11 @@ class MenuFlightEngine {
             ('3. La Puissance Noble', 'Grand Vin de Garde', 'Charpente tannique affirmée, boisé noble et finale persistante.'),
           ];
         } else {
-          final w1 = pickWine(reds) ?? pickWine(wines);
-          final w2 = pickWine(reds) ?? pickWine(wines);
-          final w3 = pickWine(reds) ?? pickWine(wines);
-          final w4 = pickWine(reds, fromEnd: true) ?? pickWine(reds) ?? pickWine(wines);
-          final w5 = pickWine(reds, fromEnd: true) ?? pickWine(sweetOrSpirit) ?? pickWine(wines);
+          final w1 = pickWine(reds) ?? pickWine(secours);
+          final w2 = pickWine(reds) ?? pickWine(secours);
+          final w3 = pickWine(reds) ?? pickWine(secours);
+          final w4 = pickWine(reds, fromEnd: true) ?? pickWine(reds) ?? pickWine(secours);
+          final w5 = pickWine(reds, fromEnd: true) ?? pickWine(sweetOrSpirit) ?? pickWine(secours);
           selectedWines = [w1, w2, w3, w4, w5].whereType<MenuWine>().toList();
           descriptors = [
             ('1. L\'Innocence du Fruit', 'Pureté & Fraîcheur Croquante', 'Cerise griotte, tanins aériens et grande buvabilité.'),
@@ -236,9 +247,9 @@ class MenuFlightEngine {
             : 'Un parcours sommelier en 5 mouvements explorant les contrastes et les grandes expressions de la cave de $restName.';
 
         if (targetCount == 3) {
-          final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(wines);
-          final w2 = pickWine(roses) ?? pickWine(whites, fromEnd: true) ?? pickWine(reds) ?? pickWine(wines);
-          final w3 = pickWine(reds, fromEnd: true) ?? pickWine(sweetOrSpirit) ?? pickWine(wines);
+          final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(secours);
+          final w2 = pickWine(roses) ?? pickWine(whites, fromEnd: true) ?? pickWine(reds) ?? pickWine(secours);
+          final w3 = pickWine(reds, fromEnd: true) ?? pickWine(sweetOrSpirit) ?? pickWine(secours);
           selectedWines = [w1, w2, w3].whereType<MenuWine>().toList();
           descriptors = [
             ('1. L\'Ouverture', 'Éveil & Fraîcheur', 'Prépare le palais avec vivacité et pureté minérale.'),
@@ -246,11 +257,11 @@ class MenuFlightEngine {
             ('3. L\'Apogée & La Puissance', 'Caractère & Profondeur', 'Clôture la séquence sur une structure mûre et intense.'),
           ];
         } else {
-          final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(wines);
-          final w2 = pickWine(whites, fromEnd: true) ?? pickWine(whites) ?? pickWine(wines);
-          final w3 = pickWine(roses) ?? pickWine(reds) ?? pickWine(wines);
-          final w4 = pickWine(reds, fromEnd: true) ?? pickWine(reds) ?? pickWine(wines);
-          final w5 = pickWine(sweetOrSpirit) ?? pickWine(reds, fromEnd: true) ?? pickWine(wines);
+          final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(secours);
+          final w2 = pickWine(whites, fromEnd: true) ?? pickWine(whites) ?? pickWine(secours);
+          final w3 = pickWine(roses) ?? pickWine(reds) ?? pickWine(secours);
+          final w4 = pickWine(reds, fromEnd: true) ?? pickWine(reds) ?? pickWine(secours);
+          final w5 = pickWine(sweetOrSpirit) ?? pickWine(reds, fromEnd: true) ?? pickWine(secours);
           selectedWines = [w1, w2, w3, w4, w5].whereType<MenuWine>().toList();
           descriptors = [
             ('1. L\'Éveil', 'Bulles & Vivacité', 'Mise en bouche saline et tranchante.'),
@@ -263,11 +274,22 @@ class MenuFlightEngine {
         break;
     }
 
-    // Remplissage de secours si la carte est très restreinte
-    while (selectedWines.length < targetCount && wines.isNotEmpty) {
-      final fallback = wines.firstWhere((w) => !selectedWines.contains(w), orElse: () => wines.first);
-      selectedWines.add(fallback);
+    // Remplissage de secours si la carte est très restreinte — pour un flight mélangé
+    // seulement, et sans servir deux fois le même vin (l'ancien `orElse: wines.first`
+    // le faisait dès que la carte était épuisée).
+    if (!uneSeuleCouleur) {
+      for (final w in wines) {
+        if (selectedWines.length >= targetCount) break;
+        if (!selectedWines.contains(w)) selectedWines.add(w);
+      }
     }
+    final verres = selectedWines.length < targetCount ? selectedWines.length : targetCount;
+    final flightCourt = uneSeuleCouleur && verres < targetCount;
+    final nomCouleur = switch (color) {
+      FlightWineColor.white => verres > 1 ? 'blancs' : 'blanc',
+      FlightWineColor.rose => verres > 1 ? 'rosés' : 'rosé',
+      _ => verres > 1 ? 'rouges' : 'rouge',
+    };
 
     for (int i = 0; i < selectedWines.length && i < targetCount; i++) {
       final w = selectedWines[i];
@@ -285,8 +307,16 @@ class MenuFlightEngine {
     final totalPrice = selectedSteps.fold<double>(0.0, (sum, step) => sum + (step.glassPrice ?? 0.0));
 
     return TastingFlightProposal(
-      title: flightTitle,
-      storyline: storyline,
+      title: flightCourt
+          ? flightTitle.replaceFirst(RegExp(r'\(\d Verres\)'), '($verres ${verres > 1 ? 'Verres' : 'Verre'})')
+          : flightTitle,
+      storyline: !flightCourt
+          ? storyline
+          : switch (verres) {
+              0 => 'Cette carte ne propose aucun $nomCouleur.',
+              1 => '$storyline La carte ne propose qu\'un seul $nomCouleur : pas de quoi composer un vrai flight.',
+              _ => '$storyline La carte ne propose que $verres $nomCouleur : le flight en compte $verres.',
+            },
       format: format,
       color: color,
       theme: theme,
@@ -295,29 +325,37 @@ class MenuFlightEngine {
     );
   }
 
-  static bool _isSparkling(MenuWine w) {
-    final t = '${w.wineType} ${w.name} ${w.appellation ?? ""}'.toLowerCase();
-    return t.contains('champ') || t.contains('spark') || t.contains('efferv') || t.contains('prosecco') || t.contains('cremant') || t.contains('crémant') || t.contains('cava');
+  // La couleur vient d'abord du type lu par le scan (`MenuWine.isRed`…). Le nom et les
+  // cépages ne servent qu'en dernier recours, quand le type est inconnu : lus en premier,
+  // « pinot » classait rouge un Pinot Grigio, « sauvignon » classait blanc un Cabernet
+  // Sauvignon, et « red » se trouvait dans « Sacred » — « flights rouges mais il y a des
+  // blancs !! » (25/09).
+  static bool _typeConnu(MenuWine w) => w.isRed || w.isWhite || w.isRose || w.isSparkling;
+
+  static bool _nomContient(MenuWine w, List<String> indices, {bool avecAppellation = false}) {
+    final t = '${w.name} ${avecAppellation ? w.appellation ?? '' : ''}'.toLowerCase();
+    return indices.any(t.contains);
   }
 
-  static bool _isWhite(MenuWine w) {
-    final t = '${w.wineType} ${w.name}'.toLowerCase();
-    return t.contains('blanc') || t.contains('white') || t.contains('chardonnay') || t.contains('sauvignon') || t.contains('chenin') || t.contains('riesling') || t.contains('viognier');
-  }
+  static bool _isSparkling(MenuWine w) => _typeConnu(w)
+      ? w.isSparkling
+      : _nomContient(w, ['champagne', 'prosecco', 'crémant', 'cremant', 'cava', 'spumante', 'sekt'],
+          avecAppellation: true);
 
-  static bool _isRose(MenuWine w) {
-    final t = '${w.wineType} ${w.name} ${w.appellation ?? ""}'.toLowerCase();
-    return t.contains('rosé') || t.contains('rose') || t.contains('tavel') || t.contains('clairet') || t.contains('bandol rosé');
-  }
+  static bool _isWhite(MenuWine w) => _typeConnu(w)
+      ? w.isWhite
+      : _nomContient(w, ['chardonnay', 'chenin', 'riesling', 'viognier', 'sauvignon blanc', 'chablis']);
 
-  static bool _isRed(MenuWine w) {
-    final t = '${w.wineType} ${w.name}'.toLowerCase();
-    return t.contains('rouge') || t.contains('red') || t.contains('pinot') || t.contains('syrah') || t.contains('merlot') || t.contains('cabernet') || t.contains('grenache') || t.contains('nebbiolo');
-  }
+  static bool _isRose(MenuWine w) =>
+      _typeConnu(w) ? w.isRose : _nomContient(w, ['rosé', 'tavel', 'clairet'], avecAppellation: true);
+
+  static bool _isRed(MenuWine w) => _typeConnu(w)
+      ? w.isRed
+      : _nomContient(w, ['pinot noir', 'syrah', 'merlot', 'cabernet', 'grenache', 'nebbiolo']);
 
   static bool _isSweetOrSpirit(MenuWine w) {
     final t = '${w.wineType} ${w.name}'.toLowerCase();
-    return t.contains('porto') || t.contains('sauternes') || t.contains('moelleux') || t.contains('liqueur') || t.contains('whisky') || t.contains('cognac') || t.contains('rhum') || t.contains('digestif');
+    return t.contains('dessert') || t.contains('fortified') || t.contains('porto') || t.contains('sauternes') || t.contains('moelleux') || t.contains('liqueur') || t.contains('whisky') || t.contains('cognac') || t.contains('rhum') || t.contains('digestif');
   }
 
   static double _freshnessRank(MenuWine w) {

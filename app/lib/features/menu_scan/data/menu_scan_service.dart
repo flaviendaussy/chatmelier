@@ -188,7 +188,8 @@ Return STRICTLY a JSON object with:
     if (_geminiApiKey.trim().isEmpty) {
       AppLogger.info('MENU_SCAN', 'Direct Gemini API key not configured, calling Supabase Edge Function scan-menu...');
       onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud...' : 'Analyse de la carte des vins via le Cloud Chatmelier...');
-      parsedJson = await _invokeEdgeFunction(parts, languageCode, restaurantNameHint);
+      parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn);
+      usedModel = parsedJson?['modele'] as String?;
     } else {
       for (final model in candidateModels) {
         try {
@@ -246,7 +247,8 @@ Return STRICTLY a JSON object with:
       if (parsedJson == null) {
         AppLogger.info('MENU_SCAN', 'Direct Gemini calls failed. Falling back to Supabase Edge Function scan-menu...');
         onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud fallback...' : 'Analyse de secours via le Cloud Chatmelier...');
-        parsedJson = await _invokeEdgeFunction(parts, languageCode, restaurantNameHint);
+        parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn);
+        usedModel = parsedJson?['modele'] as String?;
       }
     }
 
@@ -257,6 +259,8 @@ Return STRICTLY a JSON object with:
     onStepUpdate?.call('Vérification dans la cave de connaissances Chatmelier...');
 
     final detectedRestaurant = (parsedJson['restaurant_name'] as String?) ?? restaurantNameHint ?? 'Restaurant';
+    final devise = ScannedMenu.normaliserDevise(parsedJson['currency']);
+    final pagesNonLues = (parsedJson['pages_non_lues'] as num?)?.toInt() ?? 0;
     final rawWinesList = (parsedJson['wines'] as List?) ?? [];
     final extractedWines = <MenuWine>[];
     const uuid = Uuid();
@@ -328,6 +332,7 @@ Return STRICTLY a JSON object with:
         isDeal: isDeal,
         dealReason: dealReason,
         estimatedRetailPrice: estimatedRetailPrice,
+        devise: devise,
       );
 
       // If user has a taste profile, compute personalized match score!
@@ -346,7 +351,9 @@ Return STRICTLY a JSON object with:
     await _knowledgeCache.bulkCache(flaggedWines);
 
     final duration = DateTime.now().difference(startTime).inMilliseconds;
-    AppLogger.info('MENU_SCAN', 'Menu analysis finished in ${duration}ms via $usedModel! Extracted ${flaggedWines.length} wines.');
+    AppLogger.info('MENU_SCAN',
+        'Menu analysis finished in ${duration}ms via $usedModel! Extracted ${flaggedWines.length} wines '
+        '(currency: ${devise ?? 'unknown'}, unread pages: $pagesNonLues).');
 
     return ScannedMenu(
       id: uuid.v4(),
@@ -354,7 +361,90 @@ Return STRICTLY a JSON object with:
       scannedAt: DateTime.now(),
       pagePhotoPaths: imagePaths,
       wines: flaggedWines,
+      currency: devise,
+      pagesNonLues: pagesNonLues,
     );
+  }
+
+  /// Une page par appel à `scan-menu`, toutes en parallèle, puis fusion.
+  ///
+  /// La durée d'un scan suit le nombre de vins, pas le nombre de photos : 12 vins en
+  /// 12 à 18 s, 27 à 29 vins en 38 à 50 s (journaux du 04/09 au 26/09). Envoyées ensemble,
+  /// les pages d'une longue carte dépassaient le délai d'abandon du client — les échecs du
+  /// 18/09 et du 25/09. Séparément, chacune reste dans la fourchette courte, et le tout
+  /// dure le temps de la plus lente. Une page illisible n'emporte plus les autres : elle est
+  /// comptée dans `pages_non_lues` et l'écran de résultat le signale.
+  Future<Map<String, dynamic>?> _analyserPagesEnParallele(
+    List<Map<String, dynamic>> parts,
+    String languageCode,
+    String? restaurantNameHint,
+    void Function(String step)? onStepUpdate,
+    bool isEn,
+  ) async {
+    final pages = parts.where((p) => p['inlineData'] != null).toList();
+    if (pages.length <= 1) {
+      return _invokeEdgeFunction(pages, languageCode, restaurantNameHint);
+    }
+
+    var lues = 0;
+    final resultats = await Future.wait(pages.map((page) async {
+      final r = await _invokeEdgeFunction([page], languageCode, restaurantNameHint);
+      lues++;
+      onStepUpdate?.call(isEn
+          ? 'Page $lues of ${pages.length} read…'
+          : 'Page $lues sur ${pages.length} déchiffrée…');
+      return r;
+    }));
+
+    final valides = resultats.whereType<Map<String, dynamic>>().toList();
+    if (valides.isEmpty) return null;
+    return fusionnerPagesDeCarte(valides, pagesDemandees: pages.length);
+  }
+
+  /// Fusionne les lectures page par page d'une même carte.
+  ///
+  /// Un vin présent sur deux pages — la liste au verre et la liste à la bouteille — n'est
+  /// gardé qu'une fois, avec ses deux prix.
+  @visibleForTesting
+  static Map<String, dynamic> fusionnerPagesDeCarte(
+    List<Map<String, dynamic>> pages, {
+    required int pagesDemandees,
+  }) {
+    final vins = <String, Map<String, dynamic>>{};
+    for (final page in pages) {
+      for (final brut in (page['wines'] as List?) ?? const []) {
+        final vin = Map<String, dynamic>.from(brut as Map);
+        final cle = [vin['name'], vin['producer'], vin['vintage']]
+            .map((v) => (v ?? '').toString().trim().toLowerCase())
+            .join('|');
+        final deja = vins[cle];
+        if (deja == null) {
+          vins[cle] = vin;
+          continue;
+        }
+        deja['bottle_price'] ??= vin['bottle_price'];
+        final verres = [...?(deja['glass_prices'] as List?), ...?(vin['glass_prices'] as List?)];
+        final formats = <String>{};
+        deja['glass_prices'] = [
+          for (final g in verres)
+            if (formats.add('${(g as Map)['format']}')) g,
+        ];
+      }
+    }
+
+    String? premier(String cle) => pages
+        .map((p) => p[cle])
+        .whereType<String>()
+        .where((v) => v.trim().isNotEmpty)
+        .firstOrNull;
+
+    return {
+      'restaurant_name': premier('restaurant_name'),
+      'currency': premier('currency'),
+      'modele': premier('modele'),
+      'wines': vins.values.toList(),
+      'pages_non_lues': pagesDemandees - pages.length,
+    };
   }
 
   /// 💬 Contextual Sommelier Chat grounded specifically in this scanned menu
@@ -362,6 +452,7 @@ Return STRICTLY a JSON object with:
     required ScannedMenu menu,
     required String userQuestion,
     TasteProfile? userProfile,
+    String languageCode = 'fr',
   }) async {
     final wineListText = menu.wines.map((w) {
       final priceStr = w.priceDisplay;
@@ -392,6 +483,24 @@ Consignes absolues :
 4. Explique clairement l'accord mets/vins ou la raison de ton conseil en t'appuyant sur les caractéristiques du vin (tannins, minéralité, vivacité, boisé).
 5. Sois concis (2 à 3 paragraphes maximum).''';
 
+    // Sans clé embarquée (tous les builds publiés depuis le 14/09), seule la fonction edge
+    // peut répondre. L'appel direct ci-dessous n'existe plus que pour le développement :
+    // c'est lui qui échouait en silence le 23/09 à 19h07.
+    final isEn = languageCode.toLowerCase().startsWith('en');
+    final injoignable = isEn
+        ? 'Sorry, the sommelier cannot be reached right now. Please check your connection and try again.'
+        : 'Désolé, impossible de joindre le sommelier IA pour le moment. Vérifiez votre connexion et réessayez.';
+    if (_geminiApiKey.trim().isEmpty) {
+      return await _demanderAuSommelierDistant(
+        menu: menu,
+        question: userQuestion,
+        carte: wineListText,
+        profil: profileContext,
+        languageCode: languageCode,
+      ) ??
+          injoignable;
+    }
+
     final body = jsonEncode({
       'contents': [
         {
@@ -416,6 +525,10 @@ Consignes absolues :
           body: body,
         ).timeout(const Duration(seconds: 15));
 
+        if (res.statusCode != 200) {
+          AppLogger.warning('MENU_CHAT',
+              'Chat attempt with $model returned HTTP ${res.statusCode}: ${res.body.length > 200 ? res.body.substring(0, 200) : res.body}');
+        }
         if (res.statusCode == 200) {
           final data = jsonDecode(res.body);
           final answer = data['candidates']?[0]?['content']?[0]?['text'] ??
@@ -435,7 +548,59 @@ Consignes absolues :
       }
     }
 
-    return 'Désolé, impossible de joindre le sommelier IA pour le moment. Veuillez vérifier votre connexion.';
+    AppLogger.error('MENU_CHAT', 'Every direct menu chat attempt failed');
+    return injoignable;
+  }
+
+  /// Pose la question à la fonction edge `menu-chat`, qui détient la clé Gemini.
+  ///
+  /// Chaque échec est journalisé avec sa cause : le 23/09, l'écran affichait « injoignable »
+  /// sans une ligne dans les journaux, et l'incident était indiagnosticable.
+  Future<String?> _demanderAuSommelierDistant({
+    required ScannedMenu menu,
+    required String question,
+    required String carte,
+    required String profil,
+    required String languageCode,
+  }) async {
+    final client = _supabaseClient ?? (Supabase.instance.isInitialized ? Supabase.instance.client : null);
+    if (client == null) {
+      AppLogger.error('MENU_CHAT', 'Supabase client not available for menu-chat');
+      return null;
+    }
+    final debut = DateTime.now();
+    try {
+      final res = await client.functions.invoke('menu-chat', body: {
+        'question': question,
+        'carte': carte,
+        'profil': profil,
+        'restaurantName': menu.restaurantName,
+        'languageCode': languageCode,
+      }).timeout(const Duration(seconds: 60));
+
+      final data = res.data;
+      final reponse = data is Map ? data['reponse'] as String? : null;
+      if (reponse == null || reponse.trim().isEmpty) {
+        AppLogger.error('MENU_CHAT', 'menu-chat returned no answer (status ${res.status}): $data');
+        return null;
+      }
+      final modele = data['modele'] as String?;
+      if (modele != null && data['usageMetadata'] is Map) {
+        AiCostTrackerService().recordRawResponse(
+          model: modele,
+          feature: 'menu_chat_assistant',
+          responseJson: {'usageMetadata': data['usageMetadata']},
+          isSearchGrounded: false,
+        );
+      }
+      AppLogger.info('MENU_CHAT',
+          'menu-chat answered in ${DateTime.now().difference(debut).inMilliseconds}ms via $modele');
+      return reponse.trim();
+    } catch (e, stack) {
+      AppLogger.error('MENU_CHAT',
+          'menu-chat failed after ${DateTime.now().difference(debut).inMilliseconds}ms: $e', e, stack);
+      return null;
+    }
   }
 
   Future<Map<String, dynamic>?> _invokeEdgeFunction(
@@ -464,18 +629,37 @@ Consignes absolues :
       }
 
       AppLogger.info('MENU_SCAN', 'Invoking Supabase Edge Function scan-menu with ${imagesBase64.length} image(s)...');
+      final debut = DateTime.now();
+      // 150 s : la limite de durée d'une fonction edge. Abandonner avant ne fait rien
+      // gagner — le serveur va au bout et facture l'appel quand même (18/09, 25/09).
       final res = await client.functions.invoke('scan-menu', body: {
         'imagesBase64': imagesBase64,
         'languageCode': languageCode,
         'restaurantNameHint': restaurantNameHint,
-      }).timeout(const Duration(seconds: 50));
+      }).timeout(_delaiScanMenu);
 
       if (res.data != null && res.data is Map) {
-        return Map<String, dynamic>.from(res.data as Map);
+        final data = Map<String, dynamic>.from(res.data as Map);
+        final modele = data['modele'] as String?;
+        if (modele != null && data['usageMetadata'] is Map) {
+          AiCostTrackerService().recordRawResponse(
+            model: modele,
+            feature: 'menu_scan_vision',
+            responseJson: {'usageMetadata': data['usageMetadata']},
+            isSearchGrounded: false,
+          );
+        }
+        AppLogger.info('MENU_SCAN',
+            'scan-menu answered in ${DateTime.now().difference(debut).inMilliseconds}ms via $modele '
+            '(${(data['wines'] as List?)?.length ?? 0} wines)');
+        return data;
       }
+      AppLogger.warning('MENU_SCAN', 'scan-menu returned no usable body (status ${res.status})');
     } catch (e, stack) {
       AppLogger.error('MENU_SCAN', 'Edge function scan-menu error: $e', e, stack);
     }
     return null;
   }
+
+  static const _delaiScanMenu = Duration(seconds: 150);
 }

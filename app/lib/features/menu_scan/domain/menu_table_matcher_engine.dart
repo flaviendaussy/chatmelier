@@ -19,6 +19,22 @@ class MenuTableMatchResult {
 }
 
 class MenuTableMatcherEngine {
+  /// « Rouge », « red », « Vins rouges »… face à la couleur lue par le scan.
+  ///
+  /// Le scan écrit `wineType` en anglais (`red`, `white`…) : l'ancien test
+  /// `wineType.contains('rouge')` n'était jamais vrai, et la couleur préférée d'un convive
+  /// francophone ne comptait pour rien dans le consensus.
+  static bool correspondALaCouleur(MenuWine vin, String preference) {
+    final p = preference.toLowerCase();
+    if (p.contains('roug') || p.contains('red')) return vin.isRed;
+    if (p.contains('blanc') || p.contains('white')) return vin.isWhite;
+    if (p.contains('ros')) return vin.isRose;
+    if (p.contains('bull') || p.contains('champ') || p.contains('spark') || p.contains('efferv')) {
+      return vin.isSparkling;
+    }
+    return vin.wineType.toLowerCase().contains(p);
+  }
+
   /// Calcule et classe les 3 meilleures bouteilles de la carte du restaurant pour le consensus de la table.
   static List<MenuTableMatchResult> rankTop3WinesForTable({
     required List<MenuWine> menuWines,
@@ -84,12 +100,8 @@ class MenuTableMatcherEngine {
     final guestRadar = guest.radar;
 
     // 1. Concordance de couleur
-    final wineType = wine.wineType.toLowerCase();
     if (guest.favoriteTypes.isNotEmpty) {
-      final matchesFavorite = guest.favoriteTypes.any((t) {
-        final tl = t.toLowerCase();
-        return wineType.contains(tl);
-      });
+      final matchesFavorite = guest.favoriteTypes.any((t) => correspondALaCouleur(wine, t));
       if (matchesFavorite) {
         score += 15.0;
       }

@@ -98,10 +98,13 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
       final activeProfile = profiles.isNotEmpty ? profiles.first : null;
 
       final scanService = ref.read(menuScanServiceProvider);
+      if (!mounted) return;
+      final languageCode = Localizations.localeOf(context).languageCode;
       final answer = await scanService.askMenuSommelier(
         menu: widget.menu,
         userQuestion: clean,
         userProfile: activeProfile,
+        languageCode: languageCode,
       );
 
       if (mounted) {

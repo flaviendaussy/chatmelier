@@ -272,6 +272,12 @@ class MenuWine {
   /// Ce que VOTRE cave et VOTRE journal disent de ce vin. Voir `CellarBridgeEngine`.
   final LienAvecMaCave? pontDeCave;
 
+  /// Devise des prix de la carte (code ISO 4217 : EUR, GBP, USD…), lue par le scan.
+  ///
+  /// Sans elle, `CurrencyHelper.formatPrice` retombait sur l'euro : une carte écossaise
+  /// s'affichait en € (retour du 26/09). Nulle pour les cartes scannées avant le 28/09.
+  final String? devise;
+
   const MenuWine({
     required this.id,
     required this.name,
@@ -296,6 +302,7 @@ class MenuWine {
     this.estimatedRetailPrice,
     this.flag,
     this.pontDeCave,
+    this.devise,
   });
 
   /// Normalized unique lookup key to prevent re-searching in Gemini
@@ -307,14 +314,26 @@ class MenuWine {
     return '${cleanName}__${cleanProd}__${v}__$type';
   }
 
-  bool get isRed => wineType.toLowerCase() == 'red' || wineType.toLowerCase().contains('rouge');
-  bool get isWhite => wineType.toLowerCase() == 'white' || wineType.toLowerCase().contains('blanc');
-  bool get isRose => wineType.toLowerCase() == 'rose' || wineType.toLowerCase().contains('rosé');
-  bool get isSparkling =>
-      wineType.toLowerCase().contains('sparkling') ||
-      wineType.toLowerCase().contains('champ') ||
-      wineType.toLowerCase().contains('bulles') ||
-      wineType.toLowerCase().contains('effervescent');
+  // La couleur se lit par MOTS ENTIERS et dans les langues des cartes qu'on scanne.
+  //
+  // `isRed` n'acceptait que « red » exact : une carte qui écrit « Red Wine » ou « rouge »
+  // n'avait donc aucun rouge. Les mots entiers évitent l'excès inverse (« red » dans
+  // « Sacred »). Pas de `\b` : il ignore les lettres accentuées, et « rosé » en fin de
+  // mot n'était jamais lu — d'où « ni précédé ni suivi d'une lettre », en Unicode.
+  static RegExp _mots(String alternatives) =>
+      RegExp('(?<!\\p{L})(?:$alternatives)(?!\\p{L})', unicode: true);
+  static final _motsRouge = _mots('red|rouge|tinto|rosso|rot|rotwein');
+  static final _motsBlanc = _mots('white|blanc|blanco|bianco|weiss|weiß|weisswein|weißwein');
+  static final _motsRose = _mots('rose|rosé|rosado|rosato');
+  static final _motsBulles = RegExp(
+      r'sparkling|champ|bulles|effervescent|cava|prosecco|cr[eé]mant|spumante|sekt|p[eé]tillant');
+
+  String get _typeNormalise => wineType.toLowerCase().trim();
+
+  bool get isSparkling => _motsBulles.hasMatch(_typeNormalise);
+  bool get isRose => !isSparkling && _motsRose.hasMatch(_typeNormalise);
+  bool get isRed => !isSparkling && !isRose && _motsRouge.hasMatch(_typeNormalise);
+  bool get isWhite => !isSparkling && !isRose && _motsBlanc.hasMatch(_typeNormalise);
 
   bool get hasGlassPrice => glassPrices.isNotEmpty;
   double? get primaryGlassPrice => glassPrices.isNotEmpty ? glassPrices.first.price : null;
@@ -345,14 +364,19 @@ class MenuWine {
     return '$countryFlag ${country!.trim()}';
   }
 
+  /// Un prix de la carte, dans sa devise, avec ses centimes s'il en a : un verre à
+  /// 7,50 £ ne doit pas s'afficher « £8 ».
+  String formaterPrix(double prix) =>
+      CurrencyHelper.formatPrice(prix, currency: devise, decimals: prix % 1 == 0 ? 0 : 2);
+
   String get priceDisplay {
     final parts = <String>[];
     if (bottlePrice != null && bottlePrice! > 0) {
-      parts.add('${CurrencyHelper.formatPrice(bottlePrice!)} / bt');
+      parts.add('${formaterPrix(bottlePrice!)} / bt');
     }
     if (glassPrices.isNotEmpty) {
       final g = glassPrices.first;
-      parts.add('${CurrencyHelper.formatPrice(g.price)} (${g.format})');
+      parts.add('${formaterPrix(g.price)} (${g.format})');
     }
     if (parts.isEmpty) return 'Prix non indiqué';
     return parts.join(' • ');
@@ -367,7 +391,7 @@ class MenuWine {
   }
 
   RadarChartDataset toRadarDataset({required Color color}) {
-    final radarMetrics = isWhite ? metrics.toWhiteRadarMetrics() : metrics.toRedRadarMetrics();
+    final radarMetrics = (isWhite || isSparkling || isRose) ? metrics.toWhiteRadarMetrics() : metrics.toRedRadarMetrics();
     return RadarChartDataset(
       label: vintage != null ? '$name ($vintage)' : name,
       metrics: radarMetrics,
@@ -399,6 +423,7 @@ class MenuWine {
     double? estimatedRetailPrice,
     MenuWineFlag? flag,
     LienAvecMaCave? pontDeCave,
+    String? devise,
   }) {
     return MenuWine(
       id: id ?? this.id,
@@ -424,6 +449,7 @@ class MenuWine {
       estimatedRetailPrice: estimatedRetailPrice ?? this.estimatedRetailPrice,
       flag: flag ?? this.flag,
       pontDeCave: pontDeCave ?? this.pontDeCave,
+      devise: devise ?? this.devise,
     );
   }
 
@@ -450,6 +476,7 @@ class MenuWine {
         'deal_reason': dealReason,
         'estimated_retail_price': estimatedRetailPrice,
         'flag': flag?.toJson(),
+        if (devise != null) 'currency': devise,
       };
 
   factory MenuWine.fromJson(Map<String, dynamic> json) {
@@ -483,6 +510,7 @@ class MenuWine {
       flag: json['flag'] != null
           ? MenuWineFlag.fromJson(Map<String, dynamic>.from(json['flag'] as Map))
           : null,
+      devise: ScannedMenu.normaliserDevise(json['currency']),
     );
   }
 }
@@ -495,13 +523,35 @@ class ScannedMenu {
   final List<String> pagePhotoPaths;
   final List<MenuWine> wines;
 
+  /// Devise des prix de la carte (ISO 4217), ou nulle si la carte n'en montrait aucun.
+  final String? currency;
+
+  /// Pages photographiées que le scan n'a pas pu lire : l'écran de résultat le signale
+  /// plutôt que de présenter une carte amputée comme complète.
+  final int pagesNonLues;
+
   const ScannedMenu({
     required this.id,
     required this.restaurantName,
     required this.scannedAt,
     required this.pagePhotoPaths,
     required this.wines,
+    this.currency,
+    this.pagesNonLues = 0,
   });
+
+  static const _symboles = {'€': 'EUR', '£': 'GBP', r'$': 'USD', 'CHF': 'CHF', '¥': 'JPY'};
+
+  /// Ramène ce que renvoie le scan (« GBP », « gbp », « £ ») à un code ISO 4217, ou nul.
+  static String? normaliserDevise(Object? brut) {
+    if (brut is! String) return null;
+    final v = brut.trim();
+    if (v.isEmpty) return null;
+    final symbole = _symboles[v];
+    if (symbole != null) return symbole;
+    final code = v.toUpperCase();
+    return RegExp(r'^[A-Z]{3}$').hasMatch(code) ? code : null;
+  }
 
   List<MenuWine> get redWines => wines.where((w) => w.isRed).toList();
   List<MenuWine> get whiteWines => wines.where((w) => w.isWhite).toList();
@@ -514,9 +564,12 @@ class ScannedMenu {
         'scanned_at': scannedAt.toIso8601String(),
         'page_photo_paths': pagePhotoPaths,
         'wines': wines.map((w) => w.toJson()).toList(),
+        if (currency != null) 'currency': currency,
+        if (pagesNonLues > 0) 'pages_non_lues': pagesNonLues,
       };
 
   factory ScannedMenu.fromJson(Map<String, dynamic> json) {
+    final devise = normaliserDevise(json['currency']);
     return ScannedMenu(
       id: (json['id'] ?? '').toString(),
       restaurantName: (json['restaurant_name'] ?? 'Restaurant').toString(),
@@ -526,8 +579,11 @@ class ScannedMenu {
       pagePhotoPaths: (json['page_photo_paths'] as List?)?.map((e) => e.toString()).toList() ?? [],
       wines: (json['wines'] as List?)
               ?.map((e) => MenuWine.fromJson(Map<String, dynamic>.from(e as Map)))
+              .map((w) => w.devise == null && devise != null ? w.copyWith(devise: devise) : w)
               .toList() ??
           [],
+      currency: devise,
+      pagesNonLues: (json['pages_non_lues'] as num?)?.toInt() ?? 0,
     );
   }
 }

@@ -212,12 +212,14 @@ void main() {
 
       expect(flight.color, equals(FlightWineColor.rose));
       expect(flight.title, contains('100% Rosés'));
-      expect(flight.steps.length, equals(3));
-      // First available rosé should be picked
-      expect(flight.steps.any((s) => s.wine.wineType == 'Rosé'), isTrue);
+      // La carte d'exemple n'a qu'UN rosé. L'ancien moteur complétait le « 100 % Rosés »
+      // avec un effervescent et un rouge — le défaut signalé le 25/09 (« flights rouges
+      // mais il y a des blancs »). Le flight dit maintenant la vérité : un seul verre.
+      expect(flight.steps.length, equals(1));
+      expect(flight.steps.every((s) => s.wine.isRose), isTrue);
+      expect(flight.title, contains('(1 Verre)'));
+      expect(flight.storyline, contains('qu\'un seul rosé'));
       expect(flight.steps[0].sommelierRole, equals('Agrumes & Pétale de Rose'));
-      expect(flight.steps[1].sommelierRole, equals('Petits Fruits & Épices'));
-      expect(flight.steps[2].sommelierRole, equals('Structure & Vin de Repas'));
     });
 
     test('Generates 100% Rouge flight with fruit and power progression', () {

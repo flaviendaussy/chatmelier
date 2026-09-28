@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../shared/utils/currency_helper.dart';
@@ -10,9 +11,29 @@ import '../data/cellar_context_provider.dart';
 import '../data/recent_menus_store.dart';
 import 'menu_chat_assistant_sheet.dart';
 import 'menu_matchmaker_sheet.dart';
+import 'menu_photo_capture_screen.dart';
 import 'menu_wine_compare_sheet.dart';
 import 'menu_table_consensus_sheet.dart';
 import 'menu_flight_sheet.dart';
+
+/// L'écran de résultat ouvert sans carte (lien direct, historique du navigateur, app
+/// restaurée sans son état) : on rouvre la dernière carte scannée, ou on propose d'en
+/// scanner une. Jamais d'écran rouge.
+class DerniereCarteOuScan extends ConsumerWidget {
+  const DerniereCarteOuScan({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recentes = ref.watch(recentMenusProvider);
+    return recentes.when(
+      data: (menus) => menus.isNotEmpty
+          ? EnrichedMenuScreen(menu: menus.first)
+          : const MenuPhotoCaptureScreen(),
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (_, __) => const MenuPhotoCaptureScreen(),
+    );
+  }
+}
 
 class EnrichedMenuScreen extends ConsumerStatefulWidget {
   final ScannedMenu menu;
@@ -380,6 +401,26 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
       ),
       body: Column(
         children: [
+          // Une page illisible ne doit pas passer pour une carte complète.
+          if (_menu.pagesNonLues > 0)
+            MaterialBanner(
+              backgroundColor: isDark ? const Color(0xFF3A2A12) : Colors.orange.shade50,
+              leading: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              content: Text(
+                isFr
+                    ? '${_menu.pagesNonLues == 1 ? 'Une page n\'a' : '${_menu.pagesNonLues} pages n\'ont'} pas pu être lue${_menu.pagesNonLues == 1 ? '' : 's'} : '
+                        'la carte ci-dessous est incomplète. Reprenez-la en photo pour l\'ajouter.'
+                    : '${_menu.pagesNonLues == 1 ? 'One page' : '${_menu.pagesNonLues} pages'} could not be read: '
+                        'this list is incomplete. Take the photo again to add it.',
+                style: const TextStyle(fontSize: 12.5),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => context.pushReplacement('/scan/menu'),
+                  child: Text(isFr ? 'Reprendre' : 'Retake'),
+                ),
+              ],
+            ),
           // 1. Stats & Breakdown Banner with Compact Toggle
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

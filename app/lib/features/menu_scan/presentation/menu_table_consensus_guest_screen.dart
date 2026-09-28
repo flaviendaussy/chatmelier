@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../domain/menu_wine.dart';
+import '../domain/food_pairing_engine.dart';
 import '../domain/menu_table_matcher_engine.dart';
 import '../domain/menu_flight_engine.dart';
 import '../data/menu_table_session_manager.dart';
@@ -537,11 +538,10 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
 
       // 2. Filtre couleur
       if (_wineColorFilter != 'all') {
-        final wt = wine.wineType.toLowerCase();
-        if (_wineColorFilter == 'Rouge' && !wt.contains('rouge') && !wt.contains('red')) return false;
-        if (_wineColorFilter == 'Blanc' && !wt.contains('blanc') && !wt.contains('white')) return false;
-        if (_wineColorFilter == 'Rosé' && !wt.contains('rosé') && !wt.contains('rose')) return false;
-        if (_wineColorFilter == 'Bulles' && !wt.contains('bull') && !wt.contains('champ') && !wt.contains('sparkling')) return false;
+        if (_wineColorFilter == 'Rouge' && !wine.isRed) return false;
+        if (_wineColorFilter == 'Blanc' && !wine.isWhite) return false;
+        if (_wineColorFilter == 'Rosé' && !wine.isRose) return false;
+        if (_wineColorFilter == 'Bulles' && !wine.isSparkling) return false;
       }
 
       // 3. Pépites / Bons plans
@@ -1073,7 +1073,9 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
   // ==========================================
   Widget _buildFoodMatchTab(bool isFr, ScannedMenu menu) {
     // Calculer les accords en fonction du plat ou de la catégorie sélectionnée
-    final matchedWines = _matchWinesForFood(menu.wines, _selectedDishCategory, _dishSearchCtrl.text.trim());
+    // Un plat saisi (« Scottish beef fillet ») prime sur la pastille sélectionnée.
+    final categorie = FoodPairingEngine.categorieDuPlat(_dishSearchCtrl.text) ?? _selectedDishCategory;
+    final matchedWines = FoodPairingEngine.meilleursVins(menu.wines, categorie, isFr: isFr);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -1203,99 +1205,9 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
     );
   }
 
-  List<_FoodWinePair> _matchWinesForFood(List<MenuWine> wines, String category, String customQuery) {
-    if (wines.isEmpty) return [];
-
-    String effectiveCat = category;
-    if (customQuery.isNotEmpty) {
-      final q = customQuery.toLowerCase();
-      if (q.contains('saumon') || q.contains('poisson') || q.contains('crevette') || q.contains('huitre') || q.contains('cabillaud') || q.contains('dorade')) {
-        effectiveCat = 'poisson';
-      } else if (q.contains('boeuf') || q.contains('bœuf') || q.contains('steak') || q.contains('agneau') || q.contains('canard') || q.contains('burger')) {
-        effectiveCat = 'viande';
-      } else if (q.contains('poulet') || q.contains('volaille') || q.contains('dinde') || q.contains('veau')) {
-        effectiveCat = 'volaille';
-      } else if (q.contains('fromage') || q.contains('comté') || q.contains('camembert') || q.contains('chèvre')) {
-        effectiveCat = 'fromage';
-      } else if (q.contains('tarte') || q.contains('chocolat') || q.contains('dessert') || q.contains('glace') || q.contains('fraise')) {
-        effectiveCat = 'dessert';
-      }
-    }
-
-    final scored = wines.map((wine) {
-      double score = 70.0;
-      String rationale = '';
-      final wt = wine.wineType.toLowerCase();
-
-      switch (effectiveCat) {
-        case 'viande':
-          if (wt.contains('rouge')) {
-            score += 20.0;
-            if ((wine.metrics?.tannins ?? 5.0) >= 6.0) score += 5.0;
-            rationale = 'La trame tannique et la puissance du vin viennent sublimer les sucs de la viande rouge.';
-          } else {
-            score -= 25.0;
-            rationale = 'Les blancs manquent généralement de matière tannique pour soutenir une viande rouge saignante.';
-          }
-          break;
-
-        case 'poisson':
-          if (wt.contains('blanc') || wt.contains('white') || wt.contains('bull') || wt.contains('champ')) {
-            score += 22.0;
-            if ((wine.metrics?.acidity ?? 5.0) >= 6.5) score += 5.0;
-            rationale = 'L\'acidité vive et la tension minérale équilibrent la chair délicate du poisson.';
-          } else {
-            score -= 30.0;
-            rationale = 'Les tanins des vins rouges réagissent avec l\'iode et créent une amertume métallique.';
-          }
-          break;
-
-        case 'volaille':
-          if (wt.contains('blanc') || (wt.contains('rouge') && (wine.metrics?.tannins ?? 3.0) <= 5.0)) {
-            score += 20.0;
-            rationale = 'Chair tendre respectée par le fruit soyeux et la rondeur du vin.';
-          } else {
-            score += 5.0;
-            rationale = 'Accord envisageable si la volaille est accompagnée d\'une sauce riche ou rôtie.';
-          }
-          break;
-
-        case 'fromage':
-          if (wt.contains('blanc')) {
-            score += 20.0;
-            rationale = 'Les blancs évitent le conflit tannique avec le gras du fromage pour une pureté aromatique totale.';
-          } else {
-            score += 10.0;
-            rationale = 'Accord classique si le fromage est à pâte pressée cuite bien affinée.';
-          }
-          break;
-
-        case 'pates':
-          score += 15.0;
-          rationale = 'Bel équilibre aromatique accompagnant la rondeur des sauces et des féculents.';
-          break;
-
-        case 'dessert':
-          if (wt.contains('bull') || wt.contains('champ') || wt.contains('moelleux') || wt.contains('doux') || (wine.sommelierComment?.toLowerCase().contains('doux') ?? false)) {
-            score += 25.0;
-            rationale = 'Fraîcheur des bulles ou sucrosité en miroir avec la gourmandise du dessert.';
-          } else {
-            score -= 15.0;
-            rationale = 'Un vin trop sec ou tannique peut paraître âpre face au sucre du dessert.';
-          }
-          break;
-      }
-
-      return _FoodWinePair(wine: wine, score: score.clamp(30.0, 99.0), rationale: rationale);
-    }).toList();
-
-    scored.sort((a, b) => b.score.compareTo(a.score));
-    return scored.take(3).toList();
-  }
-
-  Widget _buildFoodMatchCard(_FoodWinePair pair, bool isFr) {
-    final wine = pair.wine;
-    final priceStr = wine.bottlePrice != null ? '${wine.bottlePrice!.toStringAsFixed(0)} €' : '';
+  Widget _buildFoodMatchCard(AccordMetVin pair, bool isFr) {
+    final wine = pair.vin;
+    final priceStr = wine.bottlePrice != null ? wine.formaterPrix(wine.bottlePrice!) : '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1331,7 +1243,7 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
                   border: Border.all(color: const Color(0xFFD4AF37), width: 0.8),
                 ),
                 child: Text(
-                  '${pair.score.toStringAsFixed(0)}% Accord',
+                  isFr ? '${pair.score.toStringAsFixed(0)}% Accord' : '${pair.score.toStringAsFixed(0)}% match',
                   style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -1351,7 +1263,7 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
                 const Text('💡', style: TextStyle(fontSize: 12)),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(pair.rationale, style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
+                  child: Text(pair.raison, style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
                 ),
               ],
             ),
@@ -1457,12 +1369,4 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
       ),
     );
   }
-}
-
-class _FoodWinePair {
-  final MenuWine wine;
-  final double score;
-  final String rationale;
-
-  const _FoodWinePair({required this.wine, required this.score, required this.rationale});
 }

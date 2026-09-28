@@ -1,5 +1,32 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-import { checkRateLimit, getRateLimitHeaders } from '../_shared/rate_limit.ts'
+
+// Limiteur de débit en mémoire (copie de `_shared/rate_limit.ts`, intégrée pour que la
+// fonction se déploie d'un seul fichier depuis l'éditeur du Dashboard). Il repart à zéro à
+// chaque démarrage à froid : c'est une protection de base, pas un quota.
+const requestCounts = new Map<string, { count: number; resetAt: number }>()
+
+function checkRateLimit(
+  identifier: string,
+  maxRequests = 10,
+  windowMs = 60_000,
+): { allowed: boolean; retryAfterMs: number } {
+  const now = Date.now()
+  const entry = requestCounts.get(identifier)
+  if (!entry || now >= entry.resetAt) {
+    requestCounts.set(identifier, { count: 1, resetAt: now + windowMs })
+    return { allowed: true, retryAfterMs: 0 }
+  }
+  entry.count++
+  if (entry.count > maxRequests) return { allowed: false, retryAfterMs: entry.resetAt - now }
+  return { allowed: true, retryAfterMs: 0 }
+}
+
+function getRateLimitHeaders(retryAfterMs: number): Record<string, string> {
+  return {
+    'Retry-After': String(Math.ceil(retryAfterMs / 1000)),
+    'X-RateLimit-Reset': String(Math.ceil(retryAfterMs / 1000)),
+  }
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +41,18 @@ const GEMINI_MODELS = [
   'gemini-flash-latest',
 ]
 
-async function callGeminiWithFallback(apiKey: string, contents: any[]): Promise<any> {
+// Un modèle bloqué ne doit pas consommer tout le budget de la fonction (150 s) : au-delà
+// de ce délai on passe au suivant. Une page dense se lit en 15 à 25 s ; 75 s laisse une
+// marge large tout en gardant la place d'une seconde tentative.
+const DELAI_PAR_MODELE_MS = 75_000
+
+interface ResultatGemini {
+  resultat: any
+  modele: string
+  usage: unknown
+}
+
+async function callGeminiWithFallback(apiKey: string, contents: any[]): Promise<ResultatGemini> {
   let lastError = null
   for (const model of GEMINI_MODELS) {
     try {
@@ -28,10 +66,12 @@ async function callGeminiWithFallback(apiKey: string, contents: any[]): Promise<
             responseMimeType: 'application/json',
           },
         }),
+        signal: AbortSignal.timeout(DELAI_PAR_MODELE_MS),
       })
 
       if (res.ok) {
         const data = await res.json()
+        const usage = data.usageMetadata ?? null
         let raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}'
         if (raw.includes('```json')) {
           raw = raw.split('```json')[1].split('```')[0].trim()
@@ -39,14 +79,14 @@ async function callGeminiWithFallback(apiKey: string, contents: any[]): Promise<
           raw = raw.split('```')[1].split('```')[0].trim()
         }
         try {
-          return JSON.parse(raw)
+          return { resultat: JSON.parse(raw), modele: model, usage }
         } catch {
           // Attempt basic JSON sanitization
           const repaired = raw.replace(/,\s*([\}\]])/g, '$1')
           const start = repaired.indexOf('{')
           const end = repaired.lastIndexOf('}')
           if (start !== -1 && end !== -1 && end > start) {
-            return JSON.parse(repaired.substring(start, end + 1))
+            return { resultat: JSON.parse(repaired.substring(start, end + 1)), modele: model, usage }
           }
         }
       } else {
@@ -163,12 +203,16 @@ For each wine, output a JSON object with:
     - "butteriness": 0.0 to 10.0.
     - "sweetness": 1.0 to 10.0.
 ${langInstructions}
-- "estimated_retail_price": Estimated typical retail price in euros (e.g. 18.0) or null.
+- "estimated_retail_price": Estimated typical retail/merchant price, in the SAME currency as the menu prices (e.g. 18.0), or null.
 
 Also extract the restaurant name if visible on headers/cover, else return null.
+Also detect the currency of the prices: ISO 4217 code ("EUR", "GBP", "USD", "CHF", ...) from the
+symbols on the menu (€, £, $, CHF) or, failing that, from the country and language of the menu.
+Return null only if the menu shows no price at all.
 Return STRICTLY a JSON object with:
 {
   "restaurant_name": "Name of restaurant if detected or null",
+  "currency": "ISO 4217 code of the menu prices, or null",
   "wines": [ ... ]
 }`
 
@@ -179,9 +223,11 @@ Return STRICTLY a JSON object with:
       },
     ]
 
-    const result = await callGeminiWithFallback(apiKey, contents)
+    const { resultat, modele, usage } = await callGeminiWithFallback(apiKey, contents)
 
-    return new Response(JSON.stringify(result), {
+    // `modele` et `usageMetadata` : le client journalise quel modèle a lu la carte (les
+    // journaux disaient « via null ») et comptabilise le coût réel de l'appel.
+    return new Response(JSON.stringify({ ...resultat, modele, usageMetadata: usage }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })

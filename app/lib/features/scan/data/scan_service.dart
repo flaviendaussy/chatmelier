@@ -296,10 +296,13 @@ Return strictly a valid JSON object matching this schema.''';
 
   Future<ScanResult> _invokeEdgeFunction(String base64Image, String mimeType) async {
     try {
+      // 60 s et non plus 15 : un scan d'étiquette réussi en prend 16 (le 16/09, 16 391 ms),
+      // et celui d'edith a été abandonné à 15 s pile le 22/09. Le serveur, lui, va au bout
+      // et facture l'appel quand même.
       final res = await _client.functions.invoke('scan-label', body: {
         'imageBase64': base64Image,
         'mimeType': mimeType,
-      }).timeout(const Duration(seconds: 15));
+      }).timeout(const Duration(seconds: 60));
 
       if (res.data != null) {
         return ScanResult.fromJson(res.data as Map<String, dynamic>);

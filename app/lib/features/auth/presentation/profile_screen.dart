@@ -1707,12 +1707,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           title: Text(l10n?.profileLogout ?? (isFr ? 'Se déconnecter' : 'Log out'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           onTap: () async {
             AppLogger.info('AUTH', 'User requested sign out from ProfileScreen');
+            // Lu AVANT la déconnexion : elle déclenche la redirection du routeur, l'écran est
+            // démonté pendant l'attente, et `ref` n'est plus utilisable après (18/09).
+            final caveCourante = ref.read(currentCellarIdProvider.notifier);
             try {
               await ref.read(authRepositoryProvider).signOut();
             } catch (e) {
               AppLogger.error('AUTH', 'Error during signOut', e);
             }
-            ref.read(currentCellarIdProvider.notifier).state = null;
+            caveCourante.state = null;
             if (context.mounted) {
               context.go('/login');
             }

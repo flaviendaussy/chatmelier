@@ -685,6 +685,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
+    // Le conteneur survit à l'écran, pas `ref` : voir l'invalidation en fin d'enregistrement.
+    final conteneur = ProviderScope.containerOf(context, listen: false);
 
     try {
       final supabase = ref.read(supabaseProvider);
@@ -864,9 +866,12 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         }
       }
 
-      // Invalidate bottles and cellars cache immediately
-      ref.read(currentCellarIdProvider.notifier).state = cellarId;
-      notifyCellarChanged(ref, cellarId);
+      // Invalidate bottles and cellars cache immediately.
+      // Par le conteneur et non par `ref` : si l'écran a été quitté pendant l'envoi de la
+      // photo, `ref` n'est plus utilisable — la bouteille, pourtant créée, finissait en
+      // « Error saving bottle », sans confirmation ni rafraîchissement (edith, 22/09, deux fois).
+      conteneur.read(currentCellarIdProvider.notifier).state = cellarId;
+      notifyCellarChangedIn(conteneur, cellarId);
 
       if (mounted) {
         final l10n = AppLocalizations.of(context);

@@ -1,14 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../domain/vineyard_knowledge.dart';
 
 class VineyardKnowledgeService {
-  final SupabaseClient _client;
   static final Map<String, VineyardKnowledge> _memoryCache = {};
 
-  VineyardKnowledgeService(this._client);
+  VineyardKnowledgeService();
 
   /// Normalizes a producer/vineyard name into a clean unique transversal key
   static String normalizeKey(String producer) {
@@ -45,30 +42,11 @@ class VineyardKnowledgeService {
       return cached;
     }
 
-    // 2. Query shared transversal table in Supabase
-    try {
-      final res = await _client
-          .from('vineyard_knowledge_cache')
-          .select()
-          .eq('key', key)
-          .maybeSingle();
+    // Pas de cache partagé en base : la table `vineyard_knowledge_cache` n'a jamais été
+    // créée (188 avertissements PGRST205 en septembre), et ce qu'elle aurait stocké se
+    // calcule localement, sans appel à l'IA — il n'y avait rien à économiser.
 
-      if (res != null) {
-        final entry = VineyardKnowledge.fromJson(res);
-        // Check 1-year rule: valid if verified within 365 days
-        if (!entry.isExpired && !forceRefresh) {
-          AppLogger.info('VINEYARD_SERVICE', 'Supabase Transversal Cache HIT for $key (Verified ${entry.verifiedAt})');
-          _memoryCache[key] = entry;
-          return entry;
-        } else {
-          AppLogger.info('VINEYARD_SERVICE', 'Vineyard Cache entry EXPIRED (> 365 days) for $key. Re-verifying...');
-        }
-      }
-    } catch (e) {
-      AppLogger.warning('VINEYARD_SERVICE', 'Could not fetch from remote transversal cache: $e');
-    }
-
-    // 3. Cache Miss or Expired (>= 1 year): Perform research and compile domain knowledge
+    // 2. Cache Miss or Expired (>= 1 year): compile domain knowledge
     final newKnowledge = _compileVineyardResearch(
       key: key,
       producer: cleanProducer,
@@ -76,14 +54,6 @@ class VineyardKnowledgeService {
       appellation: appellation ?? '',
       country: country ?? 'France',
     );
-
-    // 4. Persist to shared Supabase transversal cache (upsert)
-    try {
-      await _client.from('vineyard_knowledge_cache').upsert(newKnowledge.toJson());
-      AppLogger.info('VINEYARD_SERVICE', 'Saved fresh vineyard research to transversal cache for $key');
-    } catch (e) {
-      AppLogger.warning('VINEYARD_SERVICE', 'Could not upsert to remote cache (offline or permissions): $e');
-    }
 
     _memoryCache[key] = newKnowledge;
     return newKnowledge;
@@ -152,7 +122,7 @@ class VineyardKnowledgeService {
 }
 
 final vineyardKnowledgeServiceProvider = Provider<VineyardKnowledgeService>((ref) {
-  return VineyardKnowledgeService(ref.watch(supabaseProvider));
+  return VineyardKnowledgeService();
 });
 
 final vineyardKnowledgeProvider = FutureProvider.family<VineyardKnowledge?, String>((ref, producer) async {

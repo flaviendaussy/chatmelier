@@ -80,6 +80,18 @@ void notifyCellarChanged(WidgetRef ref, [String? cellarId]) {
   ref.invalidate(userCellarsProvider);
 }
 
+/// Même chose depuis un [ProviderContainer], pour un écran qui peut avoir été quitté
+/// entre-temps : son `WidgetRef` ne sert plus, le conteneur de l'app, si.
+void notifyCellarChangedIn(ProviderContainer container, [String? cellarId]) {
+  container.read(cellarVersionProvider.notifier).state++;
+  if (cellarId != null) {
+    container.invalidate(bottlesProvider(cellarId));
+    container.invalidate(cellarFurnitureProvider(cellarId));
+  }
+  container.invalidate(bottlesProvider(null));
+  container.invalidate(userCellarsProvider);
+}
+
 final cellarFurnitureProvider = FutureProvider.family<List<CellarFurniture>, String>((ref, cellarId) async {
   ref.watch(cellarVersionProvider);
   final repo = ref.watch(cellarRepositoryProvider);

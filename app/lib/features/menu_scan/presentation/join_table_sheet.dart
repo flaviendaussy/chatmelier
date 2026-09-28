@@ -24,9 +24,12 @@ class JoinTableSheet extends ConsumerStatefulWidget {
         context: context,
         isScrollControlled: true,
         showDragHandle: true,
-        builder: (_) => Padding(
+        // Le contexte de la feuille, pas celui de l'appelant : ce dernier peut être démonté
+        // pendant que la feuille est ouverte, et `MediaQuery.of` plantait alors (testeur
+        // Google Play, 18/09). `viewInsetsOf` ne reconstruit aussi que sur le clavier.
+        builder: (feuille) => Padding(
           padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom),
+              bottom: MediaQuery.viewInsetsOf(feuille).bottom),
           child: const JoinTableSheet(),
         ),
       );

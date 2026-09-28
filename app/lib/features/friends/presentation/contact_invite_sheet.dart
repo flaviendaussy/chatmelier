@@ -58,7 +58,22 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
 
     setState(() => _isSearching = true);
     final repo = ref.read(authRepositoryProvider);
-    final results = await repo.searchUsers(clean);
+    final List<UserProfile> results;
+    try {
+      results = await repo.searchUsers(clean);
+    } catch (_) {
+      // La recherche a échoué : on le dit, plutôt que « aucun résultat ».
+      if (mounted) {
+        setState(() => _isSearching = false);
+        final isFr = Localizations.localeOf(context).languageCode == 'fr';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(isFr
+              ? 'Recherche impossible pour le moment. Vérifiez votre connexion et réessayez.'
+              : 'Search is unavailable right now. Check your connection and try again.'),
+        ));
+      }
+      return;
+    }
 
     if (mounted) {
       setState(() {

@@ -11,49 +11,6 @@ class AuthRepository {
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
   User? get currentUser => _client.auth.currentUser;
 
-  static const List<UserProfile> _mockUsers = [
-    UserProfile(
-      id: 'mock-user-flavien-001',
-      displayName: 'Flavien',
-      username: 'flavien',
-      phoneNumber: '+33612345678',
-      email: 'flavien@chatmelier.app',
-      avatarUrl: null,
-    ),
-    UserProfile(
-      id: 'mock-user-dimitri-003',
-      displayName: 'Dimitri',
-      username: 'dimitri',
-      phoneNumber: '+33655443322',
-      email: 'dimitri@chatmelier.app',
-      avatarUrl: null,
-    ),
-    UserProfile(
-      id: 'mock-user-pierre-004',
-      displayName: 'Pierre',
-      username: 'pierre_vins',
-      phoneNumber: '+33611223344',
-      email: 'pierre@chatmelier.app',
-      avatarUrl: null,
-    ),
-    UserProfile(
-      id: 'mock-user-james-005',
-      displayName: 'James (UK)',
-      username: 'james_uk',
-      phoneNumber: '+447911123456',
-      email: 'james@chatmelier.co.uk',
-      avatarUrl: null,
-    ),
-    UserProfile(
-      id: 'mock-user-marco-006',
-      displayName: 'Marco (Italie)',
-      username: 'marco_roma',
-      phoneNumber: '+393123456789',
-      email: 'marco@chatmelier.it',
-      avatarUrl: null,
-    ),
-  ];
-
   Future<void> signIn(String email, String password) async {
     AppLogger.info('AUTH', 'Signing in with password for $email');
     await _client.auth.signInWithPassword(email: email, password: password);
@@ -384,27 +341,15 @@ class AuthRepository {
           })
           .toList();
 
-      if (remoteList.isNotEmpty) return remoteList;
+      return remoteList;
     } catch (e) {
-      AppLogger.warning('AUTH', 'Remote search failed, falling back to simulated search: $e');
+      // Plus de « recherche simulée » : elle renvoyait des profils fictifs (dont un faux
+      // « Flavien ») présentés comme de vrais comptes — en cas d'échec, mais aussi chaque
+      // fois que la vraie recherche ne trouvait personne. Vu sept fois par le testeur
+      // Google Play le 18/09. Un échec remonte maintenant à l'écran, qui le dit.
+      AppLogger.warning('AUTH', 'Remote user search failed: $e');
+      rethrow;
     }
-
-    // 2. Mock users search
-    final queryDigits = cleanQuery.replaceAll(RegExp(r'[^0-9]'), '');
-    final noLeadingZeroDigits = queryDigits.startsWith('0') ? queryDigits.substring(1) : queryDigits;
-
-    return _mockUsers.where((u) {
-      if (u.id == currentUserId) return false;
-      final matchUser = (u.username ?? '').toLowerCase().contains(cleanQuery);
-      final matchName = u.displayName.toLowerCase().contains(cleanQuery);
-      final matchEmail = (u.email ?? '').toLowerCase().contains(cleanQuery);
-
-      final phoneDigits = (u.phoneNumber ?? '').replaceAll(RegExp(r'[^0-9]'), '');
-      final matchPhone = (u.phoneNumber ?? '').replaceAll(' ', '').contains(cleanQuery.replaceAll(' ', '')) ||
-          (noLeadingZeroDigits.length >= 3 && phoneDigits.contains(noLeadingZeroDigits));
-
-      return matchUser || matchName || matchPhone || matchEmail;
-    }).toList();
   }
 
   /// Updates profile with triple-redundancy persistence:

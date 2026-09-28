@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../services/cache_des_etiquettes.dart';
 
 /// Universal high-res bottle and label image view for Chatmelier.
 /// Safely renders:
@@ -121,6 +122,8 @@ class BottleImageView extends StatelessWidget {
               )
             : CachedNetworkImage(
                 imageUrl: raw,
+                // Un an sur l'appareil, et non trente jours : la cave se consulte hors ligne.
+                cacheManager: CacheDesEtiquettes.instance,
                 width: width,
                 height: height,
                 fit: fit,

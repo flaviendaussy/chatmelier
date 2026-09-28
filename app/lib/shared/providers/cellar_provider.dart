@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/cellar/data/cellar_repository.dart';
 import '../../features/cellar/domain/bottle.dart';
@@ -10,6 +11,8 @@ import '../../features/cellar/domain/apogee_backfill.dart';
 import '../../features/cellar/domain/elevage_backfill.dart';
 import '../../features/cellar/domain/wine.dart';
 import '../utils/app_logger.dart';
+import '../services/cache_des_etiquettes.dart';
+import '../../features/cellar/domain/wine_image_service.dart';
 
 final cellarRepositoryProvider = Provider<CellarRepository>((ref) {
   final supabase = ref.watch(supabaseProvider);
@@ -99,6 +102,18 @@ final cellarFurnitureProvider = FutureProvider.family<List<CellarFurniture>, Str
 });
 
 final bottlesProvider = FutureProvider.family<List<Bottle>, String?>((ref, cellarId) async {
+  final bouteilles = await _chargerLesBouteilles(ref, cellarId);
+  // Hors ligne, la cave doit rester complète, photos comprises (retour du 28/09) : on
+  // garde d'avance celles qui ne sont pas encore sur l'appareil.
+  if (!kIsWeb) {
+    unawaited(CacheDesEtiquettes.precharger([
+      for (final b in bouteilles) WineImageService.resolveBottleDisplayImage(b, b.wine),
+    ].whereType<String>()));
+  }
+  return bouteilles;
+});
+
+Future<List<Bottle>> _chargerLesBouteilles(Ref ref, String? cellarId) async {
   // Automatically reload whenever cellarVersion changes
   ref.watch(cellarVersionProvider);
   final repo = ref.watch(cellarRepositoryProvider);
@@ -117,7 +132,7 @@ final bottlesProvider = FutureProvider.family<List<Bottle>, String?>((ref, cella
     return [];
   }
   return repo.getBottles(cellarId);
-});
+}
 
 /// Réécrit en base les apogées que la correction juge fausses.
 ///

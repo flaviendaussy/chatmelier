@@ -56,6 +56,13 @@ void main() async {
     AppLogger.error('FLUTTER_UI', details.exceptionAsString(), details.exception, details.stack);
   };
   PlatformDispatcher.instance.onError = (error, stack) {
+    // Une police Google non téléchargée (premier lancement sans réseau) : l'app retombe
+    // sur la police système, rien n'est cassé. 153 « erreurs » de ce genre en septembre,
+    // surtout sur les appareils de pré-lancement du Play Store, noyaient les vraies.
+    if (error.toString().contains('Failed to load font')) {
+      AppLogger.warning('FONTS', error.toString());
+      return true;
+    }
     AppLogger.error('ASYNC_UNCAUGHT', error.toString(), error, stack);
     return true;
   };

@@ -89,6 +89,20 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     }
   }
 
+  /// Langue des raisons du consensus. Lue dans `didChangeDependencies` : `initState` ne
+  /// peut pas consulter `Localizations`.
+  bool _isFr = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    if (isFr != _isFr) {
+      _isFr = isFr;
+      _recalculateConsensus();
+    }
+  }
+
   @override
   void dispose() {
     _sondage?.cancel();
@@ -169,6 +183,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     final top3 = MenuTableMatcherEngine.rankTop3WinesForTable(
       menuWines: _menu!.wines,
       guests: _guests,
+      isFr: _isFr,
     );
 
     setState(() => _top3 = top3);

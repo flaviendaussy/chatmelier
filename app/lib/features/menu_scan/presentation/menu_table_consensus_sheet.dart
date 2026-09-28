@@ -178,6 +178,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
     final top3 = MenuTableMatcherEngine.rankTop3WinesForTable(
       menuWines: widget.menu.wines,
       guests: _tableGuests,
+      isFr: Localizations.localeOf(context).languageCode == 'fr',
     );
 
     setState(() => _top3 = top3);

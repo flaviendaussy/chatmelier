@@ -139,7 +139,7 @@ class TastingEntry {
       region: wineMap?['region'] as String? ?? json['region'] as String?,
       country: wineMap?['country'] as String? ?? json['country'] as String?,
       appellation: wineMap?['appellation'] as String? ?? json['appellation'] as String?,
-      wineType: wineMap?['type'] as String? ?? json['wine_type'] as String? ?? json['type'] as String?,
+      wineType: wineMap?['wine_type'] as String? ?? wineMap?['type'] as String? ?? json['wine_type'] as String? ?? json['type'] as String?,
       rating: (json['rating'] as num?)?.toDouble(),
       occasion: json['occasion'] as String?,
       foodPaired: json['food_paired'] as String? ?? json['paired'] as String?,

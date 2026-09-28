@@ -36,6 +36,10 @@ class SyncService {
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
 
+  /// Marque, dans les données d'une action de sortie de cave, que la bouteille a déjà été
+  /// décomptée en base : une nouvelle tentative ne doit pas la décompter une seconde fois.
+  static const _bouteilleDecompteeKey = '_bouteille_decomptee';
+
   SyncService({
     required SupabaseClient supabase,
     required OfflineStorageService offlineStorage,
@@ -154,11 +158,17 @@ class SyncService {
           final errorMsg = e.toString();
           errors.add(errorMsg);
           AppLogger.error('OFFLINE_SYNC', 'Action ${action.type.name} (id: ${action.id}) en échec: $errorMsg', e, stack);
+          // Relire l'action : la synchronisation a pu y inscrire une étape déjà faite
+          // (bouteille décomptée) qu'il ne faut pas écraser avec la version d'avant.
+          final aJour = _offlineStorage.getQueue().firstWhere(
+                (a) => a.id == action.id,
+                orElse: () => action,
+              );
           await _offlineStorage.updateAction(
-            action.copyWith(
+            aJour.copyWith(
               status: OfflineActionStatus.failed,
               errorMessage: errorMsg,
-              retryCount: action.retryCount + 1,
+              retryCount: aJour.retryCount + 1,
             ),
           );
         }
@@ -394,29 +404,42 @@ class SyncService {
 
     if (isExternal) {
       // 1. External tasting without physical cellar bottle
+      //
+      // Le dialogue de dégustation externe génère l'identifiant du vin AVANT de l'insérer.
+      // Si cet insert a échoué (le 16/09 : colonne `type` au lieu de `wine_type`), l'action
+      // arrive ici avec un UUID valide… qui n'existe pas en base. L'ancien code ne recréait
+      // le vin que pour un identifiant vide ou `temp_` : la dégustation butait alors sur la
+      // clé étrangère à chaque synchronisation. C'est ainsi que le Margaux a été perdu.
+      // On recrée donc le vin manquant, sous SON identifiant, et on laisse l'échec remonter :
+      // une action qui n'a pas abouti doit rester dans la file, pas être déclarée terminée.
       String? wineId = data['wine_id']?.toString();
-      if (wineId == null || wineId.isEmpty || wineId.startsWith('temp_')) {
-        final wineName = data['wine_name']?.toString() ?? 'Vin dégusté';
-        final producer = data['producer']?.toString();
-        final vintage = (data['vintage'] as num?)?.toInt() ?? int.tryParse(data['vintage']?.toString() ?? '');
-        final wineType = data['type']?.toString() ?? data['wine_type']?.toString() ?? 'red';
-        final region = data['region']?.toString() ?? 'Autre';
+      final wineName = data['wine_name']?.toString() ?? 'Vin dégusté';
+      final producer = data['producer']?.toString();
+      final vintage = (data['vintage'] as num?)?.toInt() ?? int.tryParse(data['vintage']?.toString() ?? '');
+      final wineType = data['wine_type']?.toString() ?? data['type']?.toString() ?? 'red';
+      final region = data['region']?.toString() ?? 'Autre';
+      final wineRow = <String, dynamic>{
+        'name': wineName,
+        'producer': producer,
+        'vintage': vintage,
+        'wine_type': wineType,
+        'region': region,
+        'image_url': photoUrl,
+      };
 
-        try {
-          final wInsert = await _supabase.from('wines').insert({
-            'name': wineName,
-            'producer': producer,
-            'vintage': vintage,
-            'wine_type': wineType,
-            'region': region,
-            'image_url': photoUrl,
-          }).select('id').single();
-          wineId = wInsert['id'] as String;
-        } catch (_) {}
+      if (_isValidUuid(wineId)) {
+        final existing = await _supabase.from('wines').select('id').eq('id', wineId!).maybeSingle();
+        if (existing == null) {
+          await _supabase.from('wines').insert({'id': wineId, ...wineRow});
+        }
+      } else {
+        final wInsert = await _supabase.from('wines').insert(wineRow).select('id').single();
+        wineId = wInsert['id'] as String;
       }
 
-      if (wineId != null) {
+      {
         final payload = <String, dynamic>{
+          if (_isValidUuid(action.id)) 'id': action.id,
           'wine_id': wineId,
           'user_id': userId,
           'rating': rating,
@@ -439,10 +462,10 @@ class SyncService {
             'region': data['region'],
             'country': data['country'],
             'appellation': data['appellation'],
-            'type': data['type'] ?? data['wine_type'],
+            'type': wineType,
           },
         };
-        await _resilientInsertTastingLog(payload, localFallback: fallback);
+        await _resilientInsertTastingLog(payload, localFallback: fallback, rethrowOnFailure: true);
       }
       return;
     }
@@ -454,6 +477,7 @@ class SyncService {
       final wineId = data['wine_id']?.toString();
       if (wineId != null && !wineId.startsWith('temp_')) {
         final payload = <String, dynamic>{
+          if (_isValidUuid(action.id)) 'id': action.id,
           'wine_id': wineId,
           'user_id': userId,
           'rating': rating,
@@ -479,7 +503,7 @@ class SyncService {
             'type': data['type'] ?? data['wine_type'],
           },
         };
-        await _resilientInsertTastingLog(payload, localFallback: fallback);
+        await _resilientInsertTastingLog(payload, localFallback: fallback, rethrowOnFailure: true);
       }
       return;
     }
@@ -492,24 +516,33 @@ class SyncService {
         .maybeSingle();
 
     if (bottleRes != null) {
-      final currentQuantity = (bottleRes['quantity'] as num?)?.toInt() ?? 1;
-      final consumeCount = (data['quantity'] as num?)?.toInt() ?? 1;
+      // Le décompte n'est pas idempotent : s'il a déjà eu lieu lors d'une tentative
+      // précédente (dégustation refusée ensuite), on ne le refait pas. La marque est écrite
+      // dans l'action AVANT l'insert de la dégustation, pour survivre à son échec.
+      if (data[_bouteilleDecompteeKey] != true) {
+        final currentQuantity = (bottleRes['quantity'] as num?)?.toInt() ?? 1;
+        final consumeCount = (data['quantity'] as num?)?.toInt() ?? 1;
 
-      if (currentQuantity > consumeCount) {
-        await _supabase.from('bottles').update({
-          'quantity': currentQuantity - consumeCount,
-        }).eq('id', bottleId);
-      } else {
-        await _supabase.from('bottles').update({
-          'quantity': 0,
-          'status': 'consumed',
-          'consumed_at': DateTime.now().toIso8601String(),
-        }).eq('id', bottleId);
+        if (currentQuantity > consumeCount) {
+          await _supabase.from('bottles').update({
+            'quantity': currentQuantity - consumeCount,
+          }).eq('id', bottleId);
+        } else {
+          await _supabase.from('bottles').update({
+            'quantity': 0,
+            'status': 'consumed',
+            'consumed_at': DateTime.now().toIso8601String(),
+          }).eq('id', bottleId);
+        }
+        await _offlineStorage.updateAction(action.copyWith(
+          data: {...data, _bouteilleDecompteeKey: true},
+        ));
       }
 
       final wineId = bottleRes['wine_id']?.toString() ?? data['wine_id']?.toString();
       if (wineId != null) {
         final payload = <String, dynamic>{
+          if (_isValidUuid(action.id)) 'id': action.id,
           'wine_id': wineId,
           'bottle_id': bottleId,
           'user_id': userId,
@@ -539,13 +572,14 @@ class SyncService {
             'type': data['type'] ?? data['wine_type'],
           },
         };
-        await _resilientInsertTastingLog(payload, localFallback: fallback);
+        await _resilientInsertTastingLog(payload, localFallback: fallback, rethrowOnFailure: true);
       }
     } else {
       // Bottle might have already been marked consumed remotely
       final wineId = data['wine_id']?.toString();
       if (wineId != null && !wineId.startsWith('temp_')) {
         final payload = <String, dynamic>{
+          if (_isValidUuid(action.id)) 'id': action.id,
           'wine_id': wineId,
           'bottle_id': bottleId,
           'user_id': userId,
@@ -575,17 +609,29 @@ class SyncService {
             'type': data['type'] ?? data['wine_type'],
           },
         };
-        await _resilientInsertTastingLog(payload, localFallback: fallback);
+        await _resilientInsertTastingLog(payload, localFallback: fallback, rethrowOnFailure: true);
       }
     }
   }
 
+  /// Écrit une dégustation en base, en dégradant le schéma si des colonnes manquent.
+  ///
+  /// Avec [rethrowOnFailure], un échec complet remonte à la boucle de synchronisation,
+  /// qui garde l'action en file et la retentera. Sans lui, l'action était déclarée
+  /// « terminée » et la dégustation ne survivait que dans le cache local — jusqu'à la
+  /// prochaine réinstallation.
+  ///
+  /// L'identifiant de l'action sert d'identifiant à la dégustation : une nouvelle
+  /// tentative après une réponse perdue bute sur la clé primaire (23505) au lieu de créer
+  /// un doublon, et on relit alors la ligne déjà écrite.
   Future<Map<String, dynamic>?> _resilientInsertTastingLog(
     Map<String, dynamic> payload, {
     Map<String, dynamic>? localFallback,
+    bool rethrowOnFailure = false,
   }) async {
     // 1. Core fields guaranteed to exist in Supabase schema:
     final corePayload = <String, dynamic>{
+      if (payload['id'] != null) 'id': payload['id'],
       'wine_id': payload['wine_id'],
       'user_id': payload['user_id'],
       'rating': payload['rating'],
@@ -601,6 +647,7 @@ class SyncService {
     };
 
     Map<String, dynamic>? inserted;
+    Object? lastError;
     try {
       // Attempt 1: full payload with extended fields
       inserted = await _supabase
@@ -608,29 +655,21 @@ class SyncService {
           .insert(payload)
           .select('*, wines(*)')
           .maybeSingle();
-    } catch (e) {
-      AppLogger.warning('SYNC_SERVICE', 'Full tasting_log insert failed ($e), falling back to core schema...');
-      try {
-        // Attempt 2: core columns only
+    } on PostgrestException catch (e) {
+      if (_estDoublonDeCle(e) && payload['id'] != null) {
+        // Déjà écrite lors d'une tentative précédente dont la réponse s'est perdue.
         inserted = await _supabase
             .from('tasting_log')
-            .insert(corePayload)
             .select('*, wines(*)')
+            .eq('id', payload['id'].toString())
             .maybeSingle();
-      } catch (e2) {
-        // Attempt 3: rating scale normalization if rating check constraint fails (0..5 vs 0..10)
-        final ratingVal = (corePayload['rating'] as num?)?.toDouble() ?? 5.0;
-        corePayload['rating'] = (ratingVal / 2.0).clamp(0.0, 5.0);
-        try {
-          inserted = await _supabase
-              .from('tasting_log')
-              .insert(corePayload)
-              .select('*, wines(*)')
-              .maybeSingle();
-        } catch (e3) {
-          AppLogger.error('SYNC_SERVICE', 'All tasting_log insert attempts failed: $e3');
-        }
+      } else {
+        inserted = await _insertCoreTastingLog(corePayload, e);
+        if (inserted == null) lastError = e;
       }
+    } catch (e) {
+      inserted = await _insertCoreTastingLog(corePayload, e);
+      if (inserted == null) lastError = e;
     }
 
     // Always update local cache so user sees it in Journal
@@ -638,7 +677,48 @@ class SyncService {
     final cacheEntry = inserted ??
         {...(localFallback ?? payload), OfflineStorageService.pendingSyncKey: true};
     await _offlineStorage.addCachedTasting(cacheEntry);
+
+    if (inserted == null && rethrowOnFailure) {
+      throw Exception('Dégustation non écrite en base, gardée en file : ${lastError ?? 'réponse vide'}');
+    }
     return inserted;
+  }
+
+  /// Violation de clé primaire (23505). Avec `maybeSingle()`, postgrest-dart remplace le
+  /// code SQL par le statut HTTP (409) et garde le JSON d'origine dans le message : c'est
+  /// exactement ce qu'on lit dans le journal du 16/09 (« code: 409 » pour une 23503).
+  static bool _estDoublonDeCle(PostgrestException e) =>
+      e.code == '23505' || (e.code == '409' && e.message.contains('"23505"'));
+
+  /// Replis de schéma de [_resilientInsertTastingLog] : colonnes de base, puis note
+  /// ramenée sur 5 pour une base dont la contrainte n'a pas été migrée.
+  Future<Map<String, dynamic>?> _insertCoreTastingLog(
+    Map<String, dynamic> corePayload,
+    Object firstError,
+  ) async {
+    AppLogger.warning('SYNC_SERVICE', 'Full tasting_log insert failed ($firstError), falling back to core schema...');
+    try {
+      // Attempt 2: core columns only
+      return await _supabase
+          .from('tasting_log')
+          .insert(corePayload)
+          .select('*, wines(*)')
+          .maybeSingle();
+    } catch (e2) {
+      // Attempt 3: rating scale normalization if rating check constraint fails (0..5 vs 0..10)
+      final ratingVal = (corePayload['rating'] as num?)?.toDouble() ?? 5.0;
+      final demiNote = {...corePayload, 'rating': (ratingVal / 2.0).clamp(0.0, 5.0)};
+      try {
+        return await _supabase
+            .from('tasting_log')
+            .insert(demiNote)
+            .select('*, wines(*)')
+            .maybeSingle();
+      } catch (e3) {
+        AppLogger.error('SYNC_SERVICE', 'All tasting_log insert attempts failed: $e3');
+        return null;
+      }
+    }
   }
 
   Future<void> _syncUpdateBottle(OfflineAction action) async {

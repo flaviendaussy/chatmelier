@@ -456,21 +456,30 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     try {
       bool savedOnline = false;
       if (user != null) {
-        // Create wine record in database
+        // Create wine record in database.
+        //
+        // La colonne s'appelle `wine_type`. Avec `type`, l'insert échouait à chaque fois
+        // (PGRST204), la dégustation butait ensuite sur la clé étrangère, et elle finissait
+        // dans une file que la synchronisation ne savait pas vider : le Margaux du 16/09.
+        var wineCreated = false;
         try {
           await supabase.from('wines').insert({
             'id': wineId,
             'name': wineName,
             'producer': producer.isNotEmpty ? producer : null,
             'vintage': vintage,
-            'type': _wineType,
+            'wine_type': _wineType,
             'region': region.isNotEmpty ? region : 'Autre',
             'image_url': _photoUrl,
           });
+          wineCreated = true;
         } catch (e) {
-          AppLogger.warning('EXTERNAL_TASTING', 'Could not insert standalone wine: $e');
+          AppLogger.warning('EXTERNAL_TASTING', 'Could not insert standalone wine, queueing the tasting: $e');
         }
 
+        // Sans le vin, la clé étrangère refuse la dégustation à coup sûr : on la confie
+        // directement à la file, qui recréera le vin sous le même identifiant.
+        if (wineCreated) {
         // Insert into tasting_log
         try {
           await supabase.from('tasting_log').insert({
@@ -530,6 +539,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             }
           }
         }
+        }
       }
 
     // Only queue offline action if online insert failed
@@ -545,12 +555,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           'producer': producer,
           'vintage': vintage,
           'region': region,
-          'type': _wineType,
+          'wine_type': _wineType,
           'rating': effectiveRating,
           'occasion': occasion,
           'food_paired': food,
           'tasting_notes': notes,
-          'photo_url': widget.photoUrl,
+          'photo_url': _photoUrl,
           'co_tasters': _selectedCoTasters.toList(),
           'location_name': occasion.isNotEmpty ? occasion : null,
           'is_external': true,

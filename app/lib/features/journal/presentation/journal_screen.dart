@@ -98,7 +98,7 @@ final tastingLogProvider = FutureProvider<List<TastingEntry>>((ref) async {
       final region = data['region'] as String? ?? wineMap?['region'] as String?;
       final country = data['country'] as String? ?? wineMap?['country'] as String?;
       final appellation = data['appellation'] as String? ?? wineMap?['appellation'] as String?;
-      final wineType = data['type'] as String? ?? data['wine_type'] as String? ?? wineMap?['type'] as String?;
+      final wineType = data['wine_type'] as String? ?? data['type'] as String? ?? wineMap?['wine_type'] as String? ?? wineMap?['type'] as String?;
       final coTasters = (data['co_tasters'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [];
       final bottleOwnerName = data['bottle_owner_name'] as String?;
       final bottleOwnerId = data['bottle_owner_id'] as String?;

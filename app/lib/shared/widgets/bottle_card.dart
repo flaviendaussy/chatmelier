@@ -336,8 +336,10 @@ class BottleCard extends StatelessWidget {
                           ),
                           if (wine.peakStart != null && wine.peakEnd != null) ...[
                             const SizedBox(width: 6),
+                            // Les années de la fenêtre effective — celle que dessine la
+                            // jauge — et non les valeurs brutes, qui peuvent la contredire.
                             Text(
-                              '${wine.peakStart}-${wine.peakEnd}',
+                              '${wine.fenetreEffective.peakStart}-${wine.fenetreEffective.peakEnd}',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,

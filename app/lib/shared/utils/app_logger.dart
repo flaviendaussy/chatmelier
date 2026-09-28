@@ -161,7 +161,12 @@ class AppLogger {
           'level': e.level.name,
           'message': e.message,
           'error_details': e.error != null ? '${e.error}${e.stackTrace != null ? "\n${e.stackTrace}" : ""}' : null,
+          // Heure locale de l'appareil, sans fuseau : c'est elle que citent les testeurs
+          // (« 19h07 »), et toute la table est dans cette convention. Le décalage permet de
+          // retrouver l'instant UTC pour croiser avec les journaux du serveur — en Écosse
+          // (UTC+1) comme en France (UTC+2), l'heure seule ne suffisait pas.
           'created_at': e.timestamp.toIso8601String(),
+          'metadata': {'utc_offset_min': e.timestamp.timeZoneOffset.inMinutes},
         };
       }).toList();
 

@@ -9,6 +9,8 @@ import '../domain/menu_table_matcher_engine.dart';
 import '../../blind_battle/presentation/widgets/stylized_chatmelier_qr.dart';
 import '../data/menu_table_session_manager.dart';
 import '../data/table_session_service.dart';
+import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/utils/app_logger.dart';
 
 class MenuTableConsensusSheet extends ConsumerStatefulWidget {
   final ScannedMenu menu;
@@ -72,6 +74,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
         _codeServeur = t.code;
         _ouvertureEnCours = false;
       });
+      unawaited(_inscrireLHote(t.code));
       // Sondage plutôt que temps réel : une politique RLS ne peut pas recevoir le code en
       // paramètre, et l'ouvrir à tous laisserait lister les tables en cours. Quatre
       // convives autour d'une table ne justifient pas d'y sacrifier ça — six secondes
@@ -85,6 +88,31 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
     }
   }
 
+  /// Le prénom sous lequel l'hôte s'est assis à sa propre table (voir [_inscrireLHote]).
+  String? _nomHoteInscrit;
+
+  /// L'hôte s'assoit à sa propre table, sous son prénom et avec son vrai palais.
+  ///
+  /// Sans cela, les invités ne le voyaient pas : leur écran calculait le consensus avec
+  /// un « Hôte de la table » aux goûts génériques (« Rouge, Blanc »).
+  Future<void> _inscrireLHote(String code) async {
+    try {
+      final profiles = await ref.read(tasteProfilesListProvider.future);
+      final primary = profiles.firstWhere((p) => p.isPrimary, orElse: () => profiles.first);
+      final userId = ref.read(currentUserProvider)?.id;
+      final compte = userId == null ? null : await ref.read(authRepositoryProvider).getProfile(userId);
+      final prenom = (compte?.displayName.trim().isNotEmpty ?? false) ? compte!.displayName.trim() : primary.name;
+      await ref.read(tableSessionServiceProvider).rejoindre(
+            code: code,
+            nom: prenom,
+            profil: GuestProfile.fromTasteProfile(primary),
+          );
+      _nomHoteInscrit = prenom;
+    } catch (e) {
+      AppLogger.warning('TABLE', 'Inscription de l\'hôte à sa table impossible ($code): $e');
+    }
+  }
+
   Future<void> _rafraichirConvives() async {
     final code = _codeServeur;
     if (code == null || !mounted) return;
@@ -92,6 +120,11 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
     if (!mounted || distants.isEmpty) return;
     setState(() {
       for (final g in distants) {
+        // L'hôte est déjà à l'écran, sous son profil local : ne pas le compter deux fois.
+        if (_nomHoteInscrit != null &&
+            g.name.trim().toLowerCase() == _nomHoteInscrit!.toLowerCase()) {
+          continue;
+        }
         final deja = _tableGuests.indexWhere(
             (x) => x.name.trim().toLowerCase() == g.name.trim().toLowerCase());
         if (deja >= 0) {
@@ -129,16 +162,9 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       }
     }
 
-    // Ajout d'un 2ème invité de démo pour un consensus immédiat
-    if (_tableGuests.length == 1) {
-      _tableGuests.add(const GuestProfile(
-        id: 'guest_demo_1',
-        name: 'Camille',
-        favoriteTypes: ['Blanc'],
-        dislikedCharacteristics: ['tanin dur', 'boisé excessif'],
-        archetype: 'Adepte de Minéralité & Fraîcheur Droite',
-      ));
-    }
+    // Plus d'invitée de démonstration : « Camille », convive fictive aux goûts de blancs
+    // minéraux, s'ajoutait à toute table où l'hôte était seul, et pesait dans le
+    // consensus d'un vrai repas. Seul à table, l'hôte a un consensus d'une personne.
 
     _calculateConsensus();
   }
@@ -499,13 +525,14 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                 customUrl: MenuTableSessionManager.buildQrUrl(
                   sessionId: _tableSessionId,
                   menu: widget.menu,
+                  code: _codeServeur,
                 ),
                 shareMessage: _codeServeur != null
                     ? 'Rejoins notre table sur Chatmelier pour choisir le vin ensemble ! '
                         'Code : $_codeServeur — ou clique ici : '
-                        '${MenuTableSessionManager.buildQrUrl(sessionId: _tableSessionId, menu: widget.menu)}'
+                        '${MenuTableSessionManager.buildQrUrl(sessionId: _tableSessionId, menu: widget.menu, code: _codeServeur)}'
                     : 'Rejoins notre table sur Chatmelier pour choisir le vin ensemble ! '
-                        '${MenuTableSessionManager.buildQrUrl(sessionId: _tableSessionId, menu: widget.menu)}',
+                        '${MenuTableSessionManager.buildQrUrl(sessionId: _tableSessionId, menu: widget.menu, code: _codeServeur)}',
                 shareSubject: _codeServeur != null
                     ? 'Table Chatmelier — code $_codeServeur'
                     : 'Table Chatmelier',

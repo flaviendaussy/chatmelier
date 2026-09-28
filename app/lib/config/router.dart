@@ -149,7 +149,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final sessionId = state.uri.queryParameters['session'] ?? state.uri.queryParameters['s'];
           final data = state.uri.queryParameters['data'] ?? state.uri.queryParameters['d'];
-          return MenuTableConsensusGuestScreen(initialSessionId: sessionId, initialData: data);
+          return MenuTableConsensusGuestScreen(
+            initialSessionId: sessionId,
+            initialData: data,
+            codeTable: state.uri.queryParameters['code'],
+          );
         },
       ),
       GoRoute(
@@ -157,7 +161,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final sessionId = state.uri.queryParameters['session'] ?? state.uri.queryParameters['s'];
           final data = state.uri.queryParameters['data'] ?? state.uri.queryParameters['d'];
-          return MenuTableConsensusGuestScreen(initialSessionId: sessionId, initialData: data);
+          return MenuTableConsensusGuestScreen(
+            initialSessionId: sessionId,
+            initialData: data,
+            codeTable: state.uri.queryParameters['code'],
+          );
         },
       ),
 

@@ -144,10 +144,12 @@ class TableSessionService {
             GuestProfile.fromJson(
               r['guest_name']?.toString() ?? 'convive',
               {
-                'name': r['guest_name'],
                 ...(r['profile'] is Map
                     ? Map<String, dynamic>.from(r['profile'] as Map)
                     : const <String, dynamic>{}),
+                // Après le profil, pas avant : le profil principal s'appelle souvent
+                // « Moi », et c'est le prénom donné à la table qui doit s'afficher.
+                'name': r['guest_name'],
               },
             ),
       ];

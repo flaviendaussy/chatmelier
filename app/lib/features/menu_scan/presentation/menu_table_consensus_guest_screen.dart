@@ -1,6 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/utils/app_logger.dart';
+import '../data/table_session_service.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../domain/menu_wine.dart';
 import '../domain/food_pairing_engine.dart';
@@ -8,9 +14,18 @@ import '../domain/menu_table_matcher_engine.dart';
 import '../domain/menu_flight_engine.dart';
 import '../data/menu_table_session_manager.dart';
 
-class MenuTableConsensusGuestScreen extends StatefulWidget {
+class MenuTableConsensusGuestScreen extends ConsumerStatefulWidget {
   final String? initialSessionId;
   final String? initialData;
+
+  /// Code de la table côté serveur (six caractères), porté par le QR ou saisi à la main.
+  /// Avec lui, l'invité rejoint vraiment la table — l'hôte le voit arriver — et voit les
+  /// autres convives. Sans lui (ancien QR, pas de réseau), la table reste locale.
+  final String? codeTable;
+
+  /// Vrai quand l'invité a déjà rejoint par la feuille « Rejoindre une table » : son nom
+  /// et son profil sont déjà enregistrés, il n'a pas à se présenter une seconde fois.
+  final bool dejaAssis;
 
   /// La carte déjà reçue du serveur, quand on est arrivé par un code plutôt que par un QR.
   ///
@@ -23,13 +38,15 @@ class MenuTableConsensusGuestScreen extends StatefulWidget {
     this.initialSessionId,
     this.initialData,
     this.prechargedMenu,
+    this.codeTable,
+    this.dejaAssis = false,
   });
 
   @override
-  State<MenuTableConsensusGuestScreen> createState() => _MenuTableConsensusGuestScreenState();
+  ConsumerState<MenuTableConsensusGuestScreen> createState() => _MenuTableConsensusGuestScreenState();
 }
 
-class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestScreen> {
+class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsensusGuestScreen> {
   late final TextEditingController _nameCtrl;
   String _selectedArchetype = 'sans_tanin';
   ScannedMenu? _menu;
@@ -51,15 +68,30 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
   final TextEditingController _dishSearchCtrl = TextEditingController();
   String _selectedDishCategory = 'viande';
 
+  /// Code serveur de la table, s'il est connu (paramètre, ou `?code=` de l'URL).
+  String? _code;
+  Timer? _sondage;
+
+  /// Le prénom sous lequel cet invité a rejoint la table côté serveur.
+  String? _monNomAssis;
+
   @override
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: 'Invité');
     _loadMenu();
+    if (widget.dejaAssis) _hasJoined = true;
+    if (_code != null) {
+      // Même cadence que l'hôte : six secondes suffisent à ce qu'une arrivée paraisse
+      // immédiate, sans ouvrir la lecture des tables à tous.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _rafraichirConvives());
+      _sondage = Timer.periodic(const Duration(seconds: 6), (_) => _rafraichirConvives());
+    }
   }
 
   @override
   void dispose() {
+    _sondage?.cancel();
     _nameCtrl.dispose();
     _wineSearchCtrl.dispose();
     _dishSearchCtrl.dispose();
@@ -69,21 +101,25 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
   void _loadMenu() {
     String? sessionId = widget.initialSessionId;
     String? rawData = widget.initialData;
+    String? code = widget.codeTable;
 
     if (kIsWeb) {
       final baseUri = Uri.base;
       sessionId ??= baseUri.queryParameters['session'] ?? baseUri.queryParameters['s'];
       rawData ??= baseUri.queryParameters['data'] ?? baseUri.queryParameters['d'];
+      code ??= baseUri.queryParameters['code'];
 
-      if ((sessionId == null || rawData == null) && baseUri.hasFragment) {
+      if ((sessionId == null || rawData == null || code == null) && baseUri.hasFragment) {
         try {
           final frag = baseUri.fragment.startsWith('/') ? baseUri.fragment : '/${baseUri.fragment}';
           final fragUri = Uri.parse(frag);
           sessionId ??= fragUri.queryParameters['session'] ?? fragUri.queryParameters['s'];
           rawData ??= fragUri.queryParameters['data'] ?? fragUri.queryParameters['d'];
+          code ??= fragUri.queryParameters['code'];
         } catch (_) {}
       }
     }
+    _code = (code != null && code.trim().isNotEmpty) ? code.trim().toUpperCase() : null;
 
     // La carte reçue du serveur prime sur tout : elle est complète et à jour.
     ScannedMenu? resolved = widget.prechargedMenu;
@@ -109,13 +145,17 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
 
 
 
-    // Hôte initial par défaut
-    _guests.add(const GuestProfile(
-      id: 'host_table',
-      name: 'Hôte de la table',
-      favoriteTypes: ['Rouge', 'Blanc'],
-      archetype: 'Curieux & Éclectique',
-    ));
+    // Sans code serveur (ancien QR), la table reste locale : on garde un hôte générique
+    // pour que le consensus ait un point de départ. Avec un code, les vrais convives —
+    // l'hôte compris, avec son palais — arrivent du serveur au premier sondage.
+    if (_code == null) {
+      _guests.add(const GuestProfile(
+        id: 'host_table',
+        name: 'Hôte de la table',
+        favoriteTypes: ['Rouge', 'Blanc'],
+        archetype: 'Curieux & Éclectique',
+      ));
+    }
 
     _recalculateConsensus();
   }
@@ -134,8 +174,21 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
     setState(() => _top3 = top3);
   }
 
+  /// Le serveur fusionne deux convives du même nom (`ON CONFLICT (session_id,
+  /// guest_name)`) : deux « Invité » n'en feraient qu'un. On numérote au besoin.
+  String _nomLibre(String nom) {
+    bool pris(String n) => _guests.any(
+        (g) => g.id != 'guest_me' && g.name.trim().toLowerCase() == n.toLowerCase());
+    if (!pris(nom)) return nom;
+    var i = 2;
+    while (pris('$nom ($i)')) {
+      i++;
+    }
+    return '$nom ($i)';
+  }
+
   void _joinTable() {
-    final name = _nameCtrl.text.trim().isEmpty ? 'Convive' : _nameCtrl.text.trim();
+    final name = _nomLibre(_nameCtrl.text.trim().isEmpty ? 'Convive' : _nameCtrl.text.trim());
     GuestProfile newGuest;
 
     if (_selectedArchetype == 'sans_tanin') {
@@ -181,6 +234,67 @@ class _MenuTableConsensusGuestScreenState extends State<MenuTableConsensusGuestS
       _hasJoined = true;
     });
 
+    _recalculateConsensus();
+    if (_code != null) unawaited(_rejoindreLaTable(name, newGuest));
+  }
+
+  /// Rejoint la table côté serveur : l'hôte voit arriver l'invité, et l'invité reçoit la
+  /// carte complète (le QR n'en porte que seize vins).
+  ///
+  /// Jusqu'au 28/09 cet écran n'appelait jamais le serveur : Caro avait rejoint, l'hôte
+  /// ne la voyait pas (23/09).
+  Future<void> _rejoindreLaTable(String nom, GuestProfile profil) async {
+    final code = _code;
+    if (code == null) return;
+    // Un compte sans formulaire (anonyme), comme par la feuille « Rejoindre » : s'il
+    // échoue, on rejoint quand même, seule la mémoire de la soirée manquera.
+    await ref.read(authRepositoryProvider).assurerUneSession();
+    try {
+      final t = await ref.read(tableSessionServiceProvider).rejoindre(code: code, nom: nom, profil: profil);
+      _monNomAssis = nom;
+      if (!mounted) return;
+      if (_menu == null || t.menu.wines.length > _menu!.wines.length) {
+        setState(() => _menu = t.menu);
+      }
+      await _rafraichirConvives();
+    } on TableSessionException catch (e) {
+      if (!mounted) return;
+      final isFr = Localizations.localeOf(context).languageCode == 'fr';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.cause == EchecDeTable.introuvable
+            ? (isFr
+                ? 'Cette table a expiré : l\'hôte ne vous verra pas. Demandez-lui un nouveau code.'
+                : 'This table has expired: the host won\'t see you. Ask for a new code.')
+            : (isFr
+                ? 'Pas de réseau : l\'hôte ne vous voit pas encore.'
+                : 'No connection: the host can\'t see you yet.')),
+        action: e.cause == EchecDeTable.reseau
+            ? SnackBarAction(
+                label: isFr ? 'Réessayer' : 'Retry',
+                onPressed: () => _rejoindreLaTable(nom, profil),
+              )
+            : null,
+      ));
+    }
+  }
+
+  /// Qui est à table, lu sur le serveur. Remplace la liste locale : l'hôte y figure avec
+  /// son vrai palais, et chaque convive qui arrive y apparaît.
+  Future<void> _rafraichirConvives() async {
+    final code = _code;
+    if (code == null || !mounted) return;
+    final distants = await ref.read(tableSessionServiceProvider).convives(code);
+    if (!mounted || distants.isEmpty) return;
+    final moi = _guests.where((g) => g.id == 'guest_me').toList();
+    final dejaListe = _monNomAssis != null &&
+        distants.any((g) => g.name.trim().toLowerCase() == _monNomAssis!.toLowerCase());
+    setState(() {
+      _guests
+        ..clear()
+        ..addAll(distants)
+        // Tant que le serveur n'a pas enregistré notre arrivée, on se garde à l'écran.
+        ..addAll(dejaListe ? const <GuestProfile>[] : moi);
+    });
     _recalculateConsensus();
   }
 

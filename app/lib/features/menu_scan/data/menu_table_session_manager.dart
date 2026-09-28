@@ -236,16 +236,22 @@ class MenuTableSessionManager {
   }
 
   /// Génère l'URL complète pour le QR Code avec session et données embarquées
+  ///
+  /// [code] est le code de la table côté serveur. Sans lui, l'invité arrivé par le QR
+  /// avait la carte mais ne rejoignait jamais la table : l'hôte ne le voyait pas (Caro,
+  /// 23/09). La carte embarquée reste en secours, pour un invité sans réseau.
   static String buildQrUrl({
     required String sessionId,
     required ScannedMenu menu,
+    String? code,
     String baseUrl = 'https://chatmelier.github.io/table-consensus',
   }) {
     final payload = encodeMenuPayload(menu);
     final normSession = sessionId.toUpperCase().trim();
+    final avecCode = code != null && code.trim().isNotEmpty ? '&code=${code.trim().toUpperCase()}' : '';
     if (payload.isNotEmpty) {
-      return '$baseUrl?session=$normSession&data=$payload';
+      return '$baseUrl?session=$normSession$avecCode&data=$payload';
     }
-    return '$baseUrl?session=$normSession';
+    return '$baseUrl?session=$normSession$avecCode';
   }
 }

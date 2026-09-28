@@ -98,6 +98,10 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
         builder: (_) => MenuTableConsensusGuestScreen(
           initialSessionId: t.sessionId,
           prechargedMenu: t.menu,
+          // Le code, pour voir arriver les autres convives ; déjà assis, pour ne pas se
+          // présenter une seconde fois.
+          codeTable: _code.text.trim().toUpperCase(),
+          dejaAssis: true,
         ),
       ));
 

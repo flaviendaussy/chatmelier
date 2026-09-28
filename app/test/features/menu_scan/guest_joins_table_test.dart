@@ -1,4 +1,7 @@
 import 'package:chatmelier/features/auth/data/auth_repository.dart';
+import 'package:chatmelier/features/auth/data/taste_profile_service.dart';
+import 'package:chatmelier/features/auth/domain/taste_profile.dart';
+import 'package:chatmelier/features/menu_scan/domain/menu_table_matcher_engine.dart';
 import 'package:chatmelier/features/menu_scan/data/menu_table_session_manager.dart';
 import 'package:chatmelier/features/menu_scan/data/table_session_service.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
@@ -24,6 +27,7 @@ final _carte = ScannedMenu(
 /// La table côté serveur : l'hôte y est assis, avec son vrai palais.
 class _FausseTable extends Fake implements TableSessionService {
   final arrivees = <(String, String)>[];
+  final profils = <GuestProfile?>[];
   List<GuestProfile> aTable = const [
     GuestProfile(id: 'hote', name: 'Flavien', favoriteTypes: ['Rouge']),
   ];
@@ -31,12 +35,26 @@ class _FausseTable extends Fake implements TableSessionService {
   @override
   Future<TableRejointe> rejoindre({required String code, required String nom, GuestProfile? profil}) async {
     arrivees.add((code, nom));
-    aTable = [...aTable, GuestProfile(id: nom, name: nom)];
+    profils.add(profil);
+    aTable = [
+      for (final g in aTable)
+        if (g.name != nom) g,
+      GuestProfile.fromJson(nom, {...?profil?.toJson(), 'name': nom}),
+    ];
     return TableRejointe(sessionId: 'session', menu: _carte, expireLe: DateTime(2030));
   }
 
   @override
   Future<List<GuestProfile>> convives(String code) async => aTable;
+}
+
+/// Le palais Chatmelier de l'appareil : douze dégustations, un goût des rouges charpentés.
+class _PalaisDeLAppareil extends Fake implements TasteProfileService {
+  final TasteProfile? palais;
+  _PalaisDeLAppareil(this.palais);
+
+  @override
+  Future<TasteProfile> getPrimaryProfile() async => palais ?? const TasteProfile(id: 'vide', name: 'Moi');
 }
 
 class _FauxCompte extends Fake implements AuthRepository {
@@ -74,6 +92,8 @@ void main() {
     expect(find.textContaining('Hôte de la table'), findsNothing);
 
     await tester.enterText(find.byType(TextField).first, 'Caro');
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
     final valider = find.byIcon(Icons.group_add_rounded);
     await tester.ensureVisible(valider);
     await tester.tap(valider);
@@ -104,11 +124,105 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
     final valider = find.byIcon(Icons.group_add_rounded);
     await tester.ensureVisible(valider);
     await tester.tap(valider); // le champ garde « Invité », déjà pris
     await tester.pumpAndSettle();
 
     expect(table.arrivees.single.$2, 'Invité (2)');
+  });
+
+  Future<_FausseTable> ouvrir(WidgetTester tester, {TasteProfile? palais}) async {
+    tester.view.physicalSize = const Size(1200, 2600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final table = _FausseTable();
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        tableSessionServiceProvider.overrideWithValue(table),
+        authRepositoryProvider.overrideWithValue(_FauxCompte()),
+        tasteProfileServiceProvider.overrideWithValue(_PalaisDeLAppareil(palais)),
+      ],
+      child: MaterialApp(
+        home: MenuTableConsensusGuestScreen(codeTable: 'KYZ3YZ', prechargedMenu: _carte),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    return table;
+  }
+
+  testWidgets('« Juste mon prénom » : assis à table, sans préférences transmises', (tester) async {
+    final table = await ouvrir(tester);
+    await tester.enterText(find.byType(TextField).first, 'Paul');
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
+    final refus = find.textContaining('Just my name');
+    await tester.ensureVisible(refus);
+    await tester.tap(refus);
+    await tester.pumpAndSettle();
+
+    expect(table.arrivees.single, ('KYZ3YZ', 'Paul'));
+    expect(table.profils.single!.sansPreferences, isTrue);
+    expect(find.textContaining('You joined without preferences'), findsOneWidget);
+  });
+
+  testWidgets('« Oui, j\'ai un compte » : le palais Chatmelier de l\'appareil part à table', (tester) async {
+    final table = await ouvrir(tester, palais: const TasteProfile(
+      id: 'moi',
+      name: 'Moi',
+      questionnairesCompleted: 12,
+      favoriteTypes: ['Rouge'],
+    ));
+    await tester.enterText(find.byType(TextField).first, 'Caro');
+    await tester.tap(find.text('Yes'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('12 tastings'), findsOneWidget);
+    await tester.tap(find.text('Join with my palate'));
+    await tester.pumpAndSettle();
+
+    expect(table.arrivees.single, ('KYZ3YZ', 'Caro'));
+    expect(table.profils.single!.favoriteTypes, ['Rouge']);
+    expect(table.profils.single!.sansPreferences, isFalse);
+  });
+
+  testWidgets('pas de palais sur l\'appareil : on le dit, et les curseurs s\'ouvrent', (tester) async {
+    await ouvrir(tester);
+    await tester.tap(find.text('Yes'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('No Chatmelier palate on this device'), findsOneWidget);
+    expect(find.byType(Slider), findsNWidgets(6));
+  });
+
+  testWidgets('mettre à jour ses goûts ne renomme pas l\'invité', (tester) async {
+    final table = await ouvrir(tester);
+    await tester.enterText(find.byType(TextField).first, 'Caro');
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
+    final valider = find.byIcon(Icons.group_add_rounded);
+    await tester.ensureVisible(valider);
+    await tester.tap(valider);
+    await tester.pumpAndSettle();
+
+    final maj = find.text('Update my preferences');
+    await tester.ensureVisible(maj);
+    await tester.tap(maj);
+    await tester.pumpAndSettle();
+
+    expect(table.arrivees.map((a) => a.$2), ['Caro', 'Caro']);
+  });
+
+  test('un convive sans préférences ne change pas le classement de la table', () {
+    const flavien = GuestProfile(id: 'f', name: 'Flavien', favoriteTypes: ['Rouge']);
+    const paul = GuestProfile(id: 'p', name: 'Paul', sansPreferences: true);
+    final seul = MenuTableMatcherEngine.rankTop3WinesForTable(menuWines: _carte.wines, guests: [flavien]);
+    final aDeux = MenuTableMatcherEngine.rankTop3WinesForTable(menuWines: _carte.wines, guests: [flavien, paul]);
+    expect(aDeux.map((r) => r.menuWine.name), seul.map((r) => r.menuWine.name));
+    expect(aDeux.map((r) => r.harmonyScore), seul.map((r) => r.harmonyScore));
+    for (final r in aDeux) {
+      expect(r.consensusRationale, isNot(contains('Paul')));
+    }
   });
 }

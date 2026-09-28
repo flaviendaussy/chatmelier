@@ -7,6 +7,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../data/table_session_service.dart';
+import '../../auth/data/taste_profile_service.dart';
+import '../../auth/domain/taste_profile.dart';
+import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
+import 'palais_express.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../domain/menu_wine.dart';
 import '../domain/food_pairing_engine.dart';
@@ -28,6 +32,9 @@ class MenuTableConsensusGuestScreen extends ConsumerStatefulWidget {
   /// et son profil sont déjà enregistrés, il n'a pas à se présenter une seconde fois.
   final bool dejaAssis;
 
+  /// Le prénom sous lequel il s'est assis par la feuille, pour le reconnaître à table.
+  final String? nomAssis;
+
   /// La carte déjà reçue du serveur, quand on est arrivé par un code plutôt que par un QR.
   ///
   /// Elle est complète : le plafond de seize vins ne valait que pour ce qui devait tenir
@@ -41,6 +48,7 @@ class MenuTableConsensusGuestScreen extends ConsumerStatefulWidget {
     this.prechargedMenu,
     this.codeTable,
     this.dejaAssis = false,
+    this.nomAssis,
   });
 
   @override
@@ -49,7 +57,12 @@ class MenuTableConsensusGuestScreen extends ConsumerStatefulWidget {
 
 class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsensusGuestScreen> {
   late final TextEditingController _nameCtrl;
-  String _selectedArchetype = 'sans_tanin';
+  // L'arrivée : « Vous avez un compte ? » (null tant qu'on n'a pas répondu).
+  bool? _aUnCompte;
+  bool _chargementDuPalais = false;
+  TasteProfile? _palaisDuCompte;
+  PalaisSaisi? _monPalais;
+  bool _sansPreferences = false;
   ScannedMenu? _menu;
   final List<GuestProfile> _guests = [];
   List<MenuTableMatchResult> _top3 = [];
@@ -82,6 +95,10 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     _nameCtrl = TextEditingController(text: 'Invité');
     _loadMenu();
     if (widget.dejaAssis) _hasJoined = true;
+    if (widget.nomAssis != null && widget.nomAssis!.trim().isNotEmpty) {
+      _monNomAssis = widget.nomAssis!.trim();
+      _nameCtrl.text = _monNomAssis!;
+    }
     if (_code != null) {
       // Même cadence que l'hôte : six secondes suffisent à ce qu'une arrivée paraisse
       // immédiate, sans ouvrir la lecture des tables à tous.
@@ -193,8 +210,12 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   /// Le serveur fusionne deux convives du même nom (`ON CONFLICT (session_id,
   /// guest_name)`) : deux « Invité » n'en feraient qu'un. On numérote au besoin.
   String _nomLibre(String nom) {
-    bool pris(String n) => _guests.any(
-        (g) => g.id != 'guest_me' && g.name.trim().toLowerCase() == n.toLowerCase());
+    bool pris(String n) => _guests.any((g) =>
+        g.id != 'guest_me' &&
+        // Son propre prénom, déjà assis, n'est pas « pris » : mettre à jour ses goûts ne
+        // doit pas renommer Caro en « Caro (2) ».
+        !(_monNomAssis != null && g.name.trim().toLowerCase() == _monNomAssis!.toLowerCase()) &&
+        g.name.trim().toLowerCase() == n.toLowerCase());
     if (!pris(nom)) return nom;
     var i = 2;
     while (pris('$nom ($i)')) {
@@ -203,55 +224,234 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     return '$nom ($i)';
   }
 
-  void _joinTable() {
-    final name = _nomLibre(_nameCtrl.text.trim().isEmpty ? 'Convive' : _nameCtrl.text.trim());
-    GuestProfile newGuest;
+  /// « Oui, j'ai un compte » : le palais Chatmelier de cet appareil, s'il existe.
+  ///
+  /// Le profil de goût vit sur l'appareil (pas encore sur le compte) : sur le navigateur
+  /// ou le téléphone où la personne utilise Chatmelier, il est là sans connexion. Vide ou
+  /// absent, on le dit et on propose les curseurs.
+  Future<void> _utiliserMonCompte() async {
+    setState(() {
+      _aUnCompte = true;
+      _chargementDuPalais = true;
+    });
+    TasteProfile? palais;
+    try {
+      palais = await ref.read(tasteProfileServiceProvider).getPrimaryProfile();
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      _chargementDuPalais = false;
+      _palaisDuCompte =
+          palais != null && (palais.questionnairesCompleted > 0 || palais.isWellProvided) ? palais : null;
+    });
+  }
 
-    if (_selectedArchetype == 'sans_tanin') {
-      newGuest = GuestProfile(
-        id: 'guest_me',
-        name: name,
-        favoriteTypes: const ['Blanc', 'Rosé'],
-        dislikedCharacteristics: const ['tanin', 'tannin', 'dur'],
-        archetype: 'Aversion aux tanins durs',
-      );
-    } else if (_selectedArchetype == 'mineral') {
-      newGuest = GuestProfile(
-        id: 'guest_me',
-        name: name,
-        favoriteTypes: const ['Blanc'],
-        archetype: 'Blancs Minéraux & Tendus',
-      );
-    } else if (_selectedArchetype == 'puissant') {
-      newGuest = GuestProfile(
-        id: 'guest_me',
-        name: name,
-        favoriteTypes: const ['Rouge'],
-        archetype: 'Grands Rouges Puissants',
-      );
-    } else if (_selectedArchetype == 'fruit') {
-      newGuest = GuestProfile(
-        id: 'guest_me',
-        name: name,
-        favoriteTypes: const ['Rouge'],
-        archetype: 'Fruits Rouges Croquants',
-      );
-    } else {
-      newGuest = GuestProfile(
-        id: 'guest_me',
-        name: name,
-        archetype: 'Curieux & Éclectique',
-      );
-    }
+  void _rejoindreAvec(PalaisSaisi palais) {
+    _monPalais = palais;
+    _sansPreferences = false;
+    _rejoindre((nom) => palais.versConvive(id: 'guest_me', nom: nom, fr: _isFr));
+  }
+
+  void _rejoindreAvecLeCompte(TasteProfile palais) {
+    final base = GuestProfile.fromTasteProfile(palais);
+    _sansPreferences = false;
+    _rejoindre((nom) => GuestProfile(
+          id: 'guest_me',
+          name: nom,
+          tasteProfile: palais,
+          favoriteTypes: base.favoriteTypes,
+          favoriteGrapes: base.favoriteGrapes,
+          dislikedCharacteristics: base.dislikedCharacteristics,
+          archetype: base.archetype,
+        ));
+  }
+
+  /// « Juste mon prénom » : compté à table, sans peser sur le classement.
+  void _rejoindreSansPreferences() {
+    _sansPreferences = true;
+    _rejoindre((nom) => GuestProfile(
+          id: 'guest_me',
+          name: nom,
+          sansPreferences: true,
+          archetype: _isFr ? 'Sans préférences déclarées' : 'No stated preferences',
+        ));
+  }
+
+  void _rejoindre(GuestProfile Function(String nom) profil) {
+    final saisi = _nameCtrl.text.trim().isEmpty ? (_isFr ? 'Convive' : 'Guest') : _nameCtrl.text.trim();
+    final name = _nomLibre(saisi);
+    final newGuest = profil(name);
 
     setState(() {
-      _guests.removeWhere((g) => g.id == 'guest_me');
+      // Retirer aussi sa copie venue du serveur : sinon on se compte deux fois jusqu'au
+      // prochain sondage.
+      _guests.removeWhere((g) =>
+          g.id == 'guest_me' ||
+          (_monNomAssis != null && g.name.trim().toLowerCase() == _monNomAssis!.toLowerCase()));
       _guests.add(newGuest);
       _hasJoined = true;
     });
 
     _recalculateConsensus();
     if (_code != null) unawaited(_rejoindreLaTable(name, newGuest));
+  }
+
+  /// La carte d'arrivée, selon où en est l'invité.
+  ///
+  /// D'abord « Vous avez un compte ? » — Caro aurait dû se le voir demander (23/09). Oui :
+  /// son palais Chatmelier. Non : le profilage express, qu'on peut refuser (« Juste mon
+  /// prénom »). Une fois assis : mettre à jour ses goûts.
+  List<Widget> _carteDArrivee(bool isFr) {
+    const or = Color(0xFFD4AF37);
+    const note = TextStyle(color: Colors.white70, fontSize: 12.5);
+    final champNom = TextField(
+      controller: _nameCtrl,
+      // Assis côté serveur, le prénom est la clé de sa place : le changer créerait un
+      // second convive.
+      readOnly: _hasJoined && _monNomAssis != null,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: isFr ? 'Votre prénom' : 'Your name',
+        labelStyle: const TextStyle(color: or),
+        filled: true,
+        fillColor: Colors.black26,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+
+    if (_hasJoined) {
+      return [
+        champNom,
+        const SizedBox(height: 10),
+        if (_sansPreferences)
+          Text(
+            isFr
+                ? 'Vous êtes à table sans préférences : le classement ne tient pas compte de vos goûts. '
+                    'Décrivez-les quand vous voulez :'
+                : 'You joined without preferences: the ranking ignores your taste. Describe it whenever you like:',
+            style: note,
+          ),
+        const SizedBox(height: 10),
+        PalaisExpress(
+          isFr: isFr,
+          initial: _monPalais ?? const PalaisSaisi(),
+          libelleValider: isFr ? 'Mettre à jour mes préférences' : 'Update my preferences',
+          onValider: _rejoindreAvec,
+        ),
+      ];
+    }
+
+    if (_aUnCompte == null) {
+      return [
+        champNom,
+        const SizedBox(height: 14),
+        Text(
+          isFr ? 'Vous avez un compte Chatmelier ?' : 'Do you have a Chatmelier account?',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(foregroundColor: or, side: const BorderSide(color: or)),
+                onPressed: _utiliserMonCompte,
+                child: Text(isFr ? 'Oui' : 'Yes'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+                onPressed: () => setState(() => _aUnCompte = false),
+                child: Text(isFr ? 'Non' : 'No'),
+              ),
+            ),
+          ],
+        ),
+      ];
+    }
+
+    if (_aUnCompte == true && _chargementDuPalais) {
+      return [champNom, const SizedBox(height: 16), const Center(child: CircularProgressIndicator())];
+    }
+
+    final palaisDuCompte = _palaisDuCompte;
+    if (_aUnCompte == true && palaisDuCompte != null) {
+      return [
+        champNom,
+        const SizedBox(height: 12),
+        Text(
+          isFr
+              ? 'Votre palais Chatmelier sera utilisé (${palaisDuCompte.questionnairesCompleted} dégustations).'
+              : 'Your Chatmelier palate will be used (${palaisDuCompte.questionnairesCompleted} tastings).',
+          style: note,
+        ),
+        const SizedBox(height: 8),
+        Center(
+          child: SizedBox(
+            width: 140,
+            height: 140,
+            child: WineTasteRadarChart(
+              size: 140,
+              showLabels: false,
+              isInteractive: false,
+              datasets: [
+                RadarChartDataset(
+                  label: isFr ? 'Votre palais' : 'Your palate',
+                  color: or,
+                  metrics: palaisDuCompte.radarMetrics,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF8B1E3F),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            icon: const Icon(Icons.group_add_rounded, size: 18),
+            label: Text(isFr ? 'Rejoindre avec mon palais' : 'Join with my palate',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            onPressed: () => _rejoindreAvecLeCompte(palaisDuCompte),
+          ),
+        ),
+        Center(
+          child: TextButton(
+            onPressed: () => setState(() => _aUnCompte = false),
+            child: Text(isFr ? 'Plutôt décrire mes goûts ici' : 'Describe my tastes here instead', style: note),
+          ),
+        ),
+      ];
+    }
+
+    return [
+      champNom,
+      const SizedBox(height: 12),
+      Text(
+        _aUnCompte == true
+            ? (isFr
+                ? 'Aucun palais Chatmelier sur cet appareil. Décrivez vos goûts en vingt secondes — c\'est facultatif :'
+                : 'No Chatmelier palate on this device. Describe your tastes in twenty seconds — optional:')
+            : (isFr
+                ? 'Décrivez vos goûts en vingt secondes — c\'est facultatif :'
+                : 'Describe your tastes in twenty seconds — optional:'),
+        style: note,
+      ),
+      const SizedBox(height: 10),
+      PalaisExpress(
+        isFr: isFr,
+        libelleValider: isFr ? 'Valider mes goûts pour la table' : 'Confirm my tastes for the table',
+        onValider: _rejoindreAvec,
+        onJusteMonPrenom: _rejoindreSansPreferences,
+      ),
+    ];
   }
 
   /// Rejoint la table côté serveur : l'hôte voit arriver l'invité, et l'invité reçoit la
@@ -274,6 +474,9 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       }
       await _rafraichirConvives();
     } on TableSessionException catch (e) {
+      // Journalisé : c'est exactement l'incident du 23/09 (« l'hôte ne la voit pas »), qui
+      // n'avait laissé aucune trace.
+      AppLogger.warning('TABLE', 'Invité non assis à la table $code (${e.cause.name})');
       if (!mounted) return;
       final isFr = Localizations.localeOf(context).languageCode == 'fr';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -490,60 +693,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 ],
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: _nameCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: isFr ? 'Votre prénom' : 'Your name',
-                  labelStyle: const TextStyle(color: Color(0xFFD4AF37)),
-                  filled: true,
-                  fillColor: Colors.black26,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedArchetype,
-                dropdownColor: const Color(0xFF281E34),
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: isFr ? 'Votre style de vin préféré' : 'Your preferred wine style',
-                  labelStyle: const TextStyle(color: Color(0xFFD4AF37)),
-                  filled: true,
-                  fillColor: Colors.black26,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'sans_tanin', child: Text('🕊️ Aversion aux tanins durs')),
-                  DropdownMenuItem(value: 'mineral', child: Text('⚡ Blancs Minéraux & Tendus')),
-                  DropdownMenuItem(value: 'puissant', child: Text('🧱 Grands Rouges Puissants')),
-                  DropdownMenuItem(value: 'fruit', child: Text('🍒 Rouges Fruits Croquants')),
-                  DropdownMenuItem(value: 'equilibre', child: Text('🍷 Curieux & Éclectique')),
-                ],
-                onChanged: (v) {
-                  if (v != null) setState(() => _selectedArchetype = v);
-                },
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B1E3F),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  icon: Icon(_hasJoined ? Icons.check_circle : Icons.group_add_rounded, size: 18),
-                  label: Text(
-                    _hasJoined
-                        ? (isFr ? 'Mettre à jour mes préférences' : 'Update my preferences')
-                        : (isFr ? 'Valider mes goûts pour la table' : 'Confirm my tastes for the table'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  onPressed: _joinTable,
-                ),
-              ),
+              ..._carteDArrivee(isFr),
             ],
           ),
         ),

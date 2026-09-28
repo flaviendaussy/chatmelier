@@ -24,6 +24,10 @@ class GuestProfile {
   /// de son goût.
   final WineTasteRadarMetrics? radarDistant;
 
+  /// Venu « juste avec son prénom » : il est compté à table, mais ne pèse pas sur le
+  /// classement — on ne devine pas les goûts de quelqu'un qui n'a rien dit.
+  final bool sansPreferences;
+
   const GuestProfile({
     required this.id,
     required this.name,
@@ -34,6 +38,7 @@ class GuestProfile {
     this.dislikedCharacteristics = const [],
     this.archetype = 'Curieux & Éclectique',
     this.radarDistant,
+    this.sansPreferences = false,
   });
 
   /// Ce qu'un convive emporte avec lui en rejoignant une table.
@@ -47,6 +52,7 @@ class GuestProfile {
         'favorite_types': favoriteTypes,
         'favorite_grapes': favoriteGrapes,
         'disliked': dislikedCharacteristics,
+        if (sansPreferences) 'sans_preferences': true,
         'radar': {
           'tannin': radar.tannin,
           'body': radar.body,
@@ -74,6 +80,7 @@ class GuestProfile {
       favoriteTypes: liste('favorite_types'),
       favoriteGrapes: liste('favorite_grapes'),
       dislikedCharacteristics: liste('disliked'),
+      sansPreferences: json['sans_preferences'] == true,
       radarDistant: r is Map
           ? WineTasteRadarMetrics(
               tannin: axe('tannin', 5.0),

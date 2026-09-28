@@ -77,11 +77,12 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
     }
 
     try {
+      final nomAssis = _nom.text.trim().isEmpty
+          ? (profil?.name ?? (isFr ? 'Invité' : 'Guest'))
+          : _nom.text.trim();
       final t = await ref.read(tableSessionServiceProvider).rejoindre(
             code: _code.text,
-            nom: _nom.text.trim().isEmpty
-                ? (profil?.name ?? (isFr ? 'Invité' : 'Guest'))
-                : _nom.text,
+            nom: nomAssis,
             profil: profil,
           );
       if (!mounted) return;
@@ -102,6 +103,7 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
           // présenter une seconde fois.
           codeTable: _code.text.trim().toUpperCase(),
           dejaAssis: true,
+          nomAssis: nomAssis,
         ),
       ));
 

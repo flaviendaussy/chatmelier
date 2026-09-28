@@ -43,6 +43,11 @@ class MenuTableMatcherEngine {
   }) {
     if (menuWines.isEmpty || guests.isEmpty) return [];
 
+    // Ceux qui n'ont rien dit de leurs goûts ne votent pas : leur prêter un palais moyen
+    // tirerait la table vers des vins tièdes. S'ils sont seuls, on classe quand même.
+    final votants = [for (final g in guests) if (!g.sansPreferences) g];
+    final jury = votants.isEmpty ? guests : votants;
+
     final results = <MenuTableMatchResult>[];
 
     for (final wine in menuWines) {
@@ -50,7 +55,7 @@ class MenuTableMatcherEngine {
       final alerts = <String>[];
       final scoresList = <double>[];
 
-      for (final guest in guests) {
+      for (final guest in jury) {
         final score = _calculateGuestWineHarmony(wine, guest, alerts, isFr);
         guestScores[guest.id] = score;
         scoresList.add(score);
@@ -236,8 +241,13 @@ class RedactionDesRaisons {
   /// Qui l'aimera, qui l'appréciera, et qui risque d'être déçu — avec la raison.
   static String _pourQui(MenuTableMatchResult r, List<GuestProfile> convives, bool fr) {
     if (convives.isEmpty) return fr ? 'Un vin pour la table' : 'A wine for the table';
-    final notes = [for (final g in convives) (g, r.guestScores[g.id] ?? 0.0)]
-      ..sort((a, b) => b.$2.compareTo(a.$2));
+    // Seuls ceux qui ont voté sont cités : un convive « juste son prénom » n'a pas
+    // d'avis, il n'est ni fan ni réticent.
+    final notes = [
+      for (final g in convives)
+        if (r.guestScores.containsKey(g.id)) (g, r.guestScores[g.id]!)
+    ]..sort((a, b) => b.$2.compareTo(a.$2));
+    if (notes.isEmpty) return fr ? 'Un vin pour la table' : 'A wine for the table';
 
     if (convives.length == 1) {
       final s = notes.first.$2;

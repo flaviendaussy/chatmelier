@@ -136,8 +136,17 @@ void main() {
       await tester.enterText(nameField, 'Camille');
       await tester.pumpAndSettle();
 
+      // Pas de compte : le profilage express s'ouvre, et Camille signale son aversion.
+      await tester.tap(find.text('Non'));
+      await tester.pumpAndSettle();
+      final aversionTanins = find.text('Tanins durs');
+      await tester.ensureVisible(aversionTanins);
+      await tester.tap(aversionTanins);
+      await tester.pumpAndSettle();
+
       // Submit preferences
       final joinButton = find.text('Valider mes goûts pour la table');
+      await tester.ensureVisible(joinButton);
       expect(joinButton, findsOneWidget);
       await tester.tap(joinButton);
       await tester.pumpAndSettle();

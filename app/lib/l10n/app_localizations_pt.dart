@@ -1384,7 +1384,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get tasteConfidenceUnknown =>
-      'Ainda não conheço o seu paladar — o halo mostra o que estou a adivinhar.';
+      'Ainda não conheço o seu paladar: as linhas tracejadas e os pontos vazios são apenas suposições.';
 
   @override
   String get tasteEvidenceTitle => 'De onde vem este perfil';
@@ -1398,12 +1398,33 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String tasteConfidenceKnown(String percent) {
-    return 'Paladar conhecido a $percent %. A desfocagem marca o que ainda adivinho.';
+    return 'Paladar conhecido a $percent %. Linha contínua: observado; tracejada: adivinhado.';
   }
 
   @override
   String tasteConfidenceFrontier(String axis) {
     return 'O que menos conheço: $axis.';
+  }
+
+  @override
+  String get radarLegendObserved => 'Observado';
+
+  @override
+  String get radarLegendGuessed => 'Adivinhado';
+
+  @override
+  String get radarLegendMargin => 'Margem de incerteza';
+
+  @override
+  String radarAxisTastings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count provas',
+      one: '1 prova',
+      zero: 'Adivinhado',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -1386,7 +1386,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tasteConfidenceUnknown =>
-      'Je ne connais pas encore votre palais — le halo montre ce que je devine.';
+      'Je ne connais pas encore votre palais : pointillés et points creux ne sont que des suppositions.';
 
   @override
   String get tasteEvidenceTitle => 'D\'où vient ce profil';
@@ -1400,12 +1400,33 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String tasteConfidenceKnown(String percent) {
-    return 'Palais connu à $percent %. Le flou marque ce que je devine encore.';
+    return 'Palais connu à $percent %. Trait plein : observé ; pointillés : deviné.';
   }
 
   @override
   String tasteConfidenceFrontier(String axis) {
     return 'Ce que j\'ignore le plus : $axis.';
+  }
+
+  @override
+  String get radarLegendObserved => 'Observé';
+
+  @override
+  String get radarLegendGuessed => 'Deviné';
+
+  @override
+  String get radarLegendMargin => 'Marge d\'incertitude';
+
+  @override
+  String radarAxisTastings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dégustations',
+      one: '1 dégustation',
+      zero: 'Deviné',
+    );
+    return '$_temp0';
   }
 
   @override

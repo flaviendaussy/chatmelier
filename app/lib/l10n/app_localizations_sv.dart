@@ -1380,7 +1380,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get tasteConfidenceUnknown =>
-      'Jag känner inte din smak än – halon visar vad jag gissar.';
+      'Jag känner inte din smak än: streckade linjer och ihåliga punkter är bara gissningar.';
 
   @override
   String get tasteEvidenceTitle => 'Varifrån profilen kommer';
@@ -1394,12 +1394,33 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String tasteConfidenceKnown(String percent) {
-    return 'Smaken känd till $percent %. Oskärpan visar vad jag fortfarande gissar.';
+    return 'Smaken känd till $percent %. Heldragen linje: observerat; streckad: gissat.';
   }
 
   @override
   String tasteConfidenceFrontier(String axis) {
     return 'Det jag vet minst om: $axis.';
+  }
+
+  @override
+  String get radarLegendObserved => 'Observerat';
+
+  @override
+  String get radarLegendGuessed => 'Gissat';
+
+  @override
+  String get radarLegendMargin => 'Osäkerhet';
+
+  @override
+  String radarAxisTastings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count provningar',
+      one: '1 provning',
+      zero: 'Gissat',
+    );
+    return '$_temp0';
   }
 
   @override

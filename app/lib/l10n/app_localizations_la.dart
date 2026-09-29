@@ -1367,7 +1367,7 @@ class AppLocalizationsLa extends AppLocalizations {
 
   @override
   String get tasteConfidenceUnknown =>
-      'Palatum tuum nondum novi — nimbus ostendit quid coniciam.';
+      'Palatum tuum nondum novi: lineae interruptae et puncta cava tantum coniecturae sunt.';
 
   @override
   String get tasteEvidenceTitle => 'Unde hic index oriatur';
@@ -1381,12 +1381,33 @@ class AppLocalizationsLa extends AppLocalizations {
 
   @override
   String tasteConfidenceKnown(String percent) {
-    return 'Palatum $percent centesimis notum. Nubes signat quid adhuc coniciam.';
+    return 'Palatum $percent centesimis notum. Linea continua: observatum; interrupta: coniectum.';
   }
 
   @override
   String tasteConfidenceFrontier(String axis) {
     return 'Quod minime novi: $axis.';
+  }
+
+  @override
+  String get radarLegendObserved => 'Observatum';
+
+  @override
+  String get radarLegendGuessed => 'Coniectum';
+
+  @override
+  String get radarLegendMargin => 'Incertitudo';
+
+  @override
+  String radarAxisTastings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gustationes',
+      one: '1 gustatio',
+      zero: 'Coniectum',
+    );
+    return '$_temp0';
   }
 
   @override

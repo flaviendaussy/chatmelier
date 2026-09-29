@@ -1340,7 +1340,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sipSectionTitle => '🍷 한 모금';
 
   @override
-  String get tasteConfidenceUnknown => '아직 당신의 미각을 모릅니다. 번짐은 제가 추측하는 부분입니다.';
+  String get tasteConfidenceUnknown => '아직 당신의 미각을 모릅니다. 점선과 속이 빈 점은 추측일 뿐입니다.';
 
   @override
   String get tasteEvidenceTitle => '이 프로필의 근거';
@@ -1353,12 +1353,32 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String tasteConfidenceKnown(String percent) {
-    return '미각 파악도 $percent%. 흐릿한 부분은 아직 추측 중입니다.';
+    return '미각 파악도 $percent%. 실선은 관찰, 점선은 추측입니다.';
   }
 
   @override
   String tasteConfidenceFrontier(String axis) {
     return '가장 모르는 것: $axis.';
+  }
+
+  @override
+  String get radarLegendObserved => '관찰';
+
+  @override
+  String get radarLegendGuessed => '추측';
+
+  @override
+  String get radarLegendMargin => '불확실성 범위';
+
+  @override
+  String radarAxisTastings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '시음 $count회',
+      zero: '추측',
+    );
+    return '$_temp0';
   }
 
   @override

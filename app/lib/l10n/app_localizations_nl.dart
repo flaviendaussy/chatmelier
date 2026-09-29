@@ -1382,7 +1382,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tasteConfidenceUnknown =>
-      'Ik ken uw smaak nog niet — de halo toont wat ik gis.';
+      'Ik ken uw smaak nog niet: stippellijnen en holle punten zijn slechts gissingen.';
 
   @override
   String get tasteEvidenceTitle => 'Waar dit profiel vandaan komt';
@@ -1396,12 +1396,33 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String tasteConfidenceKnown(String percent) {
-    return 'Smaak voor $percent% bekend. De vervaging toont wat ik nog gis.';
+    return 'Smaak voor $percent% bekend. Doorgetrokken: waargenomen; gestippeld: gegist.';
   }
 
   @override
   String tasteConfidenceFrontier(String axis) {
     return 'Wat ik het minst ken: $axis.';
+  }
+
+  @override
+  String get radarLegendObserved => 'Waargenomen';
+
+  @override
+  String get radarLegendGuessed => 'Gegist';
+
+  @override
+  String get radarLegendMargin => 'Onzekerheid';
+
+  @override
+  String radarAxisTastings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count proeverijen',
+      one: '1 proeverij',
+      zero: 'Gegist',
+    );
+    return '$_temp0';
   }
 
   @override

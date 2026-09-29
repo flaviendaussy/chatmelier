@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
 import '../domain/wine_taste_radar.dart';
+import 'widgets/radar_legende.dart';
 import 'widgets/wine_taste_radar_chart.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/supabase_provider.dart';
 
 /// 🎨 Distinct Vibrant Color Palette for Multi-Guest Overlays
@@ -307,11 +309,14 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                 label: currentProfile.name,
                 metrics: metrics,
                 color: kRadarPalette[profiles.indexOf(currentProfile) % kRadarPalette.length],
+                confidences: TasteProfile.axisKeys.map(currentProfile.axisConfidence).toList(),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 6),
+        LegendeDuRadar(color: kRadarPalette[profiles.indexOf(currentProfile) % kRadarPalette.length]),
+        const SizedBox(height: 20),
 
         // Metrics Breakdown Grid (8 dimensions)
         Builder(
@@ -348,14 +353,14 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                   crossAxisSpacing: 10,
                   childAspectRatio: 2.6,
                   children: [
-                    _buildMetricTile(axes[0].replaceAll('\n', ' '), metrics.tannin, Icons.grain_rounded, const Color(0xFF795548)),
-                    _buildMetricTile(axes[1].replaceAll('\n', ' '), metrics.body, Icons.fitness_center_rounded, const Color(0xFF8B1E3F)),
-                    _buildMetricTile(axes[2].replaceAll('\n', ' '), metrics.oak, Icons.forest_rounded, const Color(0xFF8D6E63)),
-                    _buildMetricTile(axes[3].replaceAll('\n', ' '), metrics.ripeFruit, Icons.wb_sunny_rounded, const Color(0xFFD81B60)),
-                    _buildMetricTile(axes[4].replaceAll('\n', ' '), metrics.spice, Icons.local_fire_department_rounded, const Color(0xFFE65100)),
-                    _buildMetricTile(axes[5].replaceAll('\n', ' '), metrics.freshFruit, Icons.eco_rounded, const Color(0xFF2E7D32)),
-                    _buildMetricTile(axes[6].replaceAll('\n', ' '), metrics.minerality, Icons.landscape_rounded, const Color(0xFF00838F)),
-                    _buildMetricTile(axes[7].replaceAll('\n', ' '), metrics.acidity, Icons.bolt_rounded, const Color(0xFF1E88E5)),
+                    _buildMetricTile(axes[0].replaceAll('\n', ' '), metrics.tannin, Icons.grain_rounded, const Color(0xFF795548), observations: currentProfile.axisObservations['tannin'] ?? 0),
+                    _buildMetricTile(axes[1].replaceAll('\n', ' '), metrics.body, Icons.fitness_center_rounded, const Color(0xFF8B1E3F), observations: currentProfile.axisObservations['body'] ?? 0),
+                    _buildMetricTile(axes[2].replaceAll('\n', ' '), metrics.oak, Icons.forest_rounded, const Color(0xFF8D6E63), observations: currentProfile.axisObservations['oak'] ?? 0),
+                    _buildMetricTile(axes[3].replaceAll('\n', ' '), metrics.ripeFruit, Icons.wb_sunny_rounded, const Color(0xFFD81B60), observations: currentProfile.axisObservations['ripeFruit'] ?? 0),
+                    _buildMetricTile(axes[4].replaceAll('\n', ' '), metrics.spice, Icons.local_fire_department_rounded, const Color(0xFFE65100), observations: currentProfile.axisObservations['spice'] ?? 0),
+                    _buildMetricTile(axes[5].replaceAll('\n', ' '), metrics.freshFruit, Icons.eco_rounded, const Color(0xFF2E7D32), observations: currentProfile.axisObservations['freshFruit'] ?? 0),
+                    _buildMetricTile(axes[6].replaceAll('\n', ' '), metrics.minerality, Icons.landscape_rounded, const Color(0xFF00838F), observations: currentProfile.axisObservations['minerality'] ?? 0),
+                    _buildMetricTile(axes[7].replaceAll('\n', ' '), metrics.acidity, Icons.bolt_rounded, const Color(0xFF1E88E5), observations: currentProfile.axisObservations['acidity'] ?? 0),
                   ],
                 ),
               ],
@@ -423,7 +428,10 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
     );
   }
 
-  Widget _buildMetricTile(String label, double value, IconData icon, Color color) {
+  /// [observations] : dégustations qui ont renseigné cet axe. Sous cinq, la valeur est
+  /// devinée et le dit (mêmes seuils que le radar).
+  Widget _buildMetricTile(String label, double value, IconData icon, Color color, {int? observations}) {
+    final devine = observations != null && observations < 5;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -447,9 +455,30 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  '${value.toStringAsFixed(1)} / 10',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color),
+                Row(
+                  children: [
+                    Text(
+                      '${value.toStringAsFixed(1)} / 10',
+                      style: TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.bold, color: devine ? color.withAlpha(150) : color),
+                    ),
+                    if (observations != null) ...[
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          AppLocalizations.of(context)?.radarAxisTastings(observations) ??
+                              (observations == 0 ? '?' : '$observations'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                            fontStyle: devine ? FontStyle.italic : FontStyle.normal,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),

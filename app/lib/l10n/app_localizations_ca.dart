@@ -1386,7 +1386,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get tasteConfidenceUnknown =>
-      'Encara no conec el teu paladar: el halo mostra el que endevino.';
+      'Encara no conec el teu paladar: les línies discontínues i els punts buits només són suposicions.';
 
   @override
   String get tasteEvidenceTitle => 'D\'on ve aquest perfil';
@@ -1400,12 +1400,33 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String tasteConfidenceKnown(String percent) {
-    return 'Paladar conegut al $percent %. El difuminat marca el que encara endevino.';
+    return 'Paladar conegut al $percent %. Línia contínua: observat; discontínua: endevinat.';
   }
 
   @override
   String tasteConfidenceFrontier(String axis) {
     return 'El que menys conec: $axis.';
+  }
+
+  @override
+  String get radarLegendObserved => 'Observat';
+
+  @override
+  String get radarLegendGuessed => 'Endevinat';
+
+  @override
+  String get radarLegendMargin => 'Marge d\'incertesa';
+
+  @override
+  String radarAxisTastings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tasts',
+      one: '1 tast',
+      zero: 'Endevinat',
+    );
+    return '$_temp0';
   }
 
   @override

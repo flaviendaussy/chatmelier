@@ -1327,7 +1327,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sipSectionTitle => '🍷 这一口';
 
   @override
-  String get tasteConfidenceUnknown => '我还不了解你的口味——光晕表示我在猜测的部分。';
+  String get tasteConfidenceUnknown => '我还不了解你的口味：虚线和空心点都只是猜测。';
 
   @override
   String get tasteEvidenceTitle => '这份档案的来源';
@@ -1340,12 +1340,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String tasteConfidenceKnown(String percent) {
-    return '口味了解度 $percent%。模糊处是我仍在猜测的部分。';
+    return '口味了解度 $percent%。实线为已观察，虚线为猜测。';
   }
 
   @override
   String tasteConfidenceFrontier(String axis) {
     return '我最不了解的是：$axis。';
+  }
+
+  @override
+  String get radarLegendObserved => '已观察';
+
+  @override
+  String get radarLegendGuessed => '猜测';
+
+  @override
+  String get radarLegendMargin => '不确定范围';
+
+  @override
+  String radarAxisTastings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '品鉴 $count 次',
+      zero: '猜测',
+    );
+    return '$_temp0';
   }
 
   @override

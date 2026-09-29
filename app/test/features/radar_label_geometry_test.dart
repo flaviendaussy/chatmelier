@@ -75,18 +75,18 @@ void main() {
         reason: 'Sinon un libellé sur deux lignes dépasse quand même.');
   });
 
-  group("🌫️ Halo d'incertitude", () {
-    test('un axe bien connu ne produit aucun halo', () {
+  group("📏 Moustaches d'incertitude", () {
+    test('un axe bien connu ne produit aucune moustache', () {
       expect(WineTasteRadarChart.uncertaintyMargin(1.0), equals(0.0),
           reason: 'Suggérer une incertitude là où le modèle a observé serait aussi '
               'malhonnête que de prétendre savoir là où il devine.');
     });
 
-    test("un axe jamais observé s'affiche au maximum de flou", () {
+    test("un axe jamais observé porte la moustache la plus longue", () {
       expect(WineTasteRadarChart.uncertaintyMargin(0.0), equals(2.5));
     });
 
-    test('le halo se resserre à mesure que les observations arrivent', () {
+    test('la moustache raccourcit à mesure que les observations arrivent', () {
       // Confiance = n/(n+5) : 1 dégustation ≈ 0,17, 5 ≈ 0,50, 20 ≈ 0,80.
       final m1 = WineTasteRadarChart.uncertaintyMargin(1 / 6);
       final m5 = WineTasteRadarChart.uncertaintyMargin(0.5);
@@ -100,6 +100,22 @@ void main() {
     test('une confiance hors bornes ne casse pas le tracé', () {
       expect(WineTasteRadarChart.uncertaintyMargin(-1.0), equals(2.5));
       expect(WineTasteRadarChart.uncertaintyMargin(42.0), equals(0.0));
+    });
+  });
+
+  group('✍️ Observé ou deviné (29/09)', () {
+    // Le halo flou ne se lisait pas : deux états francs, au seuil de cinq dégustations.
+    test('observé à partir de cinq dégustations sur l\'axe', () {
+      double confiance(int n) => n / (n + 5.0); // TasteProfile.axisConfidence
+      expect(WineTasteRadarChart.estObserve(confiance(4)), isFalse);
+      expect(WineTasteRadarChart.estObserve(confiance(5)), isTrue);
+      expect(WineTasteRadarChart.estObserve(0), isFalse);
+    });
+
+    test('un axe jamais observé porte un « ? », pas les autres', () {
+      expect(WineTasteRadarChart.libelleAvecStatut('Tanins', 0), 'Tanins ?');
+      expect(WineTasteRadarChart.libelleAvecStatut('Tanins', 1 / 6), 'Tanins');
+      expect(WineTasteRadarChart.libelleAvecStatut('Tanins', 0.8), 'Tanins');
     });
   });
 }

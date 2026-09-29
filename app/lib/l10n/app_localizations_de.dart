@@ -1389,7 +1389,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tasteConfidenceUnknown =>
-      'Ich kenne Ihren Gaumen noch nicht – der Halo zeigt, was ich vermute.';
+      'Ich kenne Ihren Gaumen noch nicht: Gestrichelte Linien und hohle Punkte sind nur Vermutungen.';
 
   @override
   String get tasteEvidenceTitle => 'Woher dieses Profil kommt';
@@ -1403,12 +1403,33 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String tasteConfidenceKnown(String percent) {
-    return 'Gaumen zu $percent % bekannt. Die Unschärfe zeigt, was ich noch vermute.';
+    return 'Gaumen zu $percent % bekannt. Durchgezogen: beobachtet; gestrichelt: vermutet.';
   }
 
   @override
   String tasteConfidenceFrontier(String axis) {
     return 'Was ich am wenigsten kenne: $axis.';
+  }
+
+  @override
+  String get radarLegendObserved => 'Beobachtet';
+
+  @override
+  String get radarLegendGuessed => 'Vermutet';
+
+  @override
+  String get radarLegendMargin => 'Unsicherheit';
+
+  @override
+  String radarAxisTastings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Verkostungen',
+      one: '1 Verkostung',
+      zero: 'Vermutet',
+    );
+    return '$_temp0';
   }
 
   @override

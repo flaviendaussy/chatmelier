@@ -14,6 +14,7 @@ import '../../cellar/presentation/cellar_export_dialog.dart';
 import 'taste_profiles_dialog.dart';
 import 'taste_profile_edit_sheet.dart';
 import 'taste_profile_radar_screen.dart';
+import 'widgets/radar_legende.dart';
 import 'widgets/wine_taste_radar_chart.dart';
 import '../domain/wine_taste_radar.dart';
 import '../data/taste_profile_service.dart';
@@ -121,7 +122,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
 
-  /// Dit à voix haute ce que le halo montre : jusqu'où le modèle sait, et où il devine.
+  /// Dit à voix haute ce que le radar montre (traits pleins, pointillés, moustaches) :
+  /// jusqu'où le modèle sait, et où il devine.
   ///
   /// Un radar sans cette phrase affiche ses huit axes avec la même autorité qu'on ait
   /// une dégustation ou cinquante derrière. Le modèle devient lisible seulement s'il
@@ -156,7 +158,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.blur_on_rounded,
+            Icon(Icons.insights_rounded,
                 size: 15, color: Colors.grey.withValues(alpha: 0.8)),
             const SizedBox(width: 6),
             Expanded(
@@ -1114,6 +1116,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 4),
+                const LegendeDuRadar(),
                 const SizedBox(height: 8),
 
                 _buildConfidenceLine(theme, currentProfile),

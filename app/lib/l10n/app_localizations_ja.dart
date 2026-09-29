@@ -1336,7 +1336,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sipSectionTitle => '🍷 ひと口';
 
   @override
-  String get tasteConfidenceUnknown => 'あなたの味覚はまだわかりません。にじみは推測している部分です。';
+  String get tasteConfidenceUnknown => 'あなたの味覚はまだわかりません。点線と白抜きの点は推測にすぎません。';
 
   @override
   String get tasteEvidenceTitle => 'このプロファイルの根拠';
@@ -1349,12 +1349,32 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tasteConfidenceKnown(String percent) {
-    return '味覚の把握度 $percent %。ぼかしはまだ推測している部分です。';
+    return '味覚の把握度 $percent %。実線は観察済み、点線は推測です。';
   }
 
   @override
   String tasteConfidenceFrontier(String axis) {
     return '最もわかっていないもの：$axis。';
+  }
+
+  @override
+  String get radarLegendObserved => '観察済み';
+
+  @override
+  String get radarLegendGuessed => '推測';
+
+  @override
+  String get radarLegendMargin => '不確かさの幅';
+
+  @override
+  String radarAxisTastings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 回のテイスティング',
+      zero: '推測',
+    );
+    return '$_temp0';
   }
 
   @override

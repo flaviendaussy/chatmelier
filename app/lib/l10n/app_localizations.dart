@@ -2571,7 +2571,7 @@ abstract class AppLocalizations {
   /// No description provided for @tasteConfidenceUnknown.
   ///
   /// In en, this message translates to:
-  /// **'I don\'t know your palate yet — the halo shows what I\'m guessing.'**
+  /// **'I don\'t know your palate yet: dashed lines and hollow dots are only guesses.'**
   String get tasteConfidenceUnknown;
 
   /// No description provided for @tasteEvidenceTitle.
@@ -2595,7 +2595,7 @@ abstract class AppLocalizations {
   /// No description provided for @tasteConfidenceKnown.
   ///
   /// In en, this message translates to:
-  /// **'Palate known at {percent}%. The blur marks what I\'m still guessing.'**
+  /// **'Palate known at {percent}%. Solid line: observed; dashed: guessed.'**
   String tasteConfidenceKnown(String percent);
 
   /// No description provided for @tasteConfidenceFrontier.
@@ -2603,6 +2603,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What I know least: {axis}.'**
   String tasteConfidenceFrontier(String axis);
+
+  /// No description provided for @radarLegendObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed'**
+  String get radarLegendObserved;
+
+  /// No description provided for @radarLegendGuessed.
+  ///
+  /// In en, this message translates to:
+  /// **'Guessed'**
+  String get radarLegendGuessed;
+
+  /// No description provided for @radarLegendMargin.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertainty'**
+  String get radarLegendMargin;
+
+  /// No description provided for @radarAxisTastings.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Guessed} =1{1 tasting} other{{count} tastings}}'**
+  String radarAxisTastings(int count);
 
   /// No description provided for @sipSectionSubtitle.
   ///

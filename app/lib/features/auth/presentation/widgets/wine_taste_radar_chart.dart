@@ -13,10 +13,11 @@ class RadarChartDataset {
   /// Confiance du modele sur chaque axe, de 0 (aucune idee) a 1 (bien etabli), dans le
   /// meme ordre que [values].
   ///
-  /// Quand elle est fournie, le trace s'entoure d'un halo dont l'epaisseur porte
-  /// l'incertitude : net la ou le modele a observe, flou la ou il devine. Sans ca, les
-  /// huit axes s'affichent avec la meme autorite visuelle qu'on ait 0 ou 50 degustations
-  /// derriere -- ce qui est une fausse precision, pas une simplification.
+  /// Quand elle est fournie, le trace dit ce qu'il sait : trait plein et point plein la
+  /// ou le modele a observe, pointilles et point creux la ou il devine, et sur chaque axe
+  /// une moustache d'autant plus longue que la marge est grande. Sans ca, les huit axes
+  /// s'affichent avec la meme autorite qu'on ait 0 ou 50 degustations derriere -- une
+  /// fausse precision, pas une simplification.
   final List<double>? confidences;
 
   const RadarChartDataset({
@@ -48,10 +49,24 @@ class WineTasteRadarChart extends StatefulWidget {
   /// la carte et « Spice & Character » passait sous l'encadré suivant.
   ///
   /// Extrait de `paint` pour être vérifiable : c'est une règle géométrique, pas du rendu.
-  /// Amplitude du halo sur un axe, en unites de l'echelle (sur 10), pour une confiance
-  /// donnee. Confiance 1 => 0 : le trace est net, on ne suggere aucune incertitude.
+  /// Demi-longueur de la moustache d'un axe, en unites de l'echelle (sur 10), pour une
+  /// confiance donnee. Confiance 1 => 0 : aucune marge.
   static double uncertaintyMargin(double confidence) =>
       (1.0 - confidence.clamp(0.0, 1.0)) * _RadarChartPainter.uncertaintyReach;
+
+  /// Seuil a partir duquel un axe est « observe » : cinq degustations (confiance 0,5).
+  ///
+  /// Le halo flou qui portait l'incertitude ne se lisait pas (29/09) : a 6 % de palais
+  /// connu, tout etait egalement flou, et sur la carte du profil le halo se voyait a
+  /// peine. Deux etats francs se lisent d'un coup d'oeil ; la moustache garde la nuance.
+  static const double seuilObserve = 0.5;
+
+  static bool estObserve(double confidence) => confidence >= seuilObserve;
+
+  /// Un axe jamais observe porte un « ? » : c'est la question que la prochaine
+  /// degustation peut trancher.
+  static String libelleAvecStatut(String label, double confidence) =>
+      confidence <= 0 ? '$label ?' : label;
 
   static double radiusFor(Size size, bool showLabels) {
     final half = math.min(size.width, size.height) / 2;
@@ -158,10 +173,25 @@ class _RadarChartPainter extends CustomPainter {
 
   static const double maxVal = 10.0;
 
-  /// Amplitude du halo sur un axe totalement inconnu, en unites de l'echelle (sur 10).
-  /// +/- 2,5 points : assez visible pour qu'on lise "je ne sais pas", assez borne pour
-  /// que le trace reste lisible.
+  /// Demi-longueur de la moustache d'un axe totalement inconnu, en unites de l'echelle
+  /// (sur 10). +/- 2,5 points : assez pour qu'on lise « je ne sais pas », assez borne
+  /// pour que le trace reste lisible.
   static const double uncertaintyReach = 2.5;
+
+  /// Un segment en pointilles : Flutter n'en dessine pas nativement.
+  static void _pointilles(Canvas canvas, Offset a, Offset b, Paint p) {
+    const trait = 4.5, vide = 3.5;
+    final d = b - a;
+    final longueur = d.distance;
+    if (longueur == 0) return;
+    final u = d / longueur;
+    var t = 0.0;
+    while (t < longueur) {
+      final fin = math.min(t + trait, longueur);
+      canvas.drawLine(a + u * t, a + u * fin, p);
+      t = fin + vide;
+    }
+  }
 
 
   @override
@@ -171,6 +201,7 @@ class _RadarChartPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
 
     final radius = WineTasteRadarChart.radiusFor(size, showLabels);
+    final confLibelles = datasets.map((d) => d.confidences).whereType<List<double>>().firstOrNull;
 
     // 1. Draw Concentric Hexagonal Grids (levels 2, 4, 6, 8, 10)
     final gridPaint = Paint()
@@ -213,10 +244,17 @@ class _RadarChartPainter extends CustomPainter {
         final lx = center.dx + labelRadius * math.cos(angle);
         final ly = center.dy + labelRadius * math.sin(angle);
 
+        final c = confLibelles == null
+            ? null
+            : (i < confLibelles.length ? confLibelles[i] : 0.0).clamp(0.0, 1.0);
         final textSpan = TextSpan(
-          text: labels[i],
+          text: c == null ? labels[i] : WineTasteRadarChart.libelleAvecStatut(labels[i], c),
           style: TextStyle(
-            color: textColor.withAlpha(210),
+            color: textColor.withAlpha(c == null
+                ? 210
+                : WineTasteRadarChart.estObserve(c)
+                    ? 225
+                    : (c > 0 ? 150 : 115)),
             fontSize: 9.5,
             fontWeight: FontWeight.bold,
             height: 1.1,
@@ -261,46 +299,10 @@ class _RadarChartPainter extends CustomPainter {
       }
       polyPath.close();
 
-      // Halo d'incertitude : une bande autour du trace, d'autant plus large et floue que
-      // le modele a peu observe cet axe. Dessinee AVANT le polygone pour rester derriere.
       final conf = ds.confidences;
-      if (conf != null) {
-        final outer = Path();
-        final inner = Path();
-        for (int i = 0; i < numAxes; i++) {
-          final angle = (i * 2 * math.pi / numAxes) - (math.pi / 2);
-          final rawVal = i < values.length ? values[i] : 5.0;
-          final c = (i < conf.length ? conf[i] : 0.0).clamp(0.0, 1.0);
-          final marge = WineTasteRadarChart.uncertaintyMargin(c);
-
-          double rayonPour(double v) =>
-              radius * (v.clamp(0.5, maxVal) / maxVal) * animProgress;
-
-          final rOut = rayonPour(rawVal + marge);
-          final rIn = rayonPour(rawVal - marge);
-          final xo = center.dx + rOut * math.cos(angle);
-          final yo = center.dy + rOut * math.sin(angle);
-          final xi = center.dx + rIn * math.cos(angle);
-          final yi = center.dy + rIn * math.sin(angle);
-          if (i == 0) {
-            outer.moveTo(xo, yo);
-            inner.moveTo(xi, yi);
-          } else {
-            outer.lineTo(xo, yo);
-            inner.lineTo(xi, yi);
-          }
-        }
-        outer.close();
-        inner.close();
-        final bande = Path.combine(PathOperation.difference, outer, inner);
-        canvas.drawPath(
-          bande,
-          Paint()
-            ..color = ds.color.withAlpha(46)
-            ..style = PaintingStyle.fill
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5.0),
-        );
-      }
+      double confianceDe(int i) =>
+          conf == null ? 1.0 : (i < conf.length ? conf[i] : 0.0).clamp(0.0, 1.0);
+      double rayonPour(double v) => radius * (v.clamp(0.5, maxVal) / maxVal) * animProgress;
 
       // Semi-transparent Fill
       final fillPaint = Paint()
@@ -308,26 +310,81 @@ class _RadarChartPainter extends CustomPainter {
         ..style = PaintingStyle.fill;
       canvas.drawPath(polyPath, fillPaint);
 
-      // Stroke Outline
+      // Moustaches d'incertitude : sur chaque axe, de la valeur moins la marge a la
+      // valeur plus la marge, avec deux butees. Une barre d'erreur se lit sans legende
+      // savante ; un halo flou a 18 % d'opacite ne se lisait pas.
+      if (conf != null) {
+        final moustache = Paint()
+          ..color = ds.color.withAlpha(165)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6
+          ..strokeCap = StrokeCap.round;
+        for (int i = 0; i < numAxes; i++) {
+          final marge = WineTasteRadarChart.uncertaintyMargin(confianceDe(i));
+          if (marge < 0.15) continue;
+          final angle = (i * 2 * math.pi / numAxes) - (math.pi / 2);
+          final dir = Offset(math.cos(angle), math.sin(angle));
+          final perp = Offset(-dir.dy, dir.dx);
+          final rawVal = i < values.length ? values[i] : 5.0;
+          final a = center + dir * rayonPour(rawVal - marge);
+          final b = center + dir * rayonPour(rawVal + marge);
+          canvas.drawLine(a, b, moustache);
+          const demi = 3.5;
+          canvas.drawLine(a - perp * demi, a + perp * demi, moustache);
+          canvas.drawLine(b - perp * demi, b + perp * demi, moustache);
+        }
+      }
+
+      // Contour : plein entre deux axes observes, en pointilles des qu'un bout est devine.
       final strokePaint = Paint()
         ..color = ds.color
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.4
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
-      canvas.drawPath(polyPath, strokePaint);
+      if (conf == null) {
+        canvas.drawPath(polyPath, strokePaint);
+      } else {
+        for (int i = 0; i < numAxes; i++) {
+          final k = (i + 1) % numAxes;
+          final plein = WineTasteRadarChart.estObserve(confianceDe(i)) &&
+              WineTasteRadarChart.estObserve(confianceDe(k));
+          if (plein) {
+            canvas.drawLine(points[i], points[k], strokePaint);
+          } else {
+            _pointilles(canvas, points[i], points[k], strokePaint..strokeWidth = 2.0);
+            strokePaint.strokeWidth = 2.4;
+          }
+        }
+      }
 
-      // Vertex dots
+      // Sommets : pleins la ou le modele a observe, creux la ou il devine.
       final dotPaint = Paint()
         ..color = ds.color
         ..style = PaintingStyle.fill;
       final dotCenterPaint = Paint()
         ..color = Colors.white
         ..style = PaintingStyle.fill;
+      final fondCreux = Paint()
+        ..color = isDark ? const Color(0xFF1E1A24) : Colors.white
+        ..style = PaintingStyle.fill;
+      final anneau = Paint()
+        ..color = ds.color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8;
 
-      for (final pt in points) {
-        canvas.drawCircle(pt, 4.0, dotPaint);
-        canvas.drawCircle(pt, 2.0, dotCenterPaint);
+      for (int i = 0; i < points.length; i++) {
+        final pt = points[i];
+        if (conf == null) {
+          canvas.drawCircle(pt, 4.0, dotPaint);
+          canvas.drawCircle(pt, 2.0, dotCenterPaint);
+        } else if (WineTasteRadarChart.estObserve(confianceDe(i))) {
+          // Plein, sans cœur blanc : avec un cœur, il ressemblait au point creux (29/09).
+          canvas.drawCircle(pt, 4.3, dotPaint);
+        } else {
+          canvas.drawCircle(pt, 3.6, fondCreux);
+          canvas.drawCircle(pt, 3.6, anneau);
+        }
       }
     }
   }

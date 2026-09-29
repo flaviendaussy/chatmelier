@@ -12,6 +12,7 @@ import '../domain/wine_service_advisor.dart';
 import 'bottle_provenance_picker.dart';
 import 'custom_bottle_size_dialog.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/utils/langue.dart';
 
 class BottleEditSheet extends ConsumerStatefulWidget {
   final Bottle bottle;
@@ -152,7 +153,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
     final isPolluted = rawNotes != null &&
         (rawNotes.trim().toLowerCase() == (w.tastingNotes ?? '').trim().toLowerCase() ||
          rawNotes.trim().toLowerCase() == (w.summary ?? '').trim().toLowerCase() ||
-         rawNotes.contains('Sortie enregistrée par commande vocale'));
+         rawNotes.contains(tr('Sortie enregistrée par commande vocale', 'Take-out recorded by voice command')));
     _userNotesCtrl = TextEditingController(text: isPolluted ? '' : (rawNotes ?? ''));
   }
 
@@ -421,9 +422,9 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
         Navigator.pop(context);
         widget.onSaved();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Toutes les modifications et apogées ont été enregistrées avec succès !'),
-            backgroundColor: Color(0xFF2E7D32),
+          SnackBar(
+            content: Text(tr('✅ Toutes les modifications et apogées ont été enregistrées avec succès !', '✅ All changes and drinking windows saved!')),
+            backgroundColor: const Color(0xFF2E7D32),
           ),
         );
       }
@@ -431,7 +432,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de l\'enregistrement : $e'),
+            content: Text(tr('Erreur lors de l\'enregistrement : $e', 'Couldn\'t save: $e')),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -476,12 +477,12 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Modifier la Bouteille & le Vin',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      Text(
+                        tr('Modifier la Bouteille & le Vin', 'Edit the bottle & the wine'),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       Text(
-                        'Tous les champs personnalisés sont protégés de l\'IA',
+                        tr('Tous les champs personnalisés sont protégés de l\'IA', 'Every field you edit is protected from the AI'),
                         style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],
@@ -503,11 +504,11 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             labelColor: const Color(0xFF8B1E3F),
             indicatorColor: const Color(0xFF8B1E3F),
             tabs: [
-              const Tab(icon: Icon(Icons.wine_bar, size: 18), text: '1. Identité'),
+              Tab(icon: const Icon(Icons.wine_bar, size: 18), text: tr('1. Identité', '1. Identity')),
               if (!widget.wine.tracksFillLevel)
-                const Tab(icon: Icon(Icons.auto_awesome, size: 18), text: '2. Apogée & Garde'),
-              Tab(icon: const Icon(Icons.menu_book, size: 18), text: widget.wine.tracksFillLevel ? '2. Profil Sommelier (IA)' : '3. Profil Sommelier (IA)'),
-              Tab(icon: const Icon(Icons.inventory_2, size: 18), text: widget.wine.tracksFillLevel ? '3. Mon Exemplaire & Notes' : '4. Mon Exemplaire & Notes'),
+                Tab(icon: const Icon(Icons.auto_awesome, size: 18), text: tr('2. Apogée & Garde', '2. Peak & ageing')),
+              Tab(icon: const Icon(Icons.menu_book, size: 18), text: widget.wine.tracksFillLevel ? tr('2. Profil Sommelier (IA)', '2. Sommelier profile (AI)') : tr('3. Profil Sommelier (IA)', '3. Sommelier profile (AI)')),
+              Tab(icon: const Icon(Icons.inventory_2, size: 18), text: widget.wine.tracksFillLevel ? tr('3. Mon Exemplaire & Notes', '3. My bottle & notes') : tr('4. Mon Exemplaire & Notes', '4. My bottle & notes')),
             ],
           ),
 
@@ -540,7 +541,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                 Expanded(
                   child: OutlinedButton(
                     onPressed: _isSaving ? null : () => Navigator.pop(context),
-                    child: const Text('Annuler'),
+                    child: Text(tr('Annuler', 'Cancel')),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -556,7 +557,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                           )
                         : const Icon(Icons.check, size: 18, color: Colors.white),
                     label: Text(
-                      _isSaving ? 'Enregistrement...' : 'Enregistrer les modifications',
+                      _isSaving ? tr('Enregistrement...', 'Saving...') : tr('Enregistrer les modifications', 'Save changes'),
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                     style: FilledButton.styleFrom(
@@ -616,7 +617,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Visuel / Étiquette', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text(tr('Visuel / Étiquette', 'Picture / label'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 8,
@@ -625,7 +626,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                         OutlinedButton.icon(
                           onPressed: () => _pickImage(ImageSource.camera),
                           icon: const Icon(Icons.camera_alt, size: 14),
-                          label: const Text('Photo', style: TextStyle(fontSize: 11)),
+                          label: Text(tr('Photo', 'Photo'), style: const TextStyle(fontSize: 11)),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             minimumSize: Size.zero,
@@ -635,7 +636,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                         OutlinedButton.icon(
                           onPressed: () => _pickImage(ImageSource.gallery),
                           icon: const Icon(Icons.photo_library, size: 14),
-                          label: const Text('Galerie', style: TextStyle(fontSize: 11)),
+                          label: Text(tr('Galerie', 'Gallery'), style: const TextStyle(fontSize: 11)),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             minimumSize: Size.zero,
@@ -651,7 +652,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                             });
                           },
                           icon: const Icon(Icons.auto_awesome, size: 14, color: Color(0xFFD4AF37)),
-                          label: const Text('Officielle', style: TextStyle(fontSize: 11, color: Color(0xFFD4AF37))),
+                          label: Text(tr('Officielle', 'Official'), style: const TextStyle(fontSize: 11, color: Color(0xFFD4AF37))),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                             minimumSize: Size.zero,
@@ -668,20 +669,20 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
         ),
         TextFormField(
           controller: _nameCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Nom du vin *',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.wine_bar),
+          decoration: InputDecoration(
+            labelText: tr('Nom du vin *', 'Wine name *'),
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.wine_bar),
           ),
-          validator: (v) => v == null || v.trim().isEmpty ? 'Le nom est obligatoire' : null,
+          validator: (v) => v == null || v.trim().isEmpty ? tr('Le nom est obligatoire', 'The name is required') : null,
         ),
         const SizedBox(height: 14),
         TextFormField(
           controller: _producerCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Domaine / Producteur / Château',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.business),
+          decoration: InputDecoration(
+            labelText: tr('Domaine / Producteur / Château', 'Estate / producer / château'),
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.business),
           ),
         ),
         const SizedBox(height: 14),
@@ -695,11 +696,11 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                   TextFormField(
                     controller: _vintageCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Millésime (Année)',
+                    decoration: InputDecoration(
+                      labelText: tr('Millésime (Année)', 'Vintage (year)'),
                       hintText: 'ex: 2020',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.history),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.history),
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -737,7 +738,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            _vintageCtrl.text.isEmpty ? 'Non millésimé (NM) ✓' : 'Non millésimé (NM)',
+                            _vintageCtrl.text.isEmpty ? tr('Non millésimé (NM) ✓', 'Non-vintage (NV) ✓') : tr('Non millésimé (NM)', 'Non-vintage (NV)'),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: _vintageCtrl.text.isEmpty
@@ -759,28 +760,28 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: DropdownButtonFormField<String>(
                 initialValue: _wineType,
-                decoration: const InputDecoration(
-                  labelText: 'Couleur / Type',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: tr('Couleur / Type', 'Colour / type'),
+                  border: const OutlineInputBorder(),
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'red', child: Text('🍷 Rouge')),
-                  DropdownMenuItem(value: 'white', child: Text('🥂 Blanc')),
-                  DropdownMenuItem(value: 'rosé', child: Text('🌸 Rosé')),
-                  DropdownMenuItem(value: 'sparkling', child: Text('🍾 Effervescent')),
-                  DropdownMenuItem(value: 'dessert', child: Text('🍯 Liquoreux')),
-                  DropdownMenuItem(value: 'fortified', child: Text('🍷 Fortifié / VDN')),
-                  DropdownMenuItem(value: 'orange', child: Text('🍊 Vin Orange')),
-                  DropdownMenuItem(value: 'spirit', child: Text('🥃 Spiritueux')),
-                  DropdownMenuItem(value: 'grappa', child: Text('🍇 Grappa')),
-                  DropdownMenuItem(value: 'eau-de-vie', child: Text('🍐 Eau-de-vie / Marc')),
-                  DropdownMenuItem(value: 'liqueur', child: Text('🍸 Liqueur')),
-                  DropdownMenuItem(value: 'whisky', child: Text('🥃 Whisky')),
-                  DropdownMenuItem(value: 'rhum', child: Text('🏴‍☠️ Rhum')),
-                  DropdownMenuItem(value: 'gin', child: Text('🍸 Gin')),
-                  DropdownMenuItem(value: 'vodka', child: Text('🧊 Vodka')),
-                  DropdownMenuItem(value: 'tequila', child: Text('🌵 Tequila / Mezcal')),
-                  DropdownMenuItem(value: 'cognac', child: Text('🍷 Cognac / Armagnac')),
+                items: [
+                  DropdownMenuItem(value: 'red', child: Text(tr('🍷 Rouge', '🍷 Red'))),
+                  DropdownMenuItem(value: 'white', child: Text(tr('🥂 Blanc', '🥂 White'))),
+                  DropdownMenuItem(value: 'rosé', child: Text(tr('🌸 Rosé', '🌸 Rosé'))),
+                  DropdownMenuItem(value: 'sparkling', child: Text(tr('🍾 Effervescent', '🍾 Sparkling'))),
+                  DropdownMenuItem(value: 'dessert', child: Text(tr('🍯 Liquoreux', '🍯 Sweet'))),
+                  DropdownMenuItem(value: 'fortified', child: Text(tr('🍷 Fortifié / VDN', '🍷 Fortified'))),
+                  DropdownMenuItem(value: 'orange', child: Text(tr('🍊 Vin Orange', '🍊 Orange wine'))),
+                  DropdownMenuItem(value: 'spirit', child: Text(tr('🥃 Spiritueux', '🥃 Spirit'))),
+                  const DropdownMenuItem(value: 'grappa', child: Text('🍇 Grappa')),
+                  DropdownMenuItem(value: 'eau-de-vie', child: Text(tr('🍐 Eau-de-vie / Marc', '🍐 Brandy / marc'))),
+                  const DropdownMenuItem(value: 'liqueur', child: Text('🍸 Liqueur')),
+                  const DropdownMenuItem(value: 'whisky', child: Text('🥃 Whisky')),
+                  DropdownMenuItem(value: 'rhum', child: Text(tr('🏴‍☠️ Rhum', '🏴‍☠️ Rum'))),
+                  const DropdownMenuItem(value: 'gin', child: Text('🍸 Gin')),
+                  const DropdownMenuItem(value: 'vodka', child: Text('🧊 Vodka')),
+                  const DropdownMenuItem(value: 'tequila', child: Text('🌵 Tequila / Mezcal')),
+                  const DropdownMenuItem(value: 'cognac', child: Text('🍷 Cognac / Armagnac')),
                 ],
                 onChanged: (val) {
                   if (val != null) setState(() => _wineType = val);
@@ -795,10 +796,10 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: TextFormField(
                 controller: _countryCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Pays',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.public),
+                decoration: InputDecoration(
+                  labelText: tr('Pays', 'Country'),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.public),
                 ),
               ),
             ),
@@ -806,10 +807,10 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: TextFormField(
                 controller: _regionCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Région',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.map),
+                decoration: InputDecoration(
+                  labelText: tr('Région', 'Region'),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.map),
                 ),
               ),
             ),
@@ -821,10 +822,10 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: TextFormField(
                 controller: _subRegionCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Sous-région',
-                  hintText: 'ex: Côte de Nuits, Médoc...',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: tr('Sous-région', 'Sub-region'),
+                  hintText: tr('ex: Côte de Nuits, Médoc...', 'e.g. Côte de Nuits, Médoc...'),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ),
@@ -832,10 +833,10 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: TextFormField(
                 controller: _appellationCtrl,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Appellation / AOC / AOP',
-                  hintText: 'ex: Vosne-Romanée',
-                  border: OutlineInputBorder(),
+                  hintText: tr('ex: Vosne-Romanée', 'e.g. Vosne-Romanée'),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ),
@@ -847,10 +848,10 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: TextFormField(
                 controller: _classificationCtrl,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Classification',
-                  hintText: 'Grand Cru, 1er Cru, DOCG...',
-                  border: OutlineInputBorder(),
+                  hintText: tr('Grand Cru, 1er Cru, DOCG...', 'Grand Cru, Premier Cru, DOCG...'),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ),
@@ -858,10 +859,10 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: TextFormField(
                 controller: _cuveeParcelCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Cuvée / Lieu-dit / Parcelle',
-                  hintText: 'ex: Les Amoureuses',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: tr('Cuvée / Lieu-dit / Parcelle', 'Cuvée / lieu-dit / plot'),
+                  hintText: tr('ex: Les Amoureuses', 'e.g. Les Amoureuses'),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ),
@@ -871,11 +872,11 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
         TextFormField(
           controller: _alcoholPctCtrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'Degré d\'alcool (% vol.)',
+          decoration: InputDecoration(
+            labelText: tr('Degré d\'alcool (% vol.)', 'Alcohol (% vol.)'),
             hintText: 'ex: 13.5',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.percent),
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.percent),
           ),
         ),
       ],
@@ -894,15 +895,15 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
           ),
-          child: const Row(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.shield_outlined, color: Color(0xFFD4AF37), size: 22),
-              SizedBox(width: 10),
+              const Icon(Icons.shield_outlined, color: Color(0xFFD4AF37), size: 22),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Modifiez librement les années d\'apogée et de garde selon les conditions de votre cave ou vos préférences. Vos valeurs personnalisées seront protégées et prioritaires sur les recherches automatiques de l\'IA.',
-                  style: TextStyle(fontSize: 13, height: 1.4),
+                  tr('Modifiez librement les années d\'apogée et de garde selon les conditions de votre cave ou vos préférences. Vos valeurs personnalisées seront protégées et prioritaires sur les recherches automatiques de l\'IA.', 'Adjust the peak and ageing years to suit your cellar conditions or your taste. Your own values are protected and take priority over the AI\'s automatic research.'),
+                  style: const TextStyle(fontSize: 13, height: 1.4),
                 ),
               ),
             ],
@@ -917,12 +918,12 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
               child: TextFormField(
                 controller: _peakStartCtrl,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Début d\'apogée (Année) *',
+                decoration: InputDecoration(
+                  labelText: tr('Début d\'apogée (Année) *', 'Peak from (year) *'),
                   hintText: 'ex: 2028',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
-                  helperText: 'Moment où le vin s\'ouvre pleinement',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
+                  helperText: tr('Moment où le vin s\'ouvre pleinement', 'When the wine fully opens up'),
                 ),
               ),
             ),
@@ -931,12 +932,12 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
               child: TextFormField(
                 controller: _peakEndCtrl,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Fin d\'apogée (Année) *',
+                decoration: InputDecoration(
+                  labelText: tr('Fin d\'apogée (Année) *', 'Peak until (year) *'),
                   hintText: 'ex: 2035',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.alarm, color: Colors.orange),
-                  helperText: 'Fin de la phase optimale',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.alarm, color: Colors.orange),
+                  helperText: tr('Fin de la phase optimale', 'End of its best phase'),
                 ),
               ),
             ),
@@ -951,12 +952,12 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
               child: TextFormField(
                 controller: _drinkStartCtrl,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Début dégustation (Année)',
+                decoration: InputDecoration(
+                  labelText: tr('Début dégustation (Année)', 'Drinkable from (year)'),
                   hintText: 'ex: 2025',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.calendar_today),
-                  helperText: 'Quand le vin devient buvable',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  helperText: tr('Quand le vin devient buvable', 'When the wine becomes drinkable'),
                 ),
               ),
             ),
@@ -965,12 +966,12 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
               child: TextFormField(
                 controller: _drinkEndCtrl,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Fin de garde / Limite (Année)',
+                decoration: InputDecoration(
+                  labelText: tr('Fin de garde / Limite (Année)', 'Drink by (year)'),
                   hintText: 'ex: 2040',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.timelapse),
-                  helperText: 'Déclin aromatique après cette date',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.timelapse),
+                  helperText: tr('Déclin aromatique après cette date', 'Aromas decline after this date'),
                 ),
               ),
             ),
@@ -987,33 +988,33 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
       children: [
         TextFormField(
           controller: _grapesCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Encépagement / Cépages',
-            hintText: 'ex: Pinot Noir (100%) ou Cabernet Sauvignon (60%), Merlot (40%)',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.grass),
-            helperText: 'Séparez les cépages par des virgules avec les pourcentages éventuels',
+          decoration: InputDecoration(
+            labelText: tr('Encépagement / Cépages', 'Blend / grapes'),
+            hintText: tr('ex: Pinot Noir (100%) ou Cabernet Sauvignon (60%), Merlot (40%)', 'e.g. Pinot Noir (100%) or Cabernet Sauvignon (60%), Merlot (40%)'),
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.grass),
+            helperText: tr('Séparez les cépages par des virgules avec les pourcentages éventuels', 'Separate grapes with commas, with percentages if you know them'),
           ),
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _foodPairingsCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Accords Mets & Vins conseillés',
-            hintText: 'ex: Côte de bœuf grillée, Magret de canard, Comté affiné',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.restaurant),
-            helperText: 'Séparez chaque accord par une virgule',
+          decoration: InputDecoration(
+            labelText: tr('Accords Mets & Vins conseillés', 'Suggested food pairings'),
+            hintText: tr('ex: Côte de bœuf grillée, Magret de canard, Comté affiné', 'e.g. grilled rib of beef, duck breast, aged Comté'),
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.restaurant),
+            helperText: tr('Séparez chaque accord par une virgule', 'Separate each pairing with a comma'),
           ),
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _tastingNotesCtrl,
           maxLines: 5,
-          decoration: const InputDecoration(
-            labelText: 'Profil Sommelier & Notes de dégustation œnologique',
-            hintText: 'Arômes au nez (fruits noirs, épices...), attaque en bouche, structure des tanins, longueur en finale...',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: tr('Profil Sommelier & Notes de dégustation œnologique', 'Sommelier profile & tasting notes'),
+            hintText: tr('Arômes au nez (fruits noirs, épices...), attaque en bouche, structure des tanins, longueur en finale...', 'Nose (black fruit, spice...), attack, tannin structure, length of the finish...'),
+            border: const OutlineInputBorder(),
             alignLabelWithHint: true,
           ),
         ),
@@ -1058,9 +1059,9 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                                   : const Color(0xFFD4AF37),
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Niveau de remplissage',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        Text(
+                          tr('Niveau de remplissage', 'Fill level'),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                       ],
                     ),
@@ -1120,7 +1121,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                   runSpacing: 6,
                   children: [
                     ChoiceChip(
-                      label: const Text('Vide (0%)'),
+                      label: Text(tr('Vide (0%)', 'Empty (0%)')),
                       selected: _fillLevel == 0,
                       onSelected: (_) => setState(() => _fillLevel = 0),
                     ),
@@ -1140,7 +1141,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                       onSelected: (_) => setState(() => _fillLevel = 75),
                     ),
                     ChoiceChip(
-                      label: const Text('Pleine (100%)'),
+                      label: Text(tr('Pleine (100%)', 'Full (100%)')),
                       selected: _fillLevel == 100,
                       onSelected: (_) => setState(() => _fillLevel = 100),
                     ),
@@ -1155,9 +1156,9 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Format de la bouteille / Contenance',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            Text(
+              tr('Format de la bouteille / Contenance', 'Bottle size'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
             const SizedBox(height: 6),
             Wrap(
@@ -1184,7 +1185,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                   avatar: const Icon(Icons.more_horiz, size: 16),
                   label: Text(!['37.5cl', '75cl', '1.5L', '3L'].contains(_bottleSize)
                       ? BottleSize.fromCode(_bottleSize).shortName
-                      : 'Autre format...'),
+                      : tr('Autre format...', 'Other size...')),
                   onPressed: _showAllBottleSizesPicker,
                 ),
               ],
@@ -1220,7 +1221,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                         border: OutlineInputBorder(),
                         contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 12),
                       ),
-                      validator: (v) => (int.tryParse(v ?? '') ?? -1) < 0 ? 'Invalide' : null,
+                      validator: (v) => (int.tryParse(v ?? '') ?? -1) < 0 ? tr('Invalide', 'Invalid') : null,
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -1243,7 +1244,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                 controller: _purchasePriceCtrl,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  labelText: 'Prix d\'achat unitaire',
+                  labelText: tr('Prix d\'achat unitaire', 'Purchase price per bottle'),
                   border: const OutlineInputBorder(),
                   prefixText: '${CurrencyHelper.getSymbol(_currency)} ',
                 ),
@@ -1254,9 +1255,9 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
               width: 90,
               child: DropdownButtonFormField<String>(
                 initialValue: _currency,
-                decoration: const InputDecoration(
-                  labelText: 'Devise',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: tr('Devise', 'Currency'),
+                  border: const OutlineInputBorder(),
                 ),
                 items: ['EUR', 'USD', 'CHF', 'GBP', 'CAD'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                 onChanged: (val) {
@@ -1271,7 +1272,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
           controller: _estimatedValueCtrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
-            labelText: 'Valeur marchande estimée unitaire',
+            labelText: tr('Valeur marchande estimée unitaire', 'Estimated market value per bottle'),
             hintText: 'ex: 45.00',
             border: const OutlineInputBorder(),
             prefixText: '${CurrencyHelper.getSymbol(_currency)} ',
@@ -1296,11 +1297,11 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: TextFormField(
                 controller: _rackCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Casier / Rang',
-                  hintText: 'ex: A, Nord...',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.grid_on),
+                decoration: InputDecoration(
+                  labelText: tr('Casier / Rang', 'Rack / row'),
+                  hintText: tr('ex: A, Nord...', 'e.g. A, North...'),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.grid_on),
                 ),
               ),
             ),
@@ -1308,10 +1309,10 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: TextFormField(
                 controller: _shelfCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Tablette / Niveau',
-                  hintText: 'ex: 2, Haut...',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: tr('Tablette / Niveau', 'Shelf / level'),
+                  hintText: tr('ex: 2, Haut...', 'e.g. 2, Top...'),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ),
@@ -1319,10 +1320,10 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             Expanded(
               child: TextFormField(
                 controller: _positionCtrl,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Position',
-                  hintText: 'ex: 4, Gauche...',
-                  border: OutlineInputBorder(),
+                  hintText: tr('ex: 4, Gauche...', 'e.g. 4, Left...'),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ),
@@ -1336,14 +1337,14 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.lock_outline, size: 18, color: Color(0xFFD4AF37)),
-              SizedBox(width: 8),
+              const Icon(Icons.lock_outline, size: 18, color: Color(0xFFD4AF37)),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Ces notes sont strictement privées, protégées et ne seront jamais altérées par l\'IA.',
-                  style: TextStyle(fontSize: 12, height: 1.3),
+                  tr('Ces notes sont strictement privées, protégées et ne seront jamais altérées par l\'IA.', 'These notes are strictly private, protected, and never changed by the AI.'),
+                  style: const TextStyle(fontSize: 12, height: 1.3),
                 ),
               ),
             ],
@@ -1353,11 +1354,11 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
         TextFormField(
           controller: _userNotesCtrl,
           maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'Mes Notes & Commentaires Personnels',
-            hintText: 'Vos impressions personnelles, circonstances d\'achat, souvenirs...',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.edit_note),
+          decoration: InputDecoration(
+            labelText: tr('Mes Notes & Commentaires Personnels', 'My personal notes'),
+            hintText: tr('Vos impressions personnelles, circonstances d\'achat, souvenirs...', 'Your impressions, where you bought it, memories...'),
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.edit_note),
             alignLabelWithHint: true,
           ),
         ),
@@ -1375,11 +1376,11 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
-                'Choisir un format de bouteille',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                tr('Choisir un format de bouteille', 'Choose a bottle size'),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),
             const Divider(),

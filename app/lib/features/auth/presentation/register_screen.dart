@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/utils/langue.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -33,7 +34,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final email = emailCtrl.text.trim();
     if (email.isEmpty || !email.contains('@')) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez renseigner une adresse email valide')),
+        SnackBar(content: Text(tr('Veuillez renseigner une adresse email valide', 'Please enter a valid email address'))),
       );
       return;
     }
@@ -50,7 +51,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Envoi impossible : $e'),
+          content: Text(tr('Envoi impossible : $e', 'Couldn\'t send: $e')),
           backgroundColor: Colors.red.shade700,
         ),
       );
@@ -72,7 +73,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final name = nameCtrl.text.trim();
     if (email.isEmpty || pass.isEmpty || name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n?.registerFillAllFields ?? 'Veuillez remplir tous les champs')),
+        SnackBar(content: Text(l10n?.registerFillAllFields ?? tr('Veuillez remplir tous les champs', 'Please fill in all the fields'))),
       );
       return;
     }
@@ -110,10 +111,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           await repo.signIn(email, pass);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('👋 Compte existant reconnu ! Connexion réussie.'),
-                backgroundColor: Color(0xFF10B981),
-                duration: Duration(seconds: 4),
+              SnackBar(
+                content: Text(tr('👋 Compte existant reconnu ! Connexion réussie.', '👋 Existing account recognised! You\'re signed in.')),
+                backgroundColor: const Color(0xFF10B981),
+                duration: const Duration(seconds: 4),
               ),
             );
             context.go('/');
@@ -151,20 +152,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       context: context,
       builder: (dialogCtx) => AlertDialog(
         icon: const Icon(Icons.account_circle, color: Color(0xFF8B1E3F), size: 48),
-        title: const Text('Compte déjà existant', textAlign: TextAlign.center),
+        title: Text(tr('Compte déjà existant', 'Account already exists'), textAlign: TextAlign.center),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'L\'adresse email $email possède déjà un compte Chatmelier.',
+              tr('L\'adresse email $email possède déjà un compte Chatmelier.', 'The email address $email already has a Chatmelier account.'),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 14),
-            const Text(
-              'Pour accéder à votre cave immédiatement, choisissez une option :',
+            Text(
+              tr('Pour accéder à votre cave immédiatement, choisissez une option :', 'To get to your cellar right away, choose an option:'),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+              style: const TextStyle(fontSize: 13, color: Colors.grey),
             ),
           ],
         ),
@@ -178,7 +179,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
             icon: const Icon(Icons.mark_email_read_outlined, size: 20),
-            label: const Text('Recevoir un lien magique (Sans mot de passe)', style: TextStyle(fontWeight: FontWeight.bold)),
+            label: Text(tr('Recevoir un lien magique (Sans mot de passe)', 'Get a magic link (no password)'), style: const TextStyle(fontWeight: FontWeight.bold)),
             onPressed: () async {
               Navigator.of(dialogCtx).pop();
               try {
@@ -187,7 +188,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 if (mounted) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text('✉️ Lien de connexion envoyé à $email ! Cliquez sur le lien reçu par email (vérifiez vos spams) pour vous connecter.'),
+                      content: Text(tr('✉️ Lien de connexion envoyé à $email ! Cliquez sur le lien reçu par email (vérifiez vos spams) pour vous connecter.', '✉️ Sign-in link sent to $email! Tap the link in the email (check your spam folder) to sign in.')),
                       backgroundColor: const Color(0xFF10B981),
                       duration: const Duration(seconds: 8),
                     ),
@@ -197,7 +198,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               } catch (err) {
                 if (mounted) {
                   messenger.showSnackBar(
-                    SnackBar(content: Text('Erreur : $err'), backgroundColor: Colors.redAccent),
+                    SnackBar(content: Text(tr('Erreur : $err', 'Error: $err')), backgroundColor: Colors.redAccent),
                   );
                 }
               }
@@ -205,7 +206,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
           OutlinedButton.icon(
             icon: const Icon(Icons.login, size: 18),
-            label: const Text('Se connecter avec mot de passe'),
+            label: Text(tr('Se connecter avec mot de passe', 'Sign in with a password')),
             onPressed: () {
               Navigator.of(dialogCtx).pop();
               context.go('/login');
@@ -213,7 +214,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: const Text('Modifier l\'email'),
+            child: Text(tr('Modifier l\'email', 'Change the email')),
           ),
         ],
       ),
@@ -225,7 +226,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n?.registerTitle ?? 'Créer un compte')),
+      appBar: AppBar(title: Text(l10n?.registerTitle ?? tr('Créer un compte', 'Create an account'))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -248,15 +249,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         color: Color(0xFF10B981), size: 32),
                     const SizedBox(height: 10),
                     Text(
-                      'Lien envoyé à ${emailCtrl.text.trim()}',
+                      tr('Lien envoyé à ${emailCtrl.text.trim()}', 'Link sent to ${emailCtrl.text.trim()}'),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Ouvrez-le depuis ce téléphone et vous y êtes. Pensez aux spams.',
+                    Text(
+                      tr('Ouvrez-le depuis ce téléphone et vous y êtes. Pensez aux spams.', 'Open it on this phone and you\'re in. Check your spam folder.'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13),
+                      style: const TextStyle(fontSize: 13),
                     ),
                   ],
                 ),
@@ -265,7 +266,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Center(
                 child: TextButton(
                   onPressed: () => setState(() => _lienEnvoye = false),
-                  child: const Text('Changer d\'adresse'),
+                  child: Text(tr('Changer d\'adresse', 'Change address')),
                 ),
               ),
             ] else ...[
@@ -288,7 +289,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextField(
                   controller: nameCtrl,
                   decoration: InputDecoration(
-                    labelText: l10n?.registerNameLabel ?? 'Nom d\'affichage / Prénom',
+                    labelText: l10n?.registerNameLabel ?? tr('Nom d\'affichage / Prénom', 'Display name / first name'),
                     prefixIcon: const Icon(Icons.person_outline),
                     border: const OutlineInputBorder(),
                   ),
@@ -299,7 +300,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText:
-                        l10n?.loginPasswordLabel ?? 'Mot de passe (min 6 caractères)',
+                        l10n?.loginPasswordLabel ?? tr('Mot de passe (min 6 caractères)', 'Password (at least 6 characters)'),
                     prefixIcon: const Icon(Icons.lock_outline),
                     border: const OutlineInputBorder(),
                   ),
@@ -320,10 +321,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 child: Text(
                   _isLoading
-                      ? 'Un instant…'
+                      ? tr('Un instant…', 'One moment…')
                       : (_avecMotDePasse
-                          ? (l10n?.registerSubmitButton ?? 'Créer mon compte')
-                          : 'Recevoir mon lien de connexion'),
+                          ? (l10n?.registerSubmitButton ?? tr('Créer mon compte', 'Create my account'))
+                          : tr('Recevoir mon lien de connexion', 'Email me a sign-in link')),
                   style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -337,8 +338,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       setState(() => _avecMotDePasse = !_avecMotDePasse),
                   child: Text(
                     _avecMotDePasse
-                        ? 'Plutôt un lien par e-mail'
-                        : 'Je préfère un mot de passe',
+                        ? tr('Plutôt un lien par e-mail', 'Rather get a link by email')
+                        : tr('Je préfère un mot de passe', 'I\'d rather use a password'),
                     style: const TextStyle(fontSize: 13),
                   ),
                 ),
@@ -350,9 +351,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               child: TextButton.icon(
                 onPressed: () => context.go('/login'),
                 icon: const Icon(Icons.arrow_back, size: 16),
-                label: const Text(
-                  'Vous avez déjà un compte ? Se connecter',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                label: Text(
+                  tr('Vous avez déjà un compte ? Se connecter', 'Already have an account? Sign in'),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                 ),
               ),
             ),

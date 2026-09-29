@@ -12,6 +12,7 @@ import 'chatmelier_thinking_indicator.dart';
 import '../../offline/presentation/chatmelier_offline_antenna_widget.dart';
 import '../../offline/presentation/sync_provider.dart';
 import '../../offline/data/connectivity_service.dart';
+import '../../../shared/utils/langue.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String? bottleId;
@@ -245,8 +246,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           child: Padding(
             padding: const EdgeInsets.only(bottom: 24),
             child: ChatmelierOfflineAntennaWidget(
-              title: 'Chatmelier est hors-ligne',
-              message: 'L\'IA Chatmelier requiert une connexion internet pour vous conseiller et analyser votre cave. Vos bouteilles et statistiques restent consultables hors-ligne.',
+              title: tr('Chatmelier est hors-ligne', 'Chatmelier is offline'),
+              message: tr('L\'IA Chatmelier requiert une connexion internet pour vous conseiller et analyser votre cave. Vos bouteilles et statistiques restent consultables hors-ligne.', 'Chatmelier\'s AI needs an internet connection to advise you and analyse your cellar. Your bottles and statistics stay available offline.'),
               onRetry: () async {
                 final online = await ref.read(connectivityServiceProvider).checkConnection();
                 if (online && mounted && ctx.mounted) {
@@ -479,7 +480,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     backgroundColor: const Color(0xFF8B1E3F),
                     foregroundColor: Colors.white,
                     elevation: 4,
-                    tooltip: 'Aller tout en bas',
+                    tooltip: tr('Aller tout en bas', 'Scroll to the bottom'),
                     child: const Icon(Icons.arrow_downward, size: 20),
                   ),
                 ),
@@ -575,7 +576,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           backgroundColor: const Color(0xFF8B1E3F),
                           foregroundColor: Colors.white,
                           elevation: 4,
-                          tooltip: 'Aller tout en bas',
+                          tooltip: tr('Aller tout en bas', 'Scroll to the bottom'),
                           child: const Icon(Icons.arrow_downward, size: 20),
                         ),
                       ),
@@ -662,7 +663,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 18),
               const SizedBox(width: 8),
               Text(
-                'INSPIRATIONS SOMMELIER',
+                tr('INSPIRATIONS SOMMELIER', 'SOMMELIER IDEAS'),
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.bold,
@@ -675,34 +676,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           const SizedBox(height: 10),
           _buildSidebarPromptCard(
             title: names.length >= 2
-                ? 'Soirée ${names[0]} & ${names[1]} 🍷'
-                : (names.length == 1 ? 'Soirée ${names[0]} & moi 🍷' : 'Inspiration du Soir 🍷'),
-            subtitle: 'Conseil sur-mesure pour vos profils de goût',
+                ? tr('Soirée ${names[0]} & ${names[1]} 🍷', 'An evening with ${names[0]} & ${names[1]} 🍷')
+                : (names.length == 1 ? tr('Soirée ${names[0]} & moi 🍷', 'An evening with ${names[0]} 🍷') : tr('Inspiration du Soir 🍷', 'Tonight\'s idea 🍷')),
+            subtitle: tr('Conseil sur-mesure pour vos profils de goût', 'Tailored to your palate profiles'),
             prompt: names.length >= 2
-                ? 'Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à ${names[0]} et à ${names[1]} ?'
+                ? tr('Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à ${names[0]} et à ${names[1]} ?', 'Which of my bottles should I open tonight to please both ${names[0]} and ${names[1]}?')
                 : (names.length == 1
-                    ? 'Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à ${names[0]} et à moi ?'
-                    : 'Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles pour passer un excellent moment ?'),
+                    ? tr('Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à ${names[0]} et à moi ?', 'Which of my bottles should I open tonight that both ${names[0]} and I will enjoy?')
+                    : tr('Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles pour passer un excellent moment ?', 'Which of my bottles should I open tonight for a great evening?')),
           ),
           _buildSidebarPromptCard(
-            title: 'Apogées prioritaires ⏰',
-            subtitle: 'Les vins à boire sans tarder',
-            prompt: 'Quelles sont les bouteilles de ma cave actuellement à leur apogée ou à boire rapidement ?',
+            title: tr('Apogées prioritaires ⏰', 'Drink these first ⏰'),
+            subtitle: tr('Les vins à boire sans tarder', 'Wines to drink soon'),
+            prompt: tr('Quelles sont les bouteilles de ma cave actuellement à leur apogée ou à boire rapidement ?', 'Which bottles in my cellar are at their peak right now, or should be drunk soon?'),
           ),
           _buildSidebarPromptCard(
-            title: 'Accord Viande Rouge 🥩',
-            subtitle: 'Sélection de rouges tanniques ou soyeux',
-            prompt: 'Quel vin de ma cave serait idéal pour accompagner une belle pièce de bœuf ou des grillades ?',
+            title: tr('Accord Viande Rouge 🥩', 'Red meat pairing 🥩'),
+            subtitle: tr('Sélection de rouges tanniques ou soyeux', 'Firm or silky reds'),
+            prompt: tr('Quel vin de ma cave serait idéal pour accompagner une belle pièce de bœuf ou des grillades ?', 'Which wine from my cellar would be ideal with a fine cut of beef or grilled meat?'),
           ),
           _buildSidebarPromptCard(
-            title: 'Accord Poisson / Crustacés 🐟',
-            subtitle: 'Sélection de blancs minéraux ou ronds',
-            prompt: 'Quel vin blanc de ma cave ouvrir pour accompagner un poisson ou des fruits de mer ?',
+            title: tr('Accord Poisson / Crustacés 🐟', 'Fish & shellfish pairing 🐟'),
+            subtitle: tr('Sélection de blancs minéraux ou ronds', 'Mineral or rounder whites'),
+            prompt: tr('Quel vin blanc de ma cave ouvrir pour accompagner un poisson ou des fruits de mer ?', 'Which white from my cellar should I open with fish or seafood?'),
           ),
           _buildSidebarPromptCard(
-            title: 'Plateau de Fromages 🧀',
-            subtitle: 'Accords blancs & rouges affinés',
-            prompt: 'Quels vins de ma cave suggères-tu pour un accord parfait avec un plateau de fromages variés ?',
+            title: tr('Plateau de Fromages 🧀', 'Cheese board 🧀'),
+            subtitle: tr('Accords blancs & rouges affinés', 'White & red pairings'),
+            prompt: tr('Quels vins de ma cave suggères-tu pour un accord parfait avec un plateau de fromages variés ?', 'Which wines from my cellar would you suggest with a mixed cheese board?'),
           ),
 
           const SizedBox(height: 18),
@@ -715,7 +716,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 18),
               const SizedBox(width: 8),
               Text(
-                'MA CAVE EN DIRECT',
+                tr('MA CAVE EN DIRECT', 'ASK ABOUT MY CELLAR'),
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.bold,
@@ -784,7 +785,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           size: 16, color: Color(0xFF8B1E3F)),
                       onTap: () {
                         _sendMessage(
-                          'Que penses-tu de mon $name $vintage ($region) ? Donne-moi son apogée estimée, son profil gustatif et les meilleurs accords mets-vins.',
+                          tr('Que penses-tu de mon $name $vintage ($region) ? Donne-moi son apogée estimée, son profil gustatif et les meilleurs accords mets-vins.', 'What do you think of my $name $vintage ($region)? Give me its estimated peak, its taste profile and the best food pairings.'),
                         );
                       },
                     ),

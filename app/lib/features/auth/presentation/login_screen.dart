@@ -6,6 +6,7 @@ import '../../../shared/providers/supabase_provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../../../shared/utils/langue.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -45,22 +46,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   String _formatErrorMessage(dynamic e) {
     final str = e.toString().toLowerCase();
     if (str.contains('invalid login credentials') || str.contains('invalid_credentials')) {
-      return 'Email ou mot de passe incorrect. Si vous n\'avez pas encore de compte, cliquez sur "Créer un compte".';
+      return tr('Email ou mot de passe incorrect. Si vous n\'avez pas encore de compte, cliquez sur "Créer un compte".', 'Incorrect email or password. If you don\'t have an account yet, tap "Create an account".');
     }
     if (str.contains('email_address_invalid')) {
-      return 'Format d\'adresse email invalide. Veuillez vérifier votre saisie.';
+      return tr('Format d\'adresse email invalide. Veuillez vérifier votre saisie.', 'Invalid email address. Please check what you typed.');
     }
     if (str.contains('user already registered') || str.contains('user_already_exists')) {
-      return 'Cette adresse email est déjà enregistrée. Veuillez vous connecter.';
+      return tr('Cette adresse email est déjà enregistrée. Veuillez vous connecter.', 'This email address is already registered. Please sign in.');
     }
     if (str.contains('email not confirmed')) {
-      return 'Adresse email non confirmée. Veuillez vérifier votre boîte de réception.';
+      return tr('Adresse email non confirmée. Veuillez vérifier votre boîte de réception.', 'Email address not confirmed. Please check your inbox.');
     }
     if (str.contains('password should be at least 6')) {
-      return 'Le mot de passe doit comporter au moins 6 caractères.';
+      return tr('Le mot de passe doit comporter au moins 6 caractères.', 'The password must be at least 6 characters long.');
     }
     if (str.contains('rate limit') || str.contains('over_email_send_rate_limit')) {
-      return 'Trop de tentatives en peu de temps. Veuillez patienter 60 secondes avant de réessayer.';
+      return tr('Trop de tentatives en peu de temps. Veuillez patienter 60 secondes avant de réessayer.', 'Too many attempts in a short time. Please wait 60 seconds before trying again.');
     }
     if (str.contains('socketexception') ||
         str.contains('network') ||
@@ -68,16 +69,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         str.contains('failed host lookup') ||
         str.contains('timed out') ||
         str.contains('offline')) {
-      return 'Impossible de joindre le serveur. Veuillez vérifier votre connexion Internet et réessayer.';
+      return tr('Impossible de joindre le serveur. Veuillez vérifier votre connexion Internet et réessayer.', 'Can\'t reach the server. Please check your internet connection and try again.');
     }
-    return 'Une erreur est survenue lors de la connexion. Veuillez réessayer.';
+    return tr('Une erreur est survenue lors de la connexion. Veuillez réessayer.', 'Something went wrong while signing in. Please try again.');
   }
 
   Future<void> _sendMagicLink() async {
     final email = _emailCtrl.text.trim();
     if (email.isEmpty || !email.contains('@')) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez renseigner une adresse email valide')),
+        SnackBar(content: Text(tr('Veuillez renseigner une adresse email valide', 'Please enter a valid email address'))),
       );
       return;
     }
@@ -92,7 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✉️ Lien de connexion envoyé à $email ! Cliquez sur le lien reçu (vérifiez vos spams) pour entrer directement.'),
+            content: Text(tr('✉️ Lien de connexion envoyé à $email ! Cliquez sur le lien reçu (vérifiez vos spams) pour entrer directement.', '✉️ Sign-in link sent to $email! Tap the link in that email (check your spam folder) to sign straight in.')),
             backgroundColor: const Color(0xFF10B981),
             duration: const Duration(seconds: 7),
           ),
@@ -117,7 +118,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     final pass = _passCtrl.text;
     if (email.isEmpty || pass.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez remplir votre email et votre mot de passe')),
+        SnackBar(content: Text(tr('Veuillez remplir votre email et votre mot de passe', 'Please enter your email and password'))),
       );
       return;
     }
@@ -133,11 +134,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         if (errText.contains('invalid login credentials') || errText.contains('invalid_credentials')) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Mot de passe incorrect ou compte créé sans mot de passe.'),
+              content: Text(tr('Mot de passe incorrect ou compte créé sans mot de passe.', 'Wrong password, or an account created without a password.')),
               backgroundColor: Colors.orange.shade800,
               duration: const Duration(seconds: 8),
               action: SnackBarAction(
-                label: 'Connexion email ✉️',
+                label: tr('Connexion email ✉️', 'Email sign-in ✉️'),
                 textColor: Colors.white,
                 onPressed: () {
                   _tabController.animateTo(0);
@@ -169,23 +170,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       context: context,
       builder: (dialogCtx) => AlertDialog(
         icon: const Icon(Icons.lock_reset, color: Color(0xFF8B1E3F), size: 40),
-        title: const Text('Mot de passe oublié ?', textAlign: TextAlign.center),
+        title: Text(tr('Mot de passe oublié ?', 'Forgot your password?'), textAlign: TextAlign.center),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Renseignez votre email pour recevoir un lien direct de connexion (sans mot de passe) ou un lien de réinitialisation :',
-              style: TextStyle(fontSize: 14),
+            Text(
+              tr('Renseignez votre email pour recevoir un lien direct de connexion (sans mot de passe) ou un lien de réinitialisation :', 'Enter your email to get a direct sign-in link (no password needed) or a reset link:'),
+              style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Adresse email',
-                prefixIcon: Icon(Icons.email_outlined),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: tr('Adresse email', 'Email address'),
+                prefixIcon: const Icon(Icons.email_outlined),
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -198,12 +199,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               foregroundColor: Colors.white,
             ),
             icon: const Icon(Icons.mark_email_read_outlined, size: 18),
-            label: const Text('Lien direct par email (Recommandé)'),
+            label: Text(tr('Lien direct par email (Recommandé)', 'Direct link by email (recommended)')),
             onPressed: () async {
               final targetEmail = emailController.text.trim();
               if (targetEmail.isEmpty || !targetEmail.contains('@')) {
                 messenger.showSnackBar(
-                  const SnackBar(content: Text('Veuillez renseigner une adresse email valide.')),
+                  SnackBar(content: Text(tr('Veuillez renseigner une adresse email valide.', 'Please enter a valid email address.'))),
                 );
                 return;
               }
@@ -215,12 +216,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           ),
           OutlinedButton.icon(
             icon: const Icon(Icons.send_outlined, size: 18),
-            label: const Text('Réinitialiser le mot de passe'),
+            label: Text(tr('Réinitialiser le mot de passe', 'Reset password')),
             onPressed: () async {
               final targetEmail = emailController.text.trim();
               if (targetEmail.isEmpty || !targetEmail.contains('@')) {
                 messenger.showSnackBar(
-                  const SnackBar(content: Text('Veuillez renseigner une adresse email valide.')),
+                  SnackBar(content: Text(tr('Veuillez renseigner une adresse email valide.', 'Please enter a valid email address.'))),
                 );
                 return;
               }
@@ -231,7 +232,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 if (mounted) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text('✉️ Email de réinitialisation envoyé à $targetEmail (vérifiez vos courriers indésirables / spams)'),
+                      content: Text(tr('✉️ Email de réinitialisation envoyé à $targetEmail (vérifiez vos courriers indésirables / spams)', '✉️ Reset email sent to $targetEmail (check your junk / spam folder)')),
                       backgroundColor: const Color(0xFF10B981),
                       duration: const Duration(seconds: 7),
                     ),
@@ -240,7 +241,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               } catch (err) {
                 if (mounted) {
                   messenger.showSnackBar(
-                    SnackBar(content: Text('Erreur : $err'), backgroundColor: Colors.redAccent),
+                    SnackBar(content: Text(tr('Erreur : $err', 'Error: $err')), backgroundColor: Colors.redAccent),
                   );
                 }
               }
@@ -248,7 +249,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: const Text('Annuler'),
+            child: Text(tr('Annuler', 'Cancel')),
           ),
         ],
       ),
@@ -265,7 +266,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       AppLogger.error('AUTH', 'Google login failed', e, stack);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Échec de connexion Google : $e')),
+          SnackBar(content: Text(tr('Échec de connexion Google : $e', 'Google sign-in failed: $e'))),
         );
       }
     } finally {
@@ -283,20 +284,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
         ),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.groups_rounded, color: Color(0xFFD4AF37)),
-            SizedBox(width: 8),
-            Text('Rejoindre une table', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            const Icon(Icons.groups_rounded, color: Color(0xFFD4AF37)),
+            const SizedBox(width: 8),
+            Text(tr('Rejoindre une table', 'Join a table'), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Entrez le code de table fourni par votre hôte (ex: TABLE-98931) ou collez le lien complet :',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
+            Text(
+              tr('Entrez le code de table fourni par votre hôte (ex: TABLE-98931) ou collez le lien complet :', 'Enter the table code your host gave you (e.g. TABLE-98931) or paste the full link:'),
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -304,7 +305,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               autofocus: true,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'TABLE-XXXXX ou lien',
+                hintText: tr('TABLE-XXXXX ou lien', 'TABLE-XXXXX or link'),
                 hintStyle: const TextStyle(color: Colors.white38),
                 filled: true,
                 fillColor: Colors.black26,
@@ -316,7 +317,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: const Text('Annuler', style: TextStyle(color: Colors.white60)),
+            child: Text(tr('Annuler', 'Cancel'), style: const TextStyle(color: Colors.white60)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -344,7 +345,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 context.push('/table-consensus?session=$session');
               }
             },
-            child: const Text('Rejoindre'),
+            child: Text(tr('Rejoindre', 'Join')),
           ),
         ],
       ),
@@ -389,7 +390,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    l10n?.loginTagline ?? 'Votre cave à vin intelligente et partagée',
+                    l10n?.loginTagline ?? tr('Votre cave à vin intelligente et partagée', 'Your smart, shared wine cellar'),
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -426,12 +427,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'Au restaurant ce soir ?',
-                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
+                                  Text(
+                                    tr('Au restaurant ce soir ?', 'Eating out tonight?'),
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
                                   ),
                                   Text(
-                                    'Profitez du sommelier & de la table sans compte !',
+                                    tr('Profitez du sommelier & de la table sans compte !', 'Use the sommelier and the table without an account!'),
                                     style: TextStyle(color: const Color(0xFFD4AF37).withValues(alpha: 0.9), fontSize: 11),
                                   ),
                                 ],
@@ -451,7 +452,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
                                 icon: const Icon(Icons.groups_rounded, size: 16),
-                                label: const Text('Rejoindre table', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                label: Text(tr('Rejoindre table', 'Join table'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                                 onPressed: () => _showJoinTableDialog(context),
                               ),
                             ),
@@ -465,7 +466,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
                                 icon: const Icon(Icons.camera_alt_rounded, size: 16),
-                                label: const Text('Scanner menu', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                label: Text(tr('Scanner menu', 'Scan menu'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                                 onPressed: () => context.push('/scan/menu'),
                               ),
                             ),
@@ -508,7 +509,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                             const _LogoGoogle(taille: 20),
                             const SizedBox(width: 12),
                             Text(
-                              l10n?.loginGoogleButton ?? 'Continuer avec Google',
+                              l10n?.loginGoogleButton ?? tr('Continuer avec Google', 'Continue with Google'),
                               style: const TextStyle(
                                 color: Color(0xFF3C4043),
                                 fontSize: 15,
@@ -552,8 +553,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                       controller: _tabController,
                       indicatorSize: TabBarIndicatorSize.tab,
                       tabs: [
-                        Tab(text: l10n?.loginTabMagicLink ?? '✉️ Lien de connexion'),
-                        Tab(text: l10n?.loginTabPassword ?? '🔑 Mot de passe'),
+                        Tab(text: l10n?.loginTabMagicLink ?? tr('✉️ Lien de connexion', '✉️ Sign-in link')),
+                        Tab(text: l10n?.loginTabPassword ?? tr('🔑 Mot de passe', '🔑 Password')),
                       ],
                     ),
                   ),
@@ -573,7 +574,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                               TextField(
                                 controller: _emailCtrl,
                                 decoration: InputDecoration(
-                                  labelText: l10n?.loginEmailLabel ?? 'Adresse email',
+                                  labelText: l10n?.loginEmailLabel ?? tr('Adresse email', 'Email address'),
                                   prefixIcon: const Icon(Icons.email_outlined),
                                   border: const OutlineInputBorder(),
                                 ),
@@ -591,21 +592,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Row(
+                                      Row(
                                         children: [
-                                          Icon(Icons.mark_email_read_outlined, color: Color(0xFF10B981), size: 24),
-                                          SizedBox(width: 10),
+                                          const Icon(Icons.mark_email_read_outlined, color: Color(0xFF10B981), size: 24),
+                                          const SizedBox(width: 10),
                                           Expanded(
                                             child: Text(
-                                              'Lien de connexion envoyé !',
-                                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF065F46)),
+                                              tr('Lien de connexion envoyé !', 'Sign-in link sent!'),
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF065F46)),
                                             ),
                                           ),
                                         ],
                                       ),
                                       const SizedBox(height: 10),
                                       Text(
-                                        'Un email sécurisé a été envoyé à :\n${_emailCtrl.text.trim()}\n\nOuvrez simplement cet email et cliquez sur le lien pour vous connecter automatiquement à votre cave (vérifiez votre dossier spams si nécessaire).',
+                                        tr('Un email sécurisé a été envoyé à :\n${_emailCtrl.text.trim()}\n\nOuvrez simplement cet email et cliquez sur le lien pour vous connecter automatiquement à votre cave (vérifiez votre dossier spams si nécessaire).', 'A secure email has been sent to:\n${_emailCtrl.text.trim()}\n\nJust open it and tap the link to sign in to your cellar automatically (check your spam folder if needed).'),
                                         style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
                                       ),
                                     ],
@@ -622,7 +623,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   ),
                                   icon: const Icon(Icons.refresh, size: 18),
                                   label: Text(
-                                    _isLoading ? 'Renvoi en cours...' : 'Renvoyer le lien de connexion',
+                                    _isLoading ? tr('Renvoi en cours...', 'Resending...') : tr('Renvoyer le lien de connexion', 'Resend the sign-in link'),
                                     style: const TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -632,7 +633,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                     onPressed: () => setState(() {
                                       _magicLinkSent = false;
                                     }),
-                                    child: const Text('Changer d\'adresse email', style: TextStyle(fontSize: 13)),
+                                    child: Text(tr('Changer d\'adresse email', 'Use another email address'), style: const TextStyle(fontSize: 13)),
                                   ),
                                 ),
                               ] else ...[
@@ -646,13 +647,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   ),
                                   icon: const Icon(Icons.send, color: Colors.white, size: 18),
                                   label: Text(
-                                    _isLoading ? 'Envoi en cours...' : (l10n?.loginSendMagicLink ?? 'Recevoir mon lien de connexion'),
+                                    _isLoading ? tr('Envoi en cours...', 'Sending...') : (l10n?.loginSendMagicLink ?? tr('Recevoir mon lien de connexion', 'Email me a sign-in link')),
                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                                   ),
                                 ),
                                 const SizedBox(height: 14),
                                 Text(
-                                  'Connexion sans mot de passe : vous recevrez un email contenant un lien direct et sécurisé pour accéder à votre cave.',
+                                  tr('Connexion sans mot de passe : vous recevrez un email contenant un lien direct et sécurisé pour accéder à votre cave.', 'Password-free sign-in: you\'ll get an email with a direct, secure link to your cellar.'),
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
@@ -672,7 +673,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                               TextField(
                                 controller: _emailCtrl,
                                 decoration: InputDecoration(
-                                  labelText: l10n?.loginEmailLabel ?? 'Adresse email',
+                                  labelText: l10n?.loginEmailLabel ?? tr('Adresse email', 'Email address'),
                                   prefixIcon: const Icon(Icons.email_outlined),
                                   border: const OutlineInputBorder(),
                                 ),
@@ -682,7 +683,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                               TextField(
                                 controller: _passCtrl,
                                 decoration: InputDecoration(
-                                  labelText: l10n?.loginPasswordLabel ?? 'Mot de passe',
+                                  labelText: l10n?.loginPasswordLabel ?? tr('Mot de passe', 'Password'),
                                   prefixIcon: const Icon(Icons.lock_outline),
                                   border: const OutlineInputBorder(),
                                 ),
@@ -692,7 +693,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
                                   onPressed: () => _showForgotPasswordDialog(context),
-                                  child: const Text('Mot de passe oublié ?', style: TextStyle(fontSize: 13)),
+                                  child: Text(tr('Mot de passe oublié ?', 'Forgot your password?'), style: const TextStyle(fontSize: 13)),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -703,7 +704,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   foregroundColor: Colors.white,
                                 ),
                                 child: Text(
-                                  _isLoading ? 'Connexion...' : (l10n?.loginSignInButton ?? 'Se connecter'),
+                                  _isLoading ? tr('Connexion...', 'Signing in...') : (l10n?.loginSignInButton ?? tr('Se connecter', 'Sign in')),
                                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -711,7 +712,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                               Center(
                                 child: TextButton(
                                   onPressed: () => context.push('/register'),
-                                  child: const Text('Pas encore inscrit ? Créer un compte en 1 clic', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                  child: Text(tr('Pas encore inscrit ? Créer un compte en 1 clic', 'Not registered yet? Create an account in one tap'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                                 ),
                               ),
                             ],
@@ -727,7 +728,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                   Center(
                     child: TextButton(
                       onPressed: () => context.push('/register'),
-                      child: Text(l10n?.loginRegisterLink ?? 'Créer un nouveau compte'),
+                      child: Text(l10n?.loginRegisterLink ?? tr('Créer un nouveau compte', 'Create a new account')),
                     ),
                   ),
                 ],

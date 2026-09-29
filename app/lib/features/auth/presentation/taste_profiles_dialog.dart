@@ -4,6 +4,7 @@ import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
 import 'taste_profile_radar_screen.dart';
 import '../../../shared/providers/supabase_provider.dart';
+import '../../../shared/utils/langue.dart';
 
 class TasteProfilesDialog extends ConsumerStatefulWidget {
   const TasteProfilesDialog({super.key});
@@ -128,7 +129,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
           Expanded(
             child: profilesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, _) => Center(child: Text('Erreur: $err')),
+              error: (err, _) => Center(child: Text(tr('Erreur: $err', 'Error: $err'))),
               data: (profiles) {
                 return ListView.builder(
                   itemCount: profiles.length,
@@ -183,9 +184,9 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                                                 color: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
                                                 borderRadius: BorderRadius.circular(6),
                                               ),
-                                              child: const Text(
-                                                'Principal',
-                                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
+                                              child: Text(
+                                                tr('Principal', 'Main'),
+                                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
                                               ),
                                             ),
                                           ],
@@ -245,18 +246,18 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                             InkWell(
                               onTap: () => TasteProfileRadarScreen.show(context, initialProfileId: profile.id),
                               borderRadius: BorderRadius.circular(8),
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 4),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.radar, size: 15, color: Color(0xFF8B1E3F)),
-                                    SizedBox(width: 6),
+                                    const Icon(Icons.radar, size: 15, color: Color(0xFF8B1E3F)),
+                                    const SizedBox(width: 6),
                                     Text(
-                                      'Voir le Spider Chart de ce profil',
-                                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
+                                      tr('Voir le Spider Chart de ce profil', 'See this profile\'s taste radar'),
+                                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
                                     ),
-                                    Spacer(),
-                                    Icon(Icons.arrow_forward_ios, size: 10, color: Color(0xFF8B1E3F)),
+                                    const Spacer(),
+                                    const Icon(Icons.arrow_forward_ios, size: 10, color: Color(0xFF8B1E3F)),
                                   ],
                                 ),
                               ),

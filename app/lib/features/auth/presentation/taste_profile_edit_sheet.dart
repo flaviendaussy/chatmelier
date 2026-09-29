@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
+import '../../../shared/utils/langue.dart';
 
 class TasteProfileEditSheet extends ConsumerStatefulWidget {
   final TasteProfile profile;
@@ -435,7 +436,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 6),
                                 child: Text(
-                                  'Activez pour calibrer manuellement votre sensibilité aux tanins, à l\'acidité et au corps.',
+                                  tr('Activez pour calibrer manuellement votre sensibilité aux tanins, à l\'acidité et au corps.', 'Turn on to set your sensitivity to tannins, acidity and body by hand.'),
                                   style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                                 ),
                               )
@@ -602,7 +603,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
         }),
         ActionChip(
           avatar: const Icon(Icons.add, size: 16),
-          label: const Text('Autre...'),
+          label: Text(tr('Autre...', 'Other...')),
           onPressed: onAddCustom,
         ),
       ],

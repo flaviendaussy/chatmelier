@@ -24,6 +24,7 @@ import '../../offline/data/connectivity_service.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../monetization/admob_service.dart';
 import '../../cellar/presentation/custom_bottle_size_dialog.dart';
+import '../../../shared/utils/langue.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
   final String imagePath;
@@ -133,8 +134,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           _ignoreUndetected = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Vidéo interrompue. Regardez la vidéo jusqu\'au bout pour débloquer l\'analyse IA.'),
+          SnackBar(
+            content: Text(tr('Vidéo interrompue. Regardez la vidéo jusqu\'au bout pour débloquer l\'analyse IA.', 'Video interrupted. Watch the video to the end to unlock the AI analysis.')),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -227,7 +228,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       AppLogger.error('REVIEW_SCREEN', 'Image scan failed', e, stack);
       if (mounted) {
         setState(() {
-          _analysisError = 'L\'analyse automatique a rencontré une difficulté ($e). Vous pouvez réessayer ou remplir manuellement.';
+          _analysisError = tr('L\'analyse automatique a rencontré une difficulté ($e). Vous pouvez réessayer ou remplir manuellement.', 'The automatic analysis ran into a problem ($e). You can try again or fill it in by hand.');
         });
       }
       return null;
@@ -254,7 +255,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
   Future<void> _promptMultiBottleConfirmation(int detectedQty, String? pkgType) async {
     if (!mounted) return;
-    String pkgLabel = '$detectedQty bouteilles';
+    String pkgLabel = tr('$detectedQty bouteilles', '$detectedQty bottles');
     final l10n = AppLocalizations.of(context);
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     if (pkgType == 'carton_6' || detectedQty == 6) {
@@ -523,7 +524,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la mise à jour du stock : $e')),
+          SnackBar(content: Text(tr('Erreur lors de la mise à jour du stock : $e', 'Couldn\'t update the stock: $e'))),
         );
       }
     } finally {
@@ -715,7 +716,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       }
 
       if (cellarId == null) {
-        throw Exception('Impossible de trouver ou créer une cave pour cet utilisateur.');
+        throw Exception(tr('Impossible de trouver ou créer une cave pour cet utilisateur.', 'Couldn\'t find or create a cellar for this user.'));
       }
 
       // Distant Cellar Proximity Warning
@@ -892,7 +893,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de l\'ajout : $e'),
+            content: Text(tr('Erreur lors de l\'ajout : $e', 'Couldn\'t add it: $e')),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -977,10 +978,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       child: _buildPhotoPreview(height: 130, width: 100, fit: BoxFit.cover),
                     ),
                   ),
-                const ChatmelierLoader.detective(
+                ChatmelierLoader.detective(
                   size: 190,
-                  title: 'Chatmelier essaye de trouver...',
-                  subtitle: 'Lecture de l\'étiquette, détection du domaine ou de la distillerie, millésime...',
+                  title: tr('Chatmelier essaye de trouver...', 'Chatmelier is looking...'),
+                  subtitle: tr('Lecture de l\'étiquette, détection du domaine ou de la distillerie, millésime...', 'Reading the label, finding the estate or distillery, the vintage...'),
                 ),
               ],
             ),
@@ -998,10 +999,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.close, color: isDark ? Colors.white : Colors.black87),
-            tooltip: 'Retour',
+            tooltip: tr('Retour', 'Back'),
             onPressed: () => context.pop(),
           ),
-          title: const Text('Mode Hors-Ligne', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(tr('Mode Hors-Ligne', 'Offline mode'), style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
         body: Center(
           child: SingleChildScrollView(
@@ -1010,8 +1011,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ChatmelierOfflineAntennaWidget(
-                  title: 'Chatmelier cherche du réseau...',
-                  message: 'La détection photo automatique par IA a besoin d\'une connexion internet. Vous pouvez saisir les détails manuellement ou réessayer dès que le réseau revient.',
+                  title: tr('Chatmelier cherche du réseau...', 'Chatmelier is looking for a connection...'),
+                  message: tr('La détection photo automatique par IA a besoin d\'une connexion internet. Vous pouvez saisir les détails manuellement ou réessayer dès que le réseau revient.', 'Automatic photo recognition needs an internet connection. You can enter the details by hand, or try again once you\'re back online.'),
                   onRetry: () async {
                     final online = await ref.read(connectivityServiceProvider).checkConnection();
                     if (online && mounted) {
@@ -1030,9 +1031,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     icon: const Icon(Icons.edit_note),
-                    label: const Text(
-                      'Saisir manuellement ma bouteille',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    label: Text(
+                      tr('Saisir manuellement ma bouteille', 'Enter my bottle by hand'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     onPressed: () {
                       setState(() {
@@ -1514,7 +1515,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       OutlinedButton.icon(
                         onPressed: _checkAndTriggerAnalysis,
                         icon: const Icon(Icons.refresh, size: 16),
-                        label: const Text('Réessayer l\'analyse IA'),
+                        label: Text(tr('Réessayer l\'analyse IA', 'Retry the AI analysis')),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.orange.shade800,
                           side: BorderSide(color: Colors.orange.shade700),
@@ -1996,10 +1997,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _shelfCtrl,
-                            decoration: const InputDecoration(
-                              labelText: 'Niveau / Rangée',
-                              prefixIcon: Icon(Icons.table_rows),
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: tr('Niveau / Rangée', 'Shelf / row'),
+                              prefixIcon: const Icon(Icons.table_rows),
+                              border: const OutlineInputBorder(),
                             ),
                           ),
                         ),
@@ -2023,14 +2024,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Notes & Commentaires Personnels', style: theme.textTheme.titleMedium),
+                    Text(tr('Notes & Commentaires Personnels', 'Personal notes'), style: theme.textTheme.titleMedium),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _notesCtrl,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        hintText: 'Impressions, potentiel de garde, circonstances particulières...',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        hintText: tr('Impressions, potentiel de garde, circonstances particulières...', 'Impressions, ageing potential, special occasions...'),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                   ],
@@ -2051,9 +2052,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
                 icon: const Icon(Icons.add_circle_outline, size: 20),
-                label: const Text(
-                  'Ajouter à ma cave',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                label: Text(
+                  tr('Ajouter à ma cave', 'Add to my cellar'),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -2081,9 +2082,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
                 icon: const Icon(Icons.restaurant, size: 18),
-                label: const Text(
-                  'Dégusté hors cave (Chez des proches, resto...)',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                label: Text(
+                  tr('Dégusté hors cave (Chez des proches, resto...)', 'Tasted outside the cellar (friends, restaurant...)'),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -2092,9 +2093,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               child: TextButton.icon(
                 onPressed: () => context.pop(),
                 icon: const Icon(Icons.close, size: 18, color: Colors.grey),
-                label: const Text(
-                  'Annuler et fermer sans ajouter',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                label: Text(
+                  tr('Annuler et fermer sans ajouter', 'Cancel and close without adding'),
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ),
             ),
@@ -2120,11 +2121,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         expand: false,
         builder: (_, scrollController) => Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
-                'Choisir un format de bouteille',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                tr('Choisir un format de bouteille', 'Choose a bottle size'),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),
             const Divider(),

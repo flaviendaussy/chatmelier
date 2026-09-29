@@ -14,6 +14,7 @@ import 'shared/providers/premium_provider.dart';
 import 'features/feedback/data/shake_feedback_service.dart';
 import 'features/config/garde_de_version.dart';
 import 'shared/utils/app_logger.dart';
+import 'shared/utils/langue.dart';
 
 class ChatmelierApp extends ConsumerWidget {
   const ChatmelierApp({super.key});
@@ -56,6 +57,8 @@ class ChatmelierApp extends ConsumerWidget {
       },
       routerConfig: router,
       builder: (context, child) {
+        // La langue des textes écrits en dur (`tr`), à chaque changement de langue.
+        Langue.definir(Localizations.localeOf(context));
         // Initialize post-tasting notification checker and App Open Ads
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ref.read(connectivityServiceProvider);

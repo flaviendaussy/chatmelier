@@ -13,6 +13,7 @@ import '../domain/table_matchmaker.dart';
 import 'table_matchmaker_sheet.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
+import 'titre_du_classement.dart';
 
 class MenuTableConsensusSheet extends ConsumerStatefulWidget {
   final ScannedMenu menu;
@@ -223,6 +224,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       menuWines: widget.menu.wines,
       guests: _tableGuests,
       isFr: Localizations.localeOf(context).languageCode == 'fr',
+      idLecteur: _idHote,
     );
 
     setState(() => _top3 = top3);
@@ -475,22 +477,9 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                 ),
                 const SizedBox(height: 16),
 
-                // Les 3 meilleures bouteilles qui matchent
-                const Row(
-                  children: [
-                    Icon(Icons.wine_bar_rounded, color: Color(0xFFD4AF37), size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'LES 3 MEILLEURES BOUTEILLES DU RESTAURANT',
-                      style: TextStyle(
-                        color: Color(0xFFD4AF37),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ],
-                ),
+                // Les plus ADAPTÉES, pas les meilleures : le premier de la carte peut
+                // déplaire à toute la table (retour du 29/09).
+                TitreDuClassement(isFr: Localizations.localeOf(context).languageCode == 'fr'),
                 const SizedBox(height: 12),
 
                 if (_top3.isEmpty)
@@ -615,7 +604,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
         ? const Color(0xFFD4AF37)
         : (rank == 2 ? const Color(0xFFC0C0C0) : const Color(0xFFCD7F32));
 
-    final priceStr = wine.bottlePrice != null ? '${wine.bottlePrice!.toStringAsFixed(0)} €' : '';
+    final priceStr = wine.bottlePrice != null ? wine.formaterPrix(wine.bottlePrice!) : '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

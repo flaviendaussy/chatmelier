@@ -97,13 +97,18 @@ class MenuTableMatcherEngine {
   }
 
   /// Les trois meilleures bouteilles pour la table, avec leurs raisons.
+  ///
+  /// [idLecteur] : le convive qui lit l'écran. Seul à table, c'est à lui qu'on parle
+  /// (« dans vos goûts ») ; si le seul convive est quelqu'un d'autre — l'hôte, vu par un
+  /// invité qui ne s'est pas encore assis — on le nomme. Nul : on parle au convive seul.
   static List<MenuTableMatchResult> rankTop3WinesForTable({
     required List<MenuWine> menuWines,
     required List<GuestProfile> guests,
     bool isFr = true,
+    String? idLecteur,
   }) {
     final finalistes = classerLaCarte(menuWines: menuWines, guests: guests, isFr: isFr).take(3).toList();
-    final raisons = RedactionDesRaisons.rediger(finalistes, guests, isFr: isFr);
+    final raisons = RedactionDesRaisons.rediger(finalistes, guests, isFr: isFr, idLecteur: idLecteur);
     return [
       for (var i = 0; i < finalistes.length; i++)
         MenuTableMatchResult(
@@ -211,6 +216,7 @@ class RedactionDesRaisons {
     List<MenuTableMatchResult> finalistes,
     List<GuestProfile> convives, {
     bool isFr = true,
+    String? idLecteur,
   }) {
     final tous = [for (final f in finalistes) f.menuWine];
     final raisons = <String>[];
@@ -228,7 +234,7 @@ class RedactionDesRaisons {
         if (distinction.isNotEmpty) distinction,
         if (prix.isNotEmpty) prix,
       ].join(', ');
-      var raison = _pourQui(r, convives, isFr);
+      var raison = _majuscule(_pourQui(r, convives, isFr, idLecteur));
       if (seconde.isNotEmpty) raison = '$raison. ${_majuscule(seconde)}.';
       if (r.aversionAlerts.isNotEmpty) {
         raison = '$raison ${isFr ? 'Attention' : 'Heads-up'} : ${r.aversionAlerts.first}';
@@ -251,7 +257,7 @@ class RedactionDesRaisons {
   }
 
   /// Qui l'aimera, qui l'appréciera, et qui risque d'être déçu — avec la raison.
-  static String _pourQui(MenuTableMatchResult r, List<GuestProfile> convives, bool fr) {
+  static String _pourQui(MenuTableMatchResult r, List<GuestProfile> convives, bool fr, String? idLecteur) {
     if (convives.isEmpty) return fr ? 'Un vin pour la table' : 'A wine for the table';
     // Seuls ceux qui ont voté sont cités : un convive « juste son prénom » n'a pas
     // d'avis, il n'est ni fan ni réticent.
@@ -261,32 +267,49 @@ class RedactionDesRaisons {
     ]..sort((a, b) => b.$2.compareTo(a.$2));
     if (notes.isEmpty) return fr ? 'Un vin pour la table' : 'A wine for the table';
 
-    if (convives.length == 1) {
+    // « Vos goûts » seulement si c'est à ce convive qu'on parle : l'invité qui arrive à
+    // une table où l'hôte est seul lisait « Dans vos goûts » des goûts de l'hôte (29/09).
+    // Sinon, la phrase nominative ci-dessous : « Flavien l'appréciera ».
+    if (convives.length == 1 && (idLecteur == null || convives.single.id == idLecteur)) {
       final s = notes.first.$2;
       if (s >= 85) return fr ? 'Taillé pour vos goûts' : 'Made for your taste';
       if (s >= 65) return fr ? 'Dans vos goûts' : 'Close to your taste';
       return fr ? 'Un pas de côté par rapport à vos goûts' : 'A step away from your usual taste';
     }
 
-    final fans = [for (final n in notes) if (n.$2 >= 85) n.$1.name];
-    final contents = [for (final n in notes) if (n.$2 >= 65 && n.$2 < 85) n.$1.name];
-    final tiedes = [for (final n in notes) if (n.$2 >= 55 && n.$2 < 65) n.$1.name];
+    // Celui qui lit se lit « vous », en dernier : « Caro et vous l'apprécierez ». L'hôte,
+    // qui s'appelle « Moi » sur son téléphone, lisait « Test Claude et Moi l'apprécieront »
+    // (29/09). Le verbe s'accorde avec « vous » dès qu'il en fait partie.
+    bool estLecteur(GuestProfile g) => idLecteur != null && g.id == idLecteur;
+    (List<String>, bool) groupe(bool Function(double) dedans) {
+      final autres = [for (final n in notes) if (dedans(n.$2) && !estLecteur(n.$1)) n.$1.name];
+      final lecteur = notes.any((n) => dedans(n.$2) && estLecteur(n.$1));
+      return ([...autres, if (lecteur) fr ? 'vous' : 'you'], lecteur);
+    }
+
+    String verbe((List<String>, bool) g, String vous, String un, String plusieurs) =>
+        '${_liste(g.$1, fr)} ${g.$2 ? vous : (g.$1.length > 1 ? plusieurs : un)}';
+    final fans = groupe((s) => s >= 85);
+    final contents = groupe((s) => s >= 65 && s < 85);
+    final tiedes = groupe((s) => s >= 55 && s < 65);
     final reticents = [for (final n in notes) if (n.$2 < 55) n.$1];
     final parts = <String>[
-      if (fans.isNotEmpty)
+      if (fans.$1.isNotEmpty)
         fr
-            ? '${_liste(fans, fr)} ${fans.length > 1 ? 'vont l\'adorer' : 'va l\'adorer'}'
-            : '${_liste(fans, fr)} will love it',
-      if (contents.isNotEmpty)
+            ? verbe(fans, 'allez l\'adorer', 'va l\'adorer', 'vont l\'adorer')
+            : '${_liste(fans.$1, fr)} will love it',
+      if (contents.$1.isNotEmpty)
         fr
-            ? '${_liste(contents, fr)} ${contents.length > 1 ? 'l\'apprécieront' : 'l\'appréciera'}'
-            : '${_liste(contents, fr)} will enjoy it',
-      if (tiedes.isNotEmpty)
+            ? verbe(contents, 'l\'apprécierez', 'l\'appréciera', 'l\'apprécieront')
+            : '${_liste(contents.$1, fr)} will enjoy it',
+      if (tiedes.$1.isNotEmpty)
         fr
-            ? '${_liste(tiedes, fr)} ${tiedes.length > 1 ? 's\'en accommoderont' : 's\'en accommodera'}'
-            : '${_liste(tiedes, fr)} will be fine with it',
+            ? verbe(tiedes, 'vous en accommoderez', 's\'en accommodera', 's\'en accommoderont')
+            : '${_liste(tiedes.$1, fr)} will be fine with it',
       for (final g in reticents.take(2))
-        fr ? '${g.name} le trouvera ${_ecart(r.menuWine, g, fr)}' : '${g.name} may find it ${_ecart(r.menuWine, g, fr)}',
+        estLecteur(g)
+            ? (fr ? 'vous le trouverez ${_ecart(r.menuWine, g, fr)}' : 'you may find it ${_ecart(r.menuWine, g, fr)}')
+            : (fr ? '${g.name} le trouvera ${_ecart(r.menuWine, g, fr)}' : '${g.name} may find it ${_ecart(r.menuWine, g, fr)}'),
     ];
     if (parts.isEmpty) return fr ? 'Un compromis pour toute la table' : 'A compromise for the whole table';
     return parts.join(fr ? ' ; ' : '; ');
@@ -329,35 +352,77 @@ class RedactionDesRaisons {
       return fr ? 'le seul $c $lot' : 'the only $c $lot';
     }
 
-    final axes = <(double Function(MenuWine), String, String, String, String)>[
-      if (vin.isRed && autres.every((a) => a.isRed))
-        ((w) => w.metrics.tannins, 'le plus charpenté', 'le plus souple', 'the most structured', 'the silkiest'),
-      ((w) => w.metrics.acidity, 'le plus frais', 'le plus rond', 'the freshest', 'the roundest'),
-      ((w) => w.metrics.body, 'le plus ample', 'le plus léger', 'the fullest', 'the lightest'),
-      ((w) => w.metrics.fruit, 'le plus fruité', 'le moins fruité', 'the fruitiest', 'the least fruity'),
-      ((w) => w.metrics.oak, 'le plus boisé', 'le moins boisé', 'the oakiest', 'the least oaky'),
-      ((w) => w.metrics.minerality, 'le plus minéral', 'le moins minéral', 'the most mineral', 'the least mineral'),
-      ((w) => w.metrics.sweetness, 'le plus doux', 'le plus sec', 'the sweetest', 'the driest'),
+    // Chaque axe ne se compare que là où il a un sens en dégustation, et seulement dans
+    // le sens qui dit quelque chose d'utile. « Le moins minéral » d'un rouge ne veut rien
+    // dire (retour du 29/09) : la minéralité se dit des blancs et des bulles — Chablis,
+    // Sancerre, craie de Champagne. « Le plus doux » d'un vin sec serait faux, « le moins
+    // fruité » n'aide personne à choisir.
+    final tous = [vin, ...autres];
+    bool blancOuBulles(MenuWine w) => w.isSparkling || (w.isWhite && !w.isRose && !w.isRed);
+    // Un superlatif doit aussi être vrai dans l'absolu : un Chablis à 3/10 de bois n'est
+    // pas « le plus boisé » parce que les deux autres en ont moins (consensus du 29/09,
+    // lu par un convive qui fuit le bois). D'où un seuil par trait.
+    bool auMoins(double v, List<double> _, double seuil) => v >= seuil;
+    bool auPlus(double v, List<double> _, double seuil) => v <= seuil;
+    final axes = <_Axe>[
+      if (tous.every((w) => w.isRed))
+        _Axe((w) => w.metrics.tannins,
+            plus: ('le plus charpenté', 'the most structured'),
+            moins: ('le plus souple', 'the silkiest'),
+            plusSi: (v, a) => auMoins(v, a, 6),
+            moinsSi: (v, a) => auPlus(v, a, 5)),
+      _Axe((w) => w.metrics.acidity,
+          plus: ('le plus frais', 'the freshest'),
+          moins: ('le plus rond', 'the roundest'),
+          plusSi: (v, a) => auMoins(v, a, 6),
+          moinsSi: (v, a) => auPlus(v, a, 5)),
+      _Axe((w) => w.metrics.body,
+          plus: ('le plus ample', 'the fullest'),
+          moins: ('le plus léger', 'the lightest'),
+          plusSi: (v, a) => auMoins(v, a, 6),
+          moinsSi: (v, a) => auPlus(v, a, 5)),
+      _Axe((w) => w.metrics.fruit, plus: ('le plus fruité', 'the fruitiest'), plusSi: (v, a) => auMoins(v, a, 6)),
+      _Axe((w) => w.metrics.oak,
+          plus: ('le plus boisé', 'the oakiest'),
+          moins: ('le moins boisé', 'the least oaky'),
+          plusSi: (v, a) => auMoins(v, a, 5),
+          moinsSi: (v, a) => auPlus(v, a, 3),
+          sansBois: true),
+      if (tous.every(blancOuBulles))
+        _Axe((w) => w.metrics.minerality, plus: ('le plus minéral', 'the most mineral'), plusSi: (v, a) => auMoins(v, a, 6)),
+      // Doux : seulement un vin qui l'est (demi-sec et au-delà) ; sec : seulement face à
+      // des vins qui ne le sont pas.
+      _Axe((w) => w.metrics.sweetness,
+          plus: ('le plus doux', 'the sweetest'),
+          moins: ('le seul sec', 'the only dry one'),
+          plusSi: (v, _) => v >= 4,
+          moinsSi: (_, autres) => autres.every((o) => o >= 3)),
     ];
 
     (double, String)? meilleur;
-    for (final (valeur, plusFr, moinsFr, plusEn, moinsEn) in axes) {
-      final v = valeur(vin);
-      final vals = autres.map(valeur).toList();
+    for (final axe in axes) {
+      final v = axe.valeur(vin);
+      final vals = autres.map(axe.valeur).toList();
       final moyenne = vals.reduce((a, b) => a + b) / vals.length;
       final ecart = v - moyenne;
       final estMax = vals.every((o) => v > o);
       final estMin = vals.every((o) => v < o);
-      if (ecart.abs() < 1.0 || !(estMax || estMin)) continue;
-      String phrase = estMax ? (fr ? plusFr : plusEn) : (fr ? moinsFr : moinsEn);
-      // Le seul sans bois se dit tel quel.
-      if (!estMax && identical(valeur, axes[axes.length - 3].$1) && v <= 2.0) {
-        phrase = fr ? 'le seul sans bois' : 'the only unoaked one';
+      if (ecart.abs() < 1.0) continue;
+      final (String, String)? libelle;
+      if (estMax && axe.plus != null && axe.plusSi(v, vals)) {
+        libelle = axe.plus;
+      } else if (estMin && axe.moins != null && axe.moinsSi(v, vals)) {
+        // Le seul sans bois se dit tel quel.
+        libelle = axe.sansBois && v <= 2.0 ? ('le seul sans bois', 'the only unoaked one') : axe.moins;
+      } else {
+        continue;
       }
+      final phrase = fr ? libelle!.$1 : libelle!.$2;
       if (meilleur == null || ecart.abs() > meilleur.$1) meilleur = (ecart.abs(), phrase);
     }
     if (meilleur == null) return '';
-    return '${meilleur.$2} $lot';
+    // « Le seul sec » porte déjà sa comparaison : pas de « des trois » derrière.
+    return meilleur.$2.startsWith(fr ? 'le seul' : 'the only') ? meilleur.$2 : '${meilleur.$2} $lot';
   }
 
   /// Où il se place en prix parmi les finalistes.
@@ -374,4 +439,33 @@ class RedactionDesRaisons {
     }
     return fr ? 'à $affiche' : 'at $affiche';
   }
+}
+
+/// Un axe de comparaison entre finalistes, et ce qu'on a le droit d'en dire.
+class _Axe {
+  final double Function(MenuWine) valeur;
+
+  /// Le libellé (fr, en) de l'extrême haut, ou nul s'il ne dit rien d'utile.
+  final (String, String)? plus;
+
+  /// Le libellé (fr, en) de l'extrême bas, ou nul.
+  final (String, String)? moins;
+
+  /// Conditions supplémentaires : la valeur du vin, celles des autres finalistes.
+  final bool Function(double, List<double>) plusSi;
+  final bool Function(double, List<double>) moinsSi;
+
+  /// « Le seul sans bois » plutôt que « le moins boisé » quand il n'en a pas.
+  final bool sansBois;
+
+  const _Axe(
+    this.valeur, {
+    this.plus,
+    this.moins,
+    this.plusSi = _toujours,
+    this.moinsSi = _toujours,
+    this.sansBois = false,
+  });
+
+  static bool _toujours(double _, List<double> __) => true;
 }

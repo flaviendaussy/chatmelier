@@ -128,7 +128,7 @@ void main() {
       expect(find.text('Hôte de la table (Curieux & Éclectique)'), findsOneWidget);
 
       // 4. Verify initial top 3 list is visible
-      expect(find.text('LES 3 MEILLEURES BOUTEILLES POUR LA TABLE'), findsOneWidget);
+      expect(find.text('LES 3 BOUTEILLES LES PLUS ADAPTÉES À LA TABLE'), findsOneWidget);
 
       // 5. Persona 1 inputs name and sets aversion to heavy tannins
       final nameField = find.byType(TextField);

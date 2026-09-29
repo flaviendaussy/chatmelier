@@ -590,7 +590,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                       ),
                       Text(
                         _isFinished
-                            ? (isFr ? '🎉 Vos meilleures bouteilles trouvées !' : '🎉 Your ideal bottles found!')
+                            ? (isFr ? '🎉 Les bouteilles faites pour vous !' : '🎉 The bottles made for you!')
                             : (isFr
                                 ? 'Swiper pour trouver votre vin idéal en 4 questions'
                                 : 'Swipe to find your ideal wine in 4 questions'),

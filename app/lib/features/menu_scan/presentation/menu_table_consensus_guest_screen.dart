@@ -19,6 +19,7 @@ import '../domain/food_pairing_engine.dart';
 import '../domain/menu_table_matcher_engine.dart';
 import '../domain/menu_flight_engine.dart';
 import '../data/menu_table_session_manager.dart';
+import 'titre_du_classement.dart';
 
 class MenuTableConsensusGuestScreen extends ConsumerStatefulWidget {
   final String? initialSessionId;
@@ -207,9 +208,20 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       menuWines: _menu!.wines,
       guests: _guests,
       isFr: _isFr,
+      idLecteur: _idDuLecteur,
     );
 
     setState(() => _top3 = top3);
+  }
+
+  /// Qui lit cet écran, parmi les convives : notre entrée locale, ou celle que le serveur
+  /// a enregistrée sous notre prénom. Avant qu'on s'asseye, aucun convive n'est nous.
+  String get _idDuLecteur {
+    final nom = _monNomAssis?.trim().toLowerCase();
+    for (final g in _guests) {
+      if (g.id == 'guest_me' || (nom != null && g.name.trim().toLowerCase() == nom)) return g.id;
+    }
+    return 'guest_me';
   }
 
   /// Le serveur fusionne deux convives du même nom (`ON CONFLICT (session_id,
@@ -780,22 +792,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           const SizedBox(height: 16),
         ],
 
-        // TOP 3 BOUTEILLES DU RESTAURANT
-        Row(
-          children: [
-            const Icon(Icons.wine_bar_rounded, color: Color(0xFFD4AF37), size: 20),
-            const SizedBox(width: 8),
-            Text(
-              isFr ? 'LES 3 MEILLEURES BOUTEILLES POUR LA TABLE' : 'THE 3 BEST BOTTLES FOR THE TABLE',
-              style: const TextStyle(
-                color: Color(0xFFD4AF37),
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.8,
-              ),
-            ),
-          ],
-        ),
+        // Les plus adaptées à la table, pas les meilleures de la carte.
+        TitreDuClassement(isFr: isFr),
         const SizedBox(height: 12),
 
         if (_top3.isEmpty)
@@ -983,8 +981,10 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   }
 
   Widget _buildMenuWineCard(MenuWine wine, bool isFr) {
-    final priceStr = wine.bottlePrice != null ? '${wine.bottlePrice!.toStringAsFixed(0)} €' : '';
-    final glassStr = wine.primaryGlassPrice != null ? 'Verre : ${wine.primaryGlassPrice!.toStringAsFixed(1)} €' : null;
+    final priceStr = wine.bottlePrice != null ? wine.formaterPrix(wine.bottlePrice!) : '';
+    final glassStr = wine.primaryGlassPrice != null
+        ? (isFr ? 'Verre : ' : 'Glass: ') + wine.formaterPrix(wine.primaryGlassPrice!)
+        : null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -1102,7 +1102,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                   ),
                   if (wine.bottlePrice != null)
                     Text(
-                      '${wine.bottlePrice!.toStringAsFixed(0)} €',
+                      wine.formaterPrix(wine.bottlePrice!),
                       style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                 ],
@@ -1328,8 +1328,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   Widget _buildFlightStepCard(FlightGlassStep step, bool isFr) {
     final wine = step.wine;
     final priceStr = wine.primaryGlassPrice != null
-        ? '${wine.primaryGlassPrice!.toStringAsFixed(1)} € / verre'
-        : (wine.bottlePrice != null ? '${wine.bottlePrice!.toStringAsFixed(0)} € / bout.' : '');
+        ? '${wine.formaterPrix(wine.primaryGlassPrice!)} / ${isFr ? 'verre' : 'glass'}'
+        : (wine.bottlePrice != null ? '${wine.formaterPrix(wine.bottlePrice!)} / ${isFr ? 'bout.' : 'btl'}' : '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1504,15 +1504,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         ),
         const SizedBox(height: 18),
 
-        Text(
-          isFr ? 'LES MEILLEURES BOUTEILLES POUR CE PLAT :' : 'BEST BOTTLES FOR THIS DISH:',
-          style: const TextStyle(
-            color: Color(0xFFD4AF37),
-            fontSize: 12,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 0.8,
-          ),
-        ),
+        TitreDuClassement(isFr: isFr, pourUnPlat: true),
         const SizedBox(height: 10),
 
         if (matchedWines.isEmpty)
@@ -1618,7 +1610,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         ? const Color(0xFFD4AF37)
         : (rank == 2 ? const Color(0xFFC0C0C0) : const Color(0xFFCD7F32));
 
-    final priceStr = wine.bottlePrice != null ? '${wine.bottlePrice!.toStringAsFixed(0)} €' : '';
+    final priceStr = wine.bottlePrice != null ? wine.formaterPrix(wine.bottlePrice!) : '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),

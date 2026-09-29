@@ -230,7 +230,7 @@ Return strictly a valid JSON object matching this schema.''';
                     result = result.copyWith(
                       tastingNotes: result.tastingNotes ?? cached['tasting_notes'] as String?,
                       foodPairings: result.foodPairings.isEmpty
-                          ? (cached['food_pairings'] is List ? List<String>.from(cached['food_pairings']) : null)
+                          ? (cached['ai_food_pairings'] is List ? List<String>.from(cached['ai_food_pairings']) : null)
                           : result.foodPairings,
                       idealDrinkingStart: result.idealDrinkingStart ?? cached['ideal_drinking_start'] as int?,
                       idealDrinkingEnd: result.idealDrinkingEnd ?? cached['ideal_drinking_end'] as int?,
@@ -294,6 +294,28 @@ Return strictly a valid JSON object matching this schema.''';
     }
   }
 
+  /// Enregistre ce que `scan-label` a payé (champ `couts`) : un événement par appel IA.
+  ///
+  /// Sans cela, les scans d'étiquette passés par le serveur échappaient à la mesure du
+  /// coût de l'IA (P1). Un vin trouvé au catalogue n'en rapporte qu'un : la lecture.
+  static List<Future<void>> enregistrerLesCouts(Map<String, dynamic> reponse, String? userId,
+      {AiCostTrackerService? suivi}) {
+    final couts = reponse['couts'];
+    if (couts is! List) return const [];
+    final t = suivi ?? AiCostTrackerService();
+    return [
+      for (final c in couts)
+        if (c is Map && c['modele'] is String && c['usageMetadata'] is Map)
+          t.recordRawResponse(
+            model: c['modele'] as String,
+            feature: (c['fonction'] as String?) ?? 'scan_vision',
+            responseJson: {'usageMetadata': Map<String, dynamic>.from(c['usageMetadata'] as Map)},
+            isSearchGrounded: c['recherche'] == true,
+            userId: userId,
+          ),
+    ];
+  }
+
   Future<ScanResult> _invokeEdgeFunction(String base64Image, String mimeType) async {
     try {
       // 60 s et non plus 15 : un scan d'étiquette réussi en prend 16 (le 16/09, 16 391 ms),
@@ -305,7 +327,9 @@ Return strictly a valid JSON object matching this schema.''';
       }).timeout(const Duration(seconds: 60));
 
       if (res.data != null) {
-        return ScanResult.fromJson(res.data as Map<String, dynamic>);
+        final data = res.data as Map<String, dynamic>;
+        enregistrerLesCouts(data, _client.auth.currentUser?.id);
+        return ScanResult.fromJson(data);
       }
     } catch (e, stack) {
       AppLogger.error('SCAN_AI', 'Edge function fallback error: $e', e, stack);
@@ -507,7 +531,11 @@ Return strictly a valid JSON object matching this schema.''';
             'sub_region': row['sub_region'],
             'classification': row['classification'],
             'tasting_notes': tastingNotes,
-            'food_pairings': row['food_pairings'] is List ? List<String>.from(row['food_pairings']) : <String>[],
+            // La colonne du catalogue s'appelle ai_food_pairings : lire « food_pairings »
+            // rendait toujours une liste vide.
+            'food_pairings': row['ai_food_pairings'] is List
+                ? List<String>.from(row['ai_food_pairings'])
+                : (row['food_pairings'] is List ? List<String>.from(row['food_pairings']) : <String>[]),
             'ideal_drinking_start': row['ideal_drinking_start'],
             'ideal_drinking_end': row['ideal_drinking_end'],
             'peak_drinking_start': row['peak_drinking_start'],

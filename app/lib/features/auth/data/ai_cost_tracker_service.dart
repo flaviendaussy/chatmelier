@@ -66,6 +66,22 @@ class AiCostTrackerService {
     return _cachedEvents!;
   }
 
+  /// Les écritures passent l'une après l'autre. Chaque appelant crée son propre service :
+  /// deux enregistrements simultanés relisaient la même liste, et le second effaçait le
+  /// premier (vu le 29/09 avec les deux appels payés d'un scan d'étiquette).
+  static Future<void> _fileDAttente = Future.value();
+
+  Future<void> _ajouterEnFile(AiCostEvent event) {
+    final suite = _fileDAttente.then((_) async {
+      _cachedEvents = null; // relire : un autre service a pu écrire entre-temps
+      final events = await _loadEvents();
+      events.add(event);
+      await _saveEvents(events);
+    });
+    _fileDAttente = suite.catchError((_) {});
+    return suite;
+  }
+
   Future<void> _saveEvents(List<AiCostEvent> events) async {
     _cachedEvents = events;
     try {
@@ -111,9 +127,7 @@ class AiCostTrackerService {
       userId: userId,
     );
 
-    final events = await _loadEvents();
-    events.add(event);
-    await _saveEvents(events);
+    await _ajouterEnFile(event);
     await _envoi.ajouter(ligneServeur(event));
 
     AppLogger.info('AI_COST',

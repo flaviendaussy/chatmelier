@@ -36,6 +36,7 @@ import '../../feedback/presentation/mes_retours_sheet.dart';
 import 'taste_evidence_sheet.dart';
 import '../../cellar/domain/wine.dart';
 import '../../sommelier/domain/taste_frontier_engine.dart';
+import 'partage_empreinte_sheet.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -1127,6 +1128,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           Text(isFr ? 'Radar des Goûts' : 'Taste Radar', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                           Text(isFr ? 'Empreinte œnologique & équilibre des saveurs' : 'Oenological footprint & flavor balance', style: const TextStyle(fontSize: 11, color: Colors.grey)),
                         ],
+                      ),
+                    ),
+                    // L'empreinte en image : l'objet qui circule (P5).
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      tooltip: isFr ? 'Partager mon empreinte' : 'Share my palate',
+                      icon: const Icon(Icons.ios_share, size: 19, color: Color(0xFF8B1E3F)),
+                      onPressed: () => PartageEmpreinteSheet.show(
+                        context,
+                        profil: currentProfile,
+                        nom: _displayName.isNotEmpty ? _displayName : null,
                       ),
                     ),
                     FilledButton.tonalIcon(

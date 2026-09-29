@@ -79,6 +79,10 @@ class WineTasteRadarChart extends StatefulWidget {
   final bool showLabels;
   final bool isInteractive;
 
+  /// Faux pour un tracé immédiatement complet : une image capturée pendant l'animation
+  /// d'ouverture montrerait un radar à moitié déployé.
+  final bool anime;
+
   const WineTasteRadarChart({
     super.key,
     required this.datasets,
@@ -86,6 +90,7 @@ class WineTasteRadarChart extends StatefulWidget {
     this.size = 280,
     this.showLabels = true,
     this.isInteractive = true,
+    this.anime = true,
   });
 
   @override
@@ -104,13 +109,17 @@ class _WineTasteRadarChartState extends State<WineTasteRadarChart> with SingleTi
       duration: const Duration(milliseconds: 750),
     );
     _animation = CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic);
-    _animController.forward();
+    if (widget.anime) {
+      _animController.forward();
+    } else {
+      _animController.value = 1.0;
+    }
   }
 
   @override
   void didUpdateWidget(covariant WineTasteRadarChart oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.datasets != widget.datasets) {
+    if (oldWidget.datasets != widget.datasets && widget.anime) {
       _animController.forward(from: 0.0);
     }
   }

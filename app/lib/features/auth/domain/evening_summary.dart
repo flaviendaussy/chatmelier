@@ -31,8 +31,8 @@ class EveningSummary {
 
     final axe = _axeLePlusObserve(profil);
     if (axe != null) {
-      out.add(tr('Votre palais commence à se dessiner sur ${_nomDeLAxe(axe)}',
-          'Your palate is starting to take shape around ${_nomDeLAxe(axe)}'));
+      out.add(tr('Votre palais commence à se dessiner sur ${nomDeLAxe(axe)}',
+          'Your palate is starting to take shape around ${nomDeLAxe(axe)}'));
     }
 
     if (profil.favoriteRegions.isNotEmpty) {
@@ -64,7 +64,8 @@ class EveningSummary {
     return n >= 2 ? meilleur : null;
   }
 
-  static String _nomDeLAxe(String axe) => switch (axe) {
+  /// Le nom d'un axe dans une phrase (« les tanins », « crisp acidity »).
+  static String nomDeLAxe(String axe) => switch (axe) {
         'acidity' => tr('la vivacité', 'crisp acidity'),
         'body' => tr('le corps', 'body'),
         'tannin' => tr('les tanins', 'tannins'),

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
 import 'package:chatmelier/features/menu_scan/data/wine_knowledge_cache_service.dart';
 import 'package:chatmelier/features/menu_scan/presentation/enriched_menu_screen.dart';
+import 'package:chatmelier/features/auth/data/taste_profile_service.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 
 void main() {
@@ -396,6 +397,9 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
+          // Pas de profil : ce test regarde le passage compact / détaillé, pas la
+          // suggestion « Pour mieux vous connaître » qui prendrait la tête de liste.
+          overrides: [tasteProfilesListProvider.overrideWith((ref) async => <TasteProfile>[])],
           child: MaterialApp(
             locale: const Locale('fr'),
             localizationsDelegates: GlobalMaterialLocalizations.delegates,

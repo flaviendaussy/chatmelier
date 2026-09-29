@@ -34,6 +34,8 @@ import '../../feedback/data/shake_feedback_service.dart';
 import '../../feedback/data/feedback_history_service.dart';
 import '../../feedback/presentation/mes_retours_sheet.dart';
 import 'taste_evidence_sheet.dart';
+import '../../cellar/domain/wine.dart';
+import '../../sommelier/domain/taste_frontier_engine.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -147,10 +149,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           '${l10n.tasteConfidenceFrontier(axe)}';
     }
 
+    // Le moteur de frontière (S4) : la bouteille de la cave qui apprendrait le plus, prête
+    // à boire — jamais une bouteille en garde, jamais un vin détesté.
+    final bouteilles = ref.watch(bottlesProvider(ref.watch(currentCellarIdProvider))).valueOrNull ?? const [];
+    final pretes = [
+      for (final b in bouteilles)
+        if (b.quantity > 0 && b.wine != null && _pretABoire(b.wine!)) b,
+    ];
+    final frontiere = TasteFrontierEngine.choisir(
+      pretes,
+      profile,
+      profilDe: (b) => ProfilDeVin.depuisLaCave(b.wine!),
+    );
+    final suggestion = frontiere == null
+        ? null
+        : TasteFrontierEngine.phraseCave(
+            frontiere,
+            '${frontiere.vin.wine!.name}${frontiere.vin.wine!.vintage != null ? ' ${frontiere.vin.wine!.vintage}' : ''}',
+            lang == 'fr',
+          );
+
     // La phrase affirme quelque chose sur le palais : c'est donc l'endroit naturel pour
     // demander « d'où sors-tu ça ? ». Un modèle lisible doit être interrogeable là où il
     // se prononce, pas depuis un écran de réglages.
-    return InkWell(
+    final ligne = InkWell(
       onTap: () => showTasteEvidenceSheet(context),
       borderRadius: BorderRadius.circular(6),
       child: Padding(
@@ -188,7 +210,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
     );
+    if (suggestion == null) return ligne;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ligne,
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('🧭', style: TextStyle(fontSize: 13)),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(suggestion,
+                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 11.5, height: 1.3)),
+            ),
+          ],
+        ),
+      ],
+    );
   }
+
+  /// Prête à boire : à son apogée, à boire bientôt, ou sur le déclin (raison de plus).
+  static bool _pretABoire(Wine w) => const {
+        DrinkWindowStatus.inPeak,
+        DrinkWindowStatus.drinkSoon,
+        DrinkWindowStatus.pastPeak,
+      }.contains(w.windowStatus);
 
   String _tasteProfileSummary([dynamic lang]) {
     final langCode = (lang is String && lang.isNotEmpty)

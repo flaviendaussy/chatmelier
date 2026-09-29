@@ -15,6 +15,8 @@ import 'menu_photo_capture_screen.dart';
 import 'menu_wine_compare_sheet.dart';
 import 'menu_table_consensus_sheet.dart';
 import 'menu_flight_sheet.dart';
+import '../../auth/data/taste_profile_service.dart';
+import '../../sommelier/domain/taste_frontier_engine.dart';
 
 /// L'écran de résultat ouvert sans carte (lien direct, historique du navigateur, app
 /// restaurée sans son état) : on rouvre la dernière carte scannée, ou on propose d'en
@@ -85,7 +87,10 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     super.initState();
     _menu = widget.menu;
     _loadViewPreference();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _croiserAvecMaCave());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _croiserAvecMaCave();
+      _chercherLaFrontiere();
+    });
     // Conserver la carte dès son ouverture, et non à la sortie : on quitte cet écran de
     // mille façons — retour, appel entrant, app tuée — et une seule d'entre elles serait
     // passée par un `dispose`.
@@ -99,6 +104,61 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
   /// Après le premier rendu, et sans bloquer : la carte doit s'afficher tout de suite,
   /// les annotations arrivent quand elles peuvent. Si la cave est illisible — hors ligne,
   /// aucune cave choisie — la carte reste une carte utilisable.
+  /// Le vin de la carte qui apprendrait le plus sur votre palais (moteur de frontière,
+  /// S4) — parmi ceux qui ont des chances de vous plaire. Rien sans profil.
+  SuggestionDeFrontiere<MenuWine>? _frontiere;
+
+  Future<void> _chercherLaFrontiere() async {
+    try {
+      final profils = await ref.read(tasteProfilesListProvider.future);
+      if (profils.isEmpty || !mounted) return;
+      final principal = profils.firstWhere((p) => p.isPrimary, orElse: () => profils.first);
+      final s = TasteFrontierEngine.choisir<MenuWine>(
+        _menu.wines,
+        principal,
+        profilDe: ProfilDeVin.depuisLaCarte,
+        plaisir: (w) => w.userMatchScore,
+      );
+      if (mounted) setState(() => _frontiere = s);
+    } catch (_) {
+      // Invité sans profil, hors ligne : la carte reste une carte.
+    }
+  }
+
+  Widget _carteDeFrontiere(SuggestionDeFrontiere<MenuWine> f, bool isFr, bool isDark) {
+    final vin = f.vin;
+    final nom = '${vin.name}${vin.vintage != null ? ' ${vin.vintage}' : ''}';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: isDark ? const Color(0xFF1F2530) : const Color(0xFFEFF4FA),
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => setState(() {
+            _searchCtrl.text = vin.name;
+            _searchQuery = vin.name;
+          }),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(isFr ? '🧭 Pour mieux vous connaître' : '🧭 To get to know you better',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                const SizedBox(height: 6),
+                Text(
+                  TasteFrontierEngine.phrase(f, isFr ? 'Ce $nom' : 'This $nom', isFr),
+                  style: TextStyle(fontSize: 12.5, height: 1.35, color: isDark ? Colors.white70 : Colors.black87),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _croiserAvecMaCave() async {
     try {
       final contexte = await ref.read(cellarContextProvider.future);
@@ -965,8 +1025,11 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                       _isCompactView ? 12 : 16,
                       90,
                     ),
-                    itemCount: filteredWines.length,
-                    itemBuilder: (context, index) {
+                    itemCount: filteredWines.length + (_frontiere != null && _searchQuery.isEmpty ? 1 : 0),
+                    itemBuilder: (context, i) {
+                      final avecFrontiere = _frontiere != null && _searchQuery.isEmpty;
+                      if (avecFrontiere && i == 0) return _carteDeFrontiere(_frontiere!, isFr, isDark);
+                      final index = avecFrontiere ? i - 1 : i;
                       final wine = filteredWines[index];
                       final isSelected = _selectedWineIds.contains(wine.id);
 

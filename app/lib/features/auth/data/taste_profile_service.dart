@@ -13,6 +13,7 @@ import '../domain/cellar_concentration.dart';
 import '../../cellar/domain/wine.dart';
 import '../../friends/domain/friend.dart';
 import '../../journal/domain/tasting_questionnaire_result.dart';
+import 'palais_distant.dart';
 
 /// Seuils d'apprentissage, sur l'échelle /10.
 ///
@@ -32,7 +33,11 @@ final tasteProfileServiceProvider = Provider<TasteProfileService>((ref) {
   return TasteProfileService();
 });
 
+/// Un palais rapatrié du serveur (appareil neuf, reprise d'une soirée) recharge les écrans.
+final palaisRapatrieProvider = StreamProvider<int>((ref) => PalaisDistant.rapatriements);
+
 final tasteProfilesListProvider = FutureProvider<List<TasteProfile>>((ref) async {
+  ref.watch(palaisRapatrieProvider);
   final service = ref.watch(tasteProfileServiceProvider);
   return service.getProfiles();
 });
@@ -152,6 +157,7 @@ class TasteProfileService {
       final prefs = await SharedPreferences.getInstance();
       final jsonStr = jsonEncode(profiles.map((p) => p.toJson()).toList());
       await prefs.setString(_prefsKey, jsonStr);
+      PalaisDistant.planifierEnvoi();
     } catch (e) {
       AppLogger.error('TASTE_PROFILE', 'Error saving profiles', e);
     }

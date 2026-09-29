@@ -9,6 +9,7 @@ import '../../auth/presentation/keep_evening_sheet.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../data/table_session_service.dart';
 import 'menu_table_consensus_guest_screen.dart';
+import '../../auth/presentation/reprise_de_soiree_sheet.dart';
 
 /// Rejoindre une table avec six caractères.
 ///
@@ -235,6 +236,15 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
                 minimumSize: const Size.fromHeight(50),
                 shape:
                     RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+            Center(
+              child: TextButton(
+                onPressed: () => RepriseDeSoireeSheet.show(context),
+                child: Text(
+                  isFr ? 'Une soirée à retrouver ? J\'ai un code de reprise' : 'An evening to recover? I have a recovery code',
+                  style: const TextStyle(fontSize: 12.5),
+                ),
               ),
             ),
           ],

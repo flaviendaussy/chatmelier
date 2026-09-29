@@ -60,6 +60,13 @@ class _PalaisDeLAppareil extends Fake implements TasteProfileService {
 class _FauxCompte extends Fake implements AuthRepository {
   @override
   Future<User?> assurerUneSession() async => null;
+
+  // Pas de session : l'écran ne propose pas de garder la soirée.
+  @override
+  bool get aUneSession => false;
+
+  @override
+  bool get estAnonyme => false;
 }
 
 void main() {

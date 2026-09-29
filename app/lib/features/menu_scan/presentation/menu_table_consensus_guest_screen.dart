@@ -20,6 +20,8 @@ import '../domain/menu_table_matcher_engine.dart';
 import '../domain/menu_flight_engine.dart';
 import '../data/menu_table_session_manager.dart';
 import 'titre_du_classement.dart';
+import '../../auth/domain/evening_summary.dart';
+import '../../auth/presentation/keep_evening_sheet.dart';
 
 class MenuTableConsensusGuestScreen extends ConsumerStatefulWidget {
   final String? initialSessionId;
@@ -820,6 +822,10 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
         const SizedBox(height: 20),
 
+        // Garder la soirée (P6) : l'invité arrivé par le QR n'y avait jamais accès — la
+        // proposition ne vivait que dans la feuille « Rejoindre une table » de l'app.
+        _carteGarderLaSoiree(isFr, menu),
+
         // Web/CTA Banner
         if (kIsWeb)
           Container(
@@ -859,6 +865,42 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
             ),
           ),
       ],
+    );
+  }
+
+  /// Proposée seulement à un compte anonyme, et seulement s'il y a quelque chose de vrai
+  /// à garder : réclamer une adresse pour sauvegarder le vide ne sert à rien.
+  Widget _carteGarderLaSoiree(bool isFr, ScannedMenu menu) {
+    // Un bonus : quoi qu'il arrive (pas de session, pas de fournisseur), l'écran de table
+    // doit s'afficher.
+    final List<TasteProfile> profils;
+    try {
+      final auth = ref.read(authRepositoryProvider);
+      if (!auth.aUneSession || !auth.estAnonyme) return const SizedBox.shrink();
+      profils = ref.watch(tasteProfilesListProvider).valueOrNull ?? const <TasteProfile>[];
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
+    final principal = profils.where((p) => p.isPrimary).firstOrNull;
+    if (principal == null) return const SizedBox.shrink();
+    final lignes = EveningSummary.lignes(
+      profil: principal,
+      verresGoutes: 0,
+      nomDuLieu: menu.restaurantName.trim().isEmpty ? null : menu.restaurantName.trim(),
+    );
+    if (lignes.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFFD4AF37),
+          side: const BorderSide(color: Color(0xFFD4AF37)),
+          minimumSize: const Size.fromHeight(46),
+        ),
+        icon: const Icon(Icons.bookmark_add_outlined, size: 18),
+        label: Text(isFr ? 'Garder cette soirée' : 'Keep this evening'),
+        onPressed: () => KeepEveningSheet.show(context, cequiSeraGarde: lignes),
+      ),
     );
   }
 

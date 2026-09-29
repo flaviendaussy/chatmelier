@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'taste_profile.dart';
+import '../data/palais_distant.dart';
 
 /// L'état d'un palais à un mois donné.
 class TasteProfileSnapshot {
@@ -126,6 +127,7 @@ class TasteProfileHistory {
       _cle,
       jsonEncode(conserves.map((s) => s.toJson()).toList()),
     );
+    PalaisDistant.planifierEnvoi();
   }
 
   /// De combien un axe a bougé depuis le premier instantané disponible.

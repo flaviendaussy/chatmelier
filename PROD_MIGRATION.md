@@ -37,15 +37,20 @@ lancement public.
   - les **captures d'écran** jointes aux retours (bucket privé `feedback`, migration 036) ;
   - le traitement par **Google Gemini** (photos d'étiquettes et de cartes, conversations
     avec le sommelier) : sous-traitant, finalité, localisation ;
-  - les journaux de diagnostic et leur durée de conservation.
+  - les journaux de diagnostic et leur durée de conservation ;
+  - le **palais conservé côté serveur** (profils de goût, registre des preuves, instantanés
+    mensuels — table `palais_utilisateur`, migration 050), lisible par la seule personne,
+    supprimé avec le compte ; et le **code de reprise** (empreinte SHA-256 seulement,
+    30 jours, usage unique).
 - **Registre des traitements** : un traitement par finalité (cave, dégustations, profil de
   goût, tables de restaurant, retours, diagnostic, publicité).
 - **Durées de conservation**, par table, écrites et appliquées : `app_diagnostic_logs`,
   `chat_messages`, `table_sessions` (4 h + 24 h, déjà purgées par fonction), comptes
   anonymes (30 jours).
 - **Droit d'accès et de portabilité — MANQUANT.** La suppression de compte existe
-  (`delete_user_account`, migrations 023 puis 039) ; **aucun export des données
-  personnelles n'existe**. À construire : un export JSON (cave, dégustations, profil,
+  (`delete_user_account`, migrations 023, 031, puis 039 — **cassée par la 039, réparée par
+  la 049** : vérifier en production qu'un compte de test se supprime) ; **aucun export des
+  données personnelles n'existe**. À construire : un export JSON (cave, dégustations, profil,
   conversations) depuis Profil → Compte.
 - **Sous-traitants** : accord de traitement (DPA) avec Supabase et Google ; vérifier la
   région d'hébergement du projet Supabase.
@@ -70,8 +75,12 @@ lancement public.
 ## 4. Exploitation
 
 - **Planifier les purges** (pg_cron ou fonction edge quotidienne) :
-  `purge_comptes_anonymes(30)` (migration 039) et `purge_expired_table_sessions()`
-  (migration 038). Aujourd'hui elles existent mais ne tournent pas.
+  `purge_comptes_anonymes(30)` (migration 039, qui ne pouvait pas aboutir avant la 049) et
+  `purge_expired_table_sessions()` (migration 038). Aujourd'hui elles existent mais ne
+  tournent pas. La table `tentatives_de_reprise` se vide d'elle-même (un jour).
+- **Recherche Google du scan d'étiquette** : interrupteur `app_config.scan_etiquette_recherche`
+  (migration 048), éteint ; ≈ 3 c€ par vin inconnu, une seule fois. À décider au vu de
+  l'onglet « Économie ».
 - **Anciennes captures publiques** : supprimer `labels/feedback/*` une fois dépouillées
   (requête en fin de migration 036).
 - **SMTP personnalisé** — indispensable : le SMTP par défaut de Supabase plafonne à

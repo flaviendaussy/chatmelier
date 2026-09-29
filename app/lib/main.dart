@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'features/offline/presentation/sync_provider.dart';
 import 'features/auth/data/ai_cost_tracker_service.dart';
+import 'features/auth/data/palais_distant.dart';
 import 'features/monetization/admob_service.dart';
 import 'features/monetization/mesure_des_pubs.dart';
 import 'shared/utils/app_logger.dart';
@@ -56,6 +57,16 @@ void main() async {
   // Ce qui n'a pas pu partir lors de la dernière session (S5) : coûts IA, pubs.
   unawaited(AiCostTrackerService.envoyerEnAttente());
   unawaited(MesureDesPubs.envoyerEnAttente());
+  // Le palais suit le compte (P6) : copie au serveur à chaque sauvegarde, rapatriement sur
+  // un appareil vierge — au lancement, et à chaque connexion (nouvel appareil, reprise).
+  PalaisDistant.actif = true;
+  unawaited(PalaisDistant.recuperer().then((rapatrie) {
+    // Rien à rapatrier : c'est ce téléphone qui sait, il envoie sa copie.
+    if (!rapatrie) PalaisDistant.planifierEnvoi();
+  }));
+  Supabase.instance.client.auth.onAuthStateChange.listen((etat) {
+    if (etat.event == AuthChangeEvent.signedIn) unawaited(PalaisDistant.recuperer());
+  });
   AppLogger.info('SYSTEM', 'Chatmelier app launched and centralized logging initialized');
 
   FlutterError.onError = (details) {

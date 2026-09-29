@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import '../data/palais_distant.dart';
 
 /// D'où vient une conviction du modèle de goût.
 ///
@@ -120,6 +121,7 @@ class TasteEvidenceLedger {
       _cle,
       jsonEncode(toutes.map((e) => e.toJson()).toList()),
     );
+    PalaisDistant.planifierEnvoi();
   }
 
   /// Ce qui explique une cible précise — « pourquoi pensez-vous que j'aime le Jura ? ».
@@ -148,6 +150,7 @@ class TasteEvidenceLedger {
       _cle,
       jsonEncode(restantes.map((e) => e.toJson()).toList()),
     );
+    PalaisDistant.planifierEnvoi();
   }
 
   Future<void> vider() => _prefs.remove(_cle);

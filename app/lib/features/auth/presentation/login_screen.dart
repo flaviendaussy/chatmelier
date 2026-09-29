@@ -7,6 +7,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
+import '../../menu_scan/presentation/join_table_sheet.dart';
+import 'reprise_de_soiree_sheet.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -274,84 +276,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     }
   }
 
-  void _showJoinTableDialog(BuildContext context) {
-    final codeCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1728),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.groups_rounded, color: Color(0xFFD4AF37)),
-            const SizedBox(width: 8),
-            Text(tr('Rejoindre une table', 'Join a table'), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              tr('Entrez le code de table fourni par votre hôte (ex: TABLE-98931) ou collez le lien complet :', 'Enter the table code your host gave you (e.g. TABLE-98931) or paste the full link:'),
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: codeCtrl,
-              autofocus: true,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: tr('TABLE-XXXXX ou lien', 'TABLE-XXXXX or link'),
-                hintStyle: const TextStyle(color: Colors.white38),
-                filled: true,
-                fillColor: Colors.black26,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: Text(tr('Annuler', 'Cancel'), style: const TextStyle(color: Colors.white60)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8B1E3F),
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              final raw = codeCtrl.text.trim();
-              if (raw.isEmpty) return;
-              Navigator.of(dialogCtx).pop();
-
-              String session = raw;
-              String? data;
-              if (raw.contains('session=')) {
-                try {
-                  final uri = Uri.parse(raw);
-                  session = uri.queryParameters['session'] ?? uri.queryParameters['s'] ?? raw;
-                  data = uri.queryParameters['data'] ?? uri.queryParameters['d'];
-                } catch (_) {}
-              }
-
-              if (data != null && data.isNotEmpty) {
-                context.push('/table-consensus?session=$session&data=$data');
-              } else {
-                context.push('/table-consensus?session=$session');
-              }
-            },
-            child: Text(tr('Rejoindre', 'Join')),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -453,7 +377,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                 ),
                                 icon: const Icon(Icons.groups_rounded, size: 16),
                                 label: Text(tr('Rejoindre table', 'Join table'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                                onPressed: () => _showJoinTableDialog(context),
+                                onPressed: () => JoinTableSheet.show(context),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -471,6 +395,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                               ),
                             ),
                           ],
+                        ),
+                        // Une soirée commencée sans compte, sur un autre appareil ou avant
+                        // d'avoir vidé son cache : le code de reprise la rend (P6).
+                        Center(
+                          child: TextButton(
+                            onPressed: () => RepriseDeSoireeSheet.show(context),
+                            child: Text(
+                              tr('J\'ai un code de reprise', 'I have a recovery code'),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
                         ),
                       ],
                     ),

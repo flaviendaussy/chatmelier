@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
+import 'package:flutter/services.dart';
+import '../../../shared/providers/supabase_provider.dart';
+import '../data/palais_distant.dart';
 
 /// Garder la soirée : ajouter une adresse à un compte déjà ouvert.
 ///
@@ -51,6 +54,9 @@ class _KeepEveningSheetState extends ConsumerState<KeepEveningSheet> {
   bool _envoye = false;
   String? _erreur;
 
+  /// Le code de reprise, une fois obtenu (P6) : pour qui ne veut pas donner d'adresse.
+  String? _codeDeReprise;
+
   @override
   void dispose() {
     _email.dispose();
@@ -88,6 +94,80 @@ class _KeepEveningSheetState extends ConsumerState<KeepEveningSheet> {
     }
   }
 
+  /// Sans adresse : un code de huit signes, valable trente jours, qui rend la soirée sur
+  /// n'importe quel appareil. Le palais part d'abord au serveur — sinon le code rendrait
+  /// une soirée sans palais.
+  Future<void> _obtenirUnCode({required bool isFr}) async {
+    setState(() {
+      _enCours = true;
+      _erreur = null;
+    });
+    try {
+      await PalaisDistant.envoyer();
+      final code = await ref.read(supabaseProvider).rpc('creer_code_de_reprise');
+      if (!mounted) return;
+      setState(() {
+        _enCours = false;
+        _codeDeReprise = code?.toString();
+      });
+    } catch (e) {
+      AppLogger.warning('REPRISE', 'Code de reprise impossible : $e');
+      if (!mounted) return;
+      setState(() {
+        _enCours = false;
+        _erreur = isFr
+            ? 'Impossible d\'obtenir un code. Vérifiez votre connexion.'
+            : 'Couldn\'t get a code. Check your connection.';
+      });
+    }
+  }
+
+  Widget _vueDuCode(ThemeData theme, bool isFr) {
+    final code = _codeDeReprise!;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(isFr ? 'Votre code de reprise' : 'Your recovery code',
+            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 14),
+        Center(
+          child: SelectableText(
+            code,
+            style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, letterSpacing: 6),
+          ),
+        ),
+        Center(
+          child: TextButton.icon(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: code));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(isFr ? 'Code copié' : 'Code copied')),
+              );
+            },
+            icon: const Icon(Icons.copy_rounded, size: 18),
+            label: Text(isFr ? 'Copier' : 'Copy'),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          isFr
+              ? 'Sur n\'importe quel appareil, pendant trente jours : « Retrouver ma soirée », '
+                  'puis ce code. Il ne sert qu\'une fois, et ouvre votre soirée : ne le donnez à personne.'
+              : 'On any device, for thirty days: "Recover my evening", then this code. It works '
+                  'once, and opens your evening: don\'t give it to anyone.',
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 20),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          child: Text(isFr ? 'Je l\'ai noté' : 'I\'ve written it down'),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
@@ -100,7 +180,9 @@ class _KeepEveningSheetState extends ConsumerState<KeepEveningSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_envoye) ...[
+            if (_codeDeReprise != null) ...[
+              _vueDuCode(theme, isFr),
+            ] else if (_envoye) ...[
               const Icon(Icons.mark_email_read_outlined,
                   size: 40, color: Color(0xFF10B981)),
               const SizedBox(height: 12),
@@ -183,6 +265,15 @@ class _KeepEveningSheetState extends ConsumerState<KeepEveningSheet> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2))
                     : Text(isFr ? 'Garder ma soirée' : 'Keep my evening'),
+              ),
+              Center(
+                child: TextButton(
+                  onPressed: _enCours ? null : () => _obtenirUnCode(isFr: isFr),
+                  child: Text(
+                    isFr ? 'Pas d\'adresse ? Obtenir un code de reprise' : 'No email? Get a recovery code',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
               ),
               Center(
                 child: TextButton(

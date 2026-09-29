@@ -11,6 +11,10 @@ VERSION=$(grep '^version: ' "$DIR/app/pubspec.yaml" | awk '{print $2}')
 BUILD_TIME=$(date +%s)
 
 echo "🌐 Building Chatmelier Web (v$VERSION)..."
+# Build vidé d'abord : `flutter build web` n'efface pas ce qu'il ne produit plus. Le 29/09,
+# une console admin retirée du code en S0 dormait encore dans build/web, avec la clé
+# service_role, et ce script l'a republiée sur le site public.
+rm -rf build/web
 flutter build web --release \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
   --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
@@ -43,11 +47,23 @@ echo "🚀 Syncing to Chatmelier/chatmelier.github.io (org)..."
 TMP_DIR=$(mktemp -d)
 git clone --depth 1 --branch main git@github.com:Chatmelier/chatmelier.github.io.git "$TMP_DIR"
 cp -r "$DIR"/app/build/web/* "$TMP_DIR/"
+rm -rf "$TMP_DIR/admin_console"
 cp -f "$DIR"/privacy.html "$TMP_DIR/" 2>/dev/null || true
 cp -f "$DIR"/terms.html "$TMP_DIR/" 2>/dev/null || true
 cp -f "$DIR"/app-ads.txt "$TMP_DIR/" 2>/dev/null || true
 # (console admin volontairement non déployée — voir la note plus haut)
 touch "$TMP_DIR/.nojekyll"
+
+# Garde-fou : aucun jeton ne part sur le site public. Un JWT (eyJhbGciOi…) ou une clé
+# secrète Supabase (sb_secret_…) dans ce qui va être publié annule tout.
+if grep -rlE 'eyJhbGciOi[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.|sb_secret_[A-Za-z0-9]{10,}' "$TMP_DIR" \
+     --include='*.html' --include='*.js' --include='*.json' --include='*.txt' > /dev/null 2>&1; then
+  echo "❌ Jeton détecté dans le site à publier — publication ANNULÉE :" >&2
+  grep -rlE 'eyJhbGciOi[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.|sb_secret_[A-Za-z0-9]{10,}' "$TMP_DIR" \
+     --include='*.html' --include='*.js' --include='*.json' --include='*.txt' >&2
+  rm -rf "$TMP_DIR"
+  exit 1
+fi
 
 cd "$TMP_DIR"
 git add -A

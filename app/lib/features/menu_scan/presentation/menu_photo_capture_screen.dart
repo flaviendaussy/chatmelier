@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../shared/providers/premium_provider.dart';
+import '../../../shared/widgets/chatmelier_loader.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../monetization/admob_service.dart';
 import '../data/menu_scan_service.dart';
@@ -569,24 +570,7 @@ class _MenuAnalysisLoadingOverlay extends StatefulWidget {
   State<_MenuAnalysisLoadingOverlay> createState() => _MenuAnalysisLoadingOverlayState();
 }
 
-class _MenuAnalysisLoadingOverlayState extends State<_MenuAnalysisLoadingOverlay>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _animCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _animCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _animCtrl.dispose();
-    super.dispose();
-  }
+class _MenuAnalysisLoadingOverlayState extends State<_MenuAnalysisLoadingOverlay> {
 
   @override
   Widget build(BuildContext context) {
@@ -622,55 +606,8 @@ class _MenuAnalysisLoadingOverlayState extends State<_MenuAnalysisLoadingOverlay
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Animated Pulsing Sommelier Rings
-              AnimatedBuilder(
-                animation: _animCtrl,
-                builder: (ctx, child) {
-                  final scale = 1.0 + (_animCtrl.value * 0.12);
-                  final opacity = 0.25 + (_animCtrl.value * 0.45);
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Outer Golden Pulse
-                      Container(
-                        width: 96 * scale,
-                        height: 96 * scale,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFFD4AF37).withValues(alpha: opacity * 0.3),
-                        ),
-                      ),
-                      // Inner Burgundy Ring
-                      Container(
-                        width: 76,
-                        height: 76,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
-                          border: Border.all(
-                            color: const Color(0xFFD4AF37),
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      // Core Icon
-                      Container(
-                        width: 58,
-                        height: 58,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFF8B1E3F),
-                        ),
-                        child: const Icon(
-                          Icons.menu_book_rounded,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+              // La mascotte lit la carte pendant que l'IA la lit vraiment.
+              const ChatmelierLoader(type: ChatmelierLoaderType.carte, size: 168),
 
               const SizedBox(height: 22),
 

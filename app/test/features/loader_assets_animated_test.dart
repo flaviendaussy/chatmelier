@@ -19,6 +19,7 @@ void main() {
   const assets = <String>[
     'assets/animations/loader_detective_square.webp',
     'assets/animations/loader_sommelier_square.webp',
+    'assets/animations/loader_menu_scan_square.webp',
   ];
 
   group('🎞️ Assets animés des loaders', () {

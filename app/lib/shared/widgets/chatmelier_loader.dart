@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 enum ChatmelierLoaderType {
   detective,
   sommelier,
+  carte,
 }
 
 /// A premium animated loader featuring the Chatmelier mascot animations:
 /// - [detective]: Camel with magnifying glass and wine bottle (for wine scanning, label search, vintage lookup).
 /// - [sommelier]: Camel swirling wine glass with golden aroma bubbles (for AI thinking, pairings, cellar analysis).
+/// - [carte]: le chameau lit une carte des vins qu'un trait doré balaie (analyse d'une carte
+///   de restaurant). Vidéo générée le 29/09 d'après le prompt du plan V2.1, bouclée sur
+///   les images 47 à 155, où les deux bouts se ressemblent le plus : pas de fondu, donc
+///   pas de double exposition.
 class ChatmelierLoader extends StatelessWidget {
   final ChatmelierLoaderType type;
   final double size;
@@ -40,9 +45,11 @@ class ChatmelierLoader extends StatelessWidget {
     this.showCardBackground = false,
   }) : type = ChatmelierLoaderType.sommelier;
 
-  String get _assetWebp => type == ChatmelierLoaderType.detective
-      ? 'assets/animations/loader_detective_square.webp'
-      : 'assets/animations/loader_sommelier_square.webp';
+  String get _assetWebp => switch (type) {
+        ChatmelierLoaderType.detective => 'assets/animations/loader_detective_square.webp',
+        ChatmelierLoaderType.sommelier => 'assets/animations/loader_sommelier_square.webp',
+        ChatmelierLoaderType.carte => 'assets/animations/loader_menu_scan_square.webp',
+      };
 
   @override
   Widget build(BuildContext context) {

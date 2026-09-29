@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -32,7 +34,11 @@ class MenuScanService {
     defaultValue: AppConstants.geminiApiKey,
   );
 
-  MenuScanService(this._knowledgeCache, [this._supabaseClient]);
+  /// Fabrique une connexion HTTP neuve par appel à scan-menu (voir [_appelScanMenu]).
+  final http.Client Function() _nouveauTransport;
+
+  MenuScanService(this._knowledgeCache, [this._supabaseClient, http.Client Function()? nouveauTransport])
+      : _nouveauTransport = nouveauTransport ?? (() => http.Client());
 
   /// Helper to load bytes from a path (local file, XFile, or blob/network)
   static Future<Uint8List> _readImageBytes(String imagePath) async {
@@ -634,16 +640,24 @@ Consignes absolues :
 
       AppLogger.info('MENU_SCAN', 'Invoking Supabase Edge Function scan-menu with ${imagesBase64.length} image(s)...');
       final debut = DateTime.now();
-      // 150 s : la limite de durée d'une fonction edge. Abandonner avant ne fait rien
-      // gagner — le serveur va au bout et facture l'appel quand même (18/09, 25/09).
-      final res = await client.functions.invoke('scan-menu', body: {
+      final corps = {
         'imagesBase64': imagesBase64,
         'languageCode': languageCode,
         'restaurantNameHint': restaurantNameHint,
-      }).timeout(_delaiScanMenu);
+      };
+      // 150 s : la limite de durée d'une fonction edge. Abandonner avant ne fait rien
+      // gagner — le serveur va au bout et facture l'appel quand même (18/09, 25/09).
+      final data = await appelerAvecRelance(
+        (delai) => _appelScanMenu(client, corps, delai),
+        total: _delaiScanMenu,
+        relance: _relanceScanMenu,
+        siRelance: () => AppLogger.warning(
+            'MENU_SCAN',
+            'scan-menu silencieux après ${_relanceScanMenu.inSeconds} s '
+                '(${SchedulerBinding.instance.lifecycleState?.name}) : seconde tentative sur une connexion neuve'),
+      );
 
-      if (res.data != null && res.data is Map) {
-        final data = Map<String, dynamic>.from(res.data as Map);
+      if (data != null) {
         final modele = data['modele'] as String?;
         if (modele != null && data['usageMetadata'] is Map) {
           AiCostTrackerService().recordRawResponse(
@@ -658,7 +672,7 @@ Consignes absolues :
             '(${(data['wines'] as List?)?.length ?? 0} wines)');
         return data;
       }
-      AppLogger.warning('MENU_SCAN', 'scan-menu returned no usable body (status ${res.status})');
+      AppLogger.warning('MENU_SCAN', 'scan-menu returned no usable body');
     } catch (e, stack) {
       AppLogger.error('MENU_SCAN', 'Edge function scan-menu error: $e', e, stack);
     }
@@ -666,4 +680,81 @@ Consignes absolues :
   }
 
   static const _delaiScanMenu = Duration(seconds: 150);
+
+  /// Au-delà, une page silencieuse est relancée. Une page répond en 12 à 25 s ; les plus
+  /// chargées (près de trente vins) en 50 s au plus.
+  static const _relanceScanMenu = Duration(seconds: 45);
+
+  /// Un appel à scan-menu sur une connexion NEUVE, refermée après.
+  ///
+  /// Le client Supabase recycle ses connexions. Le 29/09 au matin, deux scans sont restés
+  /// figés jusqu'au délai de 150 s pendant que les journaux, envoyés au même serveur par
+  /// le même client, passaient : la signature d'une connexion réutilisée, morte en
+  /// silence sur un réseau qui venait de hoqueter (lecture des notifications en échec à
+  /// 06:05:43). Une connexion ouverte pour l'appel ne peut pas l'être.
+  Future<Map<String, dynamic>?> _appelScanMenu(
+    SupabaseClient client,
+    Map<String, dynamic> corps,
+    Duration delai,
+  ) async {
+    final jeton = (await client.auth.getSession())?.accessToken;
+    final transport = _nouveauTransport();
+    try {
+      final res = await transport
+          .post(
+            Uri.parse('${AppConstants.supabaseUrl}/functions/v1/scan-menu'),
+            headers: {
+              'apikey': AppConstants.supabaseAnonKey,
+              'Authorization': 'Bearer ${jeton ?? AppConstants.supabaseAnonKey}',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(corps),
+          )
+          .timeout(delai);
+      if (res.statusCode != 200) {
+        final extrait = res.body.length > 200 ? res.body.substring(0, 200) : res.body;
+        throw http.ClientException('scan-menu HTTP ${res.statusCode} : $extrait');
+      }
+      final data = jsonDecode(utf8.decode(res.bodyBytes));
+      return data is Map ? Map<String, dynamic>.from(data) : null;
+    } finally {
+      transport.close();
+    }
+  }
+
+  /// Lance [appel] ; sans réponse après [relance], en lance un second, et rend la
+  /// première RÉPONSE des deux — une erreur ne l'emporte que si les deux échouent, et
+  /// une erreur rapide du premier (429, réseau coupé) remonte sans relance. Les deux
+  /// s'arrêtent au même instant, [total] après le départ : la relance ne rallonge jamais
+  /// l'attente, elle la raccourcit quand le premier appel s'est perdu.
+  @visibleForTesting
+  static Future<T> appelerAvecRelance<T>(
+    Future<T> Function(Duration delai) appel, {
+    required Duration total,
+    required Duration relance,
+    void Function()? siRelance,
+  }) async {
+    final issue = Completer<T>();
+    var enCours = 0;
+    void suivre(Future<T> essai) {
+      enCours++;
+      essai.then((v) {
+        if (!issue.isCompleted) issue.complete(v);
+      }, onError: (Object e, StackTrace pile) {
+        if (--enCours == 0 && !issue.isCompleted) issue.completeError(e, pile);
+      });
+    }
+
+    suivre(appel(total));
+    final minuteur = Timer(relance, () {
+      if (issue.isCompleted) return;
+      siRelance?.call();
+      suivre(appel(total - relance));
+    });
+    try {
+      return await issue.future;
+    } finally {
+      minuteur.cancel();
+    }
+  }
 }

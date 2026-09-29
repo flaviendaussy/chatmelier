@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../auth/domain/wine_taste_radar.dart';
 import '../domain/wine.dart';
+import '../../../shared/utils/langue.dart';
 
 class AgingSnapshot {
   final int additionalYears;
@@ -41,8 +42,13 @@ class AgingSimulatorEngine {
     final totalAgeAtSim = currentAge + additionalYears;
     final targetYear = currentYear + additionalYears;
 
-    final isWhite = (wine.type ?? '').toLowerCase().contains('blanc') || (wine.type ?? '').toLowerCase().contains('white');
-    final isChampagne = (wine.type ?? '').toLowerCase().contains('champ') || (wine.type ?? '').toLowerCase().contains('efferv');
+    final type = wine.type.toLowerCase();
+    // Tout ce qui n'est pas rouge se lit comme un blanc : pas de tanins, pas de cassis.
+    // Avant, un Champagne (type « sparkling ») ou un rosé recevaient « tanins vifs et
+    // mordants » et « cassis éclatant » (29/09).
+    final isRed = type.contains('red') || type.contains('rouge') || type.contains('fortified');
+    final isWhite = !isRed;
+    final isChampagne = type.contains('champ') || type.contains('efferv') || type.contains('spark');
 
     // Potentiel de garde estimé (ex: 8 ans pour rouge standard, 20 ans pour Grand Cru Bordeaux)
     int guardPotential = 10;
@@ -99,16 +105,16 @@ class AgingSimulatorEngine {
     String phaseName;
     double satisfaction;
     if (totalAgeAtSim < peakStart) {
-      phaseName = 'Jeunesse fougueuse (En développement)';
+      phaseName = tr('Jeunesse fougueuse (En développement)', 'Lively youth (still developing)');
       satisfaction = 65.0 + (totalAgeAtSim / peakStart) * 25.0;
     } else if (totalAgeAtSim <= peakEnd) {
-      phaseName = 'Pleine Apogée (Plateau idéal)';
+      phaseName = tr('Pleine Apogée (Plateau idéal)', 'At its peak (ideal plateau)');
       satisfaction = 95.0 + (5.0 * math.sin(((totalAgeAtSim - peakStart) / (peakEnd - peakStart)) * math.pi));
     } else if (totalAgeAtSim <= guardPotential * 1.3) {
-      phaseName = 'Maturité noble & Tertiaire';
+      phaseName = tr('Maturité noble & Tertiaire', 'Noble maturity & tertiary notes');
       satisfaction = 82.0 - ((totalAgeAtSim - peakEnd) / (guardPotential * 0.45)) * 20.0;
     } else {
-      phaseName = 'Déclin oenologique (Passé d\'apogée)';
+      phaseName = tr('Déclin oenologique (Passé d\'apogée)', 'Declining (past its peak)');
       satisfaction = 45.0;
     }
 
@@ -118,24 +124,24 @@ class AgingSimulatorEngine {
     if (isWhite) {
       if (additionalYears <= 2) {
         robeColor = const Color(0xFFE8F5E9); // Or pâle reflets verts
-        robeDesc = 'Or pâle brillant aux reflets argentés';
+        robeDesc = tr('Or pâle brillant aux reflets argentés', 'Bright pale gold with silver glints');
       } else if (additionalYears <= 7) {
         robeColor = const Color(0xFFFFD54F); // Doré intense
-        robeDesc = 'Or paille lumineux, belle brillance';
+        robeDesc = tr('Or paille lumineux, belle brillance', 'Luminous straw gold, lovely brilliance');
       } else {
         robeColor = const Color(0xFFFFB300); // Ambré / Topaze
-        robeDesc = 'Or cuivré intense aux nuances de topaze';
+        robeDesc = tr('Or cuivré intense aux nuances de topaze', 'Deep coppery gold with topaz hints');
       }
     } else {
       if (additionalYears <= 2) {
         robeColor = const Color(0xFF6B0E23); // Pourpre / Rubis jeune
-        robeDesc = 'Robe pourpre sombre, frange violacée éclatante';
+        robeDesc = tr('Robe pourpre sombre, frange violacée éclatante', 'Dark purple with a bright violet rim');
       } else if (additionalYears <= 7) {
         robeColor = const Color(0xFF8B1E3F); // Rubis noble
-        robeDesc = 'Grenat profond avec un disque rubis chatoyant';
+        robeDesc = tr('Grenat profond avec un disque rubis chatoyant', 'Deep garnet with a shimmering ruby rim');
       } else {
         robeColor = const Color(0xFF793822); // Tuilé / Acajou
-        robeDesc = 'Teinte tuilée, reflets brique et acajou élégants';
+        robeDesc = tr('Teinte tuilée, reflets brique et acajou élégants', 'Brick-tinted, with elegant brick and mahogany glints');
       }
     }
 
@@ -145,17 +151,17 @@ class AgingSimulatorEngine {
     String palate;
 
     if (additionalYears <= 3) {
-      primary = isWhite ? 'Citron jaune, pomme croquante, pêche de vigne' : 'Cassis éclatant, cerise noire fraîche, framboise';
-      tertiary = 'Encore très discret, pointe discrète de vanille';
-      palate = isWhite ? 'Vive, droite, tranchante et désaltérante' : 'Tanins vifs et mordants, belle tension athlétique';
+      primary = isWhite ? tr('Citron jaune, pomme croquante, pêche de vigne', 'Lemon, crisp apple, vine peach') : tr('Cassis éclatant, cerise noire fraîche, framboise', 'Bright blackcurrant, fresh black cherry, raspberry');
+      tertiary = tr('Encore très discret, pointe discrète de vanille', 'Still very discreet, a hint of vanilla');
+      palate = isWhite ? tr('Vive, droite, tranchante et désaltérante', 'Lively, straight, sharp and refreshing') : tr('Tanins vifs et mordants, belle tension athlétique', 'Lively, grippy tannins, athletic tension');
     } else if (additionalYears <= 8) {
-      primary = isWhite ? 'Poire beurrée, abricot sec, zestes confits' : 'Cerise noire compotée, coulis de mûre, pruneau';
-      tertiary = isWhite ? 'Miel d\'acacia, amande grillée, noisette' : 'Sous-bois naissant, tabac blond, épices douces';
-      palate = isWhite ? 'Rondeur onctueuse soutenue par une minéralité patinée' : 'Tanins soyeux et fondus, velouté de texture superbe';
+      primary = isWhite ? tr('Poire beurrée, abricot sec, zestes confits', 'Buttery pear, dried apricot, candied zest') : tr('Cerise noire compotée, coulis de mûre, pruneau', 'Stewed black cherry, blackberry coulis, prune');
+      tertiary = isWhite ? tr('Miel d\'acacia, amande grillée, noisette', 'Acacia honey, toasted almond, hazelnut') : tr('Sous-bois naissant, tabac blond, épices douces', 'Early forest floor, blond tobacco, sweet spice');
+      palate = isWhite ? tr('Rondeur onctueuse soutenue par une minéralité patinée', 'Luscious roundness held up by mellow minerality') : tr('Tanins soyeux et fondus, velouté de texture superbe', 'Silky, melted tannins, a superb velvety texture');
     } else {
-      primary = isWhite ? 'Coing, pâte de fruits, écorce d\'orange' : 'Figue sèche, pruneau d\'Agen, cerise à l\'eau-de-vie';
-      tertiary = isWhite ? 'Cire d\'abeille, truffe blanche, pain d\'épices' : 'Truffe noire, cuir noble, boîte à cigares, humus';
-      palate = isWhite ? 'Matière patinée, finale longue et saline' : 'Toucher de velours absolu, tanins dissous dans l\'alcool';
+      primary = isWhite ? tr('Coing, pâte de fruits, écorce d\'orange', 'Quince, fruit jellies, orange peel') : tr('Figue sèche, pruneau d\'Agen, cerise à l\'eau-de-vie', 'Dried fig, Agen prune, brandied cherry');
+      tertiary = isWhite ? tr('Cire d\'abeille, truffe blanche, pain d\'épices', 'Beeswax, white truffle, gingerbread') : tr('Truffe noire, cuir noble, boîte à cigares, humus', 'Black truffle, fine leather, cigar box, humus');
+      palate = isWhite ? tr('Matière patinée, finale longue et saline', 'Mellow texture, a long saline finish') : tr('Toucher de velours absolu, tanins dissous dans l\'alcool', 'Pure velvet, tannins melted into the wine');
     }
 
     return AgingSnapshot(

@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../domain/bottle.dart';
 import '../domain/wine_food_matcher.dart';
 import '../../../shared/utils/langue.dart';
+import '../domain/wine_food_matcher_en.dart';
 
 class CellarFoodPairingSheet extends StatefulWidget {
   final List<Bottle> bottles;
@@ -440,7 +441,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                                         Icon(Icons.star, size: 13, color: Color(match.matchLevel.colorValue)),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '${match.score}% • ${match.matchLevel.label}',
+                                          '${match.score}% • ${match.matchLevel.localizedLabel(_langCode)}',
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
@@ -523,7 +524,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        match.sommelierComment,
+                                        trDonnee(match.sommelierComment, accordsEnAnglais),
                                         style: TextStyle(
                                           fontSize: 12,
                                           height: 1.35,
@@ -548,7 +549,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                                         const SizedBox(width: 4),
                                         Expanded(
                                           child: Text(
-                                            match.servingAdvice,
+                                            trDonnee(match.servingAdvice, accordsEnAnglais),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(

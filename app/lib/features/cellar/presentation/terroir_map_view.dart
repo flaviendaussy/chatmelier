@@ -19,8 +19,8 @@ const ColorFilter kDarkTerroirTileFilter = ColorFilter.matrix(<double>[
 
 /// Attribution exigée par la licence CC-BY-SA d'OpenTopoMap. Elle doit rester
 /// « deutlich sichtbar » — clairement visible — sur toute carte affichée.
-const String kTerroirTileAttribution =
-    '© OpenStreetMap · SRTM · rendu © OpenTopoMap (CC-BY-SA)';
+String get kTerroirTileAttribution =>
+    tr('© OpenStreetMap · SRTM · rendu © OpenTopoMap (CC-BY-SA)', '© OpenStreetMap · SRTM · style © OpenTopoMap (CC-BY-SA)');
 
 /// Mention de licence, posée en surimpression permanente sur la carte.
 ///
@@ -41,11 +41,11 @@ class _TileAttributionBadge extends StatelessWidget {
           color: Colors.black.withValues(alpha: 0.45),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
           child: Text(
             kTerroirTileAttribution,
-            style: TextStyle(fontSize: 8.5, height: 1.1, color: Colors.white70),
+            style: const TextStyle(fontSize: 8.5, height: 1.1, color: Colors.white70),
           ),
         ),
       ),
@@ -484,7 +484,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      tr('Revenir sur ${_profile.name}', 'Back to ${_profile.name}'),
+                                      tr('Revenir sur ${_profile.nomAffiche}', 'Back to ${_profile.nomAffiche}'),
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         fontSize: 11.5,
@@ -528,7 +528,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _profile.name,
+                            _profile.nomAffiche,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.2,
@@ -556,7 +556,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                           ),
                         ),
                         child: Text(
-                          _profile.classification.split('(').first.trim(),
+                          _profile.classementAffiche.split('(').first.trim(),
                           style: const TextStyle(
                             color: Color(0xFFD4AF37),
                             fontSize: 10,
@@ -579,25 +579,25 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                     _buildTerroirChip(
                       icon: Icons.layers_outlined,
                       label: tr('Sol', 'Soil'),
-                      value: _profile.soilType,
+                      value: _profile.solAffiche,
                       theme: theme,
                     ),
                     _buildTerroirChip(
                       icon: Icons.wb_sunny_outlined,
                       label: tr('Climat', 'Climate'),
-                      value: _profile.climate,
+                      value: _profile.climatAffiche,
                       theme: theme,
                     ),
                     _buildTerroirChip(
                       icon: Icons.landscape_outlined,
                       label: tr('Relief', 'Relief'),
-                      value: '${_profile.exposure} • ${_profile.elevation}',
+                      value: '${_profile.expositionAffichee} • ${_profile.altitudeAffichee}',
                       theme: theme,
                     ),
                     _buildTerroirChip(
                       icon: Icons.bubble_chart_outlined,
                       label: tr('Cépages', 'Grapes'),
-                      value: _profile.keyGrapes,
+                      value: _profile.cepagesAffiches,
                       theme: theme,
                     ),
                   ],
@@ -627,7 +627,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          _profile.sommelierNotes,
+                          _profile.notesAffichees,
                           style: theme.textTheme.bodySmall?.copyWith(
                             fontStyle: FontStyle.italic,
                             height: 1.35,
@@ -782,7 +782,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                 style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
                 children: [
                   TextSpan(
-                    text: '$label : ',
+                    text: tr('$label : ', '$label: '),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   TextSpan(
@@ -861,7 +861,7 @@ class _TerroirMapFullscreenScreenState
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${widget.profile.flag} ${widget.profile.name}',
+          '${widget.profile.flag} ${widget.profile.nomAffiche}',
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         actions: [
@@ -1011,11 +1011,11 @@ class _TerroirMapFullscreenScreenState
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      widget.profile.name,
+                      widget.profile.nomAffiche,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     ),
                     Text(
-                      '${widget.profile.classification} • ${widget.profile.region}',
+                      '${widget.profile.classementAffiche} • ${widget.profile.region}',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -1023,13 +1023,13 @@ class _TerroirMapFullscreenScreenState
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildRowItem(tr('🪨 Sol', '🪨 Soil'), widget.profile.soilType),
-                    _buildRowItem(tr('☀️ Climat', '☀️ Climate'), widget.profile.climate),
-                    _buildRowItem(tr('📐 Relief & Exposition', '📐 Relief & aspect'), '${widget.profile.exposure} (${widget.profile.elevation})'),
-                    _buildRowItem(tr('🍇 Cépages Phares', '🍇 Signature grapes'), widget.profile.keyGrapes),
+                    _buildRowItem(tr('🪨 Sol', '🪨 Soil'), widget.profile.solAffiche),
+                    _buildRowItem(tr('☀️ Climat', '☀️ Climate'), widget.profile.climatAffiche),
+                    _buildRowItem(tr('📐 Relief & Exposition', '📐 Relief & aspect'), '${widget.profile.expositionAffichee} (${widget.profile.altitudeAffichee})'),
+                    _buildRowItem(tr('🍇 Cépages Phares', '🍇 Signature grapes'), widget.profile.cepagesAffiches),
                     const SizedBox(height: 10),
                     Text(
-                      widget.profile.sommelierNotes,
+                      widget.profile.notesAffichees,
                       style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 13, height: 1.4),
                     ),
                     const SizedBox(height: 20),

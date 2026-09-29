@@ -2284,9 +2284,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                           if (!isViewOnly && wine.lastValuationDate != null) ...[
                             const SizedBox(height: 12),
                             Text(
+                              // Estimation de Gemini (fonction update-wine-values), sans source :
+                              // la dire « vérifiée » était faux (29/09).
                               isFr
-                                  ? 'Indice de marché vérifié • Actualisé semestriellement (${DateFormat.yMMMd().format(wine.lastValuationDate!)})'
-                                  : 'Verified market index • Updated semi-annually (${DateFormat.yMMMd().format(wine.lastValuationDate!)})',
+                                  ? 'Estimation par IA, à titre indicatif • ${DateFormat('dd/MM/yyyy').format(wine.lastValuationDate!)}'
+                                  : 'AI estimate, for guidance only • ${DateFormat.yMMMd().format(wine.lastValuationDate!)}',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 fontSize: 11,
                                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),

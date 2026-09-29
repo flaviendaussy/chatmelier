@@ -1,4 +1,6 @@
 import '../../../../l10n/app_localizations.dart';
+import 'package:flutter/widgets.dart' show Locale;
+import '../../../shared/utils/langue.dart';
 
 /// Result of a structured post-tasting questionnaire for one person.
 class TastingQuestionnaireResult {
@@ -562,6 +564,6 @@ List<String> libellesDesAromes(Iterable<String> ids) {
   final parId = {for (final o in TastingQuestionnaireResult.aromaOptions) o.id: o};
   return [
     for (final id in ids)
-      if (parId[id] != null) '${parId[id]!.emoji} ${parId[id]!.label}',
+      if (parId[id] != null) '${parId[id]!.emoji} ${Langue.estFr ? parId[id]!.label : parId[id]!.localizedLabel(lookupAppLocalizations(const Locale('en')))}',
   ];
 }

@@ -386,6 +386,8 @@ class FoodPairingMatch {
 }
 
 class WineFoodMatcher {
+  static const _parDefaut = 'Accord équilibré selon le profil aromatique du vin.';
+
   static const List<FoodPairingCategory> categories = [
     // 1. Red meat
     FoodPairingCategory(
@@ -822,15 +824,17 @@ class WineFoodMatcher {
     if (_matchesKeywords(query, ['foie gras', 'foie-gras', 'duck liver', 'goose liver', 'foie gras poele', 'foie gras mi-cuit'])) {
       if (type.contains('dessert') || type.contains('moell') || type.contains('sauternes') || appellation.contains('sauternes') || appellation.contains('monbazillac') || type.contains('sweet')) {
         score = 96 + (appellation.contains('sauternes') ? 2 : 0) + bottleDifferentiator;
-        comment = 'L\'accord noble par excellence : la texture fondante du foie gras et la richesse liquoreuse du Sauternes s\'épousent dans une harmonie parfaite.';
+        comment = 'L\'accord noble par excellence : la texture fondante du foie gras et la richesse d\'un grand liquoreux s\'épousent dans une harmonie parfaite.';
         serving = 'Servir frais entre 8°C et 10°C.';
       } else if (type.contains('champ') || type.contains('sparkling')) {
         score = 88 + (appellation.contains('grand cru') ? 2 : 0) + bottleDifferentiator;
-        comment = 'Accord moderne et vivifiant : les fines bulles et la fraîcheur du Champagne tranchent avec le gras onctueux du foie gras.';
+        comment = 'Accord moderne et vivifiant : les fines bulles et la fraîcheur du vin tranchent avec le gras onctueux du foie gras.';
         serving = 'Servir en flûte rafraîchie à 8-9°C.';
       } else if (grapes.contains('gewurztraminer') || region.contains('alsace')) {
         score = 90 + bottleDifferentiator;
-        comment = 'L\'exubérance épicée et la rondeur du Gewurztraminer d\'Alsace subliment le foie gras mi-cuit avec éclat.';
+        comment = grapes.contains('gewurztraminer')
+            ? 'L\'exubérance épicée et la rondeur du Gewurztraminer subliment le foie gras mi-cuit avec éclat.'
+            : 'La rondeur et le parfum des blancs d\'Alsace accompagnent le foie gras mi-cuit.';
         serving = 'Servir à 10°C.';
       } else if (grapes.contains('pinot noir') && isMature) {
         score = 83 + bottleDifferentiator;
@@ -978,7 +982,7 @@ class WineFoodMatcher {
             comment = 'Accord sommelier d\'anthologie : la rondeur solaire, le poivre noir et les accents de garrigue et d\'épices du Sud s\'unissent divinement au thym et aux sucs grillés du gigot d\'agneau.';
             serving = 'Servir à 16-17°C en grand verre tulipe.';
           } else if (isSpain) {
-            comment = 'L\'accord ibérique par excellence : le rôti d\'agneau au thym s\'accorde à merveille avec les tanins veloutés, le cuir noble et la vanille de ce grand Tempranillo.';
+            comment = 'L\'accord ibérique par excellence : le rôti d\'agneau au thym s\'accorde à merveille avec les tanins veloutés, le cuir noble et la vanille de ce grand rouge espagnol.';
             serving = 'Servir chambré à 16-17°C.';
           } else {
             comment = 'Ce vin rouge structuré possède la matière et la vivacité nécessaires pour accompagner la richesse de l\'agneau et les herbes aromatiques.';
@@ -1051,7 +1055,7 @@ class WineFoodMatcher {
       if (type == 'white' || type == 'blanc') {
         if (region.contains('bourgogne') || region.contains('rhone') || grapes.contains('chardonnay') || appellation.contains('meursault')) {
           score = 94 + (appellation.contains('meursault') ? 3 : 1) + bottleDifferentiator;
-          comment = 'Un grand blanc riche, beurré et boisé enrobe magnifiquement la chair délicate et les sauces crémées (morilles, blanquette, poularde).';
+          comment = 'Un blanc ample et rond enrobe magnifiquement la chair délicate et les sauces crémées (morilles, blanquette, poularde).';
           serving = 'Servir à 11-13°C sans excès de fraîcheur.';
         } else {
           score = 81 + bottleDifferentiator;
@@ -1088,7 +1092,7 @@ class WineFoodMatcher {
           serving = 'Servir frais à 9-11°C.';
         } else if (region.contains('bourgogne') || appellation.contains('meursault') || grapes.contains('chardonnay')) {
           score = 94 + (appellation.contains('meursault') ? 3 : 1) + bottleDifferentiator;
-          comment = 'L\'onctuosité beurrée et la texture satinée du vin font écho à la sauce au beurre blanc ou à la sole meunière poêlée.';
+          comment = 'La rondeur et la texture satinée du vin font écho à la sauce au beurre blanc ou à la sole meunière poêlée.';
           serving = 'Servir à 11-12°C.';
         } else {
           score = 78 + bottleDifferentiator;
@@ -1097,7 +1101,7 @@ class WineFoodMatcher {
         }
       } else if (type.contains('champ') || type.contains('sparkling')) {
         score = 90 + bottleDifferentiator;
-        comment = 'L\'effervescence crémeuse et la droiture du Champagne exaltent les poissons nobles au beurre blanc.';
+        comment = 'L\'effervescence crémeuse et la droiture des bulles exaltent les poissons nobles au beurre blanc.';
         serving = 'Servir à 8-10°C.';
       }
     }
@@ -1127,7 +1131,7 @@ class WineFoodMatcher {
         }
       } else if (type == 'rose' || type == 'rosé') {
         score = 83 + (region.contains('provence') || appellation.contains('bandol') ? 3 : 0) + bottleDifferentiator;
-        comment = 'Un rosé gastronomique de Provence ou Bandol offre le compromis rêvé entre fraîcheur iodée et rondeur fruitée sur les sushis et le thon mi-cuit.';
+        comment = 'Un rosé gastronomique offre le compromis rêvé entre fraîcheur iodée et rondeur fruitée sur les sushis et le thon mi-cuit.';
         serving = 'Servir à 9-10°C.';
       } else if (type == 'red' || type == 'rouge') {
         if (grapes.contains('pinot noir') || region.contains('bourgogne')) {
@@ -1154,7 +1158,7 @@ class WineFoodMatcher {
         if (query.contains('huitre') || query.contains('huître') || query.contains('oyster')) {
           if (appellation.contains('chablis') || appellation.contains('muscadet')) {
             score = 98 + (appellation.contains('grand cru') ? 1 : 0) + bottleDifferentiator;
-            comment = 'L\'accord absolu de la mer : le terroir kimméridgien, la salinité éclatante et la vivacité iodée s\'unissent divinement aux huîtres.';
+            comment = 'L\'accord absolu de la mer : la salinité éclatante et la vivacité iodée s\'unissent divinement aux huîtres.';
             serving = 'Servir très frais à 8-10°C sans attendre.';
           } else if (appellation.contains('sancerre') || appellation.contains('picpoul')) {
             score = 92 + bottleDifferentiator;
@@ -1168,7 +1172,7 @@ class WineFoodMatcher {
         } else if (query.contains('saint-jacques') || query.contains('homard') || query.contains('langoust') || query.contains('lobster') || query.contains('scallop')) {
           if (region.contains('bourgogne') || grapes.contains('chardonnay') || region.contains('rhone')) {
             score = 96 + bottleDifferentiator;
-            comment = 'La texture beurrée et la minéralité de ce grand blanc subliment la douceur iodée et la chair noble des crustacés et coquilles Saint-Jacques.';
+            comment = 'La texture et la minéralité de ce grand blanc subliment la douceur iodée et la chair noble des crustacés et coquilles Saint-Jacques.';
             serving = 'Servir à 10-12°C.';
           } else {
             score = 81 + bottleDifferentiator;
@@ -1182,7 +1186,7 @@ class WineFoodMatcher {
         }
       } else if (type.contains('champ') || type.contains('sparkling')) {
         score = 96 + bottleDifferentiator;
-        comment = 'L\'effervescence pure et crayeuse du Champagne réveille les papilles et magnifie la chair raffinée du homard et des huîtres.';
+        comment = 'L\'effervescence pure et vive des bulles réveille les papilles et magnifie la chair raffinée du homard et des huîtres.';
         serving = 'Servir à 8-9°C en verre tulipe.';
       }
     }
@@ -1207,9 +1211,13 @@ class WineFoodMatcher {
           serving = 'Servir à 15°C.';
         }
       } else if (type == 'white' || type == 'blanc') {
-        if (region.contains('loire') || appellation.contains('sancerre') || appellation.contains('pouilly') || grapes.contains('sauvignon')) {
+        final sauvignon = grapes.contains('sauvignon') || appellation.contains('sancerre') || appellation.contains('pouilly fume');
+        if (region.contains('loire') || sauvignon) {
           score = 96 + (appellation.contains('sancerre') ? 2 : 0) + bottleDifferentiator;
-          comment = 'L\'accord parfait : les notes de buis et la vivacité d\'agrumes du Sauvignon de Loire épousent intimement le gras caprin du Crottin de Chavignol ou Sainte-Maure.';
+          // Le Sauvignon n'est nommé que s'il est dans le verre : un Vouvray passe aussi ici.
+          comment = sauvignon
+              ? 'L\'accord parfait : les notes de buis et la vivacité d\'agrumes du Sauvignon épousent intimement le gras caprin du Crottin de Chavignol ou du Sainte-Maure.'
+              : 'L\'accord parfait : la vivacité d\'agrumes de ce blanc épouse intimement le gras caprin du Crottin de Chavignol ou du Sainte-Maure.';
           serving = 'Servir à 9-11°C.';
         } else {
           score = 79 + bottleDifferentiator;
@@ -1219,7 +1227,7 @@ class WineFoodMatcher {
       } else if ((type == 'red' || type == 'rouge') && (query.contains('ossau') || query.contains('brebis') || query.contains('sheep'))) {
         if (region.contains('sud-ouest') || region.contains('madiran') || region.contains('bordeaux')) {
           score = 87 + bottleDifferentiator;
-          comment = 'La douceur de la pâte de brebis et la confiture de cerises noires s\'accordent merveilleusement avec un rouge du Sud-Ouest.';
+          comment = 'La douceur de la pâte de brebis et la confiture de cerises noires s\'accordent merveilleusement avec ce rouge.';
           serving = 'Servir à 16°C.';
         }
       }
@@ -1263,7 +1271,7 @@ class WineFoodMatcher {
       if (type == 'red' || type == 'rouge') {
         if (region.contains('bourgogne') || grapes.contains('pinot noir') || region.contains('piemont') || region.contains('barolo') || region.contains('italie')) {
           score = 98 + bottleDifferentiator;
-          comment = 'Les arômes tertiaires d\'humus, de truffe et de sous-bois du Pinot Noir ou du Nebbiolo résonnent magistralement avec les champignons.';
+          comment = 'Les notes de sous-bois et de truffe de ce rouge résonnent magistralement avec les champignons.';
           serving = 'Servir à 15-16°C en grand verre ballon.';
         } else if (region.contains('bordeaux') && isMature) {
           score = 93 + bottleDifferentiator;
@@ -1348,11 +1356,11 @@ class WineFoodMatcher {
     ])) {
       if (grapes.contains('gewurztraminer') || region.contains('alsace') || grapes.contains('viognier')) {
         score = 89 + bottleDifferentiator;
-        comment = 'L\'exubérance aromatique (rose, litchi, épices douces) et la texture soyeuse domptent le piment et valorisent les currys et tajines.';
+        comment = 'Le fruit et la texture soyeuse de ce blanc aromatique domptent le piment et valorisent les currys et tajines.';
         serving = 'Servir frais à 9-11°C.';
       } else if (type == 'rose' || type == 'rosé') {
         score = 83 + (region.contains('rhone') || appellation.contains('tavel') ? 3 : 0) + bottleDifferentiator;
-        comment = 'Un rosé charpenté et vineux (Tavel, Bandol, Côtes de Provence) apporte une fraîcheur bienvenue face aux plats très épicés et au couscous.';
+        comment = 'Un rosé apporte une fraîcheur bienvenue face aux plats très épicés et au couscous ; plus il est vineux (Tavel, Bandol), mieux il tient.';
         serving = 'Servir à 9-10°C.';
       } else if (type == 'red' || type == 'rouge') {
         if (region.contains('rhone') || region.contains('languedoc') || region.contains('provence') || grapes.contains('syrah') || grapes.contains('grenache')) {
@@ -1374,11 +1382,11 @@ class WineFoodMatcher {
       if (query.contains('canard laque') || query.contains('canard laqué') || query.contains('peking duck')) {
         if (grapes.contains('pinot noir') || region.contains('bourgogne') || grapes.contains('gamay')) {
           score = 95 + bottleDifferentiator;
-          comment = 'Accord sommelier exceptionnel : la douceur caramélisée de la sauce hoisin et la peau croustillante du canard s\'accordent divinement au fruit soyeux du Pinot Noir.';
+          comment = 'Accord sommelier exceptionnel : la douceur caramélisée de la sauce hoisin et la peau croustillante du canard s\'accordent divinement au fruit soyeux de ce rouge léger.';
           serving = 'Servir à 15-16°C.';
         } else if (grapes.contains('riesling') || region.contains('alsace')) {
           score = 91 + bottleDifferentiator;
-          comment = 'Un Riesling avec une pointe de sucre résiduel fait scintiller les épices douces et le laquage du canard.';
+          comment = 'Un blanc d\'Alsace, surtout avec une pointe de sucre résiduel, fait scintiller les épices douces et le laquage du canard.';
           serving = 'Servir à 10°C.';
         }
       } else if (type == 'white' || type == 'blanc') {
@@ -1412,7 +1420,7 @@ class WineFoodMatcher {
         serving = 'Servir frais à 8-9°C.';
       } else if (type == 'rose' || type == 'rosé') {
         score = 83 + bottleDifferentiator;
-        comment = 'L\'âme de l\'apéritif estival : un rosé de Provence frais, floral et croquant sublime la tapenade et les tapas.';
+        comment = 'L\'âme de l\'apéritif estival : un rosé frais, floral et croquant sublime la tapenade et les tapas.';
         serving = 'Servir à 8-10°C.';
       } else if (type == 'red' || type == 'rouge') {
         if (region.contains('beaujolais') || region.contains('loire') || grapes.contains('gamay') || region.contains('espagne') || region.contains('ribera') || region.contains('rioja')) {
@@ -1466,7 +1474,7 @@ class WineFoodMatcher {
       bottle: bottle,
       score: score,
       matchLevel: matchLevel,
-      sommelierComment: comment.isNotEmpty ? comment : 'Accord équilibré selon le profil aromatique du vin.',
+      sommelierComment: comment.isNotEmpty ? comment : _parDefaut,
       servingAdvice: serving,
     );
   }

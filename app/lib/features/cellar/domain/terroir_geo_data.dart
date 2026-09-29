@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../shared/utils/langue.dart';
+import 'terroir_geo_data_en.dart';
 
 /// A rich terroir geographic profile containing real GPS coordinates,
 /// geological data, climate classification, and hexbin geometry properties.
@@ -50,6 +52,16 @@ class TerroirGeoProfile {
     this.accentColor = const Color(0xFFD4AF37),
     required this.keywords,
   });
+
+  // Ce que l'écran affiche, dans la langue de l'app (table : terroir_geo_data_en.dart).
+  String get nomAffiche => trDonnee(name, terroirEnAnglais);
+  String get solAffiche => trDonnee(soilType, terroirEnAnglais);
+  String get climatAffiche => trDonnee(climate, terroirEnAnglais);
+  String get expositionAffichee => trDonnee(exposure, terroirEnAnglais);
+  String get altitudeAffichee => trDonnee(elevation, terroirEnAnglais);
+  String get cepagesAffiches => trDonnee(keyGrapes, terroirEnAnglais);
+  String get classementAffiche => trDonnee(classification, terroirEnAnglais);
+  String get notesAffichees => trDonnee(sommelierNotes, terroirEnAnglais);
 
   /// Generates a smooth, organic polygon boundary representing the appellation / cru zone.
   List<LatLng> generateAppellationBoundary({double scale = 1.0}) {
@@ -391,6 +403,9 @@ class TerroirGeoResolver {
   // ===========================================================================
   // Comprehensive Terroir Catalog
   // ===========================================================================
+  /// Toutes les fiches, pour les vérifier (traductions, plausibilité).
+  static List<TerroirGeoProfile> get toutes => _profiles;
+
   static const List<TerroirGeoProfile> _profiles = [
     // -------------------------------------------------------------------------
     // BORDEAUX — RIVE GAUCHE (MÉDOC & GRAVES)
@@ -414,7 +429,7 @@ class TerroirGeoResolver {
       elevation: '12 - 30 mètres',
       keyGrapes: 'Cabernet Sauvignon (70%), Merlot, Cabernet Franc, Petit Verdot',
       classification: 'Premiers Grands Crus Classés 1855 (Latour, Lafite, Mouton)',
-      sommelierNotes: 'Les graves pauvres et filtrantes forcent la vigne à plonger ses racines jusqu\'à 6 mètres pour puiser l\'eau, conférant aux vins une structure tannique royale et un potentiel de garde centenaire.',
+      sommelierNotes: 'Les graves pauvres et filtrantes forcent la vigne à plonger ses racines jusqu\'à 6 mètres pour puiser l\'eau, conférant aux vins une structure tannique royale et un potentiel de garde de plusieurs décennies.',
       accentColor: Color(0xFFD4AF37),
       keywords: ['pauillac', 'medoc', 'haut medoc', 'haut-medoc', 'lafite', 'latour', 'mouton', 'ciron'],
     ),
@@ -544,7 +559,7 @@ class TerroirGeoResolver {
       exposure: 'Amphithéâtre naturel exposé plein Sud',
       elevation: '40 - 100 mètres',
       keyGrapes: 'Merlot (dominant), Cabernet Franc (Bouchet), Cabernet Sauvignon',
-      classification: 'Premiers Grands Crus Classés A (Ausone, Cheval Blanc, Figeac)',
+      classification: 'Premiers Grands Crus Classés A (Figeac, Pavie — classement 2022)',
       sommelierNotes: 'Le socle calcaire à astéries agit comme une éponge régulatrice d\'eau, offrant aux Merlots une opulence veloutée et une fraîcheur calcaire vibrante.',
       keywords: ['saint emilion', 'saint-emilion', 'saint-émilion', 'cheval blanc', 'ausone', 'figeac', 'angelus', 'pavie'],
     ),
@@ -590,7 +605,7 @@ class TerroirGeoResolver {
       exposure: 'Coteau pentu plein Levant (Est)',
       elevation: '250 - 310 mètres',
       keyGrapes: 'Pinot Noir (100%)',
-      classification: 'Grands Crus Monopoles (Romanée-Conti, La Tâche, Richebourg)',
+      classification: 'Grands Crus (Romanée-Conti et La Tâche, monopoles ; Richebourg)',
       sommelierNotes: 'La perle de la Côte d\'Or. Un équilibre aristocratique entre dentelle florale (rose fanée, pivoine), épices d\'Orient et tension minérale incomparable.',
       accentColor: Color(0xFF8B1E3F),
       keywords: ['vosne', 'vosne-romanee', 'vosne romanee', 'romanee', 'romanee-conti', 'la tache', 'richebourg', 'cote de nuits', 'bourgogne', 'burgundy'],
@@ -751,7 +766,7 @@ class TerroirGeoResolver {
       exposure: 'Plateaux et terrasses ouvertes baignées de soleil',
       elevation: '40 - 120 mètres',
       keyGrapes: 'Grenache Noir (dominant), Mourvèdre, Syrah, Cinsault (13 cépages autorisés)',
-      classification: 'Premier Cru de la Vallée du Rhône Méridionale (AOC 1936)',
+      classification: 'Pionnière des appellations d\'origine (AOC 1936)',
       sommelierNotes: 'Les galets roulés emmagasinent la chaleur du soleil le jour et la restituent aux grappes la nuit, menant les Grenaches à une plénitude charnue et épicée de garrigue.',
       keywords: ['chateauneuf', 'chateauneuf-du-pape', 'chateauneuf du pape', 'gigondas', 'vacqueyras', 'beaumes de venise', 'rhone sud', 'tavel'],
     ),
@@ -1077,7 +1092,7 @@ class TerroirGeoResolver {
       elevation: '100 - 600 mètres',
       keyGrapes: 'Touriga Nacional, Touriga Franca, Tinta Roriz (Tempranillo)',
       classification: 'Vignoble classé Patrimoine Mondial UNESCO',
-      sommelierNotes: 'La plus ancienne région délimitée au monde (1756). Terroir héroïque sculpté par la main de l\'homme produisant les grands Vintages de Porto et de somptueux vins secs.',
+      sommelierNotes: 'L\'une des plus anciennes régions délimitées au monde (1756). Terroir héroïque sculpté par la main de l\'homme produisant les grands Vintages de Porto et de somptueux vins secs.',
       keywords: ['douro', 'porto', 'pinhao', 'touriga', 'portugal', 'alentejo', 'dao', 'vinho verde'],
     ),
 
@@ -1199,7 +1214,7 @@ class TerroirGeoResolver {
       exposure: 'Vallée maritime de Fécamp ouverte sur le littoral',
       elevation: '10 - 80 mètres',
       keyGrapes: '27 plantes et épices du monde (angélique, hysope, safran, genièvre, cannelle)',
-      classification: 'Élixir de santé monastique né en 1510',
+      classification: 'Élixir monastique né, selon la légende, en 1510',
       sommelierNotes: 'Distillation quadruple sous alambics martelés en cuivre de 1888 et vieillissement en foudres de chêne centenaires. Texture soyeuse, miel épicé, écorces d\'oranges confites et notes orientales.',
       accentColor: Color(0xFFD97706),
       keywords: ['benedictine', 'fecamp', 'dom', 'd.o.m', 'le grand', 'b&b', 'caux'],

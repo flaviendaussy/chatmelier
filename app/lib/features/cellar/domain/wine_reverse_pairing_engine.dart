@@ -1,4 +1,6 @@
 import 'wine.dart';
+import '../../../shared/utils/langue.dart';
+import 'wine_reverse_pairing_en.dart';
 
 class ReverseFoodPairing {
   final String dishName;
@@ -62,16 +64,36 @@ class ReverseFoodPairing {
 }
 
 class WineReversePairingEngine {
+  /// Les plats et leurs raisons dans la langue de l'app : rédigés en français, traduits
+  /// par la table de `wine_reverse_pairing_en.dart`.
+  static ReverseFoodPairing _dansLaLangue(ReverseFoodPairing p) {
+    if (Langue.estFr) return p;
+    String t(String s) => trDonnee(s, accordsInversesEnAnglais);
+    return ReverseFoodPairing(
+      dishName: t(p.dishName),
+      category: p.category,
+      categoryIcon: p.categoryIcon,
+      affinityPct: p.affinityPct,
+      affinityLevel: p.affinityLevel,
+      keyIngredients: [for (final i in p.keyIngredients) t(i)],
+      cookingAdvice: t(p.cookingAdvice),
+      molecularRationale: t(p.molecularRationale),
+    );
+  }
+
   static List<ReverseFoodPairing> getPairingsForWine(Wine wine) {
     final nameLower = '${wine.name} ${wine.producer} ${wine.region} ${wine.appellation ?? ""} ${wine.grapes.map((g) => g.name).join(" ")}'.toLowerCase();
-    final type = (wine.type).toLowerCase();
+    final brut = (wine.type).toLowerCase();
+    final type = brut.contains('rouge') ? 'red' : (brut.contains('blanc') ? 'white' : brut);
 
     final pairings = <ReverseFoodPairing>[];
 
     // 1. CHAMPAGNE & EFFERVESCENTS
     if (type.contains('spark') || nameLower.contains('champagne') || nameLower.contains('crémant') || nameLower.contains('cava')) {
+      // La craie n'est qu'en Champagne : un Crémant ou un Prosecco n'en ont pas.
+      final champagne = nameLower.contains('champagne');
       pairings.addAll([
-        const ReverseFoodPairing(
+        ReverseFoodPairing(
           dishName: 'Plateau d\'Huîtres Gillardeau & Carpaccio de Saint-Jacques au Citron Caviar',
           category: 'poisson',
           categoryIcon: '🦪',
@@ -79,7 +101,9 @@ class WineReversePairingEngine {
           affinityLevel: 'Accord Majeur 🌟',
           keyIngredients: ['Huîtres spéciales', 'Noix de Saint-Jacques', 'Citron caviar', 'Fleur de sel'],
           cookingAdvice: 'Servir cru à 8-10°C avec une émulsion d\'huile d\'olive et zestes d\'agrumes sans vinaigre excessif.',
-          molecularRationale: 'L\'acidité vive et la salinité de la craie tranchent avec l\'iode et subliment la texture soyeuse des coquillages.',
+          molecularRationale: champagne
+              ? 'L\'acidité vive et la salinité de la craie tranchent avec l\'iode et subliment la texture soyeuse des coquillages.'
+              : 'L\'acidité vive et la fraîcheur saline des bulles tranchent avec l\'iode et subliment la texture soyeuse des coquillages.',
         ),
         const ReverseFoodPairing(
           dishName: 'Ris de Veau Croustillant aux Morilles et Crème Réduite',
@@ -89,7 +113,7 @@ class WineReversePairingEngine {
           affinityLevel: 'Accord Sublime ✨',
           keyIngredients: ['Ris de veau', 'Morilles fraîches', 'Crème crue', 'Beurre noisette'],
           cookingAdvice: 'Braiser au beurre moussant pour obtenir un extérieur doré et croquant et un cœur fondant.',
-          molecularRationale: 'L\'effervescence fine et les notes briochées (diacétyle et autolyse des levures) nettoient le palais du gras noble des morilles et de la crème.',
+          molecularRationale: 'L\'effervescence fine et les notes briochées (autolyse des levures) nettoient le palais du gras noble des morilles et de la crème.',
         ),
         const ReverseFoodPairing(
           dishName: 'Comté Affiné 24 Mois & Gougères au Beurre AOP',
@@ -100,6 +124,67 @@ class WineReversePairingEngine {
           keyIngredients: ['Comté 24 mois', 'Pâte à choux', 'Gruyère suisse', 'Poivre de Sichuan'],
           cookingAdvice: 'Servir les gougères tièdes au sortir du four avec des lamelles de Comté chambré.',
           molecularRationale: 'Les cristaux de tyrosine du Comté résonnent avec la bulle crémeuse et la complexité oxydative.',
+        ),
+      ]);
+    }
+
+    // 1 bis. LIQUOREUX & VINS MUTÉS
+    else if (['dessert', 'sweet', 'liquoreux', 'moelleux'].any(type.contains) ||
+        ['sauternes', 'barsac', 'layon', 'tokaj', 'vendanges tardives'].any(nameLower.contains)) {
+      pairings.addAll([
+        const ReverseFoodPairing(
+          dishName: 'Foie Gras de Canard Mi-Cuit & Chutney de Figues',
+          category: 'viande',
+          categoryIcon: '🦆',
+          affinityPct: 97,
+          affinityLevel: 'Accord Majeur 🌟',
+          keyIngredients: ['Foie gras de canard', 'Figues', 'Fleur de sel', 'Pain brioché'],
+          cookingAdvice: 'Servir frais, en tranches épaisses, avec un pain brioché à peine toasté.',
+          molecularRationale: 'Le sucre et l\'acidité du vin répondent à la texture fondante du foie gras ; l\'acidité évite l\'écœurement.',
+        ),
+        const ReverseFoodPairing(
+          dishName: 'Roquefort & Poire Rôtie au Miel',
+          category: 'fromage',
+          categoryIcon: '🧀',
+          affinityPct: 95,
+          affinityLevel: 'Accord Sublime ✨',
+          keyIngredients: ['Roquefort', 'Poire', 'Miel', 'Noix'],
+          cookingAdvice: 'Sortir le fromage 30 minutes avant ; rôtir la poire 15 minutes au four.',
+          molecularRationale: 'Accord de contraste : le sel et le piquant du bleu sont apaisés par la douceur du vin.',
+        ),
+        const ReverseFoodPairing(
+          dishName: 'Tarte Fine aux Abricots & Crème Vanillée',
+          category: 'dessert',
+          categoryIcon: '🥧',
+          affinityPct: 92,
+          affinityLevel: 'Harmonie Parfaite 🍷',
+          keyIngredients: ['Abricots', 'Pâte feuilletée', 'Vanille', 'Amandes'],
+          cookingAdvice: 'Choisir un dessert moins sucré que le vin, sinon il paraîtra plat.',
+          molecularRationale: 'Les notes d\'abricot et de miel du vin prolongent celles du dessert.',
+        ),
+      ]);
+    }
+    else if (type.contains('fortified')) {
+      pairings.addAll([
+        const ReverseFoodPairing(
+          dishName: 'Moelleux au Chocolat Noir & Cerises Confites',
+          category: 'dessert',
+          categoryIcon: '🍫',
+          affinityPct: 96,
+          affinityLevel: 'Accord Majeur 🌟',
+          keyIngredients: ['Chocolat noir 70 %', 'Cerises', 'Beurre', 'Cacao'],
+          cookingAdvice: 'Servir tiède, cœur coulant, sans crème trop sucrée.',
+          molecularRationale: 'Le fruit confit et la douceur du vin tiennent tête à l\'amertume du cacao.',
+        ),
+        const ReverseFoodPairing(
+          dishName: 'Stilton ou Fourme d\'Ambert & Noix',
+          category: 'fromage',
+          categoryIcon: '🧀',
+          affinityPct: 94,
+          affinityLevel: 'Accord Sublime ✨',
+          keyIngredients: ['Fromage bleu', 'Noix', 'Pain aux raisins'],
+          cookingAdvice: 'Servir le fromage à température ambiante.',
+          molecularRationale: 'L\'alcool et le sucre du vin équilibrent le sel et le gras du bleu.',
         ),
       ]);
     }
@@ -125,7 +210,7 @@ class WineReversePairingEngine {
           affinityLevel: 'Accord Sublime ✨',
           keyIngredients: ['Agneau de Sisteron', 'Romarin frais', 'Ail noir confit', 'Fond brun réduit'],
           cookingAdvice: 'Cuire à couvert à 120°C pendant 7h. La gélatine fondue enrobe le palais.',
-          molecularRationale: 'La rotundone et les pyrazines du vin épousent à la perfection les molécules aromatiques de la garrigue et du romarin.',
+          molecularRationale: 'Les notes épicées et herbacées du vin épousent à la perfection les arômes de la garrigue et du romarin.',
         ),
         const ReverseFoodPairing(
           dishName: 'Magret de Canard Rôti aux Cerises Noires et Réduction de Poivre de Sichuan',
@@ -151,7 +236,7 @@ class WineReversePairingEngine {
           affinityLevel: 'Accord Majeur 🌟',
           keyIngredients: ['Pigeon fermier', 'Céleri-rave', 'Beurre doux', 'Truffe noire du Périgord'],
           cookingAdvice: 'Cuisson rosée précise. Glacer au jus réduit monté au beurre.',
-          molecularRationale: 'La délicatesse soyeuse des tannins et les arômes sous-bois (esters & lactones) exaltent la chair noble du gibier à plumes.',
+          molecularRationale: 'La délicatesse soyeuse des tanins et les notes de sous-bois exaltent la chair noble du gibier à plumes.',
         ),
         const ReverseFoodPairing(
           dishName: 'Filet Mignon de Porc Fermier aux Girolles Sautées et Noisettes Torréfiées',
@@ -197,7 +282,7 @@ class WineReversePairingEngine {
           affinityLevel: 'Accord Sublime ✨',
           keyIngredients: ['Chavignol affiné', 'Pain au levain', 'Mâche fraîche', 'Huile de noix'],
           cookingAdvice: 'Gratiner 4 minutes sous le grill jusqu\'à ce que le dôme du fromage dore.',
-          molecularRationale: 'Accord de terroir absolu : la fraîcheur végétale et minérale sublime la texture lactique caprine.',
+          molecularRationale: 'La fraîcheur végétale et minérale du vin sublime la texture lactique du chèvre.',
         ),
         const ReverseFoodPairing(
           dishName: 'Tartare de Bar aux Fruits de la Passion et Coriandre Fraîche',
@@ -207,7 +292,7 @@ class WineReversePairingEngine {
           affinityLevel: 'Harmonie Parfaite 🍷',
           keyIngredients: ['Chair de bar', 'Fruit de la passion', 'Coriandre', 'Échalote'],
           cookingAdvice: 'Dresser minute très frais pour conserver le croquant et la vivacité.',
-          molecularRationale: 'Les thiols aromatiques du cépage (3-mercaptohexanol) entrent en résonance directe avec les notes de maracuja.',
+          molecularRationale: 'La vivacité et les notes d\'agrumes du vin entrent en résonance avec l\'acidité du fruit de la passion.',
         ),
       ]);
     }
@@ -223,7 +308,7 @@ class WineReversePairingEngine {
           affinityLevel: 'Accord Majeur 🌟',
           keyIngredients: ['Homard breton', 'Morilles fraîches', 'Beurre salé', 'Crème double'],
           cookingAdvice: 'Poêler la chair du homard délicatement et napper d\'un jus corsé de carcasse crémé.',
-          molecularRationale: 'Les lactones de chêne et le diacétyle beurré du vin enveloppent la sucrosité naturelle du crustacé.',
+          molecularRationale: 'La rondeur et l\'ampleur du vin enveloppent la sucrosité naturelle du crustacé.',
         ),
         const ReverseFoodPairing(
           dishName: 'Poularde de Bresse Rôtie au Vin Jaune et Morilles',
@@ -243,7 +328,7 @@ class WineReversePairingEngine {
           affinityLevel: 'Harmonie Parfaite 🍷',
           keyIngredients: ['Langoustines', 'Lait de coco', 'Citronnelle', 'Gingembre doux'],
           cookingAdvice: 'Servir le bouillon fumant autour des ravioles délicates.',
-          molecularRationale: 'Les terpènes floraux du vin répondent aux arômes exotiques de la citronnelle et du coco.',
+          molecularRationale: 'Les notes florales et fruitées du vin répondent aux arômes de la citronnelle et du coco.',
         ),
       ]);
     }
@@ -300,6 +385,6 @@ class WineReversePairingEngine {
       );
     }
 
-    return pairings;
+    return [for (final p in pairings) _dansLaLangue(p)];
   }
 }

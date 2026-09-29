@@ -1,6 +1,8 @@
 import '../../cellar/domain/wine.dart';
 import 'tasting_questionnaire_result.dart';
 import '../../cellar/domain/wine_world/wine_world.dart';
+import '../../../shared/utils/langue.dart';
+import 'tasting_pedagogy_en.dart';
 
 enum FlavorOriginCategory { grape, oak, terroir, age }
 
@@ -279,9 +281,26 @@ class TastingPedagogyEngine {
     // ==========================================
     // 1. CHAMPAGNE & EFFERVESCENTS
     // ==========================================
+    // Les types enregistrés sont anglais (« red », « dessert »…), mais d'anciennes fiches
+    // disent encore « rouge » ou « blanc » : sans ces mots, elles tombaient dans la
+    // branche rosé.
+    final rouge = type.contains('red') || type.contains('rouge');
+    final blanc = type.contains('white') || type.contains('blanc');
+    final doux = ['dessert', 'sweet', 'liquoreux', 'moelleux', 'doux'].any(type.contains) ||
+        ['sauternes', 'barsac', 'loupiac', 'layon', 'bonnezeaux', 'tokaj', 'vendanges tardives', 'grains nobles']
+            .any(nameLower.contains);
+
     if (type.contains('spark') || nameLower.contains('champagne') || nameLower.contains('crémant') || nameLower.contains('cava')) {
+      // La craie n'est qu'en Champagne ; la brioche vient d'un long repos sur lies en
+      // bouteille, que le Prosecco (mousse prise en cuve) n'a pas.
+      final champagne = nameLower.contains('champagne');
+      final cuveClose = ['prosecco', 'lambrusco', 'asti', 'moscato'].any(nameLower.contains);
       archetypeAppearance = isOld ? 'Doré éclatant aux reflets ambrés' : 'Or pâle cristallin à cordon de bulles très fin';
-      archetypePalate = 'Attaque vive et crémeuse, effervescence soyeuse, finale saline et crayeuse d\'une grande persistance.';
+      archetypePalate = champagne
+          ? 'Attaque vive et crémeuse, effervescence soyeuse, finale saline et crayeuse d\'une grande persistance.'
+          : cuveClose
+              ? 'Attaque vive et fruitée, bulle légère, finale fraîche et désaltérante.'
+              : 'Attaque vive et crémeuse, bulle fine, finale fraîche et persistante.';
 
       expectedAcidity = 0.82;
       expectedTannins = null;
@@ -290,31 +309,100 @@ class TastingPedagogyEngine {
       targetAromaIds = {'beurre', 'mineral', 'miel', 'agrumes', 'fruits_blancs', 'fruits_rouges'};
       discordantAromaIds = {'epices_vives', 'chocolat'};
 
-      hiddenNuances.add(const NuanceItem(
-        name: 'Brioche tiède & Beurre noisette',
-        origin: 'Autolyse des levures',
-        explanation: 'Durant le séjour sur lattes de plusieurs années, les levures meurent et libèrent des mannoprotéines et du diacétyle.',
-      ));
-      hiddenNuances.add(const NuanceItem(
-        name: 'Touche iodée & Craie vive',
-        origin: 'Sous-sol Crétacé',
-        explanation: 'Les racines plongent dans le calcaire actif de la craie champenoise, apportant cette fraîcheur saline inimitable.',
-      ));
+      hiddenNuances.add(cuveClose
+          ? const NuanceItem(
+              name: 'Poire & Fleurs blanches',
+              origin: 'Prise de mousse en cuve close',
+              explanation: 'La mousse prise en cuve, sans long repos sur lies, garde au vin son fruit frais plutôt que des notes de brioche.',
+            )
+          : const NuanceItem(
+              name: 'Brioche tiède & Pain grillé',
+              origin: 'Autolyse des levures',
+              explanation: 'Pendant le repos sur lies en bouteille, les levures mortes se décomposent et libèrent des mannoprotéines et des acides aminés.',
+            ));
+      if (champagne) {
+        hiddenNuances.add(const NuanceItem(
+          name: 'Touche iodée & Craie vive',
+          origin: 'Sous-sol Crétacé',
+          explanation: 'Les racines plongent dans le calcaire actif de la craie champenoise, apportant cette fraîcheur saline inimitable.',
+        ));
+      }
 
-      pillars.add(const ScientificPillar(
+      if (cuveClose) {
+        pillars.add(const ScientificPillar(
+          title: 'La Prise de Mousse en Cuve Close',
+          icon: '🍾',
+          chemicalKey: 'Méthode Charmat • Esters de fermentation',
+          summary: 'Pourquoi ce vin garde-t-il un fruit si frais ?',
+          detailedExplanation: 'La seconde fermentation a lieu dans une cuve fermée, sous pression, en quelques semaines. Le vin passe peu de temps sur ses lies : il garde le fruit croquant du raisin plutôt que les notes de brioche des méthodes en bouteille.',
+        ));
+      } else {
+      pillars.add(ScientificPillar(
         title: 'Prise de mousse & Autolyse des Levures',
         icon: '🍾',
-        chemicalKey: 'Mannoprotéines • Diacétyle (C4H6O2)',
-        summary: 'Pourquoi le Champagne sent la brioche et le pain grillé ?',
-        detailedExplanation: 'La seconde fermentation en bouteille emprisonne le gaz carbonique sous 6 bars de pression. Au fil des mois, les levures s\'autolysent, enrichissant le vin en acides aminés et esters complexes qui donnent ce goût beurré, brioché et cette texture de bulle soyeuse.',
+        chemicalKey: 'Mannoprotéines • Acides aminés',
+        summary: champagne ? 'Pourquoi le Champagne sent la brioche et le pain grillé ?' : 'Pourquoi un effervescent peut-il sentir la brioche ?',
+        detailedExplanation: 'La seconde fermentation en bouteille emprisonne le gaz carbonique sous 5 à 6 bars de pression. Au fil des mois sur lies, les levures s\'autolysent et enrichissent le vin en acides aminés et en mannoprotéines : d\'où les notes briochées et une bulle plus fine.',
       ));
+      }
 
+      if (champagne) {
       pillars.add(const ScientificPillar(
         title: 'Terroir de Craie & Acidité Ciselée',
         icon: '🪨',
         chemicalKey: 'Acide Tartrique • Carbonate de Calcium (CaCO3)',
         summary: 'La sensation de pureté minérale et de fraîcheur tranchante.',
-        detailedExplanation: 'Le sous-sol calcaire régule parfaitement l\'eau et la température des racines. Il préserve un pH très bas et une concentration exceptionnelle d\'acide tartrique qui garantit une garde de plusieurs décennies sans lourdeur.',
+        detailedExplanation: 'Le sous-sol calcaire régule parfaitement l\'eau et la température des racines. Il préserve une acidité élevée qui permet aux meilleures cuvées de vieillir longtemps sans lourdeur.',
+      ));
+      }
+    }
+
+    // ==========================================
+    // 1 bis. LIQUOREUX, MOELLEUX & VINS MUTÉS
+    // ==========================================
+    else if (doux || type.contains('fortified')) {
+      final mute = type.contains('fortified');
+      final flor = ['xérès', 'xeres', 'jerez', 'sherry', 'fino', 'manzanilla'].any(nameLower.contains);
+      archetypeAppearance = mute
+          ? 'Du grenat profond (Porto, Banyuls) à l\'ambre (tawny, rancio) selon le style'
+          : (isOld ? 'Ambre doré aux reflets cuivrés' : 'Or intense et lumineux');
+      archetypePalate = mute
+          ? 'Attaque chaleureuse et riche, alcool fondu dans le fruit, finale longue.'
+          : 'Attaque onctueuse et riche, sucre équilibré par une belle acidité, finale longue sur le miel et l\'abricot.';
+
+      expectedAcidity = mute ? 0.45 : 0.62;
+      expectedTannins = null;
+      expectedBody = 0.85;
+      expectedLength = 0.85;
+      targetAromaIds = mute ? {'fruits_noirs', 'chocolat', 'epices_douces', 'miel'} : {'miel', 'fruits_blancs', 'agrumes', 'epices_douces', 'floral'};
+      discordantAromaIds = mute ? {'agrumes', 'vegetal'} : {'fruits_noirs', 'chocolat', 'vegetal'};
+
+      hiddenNuances.add(mute
+          ? (flor
+              ? const NuanceItem(
+                  name: 'Noix & Amande',
+                  origin: 'Voile de levures (flor)',
+                  explanation: 'Sous un voile de levures, le vin s\'oxyde doucement et prend ses notes de noix et d\'amande.',
+                )
+              : const NuanceItem(
+                  name: 'Pruneau & Cacao',
+                  origin: 'Mutage',
+                  explanation: 'L\'ajout d\'eau-de-vie arrête la fermentation : le vin garde une partie du sucre du raisin, d\'où sa rondeur et ses notes de fruits confits.',
+                ))
+          : const NuanceItem(
+              name: 'Miel & Abricot confit',
+              origin: 'Concentration du raisin',
+              explanation: 'Pourriture noble ou passerillage : le raisin perd son eau sur pied, sucres et acides se concentrent, et naissent les notes de miel et d\'abricot confit.',
+            ));
+
+      pillars.add(ScientificPillar(
+        title: mute ? 'Le Mutage & l\'Équilibre de l\'Alcool' : 'L\'Équilibre du Sucre et de l\'Acidité',
+        icon: '🍯',
+        chemicalKey: mute ? 'Éthanol • Sucres résiduels' : 'Glucose • Fructose • Acide tartrique',
+        summary: mute ? 'Pourquoi ce vin est-il à la fois doux et chaleureux ?' : 'Pourquoi un grand liquoreux n\'est-il pas écœurant ?',
+        detailedExplanation: mute
+            ? 'On ajoute de l\'eau-de-vie au vin avant ou après la fermentation. Avant, elle l\'arrête et garde le sucre du raisin (Porto, Banyuls) ; après, le vin reste sec (Xérès). L\'alcool, plus élevé, se fond avec le temps.'
+            : 'Un vin liquoreux peut contenir plus de 100 grammes de sucre par litre. Ce qui le rend digeste, c\'est son acidité : elle équilibre le sucre et étire la finale. C\'est aussi elle qui permet aux plus grands de vieillir des décennies.',
       ));
     }
 
@@ -333,46 +421,68 @@ class TastingPedagogyEngine {
       if (isOld) targetAromaIds.addAll({'mineral', 'fruits_rouges'});
       discordantAromaIds = {'agrumes', 'beurre', 'fruits_blancs'};
 
-      hiddenNuances.add(const NuanceItem(
-        name: 'Poivre noir moulu & Garrigue',
-        origin: 'Molécule Rotundone',
-        explanation: 'Présente dans la peau des cépages Syrah et Mourvèdre, la rotundone est détectable dès 16 nanogrammes par litre !',
-      ));
+      final poivre = ['syrah', 'shiraz', 'mourv', 'grenache', 'rhône', 'rhone', 'bandol'].any(nameLower.contains);
+      final sansBoisConnu = style.elevage != null && StyleDuVin.sansBois.contains(style.elevage!.contenant);
+      hiddenNuances.add(poivre
+          ? const NuanceItem(
+              name: 'Poivre noir moulu & Garrigue',
+              origin: 'Molécule Rotundone',
+              explanation: 'Présente dans la peau des cépages Syrah et Mourvèdre, la rotundone est détectable dès 16 nanogrammes par litre !',
+            )
+          : nameLower.contains('cabernet')
+              ? const NuanceItem(
+                  name: 'Cassis & Cèdre',
+                  origin: 'Cabernet Sauvignon',
+                  explanation: 'Le cabernet sauvignon donne le cassis et, avec l\'âge, des notes de cèdre et de mine de crayon.',
+                )
+              : const NuanceItem(
+                  name: 'Fruits noirs mûrs & Épices douces',
+                  origin: 'Maturité du raisin',
+                  explanation: 'Des raisins cueillis bien mûrs donnent ces arômes de fruits noirs ; le temps y ajoute des épices douces.',
+                ));
       if (isOld) {
         hiddenNuances.add(const NuanceItem(
           name: 'Cuir noble & Sous-bois humide',
           origin: 'Évolution tertiaire',
           explanation: 'La lente micro-oxydation polymérise les tanins et libère des lactones et arômes de boîte à cigares.',
         ));
-      } else {
+      } else if (!sansBoisConnu) {
         hiddenNuances.add(const NuanceItem(
           name: 'Vanille bourbon & Cacao grillé',
           origin: 'Élevage en fûts de chêne',
           explanation: 'La chauffe du bois de chêne libère de la vanilline et du gaïacol fumé au contact du vin.',
         ));
+      } else {
+        hiddenNuances.add(const NuanceItem(
+          name: 'Fruit croquant & Violette',
+          origin: 'Élevage sans bois',
+          explanation: 'Sans bois, rien ne masque le fruit : il reste croquant, et la violette peut apparaître.',
+        ));
       }
 
-      pillars.add(const ScientificPillar(
+      pillars.add(ScientificPillar(
         title: 'L\'Extraction Polyphénolique & les Tanins',
         icon: '🍇',
-        chemicalKey: 'Anthocyanes • Proanthocyanidines • Rotundone',
+        chemicalKey: poivre ? 'Anthocyanes • Proanthocyanidines • Rotundone' : 'Anthocyanes • Proanthocyanidines',
         summary: 'D\'où viennent la couleur sombre et la structure astringente ?',
         detailedExplanation: 'Durant la cuvaison (pigeages et remontages), l\'alcool extrait les anthocyanes (pigments rouges) et les tanins concentrés dans la peau et les pépins. Les tanins se lient aux protéines de votre salive, créant cette sensation tactile d\'assèchement noble qui s\'assouplit avec le temps.',
       ));
 
+      if (!sansBoisConnu) {
       pillars.add(const ScientificPillar(
         title: 'L\'Élevage en Fût de Chêne & Chauffe Toastée',
         icon: '🪵',
         chemicalKey: 'Vanilline (C8H8O3) • Eugénol • Gaïacol',
         summary: 'L\'alchimie entre le bois de chêne et le vin.',
-        detailedExplanation: 'Le séjour de 12 à 24 mois en barriques apporte une micro-oxygénation douce à travers les pores du bois. Le toastage de la barrique caramélise les sucres du chêne, infusant des molécules de vanilline (vanille), d\'eugénol (clou de girofle) et de gaïacol (notes de grillé, café, cacao).',
+        detailedExplanation: 'Pour ces vins, le séjour en barrique dure souvent 12 à 24 mois et apporte une micro-oxygénation douce à travers les pores du bois. Le toastage de la barrique caramélise les sucres du chêne, infusant des molécules de vanilline (vanille), d\'eugénol (clou de girofle) et de gaïacol (notes de grillé, café, cacao).',
       ));
+      }
 
       pillars.add(ScientificPillar(
         title: isOld ? 'La Polymérisation & les Arômes Tertiaires' : 'Le Potentiel de Garde & la Réduction d\'Astringence',
         icon: '⏳',
         chemicalKey: 'Polymérisation Anthocyane-Tanin • Éthers',
-        summary: isOld ? 'Pourquoi le vin prend des notes de sous-bois et de cuir ?' : 'Pourquoi ce vin va se bonifier pendant 10 ans ?',
+        summary: isOld ? 'Pourquoi le vin prend des notes de sous-bois et de cuir ?' : 'Pourquoi ce vin peut-il se bonifier en cave ?',
         detailedExplanation: 'Avec les années de garde en bouteille, les molécules de tanins et d\'anthocyanes s\'agrègent en longues chaînes (polymères). Ce processus adoucit l\'amertume et fait émerger les arômes tertiaires de sous-bois, truffe, cuir et tabac blond.',
       ));
     }
@@ -380,7 +490,7 @@ class TastingPedagogyEngine {
     // ==========================================
     // 3. VINS ROUGES ÉLÉGANTS & DÉLICATS (Bourgogne, Pinot Noir, Loire, Beaujolais, Etna)
     // ==========================================
-    else if (type.contains('red')) {
+    else if (rouge) {
       archetypeAppearance = isOld ? 'Rubis évolué avec disque tuilé translucide' : 'Rubis brillant et limpide, d\'intensité moyenne';
       archetypePalate = 'Attaque soyeuse et dentelée, tanins fins comme de la soie, équilibre frais et finale saline très aérienne.';
 
@@ -393,13 +503,13 @@ class TastingPedagogyEngine {
 
       hiddenNuances.add(const NuanceItem(
         name: 'Cerise griotte & Framboise sauvage',
-        origin: 'Esters du Pinot Noir',
+        origin: 'Esters de fermentation',
         explanation: 'La fermentation douce à température contrôlée préserve les esters de fruits frais très volatils.',
       ));
       hiddenNuances.add(const NuanceItem(
         name: 'Pétale de rose fanée & Violette',
         origin: 'β-damascénone & Terpènes',
-        explanation: 'Molécules florales nobles très typiques des grands terroirs calcaires de Bourgogne et de Loire.',
+        explanation: 'Molécules florales typiques des rouges délicats, de la Bourgogne à la Loire.',
       ));
 
       pillars.add(const ScientificPillar(
@@ -411,11 +521,11 @@ class TastingPedagogyEngine {
       ));
 
       pillars.add(const ScientificPillar(
-        title: 'Le Rôle du Terroir Calcaire & Schisteux',
+        title: 'Le Rôle du Terroir',
         icon: '⛰️',
         chemicalKey: 'Drainage Calcaire • Équilibre Acido-Basique',
         summary: 'La sensation de verticalité minérale en bouche.',
-        detailedExplanation: 'Les sols argilo-calcaires limitent la vigueur de la vigne. L\'apport régulier en minéraux soutient une acidité naturelle éclatante qui étire la finale en bouche sans sensation de lourdeur alcoolique.',
+        detailedExplanation: 'Des sols pauvres (calcaire, granite, schiste) limitent la vigueur de la vigne. L\'apport régulier en minéraux soutient une acidité naturelle éclatante qui étire la finale en bouche sans sensation de lourdeur alcoolique.',
       ));
     }
 
@@ -433,17 +543,49 @@ class TastingPedagogyEngine {
       targetAromaIds = {'agrumes', 'mineral', 'floral', 'vegetal', 'fruits_blancs'};
       discordantAromaIds = {'fruits_noirs', 'chocolat', 'epices_vives'};
 
-      hiddenNuances.add(const NuanceItem(
-        name: 'Pierre à fusil & Coquille d\'huître',
-        origin: 'Kimméridgien / Terroir',
-        explanation: 'Présence de fossiles marins (Exogyra virgula) dans les marnes qui renforcent l\'impression saline et iodée.',
-      ));
-      hiddenNuances.add(const NuanceItem(
-        name: 'Pamplemousse rose & Buis noble',
-        origin: 'Thiols Variétaux',
-        explanation: 'Molécules 3-mercaptohexanol (3-MH) libérées par l\'action des levures durant la fermentation.',
-      ));
+      // Les marnes kimméridgiennes sont à Chablis et à Sancerre, pas sous un Muscadet
+      // (granit) ni un Riesling (schiste) ; le buis et le pamplemousse sont la signature
+      // du Sauvignon.
+      final sauvignon = ['sauvignon', 'sancerre', 'pouilly-fum', 'pouilly fum', 'quincy', 'reuilly', 'menetou'].any(nameLower.contains);
+      final kimmeridgien = ['chablis', 'sancerre', 'pouilly-fum', 'pouilly fum'].any(nameLower.contains);
+      hiddenNuances.add(kimmeridgien
+          ? const NuanceItem(
+              name: 'Pierre à fusil & Coquille d\'huître',
+              origin: 'Kimméridgien / Terroir',
+              explanation: 'Présence de fossiles marins (Exogyra virgula) dans les marnes qui renforcent l\'impression saline et iodée.',
+            )
+          : const NuanceItem(
+              name: 'Pierre mouillée & Agrumes',
+              origin: 'Climat frais',
+              explanation: 'Un climat frais garde au raisin son acidité : de là viennent la tension et cette impression de pierre mouillée.',
+            ));
+      hiddenNuances.add(sauvignon
+          ? const NuanceItem(
+              name: 'Pamplemousse rose & Buis noble',
+              origin: 'Thiols Variétaux',
+              explanation: 'Molécules 3-mercaptohexanol (3-MH) libérées par l\'action des levures durant la fermentation.',
+            )
+          : nameLower.contains('riesling')
+              ? const NuanceItem(
+                  name: 'Citron vert & Pétrole',
+                  origin: 'Riesling (TDN)',
+                  explanation: 'Avec l\'âge, le Riesling développe le TDN, une molécule aux notes de pétrole typique du cépage.',
+                )
+              : const NuanceItem(
+                  name: 'Agrumes & Fruits blancs',
+                  origin: 'Fermentation au frais',
+                  explanation: 'Une fermentation à basse température préserve les arômes délicats d\'agrumes et de fruits blancs.',
+                ));
 
+      if (!sauvignon) {
+        pillars.add(const ScientificPillar(
+          title: 'Les Précurseurs d\'Arômes',
+          icon: '🍋',
+          chemicalKey: 'Précurseurs glycosylés • Esters',
+          summary: 'D\'où viennent les arômes de fruits d\'un vin blanc ?',
+          detailedExplanation: 'Le raisin blanc contient des précurseurs d\'arômes, liés à des sucres ou à des acides aminés, qui ne sentent rien. La fermentation au frais les libère peu à peu : c\'est là que naissent les notes d\'agrumes et de fruits blancs.',
+        ));
+      } else {
       pillars.add(const ScientificPillar(
         title: 'Les Thiols Variétaux & Terpènes Vifs',
         icon: '🍋',
@@ -451,6 +593,7 @@ class TastingPedagogyEngine {
         summary: 'Le secret des arômes explosifs d\'agrumes et de fruits exotiques.',
         detailedExplanation: 'Le raisin blanc contient des précurseurs aromatiques liés à des acides aminés (cystéine). Durant la vinification à basse température, l\'activité enzymatique des levures rompt ces liaisons, libérant les thiols volatils responsables des notes d\'agrumes et de zeste.',
       ));
+      }
 
       pillars.add(const ScientificPillar(
         title: 'La Salinité & la Tension de l\'Acide Malique/Tartrique',
@@ -464,9 +607,12 @@ class TastingPedagogyEngine {
     // ==========================================
     // 5. VINS BLANCS GRAS & ÉLEVÉS SOUS BOIS (Bourgogne Blanc, Meursault, Rhône Blanc, Viognier)
     // ==========================================
-    else if (type.contains('white')) {
+    else if (blanc) {
+      final sansBoisConnu = style.elevage != null && StyleDuVin.sansBois.contains(style.elevage!.contenant);
       archetypeAppearance = 'Or doré brillant et profond';
-      archetypePalate = 'Attaque ample, grasse et onctueuse, matière riche tapissant le palais, rehaussée par un boisé fin et une finale vanillée.';
+      archetypePalate = sansBoisConnu
+          ? 'Attaque ample et onctueuse, matière riche tapissant le palais, finale ronde et fruitée.'
+          : 'Attaque ample, grasse et onctueuse, matière riche tapissant le palais, rehaussée par un boisé fin et une finale vanillée.';
 
       expectedAcidity = 0.58;
       expectedTannins = null;
@@ -475,10 +621,12 @@ class TastingPedagogyEngine {
       targetAromaIds = {'beurre', 'boise', 'miel', 'agrumes', 'fruits_blancs', 'floral'};
       discordantAromaIds = {'fruits_noirs', 'chocolat'};
 
-      hiddenNuances.add(const NuanceItem(
+      hiddenNuances.add(NuanceItem(
         name: 'Beurre frais & Noisette grillée',
         origin: 'Fermentation Malolactique + Bâtonnage',
-        explanation: 'Le remuage régulier des lies en fût de chêne enrichit le vin en lipides et mannoprotéines onctueuses.',
+        explanation: sansBoisConnu
+            ? 'Le remuage régulier des lies enrichit le vin en mannoprotéines onctueuses.'
+            : 'Le remuage régulier des lies en fût de chêne enrichit le vin en lipides et mannoprotéines onctueuses.',
       ));
 
       pillars.add(const ScientificPillar(
@@ -501,7 +649,7 @@ class TastingPedagogyEngine {
     // ==========================================
     // 6. VINS ROSÉS GASTRONOMIQUES
     // ==========================================
-    else {
+    else if (type.contains('ros')) {
       archetypeAppearance = 'Robe rose saumonée, limpide et brillante';
       archetypePalate = 'Bouche croquante et rafraîchissante, équilibre entre fruit acidulé et fine trame saline en finale.';
 
@@ -525,6 +673,12 @@ class TastingPedagogyEngine {
         summary: 'Pourquoi le rosé est-il pâle et si expressif ?',
         detailedExplanation: 'Les raisins sont pressés délicatement à froid sous atmosphère inerte pour éviter tout brunissement oxydatif. Seules les premières gouttes de jus claires sont conservées pour fermenter à 14-16°C.',
       ));
+    }
+
+    // Un type inconnu (vin orange, fiche incomplète) : une grille de lecture, rien de plus.
+    else {
+      archetypeAppearance = 'Robe à observer : couleur, intensité, reflets';
+      archetypePalate = 'Équilibre entre acidité, sucrosité, tanins et alcool, puis longueur en bouche.';
     }
 
     // =========================================================================
@@ -642,7 +796,7 @@ class TastingPedagogyEngine {
       praise = 'Exploration sensorielle prometteuse 🍇 Laissez vos sens s\'aiguiser en découvrant les secrets moléculaires ci-dessous.';
     }
 
-    return TastingPedagogyReport(
+    return _dansLaLangue(TastingPedagogyReport(
       wine: wine,
       userAppearance: userAppearance,
       userAromas: userAromas,
@@ -659,6 +813,54 @@ class TastingPedagogyEngine {
       sommelierPraise: praise,
       scientificPillars: pillars,
       flavorOrigins: flavorOrigins,
+    ));
+  }
+
+  /// Le rapport dans la langue de l'app. Il est rédigé en français ; en anglais, chaque
+  /// texte passe par la table de `tasting_pedagogy_en.dart` (les arômes, eux, arrivent
+  /// déjà traduits de [libellesDesAromes]).
+  static TastingPedagogyReport _dansLaLangue(TastingPedagogyReport r) {
+    if (Langue.estFr) return r;
+    String t(String s) => trDonnee(s, pedagogieEnAnglais);
+    return TastingPedagogyReport(
+      wine: r.wine,
+      userAppearance: r.userAppearance,
+      userAromas: r.userAromas,
+      userStructure: r.userStructure,
+      userCaudalies: r.userCaudalies,
+      userRating: r.userRating,
+      archetypeAppearance: t(r.archetypeAppearance),
+      archetypeAromas: r.archetypeAromas,
+      comparaisonAromes: r.comparaisonAromes,
+      archetypePalate: t(r.archetypePalate),
+      matchingAromas: r.matchingAromas,
+      hiddenNuancesToDiscover: [
+        for (final n in r.hiddenNuancesToDiscover)
+          NuanceItem(name: t(n.name), origin: t(n.origin), explanation: t(n.explanation)),
+      ],
+      acuityScore: r.acuityScore,
+      sommelierPraise: t(r.sommelierPraise),
+      scientificPillars: [
+        for (final p in r.scientificPillars)
+          ScientificPillar(
+            title: t(p.title),
+            icon: p.icon,
+            chemicalKey: t(p.chemicalKey),
+            summary: t(p.summary),
+            detailedExplanation: t(p.detailedExplanation),
+          ),
+      ],
+      flavorOrigins: [
+        for (final c in r.flavorOrigins)
+          FlavorOriginCard(
+            title: t(c.title),
+            icon: c.icon,
+            category: c.category,
+            sensoryContribution: t(c.sensoryContribution),
+            detailedWhy: t(c.detailedWhy),
+            badgeText: c.badgeText == null ? null : t(c.badgeText!),
+          ),
+      ],
     );
   }
 
@@ -736,23 +938,24 @@ class TastingPedagogyEngine {
     if (e != null) {
       final boise = !StyleDuVin.sansBois.contains(e.contenant);
       final duree = e.mois > 0
-          ? '${e.mois} mois'
-          : 'une durée que le cahier des charges ne fixe pas';
+          ? tr('${e.mois} mois', '${e.mois} months')
+          : tr('une durée que le cahier des charges ne fixe pas', 'a length the appellation rules don\'t set');
       final source = e.impose
-          ? 'Durée imposée par le cahier des charges de l\'appellation'
-          : 'Élevage usuel de l\'appellation';
+          ? tr('Durée imposée par le cahier des charges de l\'appellation', 'Length required by the appellation rules')
+          : tr('Élevage usuel de l\'appellation', 'The appellation\'s usual ageing');
+      final contenant = trDonnee(_nomContenant(e.contenant), pedagogieEnAnglais);
       return FlavorOriginCard(
         title: boise
-            ? 'Élevage en ${_nomContenant(e.contenant)} ($duree)'
-            : 'Élevage en ${_nomContenant(e.contenant)} (sans contact boisé)',
+            ? tr('Élevage en $contenant ($duree)', 'Aged in $contenant ($duree)')
+            : tr('Élevage en $contenant (sans contact boisé)', 'Aged in $contenant (no oak contact)'),
         icon: boise ? '🪵' : '✨',
         category: FlavorOriginCategory.oak,
         badgeText: e.impose ? 'Cahier des charges' : 'Usage de l\'appellation',
         sensoryContribution: boise
             ? carteBois.sensoryContribution
             : carteSansBois.sensoryContribution,
-        detailedWhy: '$source : $duree en ${_nomContenant(e.contenant).toLowerCase()}.\n\n'
-            '${boise ? carteBois.detailedWhy : carteSansBois.detailedWhy}',
+        detailedWhy: tr('$source : $duree en ${contenant.toLowerCase()}.\n\n', '$source: $duree in ${contenant.toLowerCase()}.\n\n') +
+            trDonnee(boise ? carteBois.detailedWhy : carteSansBois.detailedWhy, pedagogieEnAnglais),
       );
     }
 
@@ -781,8 +984,8 @@ class TastingPedagogyEngine {
 
   static List<FlavorOriginCard> _buildFlavorOrigins(Wine wine, String type, bool isOld, String nameLower, StyleDuVin style) {
     final cards = <FlavorOriginCard>[];
-    final isRed = type.contains('red');
-    final isWhite = type.contains('white');
+    final isRed = type.contains('red') || type.contains('rouge');
+    final isWhite = type.contains('white') || type.contains('blanc');
 
     // Collect all grapes mentioned either in wine.grapes or deduced from text
     final recognizedGrapes = <String>{};
@@ -863,7 +1066,7 @@ class TastingPedagogyEngine {
           category: FlavorOriginCategory.grape,
           badgeText: 'Armature & Cassis',
           sensoryContribution: 'Armature tannique droite et ferme, cassis intense, boîte à cigares (cèdre) et fraîcheur mentholée.',
-          detailedWhy: 'Ses petites baies à peau épaisse apportent une concentration polyphénolique hors du commun. Il bâtit la colonne vertébrale tannique du vin qui traverse les décennies.',
+          detailedWhy: 'Ses petites baies à peau épaisse apportent une concentration polyphénolique hors du commun. Il bâtit la colonne vertébrale tannique du vin, qui peut traverser les décennies.',
         ));
       } else if (g.contains('merlot')) {
         cards.add(const FlavorOriginCard(
@@ -919,6 +1122,15 @@ class TastingPedagogyEngine {
           sensoryContribution: 'Fraîcheur aérienne, faible astringence, notes de grenade, pêche de vigne et pétales de rose.',
           detailedWhy: 'Cépage à gros grains peu coloré, il allège les assemblages rouges et constitue la base soyeuse des plus grands rosés de Provence.',
         ));
+      } else if (g.contains('chardonnay') && style.blancTendu) {
+        cards.add(const FlavorOriginCard(
+          title: 'Chardonnay',
+          icon: '🍇',
+          category: FlavorOriginCategory.grape,
+          badgeText: 'Tension & Pomme verte',
+          sensoryContribution: 'Acidité vive, pomme verte, citron, fleurs blanches et notes crayeuses.',
+          detailedWhy: 'Cépage caméléon : en climat frais et sans bois, il ne fait pas de gras, il laisse parler le terroir.',
+        ));
       } else if (g.contains('chardonnay')) {
         cards.add(const FlavorOriginCard(
           title: 'Chardonnay',
@@ -944,7 +1156,7 @@ class TastingPedagogyEngine {
           category: FlavorOriginCategory.grape,
           badgeText: 'Minéralité & Coing',
           sensoryContribution: 'Acidité ciselée et vibrante, minéralité crayeuse, pomme reinette, coing mûr et miel d\'acacia.',
-          detailedWhy: 'L\'un des cépages blancs les plus nobles et polyvalents au monde, son acidité tartrique exceptionnelle lui confère une longévité prodigieuse.',
+          detailedWhy: 'L\'un des cépages blancs les plus nobles et polyvalents au monde, son acidité exceptionnelle permet aux plus grands de vieillir très longtemps.',
         ));
       } else if (g.contains('riesling')) {
         cards.add(const FlavorOriginCard(
@@ -978,14 +1190,31 @@ class TastingPedagogyEngine {
 
     // Fallback if no specific grape was matched: add a general varietal card
     if (cards.isEmpty) {
+      // Le modèle rosé servait aussi aux liquoreux et aux vins mutés (« robe saumonée »
+      // pour un Sauternes) : chacun a désormais le sien.
+      final doux = type.contains('dessert') || type.contains('sweet');
+      final mute = type.contains('fortified');
+      final rose = type.contains('ros');
       cards.add(FlavorOriginCard(
-        title: isRed ? 'Cépages Rouges & Polyphénols' : (isWhite ? 'Cépages Blancs & Terpènes' : 'Cépages & Pressurage Doux'),
+        title: isRed
+            ? 'Cépages Rouges & Polyphénols'
+            : doux
+                ? 'Cépages & Concentration'
+                : mute
+                    ? 'Cépages & Mutage'
+                    : (isWhite ? 'Cépages Blancs & Terpènes' : (rose ? 'Cépages & Pressurage Doux' : 'Cépages')),
         icon: '🍇',
         category: FlavorOriginCategory.grape,
         badgeText: 'Expression Variétale',
         sensoryContribution: isRed
             ? 'Fruit rouge ou noir, structure tannique et reflets pourpres.'
-            : (isWhite ? 'Fraîcheur fruitée, éclat minéral et acidité ciselée.' : 'Fraîcheur acidulée et robe saumonée délicate.'),
+            : doux
+                ? 'Sucre, acidité et arômes de fruits confits.'
+                : mute
+                    ? 'Fruit concentré, douceur et chaleur de l\'alcool.'
+                    : (isWhite
+                        ? 'Fraîcheur fruitée, éclat minéral et acidité ciselée.'
+                        : (rose ? 'Fraîcheur acidulée et robe saumonée délicate.' : 'Le caractère du raisin, avant l\'élevage.')),
         detailedWhy: 'Les composants aromatiques primaires du raisin sont préservés par la fermentation à température maîtrisée.',
       ));
     }
@@ -1017,7 +1246,7 @@ class TastingPedagogyEngine {
     // --- 4. TERROIR & CLIMAT ---
     final regionDisplay = wine.region.isNotEmpty ? wine.region : (wine.appellation ?? 'Terroir');
     cards.add(FlavorOriginCard(
-      title: 'Empreinte du Terroir & Climat ($regionDisplay)',
+      title: tr('Empreinte du Terroir & Climat ($regionDisplay)', 'Terroir & climate ($regionDisplay)'),
       icon: '⛰️',
       category: FlavorOriginCategory.terroir,
       badgeText: regionDisplay,

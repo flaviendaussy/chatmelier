@@ -36,15 +36,19 @@ capture() {
 }
 
 # Libellés visibles, un par ligne. Les emoji et retours ligne sont remis en clair.
+#
+# uiautomator entoure l'attribut de guillemets SIMPLES quand le libellé contient des
+# guillemets doubles (content-desc='Reopen "The Kitchin"…') : la seule forme "…"
+# faisait disparaître ces éléments de la liste (29/09).
 libelles() {
-  grep -o 'content-desc="[^"]*"' "$DUMP" \
-    | sed 's/content-desc="//; s/"$//' \
-    | grep -v '^$' \
-    | python3 -c "
-import sys, html
-for l in sys.stdin:
-    print(html.unescape(l.rstrip()).replace(chr(10), ' · '))
-"
+  python3 - "$DUMP" <<'PY'
+import sys, re, html
+xml = open(sys.argv[1], encoding='utf-8').read()
+for m in re.finditer(r'content-desc=(["\'])(.*?)\1', xml, re.S):
+    t = html.unescape(m.group(2))
+    if t:
+        print(t.replace(chr(10), ' · '))
+PY
 }
 
 # Centre de l'élément dont le libellé contient l'argument.
@@ -61,14 +65,14 @@ def reduire(t):
 
 besoin = reduire(cible)
 candidats = []
-for m in re.finditer(r'content-desc="([^"]*)"[^>]*?bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', xml):
-    desc = html.unescape(m.group(1))
+for m in re.finditer(r'content-desc=(["\'])(.*?)\1[^>]*?bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', xml, re.S):
+    desc = html.unescape(m.group(2))
     if not desc:
         continue
     r = reduire(desc)
     if besoin not in r:
         continue
-    x1, y1, x2, y2 = map(int, m.groups()[1:])
+    x1, y1, x2, y2 = map(int, m.groups()[2:])
     candidats.append((r, (x1 + x2) // 2, (y1 + y2) // 2))
 
 if not candidats:

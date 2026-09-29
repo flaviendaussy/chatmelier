@@ -964,7 +964,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                               Text(
                                 isFr
                                     ? 'Rouvrir « ${derniere.restaurantName} »'
-                                    : 'Reopen "${derniere.restaurantName}"',
+                                    : 'Reopen “${derniere.restaurantName}”',
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 13),
                               ),

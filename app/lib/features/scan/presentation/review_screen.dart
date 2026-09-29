@@ -113,6 +113,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     // invites de fin d'analyse — confirmation du millésime, détection d'un carton de
     // 6 bouteilles, alerte de doublon en cave. Celui qui coupait la vidéo, si.
     final showedAdMob = await AdMobService().showRewardedAd(
+      emplacement: 'scan_etiquette',
       onRewardEarned: () async {
         if (!mounted) return;
         final res = analysisResult ?? await analysisFuture;

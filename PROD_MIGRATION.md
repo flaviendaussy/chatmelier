@@ -21,6 +21,7 @@ règle a été tenue.
 | **Questions au sommelier de la carte dans les journaux** : la question et le début de la réponse sont écrits dans `app_diagnostic_logs` (tag `MENU_CHAT`) pour le fil de la console | `menu_scan_service.dart`, `_demanderAuSommelierDistant` | Ne journaliser que la durée et le modèle ; purger les lignes `MENU_CHAT` existantes. |
 | Traces d'usage (`USAGE` : matchmaker, flights, consensus…) rattachées à un compte | journaux applicatifs | Acceptable en production si la politique de confidentialité les mentionne ; sinon les journaliser sans `user_id`. |
 | Mise à jour **obligatoire** au démarrage : `app_config.version_minimale_test` bloque tout build plus ancien | migration 045, `GardeDeVersion` (`lib/features/config/`, branchée dans `app.dart`) | Supprimer la clé (bloc « Retour arrière » de la 045) et retirer `GardeDeVersion` ; repasser à une simple invitation, refusable. Une app publique ne bloque pas ses utilisateurs pour une version mineure. |
+| **Coûts IA et pubs par personne** : `ai_cost_events` et `ad_impressions` lisibles par le rôle `chatmelier_feedback_ro`, onglet « Économie » de la console avec détail par personne ; écriture ouverte à tout compte, anonyme compris | migration 047, `EnvoiParLots`, `MesureDesPubs`, `OngletEconomie` | Révoquer le `SELECT` et les politiques `*_analyse` du rôle d'analyse ; l'onglet suit déjà l'interrupteur `admin_detail_nominatif` (`admin_nom`). En production, journaliser les coûts depuis les fonctions edge (pas depuis l'app) et limiter le débit des insertions. |
 
 ## 2. RGPD
 
@@ -93,7 +94,9 @@ lancement public.
   `productionIosAppOpenUnitId` valent `null` dans `admob_config.dart` → publicités de test,
   zéro revenu. Remplacer par les identifiants réels.
 - Retirer tout mode test AdMob restant et vérifier les identifiants Android.
-- Mesure revenu pub ÷ coût IA (étape S5 du plan V2) avant de fixer le modèle économique.
+- Mesure revenu pub ÷ coût IA : en place (migration 047, onglet « Économie »). Les eCPM de
+  `app_config.ecpm_eur_estime` sont des **estimations** : les remplacer par les eCPM réels de la
+  console AdMob avant de décider du modèle économique.
 
 ## 6. Nettoyage
 

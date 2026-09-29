@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,7 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'features/offline/presentation/sync_provider.dart';
+import 'features/auth/data/ai_cost_tracker_service.dart';
 import 'features/monetization/admob_service.dart';
+import 'features/monetization/mesure_des_pubs.dart';
 import 'shared/utils/app_logger.dart';
 
 void main() async {
@@ -49,6 +53,9 @@ void main() async {
   );
 
   AppLogger.init(Supabase.instance.client);
+  // Ce qui n'a pas pu partir lors de la dernière session (S5) : coûts IA, pubs.
+  unawaited(AiCostTrackerService.envoyerEnAttente());
+  unawaited(MesureDesPubs.envoyerEnAttente());
   AppLogger.info('SYSTEM', 'Chatmelier app launched and centralized logging initialized');
 
   FlutterError.onError = (details) {

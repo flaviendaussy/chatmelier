@@ -25,7 +25,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     final async = ref.watch(adminTableauProvider);
 
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
       appBar: AppBar(
         title: const Text('Console'),
@@ -39,6 +39,7 @@ class AdminDashboardScreen extends ConsumerWidget {
               ref.invalidate(adminUsagesProvider);
               ref.invalidate(adminErreursProvider);
               ref.invalidate(adminNominatifProvider);
+              ref.invalidate(adminEconomieProvider);
             },
           ),
         ],
@@ -69,6 +70,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                   Tab(text: 'Personnes'),
                   Tab(text: 'Fonctionnalités'),
                   Tab(text: 'Erreurs'),
+                  Tab(text: 'Économie'),
                 ],
               ),
             ],
@@ -85,6 +87,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                 const OngletPersonnes(),
                 const OngletFonctionnalites(),
                 const OngletErreurs(),
+                const OngletEconomie(),
               ],
             ),
           ),

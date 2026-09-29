@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/admin_personnes_service.dart';
+import '../domain/admin_economie.dart';
 import '../domain/admin_personnes.dart';
 import 'admin_personne_screen.dart';
 
@@ -77,7 +78,10 @@ class Compteur extends StatelessWidget {
 
 class MessageDEchec extends StatelessWidget {
   final String erreur;
-  const MessageDEchec({super.key, required this.erreur});
+
+  /// La migration qui crée les fonctions de l'onglet.
+  final String migration;
+  const MessageDEchec({super.key, required this.erreur, this.migration = '044'});
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +90,7 @@ class MessageDEchec extends StatelessWidget {
         : erreur.contains('detail_masque')
             ? 'Masqué : la console est en mode opacifié.'
             : erreur.contains('PGRST202') || erreur.contains('Could not find the function')
-                ? 'Fonction absente : la migration 044 n\'est pas encore appliquée.'
+                ? 'Fonction absente : la migration $migration n\'est pas encore appliquée.'
                 : 'Chargement impossible. Vérifiez la connexion, puis actualisez.';
     return Center(
       child: Padding(
@@ -363,4 +367,186 @@ class OngletErreurs extends ConsumerWidget {
           },
         );
   }
+}
+
+// =============================================================================
+// Économie : ce que coûte l'IA, ce que rapporte la pub (migration 047, S5)
+// =============================================================================
+class OngletEconomie extends ConsumerWidget {
+  const OngletEconomie({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final inclureTests = ref.watch(adminInclureTestsProvider);
+    final gris = Theme.of(context).colorScheme.onSurfaceVariant;
+    return ref.watch(adminEconomieProvider).when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => MessageDEchec(erreur: '$e', migration: '047'),
+          data: (b) => RefreshIndicator(
+            onRefresh: () async => ref.invalidate(adminEconomieProvider),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+              children: [
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Compter les essais sur émulateur', style: TextStyle(fontSize: 14)),
+                  subtitle: const Text('Builds profile et debug : pubs de test, sans revenu réel.',
+                      style: TextStyle(fontSize: 12)),
+                  value: inclureTests,
+                  onChanged: (v) => ref.read(adminInclureTestsProvider.notifier).state = v,
+                ),
+                _Ratio(bilan: b),
+                const SizedBox(height: 8),
+                Text(
+                  'Revenu ESTIMÉ : impressions × eCPM de app_config.ecpm_eur_estime '
+                  '(${b.ecpmEstime.entries.map((e) => '${e.key} ${e.value.toStringAsFixed(1)} €').join(', ')}). '
+                  'À remplacer par les eCPM réels de la console AdMob.',
+                  style: TextStyle(fontSize: 11.5, color: gris, fontStyle: FontStyle.italic),
+                ),
+                const SizedBox(height: 20),
+                _Titre('Coût par fonctionnalité', '${b.appelsIa} appels, dont ${b.appelsGroundes} avec recherche'),
+                if (b.parFonctionnalite.isEmpty) _Vide(gris),
+                for (final l in b.parFonctionnalite)
+                  _Barre(
+                    libelle: l.libelle,
+                    droite: '${euros(l.coutEur)} · ${l.appels} appels',
+                    part: b.coutIaEur == 0 ? 0 : l.coutEur / b.coutIaEur,
+                    couleur: const Color(0xFF8B1E3F),
+                  ),
+                const SizedBox(height: 16),
+                _Titre('Pubs par emplacement', '${b.impressions} impressions'),
+                if (b.parEmplacement.isEmpty) _Vide(gris),
+                for (final l in b.parEmplacement)
+                  _Barre(
+                    libelle: '${l.emplacement} (${l.format})',
+                    droite: '${l.impressions} · ${euros(l.revenuEur)}',
+                    part: b.impressions == 0 ? 0 : l.impressions / b.impressions,
+                    couleur: const Color(0xFF2E7D32),
+                  ),
+                const SizedBox(height: 16),
+                const _Titre('App et web', 'le web n\'a pas de pub : il se lit comme un coût d\'acquisition'),
+                for (final l in b.parPlateforme)
+                  ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l.plateforme),
+                    trailing: Text('coût ${euros(l.coutEur)} · pub ${euros(l.revenuEur)}'),
+                  ),
+                const SizedBox(height: 16),
+                const _Titre('Par personne', 'du plus coûteux au moins coûteux'),
+                if (b.parPersonne.isEmpty) _Vide(gris),
+                for (final l in b.parPersonne)
+                  ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l.prenom),
+                    subtitle: Text('${l.appels} appels IA · ${l.impressions} pubs'),
+                    trailing: Text('${euros(l.coutEur)} / ${euros(l.revenuEur)}',
+                        style: TextStyle(
+                            color: l.revenuEur >= l.coutEur ? const Color(0xFF2E7D32) : const Color(0xFFC62828))),
+                  ),
+              ],
+            ),
+          ),
+        );
+  }
+}
+
+class _Ratio extends StatelessWidget {
+  final BilanEconomique bilan;
+  const _Ratio({required this.bilan});
+
+  @override
+  Widget build(BuildContext context) {
+    final r = bilan.ratio;
+    final couleur = r == null
+        ? Colors.grey
+        : (r >= 1 ? const Color(0xFF2E7D32) : const Color(0xFFC62828));
+    Widget case_(String titre, String valeur) => Expanded(
+          child: Column(
+            children: [
+              Text(valeur, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 2),
+              Text(titre, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11.5)),
+            ],
+          ),
+        );
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          children: [
+            Row(children: [
+              case_('coût IA', euros(bilan.coutIaEur)),
+              case_('revenu pub estimé', euros(bilan.revenuPubEur)),
+            ]),
+            const Divider(height: 20),
+            Text(
+              r == null ? 'Aucun coût IA sur la période' : 'La pub paie ${(r * 100).toStringAsFixed(0)} % de l\'IA',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: couleur),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Titre extends StatelessWidget {
+  final String titre;
+  final String sousTitre;
+  const _Titre(this.titre, this.sousTitre);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(titre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(sousTitre, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          ],
+        ),
+      );
+}
+
+class _Barre extends StatelessWidget {
+  final String libelle;
+  final String droite;
+  final double part;
+  final Color couleur;
+  const _Barre({required this.libelle, required this.droite, required this.part, required this.couleur});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Expanded(child: Text(libelle, style: const TextStyle(fontWeight: FontWeight.w600))),
+              Text(droite, style: const TextStyle(fontSize: 12)),
+            ]),
+            const SizedBox(height: 4),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: part.clamp(0.0, 1.0),
+                minHeight: 7,
+                color: couleur,
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _Vide extends StatelessWidget {
+  final Color gris;
+  const _Vide(this.gris);
+
+  @override
+  Widget build(BuildContext context) =>
+      Text('Rien sur cette période.', style: TextStyle(fontSize: 12.5, color: gris));
 }

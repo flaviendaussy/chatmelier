@@ -176,6 +176,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
       if (!isPremium && _candidates.isNotEmpty) {
         // Show real AdMob rewarded ad if available between batches; otherwise proceed directly (no fake ads)
         await AdMobService().showRewardedAd(
+          emplacement: 'import_excel',
           onRewardEarned: () {},
           onAdDismissed: () {},
         );

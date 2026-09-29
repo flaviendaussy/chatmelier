@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/providers/supabase_provider.dart';
+import '../domain/admin_economie.dart';
 import '../domain/admin_personnes.dart';
 import 'admin_metrics_service.dart';
 
@@ -33,6 +34,12 @@ class AdminPersonnesService {
 
   Future<List<Usage>> usages(int jours) async =>
       _liste(await _client.rpc('admin_usages', params: {'p_jours': jours})).map(Usage.fromJson).toList();
+
+  /// Coûts IA, revenu pub estimé et ratio (migration 047).
+  Future<BilanEconomique> economie(int jours, {bool inclureTests = false}) async {
+    final r = await _client.rpc('admin_economie', params: {'p_jours': jours, 'p_inclure_tests': inclureTests});
+    return BilanEconomique.fromJson(r is Map ? Map<String, dynamic>.from(r) : const {});
+  }
 
   static List<Map<String, dynamic>> _liste(dynamic r) => r is List
       ? [for (final e in r) if (e is Map) Map<String, dynamic>.from(e)]
@@ -68,4 +75,14 @@ final adminFilProvider = FutureProvider.family<List<EvenementDuFil>, String>((re
 final adminConversationsProvider = FutureProvider.family<List<MessageDeConversation>, String>((ref, userId) {
   final jours = ref.watch(adminPeriodeProvider);
   return ref.read(adminPersonnesServiceProvider).conversations(userId, jours < 90 ? 90 : jours);
+});
+
+/// La console compte-t-elle les essais sur émulateur (builds profile et debug) ?
+final adminInclureTestsProvider = StateProvider<bool>((ref) => false);
+
+final adminEconomieProvider = FutureProvider<BilanEconomique>((ref) {
+  return ref.read(adminPersonnesServiceProvider).economie(
+        ref.watch(adminPeriodeProvider),
+        inclureTests: ref.watch(adminInclureTestsProvider),
+      );
 });

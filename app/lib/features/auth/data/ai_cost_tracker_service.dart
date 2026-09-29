@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import '../../../shared/services/envoi_par_lots.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../domain/ai_cost_event.dart';
 
@@ -17,6 +19,33 @@ final aiCostStatsProvider = FutureProvider<AiCostStats>((ref) async {
 class AiCostTrackerService {
   static const String _storageKey = 'chatmelier_ai_cost_events_v1';
   static const int _maxStoredEvents = 1000;
+
+  /// Les coûts partent aussi au serveur (S5) : dans le téléphone seul, on ne pouvait pas
+  /// dire si la pub paie l'IA.
+  static final EnvoiParLots _envoi = EnvoiParLots(
+    table: 'ai_cost_events',
+    cleLocale: 'chatmelier_couts_a_envoyer_v1',
+  );
+
+  /// Au démarrage : ce qui n'a pas pu partir lors de la dernière session.
+  static Future<int> envoyerEnAttente() => _envoi.envoyer();
+
+  /// La ligne serveur d'un événement (table `ai_cost_events`, migration 047).
+  @visibleForTesting
+  static Map<String, dynamic> ligneServeur(AiCostEvent e) => {
+        'event_id': e.id,
+        'occurred_at': e.timestamp.toUtc().toIso8601String(),
+        'platform': EnvoiParLots.plateforme,
+        'app_version': versionApp,
+        'build_mode': EnvoiParLots.modeDeBuild,
+        'feature': e.feature.length > 60 ? e.feature.substring(0, 60) : e.feature,
+        'model': e.model.length > 80 ? e.model.substring(0, 80) : e.model,
+        'prompt_tokens': e.promptTokens,
+        'output_tokens': e.candidatesTokens,
+        'grounded': e.isSearchGrounded,
+        'cost_usd': double.parse(e.costUsd.toStringAsFixed(6)),
+        'cost_eur': double.parse(e.costEur.toStringAsFixed(6)),
+      };
 
   List<AiCostEvent>? _cachedEvents;
 
@@ -85,6 +114,7 @@ class AiCostTrackerService {
     final events = await _loadEvents();
     events.add(event);
     await _saveEvents(events);
+    await _envoi.ajouter(ligneServeur(event));
 
     AppLogger.info('AI_COST',
         'Logged AI usage: $model ($feature) • In: $promptTokens tokens, Out: $candidatesTokens tokens • Cost: ${event.costEur.toStringAsFixed(5)}€ (\$${event.costUsd.toStringAsFixed(5)})');

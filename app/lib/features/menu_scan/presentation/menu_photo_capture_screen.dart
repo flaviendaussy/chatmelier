@@ -147,6 +147,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       if (!ref.read(premiumProvider)) {
         final issue = Completer<bool>();
         final pubMontree = await AdMobService().showRewardedAd(
+          emplacement: 'scan_carte',
           onRewardEarned: () {
             videoRegardee = true;
             if (!issue.isCompleted) issue.complete(true);

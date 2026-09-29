@@ -5,6 +5,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'admob_config.dart';
 import '../../shared/utils/app_logger.dart';
+import 'mesure_des_pubs.dart';
 
 final admobServiceProvider = Provider<AdMobService>((ref) {
   return AdMobService();
@@ -204,6 +205,7 @@ class AdMobService {
     required VoidCallback onRewardEarned,
     required VoidCallback onAdDismissed,
     VoidCallback? onAdFailedToShow,
+    String emplacement = 'autre',
   }) async {
     if (!AdMobConfig.isPlatformSupported || _rewardedAd == null) {
       AppLogger.info('ADMOB', 'Native AdMob rewarded ad not available (isPlatformSupported: ${AdMobConfig.isPlatformSupported}, isReady: ${_rewardedAd != null}).');
@@ -220,6 +222,7 @@ class AdMobService {
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (RewardedAd ad) {
         recordAdShown();
+        MesureDesPubs.impression(format: 'rewarded', emplacement: emplacement);
         AppLogger.info('ADMOB', 'RewardedAd showed full screen content.');
       },
       onAdDismissedFullScreenContent: (RewardedAd ad) {
@@ -391,6 +394,7 @@ class AdMobService {
       onAdShowedFullScreenContent: (ad) {
         _isShowingAppOpenAd = true;
         recordAdShown();
+        MesureDesPubs.impression(format: 'app_open', emplacement: 'ouverture');
         AppLogger.info('ADMOB', 'AppOpenAd showed full screen content.');
       },
       onAdDismissedFullScreenContent: (ad) {

@@ -1,3 +1,4 @@
+import '../../../shared/utils/langue.dart';
 import 'taste_profile.dart';
 
 /// Ce qu'une soirée a laissé, dit en toutes lettres.
@@ -22,25 +23,27 @@ class EveningSummary {
     final out = <String>[];
 
     if (verresGoutes > 0) {
+      final ou = nomDuLieu != null ? tr(' à $nomDuLieu', ' at $nomDuLieu') : '';
       out.add(verresGoutes == 1
-          ? 'Un verre goûté${nomDuLieu != null ? " à $nomDuLieu" : ""}'
-          : '$verresGoutes verres goûtés${nomDuLieu != null ? " à $nomDuLieu" : ""}');
+          ? tr('Un verre goûté$ou', 'One glass tasted$ou')
+          : tr('$verresGoutes verres goûtés$ou', '$verresGoutes glasses tasted$ou'));
     }
 
     final axe = _axeLePlusObserve(profil);
     if (axe != null) {
-      out.add('Votre palais commence à se dessiner sur ${_nomDeLAxe(axe)}');
+      out.add(tr('Votre palais commence à se dessiner sur ${_nomDeLAxe(axe)}',
+          'Your palate is starting to take shape around ${_nomDeLAxe(axe)}'));
     }
 
     if (profil.favoriteRegions.isNotEmpty) {
-      final r = profil.favoriteRegions.take(2).join(' et ');
-      out.add('Un goût qui se précise pour $r');
+      final r = profil.favoriteRegions.take(2).join(tr(' et ', ' and '));
+      out.add(tr('Un goût qui se précise pour $r', 'A growing taste for $r'));
     }
 
     if (messagesEchanges > 0) {
       out.add(messagesEchanges == 1
-          ? 'Une question posée au sommelier'
-          : '$messagesEchanges échanges avec le sommelier');
+          ? tr('Une question posée au sommelier', 'One question for the sommelier')
+          : tr('$messagesEchanges échanges avec le sommelier', '$messagesEchanges messages with the sommelier'));
     }
 
     return out;
@@ -62,14 +65,14 @@ class EveningSummary {
   }
 
   static String _nomDeLAxe(String axe) => switch (axe) {
-        'acidity' => 'la vivacité',
-        'body' => 'le corps',
-        'tannin' => 'les tanins',
-        'oak' => 'le boisé',
-        'ripeFruit' => 'le fruit mûr',
-        'spice' => 'les épices',
-        'freshFruit' => 'le fruit frais',
-        'minerality' => 'la minéralité',
+        'acidity' => tr('la vivacité', 'crisp acidity'),
+        'body' => tr('le corps', 'body'),
+        'tannin' => tr('les tanins', 'tannins'),
+        'oak' => tr('le boisé', 'oak'),
+        'ripeFruit' => tr('le fruit mûr', 'ripe fruit'),
+        'spice' => tr('les épices', 'spice'),
+        'freshFruit' => tr('le fruit frais', 'fresh fruit'),
+        'minerality' => tr('la minéralité', 'minerality'),
         _ => axe,
       };
 }

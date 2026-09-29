@@ -6,6 +6,7 @@ import '../../../shared/utils/phone_dial_code.dart';
 import '../../../shared/widgets/owner_avatar.dart';
 import '../data/friends_repository.dart';
 import '../domain/friend.dart';
+import '../../../shared/utils/langue.dart';
 
 class FriendTasteCardSheet extends ConsumerStatefulWidget {
   final Friend friend;
@@ -38,13 +39,13 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
       builder: (ctx) => StatefulBuilder(
         builder: (dialogCtx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Row(
+          title: Row(
             children: [
-              Text('🍷 ', style: TextStyle(fontSize: 22)),
+              const Text('🍷 ', style: TextStyle(fontSize: 22)),
               Expanded(
                 child: Text(
-                  'Demander l\'accès à la cave',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  tr('Demander l\'accès à la cave', 'Ask for cellar access'),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
             ],
@@ -55,17 +56,17 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Vous pouvez demander à ${widget.friend.displayName} l\'accès à sa cave à vin. Une notification lui sera envoyée.',
+                  tr('Vous pouvez demander à ${widget.friend.displayName} l\'accès à sa cave à vin. Une notification lui sera envoyée.', 'You can ask ${widget.friend.displayName} for access to their wine cellar. They\'ll get a notification.'),
                   style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
-                const Text('Niveau d\'accès souhaité :', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(tr('Niveau d\'accès souhaité :', 'Access you\'d like:'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 8),
                 RadioListTile<String>(
                   value: 'viewer',
                   groupValue: selectedRole,
-                  title: const Text('👁️ Consultation (Lecture seule)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                  subtitle: const Text('Voir les bouteilles, emplacements et apogées.', style: TextStyle(fontSize: 11)),
+                  title: Text(tr('👁️ Consultation (Lecture seule)', '👁️ View only'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  subtitle: Text(tr('Voir les bouteilles, emplacements et apogées.', 'See bottles, where they are, and when they peak.'), style: const TextStyle(fontSize: 11)),
                   onChanged: (val) => setDialogState(() => selectedRole = val!),
                   activeColor: const Color(0xFF8B1E3F),
                   contentPadding: EdgeInsets.zero,
@@ -73,8 +74,8 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                 RadioListTile<String>(
                   value: 'editor',
                   groupValue: selectedRole,
-                  title: const Text('✍️ Sommelier délégué (Écriture)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                  subtitle: const Text('Ajouter, modifier ou consommer des bouteilles.', style: TextStyle(fontSize: 11)),
+                  title: Text(tr('✍️ Sommelier délégué (Écriture)', '✍️ Deputy sommelier (write)'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  subtitle: Text(tr('Ajouter, modifier ou consommer des bouteilles.', 'Add, edit or drink bottles.'), style: const TextStyle(fontSize: 11)),
                   onChanged: (val) => setDialogState(() => selectedRole = val!),
                   activeColor: const Color(0xFF8B1E3F),
                   contentPadding: EdgeInsets.zero,
@@ -83,8 +84,8 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                 TextField(
                   controller: messageCtrl,
                   decoration: InputDecoration(
-                    labelText: 'Message facultatif',
-                    hintText: 'Ex: "Pour qu\'on gère nos bouteilles en commun !"',
+                    labelText: tr('Message facultatif', 'Message (optional)'),
+                    hintText: tr('Ex: "Pour qu\'on gère nos bouteilles en commun !"', 'E.g. "So we can manage our bottles together!"'),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
@@ -96,7 +97,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Annuler'),
+              child: Text(tr('Annuler', 'Cancel')),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -118,7 +119,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   if (mounted) {
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text('📬 Demande envoyée à ${widget.friend.displayName} !'),
+                        content: Text(tr('📬 Demande envoyée à ${widget.friend.displayName} !', '📬 Request sent to ${widget.friend.displayName}!')),
                         backgroundColor: const Color(0xFF10B981),
                       ),
                     );
@@ -126,14 +127,14 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                 } catch (e) {
                   if (mounted) {
                     messenger.showSnackBar(
-                      SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+                      SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
                     );
                   }
                 } finally {
                   if (mounted) setState(() => _isActionLoading = false);
                 }
               },
-              child: const Text('Envoyer la demande', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(tr('Envoyer la demande', 'Send request'), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -150,7 +151,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
 
     if (ownedCellars.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucune cave propriétaire trouvée.')),
+        SnackBar(content: Text(tr('Aucune cave propriétaire trouvée.', 'No cellar of yours found.'))),
       );
       return;
     }
@@ -191,12 +192,12 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Partager mes caves',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      Text(
+                        tr('Partager mes caves', 'Share my cellars'),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       Text(
-                        'avec ${widget.friend.displayName}',
+                        tr('avec ${widget.friend.displayName}', 'with ${widget.friend.displayName}'),
                         style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                       ),
                     ],
@@ -210,7 +211,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Choisissez quelle(s) cave(s) partager et l\'accès pour chacune :',
+                    tr('Choisissez quelle(s) cave(s) partager et l\'accès pour chacune :', 'Choose which cellar(s) to share, and the access for each:'),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.75),
                     ),
@@ -221,7 +222,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                         ? item['cellars'] as Map<String, dynamic>
                         : item;
                     final cId = (cMap['id'] ?? item['cellar_id'] ?? '').toString();
-                    final cName = cMap['name']?.toString() ?? 'Cave';
+                    final cName = cMap['name']?.toString() ?? tr('Cave', 'Cellar');
                     final isChecked = selectedCellars[cId] ?? false;
                     final currentRole = selectedRoles[cId] ?? 'editor';
 
@@ -272,22 +273,22 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
-                                    'Accès :',
-                                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                                  Text(
+                                    tr('Accès :', 'Access:'),
+                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
                                   ),
                                   DropdownButton<String>(
                                     value: currentRole,
                                     isDense: true,
                                     underline: const SizedBox(),
-                                    items: const [
+                                    items: [
                                       DropdownMenuItem(
                                         value: 'editor',
-                                        child: Text('✍️ Sommelier (Écriture)', style: TextStyle(fontSize: 12.5)),
+                                        child: Text(tr('✍️ Sommelier (Écriture)', '✍️ Sommelier (write)'), style: const TextStyle(fontSize: 12.5)),
                                       ),
                                       DropdownMenuItem(
                                         value: 'viewer',
-                                        child: Text('👁️ Lecteur (Lecture)', style: TextStyle(fontSize: 12.5)),
+                                        child: Text(tr('👁️ Lecteur (Lecture)', '👁️ Viewer (read)'), style: const TextStyle(fontSize: 12.5)),
                                       ),
                                     ],
                                     onChanged: (newRole) {
@@ -312,7 +313,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Annuler'),
+                child: Text(tr('Annuler', 'Cancel')),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -337,7 +338,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                             final isChecked = selectedCellars[cId] ?? false;
                             if (isChecked && cId.isNotEmpty) {
                               final role = selectedRoles[cId] ?? 'editor';
-                              final cName = cMap['name']?.toString() ?? 'Ma Cave';
+                              final cName = cMap['name']?.toString() ?? tr('Ma Cave', 'My cellar');
                               await repo.grantCellarAccessDirectly(
                                 cellarId: cId,
                                 friendUserId: widget.friend.friendUserId,
@@ -352,7 +353,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                           if (mounted) {
                             messenger.showSnackBar(
                               SnackBar(
-                                content: Text('🎉 Accès accordé pour $grantedCount cave(s) à ${widget.friend.displayName} !'),
+                                content: Text(tr('🎉 Accès accordé pour $grantedCount cave(s) à ${widget.friend.displayName} !', '🎉 ${widget.friend.displayName} now has access to $grantedCount cellar(s)!')),
                                 backgroundColor: const Color(0xFF10B981),
                               ),
                             );
@@ -360,7 +361,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                         } catch (e) {
                           if (mounted) {
                             messenger.showSnackBar(
-                              SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+                              SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
                             );
                           }
                         } finally {
@@ -368,7 +369,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                         }
                       }
                     : null,
-                child: const Text('Confirmer le partage', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(tr('Confirmer le partage', 'Confirm sharing'), style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -433,12 +434,12 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.wine_bar, size: 12, color: Color(0xFFD4AF37)),
-                              SizedBox(width: 4),
-                              Text('Carte des Goûts', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
+                              const Icon(Icons.wine_bar, size: 12, color: Color(0xFFD4AF37)),
+                              const SizedBox(width: 4),
+                              Text(tr('Carte des Goûts', 'Taste card'), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
                             ],
                           ),
                         ),
@@ -481,7 +482,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Accès cave partagée : ${friend.cellarAccessRole == "editor" ? "Sommelier / Éditeur ✍️" : "Consultation 👁️"}',
+                      tr('Accès cave partagée : ${friend.cellarAccessRole == "editor" ? "Sommelier / Éditeur ✍️" : "Consultation 👁️"}', 'Shared cellar access: ${friend.cellarAccessRole == "editor" ? "sommelier / editor ✍️" : "view only 👁️"}'),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
                     ),
                   ),
@@ -523,7 +524,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                 ],
 
                 // 1. CÉPAGES FAVORIS
-                _buildSectionHeader('🍇 Cépages Favoris', isDark),
+                _buildSectionHeader(tr('🍇 Cépages Favoris', '🍇 Favourite grapes'), isDark),
                 const SizedBox(height: 6),
                 if (taste.favoriteGrapes.isNotEmpty)
                   Wrap(
@@ -534,11 +535,11 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                         .toList(),
                   )
                 else
-                  const Text('Aucun cépage spécifique renseigné', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(tr('Aucun cépage spécifique renseigné', 'No particular grape given'), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 const SizedBox(height: 16),
 
                 // 2. RÉGIONS & TERROIRS
-                _buildSectionHeader('🗺️ Régions & Terroirs Préférés', isDark),
+                _buildSectionHeader(tr('🗺️ Régions & Terroirs Préférés', '🗺️ Favourite regions'), isDark),
                 const SizedBox(height: 6),
                 if (taste.favoriteRegions.isNotEmpty)
                   Wrap(
@@ -549,11 +550,11 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                         .toList(),
                   )
                 else
-                  const Text('Aucune région renseignée', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(tr('Aucune région renseignée', 'No region given'), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 const SizedBox(height: 16),
 
                 // 3. TYPES DE VINS
-                _buildSectionHeader('🍷 Styles & Couleurs Préférés', isDark),
+                _buildSectionHeader(tr('🍷 Styles & Couleurs Préférés', '🍷 Favourite styles & colours'), isDark),
                 const SizedBox(height: 6),
                 if (taste.favoriteTypes.isNotEmpty)
                   Wrap(
@@ -564,35 +565,35 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                         .toList(),
                   )
                 else
-                  const Text('Tous types de vins', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(tr('Tous types de vins', 'All kinds of wine'), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 const SizedBox(height: 16),
 
                 // 4. PROFIL NUMÉRIQUE DU PALAIS
-                _buildSectionHeader('⚖️ Profil Palais & Sensibilités', isDark),
+                _buildSectionHeader(tr('⚖️ Profil Palais & Sensibilités', '⚖️ Palate'), isDark),
                 const SizedBox(height: 8),
                 _buildPalateGauge(
-                  label: 'Acidité',
+                  label: tr('Acidité', 'Acidity'),
                   value: taste.avgAcidityPreference ?? 0.5,
-                  lowLabel: 'Tendre / Ronde',
-                  highLabel: 'Vive / Minérale',
+                  lowLabel: tr('Tendre / Ronde', 'Soft / round'),
+                  highLabel: tr('Vive / Minérale', 'Crisp / mineral'),
                   color: Colors.lightGreen,
                   isDark: isDark,
                 ),
                 const SizedBox(height: 8),
                 _buildPalateGauge(
-                  label: 'Tanins',
+                  label: tr('Tanins', 'Tannins'),
                   value: taste.avgTanninPreference ?? 0.5,
-                  lowLabel: 'Fondus / Soyeux',
-                  highLabel: 'Puissants / Structurés',
+                  lowLabel: tr('Fondus / Soyeux', 'Silky / supple'),
+                  highLabel: tr('Puissants / Structurés', 'Firm / structured'),
                   color: const Color(0xFF8B1E3F),
                   isDark: isDark,
                 ),
                 const SizedBox(height: 8),
                 _buildPalateGauge(
-                  label: 'Corps & Puissance',
+                  label: tr('Corps & Puissance', 'Body'),
                   value: taste.avgBodyPreference ?? 0.5,
-                  lowLabel: 'Léger & Digest',
-                  highLabel: 'Ample & Corsé',
+                  lowLabel: tr('Léger & Digest', 'Light & easy'),
+                  highLabel: tr('Ample & Corsé', 'Full & powerful'),
                   color: Colors.deepOrange,
                   isDark: isDark,
                 ),
@@ -600,7 +601,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
 
                 // 5. AVERSIONS / À ÉVITER
                 if (taste.dislikedCharacteristics.isNotEmpty) ...[
-                  _buildSectionHeader('🚫 Ce qu\'${friend.displayName} n\'aime pas', isDark),
+                  _buildSectionHeader(tr('🚫 Ce qu\'${friend.displayName} n\'aime pas', '🚫 What ${friend.displayName} doesn\'t like'), isDark),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -614,7 +615,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
 
                 // 6. ARÔMES FAVORIS
                 if (taste.aromaPreferences.isNotEmpty) ...[
-                  _buildSectionHeader('✨ Arômes les plus plébiscités', isDark),
+                  _buildSectionHeader(tr('✨ Arômes les plus plébiscités', '✨ Favourite aromas'), isDark),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -644,7 +645,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   ),
                   icon: const Icon(Icons.meeting_room_outlined, size: 16),
                   label: Text(
-                    friend.hasCellarAccess ? 'Explorer sa cave' : 'Demander l\'accès cave',
+                    friend.hasCellarAccess ? tr('Explorer sa cave', 'Explore their cellar') : tr('Demander l\'accès cave', 'Ask for cellar access'),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                   onPressed: _isActionLoading
@@ -670,9 +671,9 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   icon: const Icon(Icons.card_giftcard, size: 16),
-                  label: const Text(
-                    'Partager ma cave',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  label: Text(
+                    tr('Partager ma cave', 'Share my cellar'),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                   onPressed: _isActionLoading ? null : _showGrantMyCellarDialog,
                 ),
@@ -689,7 +690,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
             ),
             icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 18),
             label: Text(
-              'Demander conseil à Chatmelier pour ${friend.displayName}',
+              tr('Demander conseil à Chatmelier pour ${friend.displayName}', 'Ask Chatmelier what to pour for ${friend.displayName}'),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
             onPressed: () {

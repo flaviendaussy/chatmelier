@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'aging_reference.dart';
 import 'wine_world/wine_world.dart';
+import '../../../shared/utils/langue.dart';
 
 class WineServiceAdvice {
   final int minTemp;
@@ -326,26 +327,26 @@ class WineServiceAdvisor {
   }
 }
 
-/// Dit l'élevage en français, à partir du contenant et de la durée.
+/// Dit l'élevage, à partir du contenant et de la durée.
 ///
 /// Renvoie nul si on ne sait rien : la fiche affiche alors « non fourni », ce qui est
 /// vrai, plutôt qu'une phrase creuse.
 String? _phraseDElevage(String? type, int? mois) {
   final nom = _nomDuContenant(type);
   if (nom == null && mois == null) return null;
-  if (nom == null) return '$mois mois';
+  if (nom == null) return tr('$mois mois', '$mois months');
   if (mois == null || mois <= 0) return nom;
-  return '$mois mois en $nom';
+  return tr('$mois mois en $nom', '$mois months in $nom');
 }
 
 String? _nomDuContenant(String? type) => switch (type) {
-      'inox' => 'cuve inox',
-      'beton' => 'cuve béton',
-      'barrique' => 'barrique de chêne',
-      'foudre' => 'foudre de chêne',
-      'amphore' => 'amphore',
-      'oeuf' => 'œuf béton',
-      'bouteille' => 'bouteille (sur lattes)',
+      'inox' => tr('cuve inox', 'stainless steel tank'),
+      'beton' => tr('cuve béton', 'concrete tank'),
+      'barrique' => tr('barrique de chêne', 'oak barrel'),
+      'foudre' => tr('foudre de chêne', 'large oak cask'),
+      'amphore' => tr('amphore', 'amphora'),
+      'oeuf' => tr('œuf béton', 'concrete egg'),
+      'bouteille' => tr('bouteille (sur lattes)', 'bottle (on laths)'),
       _ => null,
     };
 
@@ -500,8 +501,8 @@ class WineOenologyAdvisor {
         peakEnd: pEnd,
         maxYear: math.max(end + 4, currentYear + 2),
         agingPotentialText: sansMillesime
-            ? 'Sans millésime — à boire dans les ${borne.fin} ans'
-            : '${borne.debut} à ${borne.fin} ans (Apogée optimale : $pStart - $pEnd)',
+            ? tr('Sans millésime — à boire dans les ${borne.fin} ans', 'No vintage — drink within ${borne.fin} years')
+            : tr('${borne.debut} à ${borne.fin} ans (Apogée optimale : $pStart - $pEnd)', '${borne.debut} to ${borne.fin} years (peak: $pStart - $pEnd)'),
       );
     }
 
@@ -531,7 +532,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: maxY,
-        agingPotentialText: '$minYears à $maxYears ans (Apogée optimale : $pStart - $pEnd)',
+        agingPotentialText: tr('$minYears à $maxYears ans (Apogée optimale : $pStart - $pEnd)', '$minYears to $maxYears years (peak: $pStart - $pEnd)'),
       );
     }
 
@@ -569,7 +570,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 5, currentYear + 2),
-          agingPotentialText: '20 à 40 ans (Apogée optimale : $pStart - $pEnd)',
+          agingPotentialText: tr('20 à 40 ans (Apogée optimale : $pStart - $pEnd)', '20 to 40 years (peak: $pStart - $pEnd)'),
         );
       } else {
         final start = v + 5;
@@ -583,7 +584,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 4, currentYear + 2),
-          agingPotentialText: '10 à 20 ans (Apogée optimale : $pStart - $pEnd)',
+          agingPotentialText: tr('10 à 20 ans (Apogée optimale : $pStart - $pEnd)', '10 to 20 years (peak: $pStart - $pEnd)'),
         );
       }
     }
@@ -607,7 +608,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 4, currentYear + 2),
-          agingPotentialText: '10 à 25 ans (Apogée optimale : $pStart - $pEnd)',
+          agingPotentialText: tr('10 à 25 ans (Apogée optimale : $pStart - $pEnd)', '10 to 25 years (peak: $pStart - $pEnd)'),
         );
       } else {
         final start = v + 2;
@@ -621,7 +622,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 3, currentYear + 2),
-          agingPotentialText: '5 à 12 ans (Apogée optimale : $pStart - $pEnd)',
+          agingPotentialText: tr('5 à 12 ans (Apogée optimale : $pStart - $pEnd)', '5 to 12 years (peak: $pStart - $pEnd)'),
         );
       }
     }
@@ -647,7 +648,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 4, currentYear + 2),
-          agingPotentialText: '15 à 30 ans (Apogée optimale : $pStart - $pEnd)',
+          agingPotentialText: tr('15 à 30 ans (Apogée optimale : $pStart - $pEnd)', '15 to 30 years (peak: $pStart - $pEnd)'),
         );
       } else {
         final start = v + 3;
@@ -661,7 +662,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 3, currentYear + 2),
-          agingPotentialText: '8 à 15 ans (Apogée optimale : $pStart - $pEnd)',
+          agingPotentialText: tr('8 à 15 ans (Apogée optimale : $pStart - $pEnd)', '8 to 15 years (peak: $pStart - $pEnd)'),
         );
       }
     }
@@ -684,7 +685,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 4, currentYear + 2),
-        agingPotentialText: '12 à 25 ans (Apogée optimale : $pStart - $pEnd)',
+        agingPotentialText: tr('12 à 25 ans (Apogée optimale : $pStart - $pEnd)', '12 to 25 years (peak: $pStart - $pEnd)'),
       );
     }
 
@@ -704,7 +705,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 3, currentYear + 2),
-        agingPotentialText: '3 à 7 ans (Apogée optimale : $pStart - $pEnd)',
+        agingPotentialText: tr('3 à 7 ans (Apogée optimale : $pStart - $pEnd)', '3 to 7 years (peak: $pStart - $pEnd)'),
       );
     }
 
@@ -721,7 +722,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 3, currentYear + 2),
-        agingPotentialText: '5 à 15 ans (Apogée optimale : $pStart - $pEnd)',
+        agingPotentialText: tr('5 à 15 ans (Apogée optimale : $pStart - $pEnd)', '5 to 15 years (peak: $pStart - $pEnd)'),
       );
     }
 
@@ -738,7 +739,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 4, currentYear + 2),
-        agingPotentialText: '15 à 30 ans (Apogée optimale : $pStart - $pEnd)',
+        agingPotentialText: tr('15 à 30 ans (Apogée optimale : $pStart - $pEnd)', '15 to 30 years (peak: $pStart - $pEnd)'),
       );
     }
 
@@ -755,7 +756,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 3, currentYear + 2),
-        agingPotentialText: '5 à 12 ans (Apogée optimale : $pStart - $pEnd)',
+        agingPotentialText: tr('5 à 12 ans (Apogée optimale : $pStart - $pEnd)', '5 to 12 years (peak: $pStart - $pEnd)'),
       );
     } else if (type.contains('rose') || type.contains('rosé')) {
       final start = v;
@@ -769,7 +770,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 2, currentYear + 2),
-        agingPotentialText: '2 à 3 ans (Fraîcheur optimale : $v - ${v + 2})',
+        agingPotentialText: tr('2 à 3 ans (Fraîcheur optimale : $v - ${v + 2})', '2 to 3 years (freshest: $v - ${v + 2})'),
       );
     } else {
       final start = v + 1;
@@ -783,7 +784,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 3, currentYear + 2),
-        agingPotentialText: '3 à 6 ans (Apogée optimale : $pStart - $pEnd)',
+        agingPotentialText: tr('3 à 6 ans (Apogée optimale : $pStart - $pEnd)', '3 to 6 years (peak: $pStart - $pEnd)'),
       );
     }
   }

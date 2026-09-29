@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../domain/terroir_geo_data.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Assombrit les tuiles claires d'OpenTopoMap pour l'ambiance sombre.
 ///
@@ -162,11 +163,11 @@ class _TerroirMapViewState extends State<TerroirMapView> {
   String _getThemeName(TerroirMapTheme theme) {
     switch (theme) {
       case TerroirMapTheme.darkMatter:
-        return 'Relief sombre';
+        return tr('Relief sombre', 'Dark relief');
       case TerroirMapTheme.openStreetMap:
         return 'OSM';
       case TerroirMapTheme.topoRelief:
-        return 'Relief';
+        return tr('Relief', 'Relief');
     }
   }
 
@@ -406,25 +407,25 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                       children: [
                         _buildMiniMapBtn(
                           icon: Icons.add,
-                          tooltip: 'Zoom avant',
+                          tooltip: tr('Zoom avant', 'Zoom in'),
                           onPressed: _zoomIn,
                         ),
                         _buildDivider(),
                         _buildMiniMapBtn(
                           icon: Icons.remove,
-                          tooltip: 'Zoom arrière',
+                          tooltip: tr('Zoom arrière', 'Zoom out'),
                           onPressed: _zoomOut,
                         ),
                         _buildDivider(),
                         _buildMiniMapBtn(
                           icon: Icons.my_location,
-                          tooltip: 'Recadrer sur le terroir',
+                          tooltip: tr('Recadrer sur le terroir', 'Centre on the terroir'),
                           onPressed: _recenter,
                         ),
                         _buildDivider(),
                         _buildMiniMapBtn(
                           icon: _showHexagons ? Icons.hexagon : Icons.hexagon_outlined,
-                          tooltip: _showHexagons ? 'Masquer hexagones' : 'Afficher hexagones',
+                          tooltip: _showHexagons ? tr('Masquer hexagones', 'Hide hexagons') : tr('Afficher hexagones', 'Show hexagons'),
                           iconColor: _showHexagons ? const Color(0xFFD4AF37) : Colors.white70,
                           onPressed: () {
                             setState(() {
@@ -435,7 +436,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                         _buildDivider(),
                         _buildMiniMapBtn(
                           icon: Icons.fullscreen,
-                          tooltip: 'Plein écran',
+                          tooltip: tr('Plein écran', 'Full screen'),
                           iconColor: const Color(0xFFD4AF37),
                           onPressed: () => _openFullscreen(context),
                         ),
@@ -483,7 +484,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      'Revenir sur ${_profile.name}',
+                                      tr('Revenir sur ${_profile.name}', 'Back to ${_profile.name}'),
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         fontSize: 11.5,
@@ -577,25 +578,25 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                   children: [
                     _buildTerroirChip(
                       icon: Icons.layers_outlined,
-                      label: 'Sol',
+                      label: tr('Sol', 'Soil'),
                       value: _profile.soilType,
                       theme: theme,
                     ),
                     _buildTerroirChip(
                       icon: Icons.wb_sunny_outlined,
-                      label: 'Climat',
+                      label: tr('Climat', 'Climate'),
                       value: _profile.climate,
                       theme: theme,
                     ),
                     _buildTerroirChip(
                       icon: Icons.landscape_outlined,
-                      label: 'Relief',
+                      label: tr('Relief', 'Relief'),
                       value: '${_profile.exposure} • ${_profile.elevation}',
                       theme: theme,
                     ),
                     _buildTerroirChip(
                       icon: Icons.bubble_chart_outlined,
-                      label: 'Cépages',
+                      label: tr('Cépages', 'Grapes'),
                       value: _profile.keyGrapes,
                       theme: theme,
                     ),
@@ -869,7 +870,7 @@ class _TerroirMapFullscreenScreenState
               _showHexagons ? Icons.hexagon : Icons.hexagon_outlined,
               color: const Color(0xFFD4AF37),
             ),
-            tooltip: 'Afficher/Masquer Hexagones Terroir',
+            tooltip: tr('Afficher/Masquer Hexagones Terroir', 'Show/hide terroir hexagons'),
             onPressed: () {
               setState(() {
                 _showHexagons = !_showHexagons;
@@ -878,7 +879,7 @@ class _TerroirMapFullscreenScreenState
           ),
           PopupMenuButton<TerroirMapTheme>(
             icon: const Icon(Icons.layers_outlined, color: Color(0xFFD4AF37)),
-            tooltip: 'Fond de carte',
+            tooltip: tr('Fond de carte', 'Base map'),
             initialValue: _theme,
             onSelected: (t) => setState(() => _theme = t),
             itemBuilder: (ctx) => [
@@ -890,9 +891,9 @@ class _TerroirMapFullscreenScreenState
                 value: TerroirMapTheme.openStreetMap,
                 child: Text('🗺️ OpenStreetMap (OSM)'),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: TerroirMapTheme.topoRelief,
-                child: Text('⛰️ Relief Topographique'),
+                child: Text(tr('⛰️ Relief Topographique', '⛰️ Topographic relief')),
               ),
             ],
           ),
@@ -1022,10 +1023,10 @@ class _TerroirMapFullscreenScreenState
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildRowItem('🪨 Sol', widget.profile.soilType),
-                    _buildRowItem('☀️ Climat', widget.profile.climate),
-                    _buildRowItem('📐 Relief & Exposition', '${widget.profile.exposure} (${widget.profile.elevation})'),
-                    _buildRowItem('🍇 Cépages Phares', widget.profile.keyGrapes),
+                    _buildRowItem(tr('🪨 Sol', '🪨 Soil'), widget.profile.soilType),
+                    _buildRowItem(tr('☀️ Climat', '☀️ Climate'), widget.profile.climate),
+                    _buildRowItem(tr('📐 Relief & Exposition', '📐 Relief & aspect'), '${widget.profile.exposure} (${widget.profile.elevation})'),
+                    _buildRowItem(tr('🍇 Cépages Phares', '🍇 Signature grapes'), widget.profile.keyGrapes),
                     const SizedBox(height: 10),
                     Text(
                       widget.profile.sommelierNotes,

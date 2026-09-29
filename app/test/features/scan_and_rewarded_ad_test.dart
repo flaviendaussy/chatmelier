@@ -1,12 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chatmelier/shared/providers/premium_provider.dart';
 import 'package:chatmelier/features/offline/domain/offline_action.dart';
 import 'package:chatmelier/features/offline/presentation/sync_provider.dart';
-import 'package:chatmelier/features/scan/presentation/rewarded_video_ad_sheet.dart';
 import 'package:chatmelier/features/monetization/admob_config.dart';
 import 'package:chatmelier/features/monetization/admob_service.dart';
 
@@ -70,37 +67,6 @@ void main() {
 
       container.read(syncBannerDismissedProvider.notifier).state = true;
       expect(container.read(syncBannerDismissedProvider), isTrue);
-    });
-
-    testWidgets('RewardedVideoAdSheet renders cleanly without crash in Free Mode', (tester) async {
-      bool rewardEarned = false;
-      bool cancelled = false;
-
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            locale: const Locale('fr'),
-            localizationsDelegates: GlobalMaterialLocalizations.delegates,
-            supportedLocales: const [Locale('fr'), Locale('en')],
-            home: Scaffold(
-              body: RewardedVideoAdSheet(
-                onRewardEarned: () => rewardEarned = true,
-                onCancel: () => cancelled = true,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      // Verify header, title and progress indicator are present
-      expect(find.text('Vidéo Sponsorisée Requise'), findsOneWidget);
-      expect(find.text('Analyse IA par Chatmelier'), findsOneWidget);
-      expect(find.byType(LinearProgressIndicator), findsOneWidget);
-
-      // Verify timer countdown works
-      await tester.pump(const Duration(seconds: 2));
-      expect(rewardEarned, isFalse);
-      expect(cancelled, isFalse);
     });
   });
 

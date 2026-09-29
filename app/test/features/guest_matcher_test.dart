@@ -127,5 +127,24 @@ void main() {
       expect(pinot.consensusScore, greaterThan(60.0));
       expect(cornas.consensusScore, lessThan(pinot.consensusScore));
     });
+      test('le pourquoi dit qui l\'aimera, sans rien inventer sur le vin', () {
+      final ranked = GuestMatcherEngine.rankBottlesForGuests(
+        bottles: [cornasBottle, pinotBottle, chablisBottle],
+        guests: guests,
+        idLecteur: 'flavien',
+      );
+      final raisons = ranked.map((r) => r.sommelierRationale).toList();
+      for (final r in raisons) {
+        // Les phrases fixes d'avant : « l'élégance de… », « ouverture préalable de 30 minutes ».
+        expect(r, isNot(contains('élégance')));
+        expect(r, isNot(contains('30 minutes')));
+        // Le lecteur se lit « vous », jamais par son nom.
+        expect(r, isNot(contains('Flavien')));
+        expect(r, contains('Caro'));
+      }
+      final cornas = ranked.firstWhere((r) => r.bottle.wineId == 'wine_cornas');
+      expect(cornas.sommelierRationale, contains('Caro n\'aime pas les tanins fermes'));
+      expect(cornas.sommelierRationale, startsWith('Vous allez l\'adorer'));
+    });
   });
 }

@@ -8,6 +8,7 @@ import '../../../shared/utils/app_logger.dart';
 import '../../../shared/widgets/wine_type_badge.dart';
 import '../../monetization/admob_service.dart';
 import '../data/excel_import_service.dart';
+import '../../../shared/utils/langue.dart';
 
 class ExcelImportScreen extends ConsumerStatefulWidget {
   final String cellarId;
@@ -45,7 +46,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
       if (bytes == null || bytes.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Fichier vide ou illisible.'), backgroundColor: Colors.orange),
+            SnackBar(content: Text(tr('Fichier vide ou illisible.', 'Empty or unreadable file.')), backgroundColor: Colors.orange),
           );
         }
         return;
@@ -56,7 +57,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
         _candidates.clear();
         _isAnalyzing = true;
         _analyzeProgress = 0.1;
-        _analyzeStatus = 'Lecture et extraction du fichier...';
+        _analyzeStatus = tr('Lecture et extraction du fichier...', 'Reading the file...');
       });
 
       // 1. Extract text lines
@@ -65,7 +66,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
       if (rows.isEmpty) {
         setState(() {
           _isAnalyzing = false;
-          _analyzeStatus = 'Aucune ligne de texte trouvée dans le fichier.';
+          _analyzeStatus = tr('Aucune ligne de texte trouvée dans le fichier.', 'No lines of text found in the file.');
         });
         return;
       }
@@ -84,7 +85,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
 
         setState(() {
           _analyzeProgress = 0.1 + (0.85 * (b / totalBatches));
-          _analyzeStatus = 'Analyse sommelier par IA (lot ${b + 1}/$totalBatches)...';
+          _analyzeStatus = tr('Analyse sommelier par IA (lot ${b + 1}/$totalBatches)...', 'AI sommelier analysis (batch ${b + 1}/$totalBatches)...');
         });
 
         final batchCandidates = await importService.normalizeWineBatch(chunk);
@@ -101,7 +102,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✨ ${_candidates.length} vins identifiés avec succès !'),
+            content: Text(tr('✨ ${_candidates.length} vins identifiés avec succès !', '✨ ${_candidates.length} wines identified!')),
             backgroundColor: const Color(0xFF2E7D32),
           ),
         );
@@ -111,7 +112,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
       if (mounted) {
         setState(() {
           _isAnalyzing = false;
-          _analyzeStatus = 'Erreur: $e';
+          _analyzeStatus = tr('Erreur: $e', 'Error: $e');
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur lors de l\'import : $e'), backgroundColor: Colors.red),
@@ -184,7 +185,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ Lot de $count bouteilles importé ! Prêt pour le lot suivant.'),
+              content: Text(tr('✅ Lot de $count bouteilles importé ! Prêt pour le lot suivant.', '✅ Batch of $count bottles imported! Ready for the next batch.')),
               backgroundColor: const Color(0xFF2E7D32),
             ),
           );
@@ -195,15 +196,15 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
           context: context,
           builder: (ctx) => AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 28),
-                SizedBox(width: 10),
-                Text('Import Terminé !'),
+                const Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 28),
+                const SizedBox(width: 10),
+                Text(tr('Import Terminé !', 'Import complete!')),
               ],
             ),
             content: Text(
-              'Félicitations ! $_importedCount bouteilles ont été intégrées dans votre cave avec tous leurs détails sommelier.',
+              tr('Félicitations ! $_importedCount bouteilles ont été intégrées dans votre cave avec tous leurs détails sommelier.', 'Congratulations! $_importedCount bottles are now in your cellar, with all their sommelier details.'),
             ),
             actions: [
               FilledButton(
@@ -212,7 +213,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                   Navigator.of(ctx).pop();
                   context.pop();
                 },
-                child: const Text('Voir ma cave'),
+                child: Text(tr('Voir ma cave', 'See my cellar')),
               ),
             ],
           ),
@@ -223,7 +224,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
       if (mounted) {
         setState(() => _isImporting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de l\'enregistrement : $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(tr('Erreur lors de l\'enregistrement : $e', 'Couldn\'t save: $e')), backgroundColor: Colors.red),
         );
       }
     }
@@ -239,12 +240,12 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Importer une liste Excel / CSV'),
+        title: Text(tr('Importer une liste Excel / CSV', 'Import an Excel / CSV list')),
         actions: [
           if (_candidates.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: 'Recommencer l\'import',
+              tooltip: tr('Recommencer l\'import', 'Start the import again'),
               onPressed: _pickFile,
             ),
         ],
@@ -258,7 +259,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                   children: [
                     const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 48),
                     const SizedBox(height: 20),
-                    Text('Analyse sommelier par IA...', style: theme.textTheme.titleMedium),
+                    Text(tr('Analyse sommelier par IA...', 'AI sommelier analysis...'), style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
                     Text(_analyzeStatus, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
                     const SizedBox(height: 20),
@@ -292,13 +293,13 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Importez votre cave en quelques secondes',
+                          tr('Importez votre cave en quelques secondes', 'Import your cellar in seconds'),
                           textAlign: TextAlign.center,
                           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          'Compatible avec tous les fichiers Excel (.xlsx), CSV, et listes texte. L\'IA identifie automatiquement les domaines, millésimes, couleurs et formats.',
+                          tr('Compatible avec tous les fichiers Excel (.xlsx), CSV, et listes texte. L\'IA identifie automatiquement les domaines, millésimes, couleurs et formats.', 'Works with any Excel (.xlsx) file, CSV or text list. The AI identifies estates, vintages, colours and bottle sizes automatically.'),
                           textAlign: TextAlign.center,
                           style: TextStyle(color: theme.colorScheme.onSurfaceVariant, height: 1.4),
                         ),
@@ -311,12 +312,12 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
                           icon: const Icon(Icons.file_upload_outlined, size: 22),
-                          label: const Text('Choisir un fichier (.xlsx ou .csv)', style: TextStyle(fontSize: 16)),
+                          label: Text(tr('Choisir un fichier (.xlsx ou .csv)', 'Choose a file (.xlsx or .csv)'), style: const TextStyle(fontSize: 16)),
                         ),
                         const SizedBox(height: 16),
                         if (_selectedFileName != null && _candidates.isEmpty)
                           Text(
-                            'Dernier fichier sélectionné : $_selectedFileName (0 vin extrait)',
+                            tr('Dernier fichier sélectionné : $_selectedFileName (0 vin extrait)', 'Last file selected: $_selectedFileName (no wine found)'),
                             style: const TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                       ],
@@ -337,7 +338,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                             onChanged: _toggleSelectAll,
                           ),
                           Text(
-                            '$selectedCount / ${_candidates.length} vins sélectionnés',
+                            tr('$selectedCount / ${_candidates.length} vins sélectionnés', '$selectedCount / ${_candidates.length} wines selected'),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           const Spacer(),
@@ -348,12 +349,12 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                                 color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Row(
+                              child: Row(
                                 children: [
-                                  Icon(Icons.lock_open, size: 14, color: Color(0xFF9A7B1C)),
-                                  SizedBox(width: 4),
-                                  Text('Gratuit : 15/lot',
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF9A7B1C))),
+                                  const Icon(Icons.lock_open, size: 14, color: Color(0xFF9A7B1C)),
+                                  const SizedBox(width: 4),
+                                  Text(tr('Gratuit : 15/lot', 'Free: 15 per batch'),
+                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF9A7B1C))),
                                 ],
                               ),
                             ),
@@ -503,7 +504,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        'Import gratuit par lot de $_freeBatchSize vins (avec pause vidéo) ou instantané avec Privilège.',
+                                        tr('Import gratuit par lot de $_freeBatchSize vins (avec pause vidéo) ou instantané avec Privilège.', 'Free import in batches of $_freeBatchSize wines (with a video break), or instant with Privilege.'),
                                         style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                                       ),
                                     ),
@@ -531,8 +532,8 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                                         : const Icon(Icons.download_done, size: 20),
                                     label: Text(
                                       !isPremium && selectedCount > _freeBatchSize
-                                          ? 'Importer le 1er lot ($_freeBatchSize vins)'
-                                          : 'Importer les $selectedCount vins',
+                                          ? tr('Importer le 1er lot ($_freeBatchSize vins)', 'Import the first batch ($_freeBatchSize wines)')
+                                          : tr('Importer les $selectedCount vins', 'Import the $selectedCount wines'),
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                     ),
                                   ),

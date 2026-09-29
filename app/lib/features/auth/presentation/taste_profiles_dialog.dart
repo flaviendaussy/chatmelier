@@ -45,7 +45,8 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
       final user = ref.watch(supabaseProvider).auth.currentUser;
       rawName = (user?.userMetadata?['display_name'] as String?)?.trim();
     } catch (_) {}
-    final userDisplayName = (rawName != null && rawName.isNotEmpty) ? rawName : 'Flavien';
+    // Sans nom renseigné, « Moi » tout court : jamais un prénom inventé.
+    final userDisplayName = (rawName != null && rawName.isNotEmpty) ? rawName : '';
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
@@ -173,7 +174,11 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                                       Row(
                                         children: [
                                           Text(
-                                            profile.isPrimary ? '${_t("Me", "Yo", "Jo", "Ego", "Moi")} ($userDisplayName)' : profile.name,
+                                            profile.isPrimary
+                                                ? (userDisplayName.isEmpty
+                                                    ? _t("Me", "Yo", "Jo", "Ego", "Moi")
+                                                    : '${_t("Me", "Yo", "Jo", "Ego", "Moi")} ($userDisplayName)')
+                                                : profile.name,
                                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                           ),
                                           if (profile.isPrimary) ...[

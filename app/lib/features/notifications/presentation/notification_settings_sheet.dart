@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/local_notification_service.dart';
 import '../data/notification_preferences_service.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Modal bottom sheet allowing the user to configure on-device system notifications.
 class NotificationSettingsSheet extends ConsumerStatefulWidget {
@@ -49,9 +50,9 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
       setState(() => _permissionEnabled = granted);
       if (granted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Notifications activées avec succès !'),
-            backgroundColor: Color(0xFF10B981),
+          SnackBar(
+            content: Text(tr('Notifications activées avec succès !', 'Notifications turned on!')),
+            backgroundColor: const Color(0xFF10B981),
           ),
         );
       }
@@ -63,9 +64,9 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
     await service.sendTestNotification();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Notification test envoyée ! Regardez en haut de votre écran 🔔'),
-          backgroundColor: Color(0xFF8B1E3F),
+        SnackBar(
+          content: Text(tr('Notification test envoyée ! Regardez en haut de votre écran 🔔', 'Test notification sent! Look at the top of your screen 🔔')),
+          backgroundColor: const Color(0xFF8B1E3F),
         ),
       );
     }
@@ -122,17 +123,17 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                   child: const Icon(Icons.notifications_active, color: Color(0xFF8B1E3F), size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Notifications Système',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        tr('Notifications Système', 'System notifications'),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                       Text(
-                        'Alertes sur votre écran et barre d\'état',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        tr('Alertes sur votre écran et barre d\'état', 'Alerts on your screen and status bar'),
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -178,15 +179,15 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                           children: [
                             Text(
                               _permissionEnabled
-                                  ? 'Autorisation accordée'
-                                  : 'Autorisation système requise',
+                                  ? tr('Autorisation accordée', 'Permission granted')
+                                  : tr('Autorisation système requise', 'System permission needed'),
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               _permissionEnabled
-                                  ? 'Les notifications peuvent s\'afficher sur votre écran.'
-                                  : 'Activez l\'accès pour recevoir les alertes même quand l\'application est fermée.',
+                                  ? tr('Les notifications peuvent s\'afficher sur votre écran.', 'Notifications can appear on your screen.')
+                                  : tr('Activez l\'accès pour recevoir les alertes même quand l\'application est fermée.', 'Allow access to get alerts even when the app is closed.'),
                               style: const TextStyle(fontSize: 12, color: Colors.grey),
                             ),
                           ],
@@ -200,7 +201,7 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           ),
                           onPressed: _isCheckingPermission ? null : _requestPermission,
-                          child: const Text('Autoriser', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          child: Text(tr('Autoriser', 'Allow'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ],
@@ -212,8 +213,8 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                 _buildSwitchTile(
                   icon: Icons.wine_bar,
                   iconColor: const Color(0xFF8B1E3F),
-                  title: 'Rappels post-dégustation',
-                  subtitle: 'Rappel 1h30 après avoir ouvert une bouteille pour noter vos impressions pendant que le souvenir est frais.',
+                  title: tr('Rappels post-dégustation', 'After-tasting reminders'),
+                  subtitle: tr('Rappel 1h30 après avoir ouvert une bouteille pour noter vos impressions pendant que le souvenir est frais.', 'A reminder 1½ hours after you open a bottle, to note your impressions while they\'re fresh.'),
                   value: prefs.postTastingEnabled,
                   onChanged: (val) => notifier.updatePreference(postTastingEnabled: val),
                 ),
@@ -222,8 +223,8 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                 _buildSwitchTile(
                   icon: Icons.hourglass_top,
                   iconColor: const Color(0xFFD4AF37),
-                  title: 'Fenêtres d\'apogée & déclin',
-                  subtitle: 'Alerte lorsqu\'un de vos vins atteint son plateau idéal de dégustation ou s\'il risque de dépasser sa maturité.',
+                  title: tr('Fenêtres d\'apogée & déclin', 'Peak & decline windows'),
+                  subtitle: tr('Alerte lorsqu\'un de vos vins atteint son plateau idéal de dégustation ou s\'il risque de dépasser sa maturité.', 'An alert when one of your wines reaches its ideal drinking plateau, or risks going past it.'),
                   value: prefs.apogeeAlertsEnabled,
                   onChanged: (val) => notifier.updatePreference(apogeeAlertsEnabled: val),
                 ),
@@ -232,8 +233,8 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                 _buildSwitchTile(
                   icon: Icons.sync,
                   iconColor: Colors.blue,
-                  title: 'Activité de cave partagée',
-                  subtitle: 'Savoir quand un membre de votre cave commune ouvre ou dépose une bouteille.',
+                  title: tr('Activité de cave partagée', 'Shared cellar activity'),
+                  subtitle: tr('Savoir quand un membre de votre cave commune ouvre ou dépose une bouteille.', 'Know when someone in your shared cellar opens or adds a bottle.'),
                   value: prefs.sharedCellarActivityEnabled,
                   onChanged: (val) => notifier.updatePreference(sharedCellarActivityEnabled: val),
                 ),
@@ -242,8 +243,8 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                 _buildSwitchTile(
                   icon: Icons.people_outline,
                   iconColor: const Color(0xFF10B981),
-                  title: 'Amis & Invitations',
-                  subtitle: 'Recevoir une alerte lors d\'une demande d\'ami ou d\'une invitation à rejoindre une cave.',
+                  title: tr('Amis & Invitations', 'Friends & invitations'),
+                  subtitle: tr('Recevoir une alerte lors d\'une demande d\'ami ou d\'une invitation à rejoindre une cave.', 'Get an alert for a friend request or an invitation to join a cellar.'),
                   value: prefs.friendRequestsEnabled,
                   onChanged: (val) => notifier.updatePreference(friendRequestsEnabled: val),
                 ),
@@ -252,8 +253,8 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                 _buildSwitchTile(
                   icon: Icons.weekend_outlined,
                   iconColor: Colors.purple,
-                  title: 'Sommelier du week-end',
-                  subtitle: 'Inspiration du vendredi soir pour choisir la bouteille idéale de votre cave pour vos dîners.',
+                  title: tr('Sommelier du week-end', 'Weekend sommelier'),
+                  subtitle: tr('Inspiration du vendredi soir pour choisir la bouteille idéale de votre cave pour vos dîners.', 'A Friday-evening idea: the ideal bottle from your cellar for your dinners.'),
                   value: prefs.weekendSuggestionsEnabled,
                   onChanged: (val) => notifier.updatePreference(weekendSuggestionsEnabled: val),
                 ),
@@ -262,8 +263,8 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                 _buildSwitchTile(
                   icon: Icons.production_quantity_limits,
                   iconColor: Colors.orange,
-                  title: 'Alerte dernière bouteille',
-                  subtitle: 'Avertissement discret lorsque vous consommez l\'avant-dernière ou dernière bouteille d\'un cru.',
+                  title: tr('Alerte dernière bouteille', 'Last-bottle alert'),
+                  subtitle: tr('Avertissement discret lorsque vous consommez l\'avant-dernière ou dernière bouteille d\'un cru.', 'A discreet heads-up when you open the last or second-to-last bottle of a wine.'),
                   value: prefs.lowStockAlertsEnabled,
                   onChanged: (val) => notifier.updatePreference(lowStockAlertsEnabled: val),
                 ),
@@ -277,7 +278,7 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                       const Icon(Icons.shield_outlined, size: 18, color: Color(0xFF8B1E3F)),
                       const SizedBox(width: 8),
                       Text(
-                        'PROTECTION ANTI-SPAM & CONFORT',
+                        tr('PROTECTION ANTI-SPAM & CONFORT', 'NO SPAM, EVER'),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
@@ -292,8 +293,8 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                 _buildSwitchTile(
                   icon: Icons.nightlight_round,
                   iconColor: Colors.indigo,
-                  title: 'Heures de silence (22h00 - 8h30)',
-                  subtitle: 'Aucune sonnerie nocturne. Les rappels après dîner sont automatiquement décalés au lendemain matin 9h.',
+                  title: tr('Heures de silence (22h00 - 8h30)', 'Quiet hours (10 pm - 8:30 am)'),
+                  subtitle: tr('Aucune sonnerie nocturne. Les rappels après dîner sont automatiquement décalés au lendemain matin 9h.', 'Nothing rings at night. After-dinner reminders move to 9 am the next morning.'),
                   value: prefs.quietHoursEnabled,
                   onChanged: (val) => notifier.updatePreference(quietHoursEnabled: val),
                 ),
@@ -302,8 +303,8 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                 _buildSwitchTile(
                   icon: Icons.layers_outlined,
                   iconColor: const Color(0xFF8B1E3F),
-                  title: 'Regroupement des dégustations',
-                  subtitle: 'Si vous débouchez plusieurs bouteilles en soirée, regroupe le rappel en une seule notification.',
+                  title: tr('Regroupement des dégustations', 'Grouped tastings'),
+                  subtitle: tr('Si vous débouchez plusieurs bouteilles en soirée, regroupe le rappel en une seule notification.', 'If you open several bottles in one evening, you get a single reminder.'),
                   value: prefs.batchMultipleTastingsEnabled,
                   onChanged: (val) => notifier.updatePreference(batchMultipleTastingsEnabled: val),
                 ),
@@ -316,14 +317,14 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.check_circle_outline, size: 16, color: Color(0xFF10B981)),
-                      SizedBox(width: 8),
+                      const Icon(Icons.check_circle_outline, size: 16, color: Color(0xFF10B981)),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Plafond anti-saturation : Chatmelier bride les alertes proactives à 1 par jour maximum.',
-                          style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
+                          tr('Plafond anti-saturation : Chatmelier bride les alertes proactives à 1 par jour maximum.', 'Cap: Chatmelier sends at most one proactive alert per day.'),
+                          style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
                         ),
                       ),
                     ],
@@ -340,7 +341,7 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                   ),
                   onPressed: _sendTest,
                   icon: const Icon(Icons.send_outlined, size: 18),
-                  label: const Text('Envoyer une notification test'),
+                  label: Text(tr('Envoyer une notification test', 'Send a test notification')),
                 ),
                 const SizedBox(height: 12),
               ],

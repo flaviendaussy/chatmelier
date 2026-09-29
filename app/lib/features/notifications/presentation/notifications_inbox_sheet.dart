@@ -6,6 +6,7 @@ import '../../friends/domain/friend.dart';
 import '../../friends/domain/user_notification.dart';
 import '../../../shared/widgets/owner_avatar.dart';
 import '../../../shared/providers/cellar_provider.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Modal bottom sheet providing a full Inbox for incoming friend requests,
 /// cellar access requests, and notifications, with support for "Dismiss / Pour plus tard".
@@ -41,7 +42,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('🎉 Vous êtes désormais ami avec ${friend.displayName} !'),
+            content: Text(tr('🎉 Vous êtes désormais ami avec ${friend.displayName} !', '🎉 You\'re now friends with ${friend.displayName}!')),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -49,7 +50,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -65,13 +66,13 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
       refreshFriendsAndNotifications(ref);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Demande d\'ami déclinée.')),
+          SnackBar(content: Text(tr('Demande d\'ami déclinée.', 'Friend request declined.'))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -84,7 +85,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$label mis de côté pour plus tard ⏱️'),
+          content: Text(tr('$label mis de côté pour plus tard ⏱️', '$label saved for later ⏱️')),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -111,8 +112,8 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
           SnackBar(
             content: Text(
               accept
-                  ? '🍾 Accès accordé à ${req.requesterName} (${role == "editor" ? "Sommelier" : "Lecteur"}) !'
-                  : 'Demande d\'accès refusée.',
+                  ? tr('🍾 Accès accordé à ${req.requesterName} (${role == "editor" ? "Sommelier" : "Lecteur"}) !', '🍾 Access granted to ${req.requesterName} (${role == "editor" ? "Sommelier" : "Viewer"})!')
+                  : tr('Demande d\'accès refusée.', 'Access request declined.'),
             ),
             backgroundColor: accept ? const Color(0xFF10B981) : Colors.grey.shade800,
           ),
@@ -121,7 +122,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -137,7 +138,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
 
     if (ownedCellars.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucune cave propriétaire trouvée.')),
+        SnackBar(content: Text(tr('Aucune cave propriétaire trouvée.', 'No cellar of yours found.'))),
       );
       return;
     }
@@ -190,12 +191,12 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Partager mes caves',
-                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                        Text(
+                          tr('Partager mes caves', 'Share my cellars'),
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          'avec ${req.requesterName}',
+                          tr('avec ${req.requesterName}', 'with ${req.requesterName}'),
                           style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                         ),
                       ],
@@ -209,7 +210,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Choisissez quelle(s) cave(s) partager et l\'accès pour chacune :',
+                      tr('Choisissez quelle(s) cave(s) partager et l\'accès pour chacune :', 'Choose which cellar(s) to share, and the access for each:'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.75),
                       ),
@@ -220,7 +221,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                           ? item['cellars'] as Map<String, dynamic>
                           : item;
                       final cId = (cMap['id'] ?? item['cellar_id'] ?? '').toString();
-                      final cName = cMap['name']?.toString() ?? 'Cave';
+                      final cName = cMap['name']?.toString() ?? tr('Cave', 'Cellar');
                       final isChecked = selectedCellars[cId] ?? false;
                       final currentRole = selectedRoles[cId] ?? 'editor';
 
@@ -271,22 +272,22 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text(
-                                      'Accès :',
-                                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                                    Text(
+                                      tr('Accès :', 'Access:'),
+                                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
                                     ),
                                     DropdownButton<String>(
                                       value: currentRole,
                                       isDense: true,
                                       underline: const SizedBox(),
-                                      items: const [
+                                      items: [
                                         DropdownMenuItem(
                                           value: 'editor',
-                                          child: Text('✍️ Sommelier (Écriture)', style: TextStyle(fontSize: 12.5)),
+                                          child: Text(tr('✍️ Sommelier (Écriture)', '✍️ Sommelier (write)'), style: const TextStyle(fontSize: 12.5)),
                                         ),
                                         DropdownMenuItem(
                                           value: 'viewer',
-                                          child: Text('👁️ Lecteur (Lecture)', style: TextStyle(fontSize: 12.5)),
+                                          child: Text(tr('👁️ Lecteur (Lecture)', '👁️ Viewer (read)'), style: const TextStyle(fontSize: 12.5)),
                                         ),
                                       ],
                                       onChanged: (newRole) {
@@ -311,7 +312,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogCtx).pop(),
-                  child: const Text('Annuler'),
+                  child: Text(tr('Annuler', 'Cancel')),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -330,7 +331,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                           );
                         }
                       : null,
-                  child: const Text('Confirmer le partage', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(tr('Confirmer le partage', 'Confirm sharing'), style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -361,7 +362,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
         final isChecked = selectedCellars[cId] ?? false;
         if (isChecked && cId.isNotEmpty) {
           final role = selectedRoles[cId] ?? 'editor';
-          final cName = cMap['name']?.toString() ?? 'Ma Cave';
+          final cName = cMap['name']?.toString() ?? tr('Ma Cave', 'My cellar');
           await repo.grantCellarAccessDirectly(
             cellarId: cId,
             friendUserId: req.requesterId,
@@ -387,7 +388,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('🍾 Accès accordé pour $grantedCount cave(s) à ${req.requesterName} !'),
+            content: Text(tr('🍾 Accès accordé pour $grantedCount cave(s) à ${req.requesterName} !', '🍾 Access to $grantedCount cellar(s) granted to ${req.requesterName}!')),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -395,7 +396,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur : $e', 'Error: $e')), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -480,9 +481,9 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                 Expanded(
                   child: Row(
                     children: [
-                      const Text(
-                        'Boîte de réception',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      Text(
+                        tr('Boîte de réception', 'Inbox'),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                       if (totalCount > 0) ...[
                         const SizedBox(width: 8),
@@ -503,12 +504,12 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                 ),
                 IconButton(
                   icon: const Icon(Icons.refresh, size: 20),
-                  tooltip: 'Actualiser',
+                  tooltip: tr('Actualiser', 'Refresh'),
                   onPressed: _refresh,
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20),
-                  tooltip: 'Fermer',
+                  tooltip: tr('Fermer', 'Close'),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -527,7 +528,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                   if (activeFriends.isNotEmpty) ...[
                     _buildSectionHeader(
                       context,
-                      title: '👥 Demandes d\'amis (${activeFriends.length})',
+                      title: tr('👥 Demandes d\'amis (${activeFriends.length})', '👥 Friend requests (${activeFriends.length})'),
                       color: const Color(0xFF8B1E3F),
                     ),
                     const SizedBox(height: 8),
@@ -539,7 +540,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                   if (activeCellar.isNotEmpty) ...[
                     _buildSectionHeader(
                       context,
-                      title: '🍷 Demandes d\'accès à votre Cave (${activeCellar.length})',
+                      title: tr('🍷 Demandes d\'accès à votre Cave (${activeCellar.length})', '🍷 Requests to access your cellar (${activeCellar.length})'),
                       color: const Color(0xFFD4AF37),
                     ),
                     const SizedBox(height: 8),
@@ -554,12 +555,12 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                       children: [
                         _buildSectionHeader(
                           context,
-                          title: '🔔 Activité récente',
+                          title: tr('🔔 Activité récente', '🔔 Recent activity'),
                           color: isDark ? Colors.white70 : Colors.black87,
                         ),
                         TextButton(
                           onPressed: _markAllRead,
-                          child: const Text('Tout marquer comme lu', style: TextStyle(fontSize: 12, color: Color(0xFFD4AF37))),
+                          child: Text(tr('Tout marquer comme lu', 'Mark all as read'), style: const TextStyle(fontSize: 12, color: Color(0xFFD4AF37))),
                         ),
                       ],
                     ),
@@ -584,15 +585,15 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                             child: const Icon(Icons.notifications_none, size: 48, color: Colors.grey),
                           ),
                           const SizedBox(height: 16),
-                          const Text(
-                            'Votre boîte de réception est vide',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          Text(
+                            tr('Votre boîte de réception est vide', 'Your inbox is empty'),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 6),
-                          const Text(
-                            'Les demandes d\'amis, invitations et partages de cave apparaîtront ici.',
+                          Text(
+                            tr('Les demandes d\'amis, invitations et partages de cave apparaîtront ici.', 'Friend requests, invitations and shared cellars will show up here.'),
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 13, color: Colors.grey),
+                            style: const TextStyle(fontSize: 13, color: Colors.grey),
                           ),
                         ],
                       ),
@@ -604,7 +605,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                     Center(
                       child: TextButton.icon(
                         icon: const Icon(Icons.history, size: 16),
-                        label: Text('Afficher les $snoozedCount élément(s) mis de côté'),
+                        label: Text(tr('Afficher les $snoozedCount élément(s) mis de côté', 'Show the $snoozedCount item(s) saved for later')),
                         onPressed: () {
                           ref.read(dismissedNotificationIdsProvider.notifier).clearAll();
                         },
@@ -669,9 +670,9 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
               ],
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Souhaite devenir votre ami pour échanger vos goûts et partager vos caves.',
-              style: TextStyle(fontSize: 12.5, color: Colors.grey),
+            Text(
+              tr('Souhaite devenir votre ami pour échanger vos goûts et partager vos caves.', 'Would like to be your friend, to compare tastes and share cellars.'),
+              style: const TextStyle(fontSize: 12.5, color: Colors.grey),
             ),
             const SizedBox(height: 12),
             Row(
@@ -685,7 +686,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                       padding: const EdgeInsets.symmetric(vertical: 9),
                     ),
                     icon: const Icon(Icons.check, size: 16),
-                    label: const Text('Accepter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    label: Text(tr('Accepter', 'Accept'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     onPressed: _isProcessing ? null : () => _acceptFriend(friend),
                   ),
                 ),
@@ -696,17 +697,17 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                   ),
                   onPressed: _isProcessing ? null : () => _declineFriend(friend),
-                  child: const Text('Refuser', style: TextStyle(fontSize: 12.5, color: Colors.grey)),
+                  child: Text(tr('Refuser', 'Decline'), style: const TextStyle(fontSize: 12.5, color: Colors.grey)),
                 ),
                 const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.snooze, size: 19, color: Colors.grey),
-                  tooltip: 'Garder pour plus tard',
-                  onPressed: () => _dismissForLater(friend.id, 'Demande de ${friend.displayName}'),
+                  tooltip: tr('Garder pour plus tard', 'Keep for later'),
+                  onPressed: () => _dismissForLater(friend.id, tr('Demande de ${friend.displayName}', 'Request from ${friend.displayName}')),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20, color: Colors.grey),
-                  tooltip: 'Fermer / Ignorer',
+                  tooltip: tr('Fermer / Ignorer', 'Close / ignore'),
                   onPressed: _isProcessing ? null : () async {
                     await ref.read(dismissedNotificationIdsProvider.notifier).dismiss(friend.id);
                     await _declineFriend(friend);
@@ -749,7 +750,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       Text(
-                        'Demande l\'accès à "${req.cellarName ?? "Ma Cave"}"',
+                        tr('Demande l\'accès à "${req.cellarName ?? 'Ma Cave'}"', 'Asks for access to "${req.cellarName ?? 'My cellar'}"'),
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
@@ -763,7 +764,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                     border: Border.all(color: const Color(0xFFD4AF37)),
                   ),
                   child: Text(
-                    req.requestedRole == 'editor' ? '✍️ Sommelier' : '👁️ Lecteur',
+                    req.requestedRole == 'editor' ? tr('✍️ Sommelier', '✍️ Sommelier') : tr('👁️ Lecteur', '👁️ Viewer'),
                     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37)),
                   ),
                 ),
@@ -797,7 +798,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                     ),
                     icon: const Icon(Icons.check, size: 16),
                     label: Text(
-                      'Accorder l\'accès (${req.requestedRole == "editor" ? "Sommelier" : "Lecteur"})',
+                      tr('Accorder l\'accès (${req.requestedRole == "editor" ? "Sommelier" : "Lecteur"})', 'Grant access (${req.requestedRole == "editor" ? "Sommelier" : "Viewer"})'),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                     onPressed: _isProcessing
@@ -814,17 +815,17 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                   onPressed: _isProcessing
                       ? null
                       : () => _respondCellarRequest(req, false, 'none'),
-                  child: const Text('Refuser', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  child: Text(tr('Refuser', 'Decline'), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ),
                 const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.snooze, size: 19, color: Colors.grey),
-                  tooltip: 'Garder pour plus tard',
-                  onPressed: () => _dismissForLater(req.id, 'Demande de cave de ${req.requesterName}'),
+                  tooltip: tr('Garder pour plus tard', 'Keep for later'),
+                  onPressed: () => _dismissForLater(req.id, tr('Demande de cave de ${req.requesterName}', 'Cellar request from ${req.requesterName}')),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20, color: Colors.grey),
-                  tooltip: 'Fermer / Ignorer',
+                  tooltip: tr('Fermer / Ignorer', 'Close / ignore'),
                   onPressed: _isProcessing ? null : () => _dismissCellarRequest(req),
                 ),
               ],
@@ -894,7 +895,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
             if (!notif.isRead)
               IconButton(
                 icon: const Icon(Icons.done, size: 18, color: Colors.grey),
-                tooltip: 'Marquer comme lu',
+                tooltip: tr('Marquer comme lu', 'Mark as read'),
                 onPressed: () async {
                   await ref.read(friendsRepositoryProvider).markNotificationRead(notif.id);
                   refreshFriendsAndNotifications(ref);
@@ -902,7 +903,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
               ),
             IconButton(
               icon: const Icon(Icons.close, size: 18, color: Colors.grey),
-              tooltip: 'Supprimer',
+              tooltip: tr('Supprimer', 'Delete'),
               onPressed: () async {
                 await ref.read(friendsRepositoryProvider).deleteNotification(notif.id);
                 refreshFriendsAndNotifications(ref);
@@ -917,10 +918,10 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
   String _formatRelativeDate(DateTime? date) {
     if (date == null) return '';
     final diff = DateTime.now().difference(date);
-    if (diff.inMinutes < 1) return 'À l\'instant';
-    if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'Il y a ${diff.inHours} h';
-    if (diff.inDays < 7) return 'Il y a ${diff.inDays} j';
+    if (diff.inMinutes < 1) return tr('À l\'instant', 'Just now');
+    if (diff.inMinutes < 60) return tr('Il y a ${diff.inMinutes} min', '${diff.inMinutes} min ago');
+    if (diff.inHours < 24) return tr('Il y a ${diff.inHours} h', '${diff.inHours} h ago');
+    if (diff.inDays < 7) return tr('Il y a ${diff.inDays} j', '${diff.inDays} d ago');
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
   }
 }

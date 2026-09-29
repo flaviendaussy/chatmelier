@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/local_notification_service.dart';
 import '../data/notification_preferences_service.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Educational dialog displayed BEFORE the OS notification prompt.
 /// Explains why permissions are requested to maximize opt-in rate.
@@ -36,10 +37,10 @@ class NotificationPrePermissionDialog extends ConsumerWidget {
             child: const Icon(Icons.notifications_active, color: Color(0xFF8B1E3F), size: 26),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Restez informé au bon moment',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              tr('Restez informé au bon moment', 'Hear about it at the right moment'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
           ),
         ],
@@ -49,7 +50,7 @@ class NotificationPrePermissionDialog extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Chatmelier utilise des alertes bien ciblées pour prendre soin de votre cave sans jamais vous spammer :',
+            tr('Chatmelier utilise des alertes bien ciblées pour prendre soin de votre cave sans jamais vous spammer :', 'Chatmelier uses a few well-timed alerts to look after your cellar, never to spam you:'),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: isDark ? Colors.white70 : Colors.black87,
               height: 1.4,
@@ -59,22 +60,22 @@ class NotificationPrePermissionDialog extends ConsumerWidget {
           _buildFeatureRow(
             icon: Icons.wine_bar,
             color: const Color(0xFF8B1E3F),
-            title: 'Rappels post-dégustation',
-            subtitle: 'Noter vos impressions après le repas tant que le souvenir est frais.',
+            title: tr('Rappels post-dégustation', 'After-tasting reminders'),
+            subtitle: tr('Noter vos impressions après le repas tant que le souvenir est frais.', 'Note your impressions after the meal, while they\'re fresh.'),
           ),
           const SizedBox(height: 12),
           _buildFeatureRow(
             icon: Icons.hourglass_top,
             color: const Color(0xFFD4AF37),
-            title: 'Alertes d\'apogée',
-            subtitle: 'Ouvrir vos grands crus au sommet de leur maturité, sans les oublier.',
+            title: tr('Alertes d\'apogée', 'Peak alerts'),
+            subtitle: tr('Ouvrir vos grands crus au sommet de leur maturité, sans les oublier.', 'Open your best wines at their peak, and never forget them.'),
           ),
           const SizedBox(height: 12),
           _buildFeatureRow(
             icon: Icons.people_outline,
             color: const Color(0xFF10B981),
-            title: 'Caves partagées & Amis',
-            subtitle: 'Être prévenu quand un proche sort un flacon ou vous invite.',
+            title: tr('Caves partagées & Amis', 'Shared cellars & friends'),
+            subtitle: tr('Être prévenu quand un proche sort un flacon ou vous invite.', 'Know when someone close opens a bottle or invites you.'),
           ),
           const SizedBox(height: 16),
           Container(
@@ -83,14 +84,14 @@ class NotificationPrePermissionDialog extends ConsumerWidget {
               color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.tune, size: 16, color: Colors.grey),
-                SizedBox(width: 8),
+                const Icon(Icons.tune, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Vous pouvez désactiver chaque type d\'alerte à tout moment dans votre Profil.',
-                    style: TextStyle(fontSize: 11.5, color: Colors.grey),
+                    tr('Vous pouvez désactiver chaque type d\'alerte à tout moment dans votre Profil.', 'You can turn off each kind of alert at any time in your Profile.'),
+                    style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                   ),
                 ),
               ],
@@ -105,7 +106,7 @@ class NotificationPrePermissionDialog extends ConsumerWidget {
             ref.read(notificationPreferencesProvider.notifier).markPermissionPrompted();
             Navigator.of(context).pop(false);
           },
-          child: const Text('Plus tard', style: TextStyle(color: Colors.grey)),
+          child: Text(tr('Plus tard', 'Later'), style: const TextStyle(color: Colors.grey)),
         ),
         FilledButton.icon(
           style: FilledButton.styleFrom(
@@ -123,7 +124,7 @@ class NotificationPrePermissionDialog extends ConsumerWidget {
             }
           },
           icon: const Icon(Icons.check, size: 18),
-          label: const Text('Activer les alertes', style: TextStyle(fontWeight: FontWeight.bold)),
+          label: Text(tr('Activer les alertes', 'Turn on alerts'), style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
       ],
     );

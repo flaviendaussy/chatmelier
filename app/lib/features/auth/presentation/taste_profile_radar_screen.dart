@@ -65,13 +65,14 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
     _selectedProfileId = widget.initialProfileId;
   }
 
-  String get _userDisplayName {
+  /// Le nom de la personne connectée, ou rien : un prénom inventé serait pire qu'aucun.
+  String? get _userDisplayName {
     try {
       final user = ref.read(supabaseProvider).auth.currentUser;
       final rawName = (user?.userMetadata?['display_name'] as String?)?.trim();
-      return (rawName != null && rawName.isNotEmpty) ? rawName : 'Flavien';
+      return (rawName != null && rawName.isNotEmpty) ? rawName : null;
     } catch (_) {
-      return 'Flavien';
+      return null;
     }
   }
 
@@ -79,11 +80,8 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
     if (p.isPrimary) {
       final name = userDisplayName ?? _userDisplayName;
       final code = _langCode;
-      if (code == 'fr') return 'Moi ($name)';
-      if (code == 'es') return 'Yo ($name)';
-      if (code == 'ca') return 'Jo ($name)';
-      if (code == 'la') return 'Ego ($name)';
-      return 'Me ($name)';
+      final moi = switch (code) { 'fr' => 'Moi', 'es' => 'Yo', 'ca' => 'Jo', 'la' => 'Ego', _ => 'Me' };
+      return name == null ? moi : '$moi ($name)';
     }
     return p.name;
   }

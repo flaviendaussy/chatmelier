@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../domain/user_profile.dart';
+import '../../../shared/utils/langue.dart';
 
 class MandatoryUsernameDialog extends ConsumerStatefulWidget {
   final VoidCallback? onCompleted;
@@ -113,7 +114,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
   void initState() {
     super.initState();
     final user = ref.read(currentUserProvider);
-    final initialName = user?.userMetadata?['display_name'] as String? ?? 'Amateur de Vin';
+    final initialName = user?.userMetadata?['display_name'] as String? ?? tr('Amateur de Vin', 'Wine lover');
     _displayNameController.text = initialName;
 
     // Suggest handle from display name
@@ -153,7 +154,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
     if (!usernameAvailable) {
       setState(() {
         _isChecking = false;
-        _usernameError = 'Ce pseudo est déjà pris par un autre utilisateur.';
+        _usernameError = tr('Ce pseudo est déjà pris par un autre utilisateur.', 'That username is already taken.');
       });
       return;
     }
@@ -188,7 +189,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
         widget.onCompleted?.call();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Bienvenue @$rawUser ! Votre profil est prêt.'),
+            content: Text(tr('Bienvenue @$rawUser ! Votre profil est prêt.', 'Welcome @$rawUser! Your profile is ready.')),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -198,7 +199,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _usernameError = 'Erreur lors de l\'enregistrement : $e';
+          _usernameError = tr('Erreur lors de l\'enregistrement : $e', 'Couldn\'t save: $e');
         });
       }
     }
@@ -215,15 +216,15 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
       if (!mounted) return;
       navigator.pop();
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Déconnecté. Reconnectez-vous avec le compte de votre choix.'),
+        SnackBar(
+          content: Text(tr('Déconnecté. Reconnectez-vous avec le compte de votre choix.', 'Signed out. Sign in with the account you want.')),
         ),
       );
     } catch (e) {
       AppLogger.error('AUTH', 'Error signing out from mandatory username dialog', e);
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text('Déconnexion impossible : $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text(tr('Déconnexion impossible : $e', 'Couldn\'t sign out: $e')), backgroundColor: Colors.red),
       );
     }
   }
@@ -284,7 +285,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Créez votre Pseudo',
+                                        tr('Créez votre Pseudo', 'Choose your username'),
                                         style: theme.textTheme.titleMedium?.copyWith(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
@@ -292,7 +293,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        'Pour partager vos dégustations et caves avec vos amis',
+                                        tr('Pour partager vos dégustations et caves avec vos amis', 'To share your tastings and cellars with friends'),
                                         style: theme.textTheme.bodySmall?.copyWith(
                                           color: theme.colorScheme.onSurfaceVariant,
                                           fontSize: 11.5,
@@ -312,7 +313,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                               enableSuggestions: false,
                               textInputAction: TextInputAction.next,
                               decoration: InputDecoration(
-                                labelText: 'Pseudo unique *',
+                                labelText: tr('Pseudo unique *', 'Unique username *'),
                                 prefixText: '@ ',
                                 prefixStyle: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
                                 hintText: 'flavien',
@@ -332,8 +333,8 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                               controller: _displayNameController,
                               textInputAction: TextInputAction.next,
                               decoration: InputDecoration(
-                                labelText: 'Nom d\'affichage',
-                                hintText: 'Flavien D.',
+                                labelText: tr('Nom d\'affichage', 'Display name'),
+                                hintText: tr('Camille D.', 'Alex D.'),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                               ),
@@ -365,7 +366,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                                     )
                                   : const Icon(Icons.check, size: 20),
                               label: Text(
-                                _isChecking ? 'Vérification...' : (_isSaving ? 'Enregistrement...' : 'Valider mon Pseudo ✨'),
+                                _isChecking ? tr('Vérification...', 'Checking...') : (_isSaving ? tr('Enregistrement...', 'Saving...') : tr('Valider mon Pseudo ✨', 'Confirm my username ✨')),
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                               ),
                               onPressed: (_isChecking || _isSaving) ? null : _submit,
@@ -385,9 +386,9 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                                       }
                                       if (context.mounted) Navigator.of(context).pop();
                                     },
-                              child: const Text(
-                                'Plus tard',
-                                style: TextStyle(fontSize: 13, color: Colors.grey),
+                              child: Text(
+                                tr('Plus tard', 'Later'),
+                                style: const TextStyle(fontSize: 13, color: Colors.grey),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -399,7 +400,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                             TextButton.icon(
                               onPressed: (_isChecking || _isSaving) ? null : _switchAccount,
                               icon: const Icon(Icons.swap_horiz_rounded, size: 18),
-                              label: const Text('Ce n\'est pas mon compte — en changer'),
+                              label: Text(tr('Ce n\'est pas mon compte — en changer', 'Not my account — switch')),
                               style: TextButton.styleFrom(
                                 foregroundColor: isDark ? Colors.white70 : Colors.black54,
                                 minimumSize: const Size.fromHeight(44),

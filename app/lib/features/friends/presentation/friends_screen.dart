@@ -10,6 +10,7 @@ import '../domain/friend.dart';
 import '../domain/user_notification.dart';
 import 'friend_taste_card_sheet.dart';
 import 'contact_invite_sheet.dart';
+import '../../../shared/utils/langue.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});
@@ -85,7 +86,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
         setState(() => _sentRequestUserIds.add(user.id));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('📬 Demande d\'ami envoyée à ${user.displayName} !'),
+            content: Text(tr('📬 Demande d\'ami envoyée à ${user.displayName} !', '📬 Friend request sent to ${user.displayName}!')),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -93,7 +94,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -108,7 +109,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('🎉 Vous êtes désormais ami avec ${friend.displayName} !'),
+            content: Text(tr('🎉 Vous êtes désormais ami avec ${friend.displayName} !', '🎉 You\'re now friends with ${friend.displayName}!')),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -116,7 +117,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -129,13 +130,13 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
       ref.invalidate(pendingIncomingRequestsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Demande d\'ami déclinée.')),
+          SnackBar(content: Text(tr('Demande d\'ami déclinée.', 'Friend request declined.'))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -157,7 +158,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(accept ? '🍾 Accès à la cave accordé !' : 'Demande d\'accès refusée.'),
+            content: Text(accept ? tr('🍾 Accès à la cave accordé !', '🍾 Cellar access granted!') : tr('Demande d\'accès refusée.', 'Access request declined.')),
             backgroundColor: accept ? const Color(0xFF10B981) : Colors.grey.shade800,
           ),
         );
@@ -165,7 +166,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -187,7 +188,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Amis & Caves Partagées'),
+        title: Text(tr('Amis & Caves Partagées', 'Friends & shared cellars')),
         actions: const [
           NotificationBellButton(),
         ],
@@ -196,7 +197,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
           labelColor: const Color(0xFFD4AF37),
           indicatorColor: const Color(0xFFD4AF37),
           tabs: [
-            const Tab(icon: Icon(Icons.people_alt), text: 'Mes Amis'),
+            Tab(icon: const Icon(Icons.people_alt), text: tr('Mes Amis', 'My friends')),
             Tab(
               icon: Badge(
                 isLabelVisible: totalPending > 0,
@@ -205,9 +206,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                 textColor: Colors.black,
                 child: const Icon(Icons.notifications_active_outlined),
               ),
-              text: 'Demandes & Notifs',
+              text: tr('Demandes & Notifs', 'Requests'),
             ),
-            const Tab(icon: Icon(Icons.person_add_alt_1), text: 'Rechercher'),
+            Tab(icon: const Icon(Icons.person_add_alt_1), text: tr('Rechercher', 'Search')),
           ],
         ),
       ),
@@ -217,7 +218,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
           // 1. MES AMIS
           friendsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(child: Text('Erreur: $err')),
+            error: (err, _) => Center(child: Text(tr('Erreur: $err', 'Error: $err'))),
             data: (friends) => _buildFriendsList(friends, isDark),
           ),
 
@@ -249,15 +250,15 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
             children: [
               const Text('🍷', style: TextStyle(fontSize: 48)),
               const SizedBox(height: 12),
-              const Text(
-                'Aucun ami pour le moment',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+              Text(
+                tr('Aucun ami pour le moment', 'No friends yet'),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Invitez vos proches par pseudo, téléphone ou email pour découvrir leurs goûts et partager vos caves !',
+              Text(
+                tr('Invitez vos proches par pseudo, téléphone ou email pour découvrir leurs goûts et partager vos caves !', 'Invite people you know by username, phone or email to discover their tastes and share your cellars!'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.grey),
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
@@ -268,7 +269,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
                 icon: const Icon(Icons.person_add, size: 18),
-                label: const Text('Rechercher un ami'),
+                label: Text(tr('Rechercher un ami', 'Find a friend')),
                 onPressed: () => _tabController.animateTo(2),
               ),
             ],
@@ -329,7 +330,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                             border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
                           ),
                           child: Text(
-                            friend.cellarAccessRole == 'editor' ? 'Cave ✍️' : 'Cave 👁️',
+                            friend.cellarAccessRole == 'editor' ? tr('Cave ✍️', 'Cellar ✍️') : tr('Cave 👁️', 'Cellar 👁️'),
                             style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
                           ),
                         ),
@@ -342,13 +343,13 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                             final confirm = await showDialog<bool>(
                               context: context,
                               builder: (ctx) => AlertDialog(
-                                title: const Text('Retirer cet ami ?'),
-                                content: Text('Voulez-vous retirer ${friend.displayName} de vos amis ?'),
+                                title: Text(tr('Retirer cet ami ?', 'Remove this friend?')),
+                                content: Text(tr('Voulez-vous retirer ${friend.displayName} de vos amis ?', 'Remove ${friend.displayName} from your friends?')),
                                 actions: [
-                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Annuler', 'Cancel'))),
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx, true),
-                                    child: const Text('Retirer', style: TextStyle(color: Colors.red)),
+                                    child: Text(tr('Retirer', 'Remove'), style: const TextStyle(color: Colors.red)),
                                   ),
                                 ],
                               ),
@@ -360,8 +361,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                           }
                         },
                         itemBuilder: (ctx) => [
-                          const PopupMenuItem(value: 'taste', child: Text('Voir la Carte des Goûts 🍷')),
-                          const PopupMenuItem(value: 'remove', child: Text('Retirer des amis', style: TextStyle(color: Colors.red))),
+                          PopupMenuItem(value: 'taste', child: Text(tr('Voir la Carte des Goûts 🍷', 'See their taste card 🍷'))),
+                          PopupMenuItem(value: 'remove', child: Text(tr('Retirer des amis', 'Remove from friends'), style: const TextStyle(color: Colors.red))),
                         ],
                       ),
                     ],
@@ -389,7 +390,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                             padding: const EdgeInsets.symmetric(vertical: 8),
                           ),
                           icon: const Icon(Icons.auto_awesome, size: 16, color: Color(0xFFD4AF37)),
-                          label: const Text('Carte des Goûts', style: TextStyle(fontSize: 12)),
+                          label: Text(tr('Carte des Goûts', 'Taste card'), style: const TextStyle(fontSize: 12)),
                           onPressed: () => FriendTasteCardSheet.show(context, friend),
                         ),
                       ),
@@ -404,7 +405,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                           ),
                           icon: Icon(friend.hasCellarAccess ? Icons.check_circle : Icons.card_giftcard, size: 16),
                           label: Text(
-                            friend.hasCellarAccess ? 'Accès Partagé' : 'Partager ma cave',
+                            friend.hasCellarAccess ? tr('Accès Partagé', 'Shared access') : tr('Partager ma cave', 'Share my cellar'),
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                           onPressed: () => _showGrantCellarDialog(friend),
@@ -435,7 +436,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
               const Text('🎁 ', style: TextStyle(fontSize: 22)),
               Expanded(
                 child: Text(
-                  'Partager ma cave avec ${friend.displayName}',
+                  tr('Partager ma cave avec ${friend.displayName}', 'Share my cellar with ${friend.displayName}'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
@@ -445,21 +446,21 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Choisissez les droits d\'accès pour cette personne :',
-                style: TextStyle(fontSize: 13, color: Colors.grey),
+              Text(
+                tr('Choisissez les droits d\'accès pour cette personne :', 'Choose what this person can do:'),
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
               ),
               const SizedBox(height: 12),
               RadioListTile<String>(
-                title: const Text('Consultation (Lecteur 👁️)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: const Text('Peut voir votre cave, vos bouteilles et vos fiches de dégustation.', style: TextStyle(fontSize: 11)),
+                title: Text(tr('Consultation (Lecteur 👁️)', 'View only (viewer 👁️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                subtitle: Text(tr('Peut voir votre cave, vos bouteilles et vos fiches de dégustation.', 'Can see your cellar, your bottles and your tasting notes.'), style: const TextStyle(fontSize: 11)),
                 value: 'viewer',
                 groupValue: selectedRole,
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
               ),
               RadioListTile<String>(
-                title: const Text('Sommelier Délégué (Éditeur ✍️)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: const Text('Peut ajouter, déplacer et consommer des bouteilles dans votre cave.', style: TextStyle(fontSize: 11)),
+                title: Text(tr('Sommelier Délégué (Éditeur ✍️)', 'Deputy sommelier (editor ✍️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                subtitle: Text(tr('Peut ajouter, déplacer et consommer des bouteilles dans votre cave.', 'Can add, move and drink bottles in your cellar.'), style: const TextStyle(fontSize: 11)),
                 value: 'editor',
                 groupValue: selectedRole,
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
@@ -469,7 +470,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('Annuler'),
+              child: Text(tr('Annuler', 'Cancel')),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -489,7 +490,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                   if (mounted) {
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text('🍾 Accès à votre cave accordé à ${friend.displayName} !'),
+                        content: Text(tr('🍾 Accès à votre cave accordé à ${friend.displayName} !', '🍾 ${friend.displayName} now has access to your cellar!')),
                         backgroundColor: const Color(0xFF10B981),
                       ),
                     );
@@ -497,12 +498,12 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                 } catch (e) {
                   if (mounted) {
                     messenger.showSnackBar(
-                      SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+                      SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
                     );
                   }
                 }
               },
-              child: const Text('Confirmer l\'accès', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(tr('Confirmer l\'accès', 'Confirm access'), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -520,23 +521,23 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     required bool isDark,
   }) {
     if (incomingFriends.isEmpty && incomingCellar.isEmpty && notifications.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.notifications_none, size: 48, color: Colors.grey),
-              SizedBox(height: 12),
+              const Icon(Icons.notifications_none, size: 48, color: Colors.grey),
+              const SizedBox(height: 12),
               Text(
-                'Aucune demande en attente',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                tr('Aucune demande en attente', 'No pending requests'),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                'Vous recevrez ici les demandes d\'amis et les demandes d\'accès à vos caves.',
+                tr('Vous recevrez ici les demandes d\'amis et les demandes d\'accès à vos caves.', 'Friend requests and requests to access your cellars will show up here.'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12.5, color: Colors.grey),
+                style: const TextStyle(fontSize: 12.5, color: Colors.grey),
               ),
             ],
           ),
@@ -549,7 +550,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
       children: [
         // 1. Demandes d'amis reçues
         if (incomingFriends.isNotEmpty) ...[
-          _buildSectionTitle('👥 Demandes d\'amis reçues (${incomingFriends.length})'),
+          _buildSectionTitle(tr('👥 Demandes d\'amis reçues (${incomingFriends.length})', '👥 Friend requests (${incomingFriends.length})')),
           const SizedBox(height: 8),
           ...incomingFriends.map((f) => _buildIncomingFriendCard(f, isDark)),
           const SizedBox(height: 18),
@@ -557,7 +558,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
 
         // 2. Demandes d'accès cave reçues
         if (incomingCellar.isNotEmpty) ...[
-          _buildSectionTitle('🍷 Demandes d\'accès à votre Cave (${incomingCellar.length})'),
+          _buildSectionTitle(tr('🍷 Demandes d\'accès à votre Cave (${incomingCellar.length})', '🍷 Requests to access your cellar (${incomingCellar.length})')),
           const SizedBox(height: 8),
           ...incomingCellar.map((req) => _buildIncomingCellarCard(req, isDark)),
           const SizedBox(height: 18),
@@ -565,7 +566,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
 
         // 3. Notifications récentes
         if (notifications.isNotEmpty) ...[
-          _buildSectionTitle('🔔 Notifications récentes'),
+          _buildSectionTitle(tr('🔔 Notifications récentes', '🔔 Recent notifications')),
           const SizedBox(height: 8),
           ...notifications.map((n) => _buildNotificationCard(n, isDark)),
         ],
@@ -597,13 +598,13 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                   Text(friend.displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   Text(friend.handle, style: const TextStyle(color: Color(0xFF8B1E3F), fontSize: 12)),
                   const SizedBox(height: 2),
-                  const Text('Souhaite devenir votre ami', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  Text(tr('Souhaite devenir votre ami', 'Would like to be your friend'), style: const TextStyle(fontSize: 11, color: Colors.grey)),
                 ],
               ),
             ),
             IconButton(
               icon: const Icon(Icons.close, color: Colors.grey),
-              tooltip: 'Décliner',
+              tooltip: tr('Décliner', 'Decline'),
               onPressed: () => _declineFriend(friend),
             ),
             ElevatedButton(
@@ -614,7 +615,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               ),
               onPressed: () => _acceptFriend(friend),
-              child: const Text('Accepter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              child: Text(tr('Accepter', 'Accept'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
             ),
           ],
         ),
@@ -644,7 +645,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                     children: [
                       Text(req.requesterName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                       Text(
-                        'Demande l\'accès à "${req.cellarName ?? "Ma Cave"}"',
+                        tr('Demande l\'accès à "${req.cellarName ?? "Ma Cave"}"', 'Asks for access to "${req.cellarName ?? "My cellar"}"'),
                         style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                       ),
                     ],
@@ -657,7 +658,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    req.requestedRole == 'editor' ? '✍️ Sommelier' : '👁️ Consultation',
+                    req.requestedRole == 'editor' ? tr('✍️ Sommelier', '✍️ Sommelier') : tr('👁️ Consultation', '👁️ View only'),
                     style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
                   ),
                 ),
@@ -680,7 +681,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
               children: [
                 TextButton(
                   onPressed: () => _respondCellarRequest(req, false, 'viewer'),
-                  child: const Text('Refuser', style: TextStyle(color: Colors.redAccent)),
+                  child: Text(tr('Refuser', 'Decline'), style: const TextStyle(color: Colors.redAccent)),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
@@ -690,7 +691,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   icon: const Icon(Icons.check, size: 16),
-                  label: Text('Accepter (${req.requestedRole == "editor" ? "Éditeur" : "Lecteur"})'),
+                  label: Text(tr('Accepter (${req.requestedRole == "editor" ? "Éditeur" : "Lecteur"})', 'Accept (${req.requestedRole == "editor" ? "editor" : "viewer"})')),
                   onPressed: () => _respondCellarRequest(req, true, req.requestedRole),
                 ),
               ],
@@ -749,7 +750,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               icon: const Icon(Icons.contacts, size: 20),
-              label: const Text('Chercher depuis mes contacts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+              label: Text(tr('Inviter un proche', 'Invite someone'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
               onPressed: () => ContactInviteSheet.show(context, existingUserIds),
             ),
           ),
@@ -759,7 +760,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Rechercher par @pseudo, nom, tél ou email...',
+              hintText: tr('Rechercher par @pseudo, nom, tél ou email...', 'Search by @username, name, phone or email...'),
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
@@ -782,9 +783,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
             child: CircularProgressIndicator(),
           )
         else if (_searchResults.isEmpty && _searchController.text.isNotEmpty)
-          const Padding(
-            padding: EdgeInsets.all(24),
-            child: Text('Aucun utilisateur trouvé.', style: TextStyle(color: Colors.grey)),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(tr('Aucun utilisateur trouvé.', 'No one found.'), style: const TextStyle(color: Colors.grey)),
           )
         else
           Expanded(
@@ -814,7 +815,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                               color: Colors.grey.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text('Déjà ami', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            child: Text(tr('Déjà ami', 'Already friends'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                           )
                         : hasSentRequest
                             ? Container(
@@ -823,7 +824,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                                   color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text('⏳ Envoyée', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
+                                child: Text(tr('⏳ Envoyée', '⏳ Sent'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
                               )
                             : ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
@@ -833,7 +834,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                 ),
                                 icon: const Icon(Icons.person_add, size: 14),
-                                label: const Text('Inviter', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                label: Text(tr('Inviter', 'Invite'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                                 onPressed: () => _sendFriendRequest(user),
                               ),
                   ),

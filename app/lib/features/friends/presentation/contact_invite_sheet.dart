@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../auth/domain/user_profile.dart';
 import '../data/friends_repository.dart';
+import '../../../shared/utils/langue.dart';
 
 class ContactInviteSheet extends ConsumerStatefulWidget {
   final Set<String> existingFriendIds;
@@ -32,13 +33,20 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
   bool _isSearching = false;
   final Set<String> _sentRequests = {};
 
-  // Recommended contact templates or simulated address book highlights
-  final List<Map<String, String>> _sampleContacts = [
-    {'name': 'Alexandre Martin', 'phone': '+33 6 12 34 56 78', 'note': 'Ami amateur de Bordeaux'},
-    {'name': 'Sophie Dupont', 'phone': '+33 6 98 76 54 32', 'note': 'Sommelière passionnée'},
-    {'name': 'Thomas Leroy', 'phone': '+33 7 45 67 89 01', 'note': 'Club d\'œnologie'},
-    {'name': 'Camille Bernard', 'phone': '+33 6 55 44 33 22', 'note': 'Soirées dégustations'},
-  ];
+  /// Mon pseudo, pour que la personne invitée me retrouve une fois inscrite.
+  String? _monPseudo;
+
+  @override
+  void initState() {
+    super.initState();
+    final moi = ref.read(currentUserProvider);
+    if (moi != null) {
+      ref.read(authRepositoryProvider).getProfile(moi.id).then((p) {
+        final pseudo = p?.username?.replaceAll('@', '').trim();
+        if (mounted && pseudo != null && pseudo.isNotEmpty) setState(() => _monPseudo = pseudo);
+      }).catchError((_) {});
+    }
+  }
 
   @override
   void dispose() {
@@ -83,16 +91,24 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
     }
   }
 
-  void _shareInviteLink([String? contactName]) {
-    final currentUser = ref.read(currentUserProvider);
-    final myCode = currentUser?.email?.split('@').first ?? 'ami';
-    final nameSalutation = (contactName != null && contactName.isNotEmpty) ? 'Salut $contactName ! ' : '';
-    
-    final inviteMessage = '${nameSalutation}Rejoins-moi sur Chatmelier, l\'application sommelier et gestionnaire de cave à vin !\n\n'
-        'Tu pourras voir ma cave, explorer mes bouteilles et partager nos dégustations.\n'
-        'Télécharge l\'app ici : https://flaviendaussy.github.io/#/invite?ref=$myCode';
+  /// L'adresse de l'app web, celle des tables et des pages légales.
+  static const _adresseDeLApp = 'https://chatmelier.github.io';
 
-    Share.share(inviteMessage, subject: 'Invitation à rejoindre Chatmelier');
+  void _shareInviteLink([String? contactName]) {
+    // Un numéro ou un e-mail tapé dans la recherche n'est pas un prénom.
+    final prenom = contactName?.trim() ?? '';
+    final salut = prenom.isEmpty || RegExp(r'[0-9@]').hasMatch(prenom) ? '' : tr('Salut $prenom ! ', 'Hi $prenom! ');
+    final pseudo = _monPseudo == null ? '' : tr('\nMon pseudo pour me retrouver : @$_monPseudo', '\nFind me there as @$_monPseudo');
+    final inviteMessage = tr(
+      '${salut}Rejoins-moi sur Chatmelier, le sommelier qui apprend nos goûts et garde nos caves !\n\n'
+          'On pourra comparer nos palais et partager nos bouteilles.$pseudo\n\n'
+          'C\'est ici : $_adresseDeLApp',
+      '${salut}Join me on Chatmelier, the sommelier that learns our tastes and keeps our cellars!\n\n'
+          'We can compare palates and share bottles.$pseudo\n\n'
+          "It's here: $_adresseDeLApp",
+    );
+
+    Share.share(inviteMessage, subject: tr('Invitation à rejoindre Chatmelier', 'Join me on Chatmelier'));
   }
 
   Future<void> _sendFriendRequest(UserProfile user) async {
@@ -103,7 +119,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
         setState(() => _sentRequests.add(user.id));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('📬 Demande d\'ami envoyée à ${user.displayName} !'),
+            content: Text(tr('📬 Demande d\'ami envoyée à ${user.displayName} !', '📬 Friend request sent to ${user.displayName}!')),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -111,7 +127,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur : $e', 'Error: $e')), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -122,12 +138,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final query = _searchCtrl.text.trim().toLowerCase();
-    final filteredContacts = query.isEmpty
-        ? _sampleContacts
-        : _sampleContacts.where((c) =>
-            (c['name'] ?? '').toLowerCase().contains(query) ||
-            (c['phone'] ?? '').contains(query)).toList();
+    final query = _searchCtrl.text.trim();
 
     return Container(
       constraints: BoxConstraints(
@@ -162,15 +173,15 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Inviter depuis mes contacts',
+                        tr('Inviter un proche', 'Invite someone'),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
-                        'Retrouvez vos proches ou partagez votre lien d\'invitation',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      Text(
+                        tr('Retrouvez vos proches ou partagez votre lien d\'invitation', 'Find people you know, or share your invitation link'),
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -189,7 +200,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
             child: TextField(
               controller: _searchCtrl,
               decoration: InputDecoration(
-                hintText: 'Rechercher un contact (nom ou téléphone)...',
+                hintText: tr('Rechercher par @pseudo, nom, tél ou email...', 'Search by @username, name, phone or email...'),
                 prefixIcon: const Icon(Icons.search, size: 20),
                 suffixIcon: _searchCtrl.text.isNotEmpty
                     ? IconButton(
@@ -226,12 +237,12 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
                 children: [
                   const Icon(Icons.share_outlined, color: Color(0xFF8B1E3F), size: 22),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Lien d\'invitation direct', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text('Partagez par SMS, WhatsApp ou Mail', style: TextStyle(fontSize: 11.5, color: Colors.grey)),
+                        Text(tr('Lien d\'invitation direct', 'Invitation link'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text(tr('Partagez par SMS, WhatsApp ou Mail', 'Share it by text, WhatsApp or email'), style: const TextStyle(fontSize: 11.5, color: Colors.grey)),
                       ],
                     ),
                   ),
@@ -242,7 +253,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text('Partager', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    child: Text(tr('Partager', 'Share'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -264,11 +275,11 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
 
                 // 1. Registered Chatmelier Users matching query
                 if (_matchedUsers.isNotEmpty) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
-                      '🍷 Déjà inscrits sur Chatmelier :',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
+                      tr('🍷 Déjà inscrits sur Chatmelier :', '🍷 Already on Chatmelier:'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
                     ),
                   ),
                   ..._matchedUsers.map((user) {
@@ -289,13 +300,13 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
                         title: Text(user.displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
                         subtitle: Text(user.handle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
                         trailing: isAlreadyFriend
-                            ? const Chip(
-                                label: Text('Ami ✓', style: TextStyle(fontSize: 11, color: Colors.green)),
+                            ? Chip(
+                                label: Text(tr('Ami ✓', 'Friend ✓'), style: const TextStyle(fontSize: 11, color: Colors.green)),
                                 visualDensity: VisualDensity.compact,
                               )
                             : isRequestSent
-                                ? const Chip(
-                                    label: Text('Envoyée 📬', style: TextStyle(fontSize: 11)),
+                                ? Chip(
+                                    label: Text(tr('Envoyée 📬', 'Sent 📬'), style: const TextStyle(fontSize: 11)),
                                     visualDensity: VisualDensity.compact,
                                   )
                                 : FilledButton.icon(
@@ -305,7 +316,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
                                       visualDensity: VisualDensity.compact,
                                     ),
                                     icon: const Icon(Icons.person_add, size: 14),
-                                    label: const Text('Ajouter', style: TextStyle(fontSize: 11.5)),
+                                    label: Text(tr('Ajouter', 'Add'), style: const TextStyle(fontSize: 11.5)),
                                   ),
                       ),
                     );
@@ -313,16 +324,18 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
                   const SizedBox(height: 12),
                 ],
 
-                // 2. Device Contacts to invite
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    query.isEmpty ? '📱 Vos contacts à inviter :' : '📱 Contacts correspondants :',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey),
-                  ),
-                ),
-
-                if (filteredContacts.isEmpty && _matchedUsers.isEmpty && !_isSearching)
+                // 2. Personne ne correspond : on l'invite par lien.
+                if (query.isEmpty && !_isSearching)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      tr('Tapez un @pseudo, un nom, un numéro ou un e-mail pour retrouver quelqu\'un sur Chatmelier.',
+                          'Type a @username, name, phone number or email to find someone on Chatmelier.'),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  )
+                else if (_matchedUsers.isEmpty && !_isSearching)
                   Padding(
                     padding: const EdgeInsets.all(24),
                     child: Center(
@@ -330,49 +343,21 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
                         children: [
                           const Icon(Icons.person_search, size: 40, color: Colors.grey),
                           const SizedBox(height: 8),
-                          Text('Aucun contact trouvé pour "$query"', style: const TextStyle(color: Colors.grey)),
+                          Text(
+                            tr('Personne sur Chatmelier ne correspond à « $query ».', 'No one on Chatmelier matches "$query".'),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.grey),
+                          ),
                           const SizedBox(height: 12),
                           OutlinedButton.icon(
                             onPressed: () => _shareInviteLink(query),
                             icon: const Icon(Icons.send, size: 16),
-                            label: Text('Envoyer une invitation à "$query"'),
+                            label: Text(tr('Lui envoyer une invitation', 'Send them an invitation')),
                           ),
                         ],
                       ),
                     ),
-                  )
-                else
-                  ...filteredContacts.map((contact) {
-                    final name = contact['name'] ?? '';
-                    final phone = contact['phone'] ?? '';
-                    final note = contact['note'] ?? '';
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                          child: Icon(Icons.person, color: isDark ? Colors.white70 : Colors.black54),
-                        ),
-                        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                        subtitle: Text(
-                          '$phone ${note.isNotEmpty ? "• $note" : ""}',
-                          style: const TextStyle(fontSize: 11.5, color: Colors.grey),
-                        ),
-                        trailing: OutlinedButton.icon(
-                          onPressed: () => _shareInviteLink(name),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF8B1E3F)),
-                            foregroundColor: const Color(0xFF8B1E3F),
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          icon: const Icon(Icons.send, size: 14),
-                          label: const Text('Inviter', style: TextStyle(fontSize: 11.5)),
-                        ),
-                      ),
-                    );
-                  }),
+                  ),
               ],
             ),
           ),

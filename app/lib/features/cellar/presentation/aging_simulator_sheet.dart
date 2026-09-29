@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../domain/wine.dart';
 import '../domain/aging_simulator_engine.dart';
+import '../../../shared/utils/langue.dart';
 
 class AgingSimulatorSheet extends StatefulWidget {
   final Wine wine;
@@ -74,9 +75,9 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Jumeau Numérique & Vieillissement',
-                        style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+                      Text(
+                        tr('Jumeau Numérique & Vieillissement', 'Digital twin & ageing'),
+                        style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                       Text(
                         '${widget.wine.name} ${widget.wine.vintage ?? ''}',
@@ -136,9 +137,9 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Horizon de vieillissement :',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
+              Text(
+                tr('Horizon de vieillissement :', 'Ageing horizon:'),
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -147,7 +148,7 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '+$_additionalYears ans • Année ${snapshot.targetYear}',
+                  tr('+$_additionalYears ans • Année ${snapshot.targetYear}', '+$_additionalYears years • ${snapshot.targetYear}'),
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ),
@@ -163,13 +164,13 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
             inactiveColor: Colors.white12,
             onChanged: (v) => setState(() => _additionalYears = v.round()),
           ),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Aujourd\'hui', style: TextStyle(color: Colors.white38, fontSize: 11)),
-              Text('+5 ans', style: TextStyle(color: Colors.white38, fontSize: 11)),
-              Text('+10 ans', style: TextStyle(color: Colors.white38, fontSize: 11)),
-              Text('+15 ans', style: TextStyle(color: Colors.white38, fontSize: 11)),
+              Text(tr('Aujourd\'hui', 'Today'), style: const TextStyle(color: Colors.white38, fontSize: 11)),
+              Text(tr('+5 ans', '+5 years'), style: const TextStyle(color: Colors.white38, fontSize: 11)),
+              Text(tr('+10 ans', '+10 years'), style: const TextStyle(color: Colors.white38, fontSize: 11)),
+              Text(tr('+15 ans', '+15 years'), style: const TextStyle(color: Colors.white38, fontSize: 11)),
             ],
           ),
         ],
@@ -248,13 +249,13 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.radar_rounded, color: Color(0xFFD4AF37), size: 18),
-              SizedBox(width: 8),
+              const Icon(Icons.radar_rounded, color: Color(0xFFD4AF37), size: 18),
+              const SizedBox(width: 8),
               Text(
-                'Évolution Cinétique des 8 Piliers Gustatifs',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                tr('Évolution Cinétique des 8 Piliers Gustatifs', 'How the 8 taste pillars evolve'),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ],
           ),
@@ -266,7 +267,7 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
               child: WineTasteRadarChart(
                 datasets: [
                   RadarChartDataset(
-                    label: 'Simulation (${snapshot.targetYear})',
+                    label: tr('Simulation (${snapshot.targetYear})', 'Simulation (${snapshot.targetYear})'),
                     metrics: snapshot.simulatedRadar,
                     color: const Color(0xFFD4AF37),
                   ),
@@ -290,16 +291,16 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Profil Sensoriel Projeté',
-            style: TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 14),
+          Text(
+            tr('Profil Sensoriel Projeté', 'Projected taste profile'),
+            style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 14),
           ),
           const SizedBox(height: 12),
-          _buildTastingRow('🍎 Fruit & Fraîcheur', snapshot.primaryAromas),
+          _buildTastingRow(tr('🍎 Fruit & Fraîcheur', '🍎 Fruit & freshness'), snapshot.primaryAromas),
           const Divider(color: Colors.white10, height: 16),
-          _buildTastingRow('🍄 Tertiaire & Sous-Bois', snapshot.tertiaryAromas),
+          _buildTastingRow(tr('🍄 Tertiaire & Sous-Bois', '🍄 Tertiary & forest floor'), snapshot.tertiaryAromas),
           const Divider(color: Colors.white10, height: 16),
-          _buildTastingRow('👅 Matière & Caudalies', snapshot.palateTexture),
+          _buildTastingRow(tr('👅 Matière & Caudalies', '👅 Texture & length'), snapshot.palateTexture),
         ],
       ),
     );

@@ -20,6 +20,7 @@ import '../data/tasting_deletion_service.dart';
 import '../../offline/presentation/sync_provider.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../../config/router.dart';
+import '../../../shared/utils/langue.dart';
 
 class TastingEntryDetailScreen extends ConsumerStatefulWidget {
   final TastingEntry entry;
@@ -71,7 +72,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
       setState(() {
         _wine = Wine(
           id: widget.entry.wineId,
-          name: widget.entry.wineName ?? 'Vin dégusté',
+          name: widget.entry.wineName ?? tr('Vin dégusté', 'Tasted wine'),
           vintage: widget.entry.vintage,
           region: widget.entry.region ?? '',
           country: widget.entry.country ?? 'France',
@@ -219,7 +220,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
 
   void _shareTasting({bool isFr = true}) {
     final entry = widget.entry;
-    final wineTitle = '${entry.wineName ?? (isFr ? "Vin" : "Wine")}${entry.vintage != null ? " ${entry.vintage}" : ""}';
+    final wineTitle = '${entry.wineName ?? (isFr ? tr("Vin", 'Wine') : "Wine")}${entry.vintage != null ? " ${entry.vintage}" : ""}';
     final ratingStr = _formatRatingScore(entry.rating);
     final buffer = StringBuffer();
     buffer.writeln(isFr ? '🍷 Souvenir de Dégustation : $wineTitle' : '🍷 Tasting Memory: $wineTitle');
@@ -249,7 +250,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
     final entry = widget.entry;
     final wine = _wine;
 
-    final wineName = entry.wineName ?? wine?.name ?? (isFr ? 'Vin dégusté' : 'Tasted wine');
+    final wineName = entry.wineName ?? wine?.name ?? (isFr ? tr('Vin dégusté', 'Tasted wine') : 'Tasted wine');
     final vintageStr = (entry.vintage != null && entry.vintage! > 0)
         ? '${entry.vintage}'
         : (isFr ? 'Non Millésimé (NM)' : 'Non-Vintage (NV)');
@@ -624,7 +625,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                             onPressed: () {
                               final wineObj = _wine ?? Wine(
                                 id: entry.wineId,
-                                name: entry.wineName ?? 'Vin',
+                                name: entry.wineName ?? tr('Vin', 'Wine'),
                                 vintage: entry.vintage,
                                 region: entry.region ?? '',
                                 country: entry.country ?? 'France',
@@ -821,7 +822,8 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
   Widget _buildMolecularScienceCard(Wine wine, TastingEntry entry, ThemeData theme, bool isDark, bool isFr) {
     final wineType = (entry.wineType ?? wine.type).toLowerCase();
     final isRed = wineType.contains('red') || wineType.contains('rouge');
-    final isSparkling = wineType.contains('sparkling') || wineType.contains('bulles') || wineType.contains('champagne');
+    final isSparkling = wineType.contains('sparkling') || wineType.contains('bulles') || wineType.contains('champagne') ||
+        wineType.contains('effervescent') || wineType.contains('crémant');
     final region = wine.region.toLowerCase();
     final allGrapes = wine.grapes.map((g) => g.name.toLowerCase()).join(' ');
 
@@ -918,21 +920,30 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
   }
 
   String _getAromaticMoleculesSummary(String grapes, String region, bool isRed, bool isSparkling, {bool isFr = true}) {
+    String t(String fr, String en) => isFr ? fr : en;
     final list = <String>[];
     if (grapes.contains('sauvignon') || grapes.contains('cabernet') || grapes.contains('merlot')) {
-      list.add('• Pyrazines (2-isobutyl-3-méthoxypyrazine) : notes végétales nobles, cassis frais.');
+      list.add(t('• Pyrazines (2-isobutyl-3-méthoxypyrazine) : notes végétales nobles, poivron, bourgeon de cassis.',
+          '• Pyrazines (2-isobutyl-3-methoxypyrazine): green notes, bell pepper, blackcurrant bud.'));
     }
     if (grapes.contains('syrah') || region.contains('rhône') || region.contains('rhone')) {
-      list.add('• Rotundone (sesquiterpènes) : signature poivre noir et épices intenses.');
+      list.add(t('• Rotundone (sesquiterpènes) : signature poivre noir et épices intenses.',
+          '• Rotundone (sesquiterpenes): the black-pepper signature.'));
     }
     if (grapes.contains('chardonnay') || isSparkling) {
-      list.add('• Diacétyle (2,3-butanedione) & acétates : arômes de beurre frais, brioche et noisette.');
+      list.add(t('• Diacétyle (2,3-butanedione) : le beurre frais de la fermentation malolactique.',
+          '• Diacetyl (2,3-butanedione): the fresh butter of malolactic fermentation.'));
     }
     if (grapes.contains('viognier') || grapes.contains('muscat') || grapes.contains('gewurz') || grapes.contains('riesling')) {
-      list.add('• Monoterpènes (Linalol, Géraniol) : effluves florales de fleur d\'oranger et de rose.');
+      list.add(t('• Monoterpènes (linalol, géraniol) : effluves de fleur d\'oranger et de rose.',
+          '• Monoterpenes (linalool, geraniol): orange blossom and rose.'));
     }
-    list.add('• Esters éthyliques & acétates d\'isoamyle : arômes fermentaires de fruits rouges et pulpeux.');
-    list.add('• Lactones de chêne (si élevage bois) : vanilline et notes toastées subtiles.');
+    // Les esters sentent le fruit du vin : rouge dans un rouge, pas dans un blanc.
+    list.add(isRed
+        ? t('• Esters éthyliques : arômes fermentaires de fruits rouges croquants.', '• Ethyl esters: fermentation aromas of crunchy red fruit.')
+        : t('• Esters (acétate d\'isoamyle, hexanoate d\'éthyle) : poire, pomme et fruits blancs.',
+            '• Esters (isoamyl acetate, ethyl hexanoate): pear, apple and white fruit.'));
+    list.add(t('• Lactones de chêne (si élevage sous bois) : vanille et notes toastées.', '• Oak lactones (if oak-aged): vanilla and toasty notes.'));
     return list.join('\n');
   }
 
@@ -1019,7 +1030,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
           IconButton(
             visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.edit_outlined, size: 18),
-            tooltip: 'Modifier',
+            tooltip: tr('Modifier', 'Edit'),
             onPressed: onEdit,
           ),
       ],

@@ -14,6 +14,7 @@ import '../../journal/domain/tasting_pedagogy_engine.dart';
 import '../../journal/presentation/tasting_pedagogy_sheet.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../notifications/data/local_notification_service.dart';
+import '../../../shared/utils/langue.dart';
 
 class SommelierTableModeSheet extends ConsumerStatefulWidget {
   final Bottle bottle;
@@ -171,9 +172,9 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
           }
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('🔔 Le vin est parfaitement aéré et prêt pour la dégustation !'),
-                backgroundColor: Color(0xFFD4AF37),
+              SnackBar(
+                content: Text(tr('🔔 Le vin est parfaitement aéré et prêt pour la dégustation !', '🔔 The wine has breathed perfectly and is ready to taste!')),
+                backgroundColor: const Color(0xFFD4AF37),
               ),
             );
           }
@@ -205,16 +206,16 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
 
       final notesSummary = StringBuffer();
       if (_selectedAppearance != null) {
-        notesSummary.writeln('Robe : $_selectedAppearance');
+        notesSummary.writeln(tr('Robe : $_selectedAppearance', 'Colour: $_selectedAppearance'));
       }
       if (_selectedAromas.isNotEmpty) {
-        notesSummary.writeln('Nez : ${_selectedAromas.join(', ')}');
+        notesSummary.writeln(tr('Nez : ${_selectedAromas.join(', ')}', 'Nose: ${_selectedAromas.join(', ')}'));
       }
       if (_selectedStructure != null) {
-        notesSummary.writeln('Bouche : $_selectedStructure (Longueur : $_caudalies caudalies)');
+        notesSummary.writeln(tr('Bouche : $_selectedStructure (Longueur : $_caudalies caudalies)', 'Palate: $_selectedStructure (length: $_caudalies seconds)'));
       }
       if (_commentController.text.trim().isNotEmpty) {
-        notesSummary.writeln('Impression : ${_commentController.text.trim()}');
+        notesSummary.writeln(tr('Impression : ${_commentController.text.trim()}', 'Impression: ${_commentController.text.trim()}'));
       }
 
       // Identité commune à la ligne distante et aux traces de goût : voir checkout_screen.
@@ -230,7 +231,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
             'user_id': userId,
             'rating': _userRating,
             'tasting_notes': notesSummary.toString(),
-            'occasion': 'Dégustation Sommelier à Table',
+            'occasion': tr('Dégustation Sommelier à Table', 'Sommelier tasting at the table'),
             'consumed_at': DateTime.now().toIso8601String(),
           });
           savedOnline = true;
@@ -258,7 +259,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
             'appellation': wine.appellation,
             'rating': _userRating,
             'tasting_notes': notesSummary.toString(),
-            'occasion': 'Dégustation Sommelier à Table',
+            'occasion': tr('Dégustation Sommelier à Table', 'Sommelier tasting at the table'),
             'quantity': 0,
           },
           createdAt: DateTime.now(),
@@ -293,9 +294,9 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
         HapticFeedback.heavyImpact();
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✨ Fiche de dégustation enregistrée dans votre Journal !', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            backgroundColor: Color(0xFF4CAF50),
+          SnackBar(
+            content: Text(tr('✨ Fiche de dégustation enregistrée dans votre Journal !', '✨ Tasting note saved in your journal!'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            backgroundColor: const Color(0xFF4CAF50),
           ),
         );
         // Display educational debriefing sheet immediately
@@ -304,7 +305,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de l\'enregistrement : $e')),
+          SnackBar(content: Text(tr('Erreur lors de l\'enregistrement : $e', 'Couldn\'t save: $e'))),
         );
         setState(() => _isSaving = false);
       }
@@ -638,7 +639,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                       Row(
                         children: [
                           Text(isFr ? 'Longueur en bouche : ' : 'Palate length: ', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                          Text('$_caudalies ${isFr ? "caudalies (secondes)" : "caudalies (seconds)"}', style: const TextStyle(fontSize: 13, color: const Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
+                          Text('$_caudalies ${isFr ? "caudalies (secondes)" : "caudalies (seconds)"}', style: const TextStyle(fontSize: 13, color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
                         ],
                       ),
                       Slider(

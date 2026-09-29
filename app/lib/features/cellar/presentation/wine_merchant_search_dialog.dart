@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/wine_merchant_service.dart';
 import '../domain/wine_merchant.dart';
+import '../../../shared/utils/langue.dart';
 
 class WineMerchantSearchDialog extends ConsumerStatefulWidget {
   const WineMerchantSearchDialog({super.key});
@@ -89,8 +90,8 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
                   child: const Icon(Icons.storefront, color: Color(0xFFD4AF37), size: 22),
                 ),
                 const SizedBox(width: 10),
-                const Expanded(
-                  child: Text('Confirmer le Caviste', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                Expanded(
+                  child: Text(tr('Confirmer le Caviste', 'Confirm the wine shop'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                 ),
               ],
             ),
@@ -145,12 +146,12 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
                     ),
                   ),
                   const SizedBox(height: 14),
-                  const Text('Notes ou contact (optionnel) :', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(tr('Notes ou contact (optionnel) :', 'Notes or contact (optional):'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   TextField(
                     controller: notesCtrl,
                     decoration: InputDecoration(
-                      hintText: 'Ex: Conseillé par Pierre, spécialité Champagne...',
+                      hintText: tr('Ex: Conseillé par Pierre, spécialité Champagne...', 'E.g. recommended by Pierre, Champagne specialist...'),
                       filled: true,
                       fillColor: isDark ? Colors.white10 : Colors.grey.shade50,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -164,12 +165,12 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Annuler'),
+                child: Text(tr('Annuler', 'Cancel')),
               ),
               FilledButton.icon(
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F), foregroundColor: Colors.white),
                 icon: const Icon(Icons.check, size: 16),
-                label: const Text('Confirmer & Enregistrer'),
+                label: Text(tr('Confirmer & Enregistrer', 'Confirm & save')),
                 onPressed: () => Navigator.of(ctx).pop(true),
               ),
             ],
@@ -234,11 +235,11 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Rechercher ou Ajouter un Caviste',
+                        tr('Rechercher ou Ajouter un Caviste', 'Find or add a wine shop'),
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        'Recherche Google Maps & Carnet de Cavistes',
+                        tr('Recherche Google Maps & Carnet de Cavistes', 'Google Maps search & your wine shops'),
                         style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                       ),
                     ],
@@ -267,7 +268,7 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
                 }
               },
               decoration: InputDecoration(
-                hintText: 'Nom du caviste, ville ou adresse (ex: Lavinia, Paris)...',
+                hintText: tr('Nom du caviste, ville ou adresse (ex: Lavinia, Paris)...', 'Shop name, town or address (e.g. Lavinia, Paris)...'),
                 hintStyle: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black45),
                 prefixIcon: const Icon(Icons.search, color: Color(0xFF8B1E3F)),
                 suffixIcon: _isLoading
@@ -300,12 +301,12 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
                         children: [
                           const Icon(Icons.storefront_outlined, size: 48, color: Colors.grey),
                           const SizedBox(height: 12),
-                          const Text('Aucun caviste trouvé', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(tr('Aucun caviste trouvé', 'No wine shop found'), style: const TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Saisissez le nom d\'une boutique ou d\'une ville pour chercher sur Google Maps.',
+                          Text(
+                            tr('Saisissez le nom d\'une boutique ou d\'une ville pour chercher sur Google Maps.', 'Type the name of a shop or a town to search Google Maps.'),
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                            style: const TextStyle(color: Colors.grey, fontSize: 12),
                           ),
                           if (_searchCtrl.text.trim().isNotEmpty) ...[
                             const SizedBox(height: 16),
@@ -315,11 +316,11 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
                                 foregroundColor: Colors.white,
                               ),
                               icon: const Icon(Icons.add, color: Colors.white),
-                              label: Text('Créer "${_searchCtrl.text.trim()}"', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              label: Text(tr('Créer "${_searchCtrl.text.trim()}"', 'Create "${_searchCtrl.text.trim()}"'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               onPressed: () {
                                 final manual = WineMerchant.create(
                                   name: _searchCtrl.text.trim(),
-                                  address: 'Adresse personnalisée',
+                                  address: tr('Adresse personnalisée', 'Custom address'),
                                 );
                                 _confirmAndSaveMerchant(manual);
                               },

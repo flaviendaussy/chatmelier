@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/friends/data/friends_repository.dart';
 import '../../features/notifications/presentation/notifications_inbox_sheet.dart';
+import '../utils/langue.dart';
 
 /// Universal AppBar action button displaying a Notification Bell with live badge counter.
 /// Automatically polls for fresh requests & notifications every 15 seconds.
@@ -53,7 +54,9 @@ class _NotificationBellButtonState extends ConsumerState<NotificationBellButton>
     final unreadCount = ref.watch(unreadNotificationsCountProvider);
 
     return IconButton(
-      tooltip: unreadCount > 0 ? 'Boîte de réception ($unreadCount en attente)' : 'Boîte de réception',
+      tooltip: unreadCount > 0
+          ? tr('Boîte de réception ($unreadCount en attente)', 'Inbox ($unreadCount waiting)')
+          : tr('Boîte de réception', 'Inbox'),
       icon: Badge(
         isLabelVisible: unreadCount > 0,
         backgroundColor: const Color(0xFFD4AF37),

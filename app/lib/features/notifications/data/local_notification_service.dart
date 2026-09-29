@@ -6,32 +6,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import '../../../shared/utils/app_logger.dart';
+import '../../../shared/utils/langue.dart';
 
-/// Channels used on Android
+/// Channels used on Android. Noms et descriptions suivent la langue de l'app : Android
+/// les affiche dans les réglages de notifications.
 class NotificationChannels {
   static const String tastingsId = 'chatmelier_tastings';
-  static const String tastingsName = 'Rappels de dégustation';
-  static const String tastingsDesc = 'Notifications pour noter un vin dégusté récemment';
+  static String get tastingsName => tr('Rappels de dégustation', 'Tasting reminders');
+  static String get tastingsDesc => tr('Notifications pour noter un vin dégusté récemment', 'Reminders to rate a wine you just tasted');
 
   static const String apogeeId = 'chatmelier_apogee';
-  static const String apogeeName = 'Apogée & Maturité';
-  static const String apogeeDesc = 'Alertes lorsque vos vins atteignent leur apogée';
+  static String get apogeeName => tr('Apogée & Maturité', 'Peak & maturity');
+  static String get apogeeDesc => tr('Alertes lorsque vos vins atteignent leur apogée', 'Alerts when your wines reach their peak');
 
   static const String sharedCellarId = 'chatmelier_shared_cellar';
-  static const String sharedCellarName = 'Activité Cave Partagée';
-  static const String sharedCellarDesc = 'Activité de vos co-éditeurs et déstockages';
+  static String get sharedCellarName => tr('Activité Cave Partagée', 'Shared cellar activity');
+  static String get sharedCellarDesc => tr('Activité de vos co-éditeurs et déstockages', 'What others do in your shared cellars');
 
   static const String socialId = 'chatmelier_social';
-  static const String socialName = 'Amis & Invitations';
-  static const String socialDesc = 'Demandes d\'amis et accès aux caves';
+  static String get socialName => tr('Amis & Invitations', 'Friends & invitations');
+  static String get socialDesc => tr('Demandes d\'amis et accès aux caves', 'Friend requests and cellar access');
 
   static const String sommelierId = 'chatmelier_sommelier';
-  static const String sommelierName = 'Conseils Sommelier du Week-end';
-  static const String sommelierDesc = 'Recommandations hebdomadaires pour vos repas';
+  static String get sommelierName => tr('Conseils Sommelier du Week-end', 'Weekend sommelier tips');
+  static String get sommelierDesc => tr('Recommandations hebdomadaires pour vos repas', 'Weekly ideas for your meals');
 
   static const String liveAerationId = 'chatmelier_live_aeration';
-  static const String liveAerationName = 'Aération & Chrono en Direct';
-  static const String liveAerationDesc = 'Affichage en direct sur l\'écran de verrouillage du temps restant avant dégustation';
+  static String get liveAerationName => tr('Aération & Chrono en Direct', 'Live aeration timer');
+  static String get liveAerationDesc => tr('Affichage en direct sur l\'écran de verrouillage du temps restant avant dégustation', 'Time left before tasting, live on the lock screen');
 }
 
 /// Service managing on-device (native system) notifications via flutter_local_notifications.
@@ -85,7 +87,7 @@ class LocalNotificationService {
             AndroidFlutterLocalNotificationsPlugin>();
         if (androidImpl != null) {
           await androidImpl.createNotificationChannel(
-            const AndroidNotificationChannel(
+            AndroidNotificationChannel(
               NotificationChannels.tastingsId,
               NotificationChannels.tastingsName,
               description: NotificationChannels.tastingsDesc,
@@ -93,7 +95,7 @@ class LocalNotificationService {
             ),
           );
           await androidImpl.createNotificationChannel(
-            const AndroidNotificationChannel(
+            AndroidNotificationChannel(
               NotificationChannels.apogeeId,
               NotificationChannels.apogeeName,
               description: NotificationChannels.apogeeDesc,
@@ -101,7 +103,7 @@ class LocalNotificationService {
             ),
           );
           await androidImpl.createNotificationChannel(
-            const AndroidNotificationChannel(
+            AndroidNotificationChannel(
               NotificationChannels.sharedCellarId,
               NotificationChannels.sharedCellarName,
               description: NotificationChannels.sharedCellarDesc,
@@ -109,7 +111,7 @@ class LocalNotificationService {
             ),
           );
           await androidImpl.createNotificationChannel(
-            const AndroidNotificationChannel(
+            AndroidNotificationChannel(
               NotificationChannels.socialId,
               NotificationChannels.socialName,
               description: NotificationChannels.socialDesc,
@@ -117,7 +119,7 @@ class LocalNotificationService {
             ),
           );
           await androidImpl.createNotificationChannel(
-            const AndroidNotificationChannel(
+            AndroidNotificationChannel(
               NotificationChannels.sommelierId,
               NotificationChannels.sommelierName,
               description: NotificationChannels.sommelierDesc,
@@ -125,7 +127,7 @@ class LocalNotificationService {
             ),
           );
           await androidImpl.createNotificationChannel(
-            const AndroidNotificationChannel(
+            AndroidNotificationChannel(
               NotificationChannels.liveAerationId,
               NotificationChannels.liveAerationName,
               description: NotificationChannels.liveAerationDesc,
@@ -208,12 +210,12 @@ class LocalNotificationService {
     required String body,
     String? payload,
     String channelId = NotificationChannels.tastingsId,
-    String channelName = NotificationChannels.tastingsName,
+    String? channelName,
   }) async {
     try {
       final androidDetails = AndroidNotificationDetails(
         channelId,
-        channelName,
+        channelName ?? NotificationChannels.tastingsName,
         importance: Importance.high,
         priority: Priority.high,
         icon: '@mipmap/ic_launcher',
@@ -245,14 +247,14 @@ class LocalNotificationService {
     required Duration delay,
     String? payload,
     String channelId = NotificationChannels.tastingsId,
-    String channelName = NotificationChannels.tastingsName,
+    String? channelName,
   }) async {
     try {
       final scheduledDate = tz.TZDateTime.now(tz.local).add(delay);
 
       final androidDetails = AndroidNotificationDetails(
         channelId,
-        channelName,
+        channelName ?? NotificationChannels.tastingsName,
         importance: Importance.high,
         priority: Priority.high,
         icon: '@mipmap/ic_launcher',
@@ -290,8 +292,8 @@ class LocalNotificationService {
     final id = bottleId.hashCode.abs() % 100000;
     await scheduleNotification(
       id: id,
-      title: '🍷 Alors, cette dégustation ?',
-      body: 'Vous avez sorti $wineName$vintageStr. Prenez 30s pour noter vos impressions tant que le souvenir est frais !',
+      title: tr('🍷 Alors, cette dégustation ?', '🍷 So, how was it?'),
+      body: tr('Vous avez sorti $wineName$vintageStr. Prenez 30s pour noter vos impressions tant que le souvenir est frais !', 'You opened $wineName$vintageStr. Take 30 seconds to note your impressions while they\'re fresh!'),
       delay: delay,
       channelId: NotificationChannels.tastingsId,
       channelName: NotificationChannels.tastingsName,
@@ -334,11 +336,11 @@ class LocalNotificationService {
         when: targetTimestampMs,
         usesChronometer: true,
         chronometerCountDown: true,
-        subText: 'Aération en cours',
-        actions: const <AndroidNotificationAction>[
+        subText: tr('Aération en cours', 'Aerating'),
+        actions: <AndroidNotificationAction>[
           AndroidNotificationAction(
             'stop_aeration',
-            'Arrêter le chrono',
+            tr('Arrêter le chrono', 'Stop the timer'),
             cancelNotification: true,
           ),
         ],
@@ -354,8 +356,8 @@ class LocalNotificationService {
 
       await _plugin.show(
         id: liveAerationNotificationId,
-        title: '🍷 Aération : $wineName$vintageStr',
-        body: 'Compte à rebours lockscreen. Votre vin s\'oxygène pour déployer ses arômes.',
+        title: tr('🍷 Aération : $wineName$vintageStr', '🍷 Aerating: $wineName$vintageStr'),
+        body: tr('Compte à rebours lockscreen. Votre vin s\'oxygène pour déployer ses arômes.', 'Your wine is breathing and opening up.'),
         notificationDetails: details,
         payload: 'live_aeration:${bottleId ?? ""}',
       );
@@ -383,8 +385,8 @@ class LocalNotificationService {
       final vintageStr = vintage != null ? ' $vintage' : '';
       await showInstantNotification(
         id: liveAerationNotificationId + 1,
-        title: '✨ $wineName$vintageStr est prêt à servir !',
-        body: 'L\'aération recommandée est terminée. Les arômes sont parfaitement libérés et les tanins assouplis.',
+        title: tr('✨ $wineName$vintageStr est prêt à servir !', '✨ $wineName$vintageStr is ready to serve!'),
+        body: tr('L\'aération recommandée est terminée : le vin s\'est ouvert.', 'Aeration done: the wine has opened up.'),
         channelId: NotificationChannels.liveAerationId,
         channelName: NotificationChannels.liveAerationName,
       );
@@ -398,7 +400,7 @@ class LocalNotificationService {
     await showInstantNotification(
       id: 99999,
       title: '🍷 Notification Chatmelier Active !',
-      body: 'Vos alertes d\'apogée et rappels de dégustation fonctionneront parfaitement sur cet appareil.',
+      body: tr('Vos alertes d\'apogée et rappels de dégustation fonctionneront parfaitement sur cet appareil.', 'Your peak alerts and tasting reminders will work on this device.'),
       channelId: NotificationChannels.tastingsId,
       channelName: NotificationChannels.tastingsName,
     );

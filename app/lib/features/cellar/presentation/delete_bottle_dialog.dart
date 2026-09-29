@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../domain/bottle.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/utils/langue.dart';
 
 class DeleteBottleDialog extends ConsumerStatefulWidget {
   final Bottle bottle;
@@ -68,8 +69,8 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
           SnackBar(
             content: Text(
               _quantityToDelete >= widget.bottle.quantity
-                  ? '🗑️ Bouteille supprimée définitivement de la cave.'
-                  : '🗑️ $_quantityToDelete bouteille(s) supprimée(s) définitivement.',
+                  ? tr('🗑️ Bouteille supprimée définitivement de la cave.', '🗑️ Bottle permanently deleted from the cellar.')
+                  : tr('🗑️ $_quantityToDelete bouteille(s) supprimée(s) définitivement.', '🗑️ $_quantityToDelete bottle(s) permanently deleted.'),
             ),
             backgroundColor: Colors.red.shade800,
           ),
@@ -79,7 +80,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
       if (mounted) {
         setState(() => _isDeleting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la suppression : $e')),
+          SnackBar(content: Text(tr('Erreur lors de la suppression : $e', 'Couldn\'t delete: $e'))),
         );
       }
     }
@@ -110,7 +111,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              l10n?.deleteBottleTitle ?? 'Supprimer définitivement',
+              l10n?.deleteBottleTitle ?? tr('Supprimer définitivement', 'Delete permanently'),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
           ),
@@ -146,7 +147,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
                       const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'Attention : Action irréversible',
+                        tr('Attention : Action irréversible', 'Careful: this can\'t be undone'),
                         style: theme.textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.redAccent,
@@ -156,7 +157,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'La suppression efface toute trace de cette bouteille sans conserver d\'historique.',
+                    tr('La suppression efface toute trace de cette bouteille sans conserver d\'historique.', 'Deleting erases every trace of this bottle, with no history kept.'),
                     style: theme.textTheme.bodySmall?.copyWith(height: 1.3),
                   ),
                 ],
@@ -166,7 +167,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
 
             // Educational Distinction: Sortir vs Supprimer
             Text(
-              '💡 Quelle est la différence ?',
+              tr('💡 Quelle est la différence ?', '💡 What\'s the difference?'),
               style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -189,13 +190,13 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Sortir / Boire (Recommandé)',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF8B1E3F)),
+                        Text(
+                          tr('Sortir / Boire (Recommandé)', 'Take out / drink (recommended)'),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF8B1E3F)),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Archive la dégustation dans votre Journal, met à jour vos Statistiques et conserve vos notes.',
+                          tr('Archive la dégustation dans votre Journal, met à jour vos Statistiques et conserve vos notes.', 'Keeps the tasting in your journal, updates your statistics and keeps your notes.'),
                           style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, height: 1.25),
                         ),
                       ],
@@ -222,13 +223,13 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Supprimer définitivement',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        Text(
+                          tr('Supprimer définitivement', 'Delete permanently'),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Efface complètement la fiche (à utiliser en cas d\'erreur de saisie, doublon ou bouteille cassée).',
+                          tr('Efface complètement la fiche (à utiliser en cas d\'erreur de saisie, doublon ou bouteille cassée).', 'Erases the record completely (for a typo, a duplicate or a broken bottle).'),
                           style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, height: 1.25),
                         ),
                       ],
@@ -242,7 +243,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
             // Quantity selector if totalQty > 1
             if (totalQty > 1) ...[
               Text(
-                'Quantité à supprimer ($totalQty au total en cave) :',
+                tr('Quantité à supprimer ($totalQty au total en cave) :', 'How many to delete ($totalQty in the cellar):'),
                 style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -271,7 +272,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
                   const SizedBox(width: 8),
                   TextButton(
                     onPressed: () => setState(() => _quantityToDelete = totalQty),
-                    child: const Text('Tout'),
+                    child: Text(tr('Tout', 'All')),
                   ),
                 ],
               ),
@@ -292,7 +293,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
                   context.push('/checkout?bottleId=${widget.bottle.id}');
                 },
           icon: const Icon(Icons.wine_bar, size: 16, color: Color(0xFF8B1E3F)),
-          label: const Text('Boire plutôt', style: TextStyle(color: Color(0xFF8B1E3F))),
+          label: Text(tr('Boire plutôt', 'Drink it instead'), style: const TextStyle(color: Color(0xFF8B1E3F))),
           style: OutlinedButton.styleFrom(
             side: const BorderSide(color: Color(0xFF8B1E3F)),
           ),
@@ -308,7 +309,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                 )
               : const Icon(Icons.delete_forever, size: 18),
-          label: Text(_isDeleting ? 'Suppression...' : 'Supprimer'),
+          label: Text(_isDeleting ? tr('Suppression...', 'Deleting...') : tr('Supprimer', 'Delete')),
           style: FilledButton.styleFrom(
             backgroundColor: Colors.red.shade800,
             foregroundColor: Colors.white,

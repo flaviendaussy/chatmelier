@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../cellar/domain/wine.dart';
 import '../../cellar/domain/bottle.dart';
 import '../domain/wine_thermal_engine.dart';
+import '../../../shared/utils/langue.dart';
 
 class ThermalAerationCalculatorSheet extends StatefulWidget {
   final Wine? wine;
@@ -79,11 +80,11 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
           _timerRunning = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: Color(0xFFD4AF37),
+          SnackBar(
+            backgroundColor: const Color(0xFFD4AF37),
             content: Text(
-              '🍷 Température de service atteinte ! Dégustez votre flacon.',
-              style: TextStyle(color: Color(0xFF1E1A24), fontWeight: FontWeight.bold),
+              tr('🍷 Température de service atteinte ! Dégustez votre flacon.', '🍷 Serving temperature reached! Enjoy your bottle.'),
+              style: const TextStyle(color: Color(0xFF1E1A24), fontWeight: FontWeight.bold),
             ),
           ),
         );
@@ -114,7 +115,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
       useIceBucket: _useIceBucket,
     );
 
-    final wineTitle = _effectiveWine?.name ?? 'Flacon sélectionné';
+    final wineTitle = _effectiveWine?.name ?? tr('Flacon sélectionné', 'Selected bottle');
     final vintage = _effectiveWine?.vintage != null ? '${_effectiveWine!.vintage}' : '';
 
     return Container(
@@ -162,9 +163,9 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Thermocourbe & Aération',
-                        style: TextStyle(
+                      Text(
+                        tr('Thermocourbe & Aération', 'Temperature & aeration'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -214,9 +215,9 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Alerte Température Ambiante (Rouge)',
-                                style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                              Text(
+                                tr('Alerte Température Ambiante (Rouge)', 'Warm room alert (red)'),
+                                style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -239,12 +240,12 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
                 ],
 
                 // Réglage température bouteille
-                _buildSectionHeader('État actuel de la bouteille', Icons.wine_bar),
+                _buildSectionHeader(tr('État actuel de la bouteille', 'Where the bottle is now'), Icons.wine_bar),
                 const SizedBox(height: 10),
                 _buildBottleSourceSelector(),
                 const SizedBox(height: 12),
                 _buildTemperatureSlider(
-                  label: 'Température actuelle du flacon',
+                  label: tr('Température actuelle du flacon', 'Bottle\'s current temperature'),
                   value: _bottleTemp,
                   min: 4.0,
                   max: 26.0,
@@ -266,16 +267,16 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
                     ),
                     child: SwitchListTile(
                       activeColor: Colors.cyanAccent,
-                      title: const Row(
+                      title: Row(
                         children: [
-                          Icon(Icons.ac_unit_rounded, color: Colors.cyanAccent, size: 20),
-                          SizedBox(width: 8),
-                          Text('Option Seau à glace express', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                          const Icon(Icons.ac_unit_rounded, color: Colors.cyanAccent, size: 20),
+                          const SizedBox(width: 8),
+                          Text(tr('Option Seau à glace express', 'Quick ice bucket'), style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
                         ],
                       ),
-                      subtitle: const Text(
-                        'Eau + glaçons : refroidissement 4x plus rapide (loi thermique k=0.090)',
-                        style: TextStyle(color: Colors.white60, fontSize: 11),
+                      subtitle: Text(
+                        tr('Eau + glaçons : refroidissement 4x plus rapide (loi thermique k=0.090)', 'Water + ice: chills 4x faster'),
+                        style: const TextStyle(color: Colors.white60, fontSize: 11),
                       ),
                       value: _useIceBucket,
                       onChanged: (val) => setState(() => _useIceBucket = val),
@@ -289,13 +290,13 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
                 const SizedBox(height: 18),
 
                 // Courbe & Timeline thermique
-                _buildSectionHeader('Chronologie & Protocole Sommelier', Icons.timeline_rounded),
+                _buildSectionHeader(tr('Chronologie & Protocole Sommelier', 'Sommelier\'s timeline'), Icons.timeline_rounded),
                 const SizedBox(height: 10),
                 _buildTimelineList(plan),
                 const SizedBox(height: 18),
 
                 // Courbe de température projetée
-                _buildSectionHeader('Évolution thermique calculée', Icons.show_chart_rounded),
+                _buildSectionHeader(tr('Évolution thermique calculée', 'Predicted temperature curve'), Icons.show_chart_rounded),
                 const SizedBox(height: 10),
                 _buildThermalCurveChart(plan),
                 const SizedBox(height: 24),
@@ -388,18 +389,18 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildStatBadge(
-                label: 'Cible idéale',
+                label: tr('Cible idéale', 'Ideal'),
                 value: '${plan.targetTemp.toStringAsFixed(1)}°C',
                 color: const Color(0xFFD4AF37),
               ),
               _buildStatBadge(
-                label: 'Temps requis',
-                value: plan.durationMinutes == 0 ? 'Immédiat' : '${plan.durationMinutes} min',
+                label: tr('Temps requis', 'Time needed'),
+                value: plan.durationMinutes == 0 ? tr('Immédiat', 'Now') : '${plan.durationMinutes} min',
                 color: accentColor,
               ),
               _buildStatBadge(
-                label: 'Carafage',
-                value: plan.decantingMinutes == 0 ? 'Sans' : '${plan.decantingMinutes} min',
+                label: tr('Carafage', 'Decanting'),
+                value: plan.decantingMinutes == 0 ? tr('Sans', 'None') : '${plan.decantingMinutes} min',
                 color: Colors.pinkAccent,
               ),
             ],
@@ -417,7 +418,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
                 ),
                 icon: const Icon(Icons.timer_outlined, size: 20),
                 label: Text(
-                  'Lancer le minuteur (${plan.durationMinutes} min)',
+                  tr('Lancer le minuteur (${plan.durationMinutes} min)', 'Start the timer (${plan.durationMinutes} min)'),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 onPressed: () => _startTimer(plan.durationMinutes),
@@ -467,7 +468,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isDone ? 'Temps écoulé !' : 'Minuteur sommelier en cours',
+                  isDone ? tr('Temps écoulé !', 'Time\'s up!') : tr('Minuteur sommelier en cours', 'Sommelier timer running'),
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
                 Text(
@@ -512,7 +513,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
       children: [
         Expanded(
           child: _buildQuickChoiceChip(
-            label: 'Cave à vin',
+            label: tr('Cave à vin', 'Wine cellar'),
             sublabel: '12°C',
             icon: Icons.inventory_2_outlined,
             selected: (_bottleTemp - 12.0).abs() < 0.5,
@@ -522,7 +523,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
         const SizedBox(width: 8),
         Expanded(
           child: _buildQuickChoiceChip(
-            label: 'Pièce ambiante',
+            label: tr('Pièce ambiante', 'Room'),
             sublabel: '${_roomTemp.toStringAsFixed(0)}°C',
             icon: Icons.home_outlined,
             selected: (_bottleTemp - _roomTemp).abs() < 0.5,
@@ -532,7 +533,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
         const SizedBox(width: 8),
         Expanded(
           child: _buildQuickChoiceChip(
-            label: 'Frigo',
+            label: tr('Frigo', 'Fridge'),
             sublabel: '${_fridgeTemp.toStringAsFixed(0)}°C',
             icon: Icons.kitchen_outlined,
             selected: (_bottleTemp - _fridgeTemp).abs() < 0.5,
@@ -586,12 +587,12 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
         initiallyExpanded: _showAdvancedSettings,
         onExpansionChanged: (v) => setState(() => _showAdvancedSettings = v),
         leading: const Icon(Icons.tune_rounded, color: Color(0xFFD4AF37)),
-        title: const Text(
-          'Ajuster mon frigo & ma pièce',
-          style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+        title: Text(
+          tr('Ajuster mon frigo & ma pièce', 'Set my fridge & room'),
+          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
-          'Frigo: ${_fridgeTemp.toStringAsFixed(0)}°C • Pièce: ${_roomTemp.toStringAsFixed(0)}°C',
+          tr('Frigo: ${_fridgeTemp.toStringAsFixed(0)}°C • Pièce: ${_roomTemp.toStringAsFixed(0)}°C', 'Fridge: ${_fridgeTemp.toStringAsFixed(0)}°C • Room: ${_roomTemp.toStringAsFixed(0)}°C'),
           style: const TextStyle(color: Colors.white54, fontSize: 12),
         ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -599,7 +600,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
           const Divider(color: Colors.white10),
           const SizedBox(height: 8),
           _buildTemperatureSlider(
-            label: 'Température de votre réfrigérateur',
+            label: tr('Température de votre réfrigérateur', 'Your fridge temperature'),
             value: _fridgeTemp,
             min: 1.0,
             max: 10.0,
@@ -609,7 +610,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
           ),
           const SizedBox(height: 12),
           _buildTemperatureSlider(
-            label: 'Température ambiante de votre pièce',
+            label: tr('Température ambiante de votre pièce', 'Your room temperature'),
             value: _roomTemp,
             min: 16.0,
             max: 28.0,
@@ -747,11 +748,11 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${plan.initialTemp.toStringAsFixed(1)}°C (Départ)',
+                tr('${plan.initialTemp.toStringAsFixed(1)}°C (Départ)', '${plan.initialTemp.toStringAsFixed(1)}°C (start)'),
                 style: const TextStyle(color: Colors.white54, fontSize: 11),
               ),
               Text(
-                '${plan.targetTemp.toStringAsFixed(1)}°C (Idéal)',
+                tr('${plan.targetTemp.toStringAsFixed(1)}°C (Idéal)', '${plan.targetTemp.toStringAsFixed(1)}°C (ideal)'),
                 style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold),
               ),
             ],

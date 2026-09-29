@@ -5,6 +5,7 @@ import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../data/furniture_vision_service.dart';
 import '../domain/cellar_furniture.dart';
+import '../../../shared/utils/langue.dart';
 
 class FurnitureEditorDialog extends ConsumerStatefulWidget {
   final CellarFurniture? initialFurniture;
@@ -144,7 +145,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✨ Meuble analysé : ${layout.columns}x${layout.rows} (${layout.name})'),
+            content: Text(tr('✨ Meuble analysé : ${layout.columns}x${layout.rows} (${layout.name})', '✨ Rack analysed: ${layout.columns}x${layout.rows} (${layout.name})')),
             backgroundColor: const Color(0xFF2E7D32),
           ),
         );
@@ -153,8 +154,8 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
       AppLogger.error('FURNITURE_SCAN', 'Failed to scan furniture', e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Impossible d\'analyser la photo du meuble. Ajustez manuellement.'),
+          SnackBar(
+            content: Text(tr('Impossible d\'analyser la photo du meuble. Ajustez manuellement.', 'Couldn\'t analyse the photo of the rack. Adjust it by hand.')),
             backgroundColor: Colors.orange,
           ),
         );
@@ -209,7 +210,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de l\'enregistrement : $e'),
+            content: Text(tr('Erreur lors de l\'enregistrement : $e', 'Couldn\'t save: $e')),
             backgroundColor: Colors.red,
           ),
         );
@@ -259,7 +260,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        widget.initialFurniture != null ? 'Modifier le meuble' : 'Nouveau meuble de cave',
+                        widget.initialFurniture != null ? tr('Modifier le meuble', 'Edit the rack') : tr('Nouveau meuble de cave', 'New cellar rack'),
                         style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -282,13 +283,13 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                             Expanded(
                               child: TextFormField(
                                 controller: _nameController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Nom du meuble *',
-                                  hintText: 'ex: Casier chêne, Étagère A...',
-                                  border: OutlineInputBorder(),
+                                decoration: InputDecoration(
+                                  labelText: tr('Nom du meuble *', 'Rack name *'),
+                                  hintText: tr('ex: Casier chêne, Étagère A...', 'e.g. Oak rack, Shelf A...'),
+                                  border: const OutlineInputBorder(),
                                   isDense: true,
                                 ),
-                                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+                                validator: (v) => (v == null || v.trim().isEmpty) ? tr('Requis', 'Required') : null,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -304,16 +305,16 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     )
                                   : const Icon(Icons.photo_camera, size: 18),
-                              label: const Text('Scanner'),
+                              label: Text(tr('Scanner', 'Scan')),
                             ),
                           ],
                         ),
                         const SizedBox(height: 16),
 
                         // Preset Shapes
-                        const Text(
-                          'Disposition / Forme',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        Text(
+                          tr('Disposition / Forme', 'Layout / shape'),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         const SizedBox(height: 8),
                         Wrap(
@@ -322,7 +323,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                           children: [
                             ChoiceChip(
                               avatar: const Icon(Icons.table_restaurant_outlined, size: 16),
-                              label: const Text('Casier Rectangle'),
+                              label: Text(tr('Casier Rectangle', 'Rectangular rack')),
                               selected: _shapeType == 'rectangle',
                               onSelected: (s) {
                                 if (s) _applyPreset('rectangle');
@@ -330,7 +331,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                             ),
                             ChoiceChip(
                               avatar: const Icon(Icons.kitchen_outlined, size: 16),
-                              label: const Text('Placard / Rangement libre'),
+                              label: Text(tr('Placard / Rangement libre', 'Cupboard / free storage')),
                               selected: _shapeType == 'cupboard',
                               onSelected: (s) {
                                 if (s) _applyPreset('cupboard');
@@ -338,7 +339,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                             ),
                             ChoiceChip(
                               avatar: const Icon(Icons.change_history, size: 16),
-                              label: const Text('Triangle / Pyramide'),
+                              label: Text(tr('Triangle / Pyramide', 'Triangle / pyramid')),
                               selected: _shapeType == 'triangle',
                               onSelected: (s) {
                                 if (s) _applyPreset('triangle');
@@ -346,7 +347,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                             ),
                             ChoiceChip(
                               avatar: const Icon(Icons.view_week_outlined, size: 16),
-                              label: const Text('Décalé 4+2'),
+                              label: Text(tr('Décalé 4+2', 'Staggered 4+2')),
                               selected: _shapeType == 'staggered_4_2',
                               onSelected: (s) {
                                 if (s) _applyPreset('staggered_4_2');
@@ -354,7 +355,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                             ),
                             ChoiceChip(
                               avatar: const Icon(Icons.tune, size: 16),
-                              label: const Text('Personnalisé'),
+                              label: Text(tr('Personnalisé', 'Custom')),
                               selected: _shapeType == 'custom',
                               onSelected: (s) {
                                 if (s) setState(() => _shapeType = 'custom');
@@ -371,15 +372,15 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
                             ),
-                            child: const Row(
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.kitchen_outlined, color: Color(0xFFD4AF37), size: 20),
-                                SizedBox(width: 8),
+                                const Icon(Icons.kitchen_outlined, color: Color(0xFFD4AF37), size: 20),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Placard / Étagère libre : les bouteilles sont disposées librement sans case fixe (placard de cuisine, buffet, étagère en vrac). Vous pouvez ajouter, retirer ou déplacer vos bouteilles à tout moment sans contrainte de coordonnées.',
-                                    style: TextStyle(fontSize: 12, height: 1.35),
+                                    tr('Placard / Étagère libre : les bouteilles sont disposées librement sans case fixe (placard de cuisine, buffet, étagère en vrac). Vous pouvez ajouter, retirer ou déplacer vos bouteilles à tout moment sans contrainte de coordonnées.', 'Cupboard / open shelf: bottles sit freely with no fixed slot (kitchen cupboard, sideboard, open shelving). Add, remove or move bottles at any time, with no coordinates to respect.'),
+                                    style: const TextStyle(fontSize: 12, height: 1.35),
                                   ),
                                 ),
                               ],
@@ -404,7 +405,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Colonnes (A-${String.fromCharCode(64 + _columns)})',
+                                        tr('Colonnes (A-${String.fromCharCode(64 + _columns)})', 'Columns (A-${String.fromCharCode(64 + _columns)})'),
                                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                                       ),
                                       const SizedBox(height: 4),
@@ -444,7 +445,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Rangées (1-$_rows)',
+                                        tr('Rangées (1-$_rows)', 'Rows (1-$_rows)'),
                                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                                       ),
                                       const SizedBox(height: 4),
@@ -478,9 +479,9 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                           // Capacity & Interactive Block Grid Header
                           Row(
                             children: [
-                              const Text(
-                                'Modélisation en blocs',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              Text(
+                                tr('Modélisation en blocs', 'Block model'),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                               const Spacer(),
                               Container(
@@ -490,7 +491,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  '$_activeSlotsCount places actives',
+                                  tr('$_activeSlotsCount places actives', '$_activeSlotsCount active slots'),
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -502,7 +503,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Touchez un bloc pour l\'activer ou le désactiver selon votre meuble réel.',
+                            tr('Touchez un bloc pour l\'activer ou le désactiver selon votre meuble réel.', 'Tap a block to turn it on or off to match your actual rack.'),
                             style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 12),
@@ -608,9 +609,9 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                   children: [
                                     const Icon(Icons.table_rows_outlined, size: 18, color: Color(0xFF8B1E3F)),
                                     const SizedBox(width: 8),
-                                    const Text(
-                                      'Nombre d\'étagères / niveaux',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    Text(
+                                      tr('Nombre d\'étagères / niveaux', 'Number of shelves / levels'),
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                     ),
                                     const Spacer(),
                                     Container(
@@ -619,9 +620,9 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                         color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: const Text(
-                                        'Capacité libre & indéfinie',
-                                        style: TextStyle(
+                                      child: Text(
+                                        tr('Capacité libre & indéfinie', 'Free, open-ended capacity'),
+                                        style: const TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFF9A7B1C),
@@ -632,7 +633,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Placement totalement libre : chaque étagère accueille vos bouteilles en vrac, sans largeur ni contrainte de nombre.',
+                                  tr('Placement totalement libre : chaque étagère accueille vos bouteilles en vrac, sans largeur ni contrainte de nombre.', 'Completely free placement: each shelf holds your bottles loosely, with no width or number limit.'),
                                   style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                                 ),
                                 const SizedBox(height: 12),
@@ -645,7 +646,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                     ),
                                     Expanded(
                                       child: Text(
-                                        '$_rows étagère${_rows > 1 ? "s" : ""}',
+                                        tr('$_rows étagère${_rows > 1 ? "s" : ""}', '$_rows shel${_rows > 1 ? "ves" : "f"}'),
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                       ),
@@ -665,13 +666,13 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                           // Cupboard preview without blocks or columns
                           Row(
                             children: [
-                              const Text(
-                                'Aperçu du meuble',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              Text(
+                                tr('Aperçu du meuble', 'Rack preview'),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                               const Spacer(),
                               Text(
-                                '$_rows étagères ouvertes',
+                                tr('$_rows étagères ouvertes', '$_rows open shelves'),
                                 style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                               ),
                             ],
@@ -700,12 +701,12 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                       const Icon(Icons.table_rows_outlined, size: 16, color: Color(0xFF8C7355)),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Étagère ${r + 1}',
+                                        tr('Étagère ${r + 1}', 'Shelf ${r + 1}'),
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                                       ),
                                       const Spacer(),
                                       Text(
-                                        'Rangement libre • Quantité indéfinie',
+                                        tr('Rangement libre • Quantité indéfinie', 'Free storage • Any quantity'),
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontStyle: FontStyle.italic,
@@ -731,7 +732,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Annuler'),
+                      child: Text(tr('Annuler', 'Cancel')),
                     ),
                     const SizedBox(width: 8),
                     FilledButton(
@@ -745,7 +746,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                               height: 18,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('Enregistrer le meuble'),
+                          : Text(tr('Enregistrer le meuble', 'Save the rack')),
                     ),
                   ],
                 ),

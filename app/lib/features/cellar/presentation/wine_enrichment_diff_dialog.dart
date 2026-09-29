@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../domain/wine.dart';
+import '../../../shared/utils/langue.dart';
 
 class WineFieldDiff {
   final String key;
@@ -101,7 +102,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
             key: key,
             label: label,
             icon: icon,
-            currentDisplay: currentFormatted.isEmpty ? '(Non renseigné)' : currentFormatted,
+            currentDisplay: currentFormatted.isEmpty ? tr('(Non renseigné)', '(Not set)') : currentFormatted,
             aiDisplay: aiFormatted,
             aiRawValue: aiValue,
             useAi: false, // Default: keep user's manual value
@@ -113,7 +114,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     // 1. Apogee & Lifespan fields
     checkField(
       key: 'peak_drinking_start',
-      label: 'Début d\'apogée',
+      label: tr('Début d\'apogée', 'Peak from'),
       icon: Icons.auto_awesome,
       currentValue: wine.peakStart,
       aiValue: enriched['peak_drinking_start'],
@@ -121,7 +122,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'peak_drinking_end',
-      label: 'Fin d\'apogée',
+      label: tr('Fin d\'apogée', 'Peak until'),
       icon: Icons.alarm,
       currentValue: wine.peakEnd,
       aiValue: enriched['peak_drinking_end'],
@@ -129,7 +130,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'ideal_drinking_start',
-      label: 'Début de dégustation conseillée',
+      label: tr('Début de dégustation conseillée', 'Drink from'),
       icon: Icons.calendar_today,
       currentValue: wine.drinkStart,
       aiValue: enriched['ideal_drinking_start'],
@@ -137,7 +138,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'ideal_drinking_end',
-      label: 'Fin de garde conseillée',
+      label: tr('Fin de garde conseillée', 'Drink by'),
       icon: Icons.timelapse,
       currentValue: wine.drinkEnd,
       aiValue: enriched['ideal_drinking_end'],
@@ -147,7 +148,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     // 2. Identity & Region fields
     checkField(
       key: 'name',
-      label: 'Nom du vin',
+      label: tr('Nom du vin', 'Wine name'),
       icon: Icons.wine_bar,
       currentValue: wine.name,
       aiValue: enriched['name'],
@@ -155,7 +156,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'producer',
-      label: 'Domaine / Producteur',
+      label: tr('Domaine / Producteur', 'Estate / producer'),
       icon: Icons.business,
       currentValue: wine.producer,
       aiValue: enriched['producer'],
@@ -163,7 +164,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'vintage',
-      label: 'Millésime',
+      label: tr('Millésime', 'Vintage'),
       icon: Icons.history,
       currentValue: wine.vintage,
       aiValue: enriched['vintage'],
@@ -171,7 +172,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'country',
-      label: 'Pays',
+      label: tr('Pays', 'Country'),
       icon: Icons.public,
       currentValue: wine.country,
       aiValue: enriched['country'],
@@ -179,7 +180,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'region',
-      label: 'Région',
+      label: tr('Région', 'Region'),
       icon: Icons.map,
       currentValue: wine.region,
       aiValue: enriched['region'],
@@ -187,7 +188,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'sub_region',
-      label: 'Sous-région',
+      label: tr('Sous-région', 'Sub-region'),
       icon: Icons.location_on,
       currentValue: wine.subRegion,
       aiValue: enriched['sub_region'],
@@ -195,7 +196,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'appellation',
-      label: 'Appellation / AOC',
+      label: tr('Appellation / AOC', 'Appellation'),
       icon: Icons.verified,
       currentValue: wine.appellation,
       aiValue: enriched['appellation'],
@@ -211,7 +212,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'cuvee_parcel',
-      label: 'Cuvée / Parcelle',
+      label: tr('Cuvée / Parcelle', 'Cuvée / plot'),
       icon: Icons.local_offer,
       currentValue: wine.cuveeParcel,
       aiValue: enriched['cuvee_parcel'],
@@ -219,7 +220,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'alcohol_pct',
-      label: 'Degré d\'alcool',
+      label: tr('Degré d\'alcool', 'Alcohol'),
       icon: Icons.percent,
       currentValue: wine.alcoholPct,
       aiValue: enriched['alcohol_pct'],
@@ -227,7 +228,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
     );
     checkField(
       key: 'estimated_market_value',
-      label: 'Valeur marchande estimée',
+      label: tr('Valeur marchande estimée', 'Estimated market value'),
       icon: Icons.euro,
       currentValue: wine.estimatedMarketValue,
       aiValue: enriched['estimated_market_value'],
@@ -243,7 +244,7 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
           key: 'grapes',
           label: 'Encépagement / Cépages',
           icon: Icons.grass,
-          currentDisplay: currentGrapesStr.isEmpty ? '(Non renseigné)' : currentGrapesStr,
+          currentDisplay: currentGrapesStr.isEmpty ? tr('(Non renseigné)', '(Not set)') : currentGrapesStr,
           aiDisplay: aiGrapesStr,
           aiRawValue: widget.enrichedGrapes.map((g) => g.toJson()).toList(),
           useAi: false,

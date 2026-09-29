@@ -7,6 +7,7 @@ import '../../friends/data/friends_repository.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../domain/guest_matcher_engine.dart';
+import '../../../shared/utils/langue.dart';
 
 class GuestMatcherSheet extends ConsumerStatefulWidget {
   final List<Bottle>? preloadedBottles;
@@ -28,6 +29,9 @@ class GuestMatcherSheet extends ConsumerStatefulWidget {
 
 class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
   final List<GuestProfile> _selectedGuests = [];
+
+  /// Le profil de la personne qui tient le téléphone : elle se lit « vous » dans les raisons.
+  String? _idHote;
   bool _includeHost = true;
   List<GuestMatchResult> _results = [];
   bool _isCalculating = false;
@@ -43,7 +47,8 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
       final profiles = await ref.read(tasteProfilesListProvider.future);
       final primary = profiles.firstWhere((p) => p.isPrimary, orElse: () => profiles.first);
       if (mounted) {
-        final hostGuest = GuestProfile.fromTasteProfile(primary);
+        final hostGuest = GuestProfile.fromTasteProfile(primary, nom: primary.isPrimary ? tr('Moi', 'Me') : null);
+        _idHote = hostGuest.id;
         setState(() {
           if (_includeHost && !_selectedGuests.any((g) => g.id == hostGuest.id)) {
             _selectedGuests.add(hostGuest);
@@ -67,6 +72,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
       bottles: bottles.where((b) => b.quantity > 0).toList(),
       guests: _selectedGuests,
       maxResults: 6,
+      idLecteur: _idHote,
     );
 
     setState(() {
@@ -76,7 +82,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
   }
 
   void _addQuickGuestDialog() {
-    final nameCtrl = TextEditingController(text: 'Invité ${_selectedGuests.length + 1}');
+    final nameCtrl = TextEditingController(text: tr('Invité ${_selectedGuests.length + 1}', 'Guest ${_selectedGuests.length + 1}'));
     String selectedStyle = 'equilibre';
 
     showDialog(
@@ -84,7 +90,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
           backgroundColor: const Color(0xFF1E1A24),
-          title: const Text('Ajouter un convive', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: Text(tr('Ajouter un convive', 'Add a guest'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,26 +98,26 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
               TextField(
                 controller: nameCtrl,
                 style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Prénom ou surnom',
-                  labelStyle: TextStyle(color: Color(0xFFD4AF37)),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
+                decoration: InputDecoration(
+                  labelText: tr('Prénom ou surnom', 'First name or nickname'),
+                  labelStyle: const TextStyle(color: Color(0xFFD4AF37)),
+                  enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
                 ),
               ),
               const SizedBox(height: 18),
-              const Text('Profil gustatif estimé :', style: TextStyle(color: Colors.white70, fontSize: 13)),
+              Text(tr('Profil gustatif estimé :', 'Their taste, roughly:'), style: const TextStyle(color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 8),
               DropdownButton<String>(
                 value: selectedStyle,
                 isExpanded: true,
                 dropdownColor: const Color(0xFF282230),
                 style: const TextStyle(color: Colors.white),
-                items: const [
-                  DropdownMenuItem(value: 'equilibre', child: Text('🍷 Curieux & Éclectique (Tout-terrain)')),
-                  DropdownMenuItem(value: 'puissant', child: Text('🧱 Grands Rouges Puissants & Tanniques')),
-                  DropdownMenuItem(value: 'mineral', child: Text('⚡ Blancs Tendus, Frais & Minéraux')),
-                  DropdownMenuItem(value: 'fruit', child: Text('🍒 Rouges Légers & Fruit Croquant')),
-                  DropdownMenuItem(value: 'sans_tanin', child: Text('🕊️ Aversion stricte aux tanins durs')),
+                items: [
+                  DropdownMenuItem(value: 'equilibre', child: Text(tr('🍷 Curieux & Éclectique (Tout-terrain)', '🍷 Curious, likes a bit of everything'))),
+                  DropdownMenuItem(value: 'puissant', child: Text(tr('🧱 Grands Rouges Puissants & Tanniques', '🧱 Big, powerful, tannic reds'))),
+                  DropdownMenuItem(value: 'mineral', child: Text(tr('⚡ Blancs Tendus, Frais & Minéraux', '⚡ Crisp, fresh, mineral whites'))),
+                  DropdownMenuItem(value: 'fruit', child: Text(tr('🍒 Rouges Légers & Fruit Croquant', '🍒 Light, fruity reds'))),
+                  DropdownMenuItem(value: 'sans_tanin', child: Text(tr('🕊️ Aversion stricte aux tanins durs', '🕊️ Can\'t stand firm tannins'))),
                 ],
                 onChanged: (v) {
                   if (v != null) setDlgState(() => selectedStyle = v);
@@ -122,12 +128,12 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Annuler', style: TextStyle(color: Colors.white60)),
+              child: Text(tr('Annuler', 'Cancel'), style: const TextStyle(color: Colors.white60)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
               onPressed: () {
-                final name = nameCtrl.text.trim().isEmpty ? 'Invité' : nameCtrl.text.trim();
+                final name = nameCtrl.text.trim().isEmpty ? tr('Invité', 'Guest') : nameCtrl.text.trim();
                 TasteProfile? tp;
                 List<String> disliked = [];
 
@@ -176,7 +182,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                 Navigator.pop(ctx);
                 _runMatching();
               },
-              child: const Text('Ajouter', style: TextStyle(color: Colors.white)),
+              child: Text(tr('Ajouter', 'Add'), style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -217,21 +223,21 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                   child: const Icon(Icons.people_alt, color: Color(0xFFD4AF37), size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Accord Multi-Palais',
-                        style: TextStyle(
+                        tr('Accord Multi-Palais', 'One bottle for everyone'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        'Consensus algorithmique & zéro déçu',
-                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                        tr('Consensus algorithmique & zéro déçu', 'The bottle that suits the whole table'),
+                        style: const TextStyle(color: Colors.white54, fontSize: 12),
                       ),
                     ],
                   ),
@@ -272,7 +278,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                           backgroundColor: const Color(0xFF8B1E3F).withAlpha(60),
                           side: const BorderSide(color: Color(0xFF8B1E3F)),
                           avatar: const Icon(Icons.person_add_alt_1, size: 18, color: Color(0xFFD4AF37)),
-                          label: const Text('+ Invité express', style: TextStyle(color: Colors.white, fontSize: 13)),
+                          label: Text(tr('+ Invité express', '+ Quick guest'), style: const TextStyle(color: Colors.white, fontSize: 13)),
                           onPressed: _addQuickGuestDialog,
                         ),
                       ],
@@ -345,8 +351,8 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                               const SizedBox(height: 16),
                               Text(
                                 _selectedGuests.isEmpty
-                                    ? 'Ajoutez au moins un convive pour calculer l\'accord parfait.'
-                                    : 'Aucune bouteille disponible dans votre cave ne correspond aux critères.',
+                                    ? tr('Ajoutez au moins un convive pour calculer l\'accord parfait.', 'Add at least one guest to find the right bottle.')
+                                    : tr('Aucune bouteille disponible dans votre cave ne correspond aux critères.', 'No bottle in your cellar fits.'),
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(color: Colors.white70, fontSize: 15),
                               ),
@@ -416,7 +422,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                                           ),
                                         ),
                                         child: Text(
-                                          '${match.consensusScore.toStringAsFixed(0)}% Harmonie',
+                                          tr('${match.consensusScore.toStringAsFixed(0)}% Harmonie', '${match.consensusScore.toStringAsFixed(0)}% match'),
                                           style: TextStyle(
                                             color: isGoldMedal ? const Color(0xFFD4AF37) : Colors.white,
                                             fontWeight: FontWeight.bold,
@@ -470,7 +476,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                       ),
                                       icon: const Icon(Icons.wine_bar, size: 18),
-                                      label: const Text('Voir le flacon & Déboucher'),
+                                      label: Text(tr('Voir le flacon & Déboucher', 'See the bottle & open it')),
                                       onPressed: () {
                                         Navigator.pop(context);
                                         Navigator.push(

@@ -3,6 +3,7 @@ import '../../cellar/domain/bottle.dart';
 import '../../cellar/domain/wine.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../auth/domain/wine_taste_radar.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Représente un convive pour la recherche d'accord partagé.
 class GuestProfile {
@@ -121,10 +122,12 @@ class GuestProfile {
     );
   }
 
-  factory GuestProfile.fromTasteProfile(TasteProfile tp, {String? avatarUrl}) {
+  /// [nom] remplace le nom stocké du profil : le profil principal s'appelle « Moi » en
+  /// base, il doit se lire « Me » en anglais.
+  factory GuestProfile.fromTasteProfile(TasteProfile tp, {String? avatarUrl, String? nom}) {
     return GuestProfile(
       id: tp.id,
-      name: tp.name,
+      name: nom ?? tp.name,
       avatarUrl: avatarUrl,
       tasteProfile: tp,
       favoriteTypes: tp.favoriteTypes,
@@ -244,6 +247,7 @@ class GuestMatcherEngine {
     required List<Bottle> bottles,
     required List<GuestProfile> guests,
     int maxResults = 10,
+    String? idLecteur,
   }) {
     if (bottles.isEmpty || guests.isEmpty) return const [];
 
@@ -260,18 +264,29 @@ class GuestMatcherEngine {
       for (final guest in guests) {
         double score = _calculateCompatibility(wine, wineRadar, guest);
 
-        // Détection des aversions critiques
+        // Détection des aversions critiques. Le profil du vin est estimé (cépages,
+        // région) : l'alerte dit « risque », pas « a ».
+        final vous = idLecteur != null && guest.id == idLecteur;
         for (final disliked in guest.dislikedCharacteristics) {
           final dLower = disliked.toLowerCase();
           if (dLower.contains('tannique') && wineRadar.tannin >= 7.2) {
             score *= 0.4;
-            aversionAlerts.add('${guest.name} : aversion aux tanins fermes');
+            aversionAlerts.add(vous
+                ? tr('Vous n\'aimez pas les tanins fermes : celui-ci risque d\'en avoir trop', 'You dislike firm tannins: this one may have too much')
+                : tr('${guest.name} n\'aime pas les tanins fermes : celui-ci risque d\'en avoir trop',
+                    '${guest.name} dislikes firm tannins: this one may have too much'));
           } else if (dLower.contains('acide') && wineRadar.acidity >= 7.5) {
             score *= 0.45;
-            aversionAlerts.add('${guest.name} : aversion aux acidités vives');
+            aversionAlerts.add(vous
+                ? tr('Vous n\'aimez pas les vins très vifs : celui-ci risque de l\'être trop', 'You dislike very crisp wines: this one may be too sharp')
+                : tr('${guest.name} n\'aime pas les vins très vifs : celui-ci risque de l\'être trop',
+                    '${guest.name} dislikes very crisp wines: this one may be too sharp'));
           } else if (dLower.contains('bois') && wineRadar.oak >= 6.5) {
             score *= 0.45;
-            aversionAlerts.add('${guest.name} : aversion au boisé dominant');
+            aversionAlerts.add(vous
+                ? tr('Vous n\'aimez pas le boisé : celui-ci risque d\'en avoir trop', 'You dislike oak: this one may have too much')
+                : tr('${guest.name} n\'aime pas le boisé : celui-ci risque d\'en avoir trop',
+                    '${guest.name} dislikes oak: this one may have too much'));
           }
         }
 
@@ -289,7 +304,7 @@ class GuestMatcherEngine {
       // Pénalité proportionnelle à l'hétérogénéité des avis
       final consensusScore = (mean - (stdDev * 0.45)).clamp(5.0, 99.0);
 
-      final rationale = _generateSommelierRationale(wine, guests, guestScores, aversionAlerts, consensusScore);
+      final rationale = _generateSommelierRationale(guests, guestScores, aversionAlerts, idLecteur);
 
       results.add(GuestMatchResult(
         bottle: bottle,
@@ -412,26 +427,65 @@ class GuestMatcherEngine {
     );
   }
 
+  /// Le « pourquoi » d'une bouteille : qui l'aimera, qui risque de moins l'aimer, tiré des
+  /// seuls scores des convives. Les trois phrases fixes d'avant prêtaient à n'importe quel
+  /// vin « l'élégance » et « une ouverture préalable de 30 minutes » — le défaut corrigé
+  /// sur la table du restaurant le 28/09.
   static String _generateSommelierRationale(
-    Wine wine,
     List<GuestProfile> guests,
     Map<String, double> guestScores,
     List<String> aversionAlerts,
-    double consensusScore,
+    String? idLecteur,
   ) {
-    final wineName = wine.name;
-    final guestNames = guests.map((g) => g.name).join(', ');
+    final fr = Langue.estFr;
+    final notes = [
+      for (final g in guests)
+        if (guestScores.containsKey(g.id)) (g, guestScores[g.id]!)
+    ]..sort((a, b) => b.$2.compareTo(a.$2));
+    if (notes.isEmpty) return tr('Une bouteille pour la table', 'A bottle for the table');
 
-    if (aversionAlerts.isNotEmpty) {
-      return '⚠️ Accord délicat pour $guestNames : ${aversionAlerts.first}. À envisager uniquement avec un plat adapté.';
-    }
-
-    if (consensusScore >= 85.0) {
-      return '✨ Consensus exceptionnel pour $guestNames ! $wineName offre l\'équilibre parfait entre fruit, structure et fraîcheur sans aucune aspérité clivante.';
-    } else if (consensusScore >= 70.0) {
-      return '👍 Très bel accord rassembleur. L\'élégance de $wineName saura séduire les amateurs de fraîcheur tout en apportant la matière attendue.';
+    String phrase;
+    if (notes.length == 1) {
+      final (g, s) = notes.single;
+      final vous = idLecteur == null || g.id == idLecteur;
+      phrase = s >= 85
+          ? (vous ? tr('Taillé pour vos goûts', 'Made for your taste') : tr('Taillé pour les goûts de ${g.name}', 'Made for ${g.name}\'s taste'))
+          : s >= 65
+              ? (vous ? tr('Dans vos goûts', 'Close to your taste') : tr('Dans les goûts de ${g.name}', 'Close to ${g.name}\'s taste'))
+              : (vous
+                  ? tr('Un pas de côté par rapport à vos goûts', 'A step away from your usual taste')
+                  : tr('Un pas de côté pour ${g.name}', 'A step away from ${g.name}\'s usual taste'));
     } else {
-      return '⚖️ Vin de compromis pour $guestNames. Une cuvée de caractère qui demandera une ouverture préalable de 30 minutes.';
+      // Celui qui lit se lit « vous », en dernier, et le verbe s'accorde.
+      bool estLecteur(GuestProfile g) => idLecteur != null && g.id == idLecteur;
+      (List<String>, bool) groupe(bool Function(double) dedans) {
+        final autres = [for (final n in notes) if (dedans(n.$2) && !estLecteur(n.$1)) n.$1.name];
+        final lecteur = notes.any((n) => dedans(n.$2) && estLecteur(n.$1));
+        return ([...autres, if (lecteur) tr('vous', 'you')], lecteur);
+      }
+
+      String verbe((List<String>, bool) g, String vous, String un, String plusieurs, String en) =>
+          '${_liste(g.$1, fr)} ${fr ? (g.$2 ? vous : (g.$1.length > 1 ? plusieurs : un)) : en}';
+      final fans = groupe((s) => s >= 85);
+      final contents = groupe((s) => s >= 65 && s < 85);
+      final tiedes = groupe((s) => s >= 55 && s < 65);
+      final reticents = groupe((s) => s < 55);
+      final parts = [
+        if (fans.$1.isNotEmpty) verbe(fans, 'allez l\'adorer', 'va l\'adorer', 'vont l\'adorer', 'will love it'),
+        if (contents.$1.isNotEmpty) verbe(contents, 'l\'apprécierez', 'l\'appréciera', 'l\'apprécieront', 'will enjoy it'),
+        if (tiedes.$1.isNotEmpty)
+          verbe(tiedes, 'vous en accommoderez', 's\'en accommodera', 's\'en accommoderont', 'will be fine with it'),
+        if (reticents.$1.isNotEmpty)
+          verbe(reticents, 'risquez de moins l\'aimer', 'risque de moins l\'aimer', 'risquent de moins l\'aimer', 'may like it less'),
+      ];
+      phrase = parts.join(fr ? ' ; ' : '; ');
     }
+    phrase = phrase[0].toUpperCase() + phrase.substring(1);
+    return aversionAlerts.isEmpty ? '$phrase.' : '$phrase. ${aversionAlerts.first}.';
+  }
+
+  static String _liste(List<String> noms, bool fr) {
+    if (noms.length <= 1) return noms.join();
+    return '${noms.sublist(0, noms.length - 1).join(', ')} ${fr ? 'et' : 'and'} ${noms.last}';
   }
 }

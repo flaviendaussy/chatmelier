@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../shared/utils/langue.dart';
 
 class SpiritBottleFillView extends StatefulWidget {
   final int fillLevel; // 0 to 100
@@ -120,7 +121,7 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Niveau de la bouteille',
+                      tr('Niveau de la bouteille', 'Bottle level'),
                       style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     Text(
@@ -208,10 +209,10 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
                             color: colors.primary,
                           ),
                           const SizedBox(width: 6),
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Glissez le doigt sur la bouteille pour ajuster le volume',
-                              style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
+                              tr('Glissez le doigt sur la bouteille pour ajuster le volume', 'Slide your finger on the bottle to set the level'),
+                              style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
                             ),
                           ),
                         ],
@@ -257,11 +258,11 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          _buildPresetChip(0, 'Vide (0%)'),
+                          _buildPresetChip(0, tr('Vide (0%)', 'Empty (0%)')),
                           _buildPresetChip(25, '1/4'),
                           _buildPresetChip(50, '1/2'),
                           _buildPresetChip(75, '3/4'),
-                          _buildPresetChip(100, 'Plein (100%)'),
+                          _buildPresetChip(100, tr('Plein (100%)', 'Full (100%)')),
                         ],
                       ),
                   ],
@@ -286,12 +287,12 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
   }
 
   static String _describeFillLevel(int level) {
-    if (level <= 0) return '🔴 Bouteille vide (0%)';
-    if (level <= 20) return '🟠 Fond de bouteille (~${(level * 7).round()} cl)';
-    if (level <= 40) return '🟡 Moins de la moitié (~${(level * 7).round()} cl)';
-    if (level <= 60) return '🟢 À moitié pleine (~${(level * 7).round()} cl)';
-    if (level <= 80) return '🟢 Plus de la moitié (~${(level * 7).round()} cl)';
-    return '🟢 Bouteille quasi pleine (~70 cl)';
+    if (level <= 0) return tr('🔴 Bouteille vide (0%)', '🔴 Empty bottle (0%)');
+    if (level <= 20) return tr('🟠 Fond de bouteille (~${(level * 7).round()} cl)', '🟠 Last drops (~${(level * 7).round()} cl)');
+    if (level <= 40) return tr('🟡 Moins de la moitié (~${(level * 7).round()} cl)', '🟡 Less than half (~${(level * 7).round()} cl)');
+    if (level <= 60) return tr('🟢 À moitié pleine (~${(level * 7).round()} cl)', '🟢 Half full (~${(level * 7).round()} cl)');
+    if (level <= 80) return tr('🟢 Plus de la moitié (~${(level * 7).round()} cl)', '🟢 More than half (~${(level * 7).round()} cl)');
+    return tr('🟢 Bouteille quasi pleine (~70 cl)', '🟢 Almost full (~70 cl)');
   }
 
   static String _getSpiritIcon(String spiritType, String? wineName) {

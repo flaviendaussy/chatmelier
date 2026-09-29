@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../domain/bottle.dart';
 import '../domain/wine_food_matcher.dart';
+import '../../../shared/utils/langue.dart';
 
 class CellarFoodPairingSheet extends StatefulWidget {
   final List<Bottle> bottles;
@@ -473,7 +474,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      '${bottle.quantity} en cave',
+                                      tr('${bottle.quantity} en cave', '${bottle.quantity} in the cellar'),
                                       style: const TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../domain/bottle.dart';
 import '../domain/cellar_filter_state.dart';
 import '../../../shared/widgets/grape_chart.dart';
+import '../../../shared/utils/langue.dart';
 
 class CellarFilterSheet extends StatefulWidget {
   final CellarFilterState initialFilter;
@@ -245,7 +246,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                         const Icon(Icons.tune, color: Color(0xFF8B1E3F), size: 22),
                         const SizedBox(width: 8),
                         Text(
-                          'Filtres avancés',
+                          tr('Filtres avancés', 'Advanced filters'),
                           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -254,7 +255,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                       TextButton.icon(
                         onPressed: () => setState(() => _current = const CellarFilterState()),
                         icon: const Icon(Icons.refresh, size: 16, color: Color(0xFF8B1E3F)),
-                        label: const Text('Réinitialiser', style: TextStyle(color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold)),
+                        label: Text(tr('Réinitialiser', 'Reset'), style: const TextStyle(color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold)),
                       ),
                   ],
                 ),
@@ -268,21 +269,21 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                   padding: const EdgeInsets.all(20),
                   children: [
                     // 1. STATUT DE MATURITÉ / APOGÉE
-                    _buildSectionHeader('Fenêtre de Dégustation / Apogée', icon: Icons.hourglass_top),
+                    _buildSectionHeader(tr('Fenêtre de Dégustation / Apogée', 'Drinking window / peak'), icon: Icons.hourglass_top),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _buildChoiceChip('✨ À l\'apogée (Peak)', 'peak', _current.maturityStatus, (v) {
+                        _buildChoiceChip(tr('✨ À l\'apogée (Peak)', '✨ At its peak'), 'peak', _current.maturityStatus, (v) {
                           setState(() => _current = _current.copyWith(maturityStatus: () => v ? 'peak' : null));
                         }),
-                        _buildChoiceChip('⏳ À boire vite', 'drink_soon', _current.maturityStatus, (v) {
+                        _buildChoiceChip(tr('⏳ À boire vite', '⏳ Drink soon'), 'drink_soon', _current.maturityStatus, (v) {
                           setState(() => _current = _current.copyWith(maturityStatus: () => v ? 'drink_soon' : null));
                         }),
-                        _buildChoiceChip('🍷 En garde', 'aging', _current.maturityStatus, (v) {
+                        _buildChoiceChip(tr('🍷 En garde', '🍷 Ageing'), 'aging', _current.maturityStatus, (v) {
                           setState(() => _current = _current.copyWith(maturityStatus: () => v ? 'aging' : null));
                         }),
-                        _buildChoiceChip('🌱 Trop jeune', 'young', _current.maturityStatus, (v) {
+                        _buildChoiceChip(tr('🌱 Trop jeune', '🌱 Too young'), 'young', _current.maturityStatus, (v) {
                           setState(() => _current = _current.copyWith(maturityStatus: () => v ? 'young' : null));
                         }),
                       ],
@@ -290,7 +291,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                     const SizedBox(height: 24),
 
                     // 2. CÉPAGES DYNAMIQUES DE LA CAVE
-                    _buildSectionHeader('Cépages de votre Cave (${_grapes.length})', icon: Icons.grain),
+                    _buildSectionHeader(tr('Cépages de votre Cave (${_grapes.length})', 'Grapes in your cellar (${_grapes.length})'), icon: Icons.grain),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -303,7 +304,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                     const SizedBox(height: 24),
 
                     // 3. RÉGIONS & APPELLATIONS DE LA CAVE
-                    _buildSectionHeader('Régions & Appellations (${_appellations.length})', icon: Icons.map_outlined),
+                    _buildSectionHeader(tr('Régions & Appellations (${_appellations.length})', 'Regions & appellations (${_appellations.length})'), icon: Icons.map_outlined),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -317,7 +318,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
 
                     // 4. MILLÉSIMES DISPONIBLES
                     if (_vintages.isNotEmpty) ...[
-                      _buildSectionHeader('Millésimes (${_vintages.length})', icon: Icons.calendar_today_outlined),
+                      _buildSectionHeader(tr('Millésimes (${_vintages.length})', 'Vintages (${_vintages.length})'), icon: Icons.calendar_today_outlined),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -342,7 +343,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                     ],
 
                     // 5. PAYS D'ORIGINE
-                    _buildSectionHeader('Pays d\'origine (${_countries.length})', icon: Icons.flag_outlined),
+                    _buildSectionHeader(tr('Pays d\'origine (${_countries.length})', 'Country of origin (${_countries.length})'), icon: Icons.flag_outlined),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -393,8 +394,8 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                     ),
                     child: Text(
                       _current.isActive
-                          ? 'Appliquer (${_current.activeFilterCount} ${_current.activeFilterCount > 1 ? "filtres actifs" : "filtre actif"})'
-                          : 'Voir toutes les bouteilles',
+                          ? tr('Appliquer (${_current.activeFilterCount} ${_current.activeFilterCount > 1 ? "filtres actifs" : "filtre actif"})', 'Apply (${_current.activeFilterCount} ${_current.activeFilterCount > 1 ? "active filters" : "active filter"})')
+                          : tr('Voir toutes les bouteilles', 'See all bottles'),
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),

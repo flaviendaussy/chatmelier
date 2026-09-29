@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/providers/cellar_provider.dart';
 import '../data/cellar_export_service.dart';
 import '../data/cellar_pdf_export_service.dart';
+import '../../../shared/utils/langue.dart';
 
 class CellarExportDialog extends ConsumerWidget {
   final String cellarName;
@@ -31,7 +32,7 @@ class CellarExportDialog extends ConsumerWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Exporter ma Cave',
+              tr('Exporter ma Cave', 'Export my cellar'),
               style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
@@ -42,7 +43,7 @@ class CellarExportDialog extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Exportez l\'inventaire complet de "$cellarName" (${bottles.length} références en stock) :',
+            tr('Exportez l\'inventaire complet de "$cellarName" (${bottles.length} références en stock) :', 'Export the full inventory of "$cellarName" (${bottles.length} wines in stock):'),
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 20),
@@ -58,13 +59,13 @@ class CellarExportDialog extends ConsumerWidget {
               backgroundColor: Color(0xFF722F37),
               child: Icon(Icons.picture_as_pdf, color: Color(0xFFD4AF37)),
             ),
-            title: const Text('Carte des Vins Sommelier (PDF)', style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: const Text('Document A4 élégant, classé par style, apogée et cépages (Partage & Impression)'),
+            title: Text(tr('Carte des Vins Sommelier (PDF)', 'Sommelier wine list (PDF)'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(tr('Document A4 élégant, classé par style, apogée et cépages (Partage & Impression)', 'An elegant A4 document, sorted by style, peak and grapes (share & print)')),
             onTap: () async {
               Navigator.pop(context);
               await CellarPdfExportService.exportSommelierWineMenuPdf(
                 cellarName: cellarName,
-                userName: 'Propriétaire Chatmelier',
+                userName: tr('Propriétaire Chatmelier', 'Chatmelier owner'),
                 bottles: bottles,
               );
             },
@@ -81,8 +82,8 @@ class CellarExportDialog extends ConsumerWidget {
               backgroundColor: Color(0xFFE8F5E9),
               child: Icon(Icons.table_chart, color: Color(0xFF2E7D32)),
             ),
-            title: const Text('Export Tableur (CSV / Excel)', style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: const Text('Compatible Excel, Google Sheets, Numbers'),
+            title: Text(tr('Export Tableur (CSV / Excel)', 'Spreadsheet export (CSV / Excel)'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(tr('Compatible Excel, Google Sheets, Numbers', 'Works with Excel, Google Sheets, Numbers')),
             onTap: () async {
               Navigator.pop(context);
               await CellarExportService.exportToCsv(
@@ -103,13 +104,13 @@ class CellarExportDialog extends ConsumerWidget {
               backgroundColor: Color(0xFFEDE7F6),
               child: Icon(Icons.security, color: Color(0xFF512DA8)),
             ),
-            title: const Text('Rapport d\'Assurance Certifié', style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: const Text('Certificat de valorisation patrimoniale'),
+            title: Text(tr('Rapport d\'Assurance Certifié', 'Certified insurance report'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(tr('Certificat de valorisation patrimoniale', 'Valuation certificate')),
             onTap: () async {
               Navigator.pop(context);
               await CellarExportService.exportInsuranceReport(
                 cellarName: cellarName,
-                userName: 'Propriétaire Chatmelier',
+                userName: tr('Propriétaire Chatmelier', 'Chatmelier owner'),
                 bottles: bottles,
               );
             },
@@ -119,7 +120,7 @@ class CellarExportDialog extends ConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Fermer'),
+          child: Text(tr('Fermer', 'Close')),
         ),
       ],
     );

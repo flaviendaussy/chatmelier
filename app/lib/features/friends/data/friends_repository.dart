@@ -10,6 +10,7 @@ import '../../auth/domain/user_profile.dart';
 import '../domain/cellar_access_request.dart';
 import '../domain/friend.dart';
 import '../domain/user_notification.dart';
+import '../../../shared/utils/langue.dart';
 
 final friendsRepositoryProvider = Provider<FriendsRepository>((ref) {
   final client = ref.watch(supabaseProvider);
@@ -203,7 +204,7 @@ class FriendsRepository {
               final ownerId = cellar['owner_id']?.toString() ?? '';
               friendCellarRoles[ownerId] = row['role']?.toString() ?? 'viewer';
               friendCellarIds[ownerId] = cellar['id']?.toString() ?? '';
-              friendCellarNames[ownerId] = cellar['name']?.toString() ?? 'Cave Partagée';
+              friendCellarNames[ownerId] = cellar['name']?.toString() ?? tr('Cave Partagée', 'Shared cellar');
             }
           }
         } catch (_) {}
@@ -370,7 +371,7 @@ class FriendsRepository {
   Future<void> sendFriendRequest(UserProfile targetUser) async {
     final user = _client.auth.currentUser;
     if (user == null) return;
-    if (user.id == targetUser.id) throw Exception('Vous ne pouvez pas vous ajouter vous-même en ami.');
+    if (user.id == targetUser.id) throw Exception(tr('Vous ne pouvez pas vous ajouter vous-même en ami.', 'You can\'t add yourself as a friend.'));
 
     final friendshipId = const Uuid().v4();
 
@@ -474,7 +475,7 @@ class FriendsRepository {
   }) async {
     final user = _client.auth.currentUser;
     if (user == null) return;
-    if (user.id == ownerId) throw Exception('Vous êtes déjà propriétaire de cette cave.');
+    if (user.id == ownerId) throw Exception(tr('Vous êtes déjà propriétaire de cette cave.', 'You already own this cellar.'));
 
     // 1. Try server-side RPC (bypasses RLS restrictions cleanly)
     try {
@@ -755,7 +756,7 @@ class FriendsRepository {
       }
     }
 
-    if (targetCellarId.isEmpty) throw Exception('Impossible de déterminer la cave à partager.');
+    if (targetCellarId.isEmpty) throw Exception(tr('Impossible de déterminer la cave à partager.', 'Couldn\'t tell which cellar to share.'));
 
     // Upsert into cellar_members
     await _client.from('cellar_members').upsert({
@@ -870,7 +871,7 @@ class FriendsRepository {
           CellarAccessRequest(
             id: reqId,
             cellarId: nData['cellar_id']?.toString() ?? '',
-            cellarName: nData['cellar_name']?.toString() ?? 'Ma Cave',
+            cellarName: nData['cellar_name']?.toString() ?? tr('Ma Cave', 'My cellar'),
             ownerId: user.id,
             requesterId: requesterId,
             requesterName: extracted.displayName,

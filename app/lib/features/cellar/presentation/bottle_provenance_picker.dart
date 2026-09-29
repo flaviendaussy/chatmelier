@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/wine_merchant_service.dart';
 import 'wine_merchant_search_dialog.dart';
+import '../../../shared/utils/langue.dart';
 
 class BottleProvenancePicker extends ConsumerStatefulWidget {
   final String? initialSourceType;
@@ -65,7 +66,7 @@ class _BottleProvenancePickerState extends ConsumerState<BottleProvenancePicker>
             const Icon(Icons.place_outlined, size: 18, color: Color(0xFF8B1E3F)),
             const SizedBox(width: 8),
             Text(
-              'Provenance & Origine de la Bouteille',
+              tr('Provenance & Origine de la Bouteille', 'Where the bottle comes from'),
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
@@ -77,17 +78,17 @@ class _BottleProvenancePickerState extends ConsumerState<BottleProvenancePicker>
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _buildTypeChip('estate', '🏰 Domaine', 'Acheté au domaine'),
+              _buildTypeChip('estate', tr('🏰 Domaine', '🏰 Estate'), tr('Acheté au domaine', 'Bought at the estate')),
               const SizedBox(width: 8),
-              _buildTypeChip('merchant', '🏪 Caviste', 'Chez un caviste'),
+              _buildTypeChip('merchant', tr('🏪 Caviste', '🏪 Wine shop'), tr('Chez un caviste', 'From a wine shop')),
               const SizedBox(width: 8),
-              _buildTypeChip('gift', '🎁 Cadeau', 'Offert par un proche'),
+              _buildTypeChip('gift', tr('🎁 Cadeau', '🎁 Gift'), tr('Offert par un proche', 'Given by someone')),
               const SizedBox(width: 8),
-              _buildTypeChip('supermarket', '🛒 Grande Surface', 'Enseigne / Épicerie'),
+              _buildTypeChip('supermarket', tr('🛒 Grande Surface', '🛒 Supermarket'), tr('Enseigne / Épicerie', 'Chain store / grocer')),
               const SizedBox(width: 8),
-              _buildTypeChip('auction', '🔨 Enchères', 'Vente privée / Enchères'),
+              _buildTypeChip('auction', tr('🔨 Enchères', '🔨 Auction'), tr('Vente privée / Enchères', 'Private sale / auction')),
               const SizedBox(width: 8),
-              _buildTypeChip('other', '📦 Autre', 'Stock personnel'),
+              _buildTypeChip('other', tr('📦 Autre', '📦 Other'), tr('Stock personnel', 'Personal stock')),
             ],
           ),
         ),
@@ -107,7 +108,7 @@ class _BottleProvenancePickerState extends ConsumerState<BottleProvenancePicker>
                           initialValue: merchants.any((m) => m.name == _detailsCtrl.text)
                               ? _detailsCtrl.text
                               : null,
-                          hint: const Text('Choisir un caviste enregistré...', style: TextStyle(fontSize: 13)),
+                          hint: Text(tr('Choisir un caviste enregistré...', 'Choose a saved wine shop...'), style: const TextStyle(fontSize: 13)),
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: isDark ? Colors.white10 : Colors.grey.shade100,
@@ -135,7 +136,7 @@ class _BottleProvenancePickerState extends ConsumerState<BottleProvenancePicker>
                       const SizedBox(width: 8),
                       IconButton.filledTonal(
                         icon: const Icon(Icons.search, size: 20),
-                        tooltip: 'Chercher sur Google Maps',
+                        tooltip: tr('Chercher sur Google Maps', 'Search Google Maps'),
                         onPressed: () async {
                           final selected = await WineMerchantSearchDialog.show(context);
                           if (selected != null) {
@@ -151,7 +152,7 @@ class _BottleProvenancePickerState extends ConsumerState<BottleProvenancePicker>
                   if (_detailsCtrl.text.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      '🏪 Caviste sélectionné : ${_detailsCtrl.text}',
+                      tr('🏪 Caviste sélectionné : ${_detailsCtrl.text}', '🏪 Wine shop selected: ${_detailsCtrl.text}'),
                       style: const TextStyle(fontSize: 12, color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -162,7 +163,7 @@ class _BottleProvenancePickerState extends ConsumerState<BottleProvenancePicker>
             error: (_, __) => TextField(
               controller: _detailsCtrl,
               decoration: InputDecoration(
-                hintText: 'Nom du caviste...',
+                hintText: tr('Nom du caviste...', 'Wine shop name...'),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: () async {
@@ -181,7 +182,7 @@ class _BottleProvenancePickerState extends ConsumerState<BottleProvenancePicker>
           TextField(
             controller: _detailsCtrl,
             decoration: InputDecoration(
-              hintText: 'Offert par qui ? (Ex: Camille, Dimitri, Caro...)',
+              hintText: tr('Offert par qui ? (Ex: Camille, Dimitri, Caro...)', 'Given by whom? (e.g. Camille, Dimitri, Caro...)'),
               prefixIcon: const Icon(Icons.card_giftcard, color: Colors.amber),
               filled: true,
               fillColor: isDark ? Colors.white10 : Colors.grey.shade100,

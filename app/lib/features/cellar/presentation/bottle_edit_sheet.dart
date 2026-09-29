@@ -153,7 +153,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
     final isPolluted = rawNotes != null &&
         (rawNotes.trim().toLowerCase() == (w.tastingNotes ?? '').trim().toLowerCase() ||
          rawNotes.trim().toLowerCase() == (w.summary ?? '').trim().toLowerCase() ||
-         rawNotes.contains(tr('Sortie enregistrée par commande vocale', 'Take-out recorded by voice command')));
+         rawNotes.contains('Sortie enregistrée par commande vocale'));
     _userNotesCtrl = TextEditingController(text: isPolluted ? '' : (rawNotes ?? ''));
   }
 

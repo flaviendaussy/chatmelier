@@ -9,6 +9,7 @@ import '../../../shared/widgets/owner_avatar.dart';
 import '../../../shared/widgets/notification_bell_button.dart';
 import '../../friends/data/friends_repository.dart';
 import '../../friends/domain/friend.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Screen for managing cellar members and invitations.
 /// Allows admins to invite users (by email or shareable link),
@@ -114,14 +115,14 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       _emailController.clear();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invite sent to $email')),
+          SnackBar(content: Text(tr('Invitation envoyée à $email', 'Invite sent to $email'))),
         );
       }
       _loadData();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text(tr('Erreur : $e', 'Error: $e'))),
         );
       }
     } finally {
@@ -142,7 +143,8 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       }).select('invite_code').single();
 
       final code = res['invite_code'] as String;
-      String baseUrl = 'https://flaviendaussy.github.io';
+      // L'app web actuelle (celle des tables) : l'autre domaine sert une version ancienne.
+      String baseUrl = 'https://chatmelier.github.io';
       if (kIsWeb) {
         try {
           final origin = Uri.base.origin;
@@ -159,12 +161,12 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       final link = '$baseUrl/invite/$code';
 
       await Share.share(
-        'Rejoins ma cave à vin "${widget.cellarName}" sur Chatmelier !\n$link',
+        tr('Rejoins ma cave à vin "${widget.cellarName}" sur Chatmelier !\n$link', 'Join my wine cellar "${widget.cellarName}" on Chatmelier!\n$link'),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating link: $e')),
+          SnackBar(content: Text(tr('Impossible de créer le lien : $e', 'Error creating link: $e'))),
         );
       }
     }
@@ -190,7 +192,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e')),
+            SnackBar(content: Text(tr('Erreur: $e', 'Error: $e'))),
           );
         }
       }
@@ -201,14 +203,14 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Retirer le membre'),
-        content: Text('Retirer $memberName de cette cave ?'),
+        title: Text(tr('Retirer le membre', 'Remove member')),
+        content: Text(tr('Retirer $memberName de cette cave ?', 'Remove $memberName from this cellar?')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Annuler', 'Cancel'))),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Retirer'),
+            child: Text(tr('Retirer', 'Remove')),
           ),
         ],
       ),
@@ -234,7 +236,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e')),
+            SnackBar(content: Text(tr('Erreur: $e', 'Error: $e'))),
           );
         }
       }
@@ -252,7 +254,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text(tr('Erreur : $e', 'Error: $e'))),
         );
       }
     }
@@ -270,7 +272,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Partage - ${widget.cellarName}'),
+        title: Text(tr('Partage - ${widget.cellarName}', 'Sharing - ${widget.cellarName}')),
         actions: const [
           NotificationBellButton(),
         ],
@@ -294,17 +296,17 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
 
                 // ============ INVITE SECTION (admin only) ============
                 if (_isAdmin) ...[
-                  Text('Inviter par email ou lien', style: theme.textTheme.titleMedium),
+                  Text(tr('Inviter par email ou lien', 'Invite by email or link'), style: theme.textTheme.titleMedium),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: _emailController,
-                          decoration: const InputDecoration(
-                            hintText: 'Email address',
-                            prefixIcon: Icon(Icons.email_outlined),
-                            border: OutlineInputBorder(),
+                          decoration: InputDecoration(
+                            hintText: tr('Adresse e-mail', 'Email address'),
+                            prefixIcon: const Icon(Icons.email_outlined),
+                            border: const OutlineInputBorder(),
                           ),
                           keyboardType: TextInputType.emailAddress,
                         ),
@@ -312,14 +314,14 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                       const SizedBox(width: 8),
                       DropdownButton<String>(
                         value: _selectedRole,
-                        items: const [
+                        items: [
                           DropdownMenuItem(
                             value: 'viewer',
                             child: Row(
                               children: [
-                                Icon(Icons.visibility, size: 16, color: Color(0xFF6B7280)),
-                                SizedBox(width: 6),
-                                Text('Lecture seule'),
+                                const Icon(Icons.visibility, size: 16, color: Color(0xFF6B7280)),
+                                const SizedBox(width: 6),
+                                Text(tr('Lecture seule', 'Read only')),
                               ],
                             ),
                           ),
@@ -327,9 +329,9 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                             value: 'editor',
                             child: Row(
                               children: [
-                                Icon(Icons.edit_note, size: 16, color: Color(0xFF2E7D32)),
-                                SizedBox(width: 6),
-                                Text('Lecture & Écriture'),
+                                const Icon(Icons.edit_note, size: 16, color: Color(0xFF2E7D32)),
+                                const SizedBox(width: 6),
+                                Text(tr('Lecture & Écriture', 'Read & write')),
                               ],
                             ),
                           ),
@@ -345,20 +347,20 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                         child: FilledButton.icon(
                           onPressed: _isSending ? null : _inviteByEmail,
                           icon: const Icon(Icons.send),
-                          label: Text(_isSending ? 'Envoi...' : 'Inviter par e-mail'),
+                          label: Text(_isSending ? tr('Envoi...', 'Sending...') : tr('Inviter par e-mail', 'Invite by email')),
                         ),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton.icon(
                         onPressed: _createShareableLink,
                         icon: const Icon(Icons.link),
-                        label: const Text('Lien'),
+                        label: Text(tr('Lien', 'Link')),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton.icon(
                         onPressed: () => context.push('/friends'),
                         icon: const Icon(Icons.people, color: Color(0xFFD4AF37)),
-                        label: const Text('Mes Amis'),
+                        label: Text(tr('Mes Amis', 'My friends')),
                       ),
                     ],
                   ),
@@ -366,11 +368,11 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                 ],
 
                 // ============ CURRENT MEMBERS ============
-                Text('Membres actuels', style: theme.textTheme.titleMedium),
+                Text(tr('Membres actuels', 'Current members'), style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 ...(_members.map((member) {
                   final profile = member['profiles'] as Map<String, dynamic>?;
-                  final name = profile?['display_name'] ?? 'Inconnu';
+                  final name = profile?['display_name'] ?? tr('Inconnu', 'Unknown');
                   final avatarUrl = profile?['avatar_url'] as String?;
                   final role = member['role'] as String;
                   final isCurrentUser = member['user_id'] == currentUserId;
@@ -384,15 +386,15 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                         size: 40,
                       ),
                       title: Text(
-                        name + (isCurrentUser ? ' (vous)' : ''),
+                        name + (isCurrentUser ? tr(' (vous)', ' (you)') : ''),
                         style: theme.textTheme.bodyLarge,
                       ),
                       subtitle: Text(
                         isOwner
-                            ? '👑 Propriétaire'
+                            ? tr('👑 Propriétaire', '👑 Owner')
                             : (role == 'editor'
-                                ? '✍️ Lecture & Écriture'
-                                : '👁️ Lecture seule'),
+                                ? tr('✍️ Lecture & Écriture', '✍️ Read & write')
+                                : tr('👁️ Lecture seule', '👁️ Read only')),
                         style: TextStyle(
                           color: isOwner
                               ? theme.colorScheme.primary
@@ -419,15 +421,15 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                                   value: 'toggle_role',
                                   child: Text(
                                     role == 'editor'
-                                        ? 'Passer en Lecture seule'
-                                        : 'Passer en Lecture & Écriture',
+                                        ? tr('Passer en Lecture seule', 'Switch to read only')
+                                        : tr('Passer en Lecture & Écriture', 'Switch to read & write'),
                                   ),
                                 ),
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'remove',
                                   child: Text(
-                                    'Retirer le membre',
-                                    style: TextStyle(color: Colors.red),
+                                    tr('Retirer le membre', 'Remove member'),
+                                    style: const TextStyle(color: Colors.red),
                                   ),
                                 ),
                               ],
@@ -440,7 +442,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                 // ============ PENDING INVITES ============
                 if (_pendingInvites.isNotEmpty) ...[
                   const SizedBox(height: 24),
-                  Text('Pending Invites', style: theme.textTheme.titleMedium),
+                  Text(tr('Invitations en attente', 'Pending Invites'), style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
                   ...(_pendingInvites.map((invite) {
                     final email = invite['invited_email'] as String? ?? '';
@@ -454,13 +456,14 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                         ),
                         title: Text(email),
                         subtitle: Text(
-                          'Invited as ${role == 'editor' ? 'Editor' : 'Viewer'} • Pending',
+                          tr('Invité comme ${role == 'editor' ? 'éditeur' : 'lecteur'} • En attente',
+                              'Invited as ${role == 'editor' ? 'Editor' : 'Viewer'} • Pending'),
                         ),
                         trailing: _isAdmin
                             ? IconButton(
                                 icon: const Icon(Icons.close, color: Colors.red),
                                 onPressed: () => _revokeInvite(invite['id']),
-                                tooltip: 'Revoke invite',
+                                tooltip: tr('Annuler l\'invitation', 'Revoke invite'),
                               )
                             : null,
                       ),
@@ -481,15 +484,20 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                           children: [
                             Icon(Icons.info_outline, size: 18, color: theme.colorScheme.primary),
                             const SizedBox(width: 8),
-                            Text('About sharing', style: theme.textTheme.titleSmall),
+                            Text(tr('À propos du partage', 'About sharing'), style: theme.textTheme.titleSmall),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '• Viewers can browse and search the cellar\n'
-                          '• Editors can add bottles, consume, and manage wines\n'
-                          '• Changes sync in real-time across all devices\n'
-                          '• Each person sees their own collection + shared ones',
+                          tr(
+                              '• Les lecteurs parcourent la cave et y cherchent\n'
+                              '• Les éditeurs ajoutent, sortent et gèrent les bouteilles\n'
+                              '• Les changements se synchronisent en direct sur tous les appareils\n'
+                              '• Chacun voit sa propre cave et celles qu\'on lui partage',
+                              '• Viewers can browse and search the cellar\n'
+                              '• Editors can add bottles, consume, and manage wines\n'
+                              '• Changes sync in real-time across all devices\n'
+                              '• Each person sees their own collection + shared ones'),
                           style: theme.textTheme.bodySmall,
                         ),
                       ],
@@ -520,7 +528,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
               const Icon(Icons.mark_email_unread_outlined, color: Color(0xFFD4AF37), size: 20),
               const SizedBox(width: 8),
               Text(
-                'Demandes d\'accès reçues (${requests.length})',
+                tr('Demandes d\'accès reçues (${requests.length})', 'Access requests (${requests.length})'),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: Color(0xFFD4AF37)),
               ),
             ],
@@ -528,8 +536,8 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
           const SizedBox(height: 10),
           ...requests.map((r) {
             final req = r;
-            final reqName = req.requesterName as String? ?? 'Un ami';
-            final role = req.requestedRole == 'editor' ? 'Sommelier ✍️' : 'Lecteur 👁️';
+            final reqName = req.requesterName as String? ?? tr('Un ami', 'A friend');
+            final role = req.requestedRole == 'editor' ? tr('Sommelier ✍️', 'Sommelier ✍️') : tr('Lecteur 👁️', 'Viewer 👁️');
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -537,13 +545,13 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      '$reqName souhaite accéder en tant que $role',
+                      tr('$reqName souhaite accéder en tant que $role', '$reqName would like access as $role'),
                       style: const TextStyle(fontSize: 13),
                     ),
                   ),
                   TextButton(
                     onPressed: () => _respondCellarRequest(req.id, req.requesterId, false, 'none'),
-                    child: const Text('Refuser', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    child: Text(tr('Refuser', 'Decline'), style: const TextStyle(color: Colors.grey, fontSize: 12)),
                   ),
                   const SizedBox(width: 6),
                   ElevatedButton(
@@ -553,7 +561,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     ),
                     onPressed: () => _respondCellarRequest(req.id, req.requesterId, true, req.requestedRole),
-                    child: const Text('Accepter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    child: Text(tr('Accepter', 'Accept'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                 ],
               ),
@@ -579,14 +587,14 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(accept ? 'Accès accordé !' : 'Demande refusée.'),
+            content: Text(accept ? tr('Accès accordé !', 'Access granted!') : tr('Demande refusée.', 'Request declined.')),
             backgroundColor: accept ? const Color(0xFF10B981) : Colors.grey.shade800,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Erreur: $e', 'Error: $e'))));
       }
     }
   }
@@ -603,10 +611,10 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Partager avec mes amis', style: theme.textTheme.titleMedium),
+            Text(tr('Partager avec mes amis', 'Share with my friends'), style: theme.textTheme.titleMedium),
             TextButton.icon(
               icon: const Icon(Icons.person_add, size: 16, color: Color(0xFFD4AF37)),
-              label: const Text('Ajouter un ami', style: TextStyle(fontSize: 12, color: Color(0xFFD4AF37))),
+              label: Text(tr('Ajouter un ami', 'Add a friend'), style: const TextStyle(fontSize: 12, color: Color(0xFFD4AF37))),
               onPressed: () => context.push('/friends'),
             ),
           ],
@@ -614,7 +622,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
         const SizedBox(height: 8),
         friendsAsync.when(
           loading: () => const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator())),
-          error: (err, _) => Text('Erreur amis: $err', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          error: (err, _) => Text(tr('Erreur amis: $err', 'Friends error: $err'), style: const TextStyle(fontSize: 12, color: Colors.grey)),
           data: (friends) {
             if (friends.isEmpty) {
               return Card(
@@ -626,15 +634,15 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                     children: [
                       const Text('👥 ', style: TextStyle(fontSize: 24)),
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Vous n\'avez pas encore d\'amis ajoutés. Ajoutez vos proches pour partager votre cave en 1 clic !',
-                          style: TextStyle(fontSize: 12.5, color: Colors.grey),
+                          tr('Vous n\'avez pas encore d\'amis ajoutés. Ajoutez vos proches pour partager votre cave en 1 clic !', 'You haven\'t added any friends yet. Add the people close to you to share your cellar in one tap!'),
+                          style: const TextStyle(fontSize: 12.5, color: Colors.grey),
                         ),
                       ),
                       TextButton(
                         onPressed: () => context.push('/friends'),
-                        child: const Text('Rechercher'),
+                        child: Text(tr('Rechercher', 'Search')),
                       ),
                     ],
                   ),
@@ -668,7 +676,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                               border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
                             ),
                             child: Text(
-                              memberRole == 'editor' ? '✍️ Sommelier' : '👁️ Lecteur',
+                              memberRole == 'editor' ? tr('✍️ Sommelier', '✍️ Sommelier') : tr('👁️ Lecteur', '👁️ Viewer'),
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: Color(0xFF10B981)),
                             ),
                           )
@@ -680,7 +688,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                             ),
                             icon: const Icon(Icons.card_giftcard, size: 15),
-                            label: const Text('Donner accès', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            label: Text(tr('Donner accès', 'Give access'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                             onPressed: () => _showGrantCellarDialogToFriend(friend),
                           ),
                   ),
@@ -707,7 +715,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
               const Text('🎁 ', style: TextStyle(fontSize: 22)),
               Expanded(
                 child: Text(
-                  'Accès cave pour ${friend.displayName}',
+                  tr('Accès cave pour ${friend.displayName}', 'Cellar access for ${friend.displayName}'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
@@ -718,20 +726,20 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Donner accès à "${widget.cellarName}" :',
+                tr('Donner accès à "${widget.cellarName}" :', 'Give access to "${widget.cellarName}":'),
                 style: const TextStyle(fontSize: 13, color: Colors.grey),
               ),
               const SizedBox(height: 12),
               RadioListTile<String>(
-                title: const Text('Lecteur (Consultation 👁️)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: const Text('Peut voir votre cave, vos bouteilles et vos fiches de dégustation.', style: TextStyle(fontSize: 11)),
+                title: Text(tr('Lecteur (Consultation 👁️)', 'Viewer (browse only 👁️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                subtitle: Text(tr('Peut voir votre cave, vos bouteilles et vos fiches de dégustation.', 'Can see your cellar, your bottles and your tasting notes.'), style: const TextStyle(fontSize: 11)),
                 value: 'viewer',
                 groupValue: selectedRole,
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
               ),
               RadioListTile<String>(
-                title: const Text('Sommelier Délégué (Éditeur ✍️)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: const Text('Peut ajouter, déplacer et consommer des bouteilles dans cette cave.', style: TextStyle(fontSize: 11)),
+                title: Text(tr('Sommelier Délégué (Éditeur ✍️)', 'Deputy sommelier (editor ✍️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                subtitle: Text(tr('Peut ajouter, déplacer et consommer des bouteilles dans cette cave.', 'Can add, move and drink bottles in this cellar.'), style: const TextStyle(fontSize: 11)),
                 value: 'editor',
                 groupValue: selectedRole,
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
@@ -741,7 +749,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Annuler'),
+              child: Text(tr('Annuler', 'Cancel')),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -762,7 +770,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                   if (mounted) {
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text('🍾 Accès accordé à ${friend.displayName} !'),
+                        content: Text(tr('🍾 Accès accordé à ${friend.displayName} !', '🍾 Access granted to ${friend.displayName}!')),
                         backgroundColor: const Color(0xFF10B981),
                       ),
                     );
@@ -770,12 +778,12 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                 } catch (e) {
                   if (mounted) {
                     messenger.showSnackBar(
-                      SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.redAccent),
+                      SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
                     );
                   }
                 }
               },
-              child: const Text('Confirmer l\'accès', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(tr('Confirmer l\'accès', 'Confirm access'), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),

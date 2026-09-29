@@ -5,6 +5,7 @@ import '../../features/offline/presentation/pending_actions_sheet.dart';
 import '../../features/offline/domain/offline_action.dart';
 import '../../features/cellar/presentation/vintage_resolution_dialog.dart';
 import '../../shared/providers/cellar_provider.dart';
+import '../utils/langue.dart';
 
 class OfflineSyncBanner extends ConsumerWidget {
   const OfflineSyncBanner({super.key});
@@ -13,21 +14,25 @@ class OfflineSyncBanner extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Alerte de synchronisation'),
+        title: Text(tr('Alerte de synchronisation', 'Sync alert')),
         content: Text(
-          'Il y a $pendingCount action${pendingCount > 1 ? 's' : ''} hors-ligne enregistrée${pendingCount > 1 ? 's' : ''}.\n\nQue souhaitez-vous faire ?',
+          pendingCount > 1
+              ? tr('Il y a $pendingCount actions hors-ligne enregistrées.\n\nQue souhaitez-vous faire ?',
+                  '$pendingCount actions were saved while offline.\n\nWhat would you like to do?')
+              : tr('Il y a 1 action hors-ligne enregistrée.\n\nQue souhaitez-vous faire ?',
+                  '1 action was saved while offline.\n\nWhat would you like to do?'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Annuler'),
+            child: Text(tr('Annuler', 'Cancel')),
           ),
           TextButton(
             onPressed: () {
               ref.read(syncBannerDismissedProvider.notifier).state = true;
               Navigator.of(ctx).pop();
             },
-            child: const Text('Masquer l\'alerte'),
+            child: Text(tr('Masquer l\'alerte', 'Hide alert')),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700),
@@ -37,7 +42,7 @@ class OfflineSyncBanner extends ConsumerWidget {
               ref.read(pendingSyncCountProvider.notifier).state = 0;
               if (ctx.mounted) Navigator.of(ctx).pop();
             },
-            child: const Text('Tout effacer', style: TextStyle(color: Colors.white)),
+            child: Text(tr('Tout effacer', 'Clear all'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -115,8 +120,10 @@ class OfflineSyncBanner extends ConsumerWidget {
                       children: [
                         Text(
                           isSyncing
-                              ? 'Synchronisation en cours...'
-                              : '$pendingCount action${pendingCount > 1 ? 's' : ''} en attente',
+                              ? tr('Synchronisation en cours...', 'Syncing...')
+                              : (pendingCount > 1
+                                  ? tr('$pendingCount actions en attente', '$pendingCount actions waiting')
+                                  : tr('1 action en attente', '1 action waiting')),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: isSyncing
@@ -127,8 +134,8 @@ class OfflineSyncBanner extends ConsumerWidget {
                         if (!isSyncing)
                           Text(
                             hasFailedActions
-                                ? 'Certaines actions ont échoué. Appuyez pour voir.'
-                                : 'Appuyez pour voir le détail des actions',
+                                ? tr('Certaines actions ont échoué. Appuyez pour voir.', 'Some actions failed. Tap to see.')
+                                : tr('Appuyez pour voir le détail des actions', 'Tap to see the actions'),
                             style: TextStyle(
                               fontSize: 11,
                               color: hasFailedActions ? Colors.red.shade600 : const Color(0xFFB45309),
@@ -173,7 +180,9 @@ class OfflineSyncBanner extends ConsumerWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                '✨ ${result.succeeded} action${result.succeeded > 1 ? 's' : ''} synchronisée${result.succeeded > 1 ? 's' : ''} avec succès !',
+                                result.succeeded > 1
+                                    ? tr('✨ ${result.succeeded} actions synchronisées avec succès !', '✨ ${result.succeeded} actions synced!')
+                                    : tr('✨ 1 action synchronisée avec succès !', '✨ 1 action synced!'),
                               ),
                               backgroundColor: const Color(0xFF2E7D32),
                             ),
@@ -187,7 +196,7 @@ class OfflineSyncBanner extends ConsumerWidget {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
-                      'Synchroniser',
+                      tr('Synchroniser', 'Sync'),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: theme.colorScheme.primary,
@@ -197,7 +206,7 @@ class OfflineSyncBanner extends ConsumerWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, size: 16),
-                    tooltip: 'Masquer l\'alerte',
+                    tooltip: tr('Masquer l\'alerte', 'Hide alert'),
                     padding: const EdgeInsets.all(4),
                     constraints: const BoxConstraints(),
                     color: Colors.grey.shade600,
@@ -211,7 +220,7 @@ class OfflineSyncBanner extends ConsumerWidget {
         // 2. Pending Vintage Resolution Banner
         if (pendingResolutions.isNotEmpty)
           ...pendingResolutions.map((item) {
-            final wineName = item['wine_name'] ?? 'Bouteille ajoutée';
+            final wineName = item['wine_name'] ?? tr('Bouteille ajoutée', 'Added bottle');
             final bottleId = item['bottle_id'] as String;
             final wineId = item['wine_id'] as String;
 
@@ -236,7 +245,7 @@ class OfflineSyncBanner extends ConsumerWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Millésime manquant pour "$wineName"',
+                      tr('Millésime manquant pour "$wineName"', 'Vintage missing for "$wineName"'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF581C87),
@@ -259,9 +268,9 @@ class OfflineSyncBanner extends ConsumerWidget {
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text(
-                      'Préciser l\'année',
-                      style: TextStyle(
+                    child: Text(
+                      tr('Préciser l\'année', 'Add the year'),
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF6B21A8),
                       ),
@@ -269,7 +278,7 @@ class OfflineSyncBanner extends ConsumerWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, size: 16),
-                    tooltip: 'Masquer',
+                    tooltip: tr('Masquer', 'Hide'),
                     padding: const EdgeInsets.all(4),
                     constraints: const BoxConstraints(),
                     color: const Color(0xFF581C87),

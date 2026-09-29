@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../../cellar/domain/wine.dart';
 import '../domain/sommelier_storyteller_engine.dart';
+import '../../../shared/utils/langue.dart';
 
 class SommelierStorytellerDialog extends StatefulWidget {
   final Wine wine;
@@ -52,7 +53,8 @@ class _SommelierStorytellerDialogState extends State<SommelierStorytellerDialog>
   Future<void> _initTts() async {
     _tts = FlutterTts();
     try {
-      await _tts.setLanguage('fr-FR');
+      // La voix parle la langue du récit.
+      await _tts.setLanguage(Langue.estFr ? 'fr-FR' : 'en-US');
       await _tts.setSpeechRate(0.46); // Cadence posée de sommelier
       await _tts.setPitch(0.95); // Voix chaude et chaleureuse
 
@@ -174,9 +176,9 @@ class _SommelierStorytellerDialogState extends State<SommelierStorytellerDialog>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Capsule Terroir & Récit Sommelier',
-                        style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+                      Text(
+                        tr('Capsule Terroir & Récit Sommelier', 'The sommelier\'s story'),
+                        style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                       Text(
                         _story.title,
@@ -212,14 +214,14 @@ class _SommelierStorytellerDialogState extends State<SommelierStorytellerDialog>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Récit du Sommelier en 3 Actes',
-                      style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13),
+                    Text(
+                      tr('Récit du Sommelier en 3 Actes', 'The story in 3 acts'),
+                      style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     TextButton(
                       onPressed: () => setState(() => _showScript = !_showScript),
                       child: Text(
-                        _showScript ? 'Masquer texte' : 'Afficher texte',
+                        _showScript ? tr('Masquer texte', 'Hide text') : tr('Afficher texte', 'Show text'),
                         style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 12),
                       ),
                     ),
@@ -227,11 +229,11 @@ class _SommelierStorytellerDialogState extends State<SommelierStorytellerDialog>
                 ),
                 if (_showScript) ...[
                   const SizedBox(height: 10),
-                  _buildActCard(1, 'Acte I : Terroir & Origine', _story.act1Terroir, Icons.landscape_outlined),
+                  _buildActCard(1, tr('Acte I : Terroir & Origine', 'Act I: the place'), _story.act1Terroir, Icons.landscape_outlined),
                   const SizedBox(height: 12),
-                  _buildActCard(2, 'Acte II : Vinification & Patience', _story.act2Vinification, Icons.science_outlined),
+                  _buildActCard(2, tr('Acte II : Vinification & Patience', 'Act II: the making'), _story.act2Vinification, Icons.science_outlined),
                   const SizedBox(height: 12),
-                  _buildActCard(3, 'Acte III : Émotion de Dégustation', _story.act3Degustation, Icons.wine_bar_rounded),
+                  _buildActCard(3, tr('Acte III : Émotion de Dégustation', 'Act III: the tasting'), _story.act3Degustation, Icons.wine_bar_rounded),
                 ],
               ],
             ),
@@ -273,10 +275,10 @@ class _SommelierStorytellerDialogState extends State<SommelierStorytellerDialog>
                       height: height,
                       margin: const EdgeInsets.symmetric(horizontal: 2.5),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
+                        gradient: const LinearGradient(
                           colors: [
-                            const Color(0xFFD4AF37),
-                            const Color(0xFF8B1E3F),
+                            Color(0xFFD4AF37),
+                            Color(0xFF8B1E3F),
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -291,7 +293,7 @@ class _SommelierStorytellerDialogState extends State<SommelierStorytellerDialog>
           ),
           const SizedBox(height: 14),
           Text(
-            _isPlaying ? 'Récit sommelier en cours...' : 'Appuyez sur Lecture pour écouter',
+            _isPlaying ? tr('Récit sommelier en cours...', 'Story playing...') : tr('Appuyez sur Lecture pour écouter', 'Press play to listen'),
             style: TextStyle(
               color: _isPlaying ? const Color(0xFFD4AF37) : Colors.white54,
               fontSize: 12,
@@ -431,7 +433,7 @@ class _SommelierStorytellerDialogState extends State<SommelierStorytellerDialog>
               ),
               if (isCurrent) ...[
                 const Spacer(),
-                const Text('En lecture 🎙️', style: TextStyle(color: Color(0xFFD4AF37), fontSize: 11)),
+                Text(tr('En lecture 🎙️', 'Playing 🎙️'), style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 11)),
               ],
             ],
           ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../domain/bottle.dart';
 import '../domain/cellar_gap_engine.dart';
+import '../../../shared/utils/langue.dart';
 
 class CellarGapAnalyzerSheet extends ConsumerWidget {
   final List<Bottle>? preloadedBottles;
@@ -73,7 +74,7 @@ class CellarGapAnalyzerSheet extends ConsumerWidget {
                         style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        'Analyse des déséquilibres & Opportunités (${analysis.totalBottles} bouteilles)',
+                        tr('Analyse des déséquilibres & Opportunités (${analysis.totalBottles} bouteilles)', 'Imbalances & opportunities (${analysis.totalBottles} bottles)'),
                         style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 12),
                       ),
                     ],
@@ -93,26 +94,26 @@ class CellarGapAnalyzerSheet extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               children: [
                 // 1. Répartition des Couleurs
-                _buildSectionTitle('Répartition des Styles en Cave', Icons.pie_chart_outline_rounded),
+                _buildSectionTitle(tr('Répartition des Styles en Cave', 'Styles in the cellar'), Icons.pie_chart_outline_rounded),
                 const SizedBox(height: 10),
                 _buildColorDistributionBar(analysis),
                 const SizedBox(height: 20),
 
                 // 2. Horizon de Dégustation / Maturité
-                _buildSectionTitle('Maturité & Horizons de Garde', Icons.hourglass_empty_rounded),
+                _buildSectionTitle(tr('Maturité & Horizons de Garde', 'Maturity & ageing horizons'), Icons.hourglass_empty_rounded),
                 const SizedBox(height: 10),
                 _buildMaturityCard(analysis),
                 const SizedBox(height: 24),
 
                 // 3. Diagnostics & Alertes
-                _buildSectionTitle('Diagnostics Sommelier', Icons.health_and_safety_outlined),
+                _buildSectionTitle(tr('Diagnostics Sommelier', 'Sommelier\'s diagnosis'), Icons.health_and_safety_outlined),
                 const SizedBox(height: 10),
                 ...analysis.gaps.map(_buildGapCard),
                 const SizedBox(height: 24),
 
                 // 4. Wishlist d'Achats Recommandée
                 if (analysis.shoppingWishlist.isNotEmpty) ...[
-                  _buildSectionTitle('Wishlist d\'Achats Idéale pour Rééquilibrer', Icons.shopping_bag_outlined),
+                  _buildSectionTitle(tr('Wishlist d\'Achats Idéale pour Rééquilibrer', 'Ideal shopping list to rebalance'), Icons.shopping_bag_outlined),
                   const SizedBox(height: 10),
                   _buildShoppingWishlist(analysis.shoppingWishlist),
                   const SizedBox(height: 20),
@@ -187,10 +188,10 @@ class CellarGapAnalyzerSheet extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildColorLegend('Rouges', '${(a.redRatio * 100).toStringAsFixed(0)}%', const Color(0xFF8B1E3F)),
-              _buildColorLegend('Blancs', '${(a.whiteRatio * 100).toStringAsFixed(0)}%', const Color(0xFFE5C07B)),
-              _buildColorLegend('Bulles', '${(a.sparklingRatio * 100).toStringAsFixed(0)}%', const Color(0xFF61AFEF)),
-              _buildColorLegend('Rosés', '${(a.roseRatio * 100).toStringAsFixed(0)}%', const Color(0xFFE06C75)),
+              _buildColorLegend(tr('Rouges', 'Reds'), '${(a.redRatio * 100).toStringAsFixed(0)}%', const Color(0xFF8B1E3F)),
+              _buildColorLegend(tr('Blancs', 'Whites'), '${(a.whiteRatio * 100).toStringAsFixed(0)}%', const Color(0xFFE5C07B)),
+              _buildColorLegend(tr('Bulles', 'Sparkling'), '${(a.sparklingRatio * 100).toStringAsFixed(0)}%', const Color(0xFF61AFEF)),
+              _buildColorLegend(tr('Rosés', 'Rosés'), '${(a.roseRatio * 100).toStringAsFixed(0)}%', const Color(0xFFE06C75)),
             ],
           ),
         ],
@@ -219,11 +220,11 @@ class CellarGapAnalyzerSheet extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildMaturityColumn('Prêts à boire 🍷', '${a.readyToDrinkCount}', Colors.greenAccent),
+          _buildMaturityColumn(tr('Prêts à boire 🍷', 'Ready to drink 🍷'), '${a.readyToDrinkCount}', Colors.greenAccent),
           Container(width: 1, height: 36, color: Colors.white12),
-          _buildMaturityColumn('En garde ⏳', '${a.inAgingCount}', Colors.lightBlueAccent),
+          _buildMaturityColumn(tr('En garde ⏳', 'Ageing ⏳'), '${a.inAgingCount}', Colors.lightBlueAccent),
           Container(width: 1, height: 36, color: Colors.white12),
-          _buildMaturityColumn('À boire vite ⚠️', '${a.pastPeakCount}', a.pastPeakCount > 0 ? Colors.orangeAccent : Colors.white38),
+          _buildMaturityColumn(tr('À boire vite ⚠️', 'Drink soon ⚠️'), '${a.pastPeakCount}', a.pastPeakCount > 0 ? Colors.orangeAccent : Colors.white38),
         ],
       ),
     );

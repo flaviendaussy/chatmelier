@@ -34,6 +34,33 @@ void main() {
   LienAvecMaCave? lien(MenuWine v, ContexteDeCave c) =>
       CellarBridgeEngine.lier([v], c).first.pontDeCave;
 
+  group('🌍 En anglais (29/09)', () {
+    // L'interface anglaise affichait « Vous en avez en cave » et « Comblerait un manque ».
+    test('le lien parle la langue de l\'écran', () {
+      final l = CellarBridgeEngine.lier(
+        [carteVin('Bandol', producteur: 'Terrebrune', prix: 78)],
+        const ContexteDeCave(cave: [
+          VinDeMaCave(nom: 'Bandol Rouge', producteur: 'Terrebrune', prixAchat: 30),
+        ]),
+        isFr: false,
+      ).first.pontDeCave;
+      expect(l?.libelle, 'Already in your cellar');
+      expect(l?.detail, 'You have it in your cellar, bought for 30 € — 48 € less than here');
+    });
+
+    test('une note et une date, en anglais', () {
+      final l = CellarBridgeEngine.lier(
+        [carteVin('Bandol Rouge', producteur: 'Domaine de Terrebrune', prix: 78)],
+        ContexteDeCave(journal: [
+          VinDejaGoute(nom: 'Bandol', producteur: 'Terrebrune', note: 8, quand: DateTime(2026, 3, 14)),
+        ]),
+        isFr: false,
+      ).first.pontDeCave;
+      expect(l?.libelle, 'You know this wine');
+      expect(l?.detail, 'You rated it 8/10, in March 2026');
+    });
+  });
+
   group('📓 Vous connaissez ce vin', () {
     test('un vin déjà goûté est reconnu par son domaine, et la note revient', () {
       final l = lien(

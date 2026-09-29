@@ -30,37 +30,54 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
   final FlightTheme _theme = FlightTheme.progressive;
   late TastingFlightProposal _proposal;
 
+  /// Langue du parcours. Lue dans `didChangeDependencies` : `initState` ne peut pas
+  /// consulter `Localizations`.
+  bool _isFr = true;
+  bool _pret = false;
+
   @override
-  void initState() {
-    super.initState();
-    _recalculateFlight();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    if (!_pret || isFr != _isFr) {
+      _isFr = isFr;
+      _pret = true;
+      _proposal = _composer();
+    }
   }
 
-  void _recalculateFlight() {
-    setState(() {
-      _proposal = MenuFlightEngine.buildFlight(
+  TastingFlightProposal _composer() => MenuFlightEngine.buildFlight(
         menu: widget.menu,
         format: _format,
         color: _color,
         theme: _theme,
+        isFr: _isFr,
       );
-    });
+
+  void _recalculateFlight() {
+    setState(() => _proposal = _composer());
   }
 
   void _shareFlight() {
     final buffer = StringBuffer();
-    final restName = widget.menu.restaurantName.isNotEmpty ? widget.menu.restaurantName : "Carte des vins";
+    final restName = widget.menu.restaurantName.isNotEmpty
+        ? widget.menu.restaurantName
+        : (_isFr ? 'Carte des vins' : 'Wine list');
     buffer.writeln('🍷 ${_proposal.title} — $restName');
-    buffer.writeln('Thème : ${_color.labelFr} (${_format.glassCount} verres)');
+    buffer.writeln(_isFr
+        ? 'Thème : ${_color.label(true)} (${_format.glassCount} verres)'
+        : 'Theme: ${_color.label(false)} (${_format.glassCount} glasses)');
     buffer.writeln(_proposal.storyline);
     buffer.writeln('');
     for (final step in _proposal.steps) {
-      final priceStr = step.glassPrice != null ? ' (~${widget.menu.formaterPrix(step.glassPrice!)})' : '';
+      final priceStr = step.glassPrice != null
+          ? ' (${step.prixEstime ? '≈' : ''}${widget.menu.formaterPrix(step.glassPrice!)})'
+          : '';
       buffer.writeln('${step.stepTitle} : ${step.wine.name}${step.wine.vintage != null ? " ${step.wine.vintage}" : ""}$priceStr');
       buffer.writeln('   👉 ${step.sommelierRole} — ${step.tastingNotesSummary}');
     }
     buffer.writeln('');
-    buffer.writeln('Composé par Chatmelier AI Sommelier');
+    buffer.writeln(_isFr ? 'Composé par Chatmelier AI Sommelier' : 'Put together by Chatmelier AI Sommelier');
     Share.share(buffer.toString(), subject: '${_proposal.title} - $restName');
   }
 
@@ -116,7 +133,7 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
                         style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '${_proposal.steps.length} verres cohérents • ${widget.menu.restaurantName.isNotEmpty ? widget.menu.restaurantName : (isFr ? "Carte des vins" : "Wine list")}',
+                        '${_proposal.steps.length} ${isFr ? 'verres' : 'glasses'} • ${widget.menu.restaurantName.isNotEmpty ? widget.menu.restaurantName : (isFr ? "Carte des vins" : "Wine list")}',
                         style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 12),
                       ),
                     ],
@@ -145,7 +162,7 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
                   child: ChoiceChip(
                     label: Center(
                       child: Text(
-                        '✨ 3 Verres Express',
+                        isFr ? '✨ 3 Verres Express' : '✨ 3-Glass Express',
                         style: TextStyle(
                           color: _format == FlightFormat.threeGlasses ? Colors.black : Colors.white70,
                           fontWeight: FontWeight.bold,
@@ -172,7 +189,7 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
                   child: ChoiceChip(
                     label: Center(
                       child: Text(
-                        '👑 5 Verres Grand Parcours',
+                        isFr ? '👑 5 Verres Grand Parcours' : '👑 5-Glass Grand Journey',
                         style: TextStyle(
                           color: _format == FlightFormat.fiveGlasses ? Colors.black : Colors.white70,
                           fontWeight: FontWeight.bold,
@@ -351,7 +368,8 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
   Widget _buildStepCard(FlightGlassStep step, bool isFr) {
     final wine = step.wine;
     final priceStr = step.glassPrice != null
-        ? '${widget.menu.formaterPrix(step.glassPrice!)} / ${isFr ? 'verre' : 'glass'}'
+        ? '${step.prixEstime ? '≈ ' : ''}${widget.menu.formaterPrix(step.glassPrice!)} / ${isFr ? 'verre' : 'glass'}'
+            '${step.prixEstime ? (isFr ? ' (estimé)' : ' (est.)') : ''}'
         : (wine.bottlePrice != null ? '${widget.menu.formaterPrix(wine.bottlePrice!)} / btl' : '');
 
     return Container(

@@ -134,6 +134,34 @@ class GuestProfile {
     );
   }
 
+  /// L'archétype à l'écran, dans la langue du lecteur.
+  ///
+  /// La valeur stockée ne change pas : pour un convive sans radar, [radar] s'en sert de
+  /// clé (« Minéral », « Puissant »…), la traduire casserait la déduction. On traduit
+  /// dans les deux sens : un invité qui a rejoint en anglais s'affiche en français chez
+  /// un hôte francophone.
+  static String archetypeAffiche(String archetype, bool fr) {
+    const versAnglais = {
+      'Curieux & Éclectique': 'Curious & eclectic',
+      'Amateur de Grands Rouges Puissants': 'Lover of big, powerful reds',
+      'Adepte de Minéralité & Fraîcheur Droite': 'Mineral & crisp lover',
+      'Palais Friand & Fruit Croquant': 'Crunchy-fruit lover',
+      'Amateur de Vins Épicés & Singuliers': 'Spicy & singular wines lover',
+      'Aversion aux tanins durs': 'Dislikes firm tannins',
+      'Aversion Tanins Durs': 'Dislikes firm tannins',
+      'Grands Rouges Puissants': 'Big, powerful reds',
+      'Blancs Minéraux & Tendus': 'Taut, mineral whites',
+      'Blancs Minéraux & Frais': 'Crisp, mineral whites',
+      'Rouges Fruits Croquants': 'Crunchy fruity reds',
+      'Fruit Croquant': 'Crunchy fruit',
+    };
+    if (!fr) return versAnglais[archetype] ?? archetype;
+    for (final e in versAnglais.entries) {
+      if (e.value == archetype) return e.key;
+    }
+    return archetype;
+  }
+
   static String _detectArchetype(TasteProfile tp) {
     final radar = tp.radarMetrics;
     if (radar.tannin >= 7.0 && radar.body >= 7.0) {

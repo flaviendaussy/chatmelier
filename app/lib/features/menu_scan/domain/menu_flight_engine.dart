@@ -1,39 +1,57 @@
 import 'menu_wine.dart';
 
 enum FlightFormat {
-  threeGlasses(3, 'Flight Express (3 verres)', '3 verres progressifs pour une dégustation équilibrée'),
-  fiveGlasses(5, 'Grand Flight Sommelier (5 verres)', 'Parcours oenologique complet de 5 verres d\'auteur');
+  threeGlasses(3, 'Flight Express (3 verres)', '3 verres progressifs pour une dégustation équilibrée',
+      'Express Flight (3 glasses)', '3 progressive glasses for a balanced tasting'),
+  fiveGlasses(5, 'Grand Flight Sommelier (5 verres)', 'Un parcours complet en cinq verres',
+      'Grand Sommelier Flight (5 glasses)', 'A complete journey in five glasses');
 
   final int glassCount;
   final String labelFr;
   final String descriptionFr;
+  final String labelEn;
+  final String descriptionEn;
 
-  const FlightFormat(this.glassCount, this.labelFr, this.descriptionFr);
+  const FlightFormat(this.glassCount, this.labelFr, this.descriptionFr, this.labelEn, this.descriptionEn);
+
+  String label(bool isFr) => isFr ? labelFr : labelEn;
+  String description(bool isFr) => isFr ? descriptionFr : descriptionEn;
 }
 
 enum FlightWineColor {
-  mix('Mix (Harmonie)', 'Parcours panaché de blanc, rosé et rouge', '🍷🥂'),
-  white('100% Blanc', 'De la minéralité à la richesse aromatique', '🥂'),
-  rose('100% Rosé', 'De la fraîcheur florale au rosé de gastronomie', '🌸'),
-  red('100% Rouge', 'Du fruit croquant aux grands rouges de caractère', '🍷');
+  mix('Mix (Harmonie)', 'Blanc, rosé et rouge, du plus vif au plus intense', '🍷🥂',
+      'Mix (Harmony)', 'White, rosé and red, from the crispest to the most intense'),
+  white('100% Blanc', 'Du plus vif au plus ample', '🥂', '100% White', 'From the crispest to the fullest'),
+  rose('100% Rosé', 'Du plus aérien au plus vineux', '🌸', '100% Rosé', 'From the most delicate to the most vinous'),
+  red('100% Rouge', 'Du plus souple au plus structuré', '🍷', '100% Red', 'From the silkiest to the most structured');
 
   final String labelFr;
   final String descriptionFr;
   final String icon;
+  final String labelEn;
+  final String descriptionEn;
 
-  const FlightWineColor(this.labelFr, this.descriptionFr, this.icon);
+  const FlightWineColor(this.labelFr, this.descriptionFr, this.icon, this.labelEn, this.descriptionEn);
+
+  String label(bool isFr) => isFr ? labelFr : labelEn;
+  String description(bool isFr) => isFr ? descriptionFr : descriptionEn;
 }
 
 enum FlightTheme {
-  progressive('Progressif & Équilibré', 'De la fraîcheur à la puissance'),
-  terroirDiscovery('Focus Terroirs & Pépites', 'Les plus beaux terroirs de la carte'),
-  redLovers('Grands Rouges d\'Auteur', 'Évolution et texture des rouges'),
-  whiteLovers('Blancs & Minéralité', 'Des bulles à la richesse aromatique');
+  progressive('Progressif & Équilibré', 'De la fraîcheur à la puissance', 'Progressive & Balanced', 'From freshness to power'),
+  terroirDiscovery('Focus Terroirs & Pépites', 'Les plus beaux terroirs de la carte', 'Terroirs & Gems', 'The finest terroirs on the list'),
+  redLovers('Grands Rouges d\'Auteur', 'Évolution et texture des rouges', 'Signature Reds', 'How reds evolve in texture'),
+  whiteLovers('Blancs & Minéralité', 'Des bulles aux blancs les plus amples', 'Whites & Minerality', 'From bubbles to the fullest whites');
 
   final String labelFr;
   final String descriptionFr;
+  final String labelEn;
+  final String descriptionEn;
 
-  const FlightTheme(this.labelFr, this.descriptionFr);
+  const FlightTheme(this.labelFr, this.descriptionFr, this.labelEn, this.descriptionEn);
+
+  String label(bool isFr) => isFr ? labelFr : labelEn;
+  String description(bool isFr) => isFr ? descriptionFr : descriptionEn;
 }
 
 class FlightGlassStep {
@@ -44,6 +62,11 @@ class FlightGlassStep {
   final String tastingNotesSummary;
   final double? glassPrice;
 
+  /// Le prix du verre n'est pas sur la carte : il est estimé (un cinquième de la
+  /// bouteille). L'écran le dit — afficher « 22 £ / verre » pour un vin que le
+  /// restaurant ne sert peut-être pas au verre serait affirmer un prix qui n'existe pas.
+  final bool prixEstime;
+
   const FlightGlassStep({
     required this.stepIndex,
     required this.stepTitle,
@@ -51,6 +74,7 @@ class FlightGlassStep {
     required this.sommelierRole,
     required this.tastingNotesSummary,
     this.glassPrice,
+    this.prixEstime = false,
   });
 }
 
@@ -81,12 +105,14 @@ class MenuFlightEngine {
     FlightFormat format = FlightFormat.threeGlasses,
     FlightWineColor color = FlightWineColor.mix,
     FlightTheme theme = FlightTheme.progressive,
+    bool isFr = true,
   }) {
+    final fr = isFr;
     final wines = List<MenuWine>.from(menu.wines);
     if (wines.isEmpty) {
       return TastingFlightProposal(
         title: 'Flight Sommelier',
-        storyline: 'Aucun vin détecté sur cette carte.',
+        storyline: fr ? 'Aucun vin détecté sur cette carte.' : 'No wine found on this list.',
         format: format,
         color: color,
         theme: theme,
@@ -124,7 +150,11 @@ class MenuFlightEngine {
     final secours = uneSeuleCouleur ? wines.where(deLaCouleur).toList() : wines;
 
     MenuWine? pickWine(List<MenuWine> pool, {bool fromEnd = false}) {
-      final available = pool.where((w) => !usedIds.contains(w.name)).toList();
+      final libres = pool.where((w) => !usedIds.contains(w.name)).toList();
+      // Un flight se commande au verre : à style égal, un vin servi au verre passe
+      // devant, dans l'ordre de progression déjà établi.
+      final auVerre = libres.where((w) => w.hasGlassPrice).toList();
+      final available = auVerre.isNotEmpty ? auVerre : libres;
       if (available.isEmpty) return null;
       final picked = fromEnd ? available.last : available.first;
       usedIds.add(picked.name);
@@ -132,28 +162,28 @@ class MenuFlightEngine {
     }
 
     final List<MenuWine> selectedWines;
-    final List<(String, String, String)> descriptors;
     final String flightTitle;
-    final String restName = menu.restaurantName.isNotEmpty ? menu.restaurantName : 'ce restaurant';
+    final String restName = menu.restaurantName.isNotEmpty
+        ? menu.restaurantName
+        : (fr ? 'ce restaurant' : 'this restaurant');
     final String storyline;
+    final verresFr = format == FlightFormat.threeGlasses ? '(3 Verres)' : '(5 Verres)';
+    final verresEn = format == FlightFormat.threeGlasses ? '(3 Glasses)' : '(5 Glasses)';
 
     switch (color) {
       case FlightWineColor.white:
-        flightTitle = format == FlightFormat.threeGlasses
-            ? 'Flight 100% Blancs (3 Verres)'
-            : 'Grand Flight 100% Blancs (5 Verres)';
-        storyline = 'Une traversée lumineuse des cépages blancs de $restName, de la vivacité minérale aux textures les plus riches.';
+        flightTitle = fr
+            ? '${format == FlightFormat.threeGlasses ? '' : 'Grand '}Flight 100% Blancs $verresFr'
+            : '${format == FlightFormat.threeGlasses ? '' : 'Grand '}100% White Flight $verresEn';
+        storyline = fr
+            ? 'Les blancs de $restName, du plus vif et minéral au plus ample.'
+            : 'The whites of $restName, from the crispest and most mineral to the fullest.';
 
         if (targetCount == 3) {
           final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(secours);
           final w2 = pickWine(whites) ?? pickWine(secours);
           final w3 = pickWine(whites, fromEnd: true) ?? pickWine(sweetOrSpirit) ?? pickWine(secours);
           selectedWines = [w1, w2, w3].whereType<MenuWine>().toList();
-          descriptors = [
-            ('1. L\'Ouverture Minérale', 'Tension & Salinité', 'Éveille le palais avec vivacité et pureté cristalline.'),
-            ('2. Le Cœur Aromatique', 'Fleurs & Fruits Mûrs', 'Déploie une texture soyeuse, pêche blanche et fruits à noyau.'),
-            ('3. L\'Apogée Gastronomique', 'Volume & Élevage Noble', 'Grand blanc de repas, texture beurrée et finale profonde.'),
-          ];
         } else {
           final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(secours);
           final w2 = pickWine(whites) ?? pickWine(secours);
@@ -161,21 +191,16 @@ class MenuFlightEngine {
           final w4 = pickWine(whites, fromEnd: true) ?? pickWine(whites) ?? pickWine(secours);
           final w5 = pickWine(sweetOrSpirit) ?? pickWine(whites, fromEnd: true) ?? pickWine(secours);
           selectedWines = [w1, w2, w3, w4, w5].whereType<MenuWine>().toList();
-          descriptors = [
-            ('1. L\'Éveil Pétillant', 'Bulles & Salinité', 'Fraîcheur éclatante et bulles fines pour ouvrir la dégustation.'),
-            ('2. La Tension Minérale', 'Pureté & Vivacité', 'Arômes d\'agrumes ciselés et belle tension calcaire.'),
-            ('3. L\'Éclat Aromatique', 'Fleurs & Fruits d\'Arbre', 'Richesse florale et toucher de bouche soyeux.'),
-            ('4. La Plénitude Gastronomique', 'Grand Blanc d\'Élevage', 'Complexité beurrée, boisé délicat et grand terroir.'),
-            ('5. La Quintessence', 'Douceur ou Haute Garde', 'Finale magistrale d\'une longue persistance aromatique.'),
-          ];
         }
         break;
 
       case FlightWineColor.rose:
-        flightTitle = format == FlightFormat.threeGlasses
-            ? 'Flight 100% Rosés (3 Verres)'
-            : 'Grand Flight 100% Rosés (5 Verres)';
-        storyline = 'L\'art des nuances rosées de $restName, de l\'aérien pétale de rose au grand rosé vineux de gastronomie.';
+        flightTitle = fr
+            ? '${format == FlightFormat.threeGlasses ? '' : 'Grand '}Flight 100% Rosés $verresFr'
+            : '${format == FlightFormat.threeGlasses ? '' : 'Grand '}100% Rosé Flight $verresEn';
+        storyline = fr
+            ? 'Les rosés de $restName, du plus aérien au plus vineux.'
+            : 'The rosés of $restName, from the most delicate to the most vinous.';
 
         final sparklingRose = sparkling.where((w) => _isRose(w)).toList();
         if (targetCount == 3) {
@@ -183,11 +208,6 @@ class MenuFlightEngine {
           final w2 = pickWine(roses) ?? pickWine(secours);
           final w3 = pickWine(roses, fromEnd: true) ?? pickWine(secours);
           selectedWines = [w1, w2, w3].whereType<MenuWine>().toList();
-          descriptors = [
-            ('1. La Fraîcheur Saline', 'Agrumes & Pétale de Rose', 'Rosé aérien, groseille croquante et vivacité désaltérante.'),
-            ('2. La Gourmandise Fruitée', 'Petits Fruits & Épices', 'Texture veloutée, framboise fraîche et épices douces.'),
-            ('3. Le Rosé de Gastronomie', 'Structure & Vin de Repas', 'Matière généreuse et racée, idéal pour accompagner les mets.'),
-          ];
         } else {
           final w1 = pickWine(sparklingRose) ?? pickWine(roses) ?? pickWine(secours);
           final w2 = pickWine(roses) ?? pickWine(secours);
@@ -195,32 +215,24 @@ class MenuFlightEngine {
           final w4 = pickWine(roses, fromEnd: true) ?? pickWine(roses) ?? pickWine(secours);
           final w5 = pickWine(roses, fromEnd: true) ?? pickWine(secours);
           selectedWines = [w1, w2, w3, w4, w5].whereType<MenuWine>().toList();
-          descriptors = [
-            ('1. L\'Éveil Rosé', 'Bulles Fines & Baies Rouges', 'Effervescence délicate et notes de framboise sauvage.'),
-            ('2. La Clarté Cristalline', 'Minéralité & Pamplemousse', 'Tension saline et fraîcheur printanière.'),
-            ('3. L\'Épanouissement Aromatique', 'Fraise des Bois & Pêche', 'Gourmandise ronde et texture caressante.'),
-            ('4. La Matière Sommelière', 'Rosé de Terroir & Fût', 'Complexité d\'un grand rosé structuré et racé.'),
-            ('5. L\'Accord Sommet', 'Rosé de Saignée & Puissance', 'Rondeur vineuse et finale persistante.'),
-          ];
         }
         break;
 
       case FlightWineColor.red:
-        flightTitle = format == FlightFormat.threeGlasses
-            ? 'Flight 100% Rouges (3 Verres)'
-            : 'Grand Flight 100% Rouges (5 Verres)';
-        storyline = 'Une ascension sensorielle à travers les grands cépages rouges de $restName, du fruit croquant aux flacons de noble garde.';
+        flightTitle = fr
+            ? '${format == FlightFormat.threeGlasses ? '' : 'Grand '}Flight 100% Rouges $verresFr'
+            : '${format == FlightFormat.threeGlasses ? '' : 'Grand '}100% Red Flight $verresEn';
+        // « Aux flacons de noble garde » promettait un vin de garde au bout, fût-il un
+        // Côtes-du-Rhône de l'année : on ne promet que ce que l'ordre garantit.
+        storyline = fr
+            ? 'Les rouges de $restName, du plus souple au plus structuré.'
+            : 'The reds of $restName, from the silkiest to the most structured.';
 
         if (targetCount == 3) {
           final w1 = pickWine(reds) ?? pickWine(secours);
           final w2 = pickWine(reds) ?? pickWine(secours);
           final w3 = pickWine(reds, fromEnd: true) ?? pickWine(secours);
           selectedWines = [w1, w2, w3].whereType<MenuWine>().toList();
-          descriptors = [
-            ('1. Le Fruit Croquant', 'Finesse & Tanins Soyeux', 'Arômes de cerise fraîche, tanins fins et pureté désaltérante.'),
-            ('2. L\'Assise Épicée', 'Rondeur & Fruits Noirs', 'Matière enveloppante, mûre sauvage, épices douces et équilibre.'),
-            ('3. La Puissance Noble', 'Grand Vin de Garde', 'Charpente tannique affirmée, boisé noble et finale persistante.'),
-          ];
         } else {
           final w1 = pickWine(reds) ?? pickWine(secours);
           final w2 = pickWine(reds) ?? pickWine(secours);
@@ -228,34 +240,26 @@ class MenuFlightEngine {
           final w4 = pickWine(reds, fromEnd: true) ?? pickWine(reds) ?? pickWine(secours);
           final w5 = pickWine(reds, fromEnd: true) ?? pickWine(sweetOrSpirit) ?? pickWine(secours);
           selectedWines = [w1, w2, w3, w4, w5].whereType<MenuWine>().toList();
-          descriptors = [
-            ('1. L\'Innocence du Fruit', 'Pureté & Fraîcheur Croquante', 'Cerise griotte, tanins aériens et grande buvabilité.'),
-            ('2. L\'Élégance Florale', 'Finesse & Épices Douces', 'Violette, sous-bois délicat et grain soyeux.'),
-            ('3. La Densité Solaire', 'Fruits Noirs & Garrigue', 'Matière généreuse, thym sauvage et volume en bouche.'),
-            ('4. La Structure Magistrale', 'Grand Rouge d\'Élevage', 'Tanins patinés par le bois noble, cassis et tabac blond.'),
-            ('5. L\'Apothéose', 'Haute Garde & Persistance', 'Profondeur remarquable et grande rémanence.'),
-          ];
         }
         break;
 
       case FlightWineColor.mix:
-        flightTitle = format == FlightFormat.threeGlasses
-            ? 'Flight Découverte (3 Verres)'
-            : 'Grand Flight de la Carte (5 Verres)';
-        storyline = format == FlightFormat.threeGlasses
-            ? 'Un triptyque harmonieux sélectionné sur la carte de $restName, guidé par une montée progressive en intensité.'
-            : 'Un parcours sommelier en 5 mouvements explorant les contrastes et les grandes expressions de la cave de $restName.';
+        flightTitle = fr
+            ? (format == FlightFormat.threeGlasses ? 'Flight Découverte $verresFr' : 'Grand Flight de la Carte $verresFr')
+            : (format == FlightFormat.threeGlasses ? 'Discovery Flight $verresEn' : 'Grand Flight of the List $verresEn');
+        storyline = fr
+            ? (format == FlightFormat.threeGlasses
+                ? 'Trois verres de la carte de $restName, en montant en intensité.'
+                : 'Cinq temps sur la carte de $restName, du plus vif au plus intense.')
+            : (format == FlightFormat.threeGlasses
+                ? 'Three glasses from the list at $restName, rising in intensity.'
+                : 'Five movements across the list at $restName, from the crispest to the most intense.');
 
         if (targetCount == 3) {
           final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(secours);
           final w2 = pickWine(roses) ?? pickWine(whites, fromEnd: true) ?? pickWine(reds) ?? pickWine(secours);
           final w3 = pickWine(reds, fromEnd: true) ?? pickWine(sweetOrSpirit) ?? pickWine(secours);
           selectedWines = [w1, w2, w3].whereType<MenuWine>().toList();
-          descriptors = [
-            ('1. L\'Ouverture', 'Éveil & Fraîcheur', 'Prépare le palais avec vivacité et pureté minérale.'),
-            ('2. Le Corps & La Nuance', 'Texture & Équilibre', 'Apporte texture, volume et complexité aromatique.'),
-            ('3. L\'Apogée & La Puissance', 'Caractère & Profondeur', 'Clôture la séquence sur une structure mûre et intense.'),
-          ];
         } else {
           final w1 = pickWine(sparkling) ?? pickWine(whites) ?? pickWine(secours);
           final w2 = pickWine(whites, fromEnd: true) ?? pickWine(whites) ?? pickWine(secours);
@@ -263,13 +267,6 @@ class MenuFlightEngine {
           final w4 = pickWine(reds, fromEnd: true) ?? pickWine(reds) ?? pickWine(secours);
           final w5 = pickWine(sweetOrSpirit) ?? pickWine(reds, fromEnd: true) ?? pickWine(secours);
           selectedWines = [w1, w2, w3, w4, w5].whereType<MenuWine>().toList();
-          descriptors = [
-            ('1. L\'Éveil', 'Bulles & Vivacité', 'Mise en bouche saline et tranchante.'),
-            ('2. La Rondeur', 'Blanc Gastronomique', 'Expression florale, fruits mûrs et texture soyeuse.'),
-            ('3. La Transition', 'Rouge Fruit & Finesse', 'Tanins fins, fraîcheur croquante pour la liaison.'),
-            ('4. La Structure', 'Grand Rouge d\'Assise', 'Plénitude, épices nobles et longueur en bouche.'),
-            ('5. La Conclusion', 'Élixir ou Fin de Bouche', 'Point d\'orgue de la dégustation.'),
-          ];
         }
         break;
     }
@@ -286,21 +283,23 @@ class MenuFlightEngine {
     final verres = selectedWines.length < targetCount ? selectedWines.length : targetCount;
     final flightCourt = uneSeuleCouleur && verres < targetCount;
     final nomCouleur = switch (color) {
-      FlightWineColor.white => verres > 1 ? 'blancs' : 'blanc',
-      FlightWineColor.rose => verres > 1 ? 'rosés' : 'rosé',
-      _ => verres > 1 ? 'rouges' : 'rouge',
+      FlightWineColor.white => fr ? (verres > 1 ? 'blancs' : 'blanc') : (verres > 1 ? 'whites' : 'white'),
+      FlightWineColor.rose => fr ? (verres > 1 ? 'rosés' : 'rosé') : (verres > 1 ? 'rosés' : 'rosé'),
+      _ => fr ? (verres > 1 ? 'rouges' : 'rouge') : (verres > 1 ? 'reds' : 'red'),
     };
 
+    final titres = _titresDesVerres(targetCount, fr);
     for (int i = 0; i < selectedWines.length && i < targetCount; i++) {
       final w = selectedWines[i];
-      final (title, role, pitch) = descriptors[i];
+      final (prix, estime) = _prixDuVerre(w);
       selectedSteps.add(FlightGlassStep(
         stepIndex: i + 1,
-        stepTitle: title,
+        stepTitle: titres[i],
         wine: w,
-        sommelierRole: role,
-        tastingNotesSummary: pitch,
-        glassPrice: _resolveGlassPrice(w),
+        sommelierRole: caractere(w, fr),
+        tastingNotesSummary: _note(w, fr),
+        glassPrice: prix,
+        prixEstime: estime,
       ));
     }
 
@@ -308,21 +307,85 @@ class MenuFlightEngine {
 
     return TastingFlightProposal(
       title: flightCourt
-          ? flightTitle.replaceFirst(RegExp(r'\(\d Verres\)'), '($verres ${verres > 1 ? 'Verres' : 'Verre'})')
+          ? flightTitle.replaceFirst(
+              RegExp(r'\(\d (Verres|Glasses)\)'),
+              fr ? '($verres ${verres > 1 ? 'Verres' : 'Verre'})' : '($verres ${verres > 1 ? 'Glasses' : 'Glass'})')
           : flightTitle,
       storyline: !flightCourt
           ? storyline
-          : switch (verres) {
-              0 => 'Cette carte ne propose aucun $nomCouleur.',
-              1 => '$storyline La carte ne propose qu\'un seul $nomCouleur : pas de quoi composer un vrai flight.',
-              _ => '$storyline La carte ne propose que $verres $nomCouleur : le flight en compte $verres.',
-            },
+          : fr
+              ? switch (verres) {
+                  0 => 'Cette carte ne propose aucun $nomCouleur.',
+                  1 => '$storyline La carte ne propose qu\'un seul $nomCouleur : pas de quoi composer un vrai flight.',
+                  _ => '$storyline La carte ne propose que $verres $nomCouleur : le flight en compte $verres.',
+                }
+              : switch (verres) {
+                  0 => 'This list has no $nomCouleur.',
+                  1 => '$storyline The list has only one $nomCouleur: not enough for a real flight.',
+                  _ => '$storyline The list has only $verres $nomCouleur: the flight has $verres.',
+                },
       format: format,
       color: color,
       theme: theme,
       steps: selectedSteps,
       totalEstimatedPrice: double.parse(totalPrice.toStringAsFixed(1)),
     );
+  }
+
+  /// Les titres des verres disent leur PLACE dans le parcours, pas le vin : « L'Apogée
+  /// Gastronomique · Volume & Élevage Noble » s'écrivait sur n'importe quel troisième
+  /// blanc, qu'il ait vu le bois ou non (29/09).
+  static List<String> _titresDesVerres(int n, bool fr) => n == 3
+      ? (fr
+          ? const ['1. L\'Ouverture', '2. Le Cœur', '3. Le Final']
+          : const ['1. The Opening', '2. The Heart', '3. The Finale'])
+      : (fr
+          ? const ['1. L\'Éveil', '2. La Montée', '3. Le Cœur', '4. L\'Apogée', '5. Le Final']
+          : const ['1. The Awakening', '2. The Build-up', '3. The Heart', '4. The Peak', '5. The Finale']);
+
+  /// Ce qui caractérise CE vin, lu dans son profil analysé — jamais un arôme fixé
+  /// d'avance. Deux traits au plus, les plus saillants, et seulement ceux qui ont un sens
+  /// pour sa couleur : la minéralité et le gras pour les blancs et les bulles, la
+  /// charpente et la souplesse pour les rouges (mêmes règles que le consensus).
+  static String caractere(MenuWine w, bool fr) {
+    final m = w.metrics;
+    final blancOuBulles = w.isSparkling || (w.isWhite && !w.isRose && !w.isRed);
+    final traits = <(double, String, String)>[
+      if (w.isSparkling) (20, 'Bulles', 'Bubbles'),
+      if (m.sweetness >= 4) (m.sweetness + 3, 'Douceur', 'Sweetness'),
+      if (m.acidity >= 7.5) (m.acidity, 'Vivacité', 'Crispness'),
+      if (blancOuBulles && m.minerality >= 7.5) (m.minerality, 'Minéralité', 'Minerality'),
+      if (w.isRed && m.tannins >= 7.5) (m.tannins, 'Charpente', 'Structure'),
+      if (w.isRed && m.tannins > 0 && m.tannins <= 4.5) (10 - m.tannins, 'Souplesse', 'Silkiness'),
+      if (m.body >= 7.5) (m.body, 'Ampleur', 'Fullness'),
+      if (m.body > 0 && m.body <= 4.5) (10 - m.body, 'Légèreté', 'Lightness'),
+      if (m.oak >= 6) (m.oak, 'Boisé', 'Oak'),
+      if (blancOuBulles && m.butteriness >= 6) (m.butteriness, 'Gras', 'Creaminess'),
+      if (m.fruit >= 7.5) (m.fruit, 'Fruit', 'Fruit'),
+    ];
+    if (traits.isEmpty) return fr ? 'Équilibre' : 'Balance';
+    // Le tri de Dart n'est pas stable : à saillance égale, l'ordre de déclaration tranche,
+    // sinon un même vin changerait de description d'un affichage à l'autre.
+    final ordre = [for (var i = 0; i < traits.length; i++) i]
+      ..sort((i, j) {
+        final c = traits[j].$1.compareTo(traits[i].$1);
+        return c != 0 ? c : i.compareTo(j);
+      });
+    return ordre.take(2).map((i) => fr ? traits[i].$2 : traits[i].$3).join(' & ');
+  }
+
+  /// La note du verre : ce que le scan a écrit de CE vin, sinon son profil en chiffres.
+  static String _note(MenuWine w, bool fr) {
+    final c = w.sommelierComment?.trim();
+    if (c != null && c.isNotEmpty) return c;
+    final m = w.metrics;
+    String n(double v) => v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
+    return [
+      '${fr ? 'Acidité' : 'Acidity'} ${n(m.acidity)}/10',
+      '${fr ? 'Corps' : 'Body'} ${n(m.body)}/10',
+      if (w.isRed) '${fr ? 'Tanins' : 'Tannins'} ${n(m.tannins)}/10',
+      '${fr ? 'Bois' : 'Oak'} ${n(m.oak)}/10',
+    ].join(' · ');
   }
 
   // La couleur vient d'abord du type lu par le scan (`MenuWine.isRed`…). Le nom et les
@@ -373,13 +436,15 @@ class MenuFlightEngine {
     return (r.body * 10) + (r.tannins * 10) + (r.oak * 5);
   }
 
-  static double _resolveGlassPrice(MenuWine w) {
+  /// Le prix du verre : celui de la carte, sinon une estimation (un cinquième de la
+  /// bouteille), sinon aucun — plus de verre à 8 inventé pour un vin sans prix.
+  static (double?, bool) _prixDuVerre(MenuWine w) {
     if (w.glassPrices.isNotEmpty && w.glassPrices.first.price > 0) {
-      return w.glassPrices.first.price;
+      return (w.glassPrices.first.price, false);
     }
     if (w.bottlePrice != null && w.bottlePrice! > 0) {
-      return double.parse((w.bottlePrice! * 0.20).toStringAsFixed(1));
+      return (double.parse((w.bottlePrice! * 0.20).toStringAsFixed(1)), true);
     }
-    return 8.0;
+    return (null, false);
   }
 }

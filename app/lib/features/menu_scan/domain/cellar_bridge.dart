@@ -103,18 +103,18 @@ class LienAvecMaCave {
 /// correspondance exige le producteur, ou un nom qui se recoupe franchement.
 class CellarBridgeEngine {
   /// Un lien par vin, quand il y en a un.
-  static List<MenuWine> lier(List<MenuWine> vins, ContexteDeCave contexte) {
+  static List<MenuWine> lier(List<MenuWine> vins, ContexteDeCave contexte, {bool isFr = true}) {
     if (vins.isEmpty || contexte.estVide) return vins;
 
     final regionsManquantes = _regionsAConseiller(contexte.lacunes);
     var lacunesPosees = 0;
 
     return [
-      for (final v in vins) v.copyWith(pontDeCave: _lienPour(v, contexte, () {
+      for (final v in vins) v.copyWith(pontDeCave: _lienPour(v, contexte, isFr, () {
             // Le conseil est rationné, contrairement aux faits : deux suggestions
             // éclairent, huit deviennent un bruit qu'on cesse de lire.
             if (lacunesPosees >= 2) return null;
-            final r = _comblerait(v, regionsManquantes);
+            final r = _comblerait(v, regionsManquantes, isFr);
             if (r != null) lacunesPosees++;
             return r;
           })),
@@ -124,6 +124,7 @@ class CellarBridgeEngine {
   static LienAvecMaCave? _lienPour(
     MenuWine vin,
     ContexteDeCave contexte,
+    bool fr,
     LienAvecMaCave? Function() lacune,
   ) {
     // 1. « Vous l'avez goûté » passe avant tout : c'est le seul fait qui porte un jugement
@@ -133,10 +134,12 @@ class CellarBridgeEngine {
       final note = g.note;
       return LienAvecMaCave(
         type: TypeDeLien.dejaGoute,
-        libelle: 'Vous connaissez ce vin',
+        libelle: fr ? 'Vous connaissez ce vin' : 'You know this wine',
         detail: note == null
-            ? _quand(g.quand)
-            : 'Vous l\'aviez noté ${_note(note)}/10${_quandSuffixe(g.quand)}',
+            ? _quand(g.quand, fr)
+            : (fr
+                ? 'Vous l\'aviez noté ${_note(note)}/10${_quandSuffixe(g.quand, fr)}'
+                : 'You rated it ${_note(note)}/10${_quandSuffixe(g.quand, fr)}'),
       );
     }
 
@@ -152,19 +155,23 @@ class CellarBridgeEngine {
       String? detail;
       if (achat != null && achat > 0 && carte != null && carte > 0 && memeDevise) {
         final ecart = carte - achat;
+        final paye = _prix(achat, c.deviseAchat);
         detail = ecart > 0
-            ? 'Vous en avez en cave, payée ${_prix(achat, c.deviseAchat)} — soit ${_prix(ecart, c.deviseAchat)} de moins qu\'ici'
-            : 'Vous en avez en cave, payée ${_prix(achat, c.deviseAchat)}';
+            ? (fr
+                ? 'Vous en avez en cave, payée $paye — soit ${_prix(ecart, c.deviseAchat)} de moins qu\'ici'
+                : 'You have it in your cellar, bought for $paye — ${_prix(ecart, c.deviseAchat)} less than here')
+            : (fr ? 'Vous en avez en cave, payée $paye' : 'You have it in your cellar, bought for $paye');
       } else if (achat != null && achat > 0 && carte != null && carte > 0) {
-        detail = 'Vous en avez en cave, payée ${_prix(achat, c.deviseAchat)}';
+        final paye = _prix(achat, c.deviseAchat);
+        detail = fr ? 'Vous en avez en cave, payée $paye' : 'You have it in your cellar, bought for $paye';
       } else {
         detail = c.quantite > 1
-            ? 'Vous en avez ${c.quantite} en cave'
-            : 'Vous en avez une en cave';
+            ? (fr ? 'Vous en avez ${c.quantite} en cave' : 'You have ${c.quantite} in your cellar')
+            : (fr ? 'Vous en avez une en cave' : 'You have one in your cellar');
       }
       return LienAvecMaCave(
         type: TypeDeLien.enCave,
-        libelle: 'Déjà dans votre cave',
+        libelle: fr ? 'Déjà dans votre cave' : 'Already in your cellar',
         detail: detail,
       );
     }
@@ -173,7 +180,7 @@ class CellarBridgeEngine {
     return lacune();
   }
 
-  static LienAvecMaCave? _comblerait(MenuWine vin, Set<String> regions) {
+  static LienAvecMaCave? _comblerait(MenuWine vin, Set<String> regions, bool fr) {
     if (regions.isEmpty) return null;
     final candidats = <String>[
       vin.appellation ?? '',
@@ -183,11 +190,12 @@ class CellarBridgeEngine {
     for (final c in candidats) {
       for (final r in regions) {
         if (c.contains(r) || r.contains(c)) {
-          return const LienAvecMaCave(
+          return LienAvecMaCave(
             type: TypeDeLien.combleUneLacune,
-            libelle: 'Comblerait un manque',
-            detail: 'Votre cave est légère sur ce registre — l\'occasion de l\'essayer '
-                'avant d\'en acheter.',
+            libelle: fr ? 'Comblerait un manque' : 'Would fill a gap',
+            detail: fr
+                ? 'Votre cave est légère sur ce registre — l\'occasion de l\'essayer avant d\'en acheter.'
+                : 'Your cellar is light in this style — a chance to try it before buying any.',
           );
         }
       }
@@ -261,17 +269,21 @@ class CellarBridgeEngine {
 
   static String _prix(double v, String devise) => CurrencyHelper.formatPrice(v, currency: devise);
 
-  static String? _quand(DateTime? d) =>
-      d == null ? null : 'Goûté ${_moisAnnee(d)}';
+  static String? _quand(DateTime? d, bool fr) =>
+      d == null ? null : '${fr ? 'Goûté' : 'Tasted'} ${_moisAnnee(d, fr)}';
 
-  static String _quandSuffixe(DateTime? d) =>
-      d == null ? '' : ', ${_moisAnnee(d)}';
+  static String _quandSuffixe(DateTime? d, bool fr) =>
+      d == null ? '' : ', ${_moisAnnee(d, fr)}';
 
-  static String _moisAnnee(DateTime d) {
+  static String _moisAnnee(DateTime d, bool fr) {
     const mois = [
       'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
       'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
     ];
-    return 'en ${mois[d.month - 1]} ${d.year}';
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+    return fr ? 'en ${mois[d.month - 1]} ${d.year}' : 'in ${months[d.month - 1]} ${d.year}';
   }
 }

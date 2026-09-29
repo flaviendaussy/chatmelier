@@ -68,7 +68,7 @@ class MenuFlaggingEngine {
             wine: wine,
             flag: MenuWineFlag(
               type: MenuWineFlagType.deal,
-              label: isGrosseAffaire ? 'Grosse Affaire' : 'Bon Plan',
+              label: isGrosseAffaire ? 'Très bonne affaire' : 'Bonne affaire',
               reason: wine.dealReason ??
                   'Excellent rapport prix/plaisir sur la carte',
             ),
@@ -90,9 +90,10 @@ class MenuFlaggingEngine {
             wine: wine,
             flag: MenuWineFlag(
               type: MenuWineFlagType.gem,
-              label: 'Vin Pépite',
-              reason: wine.gemReason ??
-                  'Domaine d\'exception et référence incontournable',
+              label: 'Pépite',
+              // Sans raison du scan, on ne prête pas au domaine une réputation qu'on
+              // ignore : on dit seulement qu'il a été repéré.
+              reason: wine.gemReason ?? 'Repérée comme une pépite de la carte',
             ),
             score: score,
           ),
@@ -112,7 +113,7 @@ class MenuFlaggingEngine {
             flag: MenuWineFlag(
               type: MenuWineFlagType.tasteMatch,
               label: 'Match Profil ${matchScore.round()}%',
-              reason: 'Flacon taillé sur mesure pour vos préférences',
+              reason: 'Très proche de vos goûts',
             ),
             score: score,
           ),

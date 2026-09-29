@@ -178,7 +178,10 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       }
       if (menu == null) {
         messenger.showSnackBar(SnackBar(
-          content: Text(isFr ? 'Erreur d\'analyse du menu : $erreur' : 'Menu analysis failed: $erreur'),
+          // Sans le préfixe technique « Exception: », que voyait l'utilisateur.
+          content: Text(isFr
+              ? 'Erreur d\'analyse du menu : ${'$erreur'.replaceFirst('Exception: ', '')}'
+              : 'Menu analysis failed: ${'$erreur'.replaceFirst('Exception: ', '')}'),
           backgroundColor: Colors.red.shade800,
         ));
         return;
@@ -204,7 +207,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
     final currentLang = Localizations.localeOf(context).languageCode;
     setState(() {
       _isAnalyzing = true;
-      _currentStatusStep = 'Chatmelier analyse le menu...';
+      _currentStatusStep = currentLang == 'fr' ? 'Chatmelier analyse le menu...' : 'Chatmelier is analyzing the menu...';
     });
     _startStatusTimer(restName);
 

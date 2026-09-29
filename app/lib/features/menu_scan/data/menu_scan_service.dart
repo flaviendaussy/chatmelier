@@ -259,7 +259,9 @@ Return STRICTLY a JSON object with:
     }
 
     if (parsedJson == null) {
-      throw Exception('Impossible d\'extraire les vins du menu avec l\'IA. Veuillez vérifier vos photos et réessayer.');
+      throw Exception(isEn
+          ? 'The wines on this menu could not be read. Check your photos and try again.'
+          : 'Les vins de cette carte n\'ont pas pu être lus. Vérifiez vos photos et réessayez.');
     }
 
     onStepUpdate?.call('Vérification dans la cave de connaissances Chatmelier...');

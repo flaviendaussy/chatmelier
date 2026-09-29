@@ -104,7 +104,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
       final contexte = await ref.read(cellarContextProvider.future);
       if (!mounted || contexte.estVide) return;
       setState(() {
-        _menu = _menu.copie(wines: CellarBridgeEngine.lier(_menu.wines, contexte));
+        _menu = _menu.copie(wines: CellarBridgeEngine.lier(_menu.wines, contexte, isFr: _estFr));
       });
     } catch (_) {}
   }
@@ -163,8 +163,14 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
   }
 
   /// « Ce que je connais déjà » : le filtre que seul ce produit peut offrir.
+  /// Un vin qu'on CONNAÎT : déjà goûté, ou dans sa cave. « Comblerait un manque » est
+  /// l'inverse — un vin qu'on ne connaît pas — et la puce « Vous connaissez (2) » les
+  /// comptait (The Kitchin, 29/09 : deux vins, tous deux « comblerait un manque »).
+  static bool _estConnu(MenuWine w) =>
+      w.pontDeCave?.type == TypeDeLien.dejaGoute || w.pontDeCave?.type == TypeDeLien.enCave;
+
   List<Widget> _puceDesConnus(bool isFr, bool isDark) {
-    final n = _menu.wines.where((w) => w.pontDeCave != null).length;
+    final n = _menu.wines.where(_estConnu).length;
     if (n == 0) return const [];
     return [
       FilterChip(
@@ -218,7 +224,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
       }
 
       // 0 bis. Ce que je connais déjà
-      if (_seulementConnus && wine.pontDeCave == null) {
+      if (_seulementConnus && !_estConnu(wine)) {
         return false;
       }
 
@@ -1071,6 +1077,8 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
   }
 
   /// Compact Wine Card: Optimized for high density (6-8+ wines visible simultaneously)
+  bool get _estFr => Localizations.localeOf(context).languageCode == 'fr';
+
   /// Un prix de la carte, dans sa devise ; à défaut — carte sans symbole — dans celle de
   /// la langue du téléphone. Les cartes de vin prenaient toujours la seconde : « $42 » sur
   /// une carte d'Édimbourg, lue par un téléphone réglé en anglais américain (29/09).
@@ -1190,7 +1198,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                                 Text(wine.flag!.iconEmoji, style: const TextStyle(fontSize: 10.5)),
                                 const SizedBox(width: 3),
                                 Text(
-                                  wine.flag!.label,
+                                  wine.flag!.libelle(_estFr),
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
@@ -1216,7 +1224,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     )
                   else if (effectiveGlassPrice != null)
                     Text(
-                      '${_prix(effectiveGlassPrice.price)}/v',
+                      '${_prix(effectiveGlassPrice.price)}/${_estFr ? 'v' : 'glass'}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -1277,7 +1285,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     Expanded(
                       child: Text(
                         '${wine.producer.isNotEmpty ? "${wine.producer} • " : ""}'
-                        '${wine.vintage != null ? wine.vintage.toString() : "NM"}'
+                        '${wine.vintage != null ? wine.vintage.toString() : (_estFr ? "NM" : "NV")}'
                         '${wine.countryWithFlag.isNotEmpty ? " • ${wine.countryWithFlag}" : ""}'
                         '${wine.appellation != null ? " • ${wine.appellation}" : (wine.region != null ? " • ${wine.region}" : "")}',
                         maxLines: 1,
@@ -1291,7 +1299,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     if (effectiveBottlePrice != null && effectiveGlassPrice != null) ...[
                       const SizedBox(width: 6),
                       Text(
-                        '${_prix(effectiveGlassPrice.price)}/v',
+                        '${_prix(effectiveGlassPrice.price)}/${_estFr ? 'v' : 'glass'}',
                         style: TextStyle(fontSize: 10.5, color: isDark ? Colors.white54 : Colors.grey.shade600),
                       ),
                     ],
@@ -1435,18 +1443,18 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                       Text(wine.flag!.iconEmoji, style: const TextStyle(fontSize: 14)),
                       const SizedBox(width: 6),
                       Text(
-                        wine.flag!.label,
+                        wine.flag!.libelle(_estFr),
                         style: TextStyle(
                           color: wine.flag!.color,
                           fontWeight: FontWeight.bold,
                           fontSize: 12.5,
                         ),
                       ),
-                      if (wine.flag!.reason != null && wine.flag!.reason!.isNotEmpty) ...[
+                      if (wine.flag!.raisonAffichee(_estFr) != null) ...[
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(
-                            '• ${wine.flag!.reason!}',
+                            '• ${wine.flag!.raisonAffichee(_estFr)!}',
                             style: TextStyle(
                               fontSize: 11.5,
                               color: isDark ? Colors.white70 : Colors.black87,
@@ -1505,7 +1513,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '${wine.producer} • ${wine.vintage != null ? wine.vintage.toString() : "NM"}'
+                          '${wine.producer} • ${wine.vintage != null ? wine.vintage.toString() : (_estFr ? "NM" : "NV")}'
                           '${wine.countryWithFlag.isNotEmpty ? " • ${wine.countryWithFlag}" : ""}'
                           '${wine.appellation != null ? " • ${wine.appellation}" : (wine.region != null ? " • ${wine.region}" : "")}',
                           style: const TextStyle(fontSize: 12.5, color: Colors.grey),

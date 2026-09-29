@@ -50,6 +50,45 @@ class MenuWineFlag {
     this.reason,
   });
 
+  /// Le libellé à l'écran, dans la langue du lecteur.
+  ///
+  /// [label] garde la valeur enregistrée avec la carte (les cartes déjà scannées portent
+  /// « Grosse Affaire », « Vin Pépite », « Match Profil 82% ») : on la reconnaît, on ne
+  /// l'affiche pas telle quelle. « Grosse affaire » n'est pas du français de sommelier.
+  String libelle(bool fr) {
+    switch (type) {
+      case MenuWineFlagType.deal:
+        final tres = const {'Grosse Affaire', 'Très bonne affaire', 'Great deal'}.contains(label);
+        return fr ? (tres ? 'Très bonne affaire' : 'Bonne affaire') : (tres ? 'Great deal' : 'Good deal');
+      case MenuWineFlagType.gem:
+        return fr ? 'Pépite' : 'Hidden gem';
+      case MenuWineFlagType.tasteMatch:
+        final pct = RegExp(r'(\d+)\s*%').firstMatch(label)?.group(1);
+        return fr
+            ? 'Taillé pour vous${pct != null ? ' · $pct %' : ''}'
+            : 'Made for you${pct != null ? ' · $pct%' : ''}';
+    }
+  }
+
+  /// La raison à l'écran : celle du scan (déjà dans la langue de la carte), ou la raison
+  /// par défaut du moteur, traduite. L'ancienne raison par défaut d'une pépite
+  /// (« Domaine d'exception et référence incontournable ») affirmait ce que le moteur ne
+  /// sait pas : elle se lit désormais comme ce qu'elle est.
+  String? raisonAffichee(bool fr) {
+    final r = reason;
+    if (r == null || r.isEmpty) return null;
+    const traductions = {
+      'Excellent rapport prix/plaisir sur la carte': ('Excellent rapport prix/plaisir sur la carte', 'Excellent value on this list'),
+      'Domaine d\'exception et référence incontournable': ('Repérée comme une pépite de la carte', 'Flagged as a gem on this list'),
+      'Repérée comme une pépite de la carte': ('Repérée comme une pépite de la carte', 'Flagged as a gem on this list'),
+      'Flacon taillé sur mesure pour vos préférences': ('Très proche de vos goûts', 'Very close to your taste'),
+      'Très proche de vos goûts': ('Très proche de vos goûts', 'Very close to your taste'),
+    };
+    final t = traductions[r];
+    if (t == null) return r;
+    return fr ? t.$1 : t.$2;
+  }
+
   String get iconEmoji {
     switch (type) {
       case MenuWineFlagType.deal:
@@ -369,16 +408,20 @@ class MenuWine {
   String formaterPrix(double prix) =>
       CurrencyHelper.formatPrice(prix, currency: devise, decimals: prix % 1 == 0 ? 0 : 2);
 
-  String get priceDisplay {
+  /// Les prix du vin en une ligne (en français : c'est aussi ce que lit le sommelier de
+  /// la carte). À l'écran, [prixAffiche] parle la langue du lecteur.
+  String get priceDisplay => prixAffiche(true);
+
+  String prixAffiche(bool fr) {
     final parts = <String>[];
     if (bottlePrice != null && bottlePrice! > 0) {
-      parts.add('${formaterPrix(bottlePrice!)} / bt');
+      parts.add('${formaterPrix(bottlePrice!)} / ${fr ? 'bt' : 'btl'}');
     }
     if (glassPrices.isNotEmpty) {
       final g = glassPrices.first;
       parts.add('${formaterPrix(g.price)} (${g.format})');
     }
-    if (parts.isEmpty) return 'Prix non indiqué';
+    if (parts.isEmpty) return fr ? 'Prix non indiqué' : 'Price not listed';
     return parts.join(' • ');
   }
 

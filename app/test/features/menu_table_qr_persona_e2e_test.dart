@@ -189,7 +189,8 @@ void main() {
 
       // Check title and top 3 bottles
       expect(find.text('Osteria di Graziano'), findsOneWidget);
-      expect(find.textContaining('3 vins analysés pour 1 convives'), findsOneWidget);
+      // « pour 1 convives » : le test figeait la faute de pluriel (corrigée le 29/09).
+      expect(find.textContaining('3 vins analysés pour 1 convive'), findsOneWidget);
       expect(find.text('Chablis 1er Cru Montée de Tonnerre'), findsOneWidget);
     });
   });

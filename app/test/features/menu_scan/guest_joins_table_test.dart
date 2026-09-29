@@ -111,7 +111,9 @@ void main() {
     final table = _FausseTable()
       ..aTable = const [
         GuestProfile(id: 'hote', name: 'Flavien'),
-        GuestProfile(id: 'invite', name: 'Invité'),
+        // Un invité a gardé le prénom proposé ; l'écran est en anglais, le prénom proposé
+        // est donc « Guest » (il suit la langue depuis le 29/09).
+        GuestProfile(id: 'invite', name: 'Guest'),
       ];
     await tester.pumpWidget(ProviderScope(
       overrides: [
@@ -128,10 +130,10 @@ void main() {
     await tester.pumpAndSettle();
     final valider = find.byIcon(Icons.group_add_rounded);
     await tester.ensureVisible(valider);
-    await tester.tap(valider); // le champ garde « Invité », déjà pris
+    await tester.tap(valider); // le champ garde « Guest », déjà pris
     await tester.pumpAndSettle();
 
-    expect(table.arrivees.single.$2, 'Invité (2)');
+    expect(table.arrivees.single.$2, 'Guest (2)');
   });
 
   Future<_FausseTable> ouvrir(WidgetTester tester, {TasteProfile? palais}) async {

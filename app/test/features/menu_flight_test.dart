@@ -105,15 +105,15 @@ void main() {
       expect(flight.title, contains('3 Verres'));
       expect(flight.storyline, isNotEmpty);
 
-      // Verify progression: Opening -> Transition -> Climax
+      // Les titres disent la place du verre ; le rôle décrit le vin servi (29/09).
       expect(flight.steps[0].stepTitle, contains('Ouverture'));
-      expect(flight.steps[0].sommelierRole, equals('Éveil & Fraîcheur'));
+      expect(flight.steps[0].sommelierRole, equals('Bulles & Minéralité'));
 
-      expect(flight.steps[1].stepTitle, contains('Corps'));
-      expect(flight.steps[1].sommelierRole, equals('Texture & Équilibre'));
+      expect(flight.steps[1].stepTitle, contains('Cœur'));
+      expect(flight.steps[1].sommelierRole, equals('Fruit'));
 
-      expect(flight.steps[2].stepTitle, contains('Apogée'));
-      expect(flight.steps[2].sommelierRole, equals('Caractère & Profondeur'));
+      expect(flight.steps[2].stepTitle, contains('Final'));
+      expect(flight.steps[2].sommelierRole, equals('Ampleur & Charpente'));
 
       // First wine should be Champagne or Chablis
       expect(flight.steps[0].wine.isSparkling || flight.steps[0].wine.isWhite, isTrue);
@@ -136,12 +136,12 @@ void main() {
       expect(flight.steps.length, equals(5));
       expect(flight.title, contains('5 Verres'));
 
-      // Verify 5 roles
-      expect(flight.steps[0].sommelierRole, equals('Bulles & Vivacité'));
-      expect(flight.steps[1].sommelierRole, equals('Blanc Gastronomique'));
-      expect(flight.steps[2].sommelierRole, equals('Rouge Fruit & Finesse'));
-      expect(flight.steps[3].sommelierRole, equals('Grand Rouge d\'Assise'));
-      expect(flight.steps[4].sommelierRole, equals('Élixir ou Fin de Bouche'));
+      // Cinq rôles, chacun tiré du profil du vin servi.
+      expect(flight.steps[0].sommelierRole, equals('Bulles & Minéralité')); // Champagne
+      expect(flight.steps[1].sommelierRole, equals('Ampleur & Gras')); // Meursault
+      expect(flight.steps[2].sommelierRole, equals('Fruit')); // Bandol rosé
+      expect(flight.steps[3].sommelierRole, equals('Ampleur & Charpente')); // Lynch-Bages
+      expect(flight.steps[4].sommelierRole, equals('Douceur & Ampleur')); // Sauternes
 
       // First wine is effervescent
       expect(flight.steps[0].wine.isSparkling, isTrue);
@@ -198,9 +198,9 @@ void main() {
       for (final step in flight.steps) {
         expect(step.wine.isWhite || step.wine.isSparkling || step.wine.wineType.contains('Dessert'), isTrue);
       }
-      expect(flight.steps[0].sommelierRole, equals('Tension & Salinité'));
-      expect(flight.steps[1].sommelierRole, equals('Fleurs & Fruits Mûrs'));
-      expect(flight.steps[2].sommelierRole, equals('Volume & Élevage Noble'));
+      expect(flight.steps[0].sommelierRole, equals('Bulles & Minéralité'));
+      expect(flight.steps[1].sommelierRole, equals('Minéralité & Vivacité'));
+      expect(flight.steps[2].sommelierRole, equals('Ampleur & Gras'));
     });
 
     test('Generates 100% Rosé flight with floral and gastronomic progression', () {
@@ -219,7 +219,7 @@ void main() {
       expect(flight.steps.every((s) => s.wine.isRose), isTrue);
       expect(flight.title, contains('(1 Verre)'));
       expect(flight.storyline, contains('qu\'un seul rosé'));
-      expect(flight.steps[0].sommelierRole, equals('Agrumes & Pétale de Rose'));
+      expect(flight.steps[0].sommelierRole, equals('Fruit'));
     });
 
     test('Generates 100% Rouge flight with fruit and power progression', () {
@@ -236,9 +236,85 @@ void main() {
       for (final step in flight.steps) {
         expect(step.wine.isRed, isTrue);
       }
-      expect(flight.steps[0].sommelierRole, equals('Finesse & Tanins Soyeux'));
-      expect(flight.steps[1].sommelierRole, equals('Rondeur & Fruits Noirs'));
-      expect(flight.steps[2].sommelierRole, equals('Grand Vin de Garde'));
+      expect(flight.steps[0].sommelierRole, equals('Fruit & Souplesse')); // Volnay
+      expect(flight.steps[1].sommelierRole, equals('Fruit')); // Côtes du Rhône
+      expect(flight.steps[2].sommelierRole, equals('Ampleur & Charpente')); // Lynch-Bages
+    });
+
+    test('un flight se commande au verre, et une estimation se dit (29/09)', () {
+      // « £22 / glass » s'affichait pour un Champagne que la carte ne sert qu'en bouteille.
+      final carte = ScannedMenu(
+        id: 'v',
+        restaurantName: 'R',
+        scannedAt: DateTime(2026),
+        pagePhotoPaths: const [],
+        wines: const [
+          MenuWine(id: 'b', name: 'Bouteille seule', producer: 'A', wineType: 'white', bottlePrice: 60,
+              metrics: MenuWineRadarMetrics(acidity: 8, minerality: 8)),
+          MenuWine(id: 'v', name: 'Servi au verre', producer: 'B', wineType: 'white', bottlePrice: 50,
+              glassPrices: [MenuWineGlassPrice(format: '15cl', price: 11)],
+              metrics: MenuWineRadarMetrics(acidity: 7, minerality: 7)),
+        ],
+      );
+      final f = MenuFlightEngine.buildFlight(menu: carte, color: FlightWineColor.white);
+      expect(f.steps.first.wine.name, 'Servi au verre', reason: 'à style comparable, le verre passe devant');
+      expect(f.steps.first.glassPrice, 11);
+      expect(f.steps.first.prixEstime, isFalse);
+      final estime = f.steps.firstWhere((s) => s.wine.name == 'Bouteille seule');
+      expect(estime.prixEstime, isTrue);
+      expect(estime.glassPrice, 12, reason: 'un cinquième de la bouteille, et marqué comme tel');
+    });
+
+    test('le parcours parle anglais', () {
+      final flight = MenuFlightEngine.buildFlight(
+        menu: sampleMenu,
+        format: FlightFormat.threeGlasses,
+        isFr: false,
+      );
+      expect(flight.title, contains('3 Glasses'));
+      expect(flight.steps[0].stepTitle, '1. The Opening');
+      expect(flight.steps[0].sommelierRole, 'Bubbles & Minerality');
+      expect(flight.storyline, contains('Le Bistro des Vignes'));
+      expect(flight.storyline, isNot(contains('verres')));
+    });
+
+    test('plausibilité : le rôle et la note décrivent le vin servi, jamais une place', () {
+      // « Grand Vin de Garde » s'écrivait sur le plus puissant des rouges, quel qu'il soit.
+      for (final couleur in FlightWineColor.values) {
+        for (final format in FlightFormat.values) {
+          final flight = MenuFlightEngine.buildFlight(menu: sampleMenu, format: format, color: couleur);
+          for (final step in flight.steps) {
+            if (step.wine.isRed) {
+              expect(step.sommelierRole, isNot(contains('Minéralité')), reason: step.wine.name);
+              expect(step.sommelierRole, isNot(contains('Gras')), reason: step.wine.name);
+            }
+            if (!step.wine.isRed) {
+              expect(step.sommelierRole, isNot(contains('Charpente')), reason: step.wine.name);
+            }
+            expect(step.sommelierRole, isNot(contains('Garde')));
+          }
+        }
+      }
+      // La note reprend ce que le scan a écrit de CE vin.
+      final commente = ScannedMenu(
+        id: 'c',
+        restaurantName: 'R',
+        scannedAt: DateTime(2026),
+        pagePhotoPaths: const [],
+        wines: const [
+          MenuWine(
+            id: 'x',
+            name: 'Sancerre',
+            producer: 'Vacheron',
+            wineType: 'white',
+            sommelierComment: 'Silex, agrumes, grande tension.',
+            metrics: MenuWineRadarMetrics(acidity: 8.5, minerality: 9),
+          ),
+        ],
+      );
+      final f = MenuFlightEngine.buildFlight(menu: commente, color: FlightWineColor.white);
+      expect(f.steps.single.tastingNotesSummary, 'Silex, agrumes, grande tension.');
+      expect(f.steps.single.sommelierRole, 'Minéralité & Vivacité');
     });
   });
 }

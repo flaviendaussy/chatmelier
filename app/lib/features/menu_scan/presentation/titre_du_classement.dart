@@ -51,3 +51,9 @@ class TitreDuClassement extends StatelessWidget {
     );
   }
 }
+
+
+/// « 7 vins analysés pour 2 convives », pluriels accordés (« pour 1 convives » avant).
+String vinsPourConvives(int vins, int convives, bool fr) => fr
+    ? '$vins ${vins > 1 ? 'vins analysés' : 'vin analysé'} pour $convives ${convives > 1 ? 'convives' : 'convive'}'
+    : '$vins ${vins > 1 ? 'wines' : 'wine'} analysed for $convives ${convives > 1 ? 'guests' : 'guest'}';

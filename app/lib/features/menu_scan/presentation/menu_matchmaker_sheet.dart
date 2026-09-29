@@ -1130,7 +1130,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Text(
-                              '${wine.producer} • ${wine.vintage ?? "NM"} • ${wine.appellation ?? wine.region ?? ""}',
+                              '${wine.producer} • ${wine.vintage ?? (isFr ? 'NM' : 'NV')} • ${wine.appellation ?? wine.region ?? ""}',
                               style: const TextStyle(fontSize: 12, color: Colors.grey),
                             ),
                           ],
@@ -1140,7 +1140,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            wine.priceDisplay,
+                            wine.prixAffiche(isFr),
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                           if (wine.userMatchScore != null)

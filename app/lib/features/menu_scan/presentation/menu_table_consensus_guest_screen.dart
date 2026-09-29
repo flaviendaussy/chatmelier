@@ -123,6 +123,10 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     if (isFr != _isFr) {
       _isFr = isFr;
+      // Le prénom proposé suit la langue, tant que l'invité n'en a pas choisi un.
+      if (!_hasJoined && (_nameCtrl.text == 'Invité' || _nameCtrl.text == 'Guest')) {
+        _nameCtrl.text = isFr ? 'Invité' : 'Guest';
+      }
       _recalculateConsensus();
     }
   }
@@ -641,7 +645,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh_rounded, color: Color(0xFFD4AF37)),
-              tooltip: 'Actualiser',
+              tooltip: _isFr ? 'Actualiser' : 'Refresh',
               onPressed: _recalculateConsensus,
             ),
           ],
@@ -704,7 +708,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${menu.wines.length} vins analysés pour ${_guests.length} convives',
+                      vinsPourConvives(menu.wines.length, _guests.length, isFr),
                       style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 12),
                     ),
                   ],
@@ -765,7 +769,10 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                   style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ),
-              label: Text('${g.name} (${g.archetype})', style: const TextStyle(color: Colors.white, fontSize: 11.5)),
+              label: Text(
+                  '${g.name == 'Hôte de la table' && !isFr ? 'Table host' : g.name} '
+                  '(${GuestProfile.archetypeAffiche(g.archetype, isFr)})',
+                  style: const TextStyle(color: Colors.white, fontSize: 11.5)),
             );
           }).toList(),
         ),
@@ -797,10 +804,11 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         const SizedBox(height: 12),
 
         if (_top3.isEmpty)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('Aucune correspondance trouvée sur cette carte.', style: TextStyle(color: Colors.white54)),
+              padding: const EdgeInsets.all(24),
+              child: Text(isFr ? 'Aucune correspondance trouvée sur cette carte.' : 'No match found on this list.',
+                  style: const TextStyle(color: Colors.white54)),
             ),
           )
         else
@@ -825,9 +833,9 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
               children: [
                 const Text('📱', style: TextStyle(fontSize: 28)),
                 const SizedBox(height: 6),
-                const Text(
-                  'Chatmelier — Sommelier Intelligent',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                Text(
+                  isFr ? 'Chatmelier — Sommelier Intelligent' : 'Chatmelier — Your Smart Sommelier',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -921,17 +929,17 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
             children: [
               _buildColorFilterChip('all', isFr ? 'Tous' : 'All'),
               const SizedBox(width: 8),
-              _buildColorFilterChip('Rouge', '🍷 Rouge'),
+              _buildColorFilterChip('Rouge', isFr ? '🍷 Rouge' : '🍷 Red'),
               const SizedBox(width: 8),
-              _buildColorFilterChip('Blanc', '🥂 Blanc'),
+              _buildColorFilterChip('Blanc', isFr ? '🥂 Blanc' : '🥂 White'),
               const SizedBox(width: 8),
               _buildColorFilterChip('Rosé', '🌸 Rosé'),
               const SizedBox(width: 8),
-              _buildColorFilterChip('Bulles', '✨ Bulles'),
+              _buildColorFilterChip('Bulles', isFr ? '✨ Bulles' : '✨ Sparkling'),
               const SizedBox(width: 8),
               FilterChip(
                 label: Text(
-                  '⭐ Pépites & Bons Plans',
+                  isFr ? '⭐ Pépites & Bons Plans' : '⭐ Gems & Deals',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -950,16 +958,19 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         const SizedBox(height: 16),
 
         Text(
-          '${filteredWines.length} vins trouvés',
+          isFr
+              ? '${filteredWines.length} ${filteredWines.length > 1 ? 'vins trouvés' : 'vin trouvé'}'
+              : '${filteredWines.length} ${filteredWines.length > 1 ? 'wines found' : 'wine found'}',
           style: const TextStyle(color: Colors.white54, fontSize: 12),
         ),
         const SizedBox(height: 8),
 
         if (filteredWines.isEmpty)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Text('Aucun vin ne correspond à ces critères.', style: TextStyle(color: Colors.white54)),
+              padding: const EdgeInsets.all(32),
+              child: Text(isFr ? 'Aucun vin ne correspond à ces critères.' : 'No wine matches these filters.',
+                  style: const TextStyle(color: Colors.white54)),
             ),
           )
         else
@@ -1043,7 +1054,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                         color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text('⭐ Pépite', style: TextStyle(color: Color(0xFFD4AF37), fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: Text(isFr ? '⭐ Pépite' : '⭐ Gem',
+                          style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   if (wine.isDeal)
                     Container(
@@ -1052,7 +1064,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                         color: Colors.green.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text('🏷️ Bon Plan', style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: Text(isFr ? '🏷️ Bon Plan' : '🏷️ Deal',
+                          style: const TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   if (wine.sommelierComment != null && wine.sommelierComment!.isNotEmpty)
                     Text(
@@ -1133,11 +1146,15 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
-                _buildRadarBar('Corps / Puissance', m.body ?? 5.0, Colors.amber),
-                _buildRadarBar('Acidité / Fraîcheur', m.acidity ?? 5.0, Colors.cyan),
-                _buildRadarBar('Fruit & Gourmandise', m.fruit ?? 5.0, Colors.redAccent),
-                if ((m.tannins ?? 0.0) > 0) _buildRadarBar('Tanins & Structure', m.tannins ?? 5.0, Colors.deepPurpleAccent),
-                if ((m.minerality ?? 0.0) > 0) _buildRadarBar('Minéralité & Tension', m.minerality ?? 5.0, Colors.tealAccent),
+                _buildRadarBar(isFr ? 'Corps / Puissance' : 'Body / Power', m.body ?? 5.0, Colors.amber),
+                _buildRadarBar(isFr ? 'Acidité / Fraîcheur' : 'Acidity / Freshness', m.acidity ?? 5.0, Colors.cyan),
+                _buildRadarBar(isFr ? 'Fruit' : 'Fruit', m.fruit ?? 5.0, Colors.redAccent),
+                // Les tanins ne se disent que des rouges, la minéralité des blancs et des
+                // bulles : mêmes règles de plausibilité que le consensus (29/09).
+                if (wine.isRed && (m.tannins ?? 0.0) > 0)
+                  _buildRadarBar(isFr ? 'Tanins & Structure' : 'Tannins & Structure', m.tannins ?? 5.0, Colors.deepPurpleAccent),
+                if (!wine.isRed && (m.minerality ?? 0.0) > 0)
+                  _buildRadarBar(isFr ? 'Minéralité & Tension' : 'Minerality & Tension', m.minerality ?? 5.0, Colors.tealAccent),
               ],
               const SizedBox(height: 16),
               SizedBox(
@@ -1187,6 +1204,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       menu: menu,
       format: _selectedFlightFormat,
       color: _selectedFlightColor,
+      isFr: isFr,
     );
 
     return ListView(
@@ -1237,7 +1255,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 children: [
                   Expanded(
                     child: ChoiceChip(
-                      label: const Center(child: Text('3 Verres (Express)', style: TextStyle(fontSize: 12))),
+                      label: Center(child: Text(isFr ? '3 Verres (Express)' : '3 Glasses (Express)', style: const TextStyle(fontSize: 12))),
                       selected: _selectedFlightFormat == FlightFormat.threeGlasses,
                       selectedColor: const Color(0xFF8B1E3F),
                       backgroundColor: Colors.black26,
@@ -1249,7 +1267,9 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                   const SizedBox(width: 10),
                   Expanded(
                     child: ChoiceChip(
-                      label: const Center(child: Text('5 Verres (Grand Sommelier)', style: TextStyle(fontSize: 12))),
+                      label: Center(
+                          child: Text(isFr ? '5 Verres (Grand Sommelier)' : '5 Glasses (Grand Sommelier)',
+                              style: const TextStyle(fontSize: 12))),
                       selected: _selectedFlightFormat == FlightFormat.fiveGlasses,
                       selectedColor: const Color(0xFF8B1E3F),
                       backgroundColor: Colors.black26,
@@ -1269,11 +1289,11 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                   children: [
                     _buildFlightColorChip(FlightWineColor.mix, '🍷🥂 Mix'),
                     const SizedBox(width: 8),
-                    _buildFlightColorChip(FlightWineColor.white, '🥂 100% Blanc'),
+                    _buildFlightColorChip(FlightWineColor.white, '🥂 ${FlightWineColor.white.label(isFr)}'),
                     const SizedBox(width: 8),
-                    _buildFlightColorChip(FlightWineColor.rose, '🌸 100% Rosé'),
+                    _buildFlightColorChip(FlightWineColor.rose, '🌸 ${FlightWineColor.rose.label(isFr)}'),
                     const SizedBox(width: 8),
-                    _buildFlightColorChip(FlightWineColor.red, '🍷 100% Rouge'),
+                    _buildFlightColorChip(FlightWineColor.red, '🍷 ${FlightWineColor.red.label(isFr)}'),
                   ],
                 ),
               ),
@@ -1485,17 +1505,17 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildDishCategoryChip('viande', '🥩 Viande Rouge'),
+                    _buildDishCategoryChip('viande', isFr ? '🥩 Viande Rouge' : '🥩 Red Meat'),
                     const SizedBox(width: 8),
-                    _buildDishCategoryChip('poisson', '🐟 Poisson & Crustacés'),
+                    _buildDishCategoryChip('poisson', isFr ? '🐟 Poisson & Crustacés' : '🐟 Fish & Shellfish'),
                     const SizedBox(width: 8),
-                    _buildDishCategoryChip('volaille', '🍗 Volaille'),
+                    _buildDishCategoryChip('volaille', isFr ? '🍗 Volaille' : '🍗 Poultry'),
                     const SizedBox(width: 8),
-                    _buildDishCategoryChip('fromage', '🧀 Fromages'),
+                    _buildDishCategoryChip('fromage', isFr ? '🧀 Fromages' : '🧀 Cheese'),
                     const SizedBox(width: 8),
-                    _buildDishCategoryChip('pates', '🍝 Pâtes & Risotto'),
+                    _buildDishCategoryChip('pates', isFr ? '🍝 Pâtes & Risotto' : '🍝 Pasta & Risotto'),
                     const SizedBox(width: 8),
-                    _buildDishCategoryChip('dessert', '🍰 Desserts'),
+                    _buildDishCategoryChip('dessert', isFr ? '🍰 Desserts' : '🍰 Desserts'),
                   ],
                 ),
               ),
@@ -1508,10 +1528,11 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         const SizedBox(height: 10),
 
         if (matchedWines.isEmpty)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Text('Aucun vin adapté trouvé sur cette carte.', style: TextStyle(color: Colors.white54)),
+              padding: const EdgeInsets.all(32),
+              child: Text(isFr ? 'Aucun vin adapté trouvé sur cette carte.' : 'No suitable wine on this list.',
+                  style: const TextStyle(color: Colors.white54)),
             ),
           )
         else
@@ -1662,7 +1683,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                       border: Border.all(color: const Color(0xFFD4AF37), width: 0.8),
                     ),
                     child: Text(
-                      '${match.harmonyScore.toStringAsFixed(0)}% Harmonie',
+                      '${match.harmonyScore.toStringAsFixed(0)}% ${_isFr ? 'Harmonie' : 'match'}',
                       style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),

@@ -136,5 +136,24 @@ void main() {
       expect(relu!.restaurantName, equals('Chez Paul'));
       expect(relu.wines.first.name, equals('Bandol'));
     });
+
+    test('la devise de la carte voyage dans le QR (Édimbourg, 29/09)', () {
+      final origine = ScannedMenu(
+        id: 'm',
+        restaurantName: 'The Kitchin',
+        pagePhotoPaths: const [],
+        wines: [vin('Barolo', prix: 95)],
+        scannedAt: DateTime.now(),
+        currency: 'GBP',
+      );
+      final relu = MenuTableSessionManager.decodeMenuPayload(
+          MenuTableSessionManager.encodeMenuPayload(origine))!;
+      expect(relu.currency, 'GBP');
+      expect(relu.wines.single.formaterPrix(95), '£95');
+      expect(relu.formaterPrix(12.5), '£12.50');
+      // Une carte sans devise connue reste sans devise : pas de symbole inventé.
+      expect(MenuTableSessionManager.decodeMenuPayload(
+          MenuTableSessionManager.encodeMenuPayload(carte([vin('Bandol')])))!.currency, isNull);
+    });
   });
 }

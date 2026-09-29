@@ -206,4 +206,24 @@ void main() {
     expect(fusion['modele'], 'gemini-3.8-flash');
     expect(fusion['pages_non_lues'], 1);
   });
+
+  test('renommer ou annoter la carte garde sa devise (29/09)', () {
+    // La carte enrichie se reconstruisait champ par champ après le croisement avec la
+    // cave, et une carte d'Édimbourg repassait en euros (« ≤ 60 € »).
+    final carte = ScannedMenu(
+      id: 'k',
+      restaurantName: 'Kitchin',
+      scannedAt: DateTime(2026, 9, 29),
+      pagePhotoPaths: const [],
+      wines: const [],
+      currency: 'GBP',
+      pagesNonLues: 1,
+    );
+    final renommee = carte.copie(restaurantName: 'The Kitchin');
+    expect(renommee.restaurantName, 'The Kitchin');
+    expect(renommee.currency, 'GBP');
+    expect(renommee.pagesNonLues, 1);
+    expect(carte.copie(wines: const []).currency, 'GBP');
+    expect(renommee.formaterPrix(60), '£60');
+  });
 }

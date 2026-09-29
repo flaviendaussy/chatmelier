@@ -43,7 +43,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
   final List<String> _quickPromptsFr = [
     '🐟 Quel vin avec du poisson / fruits de mer ?',
     '🥩 Quel vin rouge pour une viande rouge savoureuse ?',
-    '💎 Le meilleur rapport qualité / prix sous 45 € ?',
+    '💎 Le meilleur rapport qualité / prix de la carte ?',
     '🍷 Un vin rouge souple et très peu tannique ?',
     '🧀 Quel accord parfait avec un plateau de fromages ?',
   ];
@@ -51,7 +51,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
   final List<String> _quickPromptsEn = [
     '🐟 Which wine with fish / seafood?',
     '🥩 Which red wine for savory red meat?',
-    '💎 Best value for money under €45?',
+    '💎 Best value for money on this list?',
     '🍷 A smooth red wine with low tannins?',
     '🧀 Best pairing for a cheese board?',
   ];

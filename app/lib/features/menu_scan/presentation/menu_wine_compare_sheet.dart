@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../shared/utils/currency_helper.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../domain/menu_wine.dart';
 import '../../../shared/utils/app_logger.dart';
@@ -215,11 +214,11 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                           // Resolve price automatically without format selector
                           String priceLabel = '';
                           if (wine.bottlePrice != null && wine.bottlePrice! > 0) {
-                            priceLabel = '${CurrencyHelper.formatPrice(wine.bottlePrice!)} / bt';
+                            priceLabel = '${wine.formaterPrix(wine.bottlePrice!)} / bt';
                           }
                           if (wine.glassPrices.isNotEmpty) {
                             final g = wine.glassPrices.first;
-                            final gStr = '${CurrencyHelper.formatPrice(g.price)} (${g.format})';
+                            final gStr = '${wine.formaterPrix(g.price)} (${g.format})';
                             priceLabel = priceLabel.isNotEmpty ? '$priceLabel • $gStr' : gStr;
                           }
                           if (priceLabel.isEmpty) priceLabel = isFr ? 'Prix non indiqué' : 'Price not listed';

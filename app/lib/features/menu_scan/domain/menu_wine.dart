@@ -553,6 +553,23 @@ class ScannedMenu {
     return RegExp(r'^[A-Z]{3}$').hasMatch(code) ? code : null;
   }
 
+  /// La même carte, autrement nommée ou avec d'autres vins (annotés par la cave) : la
+  /// devise et les pages non lues suivent. Reconstruire la carte champ par champ les
+  /// perdait, et une carte d'Édimbourg repassait en euros (29/09).
+  ScannedMenu copie({String? restaurantName, List<MenuWine>? wines}) => ScannedMenu(
+        id: id,
+        restaurantName: restaurantName ?? this.restaurantName,
+        scannedAt: scannedAt,
+        pagePhotoPaths: pagePhotoPaths,
+        wines: wines ?? this.wines,
+        currency: currency,
+        pagesNonLues: pagesNonLues,
+      );
+
+  /// Un prix de cette carte, dans sa devise (voir [MenuWine.formaterPrix]).
+  String formaterPrix(double prix) =>
+      CurrencyHelper.formatPrice(prix, currency: currency, decimals: prix % 1 == 0 ? 0 : 2);
+
   List<MenuWine> get redWines => wines.where((w) => w.isRed).toList();
   List<MenuWine> get whiteWines => wines.where((w) => w.isWhite).toList();
   List<MenuWine> get roseWines => wines.where((w) => w.isRose).toList();

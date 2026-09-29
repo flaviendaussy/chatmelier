@@ -29,6 +29,7 @@ final cellarContextProvider = FutureProvider<ContexteDeCave>((ref) async {
             producteur: b.wine?.producer,
             millesime: b.wine?.vintage,
             prixAchat: b.purchasePrice,
+            deviseAchat: b.currency,
             quantite: b.quantity,
           ),
     ];

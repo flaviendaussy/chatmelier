@@ -1,3 +1,4 @@
+import '../../../shared/utils/currency_helper.dart';
 import '../../cellar/domain/cellar_gap_engine.dart';
 import 'menu_wine.dart';
 
@@ -7,6 +8,9 @@ class VinDeMaCave {
   final String? producteur;
   final int? millesime;
   final double? prixAchat;
+
+  /// Devise du prix d'achat (ISO 4217).
+  final String deviseAchat;
   final int quantite;
 
   const VinDeMaCave({
@@ -14,6 +18,7 @@ class VinDeMaCave {
     this.producteur,
     this.millesime,
     this.prixAchat,
+    this.deviseAchat = 'EUR',
     this.quantite = 1,
   });
 }
@@ -140,12 +145,18 @@ class CellarBridgeEngine {
       if (!_memeVin(vin.name, vin.producer, c.nom, c.producteur)) continue;
       final achat = c.prixAchat;
       final carte = vin.bottlePrice;
+      // Un écart ne se calcule que dans une même devise : une bouteille payée en euros
+      // et une carte en livres donneraient un chiffre faux. Carte sans devise connue :
+      // on la suppose dans celle de la cave, comme avant.
+      final memeDevise = vin.devise == null || vin.devise == c.deviseAchat;
       String? detail;
-      if (achat != null && achat > 0 && carte != null && carte > 0) {
+      if (achat != null && achat > 0 && carte != null && carte > 0 && memeDevise) {
         final ecart = carte - achat;
         detail = ecart > 0
-            ? 'Vous en avez en cave, payée ${_euros(achat)} — soit ${_euros(ecart)} de moins qu\'ici'
-            : 'Vous en avez en cave, payée ${_euros(achat)}';
+            ? 'Vous en avez en cave, payée ${_prix(achat, c.deviseAchat)} — soit ${_prix(ecart, c.deviseAchat)} de moins qu\'ici'
+            : 'Vous en avez en cave, payée ${_prix(achat, c.deviseAchat)}';
+      } else if (achat != null && achat > 0 && carte != null && carte > 0) {
+        detail = 'Vous en avez en cave, payée ${_prix(achat, c.deviseAchat)}';
       } else {
         detail = c.quantite > 1
             ? 'Vous en avez ${c.quantite} en cave'
@@ -248,7 +259,7 @@ class CellarBridgeEngine {
   static String _note(double n) =>
       n % 1 == 0 ? n.toStringAsFixed(0) : n.toStringAsFixed(1);
 
-  static String _euros(double v) => '${v.toStringAsFixed(0)} €';
+  static String _prix(double v, String devise) => CurrencyHelper.formatPrice(v, currency: devise);
 
   static String? _quand(DateTime? d) =>
       d == null ? null : 'Goûté ${_moisAnnee(d)}';

@@ -78,6 +78,9 @@ class MenuTableSessionManager {
       final jsonMap = {
         'r': menu.restaurantName.isNotEmpty ? menu.restaurantName : 'Restaurant',
         'w': compactList,
+        // La devise : sans elle, l'invité d'une table d'Édimbourg lisait ses prix en
+        // euros (29/09).
+        if (menu.currency != null) 'c': menu.currency,
       };
 
       final jsonStr = jsonEncode(jsonMap);
@@ -93,6 +96,7 @@ class MenuTableSessionManager {
         final simpleMap = {
           'r': menu.restaurantName.isNotEmpty ? menu.restaurantName : 'Restaurant',
           'w': menu.wines.take(10).map((w) => [w.name, w.wineType, w.bottlePrice ?? 0.0]).toList(),
+          if (menu.currency != null) 'c': menu.currency,
         };
         return base64Url.encode(utf8.encode(jsonEncode(simpleMap)));
       } catch (_) {
@@ -140,6 +144,7 @@ class MenuTableSessionManager {
       if (decoded is Map<String, dynamic>) {
         final restaurantName = decoded['r'] as String? ?? 'Restaurant Partagé';
         final rawWines = decoded['w'] as List<dynamic>? ?? [];
+        final devise = ScannedMenu.normaliserDevise(decoded['c']);
 
         final wines = <MenuWine>[];
         for (final item in rawWines) {
@@ -194,6 +199,7 @@ class MenuTableSessionManager {
               metrics: metrics,
               grapes: grapes,
               glassPrices: glassPrices,
+              devise: devise,
             ));
           }
         }
@@ -205,6 +211,7 @@ class MenuTableSessionManager {
             pagePhotoPaths: const [],
             wines: wines,
             scannedAt: DateTime.now(),
+            currency: devise,
           );
         }
       }

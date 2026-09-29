@@ -55,7 +55,7 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
     buffer.writeln(_proposal.storyline);
     buffer.writeln('');
     for (final step in _proposal.steps) {
-      final priceStr = step.glassPrice != null ? ' (~${step.glassPrice!.toStringAsFixed(1)}€)' : '';
+      final priceStr = step.glassPrice != null ? ' (~${widget.menu.formaterPrix(step.glassPrice!)})' : '';
       buffer.writeln('${step.stepTitle} : ${step.wine.name}${step.wine.vintage != null ? " ${step.wine.vintage}" : ""}$priceStr');
       buffer.writeln('   👉 ${step.sommelierRole} — ${step.tastingNotesSummary}');
     }
@@ -314,7 +314,8 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
                         style: const TextStyle(color: Colors.white60, fontSize: 11),
                       ),
                       Text(
-                        '~${_proposal.totalEstimatedPrice.toStringAsFixed(0)} € (${_proposal.steps.length} verres)',
+                        '~${widget.menu.formaterPrix(_proposal.totalEstimatedPrice.roundToDouble())} '
+                        '(${_proposal.steps.length} ${isFr ? 'verres' : 'glasses'})',
                         style: const TextStyle(
                           color: Color(0xFFD4AF37),
                           fontSize: 16,
@@ -350,8 +351,8 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
   Widget _buildStepCard(FlightGlassStep step, bool isFr) {
     final wine = step.wine;
     final priceStr = step.glassPrice != null
-        ? '${step.glassPrice!.toStringAsFixed(1)} € / verre'
-        : (wine.bottlePrice != null ? '${wine.bottlePrice!.toStringAsFixed(0)} € / btl' : '');
+        ? '${widget.menu.formaterPrix(step.glassPrice!)} / ${isFr ? 'verre' : 'glass'}'
+        : (wine.bottlePrice != null ? '${widget.menu.formaterPrix(wine.bottlePrice!)} / btl' : '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

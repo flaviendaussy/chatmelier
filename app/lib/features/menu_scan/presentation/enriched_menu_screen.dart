@@ -104,13 +104,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
       final contexte = await ref.read(cellarContextProvider.future);
       if (!mounted || contexte.estVide) return;
       setState(() {
-        _menu = ScannedMenu(
-          id: _menu.id,
-          restaurantName: _menu.restaurantName,
-          pagePhotoPaths: _menu.pagePhotoPaths,
-          scannedAt: _menu.scannedAt,
-          wines: CellarBridgeEngine.lier(_menu.wines, contexte),
-        );
+        _menu = _menu.copie(wines: CellarBridgeEngine.lier(_menu.wines, contexte));
       });
     } catch (_) {}
   }
@@ -283,13 +277,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
               final newName = nameCtrl.text.trim();
               if (newName.isNotEmpty) {
                 setState(() {
-                  _menu = ScannedMenu(
-                    id: _menu.id,
-                    restaurantName: newName,
-                    scannedAt: _menu.scannedAt,
-                    pagePhotoPaths: _menu.pagePhotoPaths,
-                    wines: _menu.wines,
-                  );
+                  _menu = _menu.copie(restaurantName: newName);
                 });
               }
               Navigator.pop(ctx);
@@ -311,6 +299,16 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     final redCount = _menu.wines.where((w) => w.isRed).length;
     final whiteCount = _menu.wines.where((w) => w.isWhite).length;
     final sparklingCount = _menu.wines.where((w) => w.isSparkling).length;
+    // Les rosés manquaient au décompte : « 7 références · 2 blancs • 3 rouges • 1 bulles »
+    // (The Kitchin, 29/09) laissait un vin introuvable.
+    final roseCount = _menu.wines.where((w) => w.isRose && !w.isSparkling).length;
+    String compte(int n, String un, String plusieurs) => '$n ${n > 1 ? plusieurs : un}';
+    final decompte = [
+      if (whiteCount > 0) isFr ? compte(whiteCount, 'Blanc', 'Blancs') : compte(whiteCount, 'White', 'Whites'),
+      if (redCount > 0) isFr ? compte(redCount, 'Rouge', 'Rouges') : compte(redCount, 'Red', 'Reds'),
+      if (roseCount > 0) compte(roseCount, 'Rosé', 'Rosés'),
+      if (sparklingCount > 0) isFr ? compte(sparklingCount, 'Bulles', 'Bulles') : compte(sparklingCount, 'Sparkling', 'Sparkling'),
+    ].join(' • ');
 
     return Scaffold(
       appBar: AppBar(
@@ -441,9 +439,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                       Text(
-                        isFr
-                            ? '$whiteCount Blancs • $redCount Rouges • $sparklingCount Bulles'
-                            : '$whiteCount Whites • $redCount Reds • $sparklingCount Sparkling',
+                        decompte,
                         style: const TextStyle(fontSize: 11, color: Colors.grey),
                       ),
                     ],
@@ -791,7 +787,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                 for (final plafond in _plafondsDePrix) ...[
                   FilterChip(
                     label: Text(
-                      '≤ ${plafond.toStringAsFixed(0)} €',
+                      '≤ ${_prix(plafond.roundToDouble())}',
                       style: TextStyle(
                         fontWeight: _maxPrice == plafond
                             ? FontWeight.bold
@@ -846,6 +842,15 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                       }
                     }),
                   ),
+                  if (roseCount > 0 && !(_selectedTag == 'beurré' || _selectedTag == 'beurre')) ...[
+                    const SizedBox(width: 6),
+                    ChoiceChip(
+                      avatar: const Icon(Icons.circle, size: 12, color: Color(0xFFE8A0A8)),
+                      label: Text('Rosés ($roseCount)'),
+                      selected: _selectedColor == 'rose',
+                      onSelected: (_) => setState(() => _selectedColor = 'rose'),
+                    ),
+                  ],
                   const SizedBox(width: 6),
                   ChoiceChip(
                     avatar: const Icon(Icons.circle, size: 12, color: Color(0xFFD4AF37)),
@@ -1066,6 +1071,13 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
   }
 
   /// Compact Wine Card: Optimized for high density (6-8+ wines visible simultaneously)
+  /// Un prix de la carte, dans sa devise ; à défaut — carte sans symbole — dans celle de
+  /// la langue du téléphone. Les cartes de vin prenaient toujours la seconde : « $42 » sur
+  /// une carte d'Édimbourg, lue par un téléphone réglé en anglais américain (29/09).
+  String _prix(double v) => CurrencyHelper.formatPrice(v,
+      currency: _menu.currency ?? CurrencyHelper.getCurrencyForLocale(Localizations.localeOf(context)),
+      decimals: v % 1 == 0 ? 0 : 2);
+
   Widget _buildCompactWineCard(
     BuildContext context,
     MenuWine wine,
@@ -1195,11 +1207,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   const SizedBox(width: 8),
                   if (effectiveBottlePrice != null)
                     Text(
-                      CurrencyHelper.formatPrice(
-                        effectiveBottlePrice,
-                        currency: CurrencyHelper.getCurrencyForLocale(Localizations.localeOf(context)),
-                        decimals: effectiveBottlePrice % 1 == 0 ? 0 : 2,
-                      ),
+                      _prix(effectiveBottlePrice),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -1208,7 +1216,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     )
                   else if (effectiveGlassPrice != null)
                     Text(
-                      '${CurrencyHelper.formatPrice(effectiveGlassPrice.price, currency: CurrencyHelper.getCurrencyForLocale(Localizations.localeOf(context)), decimals: effectiveGlassPrice.price % 1 == 0 ? 0 : 2)}/v',
+                      '${_prix(effectiveGlassPrice.price)}/v',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -1283,7 +1291,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     if (effectiveBottlePrice != null && effectiveGlassPrice != null) ...[
                       const SizedBox(width: 6),
                       Text(
-                        '${CurrencyHelper.formatPrice(effectiveGlassPrice.price, currency: CurrencyHelper.getCurrencyForLocale(Localizations.localeOf(context)), decimals: effectiveGlassPrice.price % 1 == 0 ? 0 : 2)}/v',
+                        '${_prix(effectiveGlassPrice.price)}/v',
                         style: TextStyle(fontSize: 10.5, color: isDark ? Colors.white54 : Colors.grey.shade600),
                       ),
                     ],
@@ -1322,7 +1330,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         Padding(
                           padding: const EdgeInsets.only(right: 4),
                           child: _buildCompactMetricPill(
-                            'Tannins ${wine.metrics.tannins.toStringAsFixed(1)}',
+                            '${Localizations.localeOf(context).languageCode == 'fr' ? 'Tanins' : 'Tannins'} ${wine.metrics.tannins.toStringAsFixed(1)}',
                             const Color(0xFF8B1E3F),
                           ),
                         ),
@@ -1510,11 +1518,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     children: [
                       if (wine.bottlePrice != null)
                         Text(
-                          CurrencyHelper.formatPrice(
-                            wine.bottlePrice,
-                            currency: CurrencyHelper.getCurrencyForLocale(Localizations.localeOf(context)),
-                            decimals: wine.bottlePrice! % 1 == 0 ? 0 : 2,
-                          ),
+                          _prix(wine.bottlePrice!),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -1524,7 +1528,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                       if (wine.glassPrices.isNotEmpty)
                         Text(
                           wine.glassPrices
-                              .map((g) => '${CurrencyHelper.formatPrice(g.price, currency: CurrencyHelper.getCurrencyForLocale(Localizations.localeOf(context)), decimals: g.price % 1 == 0 ? 0 : 2)}/${g.format}')
+                              .map((g) => '${_prix(g.price)}/${g.format}')
                               .join(' • '),
                           style: const TextStyle(fontSize: 11, color: Colors.grey),
                         ),
@@ -1545,7 +1549,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                       children: [
                         if (wine.isRed && wine.metrics.tannins > 0)
                           _buildMetricPill(
-                            'Tannins ${wine.metrics.tannins.toStringAsFixed(1)}/10',
+                            '${Localizations.localeOf(context).languageCode == 'fr' ? 'Tanins' : 'Tannins'} ${wine.metrics.tannins.toStringAsFixed(1)}/10',
                             const Color(0xFF8B1E3F),
                           ),
                         if (wine.isWhite && wine.metrics.minerality > 0)

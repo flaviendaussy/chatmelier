@@ -118,6 +118,18 @@ void main() {
           reason: '78 − 30 : c\'est l\'écart qui fait réfléchir, pas le prix seul');
     });
 
+    test('une carte en livres ne se compare pas à un achat en euros (29/09)', () {
+      final l = lien(
+        carteVin('Bandol', producteur: 'Terrebrune', prix: 78).copyWith(devise: 'GBP'),
+        const ContexteDeCave(cave: [
+          VinDeMaCave(nom: 'Bandol Rouge', producteur: 'Terrebrune', prixAchat: 30),
+        ]),
+      );
+      expect(l?.type, equals(TypeDeLien.enCave));
+      expect(l?.detail, contains('30 €'));
+      expect(l?.detail, isNot(contains('48')), reason: '78 £ − 30 € ne veut rien dire');
+    });
+
     test('sans prix d\'achat, on dit simplement qu\'on en a', () {
       final l = lien(
         carteVin('Bandol', producteur: 'Terrebrune', prix: 78),

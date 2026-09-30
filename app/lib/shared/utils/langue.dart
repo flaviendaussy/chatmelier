@@ -1,26 +1,88 @@
 import 'package:flutter/widgets.dart';
 
-/// La langue de l'écran, pour les textes écrits en dur en français et en anglais.
+import '../langues/catalogues.dart';
+
+/// La langue de l'écran, pour les textes écrits dans le code (V2.3 · H1).
 ///
-/// Des pans entiers de l'app n'existaient qu'en français, alors qu'une partie des
-/// testeurs l'utilise en anglais (retour du 29/09). Beaucoup de ces textes vivent dans
-/// des fonctions sans `BuildContext` (messages d'erreur, résumés) : `tr` lit donc une
-/// langue tenue à jour par la racine de l'app (`MaterialApp.builder`, dans `app.dart`),
-/// à chaque changement de langue.
+/// Chaque texte de l'app est écrit en français et en anglais, au plus près de l'écran qui
+/// l'affiche : `tr('Soirée retrouvée', 'Evening recovered')`. Les autres langues vivent
+/// dans des catalogues indexés par la phrase française (`lib/shared/langues/`, générés
+/// depuis `l10n_catalogues/<langue>.json` par `tool/langues/generer.py`) : ajouter une
+/// langue, c'est ajouter un catalogue, sans toucher aux écrans. Une phrase absente d'un
+/// catalogue s'affiche en anglais.
+///
+/// Beaucoup de ces textes vivent dans des fonctions sans `BuildContext` (messages
+/// d'erreur, résumés) : `tr` lit donc une langue tenue à jour par la racine de l'app
+/// (`MaterialApp.builder`, dans `app.dart`), à chaque changement de langue.
 ///
 /// Français par défaut, comme l'app : un écran monté hors de l'app (tests) garde ses
-/// textes d'origine. Les autres langues de l'app retombent sur l'anglais, comme partout
-/// où l'app choisit entre français et anglais.
+/// textes d'origine.
 class Langue {
-  static bool estFr = true;
+  /// Les langues que l'app parle. Toute autre langue du téléphone reçoit l'anglais.
+  static const supportees = ['fr', 'en', 'es'];
 
-  static void definir(Locale locale) => estFr = locale.languageCode == 'fr';
+  static String code = 'fr';
+
+  static bool get estFr => code == 'fr';
+
+  /// Pour les essais, qui basculaient entre français et anglais avant l'espagnol.
+  static set estFr(bool fr) => code = fr ? 'fr' : 'en';
+
+  static void definir(Locale locale) =>
+      code = supportees.contains(locale.languageCode) ? locale.languageCode : 'en';
 }
 
-/// Le texte dans la langue de l'écran.
-String tr(String fr, String en) => Langue.estFr ? fr : en;
+final _marque = RegExp(r'\{(\w+)\}');
 
-/// Un texte de référentiel (terroirs, accords…) : écrit en français dans ses données, il
-/// a sa version anglaise dans une table à part, consultée seulement en anglais. Sans
-/// traduction, le français plutôt que rien.
-String trDonnee(String fr, Map<String, String> anglais) => Langue.estFr ? fr : (anglais[fr] ?? fr);
+/// Remplit les {marques} d'un modèle : `remplir('{n} vins', {'n': 3})` → « 3 vins ».
+/// Une marque sans valeur reste telle quelle, pour se voir plutôt que disparaître.
+String remplir(String modele, Map<String, Object?> valeurs) {
+  if (valeurs.isEmpty) return modele;
+  return modele.replaceAllMapped(_marque, (m) => valeurs.containsKey(m[1]) ? '${valeurs[m[1]]}' : m[0]!);
+}
+
+String _horsFrancais(String fr, String en) {
+  final code = Langue.code;
+  if (code == 'fr' || code == 'en') return en;
+  return catalogues[code]?[fr] ?? en;
+}
+
+/// Le texte dans la langue de l'écran. [fr] sert aussi de clé aux catalogues des autres
+/// langues ; les {marques} du texte choisi sont remplies par [valeurs].
+String tr(String fr, String en, [Map<String, Object?> valeurs = const {}]) =>
+    remplir(Langue.code == 'fr' ? fr : _horsFrancais(fr, en), valeurs);
+
+/// Pour les écrans qui reçoivent leur langue en paramètre (`isFr`) : le français si [fr],
+/// sinon la langue de l'app hors du français (l'anglais par défaut).
+String trSi(bool fr, String textFr, String textEn, [Map<String, Object?> valeurs = const {}]) =>
+    remplir(fr ? textFr : _horsFrancais(textFr, textEn), valeurs);
+
+/// Un texte de référentiel (terroirs, accords…) : écrit en français dans ses données, il a
+/// sa version anglaise dans une table à part, et ses autres langues dans les catalogues.
+/// Sans traduction, l'anglais, puis le français plutôt que rien.
+String trDonnee(String fr, Map<String, String> anglais) {
+  switch (Langue.code) {
+    case 'fr':
+      return fr;
+    case 'en':
+      return anglais[fr] ?? fr;
+    default:
+      return catalogues[Langue.code]?[fr] ?? anglais[fr] ?? fr;
+  }
+}
+
+/// Une phrase déclarée d'avance en deux langues (énumérations, listes de suggestions) : le
+/// français sert de clé aux catalogues, comme pour [tr]. Garder la paire côte à côte dans
+/// le code permet à `tool/langues/extraire.py` de la retrouver.
+class Phrase {
+  final String fr;
+  final String en;
+
+  const Phrase(this.fr, this.en);
+
+  /// Dans la langue de l'app.
+  String get texte => tr(fr, en);
+
+  /// Pour un écran qui reçoit sa langue en paramètre.
+  String dans(bool enFrancais) => trSi(enFrancais, fr, en);
+}

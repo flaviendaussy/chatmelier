@@ -55,7 +55,7 @@ class _NotificationBellButtonState extends ConsumerState<NotificationBellButton>
 
     return IconButton(
       tooltip: unreadCount > 0
-          ? tr('Boîte de réception ($unreadCount en attente)', 'Inbox ($unreadCount waiting)')
+          ? tr('Boîte de réception ({unreadCount} en attente)', 'Inbox ({unreadCount} waiting)', {'unreadCount': unreadCount})
           : tr('Boîte de réception', 'Inbox'),
       icon: Badge(
         isLabelVisible: unreadCount > 0,

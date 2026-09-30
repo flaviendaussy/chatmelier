@@ -16,6 +16,7 @@ import '../../../shared/services/sondage_espace.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import 'titre_du_classement.dart';
+import '../../../shared/utils/langue.dart';
 
 class MenuTableConsensusSheet extends ConsumerStatefulWidget {
   final ScannedMenu menu;
@@ -259,7 +260,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
 
   void _addGuestDialog() {
     final fr = _isFr;
-    final nameCtrl = TextEditingController(text: '${fr ? 'Convive' : 'Guest'} ${_tableGuests.length + 1}');
+    final nameCtrl = TextEditingController(text: '${trSi(fr, 'Convive', 'Guest')} ${_tableGuests.length + 1}');
     String selectedArchetype = 'equilibre';
 
     showDialog(
@@ -267,7 +268,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
           backgroundColor: const Color(0xFF1E1A24),
-          title: Text(fr ? 'Ajouter un convive à table' : 'Add a guest to the table',
+          title: Text(trSi(fr, 'Ajouter un convive à table', 'Add a guest to the table'),
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -277,13 +278,13 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                 controller: nameCtrl,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  labelText: fr ? 'Prénom du convive' : 'Guest\'s first name',
+                  labelText: trSi(fr, 'Prénom du convive', 'Guest\'s first name'),
                   labelStyle: const TextStyle(color: Color(0xFFD4AF37)),
                   enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
                 ),
               ),
               const SizedBox(height: 18),
-              Text(fr ? 'Profil / Préférences :' : 'Profile / Preferences:',
+              Text(trSi(fr, 'Profil / Préférences :', 'Profile / Preferences:'),
                   style: const TextStyle(color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 8),
               DropdownButton<String>(
@@ -292,16 +293,16 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                 dropdownColor: const Color(0xFF282230),
                 style: const TextStyle(color: Colors.white),
                 items: [
-                  DropdownMenuItem(value: 'equilibre', child: Text(fr ? '🍷 Curieux & Éclectique' : '🍷 Curious & eclectic')),
+                  DropdownMenuItem(value: 'equilibre', child: Text(trSi(fr, '🍷 Curieux & Éclectique', '🍷 Curious & eclectic'))),
                   DropdownMenuItem(
                       value: 'puissant',
-                      child: Text(fr ? '🧱 Grands Rouges Puissants & Tanniques' : '🧱 Big, powerful, tannic reds')),
+                      child: Text(trSi(fr, '🧱 Grands Rouges Puissants & Tanniques', '🧱 Big, powerful, tannic reds'))),
                   DropdownMenuItem(
-                      value: 'mineral', child: Text(fr ? '⚡ Blancs Tendus, Frais & Minéraux' : '⚡ Taut, crisp, mineral whites')),
+                      value: 'mineral', child: Text(trSi(fr, '⚡ Blancs Tendus, Frais & Minéraux', '⚡ Taut, crisp, mineral whites'))),
                   DropdownMenuItem(
-                      value: 'fruit', child: Text(fr ? '🍒 Rouges Fruit Croquant & Souples' : '🍒 Crunchy, supple fruity reds')),
+                      value: 'fruit', child: Text(trSi(fr, '🍒 Rouges Fruit Croquant & Souples', '🍒 Crunchy, supple fruity reds'))),
                   DropdownMenuItem(
-                      value: 'sans_tanin', child: Text(fr ? '🕊️ Aversion stricte aux tanins durs' : '🕊️ No firm tannins at all')),
+                      value: 'sans_tanin', child: Text(trSi(fr, '🕊️ Aversion stricte aux tanins durs', '🕊️ No firm tannins at all'))),
                 ],
                 onChanged: (v) {
                   if (v != null) setDlgState(() => selectedArchetype = v);
@@ -312,12 +313,12 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(fr ? 'Annuler' : 'Cancel', style: const TextStyle(color: Colors.white60)),
+              child: Text(trSi(fr, 'Annuler', 'Cancel'), style: const TextStyle(color: Colors.white60)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
               onPressed: () {
-                final name = nameCtrl.text.trim().isEmpty ? (fr ? 'Convive' : 'Guest') : nameCtrl.text.trim();
+                final name = nameCtrl.text.trim().isEmpty ? (trSi(fr, 'Convive', 'Guest')) : nameCtrl.text.trim();
                 GuestProfile newGuest;
 
                 if (selectedArchetype == 'puissant') {
@@ -361,7 +362,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                 _calculateConsensus();
                 Navigator.pop(ctx);
               },
-              child: Text(fr ? 'Ajouter à table' : 'Add to table',
+              child: Text(trSi(fr, 'Ajouter à table', 'Add to table'),
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
@@ -416,7 +417,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _isFr ? 'Consensus de Table Multi-Palais' : 'Multi-Palate Table Consensus',
+                        trSi(_isFr, 'Consensus de Table Multi-Palais', 'Multi-Palate Table Consensus'),
                         style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                       Text(
@@ -449,7 +450,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      _isFr ? 'Convives autour de la table :' : 'Around the table:',
+                      trSi(_isFr, 'Convives autour de la table :', 'Around the table:'),
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     TextButton.icon(
@@ -459,7 +460,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       icon: const Icon(Icons.person_add_alt_1_rounded, size: 16),
-                      label: Text(_isFr ? 'Ajouter' : 'Add', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      label: Text(trSi(_isFr, 'Ajouter', 'Add'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                       onPressed: _addGuestDialog,
                     ),
                   ],
@@ -523,7 +524,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
-                        _isFr ? 'Aucune correspondance trouvée sur cette carte.' : 'No match found on this list.',
+                        trSi(_isFr, 'Aucune correspondance trouvée sur cette carte.', 'No match found on this list.'),
                         style: const TextStyle(color: Colors.white54),
                       ),
                     ),
@@ -554,17 +555,15 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
           ListTile(
             leading: const Icon(Icons.qr_code_rounded, color: Color(0xFFD4AF37), size: 28),
             title: Text(
-              _isFr ? 'Inviter la table' : 'Invite the table',
+              trSi(_isFr, 'Inviter la table', 'Invite the table'),
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
             ),
             subtitle: Text(
               _ouvertureEnCours
-                  ? (_isFr ? 'Ouverture de la table…' : 'Opening the table…')
+                  ? (trSi(_isFr, 'Ouverture de la table…', 'Opening the table…'))
                   : (_codeServeur != null
-                      ? (_isFr ? 'Code $_codeServeur — ou faites scanner le QR' : 'Code $_codeServeur — or let them scan the QR')
-                      : (_isFr
-                          ? 'Hors ligne : ajoutez vos convives à la main ci-dessus'
-                          : 'Offline: add your guests by hand above')),
+                      ? (trSi(_isFr, 'Code {codeServeur} — ou faites scanner le QR', 'Code {codeServeur} — or let them scan the QR', {'codeServeur': _codeServeur}))
+                      : (trSi(_isFr, 'Hors ligne : ajoutez vos convives à la main ci-dessus', 'Offline: add your guests by hand above'))),
               style: const TextStyle(color: Colors.white54, fontSize: 11),
             ),
             trailing: IconButton(
@@ -583,7 +582,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                 child: Column(
                   children: [
                     if (_connexionPerdue) BandeauConnexionPerdue(onReessayer: () => _sondage?.relancer()),
-                    Text(_isFr ? 'CODE DE LA TABLE' : 'TABLE CODE',
+                    Text(trSi(_isFr, 'CODE DE LA TABLE', 'TABLE CODE'),
                         style: const TextStyle(
                             color: Colors.white54,
                             fontSize: 10,
@@ -601,7 +600,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _isFr ? 'À saisir dans Chatmelier, onglet Dégustation' : 'Enter it in Chatmelier, Tasting tab',
+                      trSi(_isFr, 'À saisir dans Chatmelier, onglet Dégustation', 'Enter it in Chatmelier, Tasting tab'),
                       style: const TextStyle(color: Colors.white38, fontSize: 11),
                     ),
                   ],
@@ -611,7 +610,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
               child: StylizedChatmelierQr(
                 sessionId: _tableSessionId,
-                title: _isFr ? 'CONSENSUS DE TABLE CHATMELIER' : 'CHATMELIER TABLE CONSENSUS',
+                title: trSi(_isFr, 'CONSENSUS DE TABLE CHATMELIER', 'CHATMELIER TABLE CONSENSUS'),
                 icon: Icons.groups_rounded,
                 customUrl: MenuTableSessionManager.buildQrUrl(
                   sessionId: _tableSessionId,
@@ -620,8 +619,8 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                 ),
                 shareMessage: _messageDInvitation(),
                 shareSubject: _codeServeur != null
-                    ? (_isFr ? 'Table Chatmelier — code $_codeServeur' : 'Chatmelier table — code $_codeServeur')
-                    : (_isFr ? 'Table Chatmelier' : 'Chatmelier table'),
+                    ? (trSi(_isFr, 'Table Chatmelier — code {codeServeur}', 'Chatmelier table — code {codeServeur}', {'codeServeur': _codeServeur}))
+                    : (trSi(_isFr, 'Table Chatmelier', 'Chatmelier table')),
                 size: 260,
               ),
             ),
@@ -633,11 +632,9 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
 
   String _messageDInvitation() {
     final lien = MenuTableSessionManager.buildQrUrl(sessionId: _tableSessionId, menu: widget.menu, code: _codeServeur);
-    final appel = _isFr
-        ? 'Rejoins notre table sur Chatmelier pour choisir le vin ensemble ! '
-        : 'Join our table on Chatmelier to choose the wine together! ';
+    final appel = trSi(_isFr, 'Rejoins notre table sur Chatmelier pour choisir le vin ensemble ! ', 'Join our table on Chatmelier to choose the wine together! ');
     if (_codeServeur == null) return '$appel$lien';
-    return _isFr ? '${appel}Code : $_codeServeur — ou clique ici : $lien' : '${appel}Code: $_codeServeur — or tap here: $lien';
+    return trSi(_isFr, '{appel}Code : {codeServeur} — ou clique ici : {lien}', '{appel}Code: {codeServeur} — or tap here: {lien}', {'appel': appel, 'codeServeur': _codeServeur, 'lien': lien});
   }
 
   Widget _buildTopMatchCard(int rank, MenuTableMatchResult match) {
@@ -699,7 +696,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                       border: Border.all(color: rankColor),
                     ),
                     child: Text(
-                      '${match.harmonyScore.toStringAsFixed(0)}% ${_isFr ? 'accord' : 'match'}',
+                      '${match.harmonyScore.toStringAsFixed(0)}% ${trSi(_isFr, 'accord', 'match')}',
                       style: TextStyle(color: rankColor, fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                   ),

@@ -32,6 +32,7 @@ import '../../../shared/widgets/offline_sync_banner.dart';
 import '../../../shared/widgets/grape_chart.dart';
 import '../../../shared/utils/responsive_layout.dart';
 import '../../../shared/widgets/notification_bell_button.dart';
+import '../../../shared/utils/langue.dart';
 
 enum CellarViewMode { grid, list }
 
@@ -413,10 +414,10 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
     final Map<String, int> locations = {};
     for (final b in bottleList) {
-      String loc = isLa ? 'Inordinatum' : (isFr ? 'Non classé' : 'Unassigned');
+      String loc = isLa ? 'Inordinatum' : (trSi(isFr, 'Non classé', 'Unassigned'));
       if (b.furnitureId != null && b.furnitureId!.isNotEmpty) {
         final f = furnitureMap[b.furnitureId];
-        final fName = f?.name ?? (isLa ? 'Armarium' : (isFr ? 'Meuble' : 'Furniture'));
+        final fName = f?.name ?? (isLa ? 'Armarium' : (trSi(isFr, 'Meuble', 'Furniture')));
         if (b.furnitureSlot != null && b.furnitureSlot!.isNotEmpty) {
           final slotStr = b.furnitureSlot!;
           final lower = slotStr.trim().toLowerCase();
@@ -427,11 +428,11 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             } else {
               final parsed = CellarFurniture.parseSlotCode(slotStr);
               if (parsed != null) {
-                slotDesc = isLa ? 'Tabula ${parsed.row + 1}' : (isFr ? 'Étagère ${parsed.row + 1}' : 'Shelf ${parsed.row + 1}');
+                slotDesc = isLa ? 'Tabula ${parsed.row + 1}' : (trSi(isFr, 'Étagère {v1}', 'Shelf {v1}', {'v1': parsed.row + 1}));
               } else {
                 final match = RegExp(r'\d+').firstMatch(slotStr);
                 slotDesc = match != null
-                    ? (isLa ? 'Tabula ${match.group(0)}' : (isFr ? 'Étagère ${match.group(0)}' : 'Shelf ${match.group(0)}'))
+                    ? (isLa ? 'Tabula ${match.group(0)}' : (trSi(isFr, 'Étagère {v1}', 'Shelf {v1}', {'v1': match.group(0)})))
                     : slotStr;
               }
             }
@@ -445,12 +446,12 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
       } else if (b.furnitureSlot != null && b.furnitureSlot!.isNotEmpty) {
         loc = '📍 ${CellarFurniture.describeSlotCode(b.furnitureSlot!, isFr)}';
       } else if (b.rack != null && b.rack!.isNotEmpty) {
-        loc = isLa ? '📍 Loculamentum ${b.rack}' : (isFr ? '📍 Casier ${b.rack}' : '📍 Rack ${b.rack}');
+        loc = isLa ? '📍 Loculamentum ${b.rack}' : (trSi(isFr, '📍 Casier {rack}', '📍 Rack {rack}', {'rack': b.rack}));
         if (b.shelf != null && b.shelf!.isNotEmpty) {
-          loc += isLa ? ' • Tabula ${b.shelf}' : (isFr ? ' • Tablette ${b.shelf}' : ' • Shelf ${b.shelf}');
+          loc += isLa ? ' • Tabula ${b.shelf}' : (trSi(isFr, ' • Tablette {shelf}', ' • Shelf {shelf}', {'shelf': b.shelf}));
         }
       } else if (b.shelf != null && b.shelf!.isNotEmpty) {
-        loc = isLa ? '📍 Tabula ${b.shelf}' : (isFr ? '📍 Tablette ${b.shelf}' : '📍 Shelf ${b.shelf}');
+        loc = isLa ? '📍 Tabula ${b.shelf}' : (trSi(isFr, '📍 Tablette {shelf}', '📍 Shelf {shelf}', {'shelf': b.shelf}));
       }
       locations[loc] = (locations[loc] ?? 0) + b.quantity;
     }
@@ -480,9 +481,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
     final headerText = isLa
         ? '$totalCount ${totalCount > 1 ? "ampullae inventae" : "ampulla inventa"} (${filteredList.length} ${filteredList.length > 1 ? "vina" : "vinum"})'
-        : (isFr
-            ? '$totalCount bouteille${totalCount > 1 ? "s" : ""} trouvée${totalCount > 1 ? "s" : ""} (${filteredList.length} référence${filteredList.length > 1 ? "s" : ""})'
-            : '$totalCount bottle${totalCount > 1 ? "s" : ""} found (${filteredList.length} reference${filteredList.length > 1 ? "s" : ""})');
+        : (trSi(isFr, '{totalCount} bouteille{v1} trouvée{v1} ({filteredList_length} référence{v2})', '{totalCount} bottle{v1} found ({filteredList_length} reference{v2})', {'totalCount': totalCount, 'v1': totalCount > 1 ? "s" : "", 'filteredList_length': filteredList.length, 'v2': filteredList.length > 1 ? "s" : ""}));
 
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 4, 12, 8),
@@ -534,8 +533,8 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     
     String? resolvedCellarId = currentCellarId;
     String currentDisplayName = cellarsList.isEmpty
-        ? (l10n?.emptyCellarButton ?? (isFr ? 'Créer une cave' : 'Create a cellar'))
-        : (l10n?.navCellar ?? (isFr ? 'Cave' : 'Cellar'));
+        ? (l10n?.emptyCellarButton ?? (trSi(isFr, 'Créer une cave', 'Create a cellar')))
+        : (l10n?.navCellar ?? (trSi(isFr, 'Cave', 'Cellar')));
     String? currentWifiSsid;
 
     if (cellarsList.isNotEmpty) {
@@ -550,7 +549,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
         final cMap = first['cellars'];
         if (cMap is Map) {
           resolvedCellarId = cMap['id']?.toString();
-          final raw = cMap['name']?.toString() ?? (l10n?.navCellar ?? (isFr ? 'Cave' : 'Cellar'));
+          final raw = cMap['name']?.toString() ?? (l10n?.navCellar ?? (trSi(isFr, 'Cave', 'Cellar')));
           currentDisplayName = (raw == 'Ma Cave' || raw == 'My Cellar' || raw == 'Cella Mea')
               ? (l10n?.defaultCellarName ?? raw)
               : raw;
@@ -568,7 +567,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
         for (final item in cellarsList) {
           final cMap = item['cellars'];
           if (cMap is Map && cMap['id']?.toString() == resolvedCellarId) {
-            final raw = cMap['name']?.toString() ?? (l10n?.navCellar ?? (isFr ? 'Cave' : 'Cellar'));
+            final raw = cMap['name']?.toString() ?? (l10n?.navCellar ?? (trSi(isFr, 'Cave', 'Cellar')));
             currentDisplayName = (raw == 'Ma Cave' || raw == 'My Cellar' || raw == 'Cella Mea')
                 ? (l10n?.defaultCellarName ?? raw)
                 : raw;
@@ -657,7 +656,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
           // Mode Shelves (Meubles & Rayonnages)
           IconButton(
             icon: const Icon(Icons.shelves, color: Color(0xFFD4AF37)),
-            tooltip: isFr ? 'Meubles & Rayonnages (Mode Shelves)' : 'Furniture & Shelves (Shelf View)',
+            tooltip: trSi(isFr, 'Meubles & Rayonnages (Mode Shelves)', 'Furniture & Shelves (Shelf View)'),
             onPressed: () {
               final cid = currentCellarId;
               if (cid != null) {
@@ -668,7 +667,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
           // Importer Excel / CSV
           IconButton(
             icon: const Icon(Icons.table_chart_outlined, color: Color(0xFF2E7D32)),
-            tooltip: isFr ? 'Importer un fichier (Excel / CSV)' : 'Import file (Excel / CSV)',
+            tooltip: trSi(isFr, 'Importer un fichier (Excel / CSV)', 'Import file (Excel / CSV)'),
             onPressed: () {
               final cid = currentCellarId;
               context.push('/cellar/import-excel?cellarId=${cid ?? ""}');
@@ -680,7 +679,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             icon: Icon(
               _viewMode == CellarViewMode.grid ? Icons.grid_view : Icons.view_list,
             ),
-            tooltip: isFr ? 'Mode d\'affichage (Grille / Liste)' : 'View mode (Grid / List)',
+            tooltip: trSi(isFr, 'Mode d\'affichage (Grille / Liste)', 'View mode (Grid / List)'),
             initialValue: _viewMode,
             onSelected: _setViewMode,
             itemBuilder: (context) => [
@@ -690,7 +689,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                   children: [
                     const Icon(Icons.grid_view, size: 20),
                     const SizedBox(width: 12),
-                    Text(l10n?.cellarGridView ?? (isFr ? 'Grille' : 'Grid')),
+                    Text(l10n?.cellarGridView ?? (trSi(isFr, 'Grille', 'Grid'))),
                   ],
                 ),
               ),
@@ -700,7 +699,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                   children: [
                     const Icon(Icons.view_list, size: 20),
                     const SizedBox(width: 12),
-                    Text(l10n?.cellarListView ?? (isFr ? 'Liste' : 'List')),
+                    Text(l10n?.cellarListView ?? (trSi(isFr, 'Liste', 'List'))),
                   ],
                 ),
               ),
@@ -723,7 +722,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                   Icon(Icons.visibility, size: 16, color: theme.colorScheme.onTertiaryContainer),
                   const SizedBox(width: 8),
                   Text(
-                    isFr ? 'Mode consultation (lecture seule)' : 'Consultation mode (read-only)',
+                    trSi(isFr, 'Mode consultation (lecture seule)', 'Consultation mode (read-only)'),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onTertiaryContainer,
                     ),
@@ -741,7 +740,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                 autofocus: true,
                 onChanged: (v) => setState(() => _searchQuery = v),
                 decoration: InputDecoration(
-                  hintText: l10n?.searchWinePlaceholder ?? (isFr ? 'Rechercher un millésime, domaine, appellation...' : 'Search vintage, estate, appellation...'),
+                  hintText: l10n?.searchWinePlaceholder ?? (trSi(isFr, 'Rechercher un millésime, domaine, appellation...', 'Search vintage, estate, appellation...')),
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
@@ -777,15 +776,13 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        isFr ? 'Bienvenue sur Chatmelier 🍷' : 'Welcome to Chatmelier 🍷',
+                        trSi(isFr, 'Bienvenue sur Chatmelier 🍷', 'Welcome to Chatmelier 🍷'),
                         style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        isFr
-                            ? 'Pour commencer à gérer vos bouteilles, créez votre première cave à vin personnalisée.'
-                            : 'To start managing your bottles, create your first custom wine cellar.',
+                        trSi(isFr, 'Pour commencer à gérer vos bouteilles, créez votre première cave à vin personnalisée.', 'To start managing your bottles, create your first custom wine cellar.'),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.textTheme.bodySmall?.color,
                         ),
@@ -794,7 +791,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                       const SizedBox(height: 28),
                       FilledButton.icon(
                         icon: const Icon(Icons.add),
-                        label: Text(isFr ? 'Créer ma première cave' : 'Create my first cellar'),
+                        label: Text(trSi(isFr, 'Créer ma première cave', 'Create my first cellar')),
                         style: FilledButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                           backgroundColor: const Color(0xFF8B1E3F),
@@ -816,12 +813,10 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                   if (bottleList.isEmpty) {
                     return EmptyState(
                       icon: Icons.wine_bar_outlined,
-                      title: isFr ? 'Aucune bouteille' : 'No bottles',
+                      title: trSi(isFr, 'Aucune bouteille', 'No bottles'),
                       subtitle: isViewOnly
-                          ? (isFr ? 'Cette cave est vide' : 'This cellar is empty')
-                          : (isFr
-                              ? 'Touchez Actions Cave pour ajouter une bouteille ou importez directement votre fichier Excel / CSV !'
-                              : 'Tap Cellar Actions to add a bottle or import directly your Excel / CSV file!'),
+                          ? (trSi(isFr, 'Cette cave est vide', 'This cellar is empty'))
+                          : (trSi(isFr, 'Touchez Actions Cave pour ajouter une bouteille ou importez directement votre fichier Excel / CSV !', 'Tap Cellar Actions to add a bottle or import directly your Excel / CSV file!')),
                       action: isViewOnly
                           ? null
                           : ElevatedButton.icon(
@@ -832,7 +827,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                               icon: const Icon(Icons.table_chart_outlined),
-                              label: Text(isFr ? 'Importer un fichier Excel / CSV' : 'Import Excel / CSV file'),
+                              label: Text(trSi(isFr, 'Importer un fichier Excel / CSV', 'Import Excel / CSV file')),
                               onPressed: () {
                                 context.push('/cellar/import-excel?cellarId=${currentCellarId ?? ""}');
                               },
@@ -927,7 +922,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            Text(l10n?.cellarWinesTab ?? (isFr ? '🍷 Vins' : '🍷 Wines'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                            Text(l10n?.cellarWinesTab ?? (trSi(isFr, '🍷 Vins', '🍷 Wines')), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                                             const SizedBox(width: 6),
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -954,7 +949,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            Text(l10n?.cellarSpiritsTab ?? (isFr ? '🥃 Spiritueux' : '🥃 Spirits'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                            Text(l10n?.cellarSpiritsTab ?? (trSi(isFr, '🥃 Spiritueux', '🥃 Spirits')), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                                             const SizedBox(width: 6),
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -994,8 +989,8 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                                     children: [
                                       Text(
                                         isSpiritsView
-                                            ? (l10n?.cellarSpiritsTab ?? (isFr ? '🥃 Spiritueux' : '🥃 Spirits'))
-                                            : (l10n?.cellarWinesTab ?? (isFr ? '🍷 Vins' : '🍷 Wines')),
+                                            ? (l10n?.cellarSpiritsTab ?? (trSi(isFr, '🥃 Spiritueux', '🥃 Spirits')))
+                                            : (l10n?.cellarWinesTab ?? (trSi(isFr, '🍷 Vins', '🍷 Wines'))),
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                       ),
                                       const SizedBox(width: 8),
@@ -1068,7 +1063,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Center(child: Text(isFr ? 'Erreur : $err' : 'Error: $err')),
+                error: (err, _) => Center(child: Text(trSi(isFr, 'Erreur : {err}', 'Error: {err}', {'err': err}))),
               ),
             ),
           ],
@@ -1146,7 +1141,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             ActionChip(
               avatar: const Text('🍽️', style: TextStyle(fontSize: 14)),
               label: Text(
-                l10n?.cellarPairWithDish ?? (isFr ? 'Quel vin pour mon plat ?' : 'Pair wine with dish'),
+                l10n?.cellarPairWithDish ?? (trSi(isFr, 'Quel vin pour mon plat ?', 'Pair wine with dish')),
                 style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4AF37)),
               ),
               backgroundColor: Theme.of(context).brightness == Brightness.dark
@@ -1168,7 +1163,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             ActionChip(
               avatar: const Text('👥', style: TextStyle(fontSize: 14)),
               label: Text(
-                isFr ? 'Accord Multi-Palais' : 'Guest Matcher',
+                trSi(isFr, 'Accord Multi-Palais', 'Guest Matcher'),
                 style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
               ),
               backgroundColor: Theme.of(context).brightness == Brightness.dark
@@ -1186,7 +1181,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             ActionChip(
               avatar: const Text('📊', style: TextStyle(fontSize: 14)),
               label: Text(
-                isFr ? 'Opportunités de Cave' : 'Cellar Gaps',
+                trSi(isFr, 'Opportunités de Cave', 'Cellar Gaps'),
                 style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
               ),
               backgroundColor: Theme.of(context).brightness == Brightness.dark
@@ -1202,7 +1197,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
             // All Wine Types
             FilterChip(
-              label: Text(l10n?.filterAll ?? (isFr ? 'Tous' : 'All')),
+              label: Text(l10n?.filterAll ?? (trSi(isFr, 'Tous', 'All'))),
               selected: _filter.wineType == null && !_filter.onlyFavorites,
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
               checkmarkColor: const Color(0xFF8B1E3F),
@@ -1218,7 +1213,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             // Favoris FilterChip
             FilterChip(
               avatar: const Text('❤️', style: TextStyle(fontSize: 12)),
-              label: Text(l10n?.cellarFavorites ?? (isFr ? 'Favoris' : 'Favorites')),
+              label: Text(l10n?.cellarFavorites ?? (trSi(isFr, 'Favoris', 'Favorites'))),
               selected: _filter.onlyFavorites,
               selectedColor: Colors.pink.withValues(alpha: 0.18),
               checkmarkColor: Colors.pink,
@@ -1232,7 +1227,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             // Red
             FilterChip(
               avatar: const Text('🔴', style: TextStyle(fontSize: 12)),
-              label: Text(l10n?.filterRed ?? (isFr ? 'Rouge' : 'Red')),
+              label: Text(l10n?.filterRed ?? (trSi(isFr, 'Rouge', 'Red'))),
               selected: _filter.wineType == 'red',
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
               checkmarkColor: const Color(0xFF8B1E3F),
@@ -1246,7 +1241,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             // White
             FilterChip(
               avatar: const Text('⚪', style: TextStyle(fontSize: 12)),
-              label: Text(l10n?.filterWhite ?? (isFr ? 'Blanc' : 'White')),
+              label: Text(l10n?.filterWhite ?? (trSi(isFr, 'Blanc', 'White'))),
               selected: _filter.wineType == 'white',
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
               checkmarkColor: const Color(0xFF8B1E3F),
@@ -1260,7 +1255,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             // Rosé
             FilterChip(
               avatar: const Text('🌸', style: TextStyle(fontSize: 12)),
-              label: Text(l10n?.filterRose ?? (isFr ? 'Rosé' : 'Rosé')),
+              label: Text(l10n?.filterRose ?? (trSi(isFr, 'Rosé', 'Rosé'))),
               selected: _filter.wineType == 'rose',
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
               checkmarkColor: const Color(0xFF8B1E3F),
@@ -1274,7 +1269,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             // Sparkling
             FilterChip(
               avatar: const Text('🍾', style: TextStyle(fontSize: 12)),
-              label: Text(l10n?.filterSparkling ?? (isFr ? 'Bulles' : 'Sparkling')),
+              label: Text(l10n?.filterSparkling ?? (trSi(isFr, 'Bulles', 'Sparkling'))),
               selected: _filter.wineType == 'sparkling',
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
               checkmarkColor: const Color(0xFF8B1E3F),
@@ -1286,7 +1281,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
           ] else ...[
             // All Spirits
             FilterChip(
-              label: Text(l10n?.filterAll ?? (isFr ? 'Tous' : 'All')),
+              label: Text(l10n?.filterAll ?? (trSi(isFr, 'Tous', 'All'))),
               selected: _filter.wineType == null,
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
               checkmarkColor: const Color(0xFF8B1E3F),
@@ -1302,7 +1297,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             // Favoris FilterChip
             FilterChip(
               avatar: const Text('❤️', style: TextStyle(fontSize: 12)),
-              label: Text(l10n?.cellarFavorites ?? (isFr ? 'Favoris' : 'Favorites')),
+              label: Text(l10n?.cellarFavorites ?? (trSi(isFr, 'Favoris', 'Favorites'))),
               selected: _filter.onlyFavorites,
               selectedColor: Colors.pink.withValues(alpha: 0.18),
               checkmarkColor: Colors.pink,
@@ -1344,7 +1339,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             // Rhum
             FilterChip(
               avatar: const Text('🍹', style: TextStyle(fontSize: 12)),
-              label: Text(isFr ? 'Rhum' : 'Rum'),
+              label: Text(trSi(isFr, 'Rhum', 'Rum')),
               selected: _filter.wineType == 'rum',
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
               checkmarkColor: const Color(0xFF8B1E3F),
@@ -1588,7 +1583,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              l10n?.cellarNoBottlesCategory ?? (isFr ? 'Aucune bouteille dans cette catégorie' : 'No bottles in this category'),
+              l10n?.cellarNoBottlesCategory ?? (trSi(isFr, 'Aucune bouteille dans cette catégorie', 'No bottles in this category')),
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
@@ -1601,13 +1596,13 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             Icon(Icons.filter_alt_off, size: 48, color: theme.colorScheme.onSurfaceVariant.withAlpha(120)),
             const SizedBox(height: 12),
             Text(
-              l10n?.cellarNoBottlesCriteria ?? (isFr ? 'Aucune bouteille ne correspond à ces critères' : 'No bottles match these criteria'),
+              l10n?.cellarNoBottlesCriteria ?? (trSi(isFr, 'Aucune bouteille ne correspond à ces critères', 'No bottles match these criteria')),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => setState(() => _filter = const CellarFilterState()),
-              child: Text(l10n?.cellarClearFilters ?? (isFr ? 'Effacer les filtres' : 'Clear filters')),
+              child: Text(l10n?.cellarClearFilters ?? (trSi(isFr, 'Effacer les filtres', 'Clear filters'))),
             ),
           ],
         ),
@@ -1628,7 +1623,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
         sortedList,
         _groupBy,
         sortBy: _sortBy,
-        lang: langCode ?? (isFr ? 'fr' : 'en'),
+        lang: langCode ?? (trSi(isFr, 'fr', 'en')),
       );
       mainContent = _buildGroupedBottleView(
         theme: theme,
@@ -1661,9 +1656,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                       Text(
                         langCode == 'la'
                             ? '${sortedList.length} ${sortedList.length > 1 ? "vina" : "vinum"}'
-                            : (isFr
-                                ? '${sortedList.length} référence${sortedList.length > 1 ? "s" : ""}'
-                                : '${sortedList.length} reference${sortedList.length > 1 ? "s" : ""}'),
+                            : (trSi(isFr, '{sortedList_length} référence{v1}', '{sortedList_length} reference{v1}', {'sortedList_length': sortedList.length, 'v1': sortedList.length > 1 ? "s" : ""})),
                         style: const TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
@@ -1691,9 +1684,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             ),
           ),
           if (_searchQuery.isNotEmpty)
-            _buildLocationSummaryHeader(theme, sortedList, lang: langCode ?? (isFr ? 'fr' : 'en'))
+            _buildLocationSummaryHeader(theme, sortedList, lang: langCode ?? (trSi(isFr, 'fr', 'en')))
           else if (!isViewOnly && _showTotalCosts && totalValue > 0)
-            _buildTotalCostsBanner(theme, totalBottles, sortedList.length, totalValue, langCode ?? (isFr ? 'fr' : 'en')),
+            _buildTotalCostsBanner(theme, totalBottles, sortedList.length, totalValue, langCode ?? (trSi(isFr, 'fr', 'en'))),
           Expanded(
             child: _viewMode == CellarViewMode.grid
                 ? GridView.builder(
@@ -1779,9 +1772,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             child: Text(
               isLa
                   ? 'Pretium totale aestimatum : ${totalValue.toStringAsFixed(0)} € ($totalBottles amp. • $totalReferences ref.)'
-                  : (isFr
-                      ? 'Coût total estimé : ${totalValue.toStringAsFixed(0)} € ($totalBottles btl • $totalReferences réf.)'
-                      : 'Estimated total value: €${totalValue.toStringAsFixed(0)} ($totalBottles btl • $totalReferences ref.)'),
+                  : (trSi(isFr, 'Coût total estimé : {v1} € ({totalBottles} btl • {totalReferences} réf.)', 'Estimated total value: €{v1} ({totalBottles} btl • {totalReferences} ref.)', {'v1': totalValue.toStringAsFixed(0), 'totalBottles': totalBottles, 'totalReferences': totalReferences})),
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
@@ -1835,9 +1826,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                     Text(
                       langCode == 'la'
                           ? '${sections.length} ${sections.length > 1 ? "greces" : "grex"}'
-                          : (isFr
-                              ? '${sections.length} groupe${sections.length > 1 ? "s" : ""}'
-                              : '${sections.length} group${sections.length > 1 ? "s" : ""}'),
+                          : (trSi(isFr, '{sections_length} groupe{v1}', '{sections_length} group{v1}', {'sections_length': sections.length, 'v1': sections.length > 1 ? "s" : ""})),
                       style: const TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.bold,
@@ -1871,9 +1860,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                       const Icon(Icons.account_balance_wallet_outlined, size: 13, color: Color(0xFFD4AF37)),
                       const SizedBox(width: 3),
                       Text(
-                        isFr
-                            ? '${grandTotalValue.toStringAsFixed(0)} €'
-                            : '€${grandTotalValue.toStringAsFixed(0)}',
+                        trSi(isFr, '{v1} €', '€{v1}', {'v1': grandTotalValue.toStringAsFixed(0)}),
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
@@ -1897,8 +1884,8 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                 ),
                 label: Text(
                   allCollapsed
-                      ? (l10n?.cellarExpandAll ?? (isFr ? 'Tout déplier' : 'Expand all'))
-                      : (l10n?.cellarCollapseAll ?? (isFr ? 'Tout replier' : 'Collapse all')),
+                      ? (l10n?.cellarExpandAll ?? (trSi(isFr, 'Tout déplier', 'Expand all')))
+                      : (l10n?.cellarCollapseAll ?? (trSi(isFr, 'Tout replier', 'Collapse all'))),
                   style: const TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,

@@ -316,7 +316,7 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
                                 foregroundColor: Colors.white,
                               ),
                               icon: const Icon(Icons.add, color: Colors.white),
-                              label: Text(tr('Créer "${_searchCtrl.text.trim()}"', 'Create "${_searchCtrl.text.trim()}"'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              label: Text(tr('Créer "{v1}"', 'Create "{v1}"', {'v1': _searchCtrl.text.trim()}), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               onPressed: () {
                                 final manual = WineMerchant.create(
                                   name: _searchCtrl.text.trim(),

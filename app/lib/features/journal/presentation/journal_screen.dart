@@ -19,6 +19,7 @@ import '../../../shared/providers/cellar_provider.dart';
 import '../../../features/offline/domain/offline_action.dart';
 import '../../../features/offline/presentation/sync_provider.dart';
 import '../../offline/data/offline_storage_service.dart';
+import '../../../shared/utils/langue.dart';
 
 final tastingLogProvider = FutureProvider<List<TastingEntry>>((ref) async {
   final supabase = ref.watch(supabaseProvider);
@@ -229,7 +230,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
 
   String _formatDate(DateTime dt, [bool isFr = true]) {
     try {
-      return DateFormat('d MMMM yyyy', isFr ? 'fr_FR' : 'en_US').format(dt);
+      return DateFormat('d MMMM yyyy', trSi(isFr, 'fr_FR', 'en_US')).format(dt);
     } catch (_) {
       return '${dt.day}/${dt.month}/${dt.year}';
     }
@@ -246,11 +247,11 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isFr ? 'Dégustation' : 'Tasting Journal'),
+        title: Text(trSi(isFr, 'Dégustation', 'Tasting Journal')),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline, color: Color(0xFF8B1E3F)),
-            tooltip: isFr ? 'Dégustation Hors-Cave (Restaurant, Amis)' : 'Out-of-Cellar Tasting (Restaurant, Friends)',
+            tooltip: trSi(isFr, 'Dégustation Hors-Cave (Restaurant, Amis)', 'Out-of-Cellar Tasting (Restaurant, Friends)'),
             onPressed: () => ExternalTastingDialog.show(context),
           ),
         ],
@@ -259,7 +260,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         heroTag: 'journal_external_tasting_fab',
         onPressed: () => ExternalTastingDialog.show(context),
         icon: const Icon(Icons.restaurant),
-        label: Text(isFr ? 'Déguster Hors-Cave' : 'Taste Out-of-Cellar'),
+        label: Text(trSi(isFr, 'Déguster Hors-Cave', 'Taste Out-of-Cellar')),
         backgroundColor: const Color(0xFF8B1E3F),
         foregroundColor: Colors.white,
       ),
@@ -268,7 +269,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         error: (err, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text(isFr ? 'Erreur : $err' : 'Error: $err'),
+            child: Text(trSi(isFr, 'Erreur : {err}', 'Error: {err}', {'err': err})),
           ),
         ),
         data: (allEntries) {
@@ -280,14 +281,12 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                   const SizedBox(height: 16),
                   EmptyState(
                     icon: Icons.menu_book,
-                    title: l10n?.journalEmpty ?? (isFr ? 'Aucun souvenir de dégustation pour le moment' : 'No tasting memories yet'),
+                    title: l10n?.journalEmpty ?? (trSi(isFr, 'Aucun souvenir de dégustation pour le moment', 'No tasting memories yet')),
                     subtitle: l10n?.journalEmptySub ??
-                        (isFr
-                            ? 'Dégustez et sortez une bouteille de votre cave, notez un vin bu au restaurant ou scannez une carte.'
-                            : 'Taste and check out a bottle from your cellar, rate a wine at a restaurant or scan a menu.'),
+                        (trSi(isFr, 'Dégustez et sortez une bouteille de votre cave, notez un vin bu au restaurant ou scannez une carte.', 'Taste and check out a bottle from your cellar, rate a wine at a restaurant or scan a menu.')),
                     action: FilledButton.icon(
                       icon: const Icon(Icons.restaurant_menu),
-                      label: Text(isFr ? 'Noter un vin hors-cave (Restaurant, Amis)' : 'Log out-of-cellar wine (Restaurant, Friends)'),
+                      label: Text(trSi(isFr, 'Noter un vin hors-cave (Restaurant, Amis)', 'Log out-of-cellar wine (Restaurant, Friends)')),
                       style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFF8B1E3F),
                           foregroundColor: Colors.white),
@@ -329,9 +328,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                           onChanged: (val) =>
                               setState(() => _searchQuery = val.trim()),
                           decoration: InputDecoration(
-                            hintText: isFr
-                                ? 'Rechercher : vin, lieu, invité, plat, note, année...'
-                                : 'Search: wine, place, guest, dish, rating, year...',
+                            hintText: trSi(isFr, 'Rechercher : vin, lieu, invité, plat, note, année...', 'Search: wine, place, guest, dish, rating, year...'),
                             hintStyle: TextStyle(
                                 fontSize: 13,
                                 color: isDark ? Colors.white54 : Colors.black45),
@@ -362,7 +359,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                             children: [
                               // All / Cave / Hors-cave Segmented Filter
                               FilterChip(
-                                label: Text(isFr ? 'Tous' : 'All'),
+                                label: Text(trSi(isFr, 'Tous', 'All')),
                                 selected: _selectedOriginFilter == 'all',
                                 selectedColor:
                                     const Color(0xFF8B1E3F).withValues(alpha: 0.2),
@@ -377,7 +374,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                               FilterChip(
                                 avatar: const Text('🍷',
                                     style: TextStyle(fontSize: 12)),
-                                label: Text(isFr ? 'Ma Cave' : 'My Cellar'),
+                                label: Text(trSi(isFr, 'Ma Cave', 'My Cellar')),
                                 selected: _selectedOriginFilter == 'cellar',
                                 selectedColor:
                                     const Color(0xFF8B1E3F).withValues(alpha: 0.2),
@@ -390,7 +387,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                               FilterChip(
                                 avatar: const Text('🍽️',
                                     style: TextStyle(fontSize: 12)),
-                                label: Text(isFr ? 'Hors-Cave' : 'Out-of-Cellar'),
+                                label: Text(trSi(isFr, 'Hors-Cave', 'Out-of-Cellar')),
                                 selected: _selectedOriginFilter == 'external',
                                 selectedColor:
                                     Colors.orange.withValues(alpha: 0.2),
@@ -405,7 +402,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                               FilterChip(
                                 avatar: const Icon(Icons.favorite,
                                     size: 13, color: Color(0xFFE91E63)),
-                                label: Text(isFr ? 'Favoris' : 'Favorites'),
+                                label: Text(trSi(isFr, 'Favoris', 'Favorites')),
                                 selected: _onlyFavorites,
                                 selectedColor:
                                     const Color(0xFFE91E63).withValues(alpha: 0.2),
@@ -419,7 +416,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                               FilterChip(
                                 avatar: const Icon(Icons.star,
                                     size: 14, color: Color(0xFFD4AF37)),
-                                label: Text(isFr ? 'Coups de Cœur (≥ 8/10)' : 'Top Rated (≥ 8/10)'),
+                                label: Text(trSi(isFr, 'Coups de Cœur (≥ 8/10)', 'Top Rated (≥ 8/10)')),
                                 selected: _minRatingOnly,
                                 selectedColor: const Color(0xFFD4AF37)
                                     .withValues(alpha: 0.2),
@@ -451,13 +448,13 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                     ),
                                     child: DropdownButton<String?>(
                                       value: _selectedYear,
-                                      hint: Text(isFr ? 'Année' : 'Year',
+                                      hint: Text(trSi(isFr, 'Année', 'Year'),
                                           style: const TextStyle(fontSize: 12)),
                                       isDense: true,
                                       items: [
                                         DropdownMenuItem<String?>(
                                           value: null,
-                                          child: Text(isFr ? 'Toutes les années' : 'All years',
+                                          child: Text(trSi(isFr, 'Toutes les années', 'All years'),
                                               style: const TextStyle(fontSize: 12)),
                                         ),
                                         ...availableYears.map(
@@ -498,15 +495,13 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                 size: 48, color: Colors.grey),
                             const SizedBox(height: 12),
                             Text(
-                              isFr ? 'Aucun souvenir trouvé' : 'No memories found',
+                              trSi(isFr, 'Aucun souvenir trouvé', 'No memories found'),
                               style: theme.textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              isFr
-                                  ? 'Aucune dégustation ne correspond aux filtres actuels.'
-                                  : 'No tastings match current filters.',
+                              trSi(isFr, 'Aucune dégustation ne correspond aux filtres actuels.', 'No tastings match current filters.'),
                               textAlign: TextAlign.center,
                               style: theme.textTheme.bodySmall
                                   ?.copyWith(color: Colors.grey),
@@ -514,7 +509,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                             const SizedBox(height: 16),
                             OutlinedButton.icon(
                               icon: const Icon(Icons.filter_alt_off),
-                              label: Text(isFr ? 'Réinitialiser les filtres' : 'Reset filters'),
+                              label: Text(trSi(isFr, 'Réinitialiser les filtres', 'Reset filters')),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() {
@@ -582,7 +577,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     ThemeData theme,
     bool isFr,
   ) {
-    final wineName = entry.wineName ?? (isFr ? 'Vin dégusté' : 'Tasted wine');
+    final wineName = entry.wineName ?? (trSi(isFr, 'Vin dégusté', 'Tasted wine'));
     final vintage = entry.vintage != null && entry.vintage! > 0
         ? ' (${entry.vintage})'
         : ' (NV)';
@@ -702,7 +697,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                         color: Colors.orange.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text(isFr ? '🍽️ Hors-Cave' : '🍽️ Out-of-Cellar',
+                      child: Text(trSi(isFr, '🍽️ Hors-Cave', '🍽️ Out-of-Cellar'),
                           style: const TextStyle(
                               fontSize: 10.5, color: Colors.deepOrange)),
                     )
@@ -714,7 +709,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                         color: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text(isFr ? '🍷 Cave' : '🍷 Cellar',
+                      child: Text(trSi(isFr, '🍷 Cave', '🍷 Cellar'),
                           style: const TextStyle(
                               fontSize: 10.5, color: Color(0xFF8B1E3F))),
                     ),
@@ -754,7 +749,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        '${isFr ? "Accord" : "Pairing"} : ${entry.foodPaired}',
+                        '${trSi(isFr, "Accord", "Pairing")} : ${entry.foodPaired}',
                         style: const TextStyle(
                             fontSize: 11.5,
                             fontStyle: FontStyle.italic,
@@ -789,7 +784,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    isFr ? 'Fiche complète & arômes' : 'Full details & aromas',
+                    trSi(isFr, 'Fiche complète & arômes', 'Full details & aromas'),
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
@@ -802,12 +797,12 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                       visualDensity: VisualDensity.compact,
                     ),
                     icon: const Icon(Icons.quiz_outlined, size: 15),
-                    label: Text(isFr ? 'Quiz sommelier' : 'Sommelier quiz',
+                    label: Text(trSi(isFr, 'Quiz sommelier', 'Sommelier quiz'),
                         style: const TextStyle(fontSize: 11)),
                     onPressed: () {
                       TastingQuestionnaireSheet.show(
                         context,
-                        wineName: entry.wineName ?? (isFr ? 'Vin dégusté' : 'Tasted wine'),
+                        wineName: entry.wineName ?? (trSi(isFr, 'Vin dégusté', 'Tasted wine')),
                         vintage: entry.vintage,
                         region: entry.region,
                       );
@@ -848,7 +843,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
               const Icon(Icons.wine_bar, size: 20, color: Color(0xFF8B1E3F)),
               const SizedBox(width: 8),
               Text(
-                isFr ? 'Espace Dégustation' : 'Tasting Hub',
+                trSi(isFr, 'Espace Dégustation', 'Tasting Hub'),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -863,7 +858,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  isFr ? 'Cave & Hors-Cave' : 'Cellar & Out-of-Cellar',
+                  trSi(isFr, 'Cave & Hors-Cave', 'Cellar & Out-of-Cellar'),
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -884,8 +879,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                   // Quatre tuiles au lieu de trois : les titres doivent tenir. « Check out
                   // cellar bottle » se coupait après « cellar », ce qui laissait un
                   // libellé tronqué sur l'action la plus utilisée de l'écran.
-                  title: isFr ? 'Sortir de\nma cave' : 'From my\ncellar',
-                  subtitle: isFr ? 'Boire un flacon' : 'Drink a bottle',
+                  title: trSi(isFr, 'Sortir de\nma cave', 'From my\ncellar'),
+                  subtitle: trSi(isFr, 'Boire un flacon', 'Drink a bottle'),
                   badgeColor: const Color(0xFF8B1E3F),
                   onTap: () => context.push('/checkout'),
                 ),
@@ -896,8 +891,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 child: _buildActionTile(
                   context,
                   icon: Icons.restaurant,
-                  title: isFr ? 'Déguster\nailleurs' : 'Taste\nelsewhere',
-                  subtitle: isFr ? 'Resto ou amis' : 'Resto or friends',
+                  title: trSi(isFr, 'Déguster\nailleurs', 'Taste\nelsewhere'),
+                  subtitle: trSi(isFr, 'Resto ou amis', 'Resto or friends'),
                   badgeColor: Colors.orange.shade800,
                   onTap: () => ExternalTastingDialog.show(context),
                 ),
@@ -908,8 +903,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 child: _buildActionTile(
                   context,
                   icon: Icons.document_scanner_outlined,
-                  title: isFr ? 'Scanner\nun menu' : 'Scan\na menu',
-                  subtitle: isFr ? 'Carte des vins' : 'Wine list',
+                  title: trSi(isFr, 'Scanner\nun menu', 'Scan\na menu'),
+                  subtitle: trSi(isFr, 'Carte des vins', 'Wine list'),
                   badgeColor: Colors.teal.shade700,
                   onTap: () => context.push('/scan/menu'),
                 ),
@@ -924,8 +919,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 child: _buildActionTile(
                   context,
                   icon: Icons.groups_rounded,
-                  title: isFr ? 'Rejoindre\nune table' : 'Join\na table',
-                  subtitle: isFr ? 'Avec un code' : 'With a code',
+                  title: trSi(isFr, 'Rejoindre\nune table', 'Join\na table'),
+                  subtitle: trSi(isFr, 'Avec un code', 'With a code'),
                   badgeColor: const Color(0xFF6A4C93),
                   onTap: () => JoinTableSheet.show(context),
                 ),
@@ -962,16 +957,12 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isFr
-                                    ? 'Rouvrir « ${derniere.restaurantName} »'
-                                    : 'Reopen “${derniere.restaurantName}”',
+                                trSi(isFr, 'Rouvrir « {restaurantName} »', 'Reopen “{restaurantName}”', {'restaurantName': derniere.restaurantName}),
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                               Text(
-                                isFr
-                                    ? '${derniere.wines.length} vins · sans rescanner'
-                                    : '${derniere.wines.length} wines · no rescan needed',
+                                trSi(isFr, '{wines_length} vins · sans rescanner', '{wines_length} wines · no rescan needed', {'wines_length': derniere.wines.length}),
                                 style: const TextStyle(
                                     fontSize: 11, color: Colors.grey),
                               ),
@@ -998,11 +989,11 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 final currentCellarId = ref.read(currentCellarIdProvider);
                 final bottles = (ref.read(bottlesProvider(currentCellarId)).valueOrNull ?? []);
                 final cellars = ref.read(userCellarsProvider).valueOrNull ?? [];
-                String cellarName = isFr ? 'Ma Cave' : 'My Cellar';
+                String cellarName = trSi(isFr, 'Ma Cave', 'My Cellar');
                 for (final item in cellars) {
                   final cMap = item['cellars'];
                   if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
-                    cellarName = cMap['name']?.toString() ?? (isFr ? 'Ma Cave' : 'My Cellar');
+                    cellarName = cMap['name']?.toString() ?? (trSi(isFr, 'Ma Cave', 'My Cellar'));
                     break;
                   }
                 }
@@ -1037,9 +1028,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isFr
-                                ? 'Quel vin pour mon plat ? (Accords mets & vins)'
-                                : 'Which wine for my dish? (Food & wine pairings)',
+                            trSi(isFr, 'Quel vin pour mon plat ? (Accords mets & vins)', 'Which wine for my dish? (Food & wine pairings)'),
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -1047,9 +1036,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                             ),
                           ),
                           Text(
-                            isFr
-                                ? 'Trouvez le flacon idéal de votre cave pour votre repas'
-                                : 'Find the ideal bottle from your cellar for your meal',
+                            trSi(isFr, 'Trouvez le flacon idéal de votre cave pour votre repas', 'Find the ideal bottle from your cellar for your meal'),
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark ? Colors.white70 : Colors.black87,

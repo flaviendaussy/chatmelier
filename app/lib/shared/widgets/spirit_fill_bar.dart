@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../shared/utils/langue.dart';
 
 class SpiritFillBar extends StatelessWidget {
   final int fillLevel;
@@ -52,8 +53,8 @@ class SpiritFillBar extends StatelessWidget {
     }
 
     final labelText = fillLevel >= 100
-        ? (isFr ? 'Scellée (100%)' : 'Sealed (100%)')
-        : (isFr ? '$fillLevel% restant' : '$fillLevel% left');
+        ? (trSi(isFr, 'Scellée (100%)', 'Sealed (100%)'))
+        : (trSi(isFr, '{fillLevel}% restant', '{fillLevel}% left', {'fillLevel': fillLevel}));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

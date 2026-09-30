@@ -43,7 +43,7 @@ class CellarExportDialog extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            tr('Exportez l\'inventaire complet de "$cellarName" (${bottles.length} références en stock) :', 'Export the full inventory of "$cellarName" (${bottles.length} wines in stock):'),
+            tr('Exportez l\'inventaire complet de "{cellarName}" ({bottles_length} références en stock) :', 'Export the full inventory of "{cellarName}" ({bottles_length} wines in stock):', {'cellarName': cellarName, 'bottles_length': bottles.length}),
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 20),

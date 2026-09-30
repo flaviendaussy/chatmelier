@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../data/menu_scan_service.dart';
 import '../domain/menu_wine.dart';
+import '../../../shared/utils/langue.dart';
 
 class MenuChatMessage {
   final String text;
@@ -40,22 +41,15 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
   final List<MenuChatMessage> _messages = [];
   bool _isLoading = false;
 
-  final List<String> _quickPromptsFr = [
-    '🐟 Quel vin avec du poisson / fruits de mer ?',
-    '🥩 Quel vin rouge pour une viande rouge savoureuse ?',
-    '💎 Le meilleur rapport qualité / prix de la carte ?',
-    '🍷 Un vin rouge souple et très peu tannique ?',
-    '🧀 Quel accord parfait avec un plateau de fromages ?',
+  static const _suggestions = [
+    Phrase('🐟 Quel vin avec du poisson / fruits de mer ?', '🐟 Which wine with fish / seafood?'),
+    Phrase('🥩 Quel vin rouge pour une viande rouge savoureuse ?', '🥩 Which red wine for savory red meat?'),
+    Phrase('💎 Le meilleur rapport qualité / prix de la carte ?', '💎 Best value for money on this list?'),
+    Phrase('🍷 Un vin rouge souple et très peu tannique ?', '🍷 A smooth red wine with low tannins?'),
+    Phrase('🧀 Quel accord parfait avec un plateau de fromages ?', '🧀 Best pairing for a cheese board?'),
   ];
 
-  final List<String> _quickPromptsEn = [
-    '🐟 Which wine with fish / seafood?',
-    '🥩 Which red wine for savory red meat?',
-    '💎 Best value for money on this list?',
-    '🍷 A smooth red wine with low tannins?',
-    '🧀 Best pairing for a cheese board?',
-  ];
-
+  
   bool _initialized = false;
 
   @override
@@ -65,9 +59,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
       _initialized = true;
       final isFr = Localizations.localeOf(context).languageCode == 'fr';
       _messages.add(MenuChatMessage(
-        text: isFr
-            ? 'Bonjour ! Je suis votre Sommelier personnel chez "${widget.menu.restaurantName}". J\'ai analysé les ${widget.menu.wines.length} références de cette carte des vins. Que mangez-vous ce soir, ou quelles sont vos envies pour vous guider ?'
-            : 'Hello! I\'m your personal Sommelier at "${widget.menu.restaurantName}". I have analyzed the ${widget.menu.wines.length} wines on this list. What are you dining on tonight, or what are you in the mood for?',
+        text: trSi(isFr, 'Bonjour ! Je suis votre Sommelier personnel chez "{restaurantName}". J\'ai analysé les {wines_length} références de cette carte des vins. Que mangez-vous ce soir, ou quelles sont vos envies pour vous guider ?', 'Hello! I\'m your personal Sommelier at "{restaurantName}". I have analyzed the {wines_length} wines on this list. What are you dining on tonight, or what are you in the mood for?', {'restaurantName': widget.menu.restaurantName, 'wines_length': widget.menu.wines.length}),
         isUser: false,
         time: DateTime.now(),
       ));
@@ -119,7 +111,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
         final isFr = Localizations.localeOf(context).languageCode == 'fr';
         setState(() {
           _messages.add(MenuChatMessage(
-            text: isFr ? 'Désolé, une erreur est survenue : $e' : 'Sorry, an error occurred: $e',
+            text: trSi(isFr, 'Désolé, une erreur est survenue : {e}', 'Sorry, an error occurred: {e}', {'e': e}),
             isUser: false,
             time: DateTime.now(),
           ));
@@ -147,7 +139,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final quickPrompts = isFr ? _quickPromptsFr : _quickPromptsEn;
+    final quickPrompts = [for (final p in _suggestions) p.dans(isFr)];
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.90,
@@ -189,13 +181,11 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isFr ? 'Conseil Sommelier sur cette carte' : 'Sommelier Advice on this Wine List',
+                        trSi(isFr, 'Conseil Sommelier sur cette carte', 'Sommelier Advice on this Wine List'),
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        isFr
-                            ? '${widget.menu.restaurantName} • ${widget.menu.wines.length} vins analysés'
-                            : '${widget.menu.restaurantName} • ${widget.menu.wines.length} wines analyzed',
+                        trSi(isFr, '{restaurantName} • {wines_length} vins analysés', '{restaurantName} • {wines_length} wines analyzed', {'restaurantName': widget.menu.restaurantName, 'wines_length': widget.menu.wines.length}),
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
@@ -281,7 +271,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
                     child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF8B1E3F)),
                   ),
                   const SizedBox(width: 10),
-                  Text(isFr ? 'Le sommelier réfléchit...' : 'Sommelier reflecting...', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(trSi(isFr, 'Le sommelier réfléchit...', 'Sommelier reflecting...'), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
             ),
@@ -301,7 +291,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
                     textInputAction: TextInputAction.send,
                     onSubmitted: _sendMessage,
                     decoration: InputDecoration(
-                      hintText: isFr ? 'Ex: Quel vin pour du canard rôti ?' : 'E.g.: Which wine for roasted duck?',
+                      hintText: trSi(isFr, 'Ex: Quel vin pour du canard rôti ?', 'E.g.: Which wine for roasted duck?'),
                       hintStyle: const TextStyle(fontSize: 13),
                       filled: true,
                       fillColor: isDark ? Colors.white10 : Colors.grey.shade50,

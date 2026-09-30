@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../shared/utils/langue.dart';
 
 class ChatmelierThinkingIndicator extends StatefulWidget {
   const ChatmelierThinkingIndicator({super.key});
@@ -10,24 +11,16 @@ class ChatmelierThinkingIndicator extends StatefulWidget {
 }
 
 class _ChatmelierThinkingIndicatorState extends State<ChatmelierThinkingIndicator> {
-  static const List<String> _thinkingPhrasesFr = [
-    'Chatmelier explore les recoins de votre cave...',
-    'Chatmelier consulte ses grimoires œnologiques...',
-    'Chatmelier réfléchit aux meilleurs accords mets-vins...',
-    'Chatmelier analyse les terroirs et les millésimes...',
-    'Chatmelier prépare votre recommandation sur-mesure...',
-    'Chatmelier affine ses conseils de service et carafage...',
+  static const _phrasesDeReflexion = [
+    Phrase('Chatmelier explore les recoins de votre cave...', 'Chatmelier is exploring your cellar shelves...'),
+    Phrase('Chatmelier consulte ses grimoires œnologiques...', 'Chatmelier is consulting oenological archives...'),
+    Phrase('Chatmelier réfléchit aux meilleurs accords mets-vins...', 'Chatmelier is pondering the finest food pairings...'),
+    Phrase('Chatmelier analyse les terroirs et les millésimes...', 'Chatmelier is analyzing terroirs and vintages...'),
+    Phrase('Chatmelier prépare votre recommandation sur-mesure...', 'Chatmelier is crafting your tailored recommendation...'),
+    Phrase('Chatmelier affine ses conseils de service et carafage...', 'Chatmelier is refining decanting & service advice...'),
   ];
 
-  static const List<String> _thinkingPhrasesEn = [
-    'Chatmelier is exploring your cellar shelves...',
-    'Chatmelier is consulting oenological archives...',
-    'Chatmelier is pondering the finest food pairings...',
-    'Chatmelier is analyzing terroirs and vintages...',
-    'Chatmelier is crafting your tailored recommendation...',
-    'Chatmelier is refining decanting & service advice...',
-  ];
-
+  
   int _phraseIndex = 0;
   Timer? _timer;
 
@@ -37,7 +30,7 @@ class _ChatmelierThinkingIndicatorState extends State<ChatmelierThinkingIndicato
     _timer = Timer.periodic(const Duration(milliseconds: 2600), (t) {
       if (mounted) {
         setState(() {
-          _phraseIndex = (_phraseIndex + 1) % _thinkingPhrasesFr.length;
+          _phraseIndex = (_phraseIndex + 1) % _phrasesDeReflexion.length;
         });
       }
     });
@@ -54,7 +47,7 @@ class _ChatmelierThinkingIndicatorState extends State<ChatmelierThinkingIndicato
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
-    final phrases = isFr ? _thinkingPhrasesFr : _thinkingPhrasesEn;
+    final phrases = [for (final p in _phrasesDeReflexion) p.dans(isFr)];
     final phrase = phrases[_phraseIndex % phrases.length];
 
     return Padding(
@@ -148,7 +141,7 @@ class _ChatmelierThinkingIndicatorState extends State<ChatmelierThinkingIndicato
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    isFr ? 'Sommelier en réflexion' : 'Sommelier reflecting...',
+                    trSi(isFr, 'Sommelier en réflexion', 'Sommelier reflecting...'),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: const Color(0xFFD4AF37),
                       fontStyle: FontStyle.italic,

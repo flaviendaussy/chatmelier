@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/badge_unlock_tracker.dart';
 import '../domain/badge.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Classy and celebratory dialog displayed when a badge is unlocked.
 /// Features champagne micro-effervescence, rotating luminous halo,
@@ -439,9 +440,7 @@ class _BadgeUnlockCelebrationDialogState extends State<BadgeUnlockCelebrationDia
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    isFr
-                                        ? 'Animations désactivées. Vous pouvez les réactiver à tout moment dans Réglages.'
-                                        : 'Celebration animations disabled. You can re-enable them anytime in Settings.',
+                                    trSi(isFr, 'Animations désactivées. Vous pouvez les réactiver à tout moment dans Réglages.', 'Celebration animations disabled. You can re-enable them anytime in Settings.'),
                                   ),
                                   duration: const Duration(seconds: 3),
                                 ),
@@ -449,7 +448,7 @@ class _BadgeUnlockCelebrationDialogState extends State<BadgeUnlockCelebrationDia
                             }
                           },
                           child: Text(
-                            isFr ? 'Ne plus afficher ces animations' : 'Don\'t show these animations again',
+                            trSi(isFr, 'Ne plus afficher ces animations', 'Don\'t show these animations again'),
                             style: TextStyle(
                               fontSize: 11,
                               color: Colors.white.withValues(alpha: 0.5),

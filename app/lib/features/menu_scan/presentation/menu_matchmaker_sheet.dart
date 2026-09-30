@@ -5,6 +5,7 @@ import '../domain/menu_table_matcher_engine.dart';
 import '../domain/menu_wine.dart';
 import 'menu_wine_compare_sheet.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../../../shared/utils/langue.dart';
 
 class MenuMatchmakerSheet extends StatefulWidget {
   final List<MenuWine> allWines;
@@ -39,9 +40,9 @@ class _MatchmakerQuestion {
   final bool Function(List<MenuWine> pool) isEligible;
   final List<MenuWine> Function(List<MenuWine> pool, bool answerYes) filter;
 
-  String title(bool isFr) => isFr ? titleFr : titleEn;
-  String subtitle(bool isFr) => isFr ? subtitleFr : subtitleEn;
-  String userPreferenceLabel(bool isFr) => isFr ? userPreferenceLabelFr : userPreferenceLabelEn;
+  String title(bool isFr) => trSi(isFr, titleFr, titleEn);
+  String subtitle(bool isFr) => trSi(isFr, subtitleFr, subtitleEn);
+  String userPreferenceLabel(bool isFr) => trSi(isFr, userPreferenceLabelFr, userPreferenceLabelEn);
 
   const _MatchmakerQuestion({
     required this.id,
@@ -475,50 +476,44 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     for (final MapEntry(key: id, value: oui) in _reponses.entries) {
       switch (id) {
         case 'color_red':
-          if (oui && wine.isRed) raisons.add(isFr ? 'vous vouliez du rouge' : 'you wanted red');
-          if (!oui && !wine.isRed) raisons.add(isFr ? 'pas de rouge, comme demandé' : 'no red, as asked');
+          if (oui && wine.isRed) raisons.add(trSi(isFr, 'vous vouliez du rouge', 'you wanted red'));
+          if (!oui && !wine.isRed) raisons.add(trSi(isFr, 'pas de rouge, comme demandé', 'no red, as asked'));
         case 'sparkling':
-          if (oui && wine.isSparkling) raisons.add(isFr ? 'des bulles, comme demandé' : 'bubbles, as asked');
+          if (oui && wine.isSparkling) raisons.add(trSi(isFr, 'des bulles, comme demandé', 'bubbles, as asked'));
         case 'rose':
-          if (oui && wine.isRose) raisons.add(isFr ? 'le rosé que vous vouliez' : 'the rosé you wanted');
+          if (oui && wine.isRose) raisons.add(trSi(isFr, 'le rosé que vous vouliez', 'the rosé you wanted'));
         case 'tannins':
           if (wine.isRed) {
             raisons.add(oui
-                ? (isFr ? 'de la structure (tanins ${n(m.tannins)})' : 'structure (tannins ${n(m.tannins)})')
-                : (isFr ? 'tout en souplesse (tanins ${n(m.tannins)})' : 'supple (tannins ${n(m.tannins)})'));
+                ? (trSi(isFr, 'de la structure (tanins {v1})', 'structure (tannins {v1})', {'v1': n(m.tannins)}))
+                : (trSi(isFr, 'tout en souplesse (tanins {v1})', 'supple (tannins {v1})', {'v1': n(m.tannins)})));
           }
         case 'minerality':
           if (oui) {
-            raisons.add(isFr
-                ? 'la minéralité que vous cherchiez (${n(m.minerality)})'
-                : 'the minerality you were after (${n(m.minerality)})');
+            raisons.add(trSi(isFr, 'la minéralité que vous cherchiez ({v1})', 'the minerality you were after ({v1})', {'v1': n(m.minerality)}));
           }
         case 'butteriness':
           if (oui) {
-            raisons.add(isFr ? 'du gras et du beurré (${n(m.butteriness)})' : 'rich and buttery (${n(m.butteriness)})');
+            raisons.add(trSi(isFr, 'du gras et du beurré ({v1})', 'rich and buttery ({v1})', {'v1': n(m.butteriness)}));
           }
         case 'light_fruity':
           if (oui) {
-            raisons.add(isFr
-                ? 'léger et fruité (corps ${n(m.body)}, fruit ${n(m.fruit)})'
-                : 'light and fruity (body ${n(m.body)}, fruit ${n(m.fruit)})');
+            raisons.add(trSi(isFr, 'léger et fruité (corps {v1}, fruit {v2})', 'light and fruity (body {v1}, fruit {v2})', {'v1': n(m.body), 'v2': n(m.fruit)}));
           }
         case 'oak':
           raisons.add(oui
-              ? (isFr ? 'l\'élevage sous bois que vous aimez (${n(m.oak)})' : 'the oak you like (${n(m.oak)})')
-              : (isFr ? 'peu de bois, comme vous préférez (${n(m.oak)})' : 'little oak, as you prefer (${n(m.oak)})'));
+              ? (trSi(isFr, 'l\'élevage sous bois que vous aimez ({v1})', 'the oak you like ({v1})', {'v1': n(m.oak)}))
+              : (trSi(isFr, 'peu de bois, comme vous préférez ({v1})', 'little oak, as you prefer ({v1})', {'v1': n(m.oak)})));
         case 'by_the_glass':
           if (oui && wine.primaryGlassPrice != null) {
-            raisons.add(isFr
-                ? 'servi au verre (${_prix(wine.primaryGlassPrice!)})'
-                : 'served by the glass (${_prix(wine.primaryGlassPrice!)})');
+            raisons.add(trSi(isFr, 'servi au verre ({v1})', 'served by the glass ({v1})', {'v1': _prix(wine.primaryGlassPrice!)}));
           }
       }
     }
     final limite = _selectedBudgetLimit;
     final prixRetenu = _isGlassSelected ? (wine.primaryGlassPrice ?? wine.bottlePrice) : wine.bottlePrice;
     if (limite != null && !_noPriceLimit && prixRetenu != null && prixRetenu <= limite) {
-      raisons.add(isFr ? 'dans votre budget' : 'within your budget');
+      raisons.add(trSi(isFr, 'dans votre budget', 'within your budget'));
     }
 
     final autres = [for (final w in finalistes) if (!identical(w, wine)) w];
@@ -528,13 +523,11 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     ].where((e) => e.isNotEmpty).join(', ');
 
     final phrases = [
-      if (raisons.isNotEmpty) '${isFr ? 'Pourquoi ce choix' : 'Why this choice'} : ${raisons.join(', ')}.',
+      if (raisons.isNotEmpty) '${trSi(isFr, 'Pourquoi ce choix', 'Why this choice')} : ${raisons.join(', ')}.',
       if (seconde.isNotEmpty) '${seconde[0].toUpperCase()}${seconde.substring(1)}.',
     ];
     if (phrases.isEmpty) {
-      return isFr
-          ? 'Ce cru se distingue sur cette carte par son équilibre et son profil aromatique harmonieux.'
-          : 'This wine stands out on this list for its balance and harmonious aromatic profile.';
+      return trSi(isFr, 'Ce cru se distingue sur cette carte par son équilibre et son profil aromatique harmonieux.', 'This wine stands out on this list for its balance and harmonious aromatic profile.');
     }
     return phrases.join(' ');
   }
@@ -585,15 +578,13 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isFr ? 'Le Sommelier Matchmaker' : 'Sommelier Matchmaker',
+                        trSi(isFr, 'Le Sommelier Matchmaker', 'Sommelier Matchmaker'),
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                       ),
                       Text(
                         _isFinished
-                            ? (isFr ? '🎉 Les bouteilles faites pour vous !' : '🎉 The bottles made for you!')
-                            : (isFr
-                                ? 'Swiper pour trouver votre vin idéal en 4 questions'
-                                : 'Swipe to find your ideal wine in 4 questions'),
+                            ? (trSi(isFr, '🎉 Les bouteilles faites pour vous !', '🎉 The bottles made for you!'))
+                            : (trSi(isFr, 'Swiper pour trouver votre vin idéal en 4 questions', 'Swipe to find your ideal wine in 4 questions')),
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
@@ -697,7 +688,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                             color: Colors.green.shade600,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(isFr ? 'OUI ✅' : 'YES ✅', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: Text(trSi(isFr, 'OUI ✅', 'YES ✅'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         )
                       else if (_dragOffset < -30)
                         Container(
@@ -706,7 +697,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                             color: Colors.red.shade600,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(isFr ? 'NON ❌' : 'NO ❌', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: Text(trSi(isFr, 'NON ❌', 'NO ❌'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         )
                       else
                         const SizedBox(height: 24),
@@ -763,7 +754,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   ),
                   onPressed: () => _answer(false),
                   icon: const Icon(Icons.close),
-                  label: Text(isFr ? 'NON' : 'NO', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  label: Text(trSi(isFr, 'NON', 'NO'), style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
 
@@ -778,7 +769,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   ),
                   onPressed: () => _answer(true),
                   icon: const Icon(Icons.check),
-                  label: Text(isFr ? 'OUI' : 'YES', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  label: Text(trSi(isFr, 'OUI', 'YES'), style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -786,9 +777,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
 
           const SizedBox(height: 12),
           Text(
-            isFr
-                ? 'Glissez vers la gauche pour NON • Glissez vers la droite pour OUI'
-                : 'Swipe left for NO • Swipe right for YES',
+            trSi(isFr, 'Glissez vers la gauche pour NON • Glissez vers la droite pour OUI', 'Swipe left for NO • Swipe right for YES'),
             style: const TextStyle(fontSize: 11, color: Colors.grey),
           ),
         ],
@@ -815,9 +804,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   const Icon(Icons.wine_bar, size: 18, color: Color(0xFFD4AF37)),
                   const SizedBox(width: 8),
                   Text(
-                    isFr
-                        ? '$remainingCount vins en lice sur $totalCount au total'
-                        : '$remainingCount wines remaining out of $totalCount total',
+                    trSi(isFr, '{remainingCount} vins en lice sur {totalCount} au total', '{remainingCount} wines remaining out of {totalCount} total', {'remainingCount': remainingCount, 'totalCount': totalCount}),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
                   ),
                 ],
@@ -920,8 +907,8 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
             ),
             child: Text(
               _noPriceLimit
-                  ? (isFr ? '✨ Pas de limite de budget' : '✨ No budget limit')
-                  : '${isFr ? 'Budget max : ' : 'Max budget: '}${_prix(currentVal)}',
+                  ? (trSi(isFr, '✨ Pas de limite de budget', '✨ No budget limit'))
+                  : '${trSi(isFr, 'Budget max : ', 'Max budget: ')}${_prix(currentVal)}',
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
@@ -966,7 +953,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                   style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
                 ),
                 ChoiceChip(
-                  label: Text(isFr ? 'Pas de limite' : 'No limit'),
+                  label: Text(trSi(isFr, 'Pas de limite', 'No limit')),
                   selected: _noPriceLimit,
                   onSelected: (val) {
                     setState(() {
@@ -996,8 +983,8 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
               icon: const Icon(Icons.check, size: 20),
               label: Text(
                 _noPriceLimit
-                    ? (isFr ? 'Continuer sans limite de prix' : 'Continue without price limit')
-                    : (isFr ? 'Valider ce budget' : 'Confirm budget'),
+                    ? (trSi(isFr, 'Continuer sans limite de prix', 'Continue without price limit'))
+                    : (trSi(isFr, 'Valider ce budget', 'Confirm budget')),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               onPressed: () => _applyBudgetLimit(currentVal),
@@ -1068,13 +1055,11 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isFr ? 'Vos ${winners.length} Vins Idéaux' : 'Your ${winners.length} Ideal Wines',
+                        trSi(isFr, 'Vos {winners_length} Vins Idéaux', 'Your {winners_length} Ideal Wines', {'winners_length': winners.length}),
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       Text(
-                        isFr
-                            ? 'Sélectionnés sur-mesure parmi la carte du restaurant.'
-                            : 'Custom-selected from the venue\'s wine list.',
+                        trSi(isFr, 'Sélectionnés sur-mesure parmi la carte du restaurant.', 'Custom-selected from the venue\'s wine list.'),
                         style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black87),
                       ),
                     ],
@@ -1130,7 +1115,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Text(
-                              '${wine.producer} • ${wine.vintage ?? (isFr ? 'NM' : 'NV')} • ${wine.appellation ?? wine.region ?? ""}',
+                              '${wine.producer} • ${wine.vintage ?? (trSi(isFr, 'NM', 'NV'))} • ${wine.appellation ?? wine.region ?? ""}',
                               style: const TextStyle(fontSize: 12, color: Colors.grey),
                             ),
                           ],
@@ -1206,9 +1191,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
               ),
               onPressed: () => MenuWineCompareSheet.show(context, winners),
               icon: const Icon(Icons.compare_arrows),
-              label: Text(isFr
-                  ? 'Comparer les ${winners.length} finalistes'
-                  : 'Compare the ${winners.length} finalists'),
+              label: Text(trSi(isFr, 'Comparer les {winners_length} finalistes', 'Compare the {winners_length} finalists', {'winners_length': winners.length})),
             ),
             const SizedBox(height: 10),
           ],
@@ -1221,7 +1204,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
             ),
             onPressed: _reset,
             icon: const Icon(Icons.refresh),
-            label: Text(isFr ? 'Recommencer le Matchmaker' : 'Restart Matchmaker'),
+            label: Text(trSi(isFr, 'Recommencer le Matchmaker', 'Restart Matchmaker')),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'menu_wine.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Un vin de la carte proposé pour un plat, avec la raison de l'accord.
 class AccordMetVin {
@@ -76,87 +77,61 @@ class FoodPairingEngine {
       case 'viande':
         if (vin.isRed) {
           score += 20 + (m.tannins - 5) * 1.5 + (m.body - 5);
-          raison = fr
-              ? 'Tanins ${note(m.tannins)} et corps ${note(m.body)} : de quoi tenir tête aux sucs d\'une viande rouge.'
-              : 'Tannins ${note(m.tannins)} and body ${note(m.body)}: enough grip to stand up to red meat.';
+          raison = trSi(fr, 'Tanins {v1} et corps {v2} : de quoi tenir tête aux sucs d\'une viande rouge.', 'Tannins {v1} and body {v2}: enough grip to stand up to red meat.', {'v1': note(m.tannins), 'v2': note(m.body)});
         } else if (vin.isRose) {
           score -= 10;
-          raison = fr
-              ? 'Un rosé reste léger face à une viande rouge : à garder pour une cuisson rosée ou grillée.'
-              : 'A rosé is light for red meat: keep it for something grilled or pink.';
+          raison = trSi(fr, 'Un rosé reste léger face à une viande rouge : à garder pour une cuisson rosée ou grillée.', 'A rosé is light for red meat: keep it for something grilled or pink.');
         } else {
           score -= 25;
-          raison = fr
-              ? 'Sans tanins, un blanc manque de structure pour une viande rouge.'
-              : 'Without tannins, a white lacks the structure for red meat.';
+          raison = trSi(fr, 'Sans tanins, un blanc manque de structure pour une viande rouge.', 'Without tannins, a white lacks the structure for red meat.');
         }
         break;
 
       case 'poisson':
         if (vin.isWhite || vin.isSparkling) {
           score += 22 + (m.acidity - 5) * 1.5 + (m.minerality - 5);
-          raison = fr
-              ? 'Vivacité ${note(m.acidity)} et minéralité ${note(m.minerality)} : elles équilibrent la chair délicate du poisson.'
-              : 'Freshness ${note(m.acidity)} and minerality ${note(m.minerality)} balance delicate fish.';
+          raison = trSi(fr, 'Vivacité {v1} et minéralité {v2} : elles équilibrent la chair délicate du poisson.', 'Freshness {v1} and minerality {v2} balance delicate fish.', {'v1': note(m.acidity), 'v2': note(m.minerality)});
         } else if (vin.isRose) {
           score += 8 + (m.acidity - 5);
-          raison = fr
-              ? 'Un rosé vif peut suivre un poisson grillé ou une cuisine méditerranéenne.'
-              : 'A crisp rosé can follow grilled fish or Mediterranean cooking.';
+          raison = trSi(fr, 'Un rosé vif peut suivre un poisson grillé ou une cuisine méditerranéenne.', 'A crisp rosé can follow grilled fish or Mediterranean cooking.');
         } else {
           score -= 30 + (m.tannins - 5) * 2;
-          raison = fr
-              ? 'Les tanins d\'un rouge réagissent avec l\'iode et laissent une amertume métallique.'
-              : 'Red-wine tannins clash with iodine and leave a metallic bitterness.';
+          raison = trSi(fr, 'Les tanins d\'un rouge réagissent avec l\'iode et laissent une amertume métallique.', 'Red-wine tannins clash with iodine and leave a metallic bitterness.');
         }
         break;
 
       case 'volaille':
         if (vin.isWhite || (vin.isRed && m.tannins <= 5)) {
           score += 20 + (m.fruit - 5) - (m.tannins - 3).clamp(0, 10);
-          raison = fr
-              ? 'Fruit ${note(m.fruit)} et tanins discrets : la chair tendre reste au premier plan.'
-              : 'Fruit ${note(m.fruit)} and gentle tannins keep tender meat centre stage.';
+          raison = trSi(fr, 'Fruit {v1} et tanins discrets : la chair tendre reste au premier plan.', 'Fruit {v1} and gentle tannins keep tender meat centre stage.', {'v1': note(m.fruit)});
         } else {
           score += 5;
-          raison = fr
-              ? 'Accord possible si la volaille est rôtie ou servie avec une sauce riche.'
-              : 'Works if the poultry is roasted or served with a rich sauce.';
+          raison = trSi(fr, 'Accord possible si la volaille est rôtie ou servie avec une sauce riche.', 'Works if the poultry is roasted or served with a rich sauce.');
         }
         break;
 
       case 'fromage':
         if (vin.isWhite || m.sweetness >= 4) {
           score += 20 + (m.acidity - 5) + (m.sweetness - 2).clamp(0, 6);
-          raison = fr
-              ? 'Pas de conflit tannique avec le gras du fromage, et de la fraîcheur pour le relancer.'
-              : 'No tannic clash with the richness of cheese, and freshness to lift it.';
+          raison = trSi(fr, 'Pas de conflit tannique avec le gras du fromage, et de la fraîcheur pour le relancer.', 'No tannic clash with the richness of cheese, and freshness to lift it.');
         } else {
           score += 10 - (m.tannins - 6).clamp(0, 10);
-          raison = fr
-              ? 'Accord classique avec une pâte pressée cuite bien affinée.'
-              : 'A classic match for a well-aged hard cheese.';
+          raison = trSi(fr, 'Accord classique avec une pâte pressée cuite bien affinée.', 'A classic match for a well-aged hard cheese.');
         }
         break;
 
       case 'pates':
         score += 15 + (m.acidity - 5) - (m.tannins - 6).clamp(0, 10);
-        raison = fr
-            ? 'De la fraîcheur pour la rondeur des sauces et des féculents.'
-            : 'Freshness to match rich sauces and starches.';
+        raison = trSi(fr, 'De la fraîcheur pour la rondeur des sauces et des féculents.', 'Freshness to match rich sauces and starches.');
         break;
 
       case 'dessert':
         if (vin.isSparkling || m.sweetness >= 4) {
           score += 25 + (m.sweetness - 4).clamp(0, 6) * 1.5;
-          raison = fr
-              ? 'Bulles fraîches ou douceur en miroir de la gourmandise du dessert.'
-              : 'Fresh bubbles or sweetness mirroring the dessert.';
+          raison = trSi(fr, 'Bulles fraîches ou douceur en miroir de la gourmandise du dessert.', 'Fresh bubbles or sweetness mirroring the dessert.');
         } else {
           score -= 15;
-          raison = fr
-              ? 'Un vin sec ou tannique paraît âpre face au sucre.'
-              : 'A dry or tannic wine turns harsh against sugar.';
+          raison = trSi(fr, 'Un vin sec ou tannique paraît âpre face au sucre.', 'A dry or tannic wine turns harsh against sugar.');
         }
         break;
 

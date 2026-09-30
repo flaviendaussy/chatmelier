@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/utils/langue.dart';
 
 /// La légende de l'empreinte de palais : ce que veulent dire trait plein, pointillés et
 /// moustaches. Trois glyphes dessinés comme dans le radar, pour qu'on les reconnaisse.
@@ -15,9 +16,9 @@ class LegendeDuRadar extends StatelessWidget {
     // système plutôt que de planter.
     final l10n = AppLocalizations.of(context);
     final fr = Localizations.maybeLocaleOf(context)?.languageCode == 'fr';
-    final observe = l10n?.radarLegendObserved ?? (fr ? 'Observé' : 'Observed');
-    final devine = l10n?.radarLegendGuessed ?? (fr ? 'Deviné' : 'Guessed');
-    final marge = l10n?.radarLegendMargin ?? (fr ? 'Marge d\'incertitude' : 'Uncertainty');
+    final observe = l10n?.radarLegendObserved ?? (trSi(fr, 'Observé', 'Observed'));
+    final devine = l10n?.radarLegendGuessed ?? (trSi(fr, 'Deviné', 'Guessed'));
+    final marge = l10n?.radarLegendMargin ?? (trSi(fr, 'Marge d\'incertitude', 'Uncertainty'));
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final style = TextStyle(fontSize: 10.5, color: isDark ? Colors.white70 : Colors.black54);
     Widget element(_Glyphe glyphe, String texte) => Row(

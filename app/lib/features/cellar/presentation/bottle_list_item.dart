@@ -5,6 +5,7 @@ import '../domain/wine_image_service.dart';
 import '../data/favorite_wines_service.dart';
 import '../../../shared/widgets/bottle_image_view.dart';
 import '../../../shared/widgets/spirit_fill_bar.dart';
+import '../../../shared/utils/langue.dart';
 
 class BottleListItem extends StatelessWidget {
   final Bottle bottle;
@@ -38,15 +39,15 @@ class BottleListItem extends StatelessWidget {
   String _getMaturityLabel(DrinkWindowStatus status, bool isFr) {
     switch (status) {
       case DrinkWindowStatus.inPeak:
-        return isFr ? 'À l\'apogée ✨' : 'In Peak ✨';
+        return trSi(isFr, 'À l\'apogée ✨', 'In Peak ✨');
       case DrinkWindowStatus.drinkSoon:
-        return isFr ? 'À boire ⏰' : 'Drink Soon ⏰';
+        return trSi(isFr, 'À boire ⏰', 'Drink Soon ⏰');
       case DrinkWindowStatus.aging:
-        return isFr ? 'En garde ⏳' : 'Aging ⏳';
+        return trSi(isFr, 'En garde ⏳', 'Aging ⏳');
       case DrinkWindowStatus.tooYoung:
-        return isFr ? 'Trop jeune' : 'Too Young';
+        return trSi(isFr, 'Trop jeune', 'Too Young');
       case DrinkWindowStatus.pastPeak:
-        return isFr ? 'Passé l\'apogée' : 'Past Peak';
+        return trSi(isFr, 'Passé l\'apogée', 'Past Peak');
     }
   }
 
@@ -56,7 +57,7 @@ class BottleListItem extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final wine = bottle.wine;
-    final vintageStr = wine?.vintage != null ? '${wine!.vintage}' : (isFr ? 'NM' : 'NV');
+    final vintageStr = wine?.vintage != null ? '${wine!.vintage}' : (trSi(isFr, 'NM', 'NV'));
     final photo = WineImageService.resolveBottleDisplayImage(bottle, wine);
     final status = wine?.windowStatus ?? DrinkWindowStatus.inPeak;
     final maturityColor = _getMaturityColor(status);
@@ -111,7 +112,7 @@ class BottleListItem extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            wine?.name ?? (isFr ? 'Vin' : 'Wine'),
+                            wine?.name ?? (trSi(isFr, 'Vin', 'Wine')),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -165,7 +166,7 @@ class BottleListItem extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            wine?.producer ?? (isFr ? 'Domaine inconnu' : 'Unknown producer'),
+                            wine?.producer ?? (trSi(isFr, 'Domaine inconnu', 'Unknown producer')),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
@@ -211,7 +212,7 @@ class BottleListItem extends StatelessWidget {
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            isFr ? '${bottle.fillLevel}% restant' : '${bottle.fillLevel}% left',
+                            trSi(isFr, '{fillLevel}% restant', '{fillLevel}% left', {'fillLevel': bottle.fillLevel}),
                             style: TextStyle(
                               fontSize: isUltraCompact ? 10 : 11,
                               fontWeight: FontWeight.w600,

@@ -145,7 +145,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('✨ Meuble analysé : ${layout.columns}x${layout.rows} (${layout.name})', '✨ Rack analysed: ${layout.columns}x${layout.rows} (${layout.name})')),
+            content: Text(tr('✨ Meuble analysé : {columns}x{rows} ({layout_name})', '✨ Rack analysed: {columns}x{rows} ({layout_name})', {'columns': layout.columns, 'rows': layout.rows, 'layout_name': layout.name})),
             backgroundColor: const Color(0xFF2E7D32),
           ),
         );
@@ -210,7 +210,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('Erreur lors de l\'enregistrement : $e', 'Couldn\'t save: $e')),
+            content: Text(tr('Erreur lors de l\'enregistrement : {e}', 'Couldn\'t save: {e}', {'e': e})),
             backgroundColor: Colors.red,
           ),
         );
@@ -405,7 +405,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        tr('Colonnes (A-${String.fromCharCode(64 + _columns)})', 'Columns (A-${String.fromCharCode(64 + _columns)})'),
+                                        tr('Colonnes (A-{v1})', 'Columns (A-{v1})', {'v1': String.fromCharCode(64 + _columns)}),
                                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                                       ),
                                       const SizedBox(height: 4),
@@ -445,7 +445,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        tr('Rangées (1-$_rows)', 'Rows (1-$_rows)'),
+                                        tr('Rangées (1-{rows})', 'Rows (1-{rows})', {'rows': _rows}),
                                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                                       ),
                                       const SizedBox(height: 4),
@@ -491,7 +491,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  tr('$_activeSlotsCount places actives', '$_activeSlotsCount active slots'),
+                                  tr('{activeSlotsCount} places actives', '{activeSlotsCount} active slots', {'activeSlotsCount': _activeSlotsCount}),
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -646,7 +646,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                     ),
                                     Expanded(
                                       child: Text(
-                                        tr('$_rows étagère${_rows > 1 ? "s" : ""}', '$_rows shel${_rows > 1 ? "ves" : "f"}'),
+                                        tr('{rows} étagère{v1}', '{rows} shel{v2}', {'rows': _rows, 'v1': _rows > 1 ? "s" : "", 'v2': _rows > 1 ? "ves" : "f"}),
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                       ),
@@ -672,7 +672,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                               ),
                               const Spacer(),
                               Text(
-                                tr('$_rows étagères ouvertes', '$_rows open shelves'),
+                                tr('{rows} étagères ouvertes', '{rows} open shelves', {'rows': _rows}),
                                 style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                               ),
                             ],
@@ -701,7 +701,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                       const Icon(Icons.table_rows_outlined, size: 16, color: Color(0xFF8C7355)),
                                       const SizedBox(width: 8),
                                       Text(
-                                        tr('Étagère ${r + 1}', 'Shelf ${r + 1}'),
+                                        tr('Étagère {v1}', 'Shelf {v1}', {'v1': r + 1}),
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                                       ),
                                       const Spacer(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/feedback_history_service.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Ce que la personne a envoyé, et de quoi le retirer.
 ///
@@ -36,7 +37,7 @@ class MesRetoursSheet extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
               child: Text(
-                isFr ? 'Mes retours envoyés' : 'My sent reports',
+                trSi(isFr, 'Mes retours envoyés', 'My sent reports'),
                 style: theme.textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
@@ -49,18 +50,14 @@ class MesRetoursSheet extends ConsumerWidget {
                 ),
                 error: (_, __) => Padding(
                   padding: const EdgeInsets.all(24),
-                  child: Text(isFr
-                      ? 'Vos retours n\'ont pas pu être chargés. Réessayez une fois connecté.'
-                      : 'Your reports could not be loaded. Try again once online.'),
+                  child: Text(trSi(isFr, 'Vos retours n\'ont pas pu être chargés. Réessayez une fois connecté.', 'Your reports could not be loaded. Try again once online.')),
                 ),
                 data: (retours) {
                   if (retours.isEmpty) {
                     return Padding(
                       padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
                       child: Text(
-                        isFr
-                            ? 'Vous n\'avez encore envoyé aucun retour.'
-                            : 'You haven\'t sent any reports yet.',
+                        trSi(isFr, 'Vous n\'avez encore envoyé aucun retour.', 'You haven\'t sent any reports yet.'),
                         style: theme.textTheme.bodyMedium,
                       ),
                     );
@@ -101,7 +98,7 @@ class _LigneState extends ConsumerState<_Ligne> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isFr ? 'Retirer ce retour ?' : 'Withdraw this report?'),
+        title: Text(trSi(isFr, 'Retirer ce retour ?', 'Withdraw this report?')),
         content: Text(isFr
             ? (avecCapture
                 ? 'Votre message et la capture d\'écran jointe seront supprimés.'
@@ -112,14 +109,14 @@ class _LigneState extends ConsumerState<_Ligne> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(isFr ? 'Annuler' : 'Cancel'),
+            child: Text(trSi(isFr, 'Annuler', 'Cancel')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(isFr ? 'Retirer' : 'Withdraw'),
+            child: Text(trSi(isFr, 'Retirer', 'Withdraw')),
           ),
         ],
       ),
@@ -136,9 +133,7 @@ class _LigneState extends ConsumerState<_Ligne> {
       ref.invalidate(mesRetoursProvider);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(isFr
-            ? 'Le retrait n\'a pas abouti. Réessayez une fois connecté.'
-            : 'The withdrawal did not go through. Try again once online.'),
+        content: Text(trSi(isFr, 'Le retrait n\'a pas abouti. Réessayez une fois connecté.', 'The withdrawal did not go through. Try again once online.')),
       ));
     }
   }
@@ -188,7 +183,7 @@ class _LigneState extends ConsumerState<_Ligne> {
       ),
       subtitle: Text(
         r.capture != null
-            ? (isFr ? '$date · capture jointe' : '$date · screenshot attached')
+            ? (trSi(isFr, '{date} · capture jointe', '{date} · screenshot attached', {'date': date}))
             : date,
         style: const TextStyle(fontSize: 12),
       ),
@@ -197,7 +192,7 @@ class _LigneState extends ConsumerState<_Ligne> {
               width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
           : IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: isFr ? 'Retirer ce retour' : 'Withdraw this report',
+              tooltip: trSi(isFr, 'Retirer ce retour', 'Withdraw this report'),
               onPressed: _retirer,
             ),
     );

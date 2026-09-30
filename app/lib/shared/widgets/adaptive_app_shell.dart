@@ -10,6 +10,7 @@ import '../providers/supabase_provider.dart';
 import '../utils/responsive_layout.dart';
 import '../../features/cellar/presentation/shelf_grid_view_sheet.dart';
 import '../../config/navigator_keys.dart';
+import '../../shared/utils/langue.dart';
 
 class AdaptiveAppShell extends ConsumerWidget {
   final Widget child;
@@ -212,7 +213,7 @@ class _MobileAppShell extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              l10n?.actionMenuTitle ?? (isFr ? 'Actions Cave' : 'Cellar Actions'),
+              l10n?.actionMenuTitle ?? (trSi(isFr, 'Actions Cave', 'Cellar Actions')),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,
@@ -222,9 +223,9 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.add_a_photo_outlined,
               color: const Color(0xFF8B1E3F),
-              title: l10n?.actionAddBottle ?? (isFr ? 'Ajouter une bouteille' : 'Add a bottle'),
+              title: l10n?.actionAddBottle ?? (trSi(isFr, 'Ajouter une bouteille', 'Add a bottle')),
               subtitle: l10n?.actionAddBottleSub ??
-                  (isFr ? 'Scanner une étiquette ou saisie manuelle' : 'Scan a label or enter manually'),
+                  (trSi(isFr, 'Scanner une étiquette ou saisie manuelle', 'Scan a label or enter manually')),
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/scan');
@@ -234,10 +235,8 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.restaurant_menu_rounded,
               color: const Color(0xFFC2185B),
-              title: isFr ? 'Scanner la Carte des Vins (Restaurant)' : 'Scan Wine List (Restaurant)',
-              subtitle: isFr
-                  ? 'Capture multi-pages, radar sensoriel, filtres & comparateur'
-                  : 'Multi-page capture, taste radar, filters & comparison',
+              title: trSi(isFr, 'Scanner la Carte des Vins (Restaurant)', 'Scan Wine List (Restaurant)'),
+              subtitle: trSi(isFr, 'Capture multi-pages, radar sensoriel, filtres & comparateur', 'Multi-page capture, taste radar, filters & comparison'),
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/scan/menu');
@@ -248,9 +247,9 @@ class _MobileAppShell extends ConsumerWidget {
               icon: Icons.wine_bar_outlined,
               color: const Color(0xFFD4AF37),
               title: l10n?.actionCheckoutBottle ??
-                  (isFr ? 'Déguster / Sortir une bouteille' : 'Taste / Checkout a bottle'),
+                  (trSi(isFr, 'Déguster / Sortir une bouteille', 'Taste / Checkout a bottle')),
               subtitle: l10n?.actionCheckoutBottleSub ??
-                  (isFr ? 'Enregistrer une dégustation et sortir du stock' : 'Log a tasting and deduct from stock'),
+                  (trSi(isFr, 'Enregistrer une dégustation et sortir du stock', 'Log a tasting and deduct from stock')),
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/checkout');
@@ -260,10 +259,8 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.table_chart_outlined,
               color: const Color(0xFF1B5E20),
-              title: isFr ? 'Importer un fichier (Excel / CSV)' : 'Import File (Excel / CSV)',
-              subtitle: isFr
-                  ? 'Importez toute votre cave en quelques secondes par IA'
-                  : 'Import your whole cellar in seconds via AI',
+              title: trSi(isFr, 'Importer un fichier (Excel / CSV)', 'Import File (Excel / CSV)'),
+              subtitle: trSi(isFr, 'Importez toute votre cave en quelques secondes par IA', 'Import your whole cellar in seconds via AI'),
               onTap: () {
                 Navigator.pop(ctx);
                 final currentCellarId = ref.read(currentCellarIdProvider);
@@ -274,22 +271,20 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.restaurant_menu_rounded,
               color: const Color(0xFFD4AF37),
-              title: isFr ? 'Quel vin pour mon plat ? (Accords Mets & Vins)' : 'Which wine for my dish? (Food Pairings)',
-              subtitle: isFr
-                  ? 'L\'IA sommelier trouve les meilleurs accords dans votre cave'
-                  : 'AI Sommelier finds the best pairings from your cellar',
+              title: trSi(isFr, 'Quel vin pour mon plat ? (Accords Mets & Vins)', 'Which wine for my dish? (Food Pairings)'),
+              subtitle: trSi(isFr, 'L\'IA sommelier trouve les meilleurs accords dans votre cave', 'AI Sommelier finds the best pairings from your cellar'),
               onTap: () {
                 Navigator.pop(ctx);
                 final currentCellarId = ref.read(currentCellarIdProvider);
                 final bottles = (ref.read(bottlesProvider(currentCellarId)).valueOrNull ?? []);
                 final cellars = ref.read(userCellarsProvider).valueOrNull ?? [];
-                String cellarName = isFr ? 'Ma Cave' : 'My Cellar';
+                String cellarName = trSi(isFr, 'Ma Cave', 'My Cellar');
                 for (final item in cellars) {
                   final cMap = item['cellars'];
                   if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
                     final raw = cMap['name']?.toString() ?? '';
                     if (raw.isEmpty || raw == 'Ma Cave' || raw == 'My Cellar') {
-                      cellarName = isFr ? 'Ma Cave' : 'My Cellar';
+                      cellarName = trSi(isFr, 'Ma Cave', 'My Cellar');
                     } else {
                       cellarName = raw;
                     }
@@ -307,10 +302,8 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.restaurant_outlined,
               color: const Color(0xFFE65100),
-              title: isFr ? 'Déguster Hors-Cave (Restaurant, Amis)' : 'Taste Out-of-Cellar (Restaurant, Friends)',
-              subtitle: isFr
-                  ? 'Noter un vin bu à l\'extérieur sans toucher au stock'
-                  : 'Log a wine tasted outside without affecting stock',
+              title: trSi(isFr, 'Déguster Hors-Cave (Restaurant, Amis)', 'Taste Out-of-Cellar (Restaurant, Friends)'),
+              subtitle: trSi(isFr, 'Noter un vin bu à l\'extérieur sans toucher au stock', 'Log a wine tasted outside without affecting stock'),
               onTap: () {
                 Navigator.pop(ctx);
                 ExternalTastingDialog.show(context);
@@ -320,9 +313,9 @@ class _MobileAppShell extends ConsumerWidget {
             _ActionMenuItem(
               icon: Icons.auto_awesome_outlined,
               color: const Color(0xFF2E7D32),
-              title: l10n?.actionLookupWine ?? (isFr ? 'Consulter / Identifier un vin' : 'Ask Sommelier / Identify wine'),
+              title: l10n?.actionLookupWine ?? (trSi(isFr, 'Consulter / Identifier un vin', 'Ask Sommelier / Identify wine')),
               subtitle: l10n?.actionLookupWineSub ??
-                  (isFr ? 'Découverte et analyse instantanée par l\'IA' : 'Instant AI sommelier discovery and analysis'),
+                  (trSi(isFr, 'Découverte et analyse instantanée par l\'IA', 'Instant AI sommelier discovery and analysis')),
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/chat');
@@ -393,7 +386,7 @@ class _TabletAppShell extends ConsumerWidget {
                   const SizedBox(height: 14),
                   IconButton.filledTonal(
                     icon: const Icon(Icons.add, size: 22),
-                    tooltip: isFr ? 'Ajouter une bouteille' : 'Add a bottle',
+                    tooltip: trSi(isFr, 'Ajouter une bouteille', 'Add a bottle'),
                     style: IconButton.styleFrom(
                       backgroundColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
                       foregroundColor: const Color(0xFF8B1E3F),
@@ -410,7 +403,7 @@ class _TabletAppShell extends ConsumerWidget {
                   padding: const EdgeInsets.only(bottom: 16),
                   child: IconButton(
                     icon: const Icon(Icons.person_outline),
-                    tooltip: isFr ? 'Mon Profil & Paramètres' : 'My Profile & Settings',
+                    tooltip: trSi(isFr, 'Mon Profil & Paramètres', 'My Profile & Settings'),
                     onPressed: () => context.push('/profile'),
                   ),
                 ),
@@ -420,27 +413,27 @@ class _TabletAppShell extends ConsumerWidget {
               NavigationRailDestination(
                 icon: const Icon(Icons.wine_bar_outlined),
                 selectedIcon: const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navCellar ?? (isFr ? 'Cave' : 'Cellar')),
+                label: Text(l10n?.navCellar ?? (trSi(isFr, 'Cave', 'Cellar'))),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.auto_awesome_outlined),
                 selectedIcon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
-                label: Text(l10n?.navChat ?? (isFr ? 'Chat' : 'Chat')),
+                label: Text(l10n?.navChat ?? (trSi(isFr, 'Chat', 'Chat'))),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.restaurant_menu_outlined),
                 selectedIcon: const Icon(Icons.restaurant_menu, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navJournal ?? (isFr ? 'Dégust.' : 'Tasting')),
+                label: Text(l10n?.navJournal ?? (trSi(isFr, 'Dégust.', 'Tasting'))),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.insights_outlined),
                 selectedIcon: const Icon(Icons.insights, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navStats ?? (isFr ? 'Stats' : 'Stats')),
+                label: Text(l10n?.navStats ?? (trSi(isFr, 'Stats', 'Stats'))),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.person_outline),
                 selectedIcon: const Icon(Icons.person, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navProfile ?? (isFr ? 'Profil' : 'Profile')),
+                label: Text(l10n?.navProfile ?? (trSi(isFr, 'Profil', 'Profile'))),
               ),
             ],
           ),
@@ -476,14 +469,14 @@ class _DesktopAppShell extends ConsumerWidget {
     final user = supabase.auth.currentUser;
 
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
-    String currentCellarName = isFr ? 'Ma Cave' : 'My Cellar';
+    String currentCellarName = trSi(isFr, 'Ma Cave', 'My Cellar');
     final cellarsList = cellarsAsync.value ?? const [];
     for (final item in cellarsList) {
       final cMap = item['cellars'];
       if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
         final raw = cMap['name']?.toString() ?? '';
         if (raw.isEmpty || raw == 'Ma Cave' || raw == 'My Cellar') {
-          currentCellarName = isFr ? 'Ma Cave' : 'My Cellar';
+          currentCellarName = trSi(isFr, 'Ma Cave', 'My Cellar');
         } else {
           currentCellarName = raw;
         }
@@ -550,7 +543,7 @@ class _DesktopAppShell extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              l10n?.appSubtitle ?? (isFr ? 'Sommelier & Cave à Vin' : 'Sommelier & Wine Cellar'),
+                              l10n?.appSubtitle ?? (trSi(isFr, 'Sommelier & Cave à Vin', 'Sommelier & Wine Cellar')),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontSize: 11,
@@ -608,7 +601,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.wine_bar_outlined,
                         activeIcon: Icons.wine_bar,
-                        label: l10n?.navCellar ?? (isFr ? 'Cave' : 'Cellar'),
+                        label: l10n?.navCellar ?? (trSi(isFr, 'Cave', 'Cellar')),
                         isSelected: currentIndex == 0,
                         onTap: () => onNavigate(0),
                       ),
@@ -616,7 +609,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.auto_awesome_outlined,
                         activeIcon: Icons.auto_awesome,
-                        label: l10n?.navChat ?? (isFr ? 'Chat' : 'Chat'),
+                        label: l10n?.navChat ?? (trSi(isFr, 'Chat', 'Chat')),
                         isSelected: currentIndex == 1,
                         activeColor: const Color(0xFFD4AF37),
                         onTap: () => onNavigate(1),
@@ -625,7 +618,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.restaurant_menu_outlined,
                         activeIcon: Icons.restaurant_menu,
-                        label: l10n?.navJournal ?? (isFr ? 'Dégust.' : 'Tasting'),
+                        label: l10n?.navJournal ?? (trSi(isFr, 'Dégust.', 'Tasting')),
                         isSelected: currentIndex == 2,
                         onTap: () => onNavigate(2),
                       ),
@@ -633,7 +626,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.insights_outlined,
                         activeIcon: Icons.insights,
-                        label: l10n?.navStats ?? (isFr ? 'Stats' : 'Stats'),
+                        label: l10n?.navStats ?? (trSi(isFr, 'Stats', 'Stats')),
                         isSelected: currentIndex == 3,
                         onTap: () => onNavigate(3),
                       ),
@@ -641,7 +634,7 @@ class _DesktopAppShell extends ConsumerWidget {
                       _SidebarNavItem(
                         icon: Icons.person_outline,
                         activeIcon: Icons.person,
-                        label: l10n?.navProfile ?? (isFr ? 'Profil' : 'Profile'),
+                        label: l10n?.navProfile ?? (trSi(isFr, 'Profil', 'Profile')),
                         isSelected: currentIndex == 4,
                         onTap: () => onNavigate(4),
                       ),
@@ -660,7 +653,7 @@ class _DesktopAppShell extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                   child: Text(
-                    l10n?.quickActions ?? (isFr ? 'ACTIONS RAPIDES' : 'QUICK ACTIONS'),
+                    l10n?.quickActions ?? (trSi(isFr, 'ACTIONS RAPIDES', 'QUICK ACTIONS')),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -675,13 +668,13 @@ class _DesktopAppShell extends ConsumerWidget {
                     children: [
                       _SidebarActionItem(
                         icon: Icons.add_circle_outline,
-                        label: l10n?.actionAddBottle ?? (isFr ? 'Ajouter une bouteille' : 'Add a bottle'),
+                        label: l10n?.actionAddBottle ?? (trSi(isFr, 'Ajouter une bouteille', 'Add a bottle')),
                         color: const Color(0xFF8B1E3F),
                         onTap: () => context.push('/scan'),
                       ),
                       _SidebarActionItem(
                         icon: Icons.shelves,
-                        label: isFr ? 'Meubles & Rayonnages' : 'Furniture & Shelves',
+                        label: trSi(isFr, 'Meubles & Rayonnages', 'Furniture & Shelves'),
                         color: const Color(0xFFD4AF37),
                         onTap: () {
                           if (currentCellarId != null) {
@@ -691,13 +684,13 @@ class _DesktopAppShell extends ConsumerWidget {
                       ),
                       _SidebarActionItem(
                         icon: Icons.wine_bar,
-                        label: l10n?.actionCheckoutBottle ?? (isFr ? 'Déguster / Sortir un vin' : 'Taste / Checkout wine'),
+                        label: l10n?.actionCheckoutBottle ?? (trSi(isFr, 'Déguster / Sortir un vin', 'Taste / Checkout wine')),
                         color: const Color(0xFFD4AF37),
                         onTap: () => context.push('/checkout'),
                       ),
                       _SidebarActionItem(
                         icon: Icons.restaurant,
-                        label: isFr ? 'Déguster Hors-Cave' : 'Taste Out of Cellar',
+                        label: trSi(isFr, 'Déguster Hors-Cave', 'Taste Out of Cellar'),
                         color: const Color(0xFFE65100),
                         onTap: () => ExternalTastingDialog.show(context),
                       ),
@@ -734,7 +727,7 @@ class _DesktopAppShell extends ConsumerWidget {
                                 Text(
                                   user?.userMetadata?['full_name'] as String? ??
                                       user?.email?.split('@').first ??
-                                      (isFr ? 'Mon Profil' : 'My Profile'),
+                                      (trSi(isFr, 'Mon Profil', 'My Profile')),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,

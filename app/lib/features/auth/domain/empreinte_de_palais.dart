@@ -61,14 +61,17 @@ class EmpreinteDePalais {
 
   String get phraseAime => aime.isEmpty
       ? tr('Mon palais commence à se dessiner', 'My palate is starting to take shape')
-      : tr('J\'aime ${_liste(aime)}', 'I love ${_liste(aime)}');
+      : tr('J\'aime {v1}', 'I love {v1}', {'v1': _liste(aime)});
 
   String? get phraseADecouvrir => aDecouvrir.isEmpty
       ? null
-      : tr('Encore à découvrir : ${_liste(aDecouvrir)}', 'Still to discover: ${_liste(aDecouvrir)}');
+      : tr('Encore à découvrir : {v1}', 'Still to discover: {v1}', {'v1': _liste(aDecouvrir)});
 
   String get phraseBase => degustations == 0
       ? tr('Aucune dégustation encore : tout est deviné', 'No tastings yet: everything is a guess')
-      : tr('D\'après $degustations ${degustations > 1 ? 'dégustations' : 'dégustation'} · palais connu à $pourcentageConnu %',
-          'Based on $degustations ${degustations > 1 ? 'tastings' : 'tasting'} · palate $pourcentageConnu% known');
+      : degustations > 1
+          ? tr('D\'après {n} dégustations · palais connu à {pct} %', 'Based on {n} tastings · palate {pct}% known',
+              {'n': degustations, 'pct': pourcentageConnu})
+          : tr('D\'après une dégustation · palais connu à {pct} %', 'Based on one tasting · palate {pct}% known',
+              {'pct': pourcentageConnu});
 }

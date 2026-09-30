@@ -70,7 +70,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
             content: Text(
               _quantityToDelete >= widget.bottle.quantity
                   ? tr('🗑️ Bouteille supprimée définitivement de la cave.', '🗑️ Bottle permanently deleted from the cellar.')
-                  : tr('🗑️ $_quantityToDelete bouteille(s) supprimée(s) définitivement.', '🗑️ $_quantityToDelete bottle(s) permanently deleted.'),
+                  : tr('🗑️ {quantityToDelete} bouteille(s) supprimée(s) définitivement.', '🗑️ {quantityToDelete} bottle(s) permanently deleted.', {'quantityToDelete': _quantityToDelete}),
             ),
             backgroundColor: Colors.red.shade800,
           ),
@@ -80,7 +80,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
       if (mounted) {
         setState(() => _isDeleting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur lors de la suppression : $e', 'Couldn\'t delete: $e'))),
+          SnackBar(content: Text(tr('Erreur lors de la suppression : {e}', 'Couldn\'t delete: {e}', {'e': e}))),
         );
       }
     }
@@ -243,7 +243,7 @@ class _DeleteBottleDialogState extends ConsumerState<DeleteBottleDialog> {
             // Quantity selector if totalQty > 1
             if (totalQty > 1) ...[
               Text(
-                tr('Quantité à supprimer ($totalQty au total en cave) :', 'How many to delete ($totalQty in the cellar):'),
+                tr('Quantité à supprimer ({totalQty} au total en cave) :', 'How many to delete ({totalQty} in the cellar):', {'totalQty': totalQty}),
                 style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),

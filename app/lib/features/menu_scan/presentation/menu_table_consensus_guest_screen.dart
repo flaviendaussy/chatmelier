@@ -25,6 +25,7 @@ import '../data/menu_table_session_manager.dart';
 import 'titre_du_classement.dart';
 import '../../auth/domain/evening_summary.dart';
 import '../../auth/presentation/keep_evening_sheet.dart';
+import '../../../shared/utils/langue.dart';
 
 class MenuTableConsensusGuestScreen extends ConsumerStatefulWidget {
   final String? initialSessionId;
@@ -137,7 +138,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       _isFr = isFr;
       // Le prénom proposé suit la langue, tant que l'invité n'en a pas choisi un.
       if (!_hasJoined && (_nameCtrl.text == 'Invité' || _nameCtrl.text == 'Guest')) {
-        _nameCtrl.text = isFr ? 'Invité' : 'Guest';
+        _nameCtrl.text = trSi(isFr, 'Invité', 'Guest');
       }
       _recalculateConsensus();
     }
@@ -306,12 +307,12 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           id: 'guest_me',
           name: nom,
           sansPreferences: true,
-          archetype: _isFr ? 'Sans préférences déclarées' : 'No stated preferences',
+          archetype: trSi(_isFr, 'Sans préférences déclarées', 'No stated preferences'),
         ));
   }
 
   void _rejoindre(GuestProfile Function(String nom) profil) {
-    final saisi = _nameCtrl.text.trim().isEmpty ? (_isFr ? 'Convive' : 'Guest') : _nameCtrl.text.trim();
+    final saisi = _nameCtrl.text.trim().isEmpty ? (trSi(_isFr, 'Convive', 'Guest')) : _nameCtrl.text.trim();
     final name = _nomLibre(saisi);
     final newGuest = profil(name);
 
@@ -336,7 +337,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       if (_monNomAssis != null && g.name.trim().toLowerCase() == _monNomAssis!.toLowerCase()) return g;
     }
     final saisi = _nameCtrl.text.trim();
-    return GuestProfile(id: 'guest_me', name: saisi.isEmpty ? (_isFr ? 'Convive' : 'Guest') : saisi);
+    return GuestProfile(id: 'guest_me', name: saisi.isEmpty ? (trSi(_isFr, 'Convive', 'Guest')) : saisi);
   }
 
   /// Le matchmaker de la table, depuis son téléphone : ses avis partent à la table.
@@ -373,7 +374,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       readOnly: _hasJoined && _monNomAssis != null,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
-        labelText: isFr ? 'Votre prénom' : 'Your name',
+        labelText: trSi(isFr, 'Votre prénom', 'Your name'),
         labelStyle: const TextStyle(color: or),
         filled: true,
         fillColor: Colors.black26,
@@ -387,17 +388,14 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         const SizedBox(height: 10),
         if (_sansPreferences)
           Text(
-            isFr
-                ? 'Vous êtes à table sans préférences : le classement ne tient pas compte de vos goûts. '
-                    'Décrivez-les quand vous voulez :'
-                : 'You joined without preferences: the ranking ignores your taste. Describe it whenever you like:',
+            trSi(isFr, 'Vous êtes à table sans préférences : le classement ne tient pas compte de vos goûts. ' 'Décrivez-les quand vous voulez :', 'You joined without preferences: the ranking ignores your taste. Describe it whenever you like:'),
             style: note,
           ),
         const SizedBox(height: 10),
         PalaisExpress(
           isFr: isFr,
           initial: _monPalais ?? const PalaisSaisi(),
-          libelleValider: isFr ? 'Mettre à jour mes préférences' : 'Update my preferences',
+          libelleValider: trSi(isFr, 'Mettre à jour mes préférences', 'Update my preferences'),
           onValider: _rejoindreAvec,
         ),
       ];
@@ -408,7 +406,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         champNom,
         const SizedBox(height: 14),
         Text(
-          isFr ? 'Vous avez un compte Chatmelier ?' : 'Do you have a Chatmelier account?',
+          trSi(isFr, 'Vous avez un compte Chatmelier ?', 'Do you have a Chatmelier account?'),
           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
@@ -418,7 +416,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(foregroundColor: or, side: const BorderSide(color: or)),
                 onPressed: _utiliserMonCompte,
-                child: Text(isFr ? 'Oui' : 'Yes'),
+                child: Text(trSi(isFr, 'Oui', 'Yes')),
               ),
             ),
             const SizedBox(width: 10),
@@ -426,7 +424,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
                 onPressed: () => setState(() => _aUnCompte = false),
-                child: Text(isFr ? 'Non' : 'No'),
+                child: Text(trSi(isFr, 'Non', 'No')),
               ),
             ),
           ],
@@ -444,9 +442,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         champNom,
         const SizedBox(height: 12),
         Text(
-          isFr
-              ? 'Votre palais Chatmelier sera utilisé (${palaisDuCompte.questionnairesCompleted} dégustations).'
-              : 'Your Chatmelier palate will be used (${palaisDuCompte.questionnairesCompleted} tastings).',
+          trSi(isFr, 'Votre palais Chatmelier sera utilisé ({questionnairesCompleted} dégustations).', 'Your Chatmelier palate will be used ({questionnairesCompleted} tastings).', {'questionnairesCompleted': palaisDuCompte.questionnairesCompleted}),
           style: note,
         ),
         const SizedBox(height: 8),
@@ -460,7 +456,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
               isInteractive: false,
               datasets: [
                 RadarChartDataset(
-                  label: isFr ? 'Votre palais' : 'Your palate',
+                  label: trSi(isFr, 'Votre palais', 'Your palate'),
                   color: or,
                   metrics: palaisDuCompte.radarMetrics,
                 ),
@@ -479,7 +475,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.group_add_rounded, size: 18),
-            label: Text(isFr ? 'Rejoindre avec mon palais' : 'Join with my palate',
+            label: Text(trSi(isFr, 'Rejoindre avec mon palais', 'Join with my palate'),
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             onPressed: () => _rejoindreAvecLeCompte(palaisDuCompte),
           ),
@@ -487,7 +483,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         Center(
           child: TextButton(
             onPressed: () => setState(() => _aUnCompte = false),
-            child: Text(isFr ? 'Plutôt décrire mes goûts ici' : 'Describe my tastes here instead', style: note),
+            child: Text(trSi(isFr, 'Plutôt décrire mes goûts ici', 'Describe my tastes here instead'), style: note),
           ),
         ),
       ];
@@ -498,18 +494,14 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       const SizedBox(height: 12),
       Text(
         _aUnCompte == true
-            ? (isFr
-                ? 'Aucun palais Chatmelier sur cet appareil. Décrivez vos goûts en vingt secondes — c\'est facultatif :'
-                : 'No Chatmelier palate on this device. Describe your tastes in twenty seconds — optional:')
-            : (isFr
-                ? 'Décrivez vos goûts en vingt secondes — c\'est facultatif :'
-                : 'Describe your tastes in twenty seconds — optional:'),
+            ? (trSi(isFr, 'Aucun palais Chatmelier sur cet appareil. Décrivez vos goûts en vingt secondes — c\'est facultatif :', 'No Chatmelier palate on this device. Describe your tastes in twenty seconds — optional:'))
+            : (trSi(isFr, 'Décrivez vos goûts en vingt secondes — c\'est facultatif :', 'Describe your tastes in twenty seconds — optional:')),
         style: note,
       ),
       const SizedBox(height: 10),
       PalaisExpress(
         isFr: isFr,
-        libelleValider: isFr ? 'Valider mes goûts pour la table' : 'Confirm my tastes for the table',
+        libelleValider: trSi(isFr, 'Valider mes goûts pour la table', 'Confirm my tastes for the table'),
         onValider: _rejoindreAvec,
         onJusteMonPrenom: _rejoindreSansPreferences,
       ),
@@ -544,15 +536,11 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       final isFr = Localizations.localeOf(context).languageCode == 'fr';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(e.cause == EchecDeTable.introuvable
-            ? (isFr
-                ? 'Cette table a expiré : l\'hôte ne vous verra pas. Demandez-lui un nouveau code.'
-                : 'This table has expired: the host won\'t see you. Ask for a new code.')
-            : (isFr
-                ? 'Pas de réseau : l\'hôte ne vous voit pas encore.'
-                : 'No connection: the host can\'t see you yet.')),
+            ? (trSi(isFr, 'Cette table a expiré : l\'hôte ne vous verra pas. Demandez-lui un nouveau code.', 'This table has expired: the host won\'t see you. Ask for a new code.'))
+            : (trSi(isFr, 'Pas de réseau : l\'hôte ne vous voit pas encore.', 'No connection: the host can\'t see you yet.'))),
         action: e.cause == EchecDeTable.reseau
             ? SnackBarAction(
-                label: isFr ? 'Réessayer' : 'Retry',
+                label: trSi(isFr, 'Réessayer', 'Retry'),
                 onPressed: () => _rejoindreLaTable(nom, profil),
               )
             : null,
@@ -608,7 +596,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       appBar: AppBar(
         backgroundColor: const Color(0xFF1F1528),
         elevation: 0,
-        title: Text(isFr ? 'Carte indisponible' : 'Menu unavailable'),
+        title: Text(trSi(isFr, 'Carte indisponible', 'Menu unavailable')),
       ),
       body: Center(
         child: Padding(
@@ -620,9 +608,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                   size: 56, color: Color(0xFFD4AF37)),
               const SizedBox(height: 20),
               Text(
-                isFr
-                    ? 'Cette carte n\'a pas pu être chargée'
-                    : 'This menu could not be loaded',
+                trSi(isFr, 'Cette carte n\'a pas pu être chargée', 'This menu could not be loaded'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     color: Colors.white,
@@ -631,11 +617,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
               ),
               const SizedBox(height: 12),
               Text(
-                isFr
-                    ? 'Le lien est incomplet ou a expiré. Demandez à la personne qui a '
-                        'scanné la carte de réafficher son QR code, puis scannez-le à nouveau.'
-                    : 'The link is incomplete or has expired. Ask whoever scanned the menu '
-                        'to show their QR code again, then scan it once more.',
+                trSi(isFr, 'Le lien est incomplet ou a expiré. Demandez à la personne qui a ' 'scanné la carte de réafficher son QR code, puis scannez-le à nouveau.', 'The link is incomplete or has expired. Ask whoever scanned the menu ' 'to show their QR code again, then scan it once more.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
               ),
@@ -660,13 +642,13 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           backgroundColor: const Color(0xFF1F1528),
           elevation: 0,
           title: Text(
-            menu.restaurantName.isNotEmpty ? menu.restaurantName : (isFr ? 'Menu de Table' : 'Table Menu'),
+            menu.restaurantName.isNotEmpty ? menu.restaurantName : (trSi(isFr, 'Menu de Table', 'Table Menu')),
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh_rounded, color: Color(0xFFD4AF37)),
-              tooltip: _isFr ? 'Actualiser' : 'Refresh',
+              tooltip: trSi(_isFr, 'Actualiser', 'Refresh'),
               onPressed: _recalculateConsensus,
             ),
           ],
@@ -677,10 +659,10 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
             labelColor: const Color(0xFFD4AF37),
             unselectedLabelColor: Colors.white60,
             tabs: [
-              Tab(icon: const Icon(Icons.groups_rounded, size: 20), text: isFr ? 'Consensus' : 'Consensus'),
-              Tab(icon: const Icon(Icons.menu_book_rounded, size: 20), text: isFr ? 'Carte des Vins' : 'Wine List'),
-              Tab(icon: const Icon(Icons.wine_bar_rounded, size: 20), text: isFr ? 'Flights' : 'Flights'),
-              Tab(icon: const Icon(Icons.restaurant_rounded, size: 20), text: isFr ? 'Accords Mets' : 'Food Match'),
+              Tab(icon: const Icon(Icons.groups_rounded, size: 20), text: trSi(isFr, 'Consensus', 'Consensus')),
+              Tab(icon: const Icon(Icons.menu_book_rounded, size: 20), text: trSi(isFr, 'Carte des Vins', 'Wine List')),
+              Tab(icon: const Icon(Icons.wine_bar_rounded, size: 20), text: trSi(isFr, 'Flights', 'Flights')),
+              Tab(icon: const Icon(Icons.restaurant_rounded, size: 20), text: trSi(isFr, 'Accords Mets', 'Food Match')),
             ],
           ),
         ),
@@ -725,7 +707,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isFr ? 'Consensus de Table Multi-Palais' : 'Multi-Palate Table Consensus',
+                      trSi(isFr, 'Consensus de Table Multi-Palais', 'Multi-Palate Table Consensus'),
                       style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 2),
@@ -758,8 +740,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                   const SizedBox(width: 8),
                   Text(
                     _hasJoined
-                        ? (isFr ? 'Vos préférences à table :' : 'Your palate preferences:')
-                        : (isFr ? 'Rejoindre la table avec vos goûts :' : 'Join the table with your tastes:'),
+                        ? (trSi(isFr, 'Vos préférences à table :', 'Your palate preferences:'))
+                        : (trSi(isFr, 'Rejoindre la table avec vos goûts :', 'Join the table with your tastes:')),
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ],
@@ -773,7 +755,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
         // Liste des convives
         Text(
-          isFr ? 'Convives à table :' : 'Guests at the table:',
+          trSi(isFr, 'Convives à table :', 'Guests at the table:'),
           style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13),
         ),
         const SizedBox(height: 8),
@@ -792,7 +774,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 ),
               ),
               label: Text(
-                  '${g.name == 'Hôte de la table' && !isFr ? 'Table host' : g.name} '
+                  '${g.name == 'Hôte de la table' ? trSi(isFr, 'Hôte de la table', 'Table host') : g.name} '
                   '(${GuestProfile.archetypeAffiche(g.archetype, isFr)})',
                   style: const TextStyle(color: Colors.white, fontSize: 11.5)),
             );
@@ -814,8 +796,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
               onPressed: _ouvrirLeMatchmaker,
               icon: const Icon(Icons.how_to_vote_rounded),
               label: Text(_mesAvis.isEmpty
-                  ? (isFr ? 'Donner mon avis sur les vins' : 'Give my view on the wines')
-                  : (isFr ? 'Revoir mes ${_mesAvis.length} avis' : 'Review my ${_mesAvis.length} views')),
+                  ? (trSi(isFr, 'Donner mon avis sur les vins', 'Give my view on the wines'))
+                  : (trSi(isFr, 'Revoir mes {mesAvis_length} avis', 'Review my {mesAvis_length} views', {'mesAvis_length': _mesAvis.length}))),
             ),
           ),
           const SizedBox(height: 16),
@@ -829,7 +811,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text(isFr ? 'Aucune correspondance trouvée sur cette carte.' : 'No match found on this list.',
+              child: Text(trSi(isFr, 'Aucune correspondance trouvée sur cette carte.', 'No match found on this list.'),
                   style: const TextStyle(color: Colors.white54)),
             ),
           )
@@ -860,19 +842,15 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 const Text('📱', style: TextStyle(fontSize: 28)),
                 const SizedBox(height: 6),
                 Text(
-                  isFr ? 'Chatmelier — Sommelier Intelligent' : 'Chatmelier — Your Smart Sommelier',
+                  trSi(isFr, 'Chatmelier — Sommelier Intelligent', 'Chatmelier — Your Smart Sommelier'),
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   // Pas d'app iPhone à ce jour : le texte disait « sur iOS et Android ».
                   _surIPhone
-                      ? (isFr
-                          ? 'L\'app arrive bientôt sur iPhone. D\'ici là, gardez votre soirée avec un code de reprise, juste au-dessus.'
-                          : 'The iPhone app is coming soon. Until then, keep your evening with a recovery code, just above.')
-                      : (isFr
-                          ? 'Gardez votre palais, gérez votre cave et découvrez des accords sur mesure dans l\'app Android.'
-                          : 'Keep your palate, manage your cellar and discover tailored pairings in the Android app.'),
+                      ? (trSi(isFr, 'L\'app arrive bientôt sur iPhone. D\'ici là, gardez votre soirée avec un code de reprise, juste au-dessus.', 'The iPhone app is coming soon. Until then, keep your evening with a recovery code, just above.'))
+                      : (trSi(isFr, 'Gardez votre palais, gérez votre cave et découvrez des accords sur mesure dans l\'app Android.', 'Keep your palate, manage your cellar and discover tailored pairings in the Android app.')),
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.white60, fontSize: 12),
                 ),
@@ -884,7 +862,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                     side: const BorderSide(color: Color(0xFFD4AF37)),
                   ),
                   icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                  label: Text(isFr ? 'Installer l\'app' : 'Install the app'),
+                  label: Text(trSi(isFr, 'Installer l\'app', 'Install the app')),
                   onPressed: _launchStore,
                 ),
               ],
@@ -924,7 +902,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           minimumSize: const Size.fromHeight(46),
         ),
         icon: const Icon(Icons.bookmark_add_outlined, size: 18),
-        label: Text(isFr ? 'Garder cette soirée' : 'Keep this evening'),
+        label: Text(trSi(isFr, 'Garder cette soirée', 'Keep this evening')),
         onPressed: () => KeepEveningSheet.show(context, cequiSeraGarde: lignes),
       ),
     );
@@ -969,7 +947,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           controller: _wineSearchCtrl,
           style: const TextStyle(color: Colors.white, fontSize: 13),
           decoration: InputDecoration(
-            hintText: isFr ? 'Rechercher un vin, domaine, appellation...' : 'Search wine, estate, appellation...',
+            hintText: trSi(isFr, 'Rechercher un vin, domaine, appellation...', 'Search wine, estate, appellation...'),
             hintStyle: const TextStyle(color: Colors.white38),
             prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFFD4AF37), size: 20),
             suffixIcon: _wineSearchQuery.isNotEmpty
@@ -995,19 +973,19 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _buildColorFilterChip('all', isFr ? 'Tous' : 'All'),
+              _buildColorFilterChip('all', trSi(isFr, 'Tous', 'All')),
               const SizedBox(width: 8),
-              _buildColorFilterChip('Rouge', isFr ? '🍷 Rouge' : '🍷 Red'),
+              _buildColorFilterChip('Rouge', trSi(isFr, '🍷 Rouge', '🍷 Red')),
               const SizedBox(width: 8),
-              _buildColorFilterChip('Blanc', isFr ? '🥂 Blanc' : '🥂 White'),
+              _buildColorFilterChip('Blanc', trSi(isFr, '🥂 Blanc', '🥂 White')),
               const SizedBox(width: 8),
               _buildColorFilterChip('Rosé', '🌸 Rosé'),
               const SizedBox(width: 8),
-              _buildColorFilterChip('Bulles', isFr ? '✨ Bulles' : '✨ Sparkling'),
+              _buildColorFilterChip('Bulles', trSi(isFr, '✨ Bulles', '✨ Sparkling')),
               const SizedBox(width: 8),
               FilterChip(
                 label: Text(
-                  isFr ? '⭐ Pépites & Bons Plans' : '⭐ Gems & Deals',
+                  trSi(isFr, '⭐ Pépites & Bons Plans', '⭐ Gems & Deals'),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -1026,9 +1004,9 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         const SizedBox(height: 16),
 
         Text(
-          isFr
-              ? '${filteredWines.length} ${filteredWines.length > 1 ? 'vins trouvés' : 'vin trouvé'}'
-              : '${filteredWines.length} ${filteredWines.length > 1 ? 'wines found' : 'wine found'}',
+          filteredWines.length > 1
+              ? trSi(isFr, '{n} vins trouvés', '{n} wines found', {'n': filteredWines.length})
+              : trSi(isFr, '{n} vin trouvé', '{n} wine found', {'n': filteredWines.length}),
           style: const TextStyle(color: Colors.white54, fontSize: 12),
         ),
         const SizedBox(height: 8),
@@ -1037,7 +1015,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           Center(
             child: Padding(
               padding: const EdgeInsets.all(32),
-              child: Text(isFr ? 'Aucun vin ne correspond à ces critères.' : 'No wine matches these filters.',
+              child: Text(trSi(isFr, 'Aucun vin ne correspond à ces critères.', 'No wine matches these filters.'),
                   style: const TextStyle(color: Colors.white54)),
             ),
           )
@@ -1062,7 +1040,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   Widget _buildMenuWineCard(MenuWine wine, bool isFr) {
     final priceStr = wine.bottlePrice != null ? wine.formaterPrix(wine.bottlePrice!) : '';
     final glassStr = wine.primaryGlassPrice != null
-        ? (isFr ? 'Verre : ' : 'Glass: ') + wine.formaterPrix(wine.primaryGlassPrice!)
+        ? (trSi(isFr, 'Verre : ', 'Glass: ')) + wine.formaterPrix(wine.primaryGlassPrice!)
         : null;
 
     return Container(
@@ -1122,7 +1100,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                         color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text(isFr ? '⭐ Pépite' : '⭐ Gem',
+                      child: Text(trSi(isFr, '⭐ Pépite', '⭐ Gem'),
                           style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   if (wine.isDeal)
@@ -1132,7 +1110,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                         color: Colors.green.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text(isFr ? '🏷️ Bon Plan' : '🏷️ Deal',
+                      child: Text(trSi(isFr, '🏷️ Bon Plan', '🏷️ Deal'),
                           style: const TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   if (wine.sommelierComment != null && wine.sommelierComment!.isNotEmpty)
@@ -1210,19 +1188,19 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
               ],
               ...[
                 Text(
-                  isFr ? 'Profil sensoriel estimé :' : 'Estimated sensory profile:',
+                  trSi(isFr, 'Profil sensoriel estimé :', 'Estimated sensory profile:'),
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
-                _buildRadarBar(isFr ? 'Corps / Puissance' : 'Body / Power', m.body, Colors.amber),
-                _buildRadarBar(isFr ? 'Acidité / Fraîcheur' : 'Acidity / Freshness', m.acidity, Colors.cyan),
-                _buildRadarBar(isFr ? 'Fruit' : 'Fruit', m.fruit, Colors.redAccent),
+                _buildRadarBar(trSi(isFr, 'Corps / Puissance', 'Body / Power'), m.body, Colors.amber),
+                _buildRadarBar(trSi(isFr, 'Acidité / Fraîcheur', 'Acidity / Freshness'), m.acidity, Colors.cyan),
+                _buildRadarBar(trSi(isFr, 'Fruit', 'Fruit'), m.fruit, Colors.redAccent),
                 // Les tanins ne se disent que des rouges, la minéralité des blancs et des
                 // bulles : mêmes règles de plausibilité que le consensus (29/09).
                 if (wine.isRed && m.tannins > 0)
-                  _buildRadarBar(isFr ? 'Tanins & Structure' : 'Tannins & Structure', m.tannins, Colors.deepPurpleAccent),
+                  _buildRadarBar(trSi(isFr, 'Tanins & Structure', 'Tannins & Structure'), m.tannins, Colors.deepPurpleAccent),
                 if (!wine.isRed && m.minerality > 0)
-                  _buildRadarBar(isFr ? 'Minéralité & Tension' : 'Minerality & Tension', m.minerality, Colors.tealAccent),
+                  _buildRadarBar(trSi(isFr, 'Minéralité & Tension', 'Minerality & Tension'), m.minerality, Colors.tealAccent),
               ],
               const SizedBox(height: 16),
               SizedBox(
@@ -1230,7 +1208,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 child: FilledButton(
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(isFr ? 'Fermer' : 'Close'),
+                  child: Text(trSi(isFr, 'Fermer', 'Close')),
                 ),
               ),
             ],
@@ -1302,13 +1280,11 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isFr ? 'Parcours Dégustation (Flights)' : 'Tasting Flights',
+                          trSi(isFr, 'Parcours Dégustation (Flights)', 'Tasting Flights'),
                           style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          isFr
-                              ? 'Une progression œnologique sur-mesure composée sur la carte'
-                              : 'A tailored sommelier progression composed from this menu',
+                          trSi(isFr, 'Une progression œnologique sur-mesure composée sur la carte', 'A tailored sommelier progression composed from this menu'),
                           style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 11),
                         ),
                       ],
@@ -1323,7 +1299,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 children: [
                   Expanded(
                     child: ChoiceChip(
-                      label: Center(child: Text(isFr ? '3 Verres (Express)' : '3 Glasses (Express)', style: const TextStyle(fontSize: 12))),
+                      label: Center(child: Text(trSi(isFr, '3 Verres (Express)', '3 Glasses (Express)'), style: const TextStyle(fontSize: 12))),
                       selected: _selectedFlightFormat == FlightFormat.threeGlasses,
                       selectedColor: const Color(0xFF8B1E3F),
                       backgroundColor: Colors.black26,
@@ -1336,7 +1312,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                   Expanded(
                     child: ChoiceChip(
                       label: Center(
-                          child: Text(isFr ? '5 Verres (Grand Sommelier)' : '5 Glasses (Grand Sommelier)',
+                          child: Text(trSi(isFr, '5 Verres (Grand Sommelier)', '5 Glasses (Grand Sommelier)'),
                               style: const TextStyle(fontSize: 12))),
                       selected: _selectedFlightFormat == FlightFormat.fiveGlasses,
                       selectedColor: const Color(0xFF8B1E3F),
@@ -1416,8 +1392,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   Widget _buildFlightStepCard(FlightGlassStep step, bool isFr) {
     final wine = step.wine;
     final priceStr = wine.primaryGlassPrice != null
-        ? '${wine.formaterPrix(wine.primaryGlassPrice!)} / ${isFr ? 'verre' : 'glass'}'
-        : (wine.bottlePrice != null ? '${wine.formaterPrix(wine.bottlePrice!)} / ${isFr ? 'bout.' : 'btl'}' : '');
+        ? '${wine.formaterPrix(wine.primaryGlassPrice!)} / ${trSi(isFr, 'verre', 'glass')}'
+        : (wine.bottlePrice != null ? '${wine.formaterPrix(wine.bottlePrice!)} / ${trSi(isFr, 'bout.', 'btl')}' : '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1527,13 +1503,11 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isFr ? 'Accords Mets & Vins' : 'Food & Wine Pairings',
+                          trSi(isFr, 'Accords Mets & Vins', 'Food & Wine Pairings'),
                           style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          isFr
-                              ? 'Trouvez la bouteille idéale de cette carte pour accompagner votre plat'
-                              : 'Find the ideal bottle on this menu to accompany your dish',
+                          trSi(isFr, 'Trouvez la bouteille idéale de cette carte pour accompagner votre plat', 'Find the ideal bottle on this menu to accompany your dish'),
                           style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 11),
                         ),
                       ],
@@ -1548,7 +1522,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 controller: _dishSearchCtrl,
                 style: const TextStyle(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
-                  hintText: isFr ? 'Quel plat mangez-vous ? (ex: Côte de bœuf, Saumon, Risotto)' : 'What are you eating? (e.g., Steak, Salmon, Risotto)',
+                  hintText: trSi(isFr, 'Quel plat mangez-vous ? (ex: Côte de bœuf, Saumon, Risotto)', 'What are you eating? (e.g., Steak, Salmon, Risotto)'),
                   hintStyle: const TextStyle(color: Colors.white38),
                   prefixIcon: const Icon(Icons.restaurant_menu_rounded, color: Color(0xFFD4AF37), size: 20),
                   suffixIcon: _dishSearchCtrl.text.isNotEmpty
@@ -1573,17 +1547,17 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildDishCategoryChip('viande', isFr ? '🥩 Viande Rouge' : '🥩 Red Meat'),
+                    _buildDishCategoryChip('viande', trSi(isFr, '🥩 Viande Rouge', '🥩 Red Meat')),
                     const SizedBox(width: 8),
-                    _buildDishCategoryChip('poisson', isFr ? '🐟 Poisson & Crustacés' : '🐟 Fish & Shellfish'),
+                    _buildDishCategoryChip('poisson', trSi(isFr, '🐟 Poisson & Crustacés', '🐟 Fish & Shellfish')),
                     const SizedBox(width: 8),
-                    _buildDishCategoryChip('volaille', isFr ? '🍗 Volaille' : '🍗 Poultry'),
+                    _buildDishCategoryChip('volaille', trSi(isFr, '🍗 Volaille', '🍗 Poultry')),
                     const SizedBox(width: 8),
-                    _buildDishCategoryChip('fromage', isFr ? '🧀 Fromages' : '🧀 Cheese'),
+                    _buildDishCategoryChip('fromage', trSi(isFr, '🧀 Fromages', '🧀 Cheese')),
                     const SizedBox(width: 8),
-                    _buildDishCategoryChip('pates', isFr ? '🍝 Pâtes & Risotto' : '🍝 Pasta & Risotto'),
+                    _buildDishCategoryChip('pates', trSi(isFr, '🍝 Pâtes & Risotto', '🍝 Pasta & Risotto')),
                     const SizedBox(width: 8),
-                    _buildDishCategoryChip('dessert', isFr ? '🍰 Desserts' : '🍰 Desserts'),
+                    _buildDishCategoryChip('dessert', trSi(isFr, '🍰 Desserts', '🍰 Desserts')),
                   ],
                 ),
               ),
@@ -1599,7 +1573,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
           Center(
             child: Padding(
               padding: const EdgeInsets.all(32),
-              child: Text(isFr ? 'Aucun vin adapté trouvé sur cette carte.' : 'No suitable wine on this list.',
+              child: Text(trSi(isFr, 'Aucun vin adapté trouvé sur cette carte.', 'No suitable wine on this list.'),
                   style: const TextStyle(color: Colors.white54)),
             ),
           )
@@ -1662,7 +1636,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                   border: Border.all(color: const Color(0xFFD4AF37), width: 0.8),
                 ),
                 child: Text(
-                  isFr ? '${pair.score.toStringAsFixed(0)}% Accord' : '${pair.score.toStringAsFixed(0)}% match',
+                  trSi(isFr, '{v1}% Accord', '{v1}% match', {'v1': pair.score.toStringAsFixed(0)}),
                   style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -1751,7 +1725,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                       border: Border.all(color: const Color(0xFFD4AF37), width: 0.8),
                     ),
                     child: Text(
-                      '${match.harmonyScore.toStringAsFixed(0)}% ${_isFr ? 'Harmonie' : 'match'}',
+                      '${match.harmonyScore.toStringAsFixed(0)}% ${trSi(_isFr, 'Harmonie', 'match')}',
                       style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),

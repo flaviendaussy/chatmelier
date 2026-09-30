@@ -484,7 +484,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      tr('Revenir sur ${_profile.nomAffiche}', 'Back to ${_profile.nomAffiche}'),
+                                      tr('Revenir sur {nomAffiche}', 'Back to {nomAffiche}', {'nomAffiche': _profile.nomAffiche}),
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         fontSize: 11.5,
@@ -782,7 +782,7 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                 style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
                 children: [
                   TextSpan(
-                    text: tr('$label : ', '$label: '),
+                    text: tr('{label} : ', '{label}: ', {'label': label}),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   TextSpan(

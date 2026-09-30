@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../features/cellar/domain/wine.dart';
+import '../../shared/utils/langue.dart';
 
 class GrapeBlendResolver {
   static List<Grape> resolveGrapes({
@@ -515,7 +516,7 @@ class _GrapeChartState extends State<GrapeChart> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                isFr ? 'Cépages non renseignés pour cette cuvée.' : 'Grape varieties not specified for this cuvée.',
+                trSi(isFr, 'Cépages non renseignés pour cette cuvée.', 'Grape varieties not specified for this cuvée.'),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
@@ -591,7 +592,9 @@ class _GrapeChartState extends State<GrapeChart> {
                       children: [
                         Icon(Icons.pie_chart, size: 14, color: isDark ? const Color(0xFFD4AF37) : const Color(0xFF8B1E3F)),
                         Text(
-                          '${resolvedGrapes.length} ${isFr ? (resolvedGrapes.length > 1 ? "cépages" : "cépage") : (resolvedGrapes.length > 1 ? "varieties" : "variety")}',
+                          resolvedGrapes.length > 1
+                              ? trSi(isFr, '{n} cépages', '{n} varieties', {'n': resolvedGrapes.length})
+                              : trSi(isFr, '{n} cépage', '{n} variety', {'n': resolvedGrapes.length}),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -722,9 +725,7 @@ class _GrapeChartState extends State<GrapeChart> {
         ),
         const SizedBox(height: 8),
         Text(
-          isFr
-              ? 'Cépages typiques de l\'appellation (proportions exactes non renseignées par le domaine).'
-              : 'Typical varieties for this appellation (exact proportions not disclosed by the estate).',
+          trSi(isFr, 'Cépages typiques de l\'appellation (proportions exactes non renseignées par le domaine).', 'Typical varieties for this appellation (exact proportions not disclosed by the estate).'),
           style: theme.textTheme.bodySmall?.copyWith(
             fontSize: 11,
             color: theme.colorScheme.onSurfaceVariant,

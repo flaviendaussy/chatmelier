@@ -273,20 +273,17 @@ class GuestMatcherEngine {
             score *= 0.4;
             aversionAlerts.add(vous
                 ? tr('Vous n\'aimez pas les tanins fermes : celui-ci risque d\'en avoir trop', 'You dislike firm tannins: this one may have too much')
-                : tr('${guest.name} n\'aime pas les tanins fermes : celui-ci risque d\'en avoir trop',
-                    '${guest.name} dislikes firm tannins: this one may have too much'));
+                : tr('{guest_name} n\'aime pas les tanins fermes : celui-ci risque d\'en avoir trop', '{guest_name} dislikes firm tannins: this one may have too much', {'guest_name': guest.name}));
           } else if (dLower.contains('acide') && wineRadar.acidity >= 7.5) {
             score *= 0.45;
             aversionAlerts.add(vous
                 ? tr('Vous n\'aimez pas les vins très vifs : celui-ci risque de l\'être trop', 'You dislike very crisp wines: this one may be too sharp')
-                : tr('${guest.name} n\'aime pas les vins très vifs : celui-ci risque de l\'être trop',
-                    '${guest.name} dislikes very crisp wines: this one may be too sharp'));
+                : tr('{guest_name} n\'aime pas les vins très vifs : celui-ci risque de l\'être trop', '{guest_name} dislikes very crisp wines: this one may be too sharp', {'guest_name': guest.name}));
           } else if (dLower.contains('bois') && wineRadar.oak >= 6.5) {
             score *= 0.45;
             aversionAlerts.add(vous
                 ? tr('Vous n\'aimez pas le boisé : celui-ci risque d\'en avoir trop', 'You dislike oak: this one may have too much')
-                : tr('${guest.name} n\'aime pas le boisé : celui-ci risque d\'en avoir trop',
-                    '${guest.name} dislikes oak: this one may have too much'));
+                : tr('{guest_name} n\'aime pas le boisé : celui-ci risque d\'en avoir trop', '{guest_name} dislikes oak: this one may have too much', {'guest_name': guest.name}));
           }
         }
 
@@ -449,12 +446,12 @@ class GuestMatcherEngine {
       final (g, s) = notes.single;
       final vous = idLecteur == null || g.id == idLecteur;
       phrase = s >= 85
-          ? (vous ? tr('Taillé pour vos goûts', 'Made for your taste') : tr('Taillé pour les goûts de ${g.name}', 'Made for ${g.name}\'s taste'))
+          ? (vous ? tr('Taillé pour vos goûts', 'Made for your taste') : tr('Taillé pour les goûts de {g_name}', 'Made for {g_name}\'s taste', {'g_name': g.name}))
           : s >= 65
-              ? (vous ? tr('Dans vos goûts', 'Close to your taste') : tr('Dans les goûts de ${g.name}', 'Close to ${g.name}\'s taste'))
+              ? (vous ? tr('Dans vos goûts', 'Close to your taste') : tr('Dans les goûts de {g_name}', 'Close to {g_name}\'s taste', {'g_name': g.name}))
               : (vous
                   ? tr('Un pas de côté par rapport à vos goûts', 'A step away from your usual taste')
-                  : tr('Un pas de côté pour ${g.name}', 'A step away from ${g.name}\'s usual taste'));
+                  : tr('Un pas de côté pour {g_name}', 'A step away from {g_name}\'s usual taste', {'g_name': g.name}));
     } else {
       // Celui qui lit se lit « vous », en dernier, et le verbe s'accorde.
       bool estLecteur(GuestProfile g) => idLecteur != null && g.id == idLecteur;
@@ -464,21 +461,33 @@ class GuestMatcherEngine {
         return ([...autres, if (lecteur) tr('vous', 'you')], lecteur);
       }
 
-      String verbe((List<String>, bool) g, String vous, String un, String plusieurs, String en) =>
-          '${_liste(g.$1, fr)} ${fr ? (g.$2 ? vous : (g.$1.length > 1 ? plusieurs : un)) : en}';
+      // Le verbe s'accorde avec le groupe, et chaque langue a ses formes : en français
+      // « vous » vaut pour la personne seule comme pour le groupe où elle figure ; en
+      // espagnol, « tú » seul (« lo vas a adorar ») et le groupe (« lo van a adorar »)
+      // diffèrent. Une clé de catalogue ne suffit pas : les formes sont données ici.
+      String verbe((List<String>, bool) g, _Formes formes) {
+        final plusieursPersonnes = g.$1.length > 1;
+        final String forme;
+        if (fr) {
+          forme = g.$2 ? formes.vous : (plusieursPersonnes ? formes.plusieurs : formes.un);
+        } else if (Langue.code == 'es') {
+          forme = plusieursPersonnes ? formes.esPlusieurs : (g.$2 ? formes.esTu : formes.esUn);
+        } else {
+          forme = formes.en;
+        }
+        return '${_liste(g.$1, fr)} $forme';
+      }
       final fans = groupe((s) => s >= 85);
       final contents = groupe((s) => s >= 65 && s < 85);
       final tiedes = groupe((s) => s >= 55 && s < 65);
       final reticents = groupe((s) => s < 55);
       final parts = [
-        if (fans.$1.isNotEmpty) verbe(fans, 'allez l\'adorer', 'va l\'adorer', 'vont l\'adorer', 'will love it'),
-        if (contents.$1.isNotEmpty) verbe(contents, 'l\'apprécierez', 'l\'appréciera', 'l\'apprécieront', 'will enjoy it'),
-        if (tiedes.$1.isNotEmpty)
-          verbe(tiedes, 'vous en accommoderez', 's\'en accommodera', 's\'en accommoderont', 'will be fine with it'),
-        if (reticents.$1.isNotEmpty)
-          verbe(reticents, 'risquez de moins l\'aimer', 'risque de moins l\'aimer', 'risquent de moins l\'aimer', 'may like it less'),
+        if (fans.$1.isNotEmpty) verbe(fans, _Formes.adorer),
+        if (contents.$1.isNotEmpty) verbe(contents, _Formes.apprecier),
+        if (tiedes.$1.isNotEmpty) verbe(tiedes, _Formes.sAccommoder),
+        if (reticents.$1.isNotEmpty) verbe(reticents, _Formes.moinsAimer),
       ];
-      phrase = parts.join(fr ? ' ; ' : '; ');
+      phrase = parts.join(trSi(fr, ' ; ', '; '));
     }
     phrase = phrase[0].toUpperCase() + phrase.substring(1);
     return aversionAlerts.isEmpty ? '$phrase.' : '$phrase. ${aversionAlerts.first}.';
@@ -486,6 +495,23 @@ class GuestMatcherEngine {
 
   static String _liste(List<String> noms, bool fr) {
     if (noms.length <= 1) return noms.join();
-    return '${noms.sublist(0, noms.length - 1).join(', ')} ${fr ? 'et' : 'and'} ${noms.last}';
+    return '${noms.sublist(0, noms.length - 1).join(', ')} ${trSi(fr, 'et', 'and')} ${noms.last}';
   }
+}
+
+/// Les formes d'un verbe selon le groupe qui l'emploie, par langue.
+class _Formes {
+  final String vous, un, plusieurs, en, esTu, esUn, esPlusieurs;
+
+  const _Formes(this.vous, this.un, this.plusieurs, this.en, this.esTu, this.esUn, this.esPlusieurs);
+
+  static const adorer = _Formes('allez l\'adorer', 'va l\'adorer', 'vont l\'adorer', 'will love it',
+      'lo vas a adorar', 'lo va a adorar', 'lo van a adorar');
+  static const apprecier = _Formes('l\'apprécierez', 'l\'appréciera', 'l\'apprécieront', 'will enjoy it',
+      'lo disfrutarás', 'lo disfrutará', 'lo disfrutarán');
+  static const sAccommoder = _Formes('vous en accommoderez', 's\'en accommodera', 's\'en accommoderont',
+      'will be fine with it', 'lo aceptarás', 'lo aceptará', 'lo aceptarán');
+  static const moinsAimer = _Formes('risquez de moins l\'aimer', 'risque de moins l\'aimer',
+      'risquent de moins l\'aimer', 'may like it less', 'quizá lo disfrutes menos', 'quizá lo disfrute menos',
+      'quizá lo disfruten menos');
 }

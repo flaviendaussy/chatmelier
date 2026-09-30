@@ -10,6 +10,7 @@ import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../data/table_session_service.dart';
 import 'menu_table_consensus_guest_screen.dart';
 import '../../auth/presentation/reprise_de_soiree_sheet.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Rejoindre une table avec six caractères.
 ///
@@ -79,7 +80,7 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
 
     try {
       final nomAssis = _nom.text.trim().isEmpty
-          ? (profil?.name ?? (isFr ? 'Invité' : 'Guest'))
+          ? (profil?.name ?? (trSi(isFr, 'Invité', 'Guest')))
           : _nom.text.trim();
       final t = await ref.read(tableSessionServiceProvider).rejoindre(
             code: _code.text,
@@ -122,14 +123,8 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
       setState(() {
         _enCours = false;
         _erreur = e.cause == EchecDeTable.introuvable
-            ? (isFr
-                ? 'Aucune table avec ce code. Il expire au bout de quatre heures — '
-                    'redemandez-le à la personne qui a scanné la carte.'
-                : 'No table with this code. Codes expire after four hours — ask whoever '
-                    'scanned the menu for a new one.')
-            : (isFr
-                ? 'Impossible de joindre le serveur. Vérifiez votre connexion.'
-                : 'Could not reach the server. Check your connection.');
+            ? (trSi(isFr, 'Aucune table avec ce code. Il expire au bout de quatre heures — ' 'redemandez-le à la personne qui a scanné la carte.', 'No table with this code. Codes expire after four hours — ask whoever ' 'scanned the menu for a new one.'))
+            : (trSi(isFr, 'Impossible de joindre le serveur. Vérifiez votre connexion.', 'Could not reach the server. Check your connection.'));
       });
     }
   }
@@ -170,14 +165,12 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(isFr ? 'Rejoindre une table' : 'Join a table',
+            Text(trSi(isFr, 'Rejoindre une table', 'Join a table'),
                 style: theme.textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text(
-              isFr
-                  ? 'Le code à six caractères affiché sur le téléphone qui a scanné la carte.'
-                  : 'The six-character code shown on the phone that scanned the menu.',
+              trSi(isFr, 'Le code à six caractères affiché sur le téléphone qui a scanné la carte.', 'The six-character code shown on the phone that scanned the menu.'),
               style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 20),
@@ -210,10 +203,8 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
               controller: _nom,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
-                labelText: isFr ? 'Votre prénom' : 'Your first name',
-                helperText: isFr
-                    ? 'Pour que la table sache qui a voté.'
-                    : 'So the table knows who voted.',
+                labelText: trSi(isFr, 'Votre prénom', 'Your first name'),
+                helperText: trSi(isFr, 'Pour que la table sache qui a voté.', 'So the table knows who voted.'),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
@@ -231,7 +222,7 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.groups_rounded),
-              label: Text(isFr ? 'Rejoindre' : 'Join'),
+              label: Text(trSi(isFr, 'Rejoindre', 'Join')),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
                 shape:
@@ -242,7 +233,7 @@ class _JoinTableSheetState extends ConsumerState<JoinTableSheet> {
               child: TextButton(
                 onPressed: () => RepriseDeSoireeSheet.show(context),
                 child: Text(
-                  isFr ? 'Une soirée à retrouver ? J\'ai un code de reprise' : 'An evening to recover? I have a recovery code',
+                  trSi(isFr, 'Une soirée à retrouver ? J\'ai un code de reprise', 'An evening to recover? I have a recovery code'),
                   style: const TextStyle(fontSize: 12.5),
                 ),
               ),

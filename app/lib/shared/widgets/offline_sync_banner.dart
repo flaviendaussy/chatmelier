@@ -17,8 +17,7 @@ class OfflineSyncBanner extends ConsumerWidget {
         title: Text(tr('Alerte de synchronisation', 'Sync alert')),
         content: Text(
           pendingCount > 1
-              ? tr('Il y a $pendingCount actions hors-ligne enregistrées.\n\nQue souhaitez-vous faire ?',
-                  '$pendingCount actions were saved while offline.\n\nWhat would you like to do?')
+              ? tr('Il y a {pendingCount} actions hors-ligne enregistrées.\n\nQue souhaitez-vous faire ?', '{pendingCount} actions were saved while offline.\n\nWhat would you like to do?', {'pendingCount': pendingCount})
               : tr('Il y a 1 action hors-ligne enregistrée.\n\nQue souhaitez-vous faire ?',
                   '1 action was saved while offline.\n\nWhat would you like to do?'),
         ),
@@ -122,7 +121,7 @@ class OfflineSyncBanner extends ConsumerWidget {
                           isSyncing
                               ? tr('Synchronisation en cours...', 'Syncing...')
                               : (pendingCount > 1
-                                  ? tr('$pendingCount actions en attente', '$pendingCount actions waiting')
+                                  ? tr('{pendingCount} actions en attente', '{pendingCount} actions waiting', {'pendingCount': pendingCount})
                                   : tr('1 action en attente', '1 action waiting')),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
@@ -181,7 +180,7 @@ class OfflineSyncBanner extends ConsumerWidget {
                             SnackBar(
                               content: Text(
                                 result.succeeded > 1
-                                    ? tr('✨ ${result.succeeded} actions synchronisées avec succès !', '✨ ${result.succeeded} actions synced!')
+                                    ? tr('✨ {succeeded} actions synchronisées avec succès !', '✨ {succeeded} actions synced!', {'succeeded': result.succeeded})
                                     : tr('✨ 1 action synchronisée avec succès !', '✨ 1 action synced!'),
                               ),
                               backgroundColor: const Color(0xFF2E7D32),
@@ -245,7 +244,7 @@ class OfflineSyncBanner extends ConsumerWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      tr('Millésime manquant pour "$wineName"', 'Vintage missing for "$wineName"'),
+                      tr('Millésime manquant pour "{wineName}"', 'Vintage missing for "{wineName}"', {'wineName': wineName}),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF581C87),

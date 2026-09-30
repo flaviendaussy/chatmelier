@@ -10,6 +10,7 @@ import 'wine_type_badge.dart';
 import 'maturity_colorbar.dart';
 import 'spirit_fill_bar.dart';
 import 'bottle_image_view.dart';
+import '../../shared/utils/langue.dart';
 
 class BottleCard extends StatelessWidget {
   final Bottle bottle;
@@ -41,15 +42,15 @@ class BottleCard extends StatelessWidget {
   String _getMaturityLabel(DrinkWindowStatus status, bool isFr) {
     switch (status) {
       case DrinkWindowStatus.inPeak:
-        return isFr ? 'Apogée ✨' : 'In Peak ✨';
+        return trSi(isFr, 'Apogée ✨', 'In Peak ✨');
       case DrinkWindowStatus.drinkSoon:
-        return isFr ? 'À boire ⏰' : 'Drink Soon ⏰';
+        return trSi(isFr, 'À boire ⏰', 'Drink Soon ⏰');
       case DrinkWindowStatus.aging:
-        return isFr ? 'En garde ⏳' : 'Aging ⏳';
+        return trSi(isFr, 'En garde ⏳', 'Aging ⏳');
       case DrinkWindowStatus.tooYoung:
-        return isFr ? 'Trop jeune' : 'Too Young';
+        return trSi(isFr, 'Trop jeune', 'Too Young');
       case DrinkWindowStatus.pastPeak:
-        return isFr ? 'Passé' : 'Past Peak';
+        return trSi(isFr, 'Passé', 'Past Peak');
     }
   }
 
@@ -59,15 +60,15 @@ class BottleCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final wine = bottle.wine;
-    final wineName = wine?.name ?? (isFr ? 'Vin' : 'Wine');
+    final wineName = wine?.name ?? (trSi(isFr, 'Vin', 'Wine'));
     final producer = wine?.producer;
     final String vintageStr;
     if (wine?.vintage != null && wine!.vintage! > 0) {
       vintageStr = '${wine.vintage}';
     } else if (bottle.purchaseDate != null) {
-      vintageStr = isFr ? 'NM (${bottle.purchaseDate!.year})' : 'NV (${bottle.purchaseDate!.year})';
+      vintageStr = trSi(isFr, 'NM ({v1})', 'NV ({v1})', {'v1': bottle.purchaseDate!.year});
     } else {
-      vintageStr = isFr ? 'NM' : 'NV';
+      vintageStr = trSi(isFr, 'NM', 'NV');
     }
     final photo = WineImageService.resolveBottleDisplayImage(bottle, wine);
     final status = wine?.windowStatus ?? DrinkWindowStatus.inPeak;
@@ -166,7 +167,7 @@ class BottleCard extends StatelessWidget {
                                   Icon(Icons.local_bar, size: 10, color: fillColor),
                                   const SizedBox(width: 4),
                                   Text(
-                                    isFr ? '$fillLevel% plein' : '$fillLevel% full',
+                                    trSi(isFr, '{fillLevel}% plein', '{fillLevel}% full', {'fillLevel': fillLevel}),
                                     style: TextStyle(
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.bold,
@@ -306,9 +307,9 @@ class BottleCard extends StatelessWidget {
                                 if (hasSlot)
                                   CellarFurniture.describeSlotCode(bottle.furnitureSlot!, isFr)
                                 else if (hasRack)
-                                  isFr ? 'Casier ${bottle.rack}' : 'Rack ${bottle.rack}'
+                                  trSi(isFr, 'Casier {rack}', 'Rack {rack}', {'rack': bottle.rack})
                                 else if (bottle.furnitureId != null && bottle.furnitureId!.isNotEmpty)
-                                  isFr ? 'En meuble' : 'In furniture',
+                                  trSi(isFr, 'En meuble', 'In furniture'),
                               ].join(' • '),
                               style: TextStyle(
                                 fontSize: 11,

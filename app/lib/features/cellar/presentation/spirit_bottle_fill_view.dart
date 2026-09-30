@@ -288,10 +288,10 @@ class _SpiritBottleFillViewState extends State<SpiritBottleFillView> {
 
   static String _describeFillLevel(int level) {
     if (level <= 0) return tr('🔴 Bouteille vide (0%)', '🔴 Empty bottle (0%)');
-    if (level <= 20) return tr('🟠 Fond de bouteille (~${(level * 7).round()} cl)', '🟠 Last drops (~${(level * 7).round()} cl)');
-    if (level <= 40) return tr('🟡 Moins de la moitié (~${(level * 7).round()} cl)', '🟡 Less than half (~${(level * 7).round()} cl)');
-    if (level <= 60) return tr('🟢 À moitié pleine (~${(level * 7).round()} cl)', '🟢 Half full (~${(level * 7).round()} cl)');
-    if (level <= 80) return tr('🟢 Plus de la moitié (~${(level * 7).round()} cl)', '🟢 More than half (~${(level * 7).round()} cl)');
+    if (level <= 20) return tr('🟠 Fond de bouteille (~{v1} cl)', '🟠 Last drops (~{v1} cl)', {'v1': (level * 7).round()});
+    if (level <= 40) return tr('🟡 Moins de la moitié (~{v1} cl)', '🟡 Less than half (~{v1} cl)', {'v1': (level * 7).round()});
+    if (level <= 60) return tr('🟢 À moitié pleine (~{v1} cl)', '🟢 Half full (~{v1} cl)', {'v1': (level * 7).round()});
+    if (level <= 80) return tr('🟢 Plus de la moitié (~{v1} cl)', '🟢 More than half (~{v1} cl)', {'v1': (level * 7).round()});
     return tr('🟢 Bouteille quasi pleine (~70 cl)', '🟢 Almost full (~70 cl)');
   }
 

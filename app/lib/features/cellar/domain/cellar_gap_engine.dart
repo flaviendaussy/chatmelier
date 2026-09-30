@@ -123,7 +123,7 @@ class CellarGapEngine {
       gaps.add(CellarGapCategory(
         title: tr('Hégémonie des Rouges', 'Mostly reds'),
         status: 'warning',
-        diagnosis: tr('${(redRatio * 100).toStringAsFixed(0)}% de vos flacons sont des rouges.', '${(redRatio * 100).toStringAsFixed(0)}% of your bottles are reds.'),
+        diagnosis: tr('{v1}% de vos flacons sont des rouges.', '{v1}% of your bottles are reds.', {'v1': (redRatio * 100).toStringAsFixed(0)}),
         sommelierAdvice: tr('Vous manquez d\'options vives pour les apéritifs spontanés, poissons, volailles crémées ou fromages de chèvre.', 'You\'re short of fresh options for impromptu aperitifs, fish, creamy poultry or goat\'s cheese.'),
         recommendedAppellations: ['Sancerre Blanc', 'Chablis Premier Cru', 'Riesling d\'Alsace'],
       ));
@@ -132,7 +132,7 @@ class CellarGapEngine {
       gaps.add(CellarGapCategory(
         title: tr('Manque de Rouges Structurés', 'Short of structured reds'),
         status: 'warning',
-        diagnosis: tr('${(whiteRatio * 100).toStringAsFixed(0)}% de blancs.', '${(whiteRatio * 100).toStringAsFixed(0)}% whites.'),
+        diagnosis: tr('{v1}% de blancs.', '{v1}% whites.', {'v1': (whiteRatio * 100).toStringAsFixed(0)}),
         sommelierAdvice: tr('Pour les viandes grillées ou plats mijotés d\'hiver, vous manquerez de tannins patinés.', 'For grilled meat or winter stews, you\'ll be short of mellow tannins.'),
         recommendedAppellations: ['Saint-Joseph Rouge', 'Pessac-Léognan', 'Chianti Classico'],
       ));
@@ -155,7 +155,7 @@ class CellarGapEngine {
       gaps.add(CellarGapCategory(
         title: tr('Risque d\'Infanticide Oenologique', 'Risk of opening wines too young'),
         status: 'warning',
-        diagnosis: tr('Beaucoup de flacons en vieillissement mais très peu de bouteilles prêtes à boire (${readyCount} flacons).', 'Lots of bottles still ageing, but very few ready to drink (${readyCount} bottles).'),
+        diagnosis: tr('Beaucoup de flacons en vieillissement mais très peu de bouteilles prêtes à boire ({readyCount} flacons).', 'Lots of bottles still ageing, but very few ready to drink ({readyCount} bottles).', {'readyCount': readyCount}),
         sommelierAdvice: tr('Vous risquez d\'ouvrir prématurément de grands vins de garde. Rentrez quelques cuvées de plaisir immédiat.', 'You may end up opening great wines too early. Add a few bottles to enjoy now.'),
         recommendedAppellations: ['Beaujolais Villages', 'Côtes-du-Rhône Méridional', tr('Languedoc frais', 'Fresh Languedoc')],
       ));
@@ -166,7 +166,7 @@ class CellarGapEngine {
       gaps.add(CellarGapCategory(
         title: tr('Flacons en Urgence de Dégustation', 'Bottles to drink now'),
         status: 'critical',
-        diagnosis: tr('$pastCount bouteilles ont dépassé leur fenêtre optimale d\'apogée.', '$pastCount bottles are past their peak window.'),
+        diagnosis: tr('{pastCount} bouteilles ont dépassé leur fenêtre optimale d\'apogée.', '{pastCount} bottles are past their peak window.', {'pastCount': pastCount}),
         sommelierAdvice: tr('Ouvrez ces bouteilles lors de vos prochains repas pour ne pas perdre leur éclat aromatique.', 'Open them at your next meals before they lose their aromas.'),
         recommendedAppellations: [],
       ));

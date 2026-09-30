@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../domain/menu_wine.dart';
 import '../domain/table_matchmaker.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Le matchmaker de la table : un vin après l'autre, un avis par vin, rien n'est écarté.
 ///
@@ -87,21 +88,19 @@ class _TableMatchmakerSheetState extends State<TableMatchmakerSheet> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      fr ? 'Le matchmaker de la table' : 'The table matchmaker',
+                      trSi(fr, 'Le matchmaker de la table', 'The table matchmaker'),
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
                     ),
                   ),
                   IconButton(
-                    tooltip: fr ? 'Fermer' : 'Close',
+                    tooltip: trSi(fr, 'Fermer', 'Close'),
                     icon: const Icon(Icons.close, color: Colors.white54),
                     onPressed: () => Navigator.of(context).pop(_avis),
                   ),
                 ],
               ),
               Text(
-                fr
-                    ? 'Rien n\'est écarté : votre avis sur chaque vin aide la table à trouver celui qui plaira à tous.'
-                    : 'Nothing is ruled out: your view on each wine helps the table find the one everyone enjoys.',
+                trSi(fr, 'Rien n\'est écarté : votre avis sur chaque vin aide la table à trouver celui qui plaira à tous.', 'Nothing is ruled out: your view on each wine helps the table find the one everyone enjoys.'),
                 style: const TextStyle(color: Colors.white60, fontSize: 12.5),
               ),
               const SizedBox(height: 12),
@@ -123,16 +122,16 @@ class _TableMatchmakerSheetState extends State<TableMatchmakerSheet> {
     final m = vin.metrics;
     String n(double v) => '${v.round()}/10';
     final traits = [
-      if (vin.isRed) '${fr ? 'Tanins' : 'Tannins'} ${n(m.tannins)}',
-      '${fr ? 'Fraîcheur' : 'Freshness'} ${n(m.acidity)}',
-      '${fr ? 'Corps' : 'Body'} ${n(m.body)}',
-      '${fr ? 'Bois' : 'Oak'} ${n(m.oak)}',
+      if (vin.isRed) '${trSi(fr, 'Tanins', 'Tannins')} ${n(m.tannins)}',
+      '${trSi(fr, 'Fraîcheur', 'Freshness')} ${n(m.acidity)}',
+      '${trSi(fr, 'Corps', 'Body')} ${n(m.body)}',
+      '${trSi(fr, 'Bois', 'Oak')} ${n(m.oak)}',
     ];
     final horsCouleur = TableMatchmaker.horsDeSesCouleurs(vin, widget.moi);
 
     return [
       Text(
-        fr ? 'Vin ${_index + 1} sur $total' : 'Wine ${_index + 1} of $total',
+        trSi(fr, 'Vin {v1} sur {total}', 'Wine {v1} of {total}', {'v1': _index + 1, 'total': total}),
         style: const TextStyle(color: _or, fontSize: 12, fontWeight: FontWeight.w600),
       ),
       const SizedBox(height: 8),
@@ -225,7 +224,7 @@ class _TableMatchmakerSheetState extends State<TableMatchmakerSheet> {
       Center(
         child: TextButton(
           onPressed: () => _donner(null),
-          child: Text(fr ? 'Passer ce vin' : 'Skip this wine', style: const TextStyle(color: Colors.white54)),
+          child: Text(trSi(fr, 'Passer ce vin', 'Skip this wine'), style: const TextStyle(color: Colors.white54)),
         ),
       ),
     ];
@@ -236,9 +235,7 @@ class _TableMatchmakerSheetState extends State<TableMatchmakerSheet> {
         const SizedBox(height: 10),
         Center(
           child: Text(
-            fr
-                ? 'Merci ! Vos ${_avis.length} avis partent à la table.'
-                : 'Thanks! Your ${_avis.length} views are on their way to the table.',
+            trSi(fr, 'Merci ! Vos {avis_length} avis partent à la table.', 'Thanks! Your {avis_length} views are on their way to the table.', {'avis_length': _avis.length}),
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
           ),
@@ -246,9 +243,7 @@ class _TableMatchmakerSheetState extends State<TableMatchmakerSheet> {
         const SizedBox(height: 6),
         Center(
           child: Text(
-            fr
-                ? 'Le classement de la table se met à jour avec les avis de chacun.'
-                : 'The table\'s ranking updates with everyone\'s views.',
+            trSi(fr, 'Le classement de la table se met à jour avec les avis de chacun.', 'The table\'s ranking updates with everyone\'s views.'),
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white60, fontSize: 12.5),
           ),
@@ -259,7 +254,7 @@ class _TableMatchmakerSheetState extends State<TableMatchmakerSheet> {
           child: FilledButton(
             style: FilledButton.styleFrom(backgroundColor: _bordeaux, padding: const EdgeInsets.symmetric(vertical: 12)),
             onPressed: () => Navigator.of(context).pop(_avis),
-            child: Text(fr ? 'Voir le choix de la table' : 'See the table\'s choice'),
+            child: Text(trSi(fr, 'Voir le choix de la table', 'See the table\'s choice')),
           ),
         ),
       ];

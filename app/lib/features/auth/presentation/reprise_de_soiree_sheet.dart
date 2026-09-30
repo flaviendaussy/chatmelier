@@ -58,13 +58,15 @@ class ResultatDeReprise {
     }
     if (deja) return tr('Cette soirée est déjà sur ce compte.', 'This evening is already on this account.');
     final morceaux = [
-      if (degustations > 0) tr('$degustations ${degustations > 1 ? 'dégustations' : 'dégustation'}', '$degustations ${degustations > 1 ? 'tastings' : 'tasting'}'),
-      if (tables > 0) tr('$tables ${tables > 1 ? 'tables' : 'table'}', '$tables ${tables > 1 ? 'tables' : 'table'}'),
+      if (degustations > 1) tr('{n} dégustations', '{n} tastings', {'n': degustations}),
+      if (degustations == 1) tr('1 dégustation', '1 tasting'),
+      if (tables > 1) tr('{n} tables', '{n} tables', {'n': tables}),
+      if (tables == 1) tr('1 table', '1 table'),
       if (palais) tr('votre palais', 'your palate'),
     ];
     return morceaux.isEmpty
         ? tr('Soirée retrouvée.', 'Evening recovered.')
-        : tr('Soirée retrouvée : ${morceaux.join(', ')}.', 'Evening recovered: ${morceaux.join(', ')}.');
+        : tr('Soirée retrouvée : {v1}.', 'Evening recovered: {v1}.', {'v1': morceaux.join(', ')});
   }
 }
 

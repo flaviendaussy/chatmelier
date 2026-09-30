@@ -85,9 +85,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _messages.add(ChatMessage(
           id: 'bottle_welcome',
           role: 'assistant',
-          content: isFr
-              ? 'Bonjour ! Je suis prêt à vous conseiller sur ce $wineTitle 🍷. Que souhaitez-vous savoir ? Ses accords mets-vins idéaux, son potentiel de garde, son temps de carafage ou son terroir ?'
-              : 'Hello! I am ready to advise you on this $wineTitle 🍷. What would you like to know? Ideal food pairings, aging potential, decanting time, or its terroir?',
+          content: trSi(isFr, 'Bonjour ! Je suis prêt à vous conseiller sur ce {wineTitle} 🍷. Que souhaitez-vous savoir ? Ses accords mets-vins idéaux, son potentiel de garde, son temps de carafage ou son terroir ?', 'Hello! I am ready to advise you on this {wineTitle} 🍷. What would you like to know? Ideal food pairings, aging potential, decanting time, or its terroir?', {'wineTitle': wineTitle}),
           createdAt: DateTime.now(),
         ));
       } else {
@@ -119,23 +117,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isFr ? 'Effacer la conversation ?' : 'Clear conversation?'),
-        content: Text(isFr
-            ? 'Vos échanges seront supprimés, et le sommelier repartira de zéro : il ne se '
-                'souviendra plus de ce qui a été dit.'
-            : 'Your messages will be deleted, and the sommelier will start over: it will no '
-                'longer remember what was said.'),
+        title: Text(trSi(isFr, 'Effacer la conversation ?', 'Clear conversation?')),
+        content: Text(trSi(isFr, 'Vos échanges seront supprimés, et le sommelier repartira de zéro : il ne se ' 'souviendra plus de ce qui a été dit.', 'Your messages will be deleted, and the sommelier will start over: it will no ' 'longer remember what was said.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(isFr ? 'Annuler' : 'Cancel'),
+            child: Text(trSi(isFr, 'Annuler', 'Cancel')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(isFr ? 'Effacer' : 'Clear'),
+            child: Text(trSi(isFr, 'Effacer', 'Clear')),
           ),
         ],
       ),
@@ -149,9 +143,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(isFr
-            ? 'La conversation n\'a pas pu être effacée. Réessayez une fois connecté.'
-            : 'The conversation could not be cleared. Try again once online.'),
+        content: Text(trSi(isFr, 'La conversation n\'a pas pu être effacée. Réessayez une fois connecté.', 'The conversation could not be cleared. Try again once online.')),
       ));
       return;
     }
@@ -161,7 +153,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _ajouterMessageAccueil();
     });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(isFr ? 'Conversation effacée.' : 'Conversation cleared.'),
+      content: Text(trSi(isFr, 'Conversation effacée.', 'Conversation cleared.')),
     ));
   }
 
@@ -333,9 +325,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         final isFr = langCode == 'fr';
         setState(() {
           final idx = _messages.indexWhere((m) => m.id == assistantMsg.id);
-          final errorMsg = isFr
-              ? 'Désolé, une erreur est survenue lors de la communication avec Chatmelier : $e'
-              : 'Sorry, I encountered an issue connecting to the cellar knowledge base: $e';
+          final errorMsg = trSi(isFr, 'Désolé, une erreur est survenue lors de la communication avec Chatmelier : {e}', 'Sorry, I encountered an issue connecting to the cellar knowledge base: {e}', {'e': e});
           if (idx != -1) {
             if (_messages[idx].content.isEmpty) {
               _messages[idx] = ChatMessage(
@@ -370,8 +360,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final profiles = ref.watch(tasteProfilesListProvider).value ?? [];
     final names = profiles.map((p) => p.name).where((n) => n.trim().isNotEmpty && n != 'Moi').toList();
     final profileTooltip = names.isNotEmpty
-        ? (isFr ? 'Profils de Goût (${names.take(2).join(' & ')})' : 'Taste Profiles (${names.take(2).join(' & ')})')
-        : (isFr ? 'Profils de Goût & Invités' : 'Taste Profiles & Guests');
+        ? (trSi(isFr, 'Profils de Goût ({v1})', 'Taste Profiles ({v1})', {'v1': names.take(2).join(' & ')}))
+        : (trSi(isFr, 'Profils de Goût & Invités', 'Taste Profiles & Guests'));
 
     final isFrTitle = Localizations.localeOf(context).languageCode == 'fr';
     return Scaffold(
@@ -438,7 +428,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    isFr ? 'Mode Hors-Ligne : Chatmelier recherche du réseau...' : 'Offline Mode: Chatmelier is looking for network...',
+                    trSi(isFr, 'Mode Hors-Ligne : Chatmelier recherche du réseau...', 'Offline Mode: Chatmelier is looking for network...'),
                     style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -447,7 +437,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     child: Text(
-                      isFr ? 'Tester' : 'Retry',
+                      trSi(isFr, 'Tester', 'Retry'),
                       style: const TextStyle(color: Colors.white, decoration: TextDecoration.underline, fontSize: 12),
                     ),
                   ),
@@ -536,7 +526,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          isFr ? 'Mode Hors-Ligne : Chatmelier recherche du réseau...' : 'Offline Mode: Chatmelier is looking for network...',
+                          trSi(isFr, 'Mode Hors-Ligne : Chatmelier recherche du réseau...', 'Offline Mode: Chatmelier is looking for network...'),
                           style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -544,7 +534,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         onTap: () => ref.read(connectivityServiceProvider).checkConnection(),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          child: Text(isFr ? 'Tester' : 'Retry', style: const TextStyle(color: Colors.white, decoration: TextDecoration.underline, fontSize: 12)),
+                          child: Text(trSi(isFr, 'Tester', 'Retry'), style: const TextStyle(color: Colors.white, decoration: TextDecoration.underline, fontSize: 12)),
                         ),
                       ),
                     ],
@@ -676,13 +666,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           const SizedBox(height: 10),
           _buildSidebarPromptCard(
             title: names.length >= 2
-                ? tr('Soirée ${names[0]} & ${names[1]} 🍷', 'An evening with ${names[0]} & ${names[1]} 🍷')
-                : (names.length == 1 ? tr('Soirée ${names[0]} & moi 🍷', 'An evening with ${names[0]} 🍷') : tr('Inspiration du Soir 🍷', 'Tonight\'s idea 🍷')),
+                ? tr('Soirée {v1} & {v2} 🍷', 'An evening with {v1} & {v2} 🍷', {'v1': names[0], 'v2': names[1]})
+                : (names.length == 1 ? tr('Soirée {v1} & moi 🍷', 'An evening with {v1} 🍷', {'v1': names[0]}) : tr('Inspiration du Soir 🍷', 'Tonight\'s idea 🍷')),
             subtitle: tr('Conseil sur-mesure pour vos profils de goût', 'Tailored to your palate profiles'),
             prompt: names.length >= 2
-                ? tr('Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à ${names[0]} et à ${names[1]} ?', 'Which of my bottles should I open tonight to please both ${names[0]} and ${names[1]}?')
+                ? tr('Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à {v1} et à {v2} ?', 'Which of my bottles should I open tonight to please both {v1} and {v2}?', {'v1': names[0], 'v2': names[1]})
                 : (names.length == 1
-                    ? tr('Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à ${names[0]} et à moi ?', 'Which of my bottles should I open tonight that both ${names[0]} and I will enjoy?')
+                    ? tr('Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à {v1} et à moi ?', 'Which of my bottles should I open tonight that both {v1} and I will enjoy?', {'v1': names[0]})
                     : tr('Que me conseilles-tu d\'ouvrir ce soir parmi mes bouteilles pour passer un excellent moment ?', 'Which of my bottles should I open tonight for a great evening?')),
           ),
           _buildSidebarPromptCard(
@@ -740,7 +730,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 return Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    isFr ? 'Aucune bouteille enregistrée dans cette cave.' : 'No bottles recorded in this cellar.',
+                    trSi(isFr, 'Aucune bouteille enregistrée dans cette cave.', 'No bottles recorded in this cellar.'),
                     style: TextStyle(
                         fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                   ),
@@ -785,7 +775,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           size: 16, color: Color(0xFF8B1E3F)),
                       onTap: () {
                         _sendMessage(
-                          tr('Que penses-tu de mon $name $vintage ($region) ? Donne-moi son apogée estimée, son profil gustatif et les meilleurs accords mets-vins.', 'What do you think of my $name $vintage ($region)? Give me its estimated peak, its taste profile and the best food pairings.'),
+                          tr('Que penses-tu de mon {name} {vintage} ({region}) ? Donne-moi son apogée estimée, son profil gustatif et les meilleurs accords mets-vins.', 'What do you think of my {name} {vintage} ({region})? Give me its estimated peak, its taste profile and the best food pairings.', {'name': name, 'vintage': vintage, 'region': region}),
                         );
                       },
                     ),

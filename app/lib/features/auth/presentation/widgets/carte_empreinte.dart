@@ -78,7 +78,7 @@ class CarteEmpreinte extends StatelessWidget {
                         size: c.maxWidth < c.maxHeight ? c.maxWidth : c.maxHeight,
                         anime: false,
                         isInteractive: false,
-                        customAxisLabels: WineTasteRadarMetrics.localizedAxisLabels(Langue.estFr ? 'fr' : 'en'),
+                        customAxisLabels: WineTasteRadarMetrics.localizedAxisLabels(tr('fr', 'en')),
                         datasets: [
                           RadarChartDataset(
                             label: titre,

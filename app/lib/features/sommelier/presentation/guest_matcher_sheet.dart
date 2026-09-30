@@ -82,7 +82,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
   }
 
   void _addQuickGuestDialog() {
-    final nameCtrl = TextEditingController(text: tr('Invité ${_selectedGuests.length + 1}', 'Guest ${_selectedGuests.length + 1}'));
+    final nameCtrl = TextEditingController(text: tr('Invité {v1}', 'Guest {v1}', {'v1': _selectedGuests.length + 1}));
     String selectedStyle = 'equilibre';
 
     showDialog(
@@ -422,7 +422,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                                           ),
                                         ),
                                         child: Text(
-                                          tr('${match.consensusScore.toStringAsFixed(0)}% Harmonie', '${match.consensusScore.toStringAsFixed(0)}% match'),
+                                          tr('{v1}% Harmonie', '{v1}% match', {'v1': match.consensusScore.toStringAsFixed(0)}),
                                           style: TextStyle(
                                             color: isGoldMedal ? const Color(0xFFD4AF37) : Colors.white,
                                             fontWeight: FontWeight.bold,

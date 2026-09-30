@@ -130,7 +130,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
           Expanded(
             child: profilesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, _) => Center(child: Text(tr('Erreur: $err', 'Error: $err'))),
+              error: (err, _) => Center(child: Text(tr('Erreur: {err}', 'Error: {err}', {'err': err}))),
               data: (profiles) {
                 return ListView.builder(
                   itemCount: profiles.length,

@@ -295,7 +295,7 @@ class LocalNotificationService {
     await scheduleNotification(
       id: id,
       title: tr('🍷 Alors, cette dégustation ?', '🍷 So, how was it?'),
-      body: tr('Vous avez sorti $wineName$vintageStr. Prenez 30s pour noter vos impressions tant que le souvenir est frais !', 'You opened $wineName$vintageStr. Take 30 seconds to note your impressions while they\'re fresh!'),
+      body: tr('Vous avez sorti {wineName}{vintageStr}. Prenez 30s pour noter vos impressions tant que le souvenir est frais !', 'You opened {wineName}{vintageStr}. Take 30 seconds to note your impressions while they\'re fresh!', {'wineName': wineName, 'vintageStr': vintageStr}),
       delay: delay,
       channelId: NotificationChannels.tastingsId,
       channelName: NotificationChannels.tastingsName,
@@ -360,7 +360,7 @@ class LocalNotificationService {
 
       await _plugin.show(
         id: liveAerationNotificationId,
-        title: tr('🍷 Aération : $wineName$vintageStr', '🍷 Aerating: $wineName$vintageStr'),
+        title: tr('🍷 Aération : {wineName}{vintageStr}', '🍷 Aerating: {wineName}{vintageStr}', {'wineName': wineName, 'vintageStr': vintageStr}),
         body: tr('Compte à rebours lockscreen. Votre vin s\'oxygène pour déployer ses arômes.', 'Your wine is breathing and opening up.'),
         notificationDetails: details,
         payload: 'live_aeration:${bottleId ?? ""}',
@@ -391,7 +391,7 @@ class LocalNotificationService {
       final vintageStr = vintage != null ? ' $vintage' : '';
       await showInstantNotification(
         id: liveAerationNotificationId + 1,
-        title: tr('✨ $wineName$vintageStr est prêt à servir !', '✨ $wineName$vintageStr is ready to serve!'),
+        title: tr('✨ {wineName}{vintageStr} est prêt à servir !', '✨ {wineName}{vintageStr} is ready to serve!', {'wineName': wineName, 'vintageStr': vintageStr}),
         body: tr('L\'aération recommandée est terminée : le vin s\'est ouvert.', 'Aeration done: the wine has opened up.'),
         channelId: NotificationChannels.liveAerationId,
         channelName: NotificationChannels.liveAerationName,

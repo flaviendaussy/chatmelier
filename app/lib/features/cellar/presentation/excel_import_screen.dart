@@ -88,7 +88,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
 
         setState(() {
           _analyzeProgress = 0.1 + (0.85 * (b / totalBatches));
-          _analyzeStatus = tr('Analyse sommelier par IA (lot ${b + 1}/$totalBatches)...', 'AI sommelier analysis (batch ${b + 1}/$totalBatches)...');
+          _analyzeStatus = tr('Analyse sommelier par IA (lot {v1}/{totalBatches})...', 'AI sommelier analysis (batch {v1}/{totalBatches})...', {'v1': b + 1, 'totalBatches': totalBatches});
         });
 
         final batchCandidates = await importService.normalizeWineBatch(chunk);
@@ -111,12 +111,10 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
         // Dire ce qui n'a pas pu être lu, au lieu d'un « 0 vin identifié » qui accuse le fichier.
         final limite = importService.derniereErreur == 'limite_du_jour';
         final message = lotsNonLus == 0
-            ? tr('✨ ${_candidates.length} vins identifiés avec succès !', '✨ ${_candidates.length} wines identified!')
+            ? tr('✨ {candidates_length} vins identifiés avec succès !', '✨ {candidates_length} wines identified!', {'candidates_length': _candidates.length})
             : limite
-                ? tr('${_candidates.length} vins identifiés. La limite du jour est atteinte : importez le reste demain.',
-                    '${_candidates.length} wines identified. Today\'s limit is reached: import the rest tomorrow.')
-                : tr('${_candidates.length} vins identifiés ; $lotsNonLus partie(s) du fichier n\'ont pas pu être lues. Vérifiez votre connexion et réessayez.',
-                    '${_candidates.length} wines identified; $lotsNonLus part(s) of the file couldn\'t be read. Check your connection and try again.');
+                ? tr('{candidates_length} vins identifiés. La limite du jour est atteinte : importez le reste demain.', '{candidates_length} wines identified. Today\'s limit is reached: import the rest tomorrow.', {'candidates_length': _candidates.length})
+                : tr('{candidates_length} vins identifiés ; {lotsNonLus} partie(s) du fichier n\'ont pas pu être lues. Vérifiez votre connexion et réessayez.', '{candidates_length} wines identified; {lotsNonLus} part(s) of the file couldn\'t be read. Check your connection and try again.', {'candidates_length': _candidates.length, 'lotsNonLus': lotsNonLus});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
@@ -129,7 +127,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
       if (mounted) {
         setState(() {
           _isAnalyzing = false;
-          _analyzeStatus = tr('Erreur: $e', 'Error: $e');
+          _analyzeStatus = tr('Erreur: {e}', 'Error: {e}', {'e': e});
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur lors de l\'import : $e'), backgroundColor: Colors.red),
@@ -203,7 +201,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(tr('✅ Lot de $count bouteilles importé ! Prêt pour le lot suivant.', '✅ Batch of $count bottles imported! Ready for the next batch.')),
+              content: Text(tr('✅ Lot de {count} bouteilles importé ! Prêt pour le lot suivant.', '✅ Batch of {count} bottles imported! Ready for the next batch.', {'count': count})),
               backgroundColor: const Color(0xFF2E7D32),
             ),
           );
@@ -222,7 +220,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
               ],
             ),
             content: Text(
-              tr('Félicitations ! $_importedCount bouteilles ont été intégrées dans votre cave avec tous leurs détails sommelier.', 'Congratulations! $_importedCount bottles are now in your cellar, with all their sommelier details.'),
+              tr('Félicitations ! {importedCount} bouteilles ont été intégrées dans votre cave avec tous leurs détails sommelier.', 'Congratulations! {importedCount} bottles are now in your cellar, with all their sommelier details.', {'importedCount': _importedCount}),
             ),
             actions: [
               FilledButton(
@@ -242,7 +240,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
       if (mounted) {
         setState(() => _isImporting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur lors de l\'enregistrement : $e', 'Couldn\'t save: $e')), backgroundColor: Colors.red),
+          SnackBar(content: Text(tr('Erreur lors de l\'enregistrement : {e}', 'Couldn\'t save: {e}', {'e': e})), backgroundColor: Colors.red),
         );
       }
     }
@@ -335,7 +333,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                         const SizedBox(height: 16),
                         if (_selectedFileName != null && _candidates.isEmpty)
                           Text(
-                            tr('Dernier fichier sélectionné : $_selectedFileName (0 vin extrait)', 'Last file selected: $_selectedFileName (no wine found)'),
+                            tr('Dernier fichier sélectionné : {selectedFileName} (0 vin extrait)', 'Last file selected: {selectedFileName} (no wine found)', {'selectedFileName': _selectedFileName}),
                             style: const TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                       ],
@@ -356,7 +354,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                             onChanged: _toggleSelectAll,
                           ),
                           Text(
-                            tr('$selectedCount / ${_candidates.length} vins sélectionnés', '$selectedCount / ${_candidates.length} wines selected'),
+                            tr('{selectedCount} / {candidates_length} vins sélectionnés', '{selectedCount} / {candidates_length} wines selected', {'selectedCount': selectedCount, 'candidates_length': _candidates.length}),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           const Spacer(),
@@ -522,7 +520,7 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        tr('Import gratuit par lot de $_freeBatchSize vins (avec pause vidéo) ou instantané avec Privilège.', 'Free import in batches of $_freeBatchSize wines (with a video break), or instant with Privilege.'),
+                                        tr('Import gratuit par lot de {freeBatchSize} vins (avec pause vidéo) ou instantané avec Privilège.', 'Free import in batches of {freeBatchSize} wines (with a video break), or instant with Privilege.', {'freeBatchSize': _freeBatchSize}),
                                         style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                                       ),
                                     ),
@@ -550,8 +548,8 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                                         : const Icon(Icons.download_done, size: 20),
                                     label: Text(
                                       !isPremium && selectedCount > _freeBatchSize
-                                          ? tr('Importer le 1er lot ($_freeBatchSize vins)', 'Import the first batch ($_freeBatchSize wines)')
-                                          : tr('Importer les $selectedCount vins', 'Import the $selectedCount wines'),
+                                          ? tr('Importer le 1er lot ({freeBatchSize} vins)', 'Import the first batch ({freeBatchSize} wines)', {'freeBatchSize': _freeBatchSize})
+                                          : tr('Importer les {selectedCount} vins', 'Import the {selectedCount} wines', {'selectedCount': selectedCount}),
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                     ),
                                   ),

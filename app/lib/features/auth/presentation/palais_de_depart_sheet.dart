@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../menu_scan/presentation/palais_express.dart';
 import '../data/taste_profile_service.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Le palais de départ, proposé une fois à la première ouverture (retour du 28/09).
 ///
@@ -56,23 +57,19 @@ class PalaisDeDepartSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              fr ? 'Dessinez votre palais de départ' : 'Sketch your starting palate',
+              trSi(fr, 'Dessinez votre palais de départ', 'Sketch your starting palate'),
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 6),
             Text(
-              fr
-                  ? 'Trente secondes, facultatif. Chatmelier s\'en sert comme point de départ, sans y croire '
-                      'aveuglément : vos vraies dégustations le corrigeront très vite.'
-                  : 'Thirty seconds, optional. Chatmelier uses it as a starting point, not as gospel: your real '
-                      'tastings will correct it quickly.',
+              trSi(fr, 'Trente secondes, facultatif. Chatmelier s\'en sert comme point de départ, sans y croire ' 'aveuglément : vos vraies dégustations le corrigeront très vite.', 'Thirty seconds, optional. Chatmelier uses it as a starting point, not as gospel: your real ' 'tastings will correct it quickly.'),
               style: const TextStyle(color: Colors.white70, fontSize: 12.5),
             ),
             const SizedBox(height: 14),
             PalaisExpress(
               isFr: fr,
-              libelleValider: fr ? 'Enregistrer mon palais de départ' : 'Save my starting palate',
-              libelleRefus: fr ? 'Plus tard' : 'Later',
+              libelleValider: trSi(fr, 'Enregistrer mon palais de départ', 'Save my starting palate'),
+              libelleRefus: trSi(fr, 'Plus tard', 'Later'),
               onJusteMonPrenom: () => Navigator.of(context).pop(),
               onValider: (p) async {
                 await ref.read(tasteProfileServiceProvider).enregistrerPalaisDeDepart(

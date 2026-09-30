@@ -9,6 +9,7 @@ import '../../offline/domain/offline_action.dart';
 import '../../offline/presentation/sync_provider.dart';
 import '../data/post_tasting_notification_service.dart';
 import '../domain/gift_exit.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Offrir une bouteille : la sortir de la cave sans prétendre l'avoir bue.
 ///
@@ -168,7 +169,7 @@ class _GiftExitSheetState extends ConsumerState<GiftExitSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isFr ? 'Offrir cette bouteille' : 'Give this bottle',
+              trSi(isFr, 'Offrir cette bouteille', 'Give this bottle'),
               style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
@@ -185,8 +186,8 @@ class _GiftExitSheetState extends ConsumerState<GiftExitSheet> {
               autofocus: true,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
-                labelText: isFr ? 'À qui ?' : 'To whom?',
-                hintText: isFr ? 'Prénom, ou « mes parents »' : 'A name, or "my parents"',
+                labelText: trSi(isFr, 'À qui ?', 'To whom?'),
+                hintText: trSi(isFr, 'Prénom, ou « mes parents »', 'A name, or "my parents"'),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onChanged: (_) => setState(() {}),
@@ -212,7 +213,7 @@ class _GiftExitSheetState extends ConsumerState<GiftExitSheet> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  Text(isFr ? 'Combien ?' : 'How many?',
+                  Text(trSi(isFr, 'Combien ?', 'How many?'),
                       style: theme.textTheme.titleSmall
                           ?.copyWith(fontWeight: FontWeight.bold)),
                   const Spacer(),
@@ -237,24 +238,20 @@ class _GiftExitSheetState extends ConsumerState<GiftExitSheet> {
 
             const SizedBox(height: 20),
             Text(
-              isFr ? 'Et la dégustation ?' : 'What about the tasting?',
+              trSi(isFr, 'Et la dégustation ?', 'What about the tasting?'),
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             _ChoixSuite(
-              titre: isFr ? 'On n\'en reparle plus' : 'Don\'t ask again',
-              detail: isFr
-                  ? 'Elle quitte la cave, sans note ni relance.'
-                  : 'It leaves the cellar, with no rating and no reminder.',
+              titre: trSi(isFr, 'On n\'en reparle plus', 'Don\'t ask again'),
+              detail: trSi(isFr, 'Elle quitte la cave, sans note ni relance.', 'It leaves the cellar, with no rating and no reminder.'),
               choisi: _suite == SuiteDuCadeau.aucuneSuite,
               onTap: () => setState(() => _suite = SuiteDuCadeau.aucuneSuite),
             ),
             const SizedBox(height: 8),
             _ChoixSuite(
-              titre: isFr ? 'Me redemander dans un mois' : 'Ask me again in a month',
-              detail: isFr
-                  ? 'Au cas où elle serait ouverte devant vous.'
-                  : 'In case it gets opened in front of you.',
+              titre: trSi(isFr, 'Me redemander dans un mois', 'Ask me again in a month'),
+              detail: trSi(isFr, 'Au cas où elle serait ouverte devant vous.', 'In case it gets opened in front of you.'),
               choisi: _suite == SuiteDuCadeau.redemanderPlusTard,
               onTap: () => setState(() => _suite = SuiteDuCadeau.redemanderPlusTard),
             ),
@@ -269,7 +266,7 @@ class _GiftExitSheetState extends ConsumerState<GiftExitSheet> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.card_giftcard),
-              label: Text(isFr ? 'Offrir' : 'Give'),
+              label: Text(trSi(isFr, 'Offrir', 'Give')),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(

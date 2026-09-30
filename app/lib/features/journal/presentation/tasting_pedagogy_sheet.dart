@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/tasting_pedagogy_engine.dart';
+import '../../../shared/utils/langue.dart';
 
 class TastingPedagogySheet extends StatelessWidget {
   final TastingPedagogyReport report;
@@ -23,9 +24,7 @@ class TastingPedagogySheet extends StatelessWidget {
     final wine = report.wine;
     final wineName = '${wine.producer} ${wine.name} ${wine.vintage ?? ""}';
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
-    final prompt = isFr
-        ? "Chatmelier, j'ai dégusté mon flacon de $wineName (${wine.region}, ${wine.grapes.map((g) => g.name).join(', ')}). Peux-tu m'expliquer en détail les secrets de vinification du domaine, le type de barrique utilisé, et pourquoi ces molécules aromatiques s'expriment ainsi ?"
-        : "Chatmelier, I tasted my bottle of $wineName (${wine.region}, ${wine.grapes.map((g) => g.name).join(', ')}). Can you explain in detail the winemaking secrets of the domaine, the type of oak barrel used, and why these aromatic molecules express themselves this way?";
+    final prompt = trSi(isFr, "Chatmelier, j'ai dégusté mon flacon de {wineName} ({region}, {v1}). Peux-tu m'expliquer en détail les secrets de vinification du domaine, le type de barrique utilisé, et pourquoi ces molécules aromatiques s'expriment ainsi ?", "Chatmelier, I tasted my bottle of {wineName} ({region}, {v1}). Can you explain in detail the winemaking secrets of the domaine, the type of oak barrel used, and why these aromatic molecules express themselves this way?", {'wineName': wineName, 'region': wine.region, 'v1': wine.grapes.map((g) => g.name).join(', ')});
 
     Navigator.pop(context);
     context.go('/chat', extra: prompt);

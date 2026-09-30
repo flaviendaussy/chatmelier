@@ -1,6 +1,7 @@
 import '../../auth/domain/taste_profile.dart';
 import '../../cellar/domain/wine.dart';
 import '../../menu_scan/domain/menu_wine.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Le moteur de frontière (plan V2, S4) : quelle bouteille apprendrait le plus sur un
 /// palais, sans faire boire à personne un vin qu'il détesterait.
@@ -95,49 +96,43 @@ class TasteFrontierEngine {
   static String phraseCave(SuggestionDeFrontiere<Object?> s, String nomDuVin, bool fr) {
     final quoi = _quoi(s.axe, fr);
     final comment = _commentLeVinLeMontre(s.axe, s.valeurDuVin, fr);
-    return fr
-        ? 'Pour mieux vous connaître : ouvrez votre $nomDuVin ($comment, prêt à boire) — il me dirait ce que vous pensez $quoi.'
-        : 'To get to know you better: open your $nomDuVin ($comment, ready to drink) — it would tell me how you feel about $quoi.';
+    return trSi(fr, 'Pour mieux vous connaître : ouvrez votre {nomDuVin} ({comment}, prêt à boire) — il me dirait ce que vous pensez {quoi}.', 'To get to know you better: open your {nomDuVin} ({comment}, ready to drink) — it would tell me how you feel about {quoi}.', {'nomDuVin': nomDuVin, 'comment': comment, 'quoi': quoi});
   }
 
   static String _quoi(String axe, bool fr) => switch (axe) {
-        'tannin' => fr ? 'des tanins' : 'tannins',
-        'body' => fr ? 'des vins amples' : 'full-bodied wines',
-        'oak' => fr ? 'du boisé' : 'oak',
-        'acidity' => fr ? 'de la vivacité' : 'crisp acidity',
-        'minerality' => fr ? 'de la minéralité' : 'minerality',
-        _ => fr ? 'de ce style' : 'this style',
+        'tannin' => trSi(fr, 'des tanins', 'tannins'),
+        'body' => trSi(fr, 'des vins amples', 'full-bodied wines'),
+        'oak' => trSi(fr, 'du boisé', 'oak'),
+        'acidity' => trSi(fr, 'de la vivacité', 'crisp acidity'),
+        'minerality' => trSi(fr, 'de la minéralité', 'minerality'),
+        _ => trSi(fr, 'de ce style', 'this style'),
       };
 
   /// La phrase qui accompagne la suggestion.
   static String phrase(SuggestionDeFrontiere<Object?> s, String nomDuVin, bool fr) {
     final quoi = switch (s.axe) {
-      'tannin' => fr ? 'des tanins' : 'tannins',
-      'body' => fr ? 'des vins amples' : 'full-bodied wines',
-      'oak' => fr ? 'du boisé' : 'oak',
-      'acidity' => fr ? 'de la vivacité' : 'crisp acidity',
-      'minerality' => fr ? 'de la minéralité' : 'minerality',
-      _ => fr ? 'de ce style' : 'this style',
+      'tannin' => trSi(fr, 'des tanins', 'tannins'),
+      'body' => trSi(fr, 'des vins amples', 'full-bodied wines'),
+      'oak' => trSi(fr, 'du boisé', 'oak'),
+      'acidity' => trSi(fr, 'de la vivacité', 'crisp acidity'),
+      'minerality' => trSi(fr, 'de la minéralité', 'minerality'),
+      _ => trSi(fr, 'de ce style', 'this style'),
     };
     final comment = _commentLeVinLeMontre(s.axe, s.valeurDuVin, fr);
     final risque = s.plaisir == null
         ? ''
-        : (fr
-            ? ', et il a de bonnes chances de vous plaire (${s.plaisir!.round()} %)'
-            : ', and there is a good chance you will enjoy it (${s.plaisir!.round()}%)');
-    return fr
-        ? 'Je ne sais pas encore ce que vous pensez $quoi. $nomDuVin, $comment, me le dirait$risque.'
-        : 'I don\'t know yet how you feel about $quoi. $nomDuVin, $comment, would tell me$risque.';
+        : (trSi(fr, ', et il a de bonnes chances de vous plaire ({v1} %)', ', and there is a good chance you will enjoy it ({v1}%)', {'v1': s.plaisir!.round()}));
+    return trSi(fr, 'Je ne sais pas encore ce que vous pensez {quoi}. {nomDuVin}, {comment}, me le dirait{risque}.', 'I don\'t know yet how you feel about {quoi}. {nomDuVin}, {comment}, would tell me{risque}.', {'quoi': quoi, 'nomDuVin': nomDuVin, 'comment': comment, 'risque': risque});
   }
 
   static String _commentLeVinLeMontre(String axe, double v, bool fr) {
     final haut = v >= 5;
     return switch (axe) {
-      'tannin' => haut ? (fr ? 'très charpenté' : 'firmly structured') : (fr ? 'tout en souplesse' : 'silky'),
-      'body' => haut ? (fr ? 'ample' : 'full-bodied') : (fr ? 'léger' : 'light'),
-      'oak' => haut ? (fr ? 'nettement boisé' : 'clearly oaked') : (fr ? 'sans bois' : 'unoaked'),
-      'acidity' => haut ? (fr ? 'très vif' : 'very crisp') : (fr ? 'tout en rondeur' : 'soft and round'),
-      'minerality' => haut ? (fr ? 'très minéral' : 'very mineral') : (fr ? 'plus sur le fruit' : 'more fruit-driven'),
+      'tannin' => haut ? (trSi(fr, 'très charpenté', 'firmly structured')) : (trSi(fr, 'tout en souplesse', 'silky')),
+      'body' => haut ? (trSi(fr, 'ample', 'full-bodied')) : (trSi(fr, 'léger', 'light')),
+      'oak' => haut ? (trSi(fr, 'nettement boisé', 'clearly oaked')) : (trSi(fr, 'sans bois', 'unoaked')),
+      'acidity' => haut ? (trSi(fr, 'très vif', 'very crisp')) : (trSi(fr, 'tout en rondeur', 'soft and round')),
+      'minerality' => haut ? (trSi(fr, 'très minéral', 'very mineral')) : (trSi(fr, 'plus sur le fruit', 'more fruit-driven')),
       _ => '',
     };
   }

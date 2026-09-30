@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../shared/providers/supabase_provider.dart';
 import '../../shared/utils/app_logger.dart';
+import '../../shared/utils/langue.dart';
 
 /// Ce que la phase de test exige (`app_config.version_minimale_test`, migration 045).
 class ExigenceDeVersion {
@@ -92,23 +93,19 @@ class _MiseAJourObligatoire extends StatelessWidget {
                 const Icon(Icons.system_update, size: 56, color: Color(0xFF8B1E3F)),
                 const SizedBox(height: 16),
                 Text(
-                  fr ? 'Une mise à jour est nécessaire' : 'An update is required',
+                  trSi(fr, 'Une mise à jour est nécessaire', 'An update is required'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   exigence.message ??
-                      (fr
-                          ? 'Pendant la phase de test, tout le monde utilise la même version.'
-                          : 'During the test phase, everyone uses the same version.'),
+                      (trSi(fr, 'Pendant la phase de test, tout le monde utilise la même version.', 'During the test phase, everyone uses the same version.')),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  fr
-                      ? 'Obligatoire uniquement pendant la phase de test.'
-                      : 'Required during the test phase only.',
+                  trSi(fr, 'Obligatoire uniquement pendant la phase de test.', 'Required during the test phase only.'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
                 ),
@@ -117,13 +114,11 @@ class _MiseAJourObligatoire extends StatelessWidget {
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
                   onPressed: () => launchUrl(Uri.parse(exigence.lien), mode: LaunchMode.externalApplication),
                   icon: const Icon(Icons.shop),
-                  label: Text(fr ? 'Mettre à jour' : 'Update'),
+                  label: Text(trSi(fr, 'Mettre à jour', 'Update')),
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  fr
-                      ? 'Installée : $versionInstallee · requise : build ${exigence.build}'
-                      : 'Installed: $versionInstallee · required: build ${exigence.build}',
+                  trSi(fr, 'Installée : {versionInstallee} · requise : build {build}', 'Installed: {versionInstallee} · required: build {build}', {'versionInstallee': versionInstallee, 'build': exigence.build}),
                   style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                 ),
               ],

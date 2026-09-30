@@ -37,6 +37,7 @@ import 'taste_evidence_sheet.dart';
 import '../../cellar/domain/wine.dart';
 import '../../sommelier/domain/taste_frontier_engine.dart';
 import 'partage_empreinte_sheet.dart';
+import '../../../shared/utils/langue.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -319,8 +320,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(url == null
-              ? (isFr ? 'Avatar réinitialisé.' : 'Avatar reset.')
-              : (isFr ? 'Avatar mis à jour ! 🍷' : 'Avatar updated! 🍷')),
+              ? (trSi(isFr, 'Avatar réinitialisé.', 'Avatar reset.'))
+              : (trSi(isFr, 'Avatar mis à jour ! 🍷', 'Avatar updated! 🍷'))),
           backgroundColor: const Color(0xFF10B981),
         ),
       );
@@ -370,7 +371,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         final isFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isFr ? 'Erreur lors de la sélection de la photo' : 'Error picking avatar image'),
+            content: Text(trSi(isFr, 'Erreur lors de la sélection de la photo', 'Error picking avatar image')),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -412,7 +413,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  isFr ? 'Photo de profil & Avatar' : 'Profile Picture & Avatar',
+                  trSi(isFr, 'Photo de profil & Avatar', 'Profile Picture & Avatar'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
@@ -422,7 +423,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.camera_alt_outlined),
-                        label: Text(isFr ? 'Appareil photo' : 'Camera'),
+                        label: Text(trSi(isFr, 'Appareil photo', 'Camera')),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -437,7 +438,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.photo_library_outlined),
-                        label: Text(isFr ? 'Galerie' : 'Gallery'),
+                        label: Text(trSi(isFr, 'Galerie', 'Gallery')),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -452,7 +453,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  isFr ? 'Avatars Sommelier' : 'Sommelier Avatars',
+                  trSi(isFr, 'Avatars Sommelier', 'Sommelier Avatars'),
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                 ),
                 const SizedBox(height: 10),
@@ -496,7 +497,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   TextButton.icon(
                     style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
                     icon: const Icon(Icons.delete_outline, size: 18),
-                    label: Text(isFr ? 'Supprimer l\'avatar actuel' : 'Remove current avatar'),
+                    label: Text(trSi(isFr, 'Supprimer l\'avatar actuel', 'Remove current avatar')),
                     onPressed: () {
                       Navigator.pop(ctx);
                       _setAvatar(null);
@@ -542,21 +543,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           children: [
             const Icon(Icons.person, color: Color(0xFF8B1E3F)),
             const SizedBox(width: 8),
-            Text(isFr ? 'Nom d\'affichage' : 'Display Name', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(trSi(isFr, 'Nom d\'affichage', 'Display Name'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           ],
         ),
         content: TextField(
           controller: ctrl,
           decoration: InputDecoration(
-            labelText: isFr ? 'Votre nom ou prénom' : 'Your first or last name',
-            hintText: isFr ? 'ex: Flavien' : 'e.g. Flavien',
+            labelText: trSi(isFr, 'Votre nom ou prénom', 'Your first or last name'),
+            hintText: trSi(isFr, 'ex: Flavien', 'e.g. Flavien'),
             border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(null),
-            child: Text(isFr ? 'Annuler' : 'Cancel'),
+            child: Text(trSi(isFr, 'Annuler', 'Cancel')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -564,7 +565,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
-            child: Text(isFr ? 'Enregistrer' : 'Save', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(trSi(isFr, 'Enregistrer', 'Save'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -585,7 +586,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(isFr ? 'Nom d\'affichage mis à jour' : 'Display name updated'),
+              content: Text(trSi(isFr, 'Nom d\'affichage mis à jour', 'Display name updated')),
               backgroundColor: const Color(0xFF10B981),
             ),
           );
@@ -605,7 +606,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           children: [
             const Icon(Icons.phone_iphone, color: Color(0xFF8B1E3F)),
             const SizedBox(width: 8),
-            Text(isFr ? 'Numéro de téléphone' : 'Phone Number', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(trSi(isFr, 'Numéro de téléphone', 'Phone Number'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           ],
         ),
         content: Column(
@@ -613,8 +614,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           children: [
             InternationalPhoneInput(
               initialValue: _phoneNumber,
-              labelText: isFr ? 'Votre numéro (indicatif obligatoire)' : 'Your number (country code required)',
-              helperText: isFr ? 'FR (+33) par défaut, UK (+44) ou indicatif détecté par GPS' : 'FR (+33) default, UK (+44) or GPS detected code',
+              labelText: trSi(isFr, 'Votre numéro (indicatif obligatoire)', 'Your number (country code required)'),
+              helperText: trSi(isFr, 'FR (+33) par défaut, UK (+44) ou indicatif détecté par GPS', 'FR (+33) default, UK (+44) or GPS detected code'),
               onChanged: (val) => tempPhone = val,
             ),
           ],
@@ -622,7 +623,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(null),
-            child: Text(isFr ? 'Annuler' : 'Cancel'),
+            child: Text(trSi(isFr, 'Annuler', 'Cancel')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -637,7 +638,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               }
               Navigator.of(ctx).pop(tempPhone);
             },
-            child: Text(isFr ? 'Enregistrer' : 'Save', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(trSi(isFr, 'Enregistrer', 'Save'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -653,7 +654,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(isFr ? 'Ce numéro de téléphone est déjà associé à un autre compte.' : 'This phone number is already associated with another account.'),
+                  content: Text(trSi(isFr, 'Ce numéro de téléphone est déjà associé à un autre compte.', 'This phone number is already associated with another account.')),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -673,7 +674,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(isFr ? 'Numéro de téléphone mis à jour avec succès' : 'Phone number updated successfully'),
+              content: Text(trSi(isFr, 'Numéro de téléphone mis à jour avec succès', 'Phone number updated successfully')),
               backgroundColor: const Color(0xFF10B981),
             ),
           );
@@ -702,7 +703,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(isFr ? 'Fermer' : 'Close'),
+            child: Text(trSi(isFr, 'Fermer', 'Close')),
           ),
         ],
       ),
@@ -712,64 +713,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _showPrivacyPolicy() {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     _showLegalDialog(
-      isFr ? 'Politique de Confidentialité' : 'Privacy Policy',
-      isFr
-          ? 'APPLICATION CHATMELIER — POLITIQUE DE CONFIDENTIALITÉ\n'
-            'Dernière mise à jour : 4 septembre 2026\n\n'
-            '1. ENGAGEMENT DE CONFIDENTIALITÉ\n'
-            'Chatmelier respecte scrupuleusement la vie privée de ses utilisateurs conformément au RGPD (Règlement UE 2016/679) et aux exigences d\'Apple et de Google.\n\n'
-            '2. DONNÉES COLLECTÉES\n'
-            '• Compte : Email, nom d\'affichage, pseudo et téléphone optionnel pour l\'ajout d\'amis.\n'
-            '• Caves & Bouteilles : Noms de caves, inventaire, notes de dégustation, historique de consommation.\n'
-            '• Photos : Étiquettes et bouteilles analysées par IA (Google Gemini Vision).\n'
-            '• Localisation (Optionnelle) : Coordonnées GPS pour localiser les dégustations extérieures et détecter votre cave à proximité.\n'
-            '• Publicités : Identifiants publicitaires pour annonces récompensées via Google AdMob.\n\n'
-            '3. SUPPRESSION DU COMPTE (Article 17 RGPD)\n'
-            'Vous pouvez à tout moment supprimer définitivement votre compte et l\'intégralité de vos données via le bouton "Supprimer mon compte" ci-dessous ou par email à contact@chatmelier.app.\n\n'
-            'Version web complète consultable sur : https://chatmelier.github.io/privacy.html'
-          : 'CHATMELIER APPLICATION — PRIVACY POLICY\n'
-            'Last updated: September 4, 2026\n\n'
-            '1. PRIVACY COMMITMENT\n'
-            'Chatmelier strictly respects user privacy in compliance with GDPR (EU Regulation 2016/679) and Apple/Google store requirements.\n\n'
-            '2. COLLECTED DATA\n'
-            '• Account: Email, display name, username, and optional phone for friend additions.\n'
-            '• Cellars & Bottles: Cellar names, inventory, tasting notes, consumption history.\n'
-            '• Photos: Labels and bottles analyzed by AI (Google Gemini Vision).\n'
-            '• Location (Optional): GPS coordinates to locate outdoor tastings and detect nearby cellar.\n'
-            '• Ads: Advertising identifiers for rewarded ads via Google AdMob.\n\n'
-            '3. ACCOUNT DELETION (Article 17 GDPR)\n'
-            'You can permanently delete your account and all data at any time via the "Delete my account" button below or by email to contact@chatmelier.app.\n\n'
-            'Full web version available at: https://chatmelier.github.io/privacy.html',
+      trSi(isFr, 'Politique de Confidentialité', 'Privacy Policy'),
+      trSi(isFr, 'APPLICATION CHATMELIER — POLITIQUE DE CONFIDENTIALITÉ\n' 'Dernière mise à jour : 4 septembre 2026\n\n' '1. ENGAGEMENT DE CONFIDENTIALITÉ\n' 'Chatmelier respecte scrupuleusement la vie privée de ses utilisateurs conformément au RGPD (Règlement UE 2016/679) et aux exigences d\'Apple et de Google.\n\n' '2. DONNÉES COLLECTÉES\n' '• Compte : Email, nom d\'affichage, pseudo et téléphone optionnel pour l\'ajout d\'amis.\n' '• Caves & Bouteilles : Noms de caves, inventaire, notes de dégustation, historique de consommation.\n' '• Photos : Étiquettes et bouteilles analysées par IA (Google Gemini Vision).\n' '• Localisation (Optionnelle) : Coordonnées GPS pour localiser les dégustations extérieures et détecter votre cave à proximité.\n' '• Publicités : Identifiants publicitaires pour annonces récompensées via Google AdMob.\n\n' '3. SUPPRESSION DU COMPTE (Article 17 RGPD)\n' 'Vous pouvez à tout moment supprimer définitivement votre compte et l\'intégralité de vos données via le bouton "Supprimer mon compte" ci-dessous ou par email à contact@chatmelier.app.\n\n' 'Version web complète consultable sur : https://chatmelier.github.io/privacy.html', 'CHATMELIER APPLICATION — PRIVACY POLICY\n' 'Last updated: September 4, 2026\n\n' '1. PRIVACY COMMITMENT\n' 'Chatmelier strictly respects user privacy in compliance with GDPR (EU Regulation 2016/679) and Apple/Google store requirements.\n\n' '2. COLLECTED DATA\n' '• Account: Email, display name, username, and optional phone for friend additions.\n' '• Cellars & Bottles: Cellar names, inventory, tasting notes, consumption history.\n' '• Photos: Labels and bottles analyzed by AI (Google Gemini Vision).\n' '• Location (Optional): GPS coordinates to locate outdoor tastings and detect nearby cellar.\n' '• Ads: Advertising identifiers for rewarded ads via Google AdMob.\n\n' '3. ACCOUNT DELETION (Article 17 GDPR)\n' 'You can permanently delete your account and all data at any time via the "Delete my account" button below or by email to contact@chatmelier.app.\n\n' 'Full web version available at: https://chatmelier.github.io/privacy.html'),
     );
   }
 
   void _showTermsOfService() {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     _showLegalDialog(
-      isFr ? 'Conditions Générales d\'Utilisation' : 'Terms of Service',
-      isFr
-          ? 'APPLICATION CHATMELIER — CONDITIONS GÉNÉRALES D\'UTILISATION\n'
-            'En vigueur au 4 septembre 2026\n\n'
-            '1. OBJET DU SERVICE\n'
-            'Chatmelier est une application de gestion de cave à vins et spiritueux assistée par intelligence artificielle.\n\n'
-            '2. PRÉVENTION & SANTÉ\n'
-            'L\'abus d\'alcool est dangereux pour la santé, à consommer avec modération. Chatmelier est un outil informatif de gestion patrimoniale et n\'encourage pas la consommation excessive.\n\n'
-            '3. CONSEILS DE L\'INTELLIGENCE ARTIFICIELLE\n'
-            'Les estimations d\'apogée, accords mets-vins et valorisations financières sont donnés à titre indicatif sans garantie de valorisation marchande future.\n\n'
-            '4. PROPRIÉTÉ DES DONNÉES\n'
-            'Vous demeurez propriétaire de vos photos et notes de dégustation.\n\n'
-            'Version web complète consultable sur : https://chatmelier.github.io/terms.html'
-          : 'CHATMELIER APPLICATION — TERMS OF SERVICE\n'
-            'Effective as of September 4, 2026\n\n'
-            '1. PURPOSE OF SERVICE\n'
-            'Chatmelier is an AI-assisted wine and spirits cellar management application.\n\n'
-            '2. HEALTH & PREVENTION\n'
-            'Alcohol abuse is dangerous to health, consume in moderation. Chatmelier is an informative asset management tool and does not encourage excessive consumption.\n\n'
-            '3. ARTIFICIAL INTELLIGENCE ADVICE\n'
-            'Peak maturity estimates, food & wine pairings, and valuations are given for informational purposes without market value guarantee.\n\n'
-            '4. DATA OWNERSHIP\n'
-            'You remain the owner of your photos and tasting notes.\n\n'
-            'Full web version available at: https://chatmelier.github.io/terms.html',
+      trSi(isFr, 'Conditions Générales d\'Utilisation', 'Terms of Service'),
+      trSi(isFr, 'APPLICATION CHATMELIER — CONDITIONS GÉNÉRALES D\'UTILISATION\n' 'En vigueur au 4 septembre 2026\n\n' '1. OBJET DU SERVICE\n' 'Chatmelier est une application de gestion de cave à vins et spiritueux assistée par intelligence artificielle.\n\n' '2. PRÉVENTION & SANTÉ\n' 'L\'abus d\'alcool est dangereux pour la santé, à consommer avec modération. Chatmelier est un outil informatif de gestion patrimoniale et n\'encourage pas la consommation excessive.\n\n' '3. CONSEILS DE L\'INTELLIGENCE ARTIFICIELLE\n' 'Les estimations d\'apogée, accords mets-vins et valorisations financières sont donnés à titre indicatif sans garantie de valorisation marchande future.\n\n' '4. PROPRIÉTÉ DES DONNÉES\n' 'Vous demeurez propriétaire de vos photos et notes de dégustation.\n\n' 'Version web complète consultable sur : https://chatmelier.github.io/terms.html', 'CHATMELIER APPLICATION — TERMS OF SERVICE\n' 'Effective as of September 4, 2026\n\n' '1. PURPOSE OF SERVICE\n' 'Chatmelier is an AI-assisted wine and spirits cellar management application.\n\n' '2. HEALTH & PREVENTION\n' 'Alcohol abuse is dangerous to health, consume in moderation. Chatmelier is an informative asset management tool and does not encourage excessive consumption.\n\n' '3. ARTIFICIAL INTELLIGENCE ADVICE\n' 'Peak maturity estimates, food & wine pairings, and valuations are given for informational purposes without market value guarantee.\n\n' '4. DATA OWNERSHIP\n' 'You remain the owner of your photos and tasting notes.\n\n' 'Full web version available at: https://chatmelier.github.io/terms.html'),
     );
   }
 
@@ -790,7 +743,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  isFr ? 'Supprimer mon compte ?' : 'Delete my account?',
+                  trSi(isFr, 'Supprimer mon compte ?', 'Delete my account?'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red),
                 ),
               ),
@@ -801,24 +754,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isFr
-                    ? 'Cette action est irréversible et immédiate.\n\n'
-                      'Toutes vos données seront définitivement effacées :\n'
-                      '• Vos caves, casiers et bouteilles\n'
-                      '• Vos photos et vos notes de dégustation\n'
-                      '• Votre profil et votre historique de discussion'
-                    : 'This action is irreversible and immediate.\n\n'
-                      'All your data will be permanently deleted:\n'
-                      '• Your cellars, racks and bottles\n'
-                      '• Your photos and tasting notes\n'
-                      '• Your profile and chat history',
+                trSi(isFr, 'Cette action est irréversible et immédiate.\n\n' 'Toutes vos données seront définitivement effacées :\n' '• Vos caves, casiers et bouteilles\n' '• Vos photos et vos notes de dégustation\n' '• Votre profil et votre historique de discussion', 'This action is irreversible and immediate.\n\n' 'All your data will be permanently deleted:\n' '• Your cellars, racks and bottles\n' '• Your photos and tasting notes\n' '• Your profile and chat history'),
                 style: const TextStyle(fontSize: 14, height: 1.4),
               ),
               const SizedBox(height: 16),
               Text(
-                isFr
-                    ? 'Pour confirmer, tapez SUPPRIMER ci-dessous :'
-                    : 'To confirm, type DELETE below:',
+                trSi(isFr, 'Pour confirmer, tapez SUPPRIMER ci-dessous :', 'To confirm, type DELETE below:'),
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -826,7 +767,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 controller: confirmCtrl,
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: isFr ? 'SUPPRIMER' : 'DELETE',
+                  hintText: trSi(isFr, 'SUPPRIMER', 'DELETE'),
                   border: const OutlineInputBorder(),
                   isDense: true,
                 ),
@@ -842,7 +783,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text(isFr ? 'Annuler' : 'Cancel'),
+              child: Text(trSi(isFr, 'Annuler', 'Cancel')),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -850,7 +791,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 foregroundColor: Colors.white,
               ),
               onPressed: canDelete ? () => Navigator.of(ctx).pop(true) : null,
-              child: Text(isFr ? 'Supprimer définitivement' : 'Permanently delete', style: const TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(trSi(isFr, 'Supprimer définitivement', 'Permanently delete'), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -870,7 +811,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   const CircularProgressIndicator(color: Colors.red),
                   const SizedBox(height: 16),
-                  Text(isFr ? 'Suppression du compte et des données...' : 'Deleting account and data...'),
+                  Text(trSi(isFr, 'Suppression du compte et des données...', 'Deleting account and data...')),
                 ],
               ),
             ),
@@ -888,7 +829,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Navigator.of(context, rootNavigator: true).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(isFr ? 'Votre compte et vos données ont été définitivement supprimés.' : 'Your account and data have been permanently deleted.'),
+              content: Text(trSi(isFr, 'Votre compte et vos données ont été définitivement supprimés.', 'Your account and data have been permanently deleted.')),
               backgroundColor: Colors.black87,
             ),
           );
@@ -900,7 +841,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           AppLogger.error('AUTH', 'Error during deleteAccount', e);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(isFr ? 'Erreur lors de la suppression : $e' : 'Error during deletion: $e'),
+              content: Text(trSi(isFr, 'Erreur lors de la suppression : {e}', 'Error during deletion: {e}', {'e': e})),
               backgroundColor: Colors.red,
             ),
           );
@@ -919,13 +860,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     final resolvedDisplayName = _displayName.isNotEmpty
         ? _displayName
-        : (user?.userMetadata?['display_name'] as String? ?? (isFr ? 'Amateur de Vin' : 'Wine Lover'));
+        : (user?.userMetadata?['display_name'] as String? ?? (trSi(isFr, 'Amateur de Vin', 'Wine Lover')));
 
     return DefaultTabController(
       length: 4,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l10n?.profileTitle ?? (isFr ? 'Profil & Réglages' : 'Profile & Settings')),
+          title: Text(l10n?.profileTitle ?? (trSi(isFr, 'Profil & Réglages', 'Profile & Settings'))),
           actions: const [
             NotificationBellButton(),
           ],
@@ -1005,7 +946,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             Text(
                               _username != null && _username!.isNotEmpty
                                   ? '@$_username'
-                                  : (user?.email ?? (isFr ? 'Mode Invité' : 'Guest Mode')),
+                                  : (user?.email ?? (trSi(isFr, 'Mode Invité', 'Guest Mode'))),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -1023,7 +964,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           ),
                           onPressed: () => context.go('/login'),
-                          child: Text(isFr ? 'Connexion' : 'Sign in', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                          child: Text(trSi(isFr, 'Connexion', 'Sign in'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                         ),
                     ],
                   ),
@@ -1039,19 +980,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   tabs: [
                     Tab(
                       icon: const Icon(Icons.wine_bar, size: 20),
-                      text: l10n?.profileTabPalate ?? (isFr ? 'Palais' : 'Palate'),
+                      text: l10n?.profileTabPalate ?? (trSi(isFr, 'Palais', 'Palate')),
                     ),
                     Tab(
                       icon: const Icon(Icons.tune, size: 20),
-                      text: l10n?.profileTabSettings ?? (isFr ? 'Réglages' : 'Settings'),
+                      text: l10n?.profileTabSettings ?? (trSi(isFr, 'Réglages', 'Settings')),
                     ),
                     Tab(
                       icon: const Icon(Icons.inventory_2_outlined, size: 20),
-                      text: l10n?.profileTabTools ?? (isFr ? 'Outils' : 'Tools'),
+                      text: l10n?.profileTabTools ?? (trSi(isFr, 'Outils', 'Tools')),
                     ),
                     Tab(
                       icon: const Icon(Icons.shield_outlined, size: 20),
-                      text: l10n?.profileTabAccount ?? (isFr ? 'Compte' : 'Account'),
+                      text: l10n?.profileTabAccount ?? (trSi(isFr, 'Compte', 'Account')),
                     ),
                   ],
                 ),
@@ -1080,7 +1021,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final currentProfile = _userTasteProfile ??
         TasteProfile(
           id: 'primary_user',
-          name: isFr ? 'Moi' : 'Me',
+          name: trSi(isFr, 'Moi', 'Me'),
           isPrimary: true,
           favoriteTypes: const [],
           favoriteRegions: const [],
@@ -1125,15 +1066,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(isFr ? 'Radar des Goûts' : 'Taste Radar', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                          Text(isFr ? 'Empreinte œnologique & équilibre des saveurs' : 'Oenological footprint & flavor balance', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          Text(trSi(isFr, 'Radar des Goûts', 'Taste Radar'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text(trSi(isFr, 'Empreinte œnologique & équilibre des saveurs', 'Oenological footprint & flavor balance'), style: const TextStyle(fontSize: 11, color: Colors.grey)),
                         ],
                       ),
                     ),
                     // L'empreinte en image : l'objet qui circule (P5).
                     IconButton(
                       visualDensity: VisualDensity.compact,
-                      tooltip: isFr ? 'Partager mon empreinte' : 'Share my palate',
+                      tooltip: trSi(isFr, 'Partager mon empreinte', 'Share my palate'),
                       icon: const Icon(Icons.ios_share, size: 19, color: Color(0xFF8B1E3F)),
                       onPressed: () => PartageEmpreinteSheet.show(
                         context,
@@ -1148,7 +1089,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       onPressed: () => TasteProfileRadarScreen.show(context),
                       icon: const Icon(Icons.fullscreen, size: 15),
-                      label: Text(isFr ? 'Plein écran' : 'Fullscreen', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      label: Text(trSi(isFr, 'Plein écran', 'Fullscreen'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -1164,7 +1105,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: WineTasteRadarChart(
                         datasets: [
                           RadarChartDataset(
-                            label: _displayName.isNotEmpty ? _displayName : (isFr ? 'Mes Goûts' : 'My Taste'),
+                            label: _displayName.isNotEmpty ? _displayName : (trSi(isFr, 'Mes Goûts', 'My Taste')),
                             color: const Color(0xFF8B1E3F),
                             metrics: metrics,
                             confidences: TasteProfile.axisKeys
@@ -1214,7 +1155,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                         onPressed: () => TasteProfilesDialog.show(context),
                         icon: const Icon(Icons.people_outline, size: 15),
-                        label: Text(isFr ? 'Invités / Proches' : 'Guests / Friends', style: const TextStyle(fontSize: 11.5)),
+                        label: Text(trSi(isFr, 'Invités / Proches', 'Guests / Friends'), style: const TextStyle(fontSize: 11.5)),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1227,7 +1168,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                         onPressed: _openTasteProfileEditor,
                         icon: const Icon(Icons.tune, size: 15),
-                        label: Text(isFr ? 'Personnaliser' : 'Customize', style: const TextStyle(fontSize: 11.5)),
+                        label: Text(trSi(isFr, 'Personnaliser', 'Customize'), style: const TextStyle(fontSize: 11.5)),
                       ),
                     ),
                   ],
@@ -1267,14 +1208,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isFr ? 'Statistiques de la Cave 📊' : 'Cellar & Tasting Analytics 📊',
+                          trSi(isFr, 'Statistiques de la Cave 📊', 'Cellar & Tasting Analytics 📊'),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          isFr
-                              ? 'Répartition par couleur, régions, valeur patrimoniale, apogée'
-                              : 'Color breakdown, regions, total asset value, peak windows',
+                          trSi(isFr, 'Répartition par couleur, régions, valeur patrimoniale, apogée', 'Color breakdown, regions, total asset value, peak windows'),
                           style: const TextStyle(fontSize: 11, color: Colors.grey),
                         ),
                       ],
@@ -1308,7 +1247,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(width: 14),
             Expanded(
               child: Text(
-                l10n?.profileLanguage ?? (isFr ? 'Langue de l\'application' : 'Application Language'),
+                l10n?.profileLanguage ?? (trSi(isFr, 'Langue de l\'application', 'Application Language')),
                 style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
@@ -1325,7 +1264,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   items: [
                     DropdownMenuItem(
                       value: 'system',
-                      child: Text(l10n?.profileLanguageSystem ?? (isFr ? 'Système 🌐' : 'System 🌐'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                      child: Text(l10n?.profileLanguageSystem ?? (trSi(isFr, 'Système 🌐', 'System 🌐')), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     ),
                     const DropdownMenuItem(
                       value: 'fr',
@@ -1389,7 +1328,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       }
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(l10n?.profileLanguageUpdated ?? (isFr ? 'Langue modifiée avec succès' : 'Language updated successfully')),
+                          content: Text(l10n?.profileLanguageUpdated ?? (trSi(isFr, 'Langue modifiée avec succès', 'Language updated successfully'))),
                           duration: const Duration(seconds: 1),
                         ),
                       );
@@ -1409,7 +1348,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(width: 14),
             Expanded(
               child: Text(
-                l10n?.profileDefaultCurrency ?? (isFr ? 'Devise par défaut' : 'Default Currency'),
+                l10n?.profileDefaultCurrency ?? (trSi(isFr, 'Devise par défaut', 'Default Currency')),
                 style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
@@ -1446,7 +1385,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(width: 14),
             Expanded(
               child: Text(
-                l10n?.profileTheme ?? (isFr ? 'Ambiance / Thème' : 'Appearance / Theme'),
+                l10n?.profileTheme ?? (trSi(isFr, 'Ambiance / Thème', 'Appearance / Theme')),
                 style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
@@ -1463,15 +1402,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   items: [
                     DropdownMenuItem(
                       value: ThemeMode.system,
-                      child: Text(l10n?.profileThemeSystem ?? (isFr ? 'Système ⚙️' : 'System ⚙️'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                      child: Text(l10n?.profileThemeSystem ?? (trSi(isFr, 'Système ⚙️', 'System ⚙️')), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     ),
                     DropdownMenuItem(
                       value: ThemeMode.light,
-                      child: Text(l10n?.profileThemeLight ?? (isFr ? 'Lumineux ☀️' : 'Light ☀️'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                      child: Text(l10n?.profileThemeLight ?? (trSi(isFr, 'Lumineux ☀️', 'Light ☀️')), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     ),
                     DropdownMenuItem(
                       value: ThemeMode.dark,
-                      child: Text(l10n?.profileThemeDark ?? (isFr ? 'Sombre 🕯️' : 'Dark 🕯️'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                      child: Text(l10n?.profileThemeDark ?? (trSi(isFr, 'Sombre 🕯️', 'Dark 🕯️')), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     ),
                   ],
                   onChanged: (val) {
@@ -1490,9 +1429,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.notifications_active_outlined, color: Color(0xFF8B1E3F)),
-          title: Text(isFr ? 'Notifications & Alertes Système 🔔' : 'Notifications & System Alerts 🔔', style: const TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(trSi(isFr, 'Notifications & Alertes Système 🔔', 'Notifications & System Alerts 🔔'), style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Text(
-            '${ref.watch(notificationPreferencesProvider).activeCount} ${isFr ? "alerte(s) active(s) • Dégustations, apogées, caves" : "active alert(s) • Tastings, aging peak, cellars"}',
+            '${ref.watch(notificationPreferencesProvider).activeCount} ${trSi(isFr, "alerte(s) active(s) • Dégustations, apogées, caves", "active alert(s) • Tastings, aging peak, cellars")}',
             style: const TextStyle(fontSize: 12),
           ),
           trailing: const Icon(Icons.chevron_right),
@@ -1506,8 +1445,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.tune, color: Color(0xFFD4AF37)),
-            title: Text(isFr ? 'Préférences Publicitaires & RGPD' : 'Ad Preferences & Privacy', style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(isFr ? 'Modifier mes choix de consentement publicitaire' : 'Manage your advertising consent choices', style: const TextStyle(fontSize: 12)),
+            title: Text(trSi(isFr, 'Préférences Publicitaires & RGPD', 'Ad Preferences & Privacy'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(trSi(isFr, 'Modifier mes choix de consentement publicitaire', 'Manage your advertising consent choices'), style: const TextStyle(fontSize: 12)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => ref.read(admobServiceProvider).showPrivacyOptionsForm(),
           ),
@@ -1530,8 +1469,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.insights, color: Color(0xFF8B1E3F)),
-          title: Text(isFr ? 'Statistiques de Cave & Analyses 📊' : 'Cellar Analytics & Insights 📊', style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(isFr ? 'Graphiques, apogées, valeurs financières et stocks' : 'Charts, aging peaks, financial valuation and stock', style: const TextStyle(fontSize: 12)),
+          title: Text(trSi(isFr, 'Statistiques de Cave & Analyses 📊', 'Cellar Analytics & Insights 📊'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(trSi(isFr, 'Graphiques, apogées, valeurs financières et stocks', 'Charts, aging peaks, financial valuation and stock'), style: const TextStyle(fontSize: 12)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push('/stats'),
         ),
@@ -1540,8 +1479,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.people_alt, color: Color(0xFFD4AF37)),
-          title: Text(isFr ? 'Mes Amis & Cartes des Goûts 🍷' : 'My Friends & Taste Maps 🍷', style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(isFr ? 'Boire ensemble, recherche @pseudo, cartes partagées' : 'Drink together, search @username, shared maps', style: const TextStyle(fontSize: 12)),
+          title: Text(trSi(isFr, 'Mes Amis & Cartes des Goûts 🍷', 'My Friends & Taste Maps 🍷'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(trSi(isFr, 'Boire ensemble, recherche @pseudo, cartes partagées', 'Drink together, search @username, shared maps'), style: const TextStyle(fontSize: 12)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push('/friends'),
         ),
@@ -1550,12 +1489,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.file_download_outlined, color: Color(0xFF2E7D32)),
-          title: Text(isFr ? 'Exporter ma Cave & Rapport d\'Assurance' : 'Export My Cellar & Insurance Report', style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(isFr ? 'Excel / CSV & Certificat de valeur patrimoniale' : 'Excel / CSV & Asset valuation certificate', style: const TextStyle(fontSize: 12)),
+          title: Text(trSi(isFr, 'Exporter ma Cave & Rapport d\'Assurance', 'Export My Cellar & Insurance Report'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(trSi(isFr, 'Excel / CSV & Certificat de valeur patrimoniale', 'Excel / CSV & Asset valuation certificate'), style: const TextStyle(fontSize: 12)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
             final cellars = ref.read(userCellarsProvider).value ?? [];
-            final name = cellars.isNotEmpty ? (cellars.first['cellars']?['name'] ?? (isFr ? 'Ma Cave' : 'My Cellar')) : (isFr ? 'Ma Cave' : 'My Cellar');
+            final name = cellars.isNotEmpty ? (cellars.first['cellars']?['name'] ?? (trSi(isFr, 'Ma Cave', 'My Cellar'))) : (trSi(isFr, 'Ma Cave', 'My Cellar'));
             CellarExportDialog.show(context, name);
           },
         ),
@@ -1564,8 +1503,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.file_upload_outlined, color: Color(0xFF1B5E20)),
-          title: Text(isFr ? 'Importer une Cave (Excel / CSV / Texte)' : 'Import a Cellar (Excel / CSV / Text)', style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(isFr ? 'Import instantané intelligent par IA sommelier' : 'Instant smart import powered by AI sommelier', style: const TextStyle(fontSize: 12)),
+          title: Text(trSi(isFr, 'Importer une Cave (Excel / CSV / Texte)', 'Import a Cellar (Excel / CSV / Text)'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(trSi(isFr, 'Import instantané intelligent par IA sommelier', 'Instant smart import powered by AI sommelier'), style: const TextStyle(fontSize: 12)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
             final currentCellarId = ref.read(currentCellarIdProvider);
@@ -1579,8 +1518,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.feedback_outlined, color: Colors.orange),
-          title: Text(isFr ? 'Signaler un bug / Commenter' : 'Report a Bug / Feedback', style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(isFr ? 'Secouer le téléphone ou cliquer ici pour annoter' : 'Shake phone or tap here to annotate', style: const TextStyle(fontSize: 12)),
+          title: Text(trSi(isFr, 'Signaler un bug / Commenter', 'Report a Bug / Feedback'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(trSi(isFr, 'Secouer le téléphone ou cliquer ici pour annoter', 'Shake phone or tap here to annotate'), style: const TextStyle(fontSize: 12)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => ShakeFeedbackService.instance.triggerFeedback(context),
         ),
@@ -1596,12 +1535,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           return ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.history_outlined, color: Colors.orange),
-            title: Text(isFr ? 'Mes retours envoyés' : 'My sent reports',
+            title: Text(trSi(isFr, 'Mes retours envoyés', 'My sent reports'),
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(
-              isFr
-                  ? '${retours.length} envoyé${retours.length > 1 ? 's' : ''} · à retirer si vous le souhaitez'
-                  : '${retours.length} sent · withdraw them if you wish',
+              retours.length > 1
+                  ? trSi(isFr, '{n} envoyés · à retirer si vous le souhaitez', '{n} sent · withdraw them if you wish', {'n': retours.length})
+                  : trSi(isFr, '{n} envoyé · à retirer si vous le souhaitez', '{n} sent · withdraw it if you wish', {'n': retours.length}),
               style: const TextStyle(fontSize: 12),
             ),
             trailing: const Icon(Icons.chevron_right),
@@ -1614,12 +1553,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.insights_rounded, color: Color(0xFF8B1E3F)),
-            title: Text(isFr ? 'Console' : 'Console',
+            title: Text(trSi(isFr, 'Console', 'Console'),
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(
-                isFr
-                    ? 'Actifs par jour, ce qu\'ils font, répartitions'
-                    : 'Daily actives, what they do, breakdowns',
+                trSi(isFr, 'Actifs par jour, ce qu\'ils font, répartitions', 'Daily actives, what they do, breakdowns'),
                 style: const TextStyle(fontSize: 12)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/admin/console'),
@@ -1627,8 +1564,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
-            title: Text(isFr ? 'Estimation des Coûts IA (Gemini)' : 'AI Cost Estimation (Gemini)', style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(isFr ? 'Suivi des tokens et dépenses All-Time' : 'Token usage & all-time expenditure', style: const TextStyle(fontSize: 12)),
+            title: Text(trSi(isFr, 'Estimation des Coûts IA (Gemini)', 'AI Cost Estimation (Gemini)'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(trSi(isFr, 'Suivi des tokens et dépenses All-Time', 'Token usage & all-time expenditure'), style: const TextStyle(fontSize: 12)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/ai-costs'),
           ),
@@ -1674,8 +1611,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Expanded(
                     child: Text(
                       isPremium
-                          ? (isFr ? '👑 Mode Premium (Admin actif)' : '👑 Premium Mode (Admin active)')
-                          : (isFr ? 'Mode Standard (Gratuit)' : 'Standard Mode (Free)'),
+                          ? (trSi(isFr, '👑 Mode Premium (Admin actif)', '👑 Premium Mode (Admin active)'))
+                          : (trSi(isFr, 'Mode Standard (Gratuit)', 'Standard Mode (Free)')),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ),
@@ -1695,9 +1632,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.alternate_email, color: Color(0xFF8B1E3F)),
-          title: Text(isFr ? 'Pseudo unique' : 'Unique Username', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          title: Text(trSi(isFr, 'Pseudo unique', 'Unique Username'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           subtitle: Text(
-            _username != null && _username!.isNotEmpty ? '@$_username' : (isFr ? 'Non défini' : 'Not set'),
+            _username != null && _username!.isNotEmpty ? '@$_username' : (trSi(isFr, 'Non défini', 'Not set')),
             style: TextStyle(
               color: _username != null && _username!.isNotEmpty ? const Color(0xFF8B1E3F) : Colors.orange,
               fontWeight: FontWeight.bold,
@@ -1719,8 +1656,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.person_outline),
-          title: Text(l10n?.profileDisplayName ?? (isFr ? 'Nom d\'affichage' : 'Display Name'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          subtitle: Text(_displayName.isNotEmpty ? _displayName : (user?.userMetadata?['display_name'] ?? (isFr ? 'Utilisateur' : 'User')), style: const TextStyle(fontSize: 12)),
+          title: Text(l10n?.profileDisplayName ?? (trSi(isFr, 'Nom d\'affichage', 'Display Name')), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          subtitle: Text(_displayName.isNotEmpty ? _displayName : (user?.userMetadata?['display_name'] ?? (trSi(isFr, 'Utilisateur', 'User'))), style: const TextStyle(fontSize: 12)),
           trailing: const Icon(Icons.edit, size: 16),
           onTap: _editDisplayName,
         ),
@@ -1729,11 +1666,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.phone_outlined, color: Color(0xFF8B1E3F)),
-          title: Text(isFr ? 'Numéro de téléphone' : 'Phone Number', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          title: Text(trSi(isFr, 'Numéro de téléphone', 'Phone Number'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           subtitle: Text(
             _phoneNumber != null && _phoneNumber!.isNotEmpty
                 ? '${PhoneDialCodeHelper.parseExisting(_phoneNumber).$1.flag} $_phoneNumber'
-                : (isFr ? 'Non renseigné' : 'Not set'),
+                : (trSi(isFr, 'Non renseigné', 'Not set')),
             style: const TextStyle(fontSize: 12),
           ),
           trailing: const Icon(Icons.edit, size: 16),
@@ -1744,22 +1681,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.email_outlined),
-          title: Text(l10n?.profileEmail ?? (isFr ? 'Email' : 'Email'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          subtitle: Text(user?.email ?? (isFr ? 'Non renseigné (Mode Invité)' : 'Not set (Guest Mode)'), style: const TextStyle(fontSize: 12)),
+          title: Text(l10n?.profileEmail ?? (trSi(isFr, 'Email', 'Email')), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          subtitle: Text(user?.email ?? (trSi(isFr, 'Non renseigné (Mode Invité)', 'Not set (Guest Mode)')), style: const TextStyle(fontSize: 12)),
         ),
         const Divider(height: 12),
 
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.privacy_tip_outlined, color: Color(0xFF8B1E3F)),
-          title: Text(isFr ? 'Politique de Confidentialité' : 'Privacy Policy', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          title: Text(trSi(isFr, 'Politique de Confidentialité', 'Privacy Policy'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           trailing: const Icon(Icons.chevron_right, size: 18),
           onTap: _showPrivacyPolicy,
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.description_outlined, color: Color(0xFF8B1E3F)),
-          title: Text(isFr ? 'Conditions Générales d\'Utilisation' : 'Terms of Service', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          title: Text(trSi(isFr, 'Conditions Générales d\'Utilisation', 'Terms of Service'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           trailing: const Icon(Icons.chevron_right, size: 18),
           onTap: _showTermsOfService,
         ),
@@ -1768,7 +1705,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.logout),
-          title: Text(l10n?.profileLogout ?? (isFr ? 'Se déconnecter' : 'Log out'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          title: Text(l10n?.profileLogout ?? (trSi(isFr, 'Se déconnecter', 'Log out')), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           onTap: () async {
             AppLogger.info('AUTH', 'User requested sign out from ProfileScreen');
             // Lu AVANT la déconnexion : elle déclenche la redirection du routeur, l'écran est
@@ -1788,7 +1725,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.delete_forever, color: Colors.red),
-          title: Text(isFr ? 'Supprimer mon compte' : 'Delete my account', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
+          title: Text(trSi(isFr, 'Supprimer mon compte', 'Delete my account'), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
           trailing: const Icon(Icons.chevron_right, color: Colors.red, size: 18),
           onTap: _confirmDeleteAccount,
         ),
@@ -1802,9 +1739,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             width: 36,
             height: 36,
           ),
-          applicationLegalese: isFr
-              ? '© 2026 Chatmelier • Gestionnaire de Cave Intelligent par IA\nConforme RGPD & Apple/Google Store Guidelines'
-              : '© 2026 Chatmelier • Smart AI Wine Cellar Manager\nCompliant with GDPR & Apple/Google Store Guidelines',
+          applicationLegalese: trSi(isFr, '© 2026 Chatmelier • Gestionnaire de Cave Intelligent par IA\nConforme RGPD & Apple/Google Store Guidelines', '© 2026 Chatmelier • Smart AI Wine Cellar Manager\nCompliant with GDPR & Apple/Google Store Guidelines'),
           icon: const Icon(Icons.info_outline, size: 20),
         ),
       ],

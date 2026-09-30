@@ -64,14 +64,10 @@ class WineServiceAdvisor {
         maxTemp: 20,
         tempLabel: '18°C - 20°C',
         carafeMinutes: 0,
-        carafeLabel: isFr ? 'Service direct au verre' : 'Direct pour in tumbler/tulip',
-        decantingAdvice: isFr
-            ? 'Servir à température ambiante dans un verre tulipe ou Glencairn pour canaliser les vapeurs d\'alcool et concentrer les arômes sans brûlure.'
-            : 'Serve at cool room temperature in a tulip or Glencairn glass to concentrate delicate aromatics without excessive alcohol burn.',
-        glasswareType: isFr ? 'Verre tulipe à spiritueux / Verre Glencairn' : 'Spirits tulip glass / Glencairn glass',
-        detailedTip: isFr
-            ? 'Laisser respirer 2 à 3 minutes dans le verre avant la dégustation. Quelques gouttes d\'eau pure et fraîche peuvent ouvrir les arômes les plus complexes.'
-            : 'Let rest 2-3 minutes in the glass before tasting. A few drops of pure spring water can unlock hidden aromatic complexity.',
+        carafeLabel: trSi(isFr, 'Service direct au verre', 'Direct pour in tumbler/tulip'),
+        decantingAdvice: trSi(isFr, 'Servir à température ambiante dans un verre tulipe ou Glencairn pour canaliser les vapeurs d\'alcool et concentrer les arômes sans brûlure.', 'Serve at cool room temperature in a tulip or Glencairn glass to concentrate delicate aromatics without excessive alcohol burn.'),
+        glasswareType: trSi(isFr, 'Verre tulipe à spiritueux / Verre Glencairn', 'Spirits tulip glass / Glencairn glass'),
+        detailedTip: trSi(isFr, 'Laisser respirer 2 à 3 minutes dans le verre avant la dégustation. Quelques gouttes d\'eau pure et fraîche peuvent ouvrir les arômes les plus complexes.', 'Let rest 2-3 minutes in the glass before tasting. A few drops of pure spring water can unlock hidden aromatic complexity.'),
       );
     }
 
@@ -106,14 +102,10 @@ class WineServiceAdvisor {
             maxTemp: 18,
             tempLabel: '17°C - 18°C',
             carafeMinutes: 0,
-            carafeLabel: isFr ? 'Pas de caravage' : 'No decanting needed',
-            decantingAdvice: isFr
-                ? 'Débouchage délicat 30-45 min avant le service. Éviter le caravage pour ne pas épuiser ses arômes tertiaires fragiles.'
-                : 'Delicate uncorking 30-45 min before service. Avoid decanting to preserve fragile tertiary aromas.',
-            glasswareType: isFr ? 'Grand verre Bordeaux / Verre tulipe généreux' : 'Large Bordeaux glass / Generous tulip glass',
-            detailedTip: isFr
-                ? 'Un grand vin ancien a besoin de douceur. Versez lentement en laissant le dépôt au fond de la bouteille.'
-                : 'A great mature wine requires gentleness. Pour slowly, leaving the fine sediment in the bottle.',
+            carafeLabel: trSi(isFr, 'Pas de caravage', 'No decanting needed'),
+            decantingAdvice: trSi(isFr, 'Débouchage délicat 30-45 min avant le service. Éviter le caravage pour ne pas épuiser ses arômes tertiaires fragiles.', 'Delicate uncorking 30-45 min before service. Avoid decanting to preserve fragile tertiary aromas.'),
+            glasswareType: trSi(isFr, 'Grand verre Bordeaux / Verre tulipe généreux', 'Large Bordeaux glass / Generous tulip glass'),
+            detailedTip: trSi(isFr, 'Un grand vin ancien a besoin de douceur. Versez lentement en laissant le dépôt au fond de la bouteille.', 'A great mature wine requires gentleness. Pour slowly, leaving the fine sediment in the bottle.'),
           );
         } else if (age != null && age >= 8) {
           return WineServiceAdvice(
@@ -121,14 +113,10 @@ class WineServiceAdvisor {
             maxTemp: 18,
             tempLabel: '16°C - 18°C',
             carafeMinutes: 45,
-            carafeLabel: isFr ? '45 min en carafe' : '45 min in decanter',
-            decantingAdvice: isFr
-                ? 'Caravage doux 45 minutes avant le service pour épanouir le bouquet sans brutaliser la texture soyeuse.'
-                : 'Gentle decanting 45 minutes before service to unfurl the bouquet without jarring its silky texture.',
-            glasswareType: isFr ? 'Verre Bordeaux ample' : 'Broad Bordeaux glass',
-            detailedTip: isFr
-                ? 'Laissez respirer à température ambiante fraîche (16-17°C).'
-                : 'Let it breathe at a cool room temperature (16-17°C).',
+            carafeLabel: trSi(isFr, '45 min en carafe', '45 min in decanter'),
+            decantingAdvice: trSi(isFr, 'Caravage doux 45 minutes avant le service pour épanouir le bouquet sans brutaliser la texture soyeuse.', 'Gentle decanting 45 minutes before service to unfurl the bouquet without jarring its silky texture.'),
+            glasswareType: trSi(isFr, 'Verre Bordeaux ample', 'Broad Bordeaux glass'),
+            detailedTip: trSi(isFr, 'Laissez respirer à température ambiante fraîche (16-17°C).', 'Let it breathe at a cool room temperature (16-17°C).'),
           );
         } else {
           return WineServiceAdvice(
@@ -136,14 +124,10 @@ class WineServiceAdvisor {
             maxTemp: 17,
             tempLabel: '16°C - 17°C',
             carafeMinutes: 120,
-            carafeLabel: isFr ? '2h en carafe évasée' : '2h in wide-bottom decanter',
-            decantingAdvice: isFr
-                ? 'Caravage vigoureux 2 heures avant le repas dans une carafe à large base pour aérer et assouplir les tanins encore serrés.'
-                : 'Vigorous decanting 2 hours before the meal in a broad-base decanter to aerate and soften tight tannins.',
-            glasswareType: isFr ? 'Verre Bordeaux grand format' : 'Large-format Bordeaux glass',
-            detailedTip: isFr
-                ? 'L\'oxygénation intensive va réveiller les arômes de fruits noirs et fondre la trame tannique.'
-                : 'Intensive aeration awakens dark fruit aromas and melts the youthful tannic structure.',
+            carafeLabel: trSi(isFr, '2h en carafe évasée', '2h in wide-bottom decanter'),
+            decantingAdvice: trSi(isFr, 'Caravage vigoureux 2 heures avant le repas dans une carafe à large base pour aérer et assouplir les tanins encore serrés.', 'Vigorous decanting 2 hours before the meal in a broad-base decanter to aerate and soften tight tannins.'),
+            glasswareType: trSi(isFr, 'Verre Bordeaux grand format', 'Large-format Bordeaux glass'),
+            detailedTip: trSi(isFr, 'L\'oxygénation intensive va réveiller les arômes de fruits noirs et fondre la trame tannique.', 'Intensive aeration awakens dark fruit aromas and melts the youthful tannic structure.'),
           );
         }
       }
@@ -166,14 +150,10 @@ class WineServiceAdvisor {
             maxTemp: 16,
             tempLabel: '15°C - 16°C',
             carafeMinutes: 0,
-            carafeLabel: isFr ? 'Service direct au verre' : 'Direct pour by the glass',
-            decantingAdvice: isFr
-                ? 'Ouvrir 30 min avant sans carafer. Le Pinot Noir âgé révèle sa complexité directement dans un grand calice.'
-                : 'Open 30 min ahead without decanting. Mature Pinot Noir reveals its complexity directly in a large bowl glass.',
-            glasswareType: isFr ? 'Grand verre Bourgogne (forme ballon)' : 'Large Burgundy glass (balloon bowl)',
-            detailedTip: isFr
-                ? 'La délicatesse du sous-bois et de la truffe s\'exprime pleinement sans passage en carafe.'
-                : 'Delicate forest floor and truffle notes express themselves best without decanting.',
+            carafeLabel: trSi(isFr, 'Service direct au verre', 'Direct pour by the glass'),
+            decantingAdvice: trSi(isFr, 'Ouvrir 30 min avant sans carafer. Le Pinot Noir âgé révèle sa complexité directement dans un grand calice.', 'Open 30 min ahead without decanting. Mature Pinot Noir reveals its complexity directly in a large bowl glass.'),
+            glasswareType: trSi(isFr, 'Grand verre Bourgogne (forme ballon)', 'Large Burgundy glass (balloon bowl)'),
+            detailedTip: trSi(isFr, 'La délicatesse du sous-bois et de la truffe s\'exprime pleinement sans passage en carafe.', 'Delicate forest floor and truffle notes express themselves best without decanting.'),
           );
         } else {
           return WineServiceAdvice(
@@ -181,14 +161,10 @@ class WineServiceAdvisor {
             maxTemp: 16,
             tempLabel: '14°C - 16°C',
             carafeMinutes: 30,
-            carafeLabel: isFr ? '30 min d\'aération' : '30 min aeration',
-            decantingAdvice: isFr
-                ? 'Aération douce 30 minutes en bouteille ou carafe étroite pour libérer la pureté du fruit rouge.'
-                : 'Gentle aeration 30 minutes in bottle or slender decanter to release vibrant red fruit purity.',
-            glasswareType: isFr ? 'Verre Bourgogne ballon' : 'Burgundy balloon glass',
-            detailedTip: isFr
-                ? 'Température idéale légèrement fraîche pour préserver l\'éclat et la tension aromatique.'
-                : 'Ideal slightly cool temperature to preserve brightness and aromatic tension.',
+            carafeLabel: trSi(isFr, '30 min d\'aération', '30 min aeration'),
+            decantingAdvice: trSi(isFr, 'Aération douce 30 minutes en bouteille ou carafe étroite pour libérer la pureté du fruit rouge.', 'Gentle aeration 30 minutes in bottle or slender decanter to release vibrant red fruit purity.'),
+            glasswareType: trSi(isFr, 'Verre Bourgogne ballon', 'Burgundy balloon glass'),
+            detailedTip: trSi(isFr, 'Température idéale légèrement fraîche pour préserver l\'éclat et la tension aromatique.', 'Ideal slightly cool temperature to preserve brightness and aromatic tension.'),
           );
         }
       }
@@ -198,14 +174,10 @@ class WineServiceAdvisor {
         maxTemp: 17,
         tempLabel: '15°C - 17°C',
         carafeMinutes: 45,
-        carafeLabel: isFr ? '45 min en carafe' : '45 min in decanter',
-        decantingAdvice: isFr
-            ? 'Ouvrir 45 min à 1h avant la dégustation.'
-            : 'Uncork 45 min to 1 hour before serving.',
-        glasswareType: isFr ? 'Verre à vin rouge standard ou tulipe' : 'Standard red wine or tulip glass',
-        detailedTip: isFr
-            ? 'Servir légèrement rafraîchi pour sublimer l\'équilibre.'
-            : 'Serve slightly cool to enhance balance and freshness.',
+        carafeLabel: trSi(isFr, '45 min en carafe', '45 min in decanter'),
+        decantingAdvice: trSi(isFr, 'Ouvrir 45 min à 1h avant la dégustation.', 'Uncork 45 min to 1 hour before serving.'),
+        glasswareType: trSi(isFr, 'Verre à vin rouge standard ou tulipe', 'Standard red wine or tulip glass'),
+        detailedTip: trSi(isFr, 'Servir légèrement rafraîchi pour sublimer l\'équilibre.', 'Serve slightly cool to enhance balance and freshness.'),
       );
     }
 
@@ -229,14 +201,10 @@ class WineServiceAdvisor {
           maxTemp: 13,
           tempLabel: '11°C - 13°C',
           carafeMinutes: 30,
-          carafeLabel: isFr ? '30 min en carafe fraîche' : '30 min in chilled decanter',
-          decantingAdvice: isFr
-              ? 'Un passage en carafe fraîche 30 minutes libère les notes de noisette, brioche et fruits mûrs.'
-              : 'Decanting 30 minutes in a chilled decanter releases notes of hazelnut, brioche, and ripe orchard fruit.',
-          glasswareType: isFr ? 'Verre grand blanc / Bourgogne blanc' : 'Large white wine / White Burgundy glass',
-          detailedTip: isFr
-              ? 'Ne servez jamais un grand blanc glacé, le froid anesthésie sa minéralité et sa rondeur.'
-              : 'Never serve a great white ice cold; excessive chill numbs minerality and roundness.',
+          carafeLabel: trSi(isFr, '30 min en carafe fraîche', '30 min in chilled decanter'),
+          decantingAdvice: trSi(isFr, 'Un passage en carafe fraîche 30 minutes libère les notes de noisette, brioche et fruits mûrs.', 'Decanting 30 minutes in a chilled decanter releases notes of hazelnut, brioche, and ripe orchard fruit.'),
+          glasswareType: trSi(isFr, 'Verre grand blanc / Bourgogne blanc', 'Large white wine / White Burgundy glass'),
+          detailedTip: trSi(isFr, 'Ne servez jamais un grand blanc glacé, le froid anesthésie sa minéralité et sa rondeur.', 'Never serve a great white ice cold; excessive chill numbs minerality and roundness.'),
         );
       }
 
@@ -245,14 +213,10 @@ class WineServiceAdvisor {
         maxTemp: 11,
         tempLabel: '9°C - 11°C',
         carafeMinutes: 0,
-        carafeLabel: isFr ? 'Service direct frais' : 'Direct chilled service',
-        decantingAdvice: isFr
-            ? 'Déboucher à la minute et maintenir au seau frais.'
-            : 'Uncork upon serving and keep cool in an ice bucket.',
-        glasswareType: isFr ? 'Verre à blanc élancé' : 'Slender white wine glass',
-        detailedTip: isFr
-            ? 'Une belle fraîcheur fait ressortir les notes d\'agrumes et la vivacité minérale.'
-            : 'Crisp coolness highlights citrus zest and mineral vitality.',
+        carafeLabel: trSi(isFr, 'Service direct frais', 'Direct chilled service'),
+        decantingAdvice: trSi(isFr, 'Déboucher à la minute et maintenir au seau frais.', 'Uncork upon serving and keep cool in an ice bucket.'),
+        glasswareType: trSi(isFr, 'Verre à blanc élancé', 'Slender white wine glass'),
+        detailedTip: trSi(isFr, 'Une belle fraîcheur fait ressortir les notes d\'agrumes et la vivacité minérale.', 'Crisp coolness highlights citrus zest and mineral vitality.'),
       );
     }
 
@@ -263,14 +227,10 @@ class WineServiceAdvisor {
         maxTemp: 10,
         tempLabel: '8°C - 10°C',
         carafeMinutes: 0,
-        carafeLabel: isFr ? 'Service immédiat au seau' : 'Immediate service from ice bucket',
-        decantingAdvice: isFr
-            ? 'Servir frais dans un verre tulipe pour laisser les bulles fines s\'exprimer sans perdre leur effervescence.'
-            : 'Serve chilled in a tulip glass to allow fine bubbles to breathe without flattening effervescence.',
-        glasswareType: isFr ? 'Verre tulipe à Champagne (éviter les flûtes trop étroites ou coupes)' : 'Champagne tulip glass (avoid overly narrow flutes or saucers)',
-        detailedTip: isFr
-            ? 'Pour un grand millésimé vineux, servez plutôt à 10-11°C pour révéler toute son ampleur.'
-            : 'For a rich vintage Champagne, serve slightly warmer at 10-11°C to unlock full complexity.',
+        carafeLabel: trSi(isFr, 'Service immédiat au seau', 'Immediate service from ice bucket'),
+        decantingAdvice: trSi(isFr, 'Servir frais dans un verre tulipe pour laisser les bulles fines s\'exprimer sans perdre leur effervescence.', 'Serve chilled in a tulip glass to allow fine bubbles to breathe without flattening effervescence.'),
+        glasswareType: trSi(isFr, 'Verre tulipe à Champagne (éviter les flûtes trop étroites ou coupes)', 'Champagne tulip glass (avoid overly narrow flutes or saucers)'),
+        detailedTip: trSi(isFr, 'Pour un grand millésimé vineux, servez plutôt à 10-11°C pour révéler toute son ampleur.', 'For a rich vintage Champagne, serve slightly warmer at 10-11°C to unlock full complexity.'),
       );
     }
 
@@ -281,14 +241,10 @@ class WineServiceAdvisor {
         maxTemp: 10,
         tempLabel: '8°C - 10°C',
         carafeMinutes: 0,
-        carafeLabel: isFr ? 'Service direct' : 'Direct chilled service',
-        decantingAdvice: isFr
-            ? 'Servir bien frais directement au seau à glace.'
-            : 'Serve well chilled directly from the wine bucket.',
-        glasswareType: isFr ? 'Verre à vin blanc universel' : 'Universal white wine glass',
-        detailedTip: isFr
-            ? 'Idéal pour préserver le croquant du fruit et la vivacité florale.'
-            : 'Ideal to preserve crisp berry fruit and floral brightness.',
+        carafeLabel: trSi(isFr, 'Service direct', 'Direct chilled service'),
+        decantingAdvice: trSi(isFr, 'Servir bien frais directement au seau à glace.', 'Serve well chilled directly from the wine bucket.'),
+        glasswareType: trSi(isFr, 'Verre à vin blanc universel', 'Universal white wine glass'),
+        detailedTip: trSi(isFr, 'Idéal pour préserver le croquant du fruit et la vivacité florale.', 'Ideal to preserve crisp berry fruit and floral brightness.'),
       );
     }
 
@@ -299,14 +255,10 @@ class WineServiceAdvisor {
         maxTemp: 9,
         tempLabel: '7°C - 9°C',
         carafeMinutes: 15,
-        carafeLabel: isFr ? '15 min d\'aération fraîche' : '15 min cool aeration',
-        decantingAdvice: isFr
-            ? 'Servir très frais. Le froid compense la richesse en sucres et sublime la fraîcheur acidulée.'
-            : 'Serve very cold. Chill balances residual sweetness and brings forward refreshing acidity.',
-        glasswareType: isFr ? 'Petit verre tulipe ou verre à digestif' : 'Small tulip or dessert wine glass',
-        detailedTip: isFr
-            ? 'Laissez le vin tempérer lentement dans le verre pour libérer les arômes de miel, d\'abricot et d\'épices.'
-            : 'Let wine warm gently in the glass to release intoxicating aromas of honey, candied apricot, and saffron.',
+        carafeLabel: trSi(isFr, '15 min d\'aération fraîche', '15 min cool aeration'),
+        decantingAdvice: trSi(isFr, 'Servir très frais. Le froid compense la richesse en sucres et sublime la fraîcheur acidulée.', 'Serve very cold. Chill balances residual sweetness and brings forward refreshing acidity.'),
+        glasswareType: trSi(isFr, 'Petit verre tulipe ou verre à digestif', 'Small tulip or dessert wine glass'),
+        detailedTip: trSi(isFr, 'Laissez le vin tempérer lentement dans le verre pour libérer les arômes de miel, d\'abricot et d\'épices.', 'Let wine warm gently in the glass to release intoxicating aromas of honey, candied apricot, and saffron.'),
       );
     }
 
@@ -315,14 +267,10 @@ class WineServiceAdvisor {
       maxTemp: 16,
       tempLabel: '14°C - 16°C',
       carafeMinutes: 30,
-      carafeLabel: isFr ? '30 min de repos' : '30 min rest',
-      decantingAdvice: isFr
-          ? 'Ouvrir 30 minutes avant le service.'
-          : 'Uncork 30 minutes before serving.',
-      glasswareType: isFr ? 'Verre à vin universel' : 'Universal wine glass',
-      detailedTip: isFr
-          ? 'Servir à température de cave fraîche.'
-          : 'Serve at cool cellar temperature.',
+      carafeLabel: trSi(isFr, '30 min de repos', '30 min rest'),
+      decantingAdvice: trSi(isFr, 'Ouvrir 30 minutes avant le service.', 'Uncork 30 minutes before serving.'),
+      glasswareType: trSi(isFr, 'Verre à vin universel', 'Universal wine glass'),
+      detailedTip: trSi(isFr, 'Servir à température de cave fraîche.', 'Serve at cool cellar temperature.'),
     );
   }
 }
@@ -334,9 +282,9 @@ class WineServiceAdvisor {
 String? _phraseDElevage(String? type, int? mois) {
   final nom = _nomDuContenant(type);
   if (nom == null && mois == null) return null;
-  if (nom == null) return tr('$mois mois', '$mois months');
+  if (nom == null) return tr('{mois} mois', '{mois} months', {'mois': mois});
   if (mois == null || mois <= 0) return nom;
-  return tr('$mois mois en $nom', '$mois months in $nom');
+  return tr('{mois} mois en {nom}', '{mois} months in {nom}', {'mois': mois, 'nom': nom});
 }
 
 String? _nomDuContenant(String? type) => switch (type) {
@@ -501,8 +449,8 @@ class WineOenologyAdvisor {
         peakEnd: pEnd,
         maxYear: math.max(end + 4, currentYear + 2),
         agingPotentialText: sansMillesime
-            ? tr('Sans millésime — à boire dans les ${borne.fin} ans', 'No vintage — drink within ${borne.fin} years')
-            : tr('${borne.debut} à ${borne.fin} ans (Apogée optimale : $pStart - $pEnd)', '${borne.debut} to ${borne.fin} years (peak: $pStart - $pEnd)'),
+            ? tr('Sans millésime — à boire dans les {fin} ans', 'No vintage — drink within {fin} years', {'fin': borne.fin})
+            : tr('{debut} à {fin} ans (Apogée optimale : {pStart} - {pEnd})', '{debut} to {fin} years (peak: {pStart} - {pEnd})', {'debut': borne.debut, 'fin': borne.fin, 'pStart': pStart, 'pEnd': pEnd}),
       );
     }
 
@@ -532,7 +480,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: maxY,
-        agingPotentialText: tr('$minYears à $maxYears ans (Apogée optimale : $pStart - $pEnd)', '$minYears to $maxYears years (peak: $pStart - $pEnd)'),
+        agingPotentialText: tr('{minYears} à {maxYears} ans (Apogée optimale : {pStart} - {pEnd})', '{minYears} to {maxYears} years (peak: {pStart} - {pEnd})', {'minYears': minYears, 'maxYears': maxYears, 'pStart': pStart, 'pEnd': pEnd}),
       );
     }
 
@@ -570,7 +518,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 5, currentYear + 2),
-          agingPotentialText: tr('20 à 40 ans (Apogée optimale : $pStart - $pEnd)', '20 to 40 years (peak: $pStart - $pEnd)'),
+          agingPotentialText: tr('20 à 40 ans (Apogée optimale : {pStart} - {pEnd})', '20 to 40 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
         );
       } else {
         final start = v + 5;
@@ -584,7 +532,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 4, currentYear + 2),
-          agingPotentialText: tr('10 à 20 ans (Apogée optimale : $pStart - $pEnd)', '10 to 20 years (peak: $pStart - $pEnd)'),
+          agingPotentialText: tr('10 à 20 ans (Apogée optimale : {pStart} - {pEnd})', '10 to 20 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
         );
       }
     }
@@ -608,7 +556,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 4, currentYear + 2),
-          agingPotentialText: tr('10 à 25 ans (Apogée optimale : $pStart - $pEnd)', '10 to 25 years (peak: $pStart - $pEnd)'),
+          agingPotentialText: tr('10 à 25 ans (Apogée optimale : {pStart} - {pEnd})', '10 to 25 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
         );
       } else {
         final start = v + 2;
@@ -622,7 +570,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 3, currentYear + 2),
-          agingPotentialText: tr('5 à 12 ans (Apogée optimale : $pStart - $pEnd)', '5 to 12 years (peak: $pStart - $pEnd)'),
+          agingPotentialText: tr('5 à 12 ans (Apogée optimale : {pStart} - {pEnd})', '5 to 12 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
         );
       }
     }
@@ -648,7 +596,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 4, currentYear + 2),
-          agingPotentialText: tr('15 à 30 ans (Apogée optimale : $pStart - $pEnd)', '15 to 30 years (peak: $pStart - $pEnd)'),
+          agingPotentialText: tr('15 à 30 ans (Apogée optimale : {pStart} - {pEnd})', '15 to 30 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
         );
       } else {
         final start = v + 3;
@@ -662,7 +610,7 @@ class WineOenologyAdvisor {
           peakStart: pStart,
           peakEnd: pEnd,
           maxYear: math.max(end + 3, currentYear + 2),
-          agingPotentialText: tr('8 à 15 ans (Apogée optimale : $pStart - $pEnd)', '8 to 15 years (peak: $pStart - $pEnd)'),
+          agingPotentialText: tr('8 à 15 ans (Apogée optimale : {pStart} - {pEnd})', '8 to 15 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
         );
       }
     }
@@ -685,7 +633,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 4, currentYear + 2),
-        agingPotentialText: tr('12 à 25 ans (Apogée optimale : $pStart - $pEnd)', '12 to 25 years (peak: $pStart - $pEnd)'),
+        agingPotentialText: tr('12 à 25 ans (Apogée optimale : {pStart} - {pEnd})', '12 to 25 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
       );
     }
 
@@ -705,7 +653,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 3, currentYear + 2),
-        agingPotentialText: tr('3 à 7 ans (Apogée optimale : $pStart - $pEnd)', '3 to 7 years (peak: $pStart - $pEnd)'),
+        agingPotentialText: tr('3 à 7 ans (Apogée optimale : {pStart} - {pEnd})', '3 to 7 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
       );
     }
 
@@ -722,7 +670,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 3, currentYear + 2),
-        agingPotentialText: tr('5 à 15 ans (Apogée optimale : $pStart - $pEnd)', '5 to 15 years (peak: $pStart - $pEnd)'),
+        agingPotentialText: tr('5 à 15 ans (Apogée optimale : {pStart} - {pEnd})', '5 to 15 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
       );
     }
 
@@ -739,7 +687,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 4, currentYear + 2),
-        agingPotentialText: tr('15 à 30 ans (Apogée optimale : $pStart - $pEnd)', '15 to 30 years (peak: $pStart - $pEnd)'),
+        agingPotentialText: tr('15 à 30 ans (Apogée optimale : {pStart} - {pEnd})', '15 to 30 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
       );
     }
 
@@ -756,7 +704,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 3, currentYear + 2),
-        agingPotentialText: tr('5 à 12 ans (Apogée optimale : $pStart - $pEnd)', '5 to 12 years (peak: $pStart - $pEnd)'),
+        agingPotentialText: tr('5 à 12 ans (Apogée optimale : {pStart} - {pEnd})', '5 to 12 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
       );
     } else if (type.contains('rose') || type.contains('rosé')) {
       final start = v;
@@ -770,7 +718,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 2, currentYear + 2),
-        agingPotentialText: tr('2 à 3 ans (Fraîcheur optimale : $v - ${v + 2})', '2 to 3 years (freshest: $v - ${v + 2})'),
+        agingPotentialText: tr('2 à 3 ans (Fraîcheur optimale : {v} - {v1})', '2 to 3 years (freshest: {v} - {v1})', {'v': v, 'v1': v + 2}),
       );
     } else {
       final start = v + 1;
@@ -784,7 +732,7 @@ class WineOenologyAdvisor {
         peakStart: pStart,
         peakEnd: pEnd,
         maxYear: math.max(end + 3, currentYear + 2),
-        agingPotentialText: tr('3 à 6 ans (Apogée optimale : $pStart - $pEnd)', '3 to 6 years (peak: $pStart - $pEnd)'),
+        agingPotentialText: tr('3 à 6 ans (Apogée optimale : {pStart} - {pEnd})', '3 to 6 years (peak: {pStart} - {pEnd})', {'pStart': pStart, 'pEnd': pEnd}),
       );
     }
   }

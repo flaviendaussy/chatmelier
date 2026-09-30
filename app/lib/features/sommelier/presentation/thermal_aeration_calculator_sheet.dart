@@ -418,7 +418,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
                 ),
                 icon: const Icon(Icons.timer_outlined, size: 20),
                 label: Text(
-                  tr('Lancer le minuteur (${plan.durationMinutes} min)', 'Start the timer (${plan.durationMinutes} min)'),
+                  tr('Lancer le minuteur ({durationMinutes} min)', 'Start the timer ({durationMinutes} min)', {'durationMinutes': plan.durationMinutes}),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 onPressed: () => _startTimer(plan.durationMinutes),
@@ -592,7 +592,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
           style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
-          tr('Frigo: ${_fridgeTemp.toStringAsFixed(0)}°C • Pièce: ${_roomTemp.toStringAsFixed(0)}°C', 'Fridge: ${_fridgeTemp.toStringAsFixed(0)}°C • Room: ${_roomTemp.toStringAsFixed(0)}°C'),
+          tr('Frigo: {v1}°C • Pièce: {v2}°C', 'Fridge: {v1}°C • Room: {v2}°C', {'v1': _fridgeTemp.toStringAsFixed(0), 'v2': _roomTemp.toStringAsFixed(0)}),
           style: const TextStyle(color: Colors.white54, fontSize: 12),
         ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -748,11 +748,11 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                tr('${plan.initialTemp.toStringAsFixed(1)}°C (Départ)', '${plan.initialTemp.toStringAsFixed(1)}°C (start)'),
+                tr('{v1}°C (Départ)', '{v1}°C (start)', {'v1': plan.initialTemp.toStringAsFixed(1)}),
                 style: const TextStyle(color: Colors.white54, fontSize: 11),
               ),
               Text(
-                tr('${plan.targetTemp.toStringAsFixed(1)}°C (Idéal)', '${plan.targetTemp.toStringAsFixed(1)}°C (ideal)'),
+                tr('{v1}°C (Idéal)', '{v1}°C (ideal)', {'v1': plan.targetTemp.toStringAsFixed(1)}),
                 style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold),
               ),
             ],

@@ -119,7 +119,7 @@ class TastingAiAssistantService {
   Future<dynamic> _tache(String tache, Map<String, dynamic> entrees) async {
     final ia = _ia;
     if (ia == null) return null;
-    final r = await ia.appeler('taches-ia', {'tache': tache, 'langue': Langue.estFr ? 'fr' : 'en', ...entrees},
+    final r = await ia.appeler('taches-ia', {'tache': tache, 'langue': tr('fr', 'en'), ...entrees},
         delai: const Duration(seconds: 40));
     if (!r.ok) {
       AppLogger.info('TASTING_AI', '$tache sans le sommelier (${r.erreur}) : repli local');

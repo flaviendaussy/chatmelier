@@ -74,7 +74,7 @@ class CellarGapAnalyzerSheet extends ConsumerWidget {
                         style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        tr('Analyse des déséquilibres & Opportunités (${analysis.totalBottles} bouteilles)', 'Imbalances & opportunities (${analysis.totalBottles} bottles)'),
+                        tr('Analyse des déséquilibres & Opportunités ({totalBottles} bouteilles)', 'Imbalances & opportunities ({totalBottles} bottles)', {'totalBottles': analysis.totalBottles}),
                         style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 12),
                       ),
                     ],

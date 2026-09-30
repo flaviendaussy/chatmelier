@@ -1,3 +1,4 @@
+import '../../../shared/utils/langue.dart';
 /// Represents a physical wine furniture unit (étagère, casier, meuble) in a cellar.
 class CellarFurniture {
   static const String shapeRectangle = 'rectangle';
@@ -38,16 +39,16 @@ class CellarFurniture {
       case 'cupboard':
       case 'bulk':
       case 'free_shelf':
-        return isFr ? 'Placard / Rangement libre' : 'Cupboard / Free storage';
+        return trSi(isFr, 'Placard / Rangement libre', 'Cupboard / Free storage');
       case 'triangle':
-        return isFr ? 'Casier triangulaire (Pyramide)' : 'Triangular rack (Pyramid)';
+        return trSi(isFr, 'Casier triangulaire (Pyramide)', 'Triangular rack (Pyramid)');
       case 'staggered_4_2':
-        return isFr ? 'Casier décalé 4+2' : 'Staggered rack 4+2';
+        return trSi(isFr, 'Casier décalé 4+2', 'Staggered rack 4+2');
       case 'custom':
-        return isFr ? 'Meuble personnalisé' : 'Custom furniture';
+        return trSi(isFr, 'Meuble personnalisé', 'Custom furniture');
       case 'rectangle':
       default:
-        return isFr ? 'Casier rectangulaire' : 'Rectangular rack';
+        return trSi(isFr, 'Casier rectangulaire', 'Rectangular rack');
     }
   }
 
@@ -99,7 +100,7 @@ class CellarFurniture {
   static String describeSlotCode(String code, [bool isFr = true]) {
     final lower = code.trim().toLowerCase();
     if (lower == 'placard' || lower == 'vrac' || lower == 'libre' || lower == 'free' || lower == 'bulk' || lower == 'closet') {
-      return isFr ? 'Rangement libre (sans case fixe)' : 'Free placement (no fixed slot)';
+      return trSi(isFr, 'Rangement libre (sans case fixe)', 'Free placement (no fixed slot)');
     }
     if (lower.startsWith('etagere') || lower.startsWith('étagère') || lower.startsWith('niveau') || lower.startsWith('shelf')) {
       return code.trim();

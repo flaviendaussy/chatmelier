@@ -152,7 +152,7 @@ class _BottleProvenancePickerState extends ConsumerState<BottleProvenancePicker>
                   if (_detailsCtrl.text.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      tr('🏪 Caviste sélectionné : ${_detailsCtrl.text}', '🏪 Wine shop selected: ${_detailsCtrl.text}'),
+                      tr('🏪 Caviste sélectionné : {detailsCtrl_text}', '🏪 Wine shop selected: {detailsCtrl_text}', {'detailsCtrl_text': _detailsCtrl.text}),
                       style: const TextStyle(fontSize: 12, color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold),
                     ),
                   ],

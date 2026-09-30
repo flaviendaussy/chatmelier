@@ -1,38 +1,22 @@
 import 'package:flutter/material.dart';
 import 'wine_service_advisor.dart';
+import '../../../shared/utils/langue.dart';
 
 enum DrinkWindowStatus { tooYoung, aging, inPeak, drinkSoon, pastPeak }
 
 extension DrinkWindowStatusX on DrinkWindowStatus {
-  String get labelFr {
-    switch (this) {
-      case DrinkWindowStatus.tooYoung:
-        return 'Trop jeune';
-      case DrinkWindowStatus.aging:
-        return 'En garde';
-      case DrinkWindowStatus.inPeak:
-        return 'À l\'apogée';
-      case DrinkWindowStatus.drinkSoon:
-        return 'À boire vite';
-      case DrinkWindowStatus.pastPeak:
-        return 'Passé';
-    }
-  }
+  /// Le nom du statut, en deux langues côte à côte (les autres dans les catalogues).
+  Phrase get phrase => switch (this) {
+        DrinkWindowStatus.tooYoung => const Phrase('Trop jeune', 'Too Young'),
+        DrinkWindowStatus.aging => const Phrase('En garde', 'Aging'),
+        DrinkWindowStatus.inPeak => const Phrase('À l\'apogée', 'At Peak'),
+        DrinkWindowStatus.drinkSoon => const Phrase('À boire vite', 'Drink Soon'),
+        DrinkWindowStatus.pastPeak => const Phrase('Passé', 'Past Peak'),
+      };
 
-  String get labelEn {
-    switch (this) {
-      case DrinkWindowStatus.tooYoung:
-        return 'Too Young';
-      case DrinkWindowStatus.aging:
-        return 'Aging';
-      case DrinkWindowStatus.inPeak:
-        return 'At Peak';
-      case DrinkWindowStatus.drinkSoon:
-        return 'Drink Soon';
-      case DrinkWindowStatus.pastPeak:
-        return 'Past Peak';
-    }
-  }
+  String get labelFr => phrase.fr;
+
+  String get labelEn => phrase.en;
 
   Color get color {
     switch (this) {

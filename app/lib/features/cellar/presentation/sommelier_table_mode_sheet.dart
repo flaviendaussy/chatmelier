@@ -69,6 +69,10 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
     'Vivacité et fraîcheur saline', 'Équilibre parfait', 'Légèreté et fluidité'
   ];
 
+  /// Les descripteurs de la dégustation (vue, nez, bouche) : français dans les données,
+  /// anglais ici, les autres langues dans les catalogues (trDonnee).
+  static final Map<String, String> _descripteursEn = {..._appearanceEn, ..._aromaEn, ..._structureEn};
+
   static const Map<String, String> _appearanceEn = {
     'Rubis brillant': 'Bright ruby',
     'Grenat profond': 'Deep garnet',
@@ -206,16 +210,16 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
 
       final notesSummary = StringBuffer();
       if (_selectedAppearance != null) {
-        notesSummary.writeln(tr('Robe : $_selectedAppearance', 'Colour: $_selectedAppearance'));
+        notesSummary.writeln(tr('Robe : {selectedAppearance}', 'Colour: {selectedAppearance}', {'selectedAppearance': _selectedAppearance}));
       }
       if (_selectedAromas.isNotEmpty) {
-        notesSummary.writeln(tr('Nez : ${_selectedAromas.join(', ')}', 'Nose: ${_selectedAromas.join(', ')}'));
+        notesSummary.writeln(tr('Nez : {v1}', 'Nose: {v1}', {'v1': _selectedAromas.join(', ')}));
       }
       if (_selectedStructure != null) {
-        notesSummary.writeln(tr('Bouche : $_selectedStructure (Longueur : $_caudalies caudalies)', 'Palate: $_selectedStructure (length: $_caudalies seconds)'));
+        notesSummary.writeln(tr('Bouche : {selectedStructure} (Longueur : {caudalies} caudalies)', 'Palate: {selectedStructure} (length: {caudalies} seconds)', {'selectedStructure': _selectedStructure, 'caudalies': _caudalies}));
       }
       if (_commentController.text.trim().isNotEmpty) {
-        notesSummary.writeln(tr('Impression : ${_commentController.text.trim()}', 'Impression: ${_commentController.text.trim()}'));
+        notesSummary.writeln(tr('Impression : {v1}', 'Impression: {v1}', {'v1': _commentController.text.trim()}));
       }
 
       // Identité commune à la ligne distante et aux traces de goût : voir checkout_screen.
@@ -305,7 +309,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur lors de l\'enregistrement : $e', 'Couldn\'t save: $e'))),
+          SnackBar(content: Text(tr('Erreur lors de l\'enregistrement : {e}', 'Couldn\'t save: {e}', {'e': e}))),
         );
         setState(() => _isSaving = false);
       }
@@ -376,14 +380,14 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isFr ? 'Sommelier à Table' : 'Table Sommelier',
+                        trSi(isFr, 'Sommelier à Table', 'Table Sommelier'),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Playfair Display',
                         ),
                       ),
                       Text(
-                        wine != null ? '${wine.name} (${wine.vintage ?? 'N.V.'})' : (isFr ? 'Service du vin' : 'Wine service'),
+                        wine != null ? '${wine.name} (${wine.vintage ?? 'N.V.'})' : (trSi(isFr, 'Service du vin', 'Wine service')),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -409,8 +413,8 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
             labelColor: const Color(0xFFD4AF37),
             unselectedLabelColor: isDark ? Colors.white60 : Colors.black54,
             tabs: [
-              Tab(icon: const Icon(Icons.timer_outlined, size: 18), text: isFr ? 'Minuteur & Aération' : 'Timer & Aeration'),
-              Tab(icon: const Icon(Icons.rate_review_outlined, size: 18), text: isFr ? 'Dégustation Guidée' : 'Guided Tasting'),
+              Tab(icon: const Icon(Icons.timer_outlined, size: 18), text: trSi(isFr, 'Minuteur & Aération', 'Timer & Aeration')),
+              Tab(icon: const Icon(Icons.rate_review_outlined, size: 18), text: trSi(isFr, 'Dégustation Guidée', 'Guided Tasting')),
             ],
           ),
 
@@ -449,7 +453,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                                 ),
                               ),
                               Text(
-                                _isTimerRunning ? (isFr ? 'En cours d\'aération' : 'Aerating in progress') : (isFr ? 'En attente' : 'Waiting'),
+                                _isTimerRunning ? (trSi(isFr, 'En cours d\'aération', 'Aerating in progress')) : (trSi(isFr, 'En attente', 'Waiting')),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: isDark ? Colors.white60 : Colors.black54,
@@ -478,7 +482,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                             ),
                             icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow),
-                            label: Text(_isTimerRunning ? 'Pause' : (isFr ? 'Démarrer Minuteur' : 'Start Timer')),
+                            label: Text(_isTimerRunning ? 'Pause' : (trSi(isFr, 'Démarrer Minuteur', 'Start Timer'))),
                             onPressed: _toggleTimer,
                           ),
                         ],
@@ -501,7 +505,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                               const Icon(Icons.screen_lock_portrait_outlined, size: 16, color: Color(0xFFD4AF37)),
                               const SizedBox(width: 8),
                               Text(
-                                isFr ? 'Chrono actif en direct sur votre écran de verrouillage' : 'Live timer active on your lock screen',
+                                trSi(isFr, 'Chrono actif en direct sur votre écran de verrouillage', 'Live timer active on your lock screen'),
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -534,7 +538,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                                   const Text('🍷', style: TextStyle(fontSize: 18)),
                                   const SizedBox(width: 8),
                                   Text(
-                                    isFr ? 'Conseils de Service Idéal' : 'Ideal Service Advice',
+                                    trSi(isFr, 'Conseils de Service Idéal', 'Ideal Service Advice'),
                                     style: theme.textTheme.titleSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: const Color(0xFFD4AF37),
@@ -543,9 +547,9 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                                 ],
                               ),
                               const SizedBox(height: 10),
-                              _buildAdviceBullet(Icons.thermostat, '${isFr ? "Température" : "Temperature"} : ${advice.tempLabel}'),
+                              _buildAdviceBullet(Icons.thermostat, '${trSi(isFr, "Température", "Temperature")} : ${advice.tempLabel}'),
                               _buildAdviceBullet(Icons.air, advice.decantingAdvice),
-                              _buildAdviceBullet(Icons.wine_bar, '${isFr ? "Verre conseillé" : "Recommended glassware"} : ${advice.glasswareType}'),
+                              _buildAdviceBullet(Icons.wine_bar, '${trSi(isFr, "Verre conseillé", "Recommended glassware")} : ${advice.glasswareType}'),
                             ],
                           ),
                         ),
@@ -560,14 +564,14 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 1. L'ŒIL
-                      _buildSectionTitle(isFr ? '1. 👁️ L\'Œil (Robe & Reflets)' : '1. 👁️ Sight (Appearance & Hue)'),
+                      _buildSectionTitle(trSi(isFr, '1. 👁️ L\'Œil (Robe & Reflets)', '1. 👁️ Sight (Appearance & Hue)')),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: _appearanceOptions.map((opt) {
                           final isSelected = _selectedAppearance == opt;
                           return ChoiceChip(
-                            label: Text(isFr ? opt : (_appearanceEn[opt] ?? _aromaEn[opt] ?? _structureEn[opt] ?? opt), style: const TextStyle(fontSize: 12)),
+                            label: Text(trDonnee(opt, _descripteursEn), style: const TextStyle(fontSize: 12)),
                             selected: isSelected,
                             onSelected: (selected) {
                               HapticFeedback.selectionClick();
@@ -584,14 +588,14 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                       const SizedBox(height: 18),
 
                       // 2. LE NEZ
-                      _buildSectionTitle(isFr ? '2. 👃 Le Nez (Familles Aromatiques)' : '2. 👃 Nose (Aroma Families)'),
+                      _buildSectionTitle(trSi(isFr, '2. 👃 Le Nez (Familles Aromatiques)', '2. 👃 Nose (Aroma Families)')),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: _aromaOptions.map((opt) {
                           final isSelected = _selectedAromas.contains(opt);
                           return FilterChip(
-                            label: Text(isFr ? opt : (_appearanceEn[opt] ?? _aromaEn[opt] ?? _structureEn[opt] ?? opt), style: const TextStyle(fontSize: 12)),
+                            label: Text(trDonnee(opt, _descripteursEn), style: const TextStyle(fontSize: 12)),
                             selected: isSelected,
                             onSelected: (selected) {
                               HapticFeedback.selectionClick();
@@ -612,14 +616,14 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                       const SizedBox(height: 18),
 
                       // 3. LA BOUCHE
-                      _buildSectionTitle(isFr ? '3. 👄 La Bouche & Texture' : '3. 👄 Palate & Texture'),
+                      _buildSectionTitle(trSi(isFr, '3. 👄 La Bouche & Texture', '3. 👄 Palate & Texture')),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: _structureOptions.map((opt) {
                           final isSelected = _selectedStructure == opt;
                           return ChoiceChip(
-                            label: Text(isFr ? opt : (_appearanceEn[opt] ?? _aromaEn[opt] ?? _structureEn[opt] ?? opt), style: const TextStyle(fontSize: 12)),
+                            label: Text(trDonnee(opt, _descripteursEn), style: const TextStyle(fontSize: 12)),
                             selected: isSelected,
                             onSelected: (selected) {
                               HapticFeedback.selectionClick();
@@ -638,8 +642,8 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                       // Caudalies (Longueur)
                       Row(
                         children: [
-                          Text(isFr ? 'Longueur en bouche : ' : 'Palate length: ', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                          Text('$_caudalies ${isFr ? "caudalies (secondes)" : "caudalies (seconds)"}', style: const TextStyle(fontSize: 13, color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
+                          Text(trSi(isFr, 'Longueur en bouche : ', 'Palate length: '), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                          Text('$_caudalies ${trSi(isFr, "caudalies (secondes)", "caudalies (seconds)")}', style: const TextStyle(fontSize: 13, color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
                         ],
                       ),
                       Slider(
@@ -660,7 +664,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(isFr ? 'Note globale :' : 'Overall rating:', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                          Text(trSi(isFr, 'Note globale :', 'Overall rating:'), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                             decoration: BoxDecoration(
@@ -694,7 +698,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                         controller: _commentController,
                         maxLines: 2,
                         decoration: InputDecoration(
-                          hintText: isFr ? 'Impression personnelle, accord du repas...' : 'Personal impression, food pairing...',
+                          hintText: trSi(isFr, 'Impression personnelle, accord du repas...', 'Personal impression, food pairing...'),
                           filled: true,
                           fillColor: isDark ? const Color(0xFF262022) : const Color(0xFFFAF7F2),
                           border: OutlineInputBorder(
@@ -719,7 +723,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                           icon: _isSaving
                               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                               : const Icon(Icons.bookmark_add),
-                          label: Text(_isSaving ? (isFr ? 'Enregistrement...' : 'Saving...') : (isFr ? 'Enregistrer dans le Journal' : 'Save to Journal')),
+                          label: Text(_isSaving ? (trSi(isFr, 'Enregistrement...', 'Saving...')) : (trSi(isFr, 'Enregistrer dans le Journal', 'Save to Journal'))),
                           onPressed: _isSaving ? null : _saveTastingNote,
                         ),
                       ),

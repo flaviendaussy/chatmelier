@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../features/cellar/domain/wine.dart';
+import '../../shared/utils/langue.dart';
 
 class DrinkingWindowBadge extends StatelessWidget {
   final DrinkWindowStatus status;
@@ -13,23 +14,23 @@ class DrinkingWindowBadge extends StatelessWidget {
     switch (status) {
       case DrinkWindowStatus.inPeak:
         color = Colors.green.shade700;
-        label = isFr ? 'À L\'APOGÉE ✨' : 'AT PEAK ✨';
+        label = trSi(isFr, 'À L\'APOGÉE ✨', 'AT PEAK ✨');
         break;
       case DrinkWindowStatus.drinkSoon:
         color = Colors.orange.shade800;
-        label = isFr ? 'À BOIRE VITE ⏰' : 'DRINK SOON ⏰';
+        label = trSi(isFr, 'À BOIRE VITE ⏰', 'DRINK SOON ⏰');
         break;
       case DrinkWindowStatus.tooYoung:
         color = Colors.blue.shade700;
-        label = isFr ? 'TROP JEUNE ⏳' : 'TOO YOUNG ⏳';
+        label = trSi(isFr, 'TROP JEUNE ⏳', 'TOO YOUNG ⏳');
         break;
       case DrinkWindowStatus.aging:
         color = Colors.teal.shade700;
-        label = isFr ? 'EN GARDE ⏳' : 'AGING ⏳';
+        label = trSi(isFr, 'EN GARDE ⏳', 'AGING ⏳');
         break;
       case DrinkWindowStatus.pastPeak:
         color = Colors.red.shade800;
-        label = isFr ? 'DÉCLIN / PASSÉ ⚠️' : 'PAST PEAK ⚠️';
+        label = trSi(isFr, 'DÉCLIN / PASSÉ ⚠️', 'PAST PEAK ⚠️');
         break;
     }
     return Container(

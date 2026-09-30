@@ -51,7 +51,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Envoi impossible : $e', 'Couldn\'t send: $e')),
+          content: Text(tr('Envoi impossible : {e}', 'Couldn\'t send: {e}', {'e': e})),
           backgroundColor: Colors.red.shade700,
         ),
       );
@@ -157,7 +157,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              tr('L\'adresse email $email possède déjà un compte Chatmelier.', 'The email address $email already has a Chatmelier account.'),
+              tr('L\'adresse email {email} possède déjà un compte Chatmelier.', 'The email address {email} already has a Chatmelier account.', {'email': email}),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14),
             ),
@@ -188,7 +188,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 if (mounted) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(tr('✉️ Lien de connexion envoyé à $email ! Cliquez sur le lien reçu par email (vérifiez vos spams) pour vous connecter.', '✉️ Sign-in link sent to $email! Tap the link in the email (check your spam folder) to sign in.')),
+                      content: Text(tr('✉️ Lien de connexion envoyé à {email} ! Cliquez sur le lien reçu par email (vérifiez vos spams) pour vous connecter.', '✉️ Sign-in link sent to {email}! Tap the link in the email (check your spam folder) to sign in.', {'email': email})),
                       backgroundColor: const Color(0xFF10B981),
                       duration: const Duration(seconds: 8),
                     ),
@@ -198,7 +198,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               } catch (err) {
                 if (mounted) {
                   messenger.showSnackBar(
-                    SnackBar(content: Text(tr('Erreur : $err', 'Error: $err')), backgroundColor: Colors.redAccent),
+                    SnackBar(content: Text(tr('Erreur : {err}', 'Error: {err}', {'err': err})), backgroundColor: Colors.redAccent),
                   );
                 }
               }
@@ -249,7 +249,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         color: Color(0xFF10B981), size: 32),
                     const SizedBox(height: 10),
                     Text(
-                      tr('Lien envoyé à ${emailCtrl.text.trim()}', 'Link sent to ${emailCtrl.text.trim()}'),
+                      tr('Lien envoyé à {v1}', 'Link sent to {v1}', {'v1': emailCtrl.text.trim()}),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),

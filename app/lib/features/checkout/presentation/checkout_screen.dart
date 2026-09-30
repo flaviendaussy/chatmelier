@@ -268,7 +268,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             content: Text(
               l10n?.distantCellarCheckoutConfirm(warning, targetCellar!.displayName) ??
-                  tr('$warning\n\nSouhaitez-vous quand même enregistrer la sortie de cette bouteille depuis la cave "${targetCellar!.displayName}" ?', '$warning\n\nDo you still want to take this bottle out of the cellar "${targetCellar.displayName}"?'),
+                  tr('{warning}\n\nSouhaitez-vous quand même enregistrer la sortie de cette bouteille depuis la cave "{v1}" ?', '{warning}\n\nDo you still want to take this bottle out of the cellar "{displayName}"?', {'warning': warning, 'v1': targetCellar!.displayName, 'displayName': targetCellar.displayName}),
             ),
             actions: [
               TextButton(
@@ -304,7 +304,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     final wine = _selectedBottle!['wines'] as Map<String, dynamic>? ?? {};
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
-    final wineName = wine['name'] ?? (isFr ? 'Vin' : 'Wine');
+    final wineName = wine['name'] ?? (trSi(isFr, 'Vin', 'Wine'));
     final vintage = (wine['vintage'] as num?)?.toInt() ?? int.tryParse(wine['vintage']?.toString() ?? '');
     final producer = wine['producer'] as String?;
     final region = wine['region'] as String?;
@@ -633,7 +633,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       Text(
                         advice.carafeMinutes > 0
                             ? (l10n?.checkoutAdviceAerationSnack(advice.carafeMinutes) ??
-                                tr('Conseil Sommelier : carafer ${advice.carafeMinutes} min. Chrono lockscreen prêt.', 'Sommelier\'s tip: decant for ${advice.carafeMinutes} min. Lock-screen timer ready.'))
+                                tr('Conseil Sommelier : carafer {carafeMinutes} min. Chrono lockscreen prêt.', 'Sommelier\'s tip: decant for {carafeMinutes} min. Lock-screen timer ready.', {'carafeMinutes': advice.carafeMinutes}))
                             : (l10n?.checkoutAdviceReminderSnack ??
                                 tr('Rappel pour noter vos impressions prévu après dégustation.', 'A reminder to note your impressions is set for after the tasting.')),
                         style: const TextStyle(fontSize: 11, color: Colors.white70),
@@ -645,7 +645,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             action: advice.carafeMinutes > 0
                 ? SnackBarAction(
-                    label: l10n?.checkoutStartTimerAction(advice.carafeMinutes) ?? tr('Chrono ${advice.carafeMinutes}m ⏱️', 'Timer ${advice.carafeMinutes}m ⏱️'),
+                    label: l10n?.checkoutStartTimerAction(advice.carafeMinutes) ?? tr('Chrono {carafeMinutes}m ⏱️', 'Timer {carafeMinutes}m ⏱️', {'carafeMinutes': advice.carafeMinutes}),
                     textColor: const Color(0xFFD4AF37),
                     onPressed: () {
                       ref.read(localNotificationServiceProvider).showLiveAerationNotification(
@@ -695,7 +695,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur : $e', 'Error: $e')), backgroundColor: Colors.red),
+          SnackBar(content: Text(tr('Erreur : {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -916,11 +916,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         final l10n = AppLocalizations.of(context);
         final timeStr = '${scheduledTarget.hour}h${scheduledTarget.minute.toString().padLeft(2, '0')}';
         final dateLabel = scheduledTarget.day == DateTime.now().day
-            ? (l10n?.checkoutDateTonightLabel(timeStr) ?? tr('ce soir à $timeStr', 'tonight at $timeStr'))
+            ? (l10n?.checkoutDateTonightLabel(timeStr) ?? tr('ce soir à {timeStr}', 'tonight at {timeStr}', {'timeStr': timeStr}))
             : (scheduledTarget.day == DateTime.now().day + 1
-                ? (l10n?.checkoutDateTomorrowLabel(timeStr) ?? tr('demain à $timeStr', 'tomorrow at $timeStr'))
+                ? (l10n?.checkoutDateTomorrowLabel(timeStr) ?? tr('demain à {timeStr}', 'tomorrow at {timeStr}', {'timeStr': timeStr}))
                 : (l10n?.checkoutDateCustomLabel('${scheduledTarget.day}/${scheduledTarget.month}', timeStr) ??
-                    tr('le ${scheduledTarget.day}/${scheduledTarget.month} à $timeStr', 'on ${scheduledTarget.day}/${scheduledTarget.month} at $timeStr')));
+                    tr('le {day}/{month} à {timeStr}', 'on {day}/{month} at {timeStr}', {'day': scheduledTarget.day, 'month': scheduledTarget.month, 'timeStr': timeStr})));
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -941,7 +941,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ),
                       Text(
                         l10n?.checkoutBottleRemovedReminder(dateLabel) ??
-                            tr('Profitez de votre dégustation. Rappel prévu $dateLabel pour noter vos impressions.', 'Enjoy your tasting. A reminder to note your impressions is set for $dateLabel.'),
+                            tr('Profitez de votre dégustation. Rappel prévu {dateLabel} pour noter vos impressions.', 'Enjoy your tasting. A reminder to note your impressions is set for {dateLabel}.', {'dateLabel': dateLabel}),
                         style: const TextStyle(fontSize: 12, color: Colors.white70),
                       ),
                     ],
@@ -956,7 +956,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur : $e', 'Error: $e')), backgroundColor: Colors.red),
+          SnackBar(content: Text(tr('Erreur : {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -1249,7 +1249,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 Expanded(
                   child: Text(
                     l10n?.checkoutBottleUncorkedAerationSuccess(confirmedMinutes) ??
-                        tr('Bouteille débouchée ! Minuteur d\'aération ($confirmedMinutes min) lancé sur votre écran.', 'Bottle opened! Breathing timer ($confirmedMinutes min) running on your screen.'),
+                        tr('Bouteille débouchée ! Minuteur d\'aération ({confirmedMinutes} min) lancé sur votre écran.', 'Bottle opened! Breathing timer ({confirmedMinutes} min) running on your screen.', {'confirmedMinutes': confirmedMinutes}),
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -1261,7 +1261,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Erreur : $e', 'Error: $e')), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Erreur : {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -1321,7 +1321,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (cellarId != null) notifyCellarChanged(ref, cellarId);
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(isFr ? 'Bouteille offerte 🎁' : 'Bottle given 🎁'),
+      content: Text(trSi(isFr, 'Bouteille offerte 🎁', 'Bottle given 🎁')),
     ));
     if (mounted) Navigator.of(context).maybePop();
   }
@@ -1405,7 +1405,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               child: Icon(Icons.wine_bar, color: theme.colorScheme.primary),
                             ),
                             title: Text('$wineName$vintage', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text(l10n?.checkoutStockRemaining(producer, qty) ?? tr('$producer • En stock : $qty bouteille${qty > 1 ? "s" : ""}', '$producer • In stock: $qty bottle${qty > 1 ? "s" : ""}')),
+                            subtitle: Text(l10n?.checkoutStockRemaining(producer, qty) ?? tr('{producer} • En stock : {qty} bouteille{v1}', '{producer} • In stock: {qty} bottle{v1}', {'producer': producer, 'qty': qty, 'v1': qty > 1 ? "s" : ""})),
                             trailing: FilledButton.tonal(
                               onPressed: () => setState(() => _selectedBottle = b),
                               child: Text(l10n?.bottleDetailDrinkButton ?? tr('Déguster', 'Taste')),
@@ -1422,8 +1422,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final wine = _selectedBottle!['wines'] as Map<String, dynamic>? ?? {};
-    final wineName = wine['name'] ?? (isFr ? 'Vin' : 'Wine');
-    final vintage = wine['vintage'] != null ? '${wine['vintage']}' : (isFr ? 'NM' : 'NV');
+    final wineName = wine['name'] ?? (trSi(isFr, 'Vin', 'Wine'));
+    final vintage = wine['vintage'] != null ? '${wine['vintage']}' : (trSi(isFr, 'NM', 'NV'));
     final producer = wine['producer'] ?? 'Domaine';
     final region = wine['region'] as String? ?? '';
     final wineType = (wine['type'] ?? wine['wine_type'] ?? 'red').toString();
@@ -1501,7 +1501,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  l10n?.checkoutCellarOf(ownerDisplayName) ?? tr('Cave de $ownerDisplayName', '$ownerDisplayName\'s cellar'),
+                                  l10n?.checkoutCellarOf(ownerDisplayName) ?? tr('Cave de {ownerDisplayName}', '{ownerDisplayName}\'s cellar', {'ownerDisplayName': ownerDisplayName}),
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: theme.colorScheme.onSurfaceVariant,
@@ -1512,7 +1512,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             ],
                             const Spacer(),
                             Text(
-                              l10n?.checkoutStockBout(maxQty) ?? tr('Stock : $maxQty bout.', 'Stock: $maxQty btl.'),
+                              l10n?.checkoutStockBout(maxQty) ?? tr('Stock : {maxQty} bout.', 'Stock: {maxQty} btl.', {'maxQty': maxQty}),
                               style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
                             ),
                           ],
@@ -1546,9 +1546,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 onPressed: _offrirCetteBouteille,
                 icon: const Icon(Icons.card_giftcard, size: 16),
                 label: Text(
-                  isFr
-                      ? 'Vous l\'offrez plutôt ? →'
-                      : 'Giving it away instead? →',
+                  trSi(isFr, 'Vous l\'offrez plutôt ? →', 'Giving it away instead? →'),
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -1585,7 +1583,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     icon: const Icon(Icons.add),
                   ),
                   const SizedBox(width: 12),
-                  Text(l10n?.checkoutQtyOfTotal(maxQty) ?? tr('sur $maxQty en cave', 'of $maxQty in the cellar'), style: theme.textTheme.bodySmall),
+                  Text(l10n?.checkoutQtyOfTotal(maxQty) ?? tr('sur {maxQty} en cave', 'of {maxQty} in the cellar', {'maxQty': maxQty}), style: theme.textTheme.bodySmall),
                 ],
               ),
               const SizedBox(height: 20),
@@ -2225,14 +2223,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(l10n?.checkoutBottleUncorkedAerationSuccess(advice.carafeMinutes) ??
-                          tr('⏱️ Chrono d\'aération (${advice.carafeMinutes} min) lancé sur l\'écran de verrouillage !', '⏱️ Breathing timer (${advice.carafeMinutes} min) started on the lock screen!')),
+                          tr('⏱️ Chrono d\'aération ({carafeMinutes} min) lancé sur l\'écran de verrouillage !', '⏱️ Breathing timer ({carafeMinutes} min) started on the lock screen!', {'carafeMinutes': advice.carafeMinutes})),
                       behavior: SnackBarBehavior.floating,
                       duration: const Duration(seconds: 3),
                     ),
                   );
                 },
                 icon: const Icon(Icons.timer_outlined, size: 15),
-                label: Text(l10n?.checkoutStartTimerAction(advice.carafeMinutes) ?? tr('Lancer le chrono (${advice.carafeMinutes}m) ⏱️', 'Start the timer (${advice.carafeMinutes}m) ⏱️'), style: const TextStyle(fontSize: 11.5)),
+                label: Text(l10n?.checkoutStartTimerAction(advice.carafeMinutes) ?? tr('Lancer le chrono ({carafeMinutes}m) ⏱️', 'Start the timer ({carafeMinutes}m) ⏱️', {'carafeMinutes': advice.carafeMinutes}), style: const TextStyle(fontSize: 11.5)),
               ),
             ),
           ],

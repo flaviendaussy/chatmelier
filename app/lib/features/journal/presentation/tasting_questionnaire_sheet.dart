@@ -221,7 +221,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     final userDisplayName = (user?.userMetadata?['display_name'] as String?) ??
         (user?.email?.split('@').firstOrNull) ??
         '';
-    return userDisplayName.isNotEmpty ? tr('Moi ($userDisplayName)', 'Me ($userDisplayName)') : tr('Moi', 'Me');
+    return userDisplayName.isNotEmpty ? tr('Moi ({userDisplayName})', 'Me ({userDisplayName})', {'userDisplayName': userDisplayName}) : tr('Moi', 'Me');
   }
 
   @override
@@ -402,7 +402,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           if (_isValidUuid(widget.bottleId)) 'p_bottle_id': widget.bottleId,
           if (_isValidUuid(widget.cellarId)) 'p_cellar_id': widget.cellarId,
           'p_notes': result.perceivedAromas.isNotEmpty
-              ? tr('Dégustation partagée. Arômes : ${result.perceivedAromas.join(", ")}', 'Shared tasting. Aromas: ${result.perceivedAromas.join(", ")}')
+              ? tr('Dégustation partagée. Arômes : {v1}', 'Shared tasting. Aromas: {v1}', {'v1': result.perceivedAromas.join(", ")})
               : tr('Dégustation partagée.', 'Shared tasting.'),
           'p_occasion': result.idealMoment,
           'p_co_tasters': _selectedProfiles.map((p) => p.name).toList(),
@@ -490,7 +490,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       final cleanOwnerId = _isValidUuid(widget.bottleOwnerId) ? widget.bottleOwnerId : null;
       final ratingOutOf10 = primaryResult?.noteOutOf10 ?? 8.0;
       final tastingNotes = primaryResult != null && primaryResult.perceivedAromas.isNotEmpty
-          ? tr('Dégustation guidée. Arômes : ${primaryResult.perceivedAromas.join(", ")}', 'Guided tasting. Aromas: ${primaryResult.perceivedAromas.join(", ")}')
+          ? tr('Dégustation guidée. Arômes : {v1}', 'Guided tasting. Aromas: {v1}', {'v1': primaryResult.perceivedAromas.join(", ")})
           : tr('Dégustation guidée.', 'Guided tasting.');
       final occasionStr = _occasion.isNotEmpty ? _occasion : (primaryResult?.idealMoment ?? tr('Dégustation guidée', 'Guided tasting'));
       final offlineStorage = ref.read(offlineStorageServiceProvider);
@@ -2808,7 +2808,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
           ),
           Text(
-            tr('${widget.producer ?? "Domaine"} • ${widget.region ?? tr("Région", 'Region')}', '${widget.producer ?? "Producer"} • ${widget.region ?? "Region"}'),
+            tr('{v1} • {v2}', '{v3} • {v4}', {'v1': widget.producer ?? "Domaine", 'v2': widget.region ?? tr("Région", 'Region'), 'v3': widget.producer ?? "Producer", 'v4': widget.region ?? "Region"}),
             style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
           ),
           if (widget.wineGrapes != null && widget.wineGrapes!.isNotEmpty)
@@ -3212,7 +3212,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                   ),
                   if (_selectedAromas.isNotEmpty || _customAromas.isNotEmpty)
                     Text(
-                      tr('${_selectedAromas.length + _customAromas.length} sélectionné(s)', '${_selectedAromas.length + _customAromas.length} selected'),
+                      tr('{v1} sélectionné(s)', '{v1} selected', {'v1': _selectedAromas.length + _customAromas.length}),
                       style: const TextStyle(fontSize: 11, color: Color(0xFF8B1E3F), fontWeight: FontWeight.w600),
                     ),
                 ],

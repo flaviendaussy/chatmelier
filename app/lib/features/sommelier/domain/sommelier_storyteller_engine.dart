@@ -47,7 +47,7 @@ class SommelierStorytellerEngine {
 
   static String _terroir(_Vin v) {
     final nom = v.wine.name;
-    final millesime = v.wine.vintage == null ? '' : tr(', millésime ${v.wine.vintage}', ', ${v.wine.vintage} vintage');
+    final millesime = v.wine.vintage == null ? '' : tr(', millésime {vintage}', ', {vintage} vintage', {'vintage': v.wine.vintage});
     // Le lieu en liste (« Margaux, Bordeaux ») : une phrase sur un nom de lieu bute sur
     // ses articles (« de la Vallée du Rhône », « d'Alsace »).
     final lieu = [
@@ -60,27 +60,24 @@ class SommelierStorytellerEngine {
     final producteur = p.isEmpty || nom.toLowerCase().contains(p.toLowerCase()) || p.toLowerCase().contains(nom.toLowerCase()) ? '' : p;
 
     if (v.bulles && v.champagne) {
-      return tr(
-          'Bienvenue sur les terres crayeuses de Champagne. La craie garde l\'eau et la fraîcheur, et donne aux vins leur tension. $nom$millesime en est le fruit.',
-          'Welcome to the chalk of Champagne. The chalk holds water and coolness, and gives the wines their tension. $nom$millesime is its fruit.');
+      return tr('Bienvenue sur les terres crayeuses de Champagne. La craie garde l\'eau et la fraîcheur, et donne aux vins leur tension. {nom}{millesime} en est le fruit.', 'Welcome to the chalk of Champagne. The chalk holds water and coolness, and gives the wines their tension. {nom}{millesime} is its fruit.', {'nom': nom, 'millesime': millesime});
     }
     final String origine;
     if (producteur.isNotEmpty && v.cepages.isNotEmpty) {
-      origine = tr('$producteur y cultive ${v.cepages} pour donner naissance à $nom$millesime.',
-          '$producteur grows ${v.cepages} there to make $nom$millesime.');
+      origine = tr('{producteur} y cultive {cepages} pour donner naissance à {nom}{millesime}.', '{producteur} grows {cepages} there to make {nom}{millesime}.', {'producteur': producteur, 'cepages': v.cepages, 'nom': nom, 'millesime': millesime});
     } else if (v.cepages.isNotEmpty) {
-      origine = tr('C\'est là que naît $nom$millesime, issu de ${v.cepages}.', 'This is where $nom$millesime is born, from ${v.cepages}.');
+      origine = tr('C\'est là que naît {nom}{millesime}, issu de {cepages}.', 'This is where {nom}{millesime} is born, from {cepages}.', {'nom': nom, 'millesime': millesime, 'cepages': v.cepages});
     } else if (producteur.isNotEmpty) {
-      origine = tr('$producteur y élabore $nom$millesime.', '$producteur makes $nom$millesime there.');
+      origine = tr('{producteur} y élabore {nom}{millesime}.', '{producteur} makes {nom}{millesime} there.', {'producteur': producteur, 'nom': nom, 'millesime': millesime});
     } else {
-      origine = tr('C\'est là que naît $nom$millesime.', 'This is where $nom$millesime is born.');
+      origine = tr('C\'est là que naît {nom}{millesime}.', 'This is where {nom}{millesime} is born.', {'nom': nom, 'millesime': millesime});
     }
     if (lieu.isEmpty) {
       return v.cepages.isEmpty
-          ? tr('Voici $nom$millesime.', 'Here is $nom$millesime.')
-          : tr('Voici $nom$millesime, issu de ${v.cepages}.', 'Here is $nom$millesime, made from ${v.cepages}.');
+          ? tr('Voici {nom}{millesime}.', 'Here is {nom}{millesime}.', {'nom': nom, 'millesime': millesime})
+          : tr('Voici {nom}{millesime}, issu de {cepages}.', 'Here is {nom}{millesime}, made from {cepages}.', {'nom': nom, 'millesime': millesime, 'cepages': v.cepages});
     }
-    return tr('Tout commence par un lieu : $lieu. $origine', 'It all starts with a place: $lieu. $origine');
+    return tr('Tout commence par un lieu : {lieu}. {origine}', 'It all starts with a place: {lieu}. {origine}', {'lieu': lieu, 'origine': origine});
   }
 
   static String _vinification(_Vin v) {
@@ -110,12 +107,12 @@ class SommelierStorytellerEngine {
       return elevage.isEmpty
           ? tr('Les raisins ont été cueillis mûrs, puis le vin a pris le temps de s\'assembler avant la mise en bouteille.',
               'The grapes were picked ripe, then the wine took its time to come together before bottling.')
-          : tr('Les raisins ont été cueillis mûrs ; $elevage.', 'The grapes were picked ripe; $elevage.');
+          : tr('Les raisins ont été cueillis mûrs ; {elevage}.', 'The grapes were picked ripe; {elevage}.', {'elevage': elevage});
     }
     return elevage.isEmpty
         ? tr('Au chai, pressurage délicat et fermentation au frais : tout est fait pour garder la pureté du fruit.',
             'In the cellar, gentle pressing and a cool fermentation: everything aims to keep the fruit pure.')
-        : tr('Au chai, pressurage délicat, puis $elevage.', 'In the cellar, gentle pressing, then $elevage.');
+        : tr('Au chai, pressurage délicat, puis {elevage}.', 'In the cellar, gentle pressing, then {elevage}.', {'elevage': elevage});
   }
 
   static String _degustation(_Vin v) {
@@ -147,8 +144,7 @@ class SommelierStorytellerEngine {
                   ? tr('les fruits mûrs, des notes beurrées et toastées', 'ripe fruit, buttery and toasty notes')
                   : tr('les fruits blancs, les fleurs, et de la fraîcheur', 'white fruit, flowers, and freshness');
     }
-    return tr('Dans le verre : $nez. Prenez le temps de le laisser s\'ouvrir. Bonne dégustation.',
-        'In the glass: $nez. Give it time to open up. Enjoy.');
+    return tr('Dans le verre : {nez}. Prenez le temps de le laisser s\'ouvrir. Bonne dégustation.', 'In the glass: {nez}. Give it time to open up. Enjoy.', {'nez': nez});
   }
 }
 

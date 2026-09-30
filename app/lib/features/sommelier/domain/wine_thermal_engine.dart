@@ -154,12 +154,11 @@ class WineThermalEngine {
         targetTemp: targetTemp,
         envTemp: initialTemp,
         actionTitle: tr('Température parfaite !', 'Perfect temperature!'),
-        actionDescription: tr('La bouteille est déjà à sa température idéale de service (${targetTemp.toStringAsFixed(1)}°C).',
-            'The bottle is already at its ideal serving temperature (${targetTemp.toStringAsFixed(1)}°C).'),
+        actionDescription: tr('La bouteille est déjà à sa température idéale de service ({v1}°C).', 'The bottle is already at its ideal serving temperature ({v1}°C).', {'v1': targetTemp.toStringAsFixed(1)}),
         timelineSteps: [
-          tr('Température idéale atteinte (${targetTemp.toStringAsFixed(1)}°C).', 'Ideal temperature reached (${targetTemp.toStringAsFixed(1)}°C).'),
+          tr('Température idéale atteinte ({v1}°C).', 'Ideal temperature reached ({v1}°C).', {'v1': targetTemp.toStringAsFixed(1)}),
           if (decantingMinutes > 0)
-            tr('Déboucher ou carafer $decantingMinutes min avant service.', 'Open or decant it $decantingMinutes min before serving.'),
+            tr('Déboucher ou carafer {decantingMinutes} min avant service.', 'Open or decant it {decantingMinutes} min before serving.', {'decantingMinutes': decantingMinutes}),
           tr('Dégustez et savourez 🍷 !', 'Taste and enjoy 🍷!'),
         ],
         temperatureCurve: curve,
@@ -214,39 +213,30 @@ class WineThermalEngine {
     switch (action) {
       case ThermalAction.putInFridge:
         actionTitle = tr('Placer au réfrigérateur', 'Put it in the fridge');
-        actionDesc = tr(
-            'Glissez la bouteille au frais pendant $duration min pour passer de ${initialTemp.toStringAsFixed(1)}°C à ${targetTemp.toStringAsFixed(1)}°C.',
-            'Put the bottle in the fridge for $duration min to bring it from ${initialTemp.toStringAsFixed(1)}°C to ${targetTemp.toStringAsFixed(1)}°C.');
-        timeline.add(tr('Mettre au réfrigérateur ($fridgeTemp°C) pendant $duration minutes.', 'Fridge ($fridgeTemp°C) for $duration minutes.'));
+        actionDesc = tr('Glissez la bouteille au frais pendant {duration} min pour passer de {v1}°C à {v2}°C.', 'Put the bottle in the fridge for {duration} min to bring it from {v1}°C to {v2}°C.', {'duration': duration, 'v1': initialTemp.toStringAsFixed(1), 'v2': targetTemp.toStringAsFixed(1)});
+        timeline.add(tr('Mettre au réfrigérateur ({fridgeTemp}°C) pendant {duration} minutes.', 'Fridge ({fridgeTemp}°C) for {duration} minutes.', {'fridgeTemp': fridgeTemp, 'duration': duration}));
         if (decantingMinutes > 0) {
-          timeline.add(tr('Sortir et déboucher/carafer $decantingMinutes min avant de servir.',
-              'Take it out and open or decant it $decantingMinutes min before serving.'));
+          timeline.add(tr('Sortir et déboucher/carafer {decantingMinutes} min avant de servir.', 'Take it out and open or decant it {decantingMinutes} min before serving.', {'decantingMinutes': decantingMinutes}));
         } else {
-          timeline.add(tr('Sortir et servir immédiatement à ${targetTemp.toStringAsFixed(1)}°C.',
-              'Take it out and serve straight away at ${targetTemp.toStringAsFixed(1)}°C.'));
+          timeline.add(tr('Sortir et servir immédiatement à {v1}°C.', 'Take it out and serve straight away at {v1}°C.', {'v1': targetTemp.toStringAsFixed(1)}));
         }
         break;
       case ThermalAction.iceBucket:
         actionTitle = tr('Seau à glace express', 'Quick ice bucket');
-        actionDesc = tr('Plongez le flacon dans un mélange d\'eau fraîche et de glaçons pendant $duration min.',
-            'Plunge the bottle into iced water for $duration min.');
-        timeline.add(tr('Placer dans le seau à glace pendant $duration minutes.', 'Ice bucket for $duration minutes.'));
-        timeline.add(tr('Servir frais à ${targetTemp.toStringAsFixed(1)}°C.', 'Serve chilled at ${targetTemp.toStringAsFixed(1)}°C.'));
+        actionDesc = tr('Plongez le flacon dans un mélange d\'eau fraîche et de glaçons pendant {duration} min.', 'Plunge the bottle into iced water for {duration} min.', {'duration': duration});
+        timeline.add(tr('Placer dans le seau à glace pendant {duration} minutes.', 'Ice bucket for {duration} minutes.', {'duration': duration}));
+        timeline.add(tr('Servir frais à {v1}°C.', 'Serve chilled at {v1}°C.', {'v1': targetTemp.toStringAsFixed(1)}));
         break;
       case ThermalAction.leaveInRoom:
         actionTitle = tr('Laisser tempérer dans la pièce', 'Let it warm up in the room');
-        actionDesc = tr('Laissez le vin s\'adoucir à température ambiante ($roomTemp°C) pendant $duration min.',
-            'Let the wine warm gently at room temperature ($roomTemp°C) for $duration min.');
-        timeline.add(tr('Sortir de cave et laisser tempérer dans la pièce pendant $duration minutes.',
-            'Take it out of the cellar and let it stand in the room for $duration minutes.'));
+        actionDesc = tr('Laissez le vin s\'adoucir à température ambiante ({roomTemp}°C) pendant {duration} min.', 'Let the wine warm gently at room temperature ({roomTemp}°C) for {duration} min.', {'roomTemp': roomTemp, 'duration': duration});
+        timeline.add(tr('Sortir de cave et laisser tempérer dans la pièce pendant {duration} minutes.', 'Take it out of the cellar and let it stand in the room for {duration} minutes.', {'duration': duration}));
         if (decantingMinutes > 0) {
           // Un blanc n'a pas de tanins à assouplir : l'air l'ouvre, simplement.
           final rouge = (wine?.type ?? '').toLowerCase().contains('rouge') || (wine?.type ?? '').toLowerCase().contains('red');
           timeline.add(rouge
-              ? tr('Carafer pendant les $decantingMinutes dernières minutes pour oxygéner les tanins.',
-                  'Decant it for the last $decantingMinutes minutes to soften the tannins.')
-              : tr('Carafer pendant les $decantingMinutes dernières minutes pour l\'ouvrir.',
-                  'Decant it for the last $decantingMinutes minutes to let it open up.'));
+              ? tr('Carafer pendant les {decantingMinutes} dernières minutes pour oxygéner les tanins.', 'Decant it for the last {decantingMinutes} minutes to soften the tannins.', {'decantingMinutes': decantingMinutes})
+              : tr('Carafer pendant les {decantingMinutes} dernières minutes pour l\'ouvrir.', 'Decant it for the last {decantingMinutes} minutes to let it open up.', {'decantingMinutes': decantingMinutes}));
         }
         break;
       case ThermalAction.alreadyIdeal:
@@ -260,13 +250,9 @@ class WineThermalEngine {
     if (isRed && roomTemp >= 21.0) {
       if (initialTemp >= 20.0 && action == ThermalAction.putInFridge) {
         actionTitle = tr('Coup de frais express pour votre rouge', 'A quick chill for your red');
-        actionDesc = tr(
-            'Pièce chaude (${roomTemp.toStringAsFixed(0)}°C) : l\'alcool ressort et écrase le fruit. Un passage de $duration min au réfrigérateur rééquilibre la matière.',
-            'Warm room (${roomTemp.toStringAsFixed(0)}°C): the alcohol stands out and flattens the fruit. $duration min in the fridge brings it back into balance.');
+        actionDesc = tr('Pièce chaude ({v1}°C) : l\'alcool ressort et écrase le fruit. Un passage de {duration} min au réfrigérateur rééquilibre la matière.', 'Warm room ({v1}°C): the alcohol stands out and flattens the fruit. {duration} min in the fridge brings it back into balance.', {'v1': roomTemp.toStringAsFixed(0), 'duration': duration});
       }
-      warmRoomWarning = tr(
-          'Dans une pièce à ${roomTemp.toStringAsFixed(0)}°C, ce vin rouge montera vite au-delà de 18°C. Servez-le légèrement plus frais (${(targetTemp - 1.0).toStringAsFixed(1)}°C) : il s\'ouvrira parfaitement dans le verre sans sensation d\'alcool brûlant.',
-          'In a ${roomTemp.toStringAsFixed(0)}°C room, this red will quickly climb above 18°C. Serve it slightly cooler (${(targetTemp - 1.0).toStringAsFixed(1)}°C): it will open up in the glass without any alcoholic burn.');
+      warmRoomWarning = tr('Dans une pièce à {v1}°C, ce vin rouge montera vite au-delà de 18°C. Servez-le légèrement plus frais ({v2}°C) : il s\'ouvrira parfaitement dans le verre sans sensation d\'alcool brûlant.', 'In a {v1}°C room, this red will quickly climb above 18°C. Serve it slightly cooler ({v2}°C): it will open up in the glass without any alcoholic burn.', {'v1': roomTemp.toStringAsFixed(0), 'v2': (targetTemp - 1.0).toStringAsFixed(1)});
     }
 
     return ThermalPlanResult(

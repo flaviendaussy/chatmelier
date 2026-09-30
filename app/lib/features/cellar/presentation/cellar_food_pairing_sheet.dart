@@ -475,7 +475,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      tr('${bottle.quantity} en cave', '${bottle.quantity} in the cellar'),
+                                      tr('{quantity} en cave', '{quantity} in the cellar', {'quantity': bottle.quantity}),
                                       style: const TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,

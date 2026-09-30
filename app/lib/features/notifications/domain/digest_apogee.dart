@@ -44,13 +44,15 @@ class DigestApogee {
     final urgent = aBoire.first.wine!.windowStatus != DrinkWindowStatus.inPeak;
     final titre = aBoire.length == 1
         ? tr('🍷 Un vin à ouvrir', '🍷 A wine to open')
-        : tr('🍷 ${aBoire.length} vins à ouvrir', '🍷 ${aBoire.length} wines to open');
+        : tr('🍷 {aBoire_length} vins à ouvrir', '🍷 {aBoire_length} wines to open', {'aBoire_length': aBoire.length});
     final liste = reste > 0
-        ? tr('${noms.join(', ')} et $reste autre${reste > 1 ? 's' : ''}', '${noms.join(', ')} and $reste more')
+        ? (reste > 1
+            ? tr('{noms} et {reste} autres', '{noms} and {reste} more', {'noms': noms.join(', '), 'reste': reste})
+            : tr('{noms} et 1 autre', '{noms} and 1 more', {'noms': noms.join(', ')}))
         : noms.join(', ');
     final corps = urgent
-        ? tr('$liste : leur fenêtre se referme, c\'est le moment.', '$liste: their window is closing, now is the time.')
-        : tr('$liste : à leur apogée en ce moment.', '$liste: at their peak right now.');
+        ? tr('{liste} : leur fenêtre se referme, c\'est le moment.', '{liste}: their window is closing, now is the time.', {'liste': liste})
+        : tr('{liste} : à leur apogée en ce moment.', '{liste}: at their peak right now.', {'liste': liste});
     return (titre, corps);
   }
 

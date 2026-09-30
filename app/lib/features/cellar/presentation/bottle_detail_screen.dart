@@ -46,6 +46,21 @@ class BottleDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
+  /// « Cote relevée sur exemple-caviste.fr le 12/09/2026 » (V2.3 · B3).
+  static String _origineDeLaCote(Wine wine) {
+    final site = Uri.tryParse(wine.valeurSource ?? '')?.host;
+    final date = wine.lastValuationDate;
+    final jour = date == null ? null : DateFormat('dd/MM/yyyy').format(date);
+    if (site == null || site.isEmpty) {
+      return jour == null
+          ? tr('Cote relevée sur le web', 'Price found on the web')
+          : tr('Cote relevée sur le web le {date}', 'Price found on the web on {date}', {'date': jour});
+    }
+    return jour == null
+        ? tr('Cote relevée sur {site}', 'Price found on {site}', {'site': site})
+        : tr('Cote relevée sur {site} le {date}', 'Price found on {site} on {date}', {'site': site, 'date': jour});
+  }
+
   Map<String, dynamic>? _bottleData;
   String? _labelPhotoUrl;
   bool _isLoading = true;
@@ -213,7 +228,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  isFr ? 'Photo & Étiquette' : 'Photo & Label',
+                  trSi(isFr, 'Photo & Étiquette', 'Photo & Label'),
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -221,8 +236,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined, color: Color(0xFFD4AF37)),
-              title: Text(isFr ? 'Prendre une photo' : 'Take a photo'),
-              subtitle: Text(isFr ? 'Photographier l\'étiquette de cette bouteille' : 'Photograph this bottle\'s label'),
+              title: Text(trSi(isFr, 'Prendre une photo', 'Take a photo')),
+              subtitle: Text(trSi(isFr, 'Photographier l\'étiquette de cette bouteille', 'Photograph this bottle\'s label')),
               onTap: () {
                 Navigator.of(ctx).pop();
                 _pickAndSetPhoto(ImageSource.camera, wine);
@@ -230,8 +245,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined, color: Color(0xFFD4AF37)),
-              title: Text(isFr ? 'Choisir depuis la galerie' : 'Choose from gallery'),
-              subtitle: Text(isFr ? 'Sélectionner une photo existante' : 'Select an existing photo'),
+              title: Text(trSi(isFr, 'Choisir depuis la galerie', 'Choose from gallery')),
+              subtitle: Text(trSi(isFr, 'Sélectionner une photo existante', 'Select an existing photo')),
               onTap: () {
                 Navigator.of(ctx).pop();
                 _pickAndSetPhoto(ImageSource.gallery, wine);
@@ -239,8 +254,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.auto_awesome, color: Color(0xFF722F37)),
-              title: Text(isFr ? 'Restaurer l\'étiquette officielle' : 'Restore official label'),
-              subtitle: Text(isFr ? 'Appliquer le visuel haute résolution du domaine' : 'Apply high-resolution estate visual'),
+              title: Text(trSi(isFr, 'Restaurer l\'étiquette officielle', 'Restore official label')),
+              subtitle: Text(trSi(isFr, 'Appliquer le visuel haute résolution du domaine', 'Apply high-resolution estate visual')),
               onTap: () async {
                 Navigator.of(ctx).pop();
                 final officialImg = WineImageService.resolveWineImageUrl(wine, forceDomainOrArchetype: true);
@@ -395,11 +410,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isFr ? 'Mes Notes & Commentaires' : 'My Notes & Comments',
+                            trSi(isFr, 'Mes Notes & Commentaires', 'My Notes & Comments'),
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                           ),
                           Text(
-                            isFr ? 'Privé • Strictement réservé à votre usage' : 'Private • Strictly for your personal use',
+                            trSi(isFr, 'Privé • Strictement réservé à votre usage', 'Private • Strictly for your personal use'),
                             style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                           ),
                         ],
@@ -417,7 +432,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                   maxLines: 4,
                   autofocus: true,
                   decoration: InputDecoration(
-                    hintText: isFr ? 'Vos impressions, circonstances d\'achat, potentiel ressenti...' : 'Your impressions, purchase context, perceived potential...',
+                    hintText: trSi(isFr, 'Vos impressions, circonstances d\'achat, potentiel ressenti...', 'Your impressions, purchase context, perceived potential...'),
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -439,21 +454,21 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(isFr ? '🗑️ Note personnelle effacée' : '🗑️ Personal note cleared'),
+                                content: Text(trSi(isFr, '🗑️ Note personnelle effacée', '🗑️ Personal note cleared')),
                                 duration: const Duration(seconds: 2),
                               ),
                             );
                           }
                         },
                         icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
-                        label: Text(isFr ? 'Effacer' : 'Clear', style: const TextStyle(color: Colors.redAccent)),
+                        label: Text(trSi(isFr, 'Effacer', 'Clear'), style: const TextStyle(color: Colors.redAccent)),
                       ),
                       const Spacer(),
                     ] else
                       const Spacer(),
                     OutlinedButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text(isFr ? 'Annuler' : 'Cancel'),
+                      child: Text(trSi(isFr, 'Annuler', 'Cancel')),
                     ),
                     const SizedBox(width: 8),
                     FilledButton(
@@ -472,7 +487,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(isFr ? '✅ Note personnelle enregistrée !' : '✅ Personal note saved!'),
+                              content: Text(trSi(isFr, '✅ Note personnelle enregistrée !', '✅ Personal note saved!')),
                               backgroundColor: const Color(0xFF2E7D32),
                               duration: const Duration(seconds: 2),
                             ),
@@ -483,7 +498,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         backgroundColor: const Color(0xFF8B1E3F),
                         foregroundColor: Colors.white,
                       ),
-                      child: Text(isFr ? 'Enregistrer' : 'Save', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: Text(trSi(isFr, 'Enregistrer', 'Save'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -516,9 +531,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  isFr
-                      ? 'Chatmelier recherche les données et cépages manquants...'
-                      : 'Chatmelier is searching for missing data and grape varieties...',
+                  trSi(isFr, 'Chatmelier recherche les données et cépages manquants...', 'Chatmelier is searching for missing data and grape varieties...'),
                 ),
               ),
             ],
@@ -720,7 +733,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                isFr ? 'Qu\'est-ce que l\'Apogée ?' : 'What is the Peak Window?',
+                trSi(isFr, 'Qu\'est-ce que l\'Apogée ?', 'What is the Peak Window?'),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ),
@@ -731,9 +744,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isFr
-                  ? 'L\'apogée est la période idéale pour déguster un vin. C\'est le moment où il atteint son équilibre parfait entre arômes, tanins et acidité.'
-                  : 'The peak window is the ideal period to enjoy a wine. It is the moment when it reaches perfect balance between aromas, tannins, and acidity.',
+              trSi(isFr, 'L\'apogée est la période idéale pour déguster un vin. C\'est le moment où il atteint son équilibre parfait entre arômes, tanins et acidité.', 'The peak window is the ideal period to enjoy a wine. It is the moment when it reaches perfect balance between aromas, tannins, and acidity.'),
               style: const TextStyle(fontSize: 13.5, height: 1.4),
             ),
             const SizedBox(height: 14),
@@ -743,9 +754,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                 const Text('⏳ ', style: TextStyle(fontSize: 16)),
                 Expanded(
                   child: Text(
-                    isFr
-                        ? 'Trop jeune / En garde : le vin gagnera en complexité en vieillissant en cave.'
-                        : 'Too young / Aging: the wine will gain complexity as it ages in cellar.',
+                    trSi(isFr, 'Trop jeune / En garde : le vin gagnera en complexité en vieillissant en cave.', 'Too young / Aging: the wine will gain complexity as it ages in cellar.'),
                     style: const TextStyle(fontSize: 12.5),
                   ),
                 ),
@@ -758,9 +767,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                 const Text('🍷 ', style: TextStyle(fontSize: 16)),
                 Expanded(
                   child: Text(
-                    isFr
-                        ? 'À l\'apogée : le vin est à son sommet gustatif, moment idéal pour l\'ouvrir.'
-                        : 'At peak: the wine is at its taste peak, perfect time to open it.',
+                    trSi(isFr, 'À l\'apogée : le vin est à son sommet gustatif, moment idéal pour l\'ouvrir.', 'At peak: the wine is at its taste peak, perfect time to open it.'),
                     style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -773,9 +780,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                 const Text('⚠️ ', style: TextStyle(fontSize: 16)),
                 Expanded(
                   child: Text(
-                    isFr
-                        ? 'En déclin : le vin approche ou dépasse sa limite de garde, à boire sans tarder.'
-                        : 'In decline: the wine is nearing or past its aging limit, drink promptly.',
+                    trSi(isFr, 'En déclin : le vin approche ou dépasse sa limite de garde, à boire sans tarder.', 'In decline: the wine is nearing or past its aging limit, drink promptly.'),
                     style: const TextStyle(fontSize: 12.5),
                   ),
                 ),
@@ -783,9 +788,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
             ),
             const SizedBox(height: 14),
             Text(
-              isFr
-                  ? '💡 Chatmelier estime cette fenêtre grâce à l\'IA à partir du domaine, de l\'appellation et du millésime. Vous pouvez la personnaliser à tout moment.'
-                  : '💡 Chatmelier estimates this window using AI based on producer, appellation, and vintage. You can customize it at any time.',
+              trSi(isFr, '💡 Chatmelier estime cette fenêtre grâce à l\'IA à partir du domaine, de l\'appellation et du millésime. Vous pouvez la personnaliser à tout moment.', '💡 Chatmelier estimates this window using AI based on producer, appellation, and vintage. You can customize it at any time.'),
               style: const TextStyle(fontSize: 11.5, color: Colors.grey, fontStyle: FontStyle.italic),
             ),
           ],
@@ -797,7 +800,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(isFr ? 'Compris !' : 'Got it!'),
+            child: Text(trSi(isFr, 'Compris !', 'Got it!')),
           ),
         ],
       ),
@@ -814,7 +817,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
-          title: Text(isFr ? 'Modifier Prix & Devise' : 'Edit Price & Currency'),
+          title: Text(trSi(isFr, 'Modifier Prix & Devise', 'Edit Price & Currency')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -822,7 +825,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                 controller: priceCtrl,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  labelText: isFr ? 'Prix d\'achat unitaire' : 'Unit purchase price',
+                  labelText: trSi(isFr, 'Prix d\'achat unitaire', 'Unit purchase price'),
                   prefixText: '${CurrencyHelper.getSymbol(currentCurrency)} ',
                   border: const OutlineInputBorder(),
                 ),
@@ -831,7 +834,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               DropdownButtonFormField<String>(
                 initialValue: currentCurrency,
                 decoration: InputDecoration(
-                  labelText: isFr ? 'Devise d\'achat' : 'Purchase currency',
+                  labelText: trSi(isFr, 'Devise d\'achat', 'Purchase currency'),
                   border: const OutlineInputBorder(),
                 ),
                 items: CurrencyHelper.supportedCurrencies.map((c) {
@@ -849,7 +852,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(isFr ? 'Annuler' : 'Cancel'),
+              child: Text(trSi(isFr, 'Annuler', 'Cancel')),
             ),
             FilledButton(
               onPressed: () async {
@@ -867,7 +870,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                   _loadBottleDetails();
                 }
               },
-              child: Text(isFr ? 'Enregistrer' : 'Save'),
+              child: Text(trSi(isFr, 'Enregistrer', 'Save')),
             ),
           ],
         ),
@@ -890,8 +893,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
 
     if (_error != null || _bottleData == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(isFr ? 'Fiche Bouteille' : 'Bottle Details')),
-        body: Center(child: Text(isFr ? 'Erreur : ${_error ?? "Bouteille introuvable"}' : 'Error: ${_error ?? "Bottle not found"}')),
+        appBar: AppBar(title: Text(trSi(isFr, 'Fiche Bouteille', 'Bottle Details'))),
+        body: Center(child: Text(trSi(isFr, 'Erreur : {v1}', 'Error: {v2}', {'v1': _error ?? "Bouteille introuvable", 'v2': _error ?? "Bottle not found"}))),
       );
     }
 
@@ -1038,7 +1041,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               if (!isViewOnly)
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                  tooltip: isFr ? 'Modifier toutes les informations' : 'Edit all details',
+                  tooltip: trSi(isFr, 'Modifier toutes les informations', 'Edit all details'),
                   onPressed: () => _showFullEditSheet(wine, bottleObj),
                 ),
               IconButton(
@@ -1049,7 +1052,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
                     : const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
-                tooltip: isFr ? 'Chercher données manquantes / Vérifier avec l\'IA' : 'Find missing data / Verify with AI',
+                tooltip: trSi(isFr, 'Chercher données manquantes / Vérifier avec l\'IA', 'Find missing data / Verify with AI'),
                 onPressed: _isEnriching ? null : () => _enrichWineData(wine),
               ),
               // Deux icônes retirées d'ici, et non déplacées :
@@ -1153,7 +1156,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         Icon(Icons.local_bar, size: 12, color: fillColor),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '$fillLevel% ${isFr ? "plein" : "full"}',
+                                          '$fillLevel% ${trSi(isFr, "plein", "full")}',
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
@@ -1208,8 +1211,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     wine.vintage != null && wine.vintage! > 0
                         ? '${wine.name} (${wine.vintage})'
                         : (bottleObj.purchaseDate != null
-                            ? '${wine.name} (${isFr ? "NM • Achat ${bottleObj.purchaseDate!.year}" : "NV • Cellared ${bottleObj.purchaseDate!.year}"})'
-                            : (wine.tracksFillLevel ? wine.name : '${wine.name} (${isFr ? "NM" : "NV"})')),
+                            ? '${wine.name} (${trSi(isFr, "NM • Achat {v1}", "NV • Cellared {v1}", {'v1': bottleObj.purchaseDate!.year})})'
+                            : (wine.tracksFillLevel ? wine.name : '${wine.name} (${trSi(isFr, "NM", "NV")})')),
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1247,12 +1250,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         Expanded(
                           child: Text(
                             bottleObj.giftedAt != null
-                                ? (isFr
-                                    ? 'Offerte à ${bottleObj.giftedTo} le ${_formatDateCourte(bottleObj.giftedAt!)}'
-                                    : 'Given to ${bottleObj.giftedTo} on ${_formatDateCourte(bottleObj.giftedAt!)}')
-                                : (isFr
-                                    ? 'Offerte à ${bottleObj.giftedTo}'
-                                    : 'Given to ${bottleObj.giftedTo}'),
+                                ? (trSi(isFr, 'Offerte à {giftedTo} le {v1}', 'Given to {giftedTo} on {v1}', {'giftedTo': bottleObj.giftedTo, 'v1': _formatDateCourte(bottleObj.giftedAt!)}))
+                                : (trSi(isFr, 'Offerte à {giftedTo}', 'Given to {giftedTo}', {'giftedTo': bottleObj.giftedTo})),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF8B1E3F),
@@ -1300,7 +1299,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                       },
                       icon: const Icon(Icons.wine_bar, color: Colors.white, size: 22),
                       label: Text(
-                        '${l10n?.bottleDetailDrinkButton ?? (isFr ? "Sortir cette bouteille" : "Checkout this bottle")} 🍷',
+                        '${l10n?.bottleDetailDrinkButton ?? (trSi(isFr, "Sortir cette bouteille", "Checkout this bottle"))} 🍷',
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -1327,7 +1326,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                       },
                       icon: const Icon(Icons.room_service_outlined, color: Color(0xFFD4AF37)),
                       label: Text(
-                        isFr ? 'Mode Sommelier à Table (Service & Notes)' : 'Table Sommelier Mode (Service & Notes)',
+                        trSi(isFr, 'Mode Sommelier à Table (Service & Notes)', 'Table Sommelier Mode (Service & Notes)'),
                         style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold),
                       ),
                       style: OutlinedButton.styleFrom(
@@ -1351,7 +1350,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                           Icon(Icons.visibility, size: 16, color: theme.colorScheme.onSurfaceVariant),
                           const SizedBox(width: 8),
                           Text(
-                            isFr ? 'Mode consultation (lecture seule)' : 'View-only mode (read-only)',
+                            trSi(isFr, 'Mode consultation (lecture seule)', 'View-only mode (read-only)'),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -1391,7 +1390,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 22),
                                     const SizedBox(width: 8),
                                     Text(
-                                      isFr ? 'Conseils de Service & Dégustation' : 'Service & Tasting Advice',
+                                      trSi(isFr, 'Conseils de Service & Dégustation', 'Service & Tasting Advice'),
                                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                     ),
                                   ],
@@ -1414,7 +1413,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                               children: [
                                                 const Icon(Icons.thermostat, color: Color(0xFF1976D2), size: 18),
                                                 const SizedBox(width: 4),
-                                                Text(isFr ? 'Température' : 'Temperature', style: const TextStyle(color: Color(0xFF1976D2), fontWeight: FontWeight.bold, fontSize: 12)),
+                                                Text(trSi(isFr, 'Température', 'Temperature'), style: const TextStyle(color: Color(0xFF1976D2), fontWeight: FontWeight.bold, fontSize: 12)),
                                               ],
                                             ),
                                             const SizedBox(height: 4),
@@ -1442,7 +1441,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                               children: [
                                                 const Icon(Icons.hourglass_top, color: Color(0xFFD84315), size: 18),
                                                 const SizedBox(width: 4),
-                                                Text(isFr ? 'Aération' : 'Aeration', style: const TextStyle(color: Color(0xFFD84315), fontWeight: FontWeight.bold, fontSize: 12)),
+                                                Text(trSi(isFr, 'Aération', 'Aeration'), style: const TextStyle(color: Color(0xFFD84315), fontWeight: FontWeight.bold, fontSize: 12)),
                                               ],
                                             ),
                                             const SizedBox(height: 4),
@@ -1469,7 +1468,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('${isFr ? "Verre conseillé" : "Recommended glassware"} : ${advice.glasswareType}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                                      Text('${trSi(isFr, "Verre conseillé", "Recommended glassware")} : ${advice.glasswareType}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
                                       const SizedBox(height: 4),
                                       Text(advice.decantingAdvice, style: theme.textTheme.bodySmall?.copyWith(height: 1.3)),
                                     ],
@@ -1487,7 +1486,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     ),
                                     icon: const Icon(Icons.timer_outlined, color: Color(0xFFD4AF37), size: 20),
                                     label: Text(
-                                      isFr ? 'Mode Sommelier à Table (Minuteur & Notes)' : 'Table Sommelier Mode (Timer & Notes)',
+                                      trSi(isFr, 'Mode Sommelier à Table (Minuteur & Notes)', 'Table Sommelier Mode (Timer & Notes)'),
                                       style: const TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                     onPressed: () {
@@ -1507,7 +1506,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         ),
                                         icon: const Icon(Icons.thermostat_auto, color: Color(0xFF1976D2), size: 18),
                                         label: Text(
-                                          isFr ? 'Thermocourbe' : 'Thermal Curve',
+                                          trSi(isFr, 'Thermocourbe', 'Thermal Curve'),
                                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -1527,7 +1526,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         ),
                                         icon: const Icon(Icons.record_voice_over, color: Color(0xFF722F37), size: 18),
                                         label: Text(
-                                          isFr ? 'Récit Audio' : 'Storyteller',
+                                          trSi(isFr, 'Récit Audio', 'Storyteller'),
                                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -1551,7 +1550,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         ),
                                         icon: const Icon(Icons.history_toggle_off, color: Color(0xFFD4AF37), size: 18),
                                         label: Text(
-                                          isFr ? 'Jumeau Numérique' : 'Aging Simulator',
+                                          trSi(isFr, 'Jumeau Numérique', 'Aging Simulator'),
                                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -1594,11 +1593,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        l10n?.bottleDetailTastingNotes ?? (isFr ? 'Profil Sommelier' : 'Sommelier Profile'),
+                                        l10n?.bottleDetailTastingNotes ?? (trSi(isFr, 'Profil Sommelier', 'Sommelier Profile')),
                                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                       ),
                                       Text(
-                                        isFr ? 'Fiche œnologique & aromatique (IA & Guides)' : 'Oenological & aromatic profile (AI & Guides)',
+                                        trSi(isFr, 'Fiche œnologique & aromatique (IA & Guides)', 'Oenological & aromatic profile (AI & Guides)'),
                                         style: theme.textTheme.bodySmall?.copyWith(
                                           color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
                                           fontSize: 11,
@@ -1610,7 +1609,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                 if (!isViewOnly)
                                   IconButton(
                                     icon: const Icon(Icons.edit_outlined, size: 18),
-                                    tooltip: isFr ? 'Modifier le profil sommelier' : 'Edit sommelier profile',
+                                    tooltip: trSi(isFr, 'Modifier le profil sommelier', 'Edit sommelier profile'),
                                     onPressed: () => _showFullEditSheet(wine, bottleObj),
                                   ),
                               ],
@@ -1626,8 +1625,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               const SizedBox(height: 16),
                               Text(
                                 wine.tracksFillLevel
-                                    ? (isFr ? 'Accords & Dégustation conseillés' : 'Recommended pairings & tasting')
-                                    : (l10n?.bottleDetailFoodPairings ?? (isFr ? 'Accords Mets & Vins conseillés' : 'Recommended Food & Wine Pairings')),
+                                    ? (trSi(isFr, 'Accords & Dégustation conseillés', 'Recommended pairings & tasting'))
+                                    : (l10n?.bottleDetailFoodPairings ?? (trSi(isFr, 'Accords Mets & Vins conseillés', 'Recommended Food & Wine Pairings'))),
                                 style: theme.textTheme.labelLarge?.copyWith(
                                   color: theme.brightness == Brightness.dark ? const Color(0xFFE25C74) : const Color(0xFF8B1E3F),
                                   fontWeight: FontWeight.bold,
@@ -1656,7 +1655,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                 ),
                                 icon: const Text('👨‍🍳', style: TextStyle(fontSize: 16)),
                                 label: Text(
-                                  isFr ? 'Que cuisiner avec ce vin ? (Accords Inversés)' : 'What to cook with this wine? (Reverse Pairings)',
+                                  trSi(isFr, 'Que cuisiner avec ce vin ? (Accords Inversés)', 'What to cook with this wine? (Reverse Pairings)'),
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                 ),
                                 onPressed: () => WineReverseFoodPairingSheet.show(context, wine),
@@ -1701,11 +1700,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                isFr ? 'Histoire & Terroir du Domaine' : 'Estate History & Terroir',
+                                                trSi(isFr, 'Histoire & Terroir du Domaine', 'Estate History & Terroir'),
                                                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                               ),
                                               Text(
-                                                isFr ? 'Base transversale partagée • Re-vérification annuelle' : 'Shared transversal knowledge • Annual re-verification',
+                                                trSi(isFr, 'Base transversale partagée • Re-vérification annuelle', 'Shared transversal knowledge • Annual re-verification'),
                                                 style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, color: Colors.grey),
                                               ),
                                             ],
@@ -1724,7 +1723,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                               const Icon(Icons.verified, color: Colors.green, size: 14),
                                               const SizedBox(width: 4),
                                               Text(
-                                                isFr ? 'Vérifié le $verifiedDateStr' : 'Verified on $verifiedDateStr',
+                                                trSi(isFr, 'Vérifié le {verifiedDateStr}', 'Verified on {verifiedDateStr}', {'verifiedDateStr': verifiedDateStr}),
                                                 style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.green),
                                               ),
                                             ],
@@ -1745,20 +1744,20 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         if (vk.soilType != null)
                                           Chip(
                                             avatar: const Text('🪨', style: TextStyle(fontSize: 12)),
-                                            label: Text('${isFr ? "Sols" : "Soils"} : ${vk.soilType}', style: const TextStyle(fontSize: 11)),
+                                            label: Text('${trSi(isFr, "Sols", "Soils")} : ${vk.soilType}', style: const TextStyle(fontSize: 11)),
                                             backgroundColor: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
                                             visualDensity: VisualDensity.compact,
                                           ),
                                         if (vk.viticultureStyle != null)
                                           Chip(
                                             avatar: const Text('🌿', style: TextStyle(fontSize: 12)),
-                                            label: Text('${isFr ? "Culture" : "Farming"} : ${vk.viticultureStyle}', style: const TextStyle(fontSize: 11)),
+                                            label: Text('${trSi(isFr, "Culture", "Farming")} : ${vk.viticultureStyle}', style: const TextStyle(fontSize: 11)),
                                             backgroundColor: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
                                             visualDensity: VisualDensity.compact,
                                           ),
                                         Chip(
                                           avatar: const Icon(Icons.schedule, size: 13, color: Colors.grey),
-                                          label: Text(isFr ? 'Valable encore $expiryDays jours' : 'Valid for $expiryDays more days', style: const TextStyle(fontSize: 10.5, color: Colors.grey)),
+                                          label: Text(trSi(isFr, 'Valable encore {expiryDays} jours', 'Valid for {expiryDays} more days', {'expiryDays': expiryDays}), style: const TextStyle(fontSize: 10.5, color: Colors.grey)),
                                           backgroundColor: Colors.transparent,
                                           side: BorderSide(color: Colors.grey.withAlpha(50)),
                                           visualDensity: VisualDensity.compact,
@@ -1815,7 +1814,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         children: [
                                           const Icon(Icons.lock_outline, size: 11, color: Colors.green),
                                           const SizedBox(width: 3),
-                                          Text(isFr ? 'Personnalisé' : 'Custom', style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
+                                          Text(trSi(isFr, 'Personnalisé', 'Custom'), style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
                                         ],
                                       ),
                                     ),
@@ -1823,13 +1822,13 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   const Spacer(),
                                   IconButton(
                                     icon: const Icon(Icons.help_outline, size: 18, color: Colors.grey),
-                                    tooltip: isFr ? 'Qu\'est-ce que l\'apogée ?' : 'What is the peak window?',
+                                    tooltip: trSi(isFr, 'Qu\'est-ce que l\'apogée ?', 'What is the peak window?'),
                                     onPressed: () => _showApogeeExplanationDialog(context),
                                   ),
                                   if (!isViewOnly)
                                     IconButton(
                                       icon: const Icon(Icons.edit_outlined, size: 18),
-                                      tooltip: isFr ? 'Modifier les dates d\'apogée et de garde' : 'Edit peak and drinking window dates',
+                                      tooltip: trSi(isFr, 'Modifier les dates d\'apogée et de garde', 'Edit peak and drinking window dates'),
                                       onPressed: () => _showFullEditSheet(wine, bottleObj),
                                     ),
                                 ],
@@ -1859,7 +1858,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               children: [
                                 const Icon(Icons.explore_outlined, size: 18, color: Color(0xFF8B1E3F)),
                                 const SizedBox(width: 6),
-                                Text(isFr ? 'Origine Géographique & Terroir' : 'Geographic Origin & Terroir', style: theme.textTheme.titleMedium),
+                                Text(trSi(isFr, 'Origine Géographique & Terroir', 'Geographic Origin & Terroir'), style: theme.textTheme.titleMedium),
                               ],
                             ),
                             const SizedBox(height: 12),
@@ -1897,14 +1896,14 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   const Icon(Icons.pie_chart, color: Color(0xFF8B1E3F), size: 20),
                                   const SizedBox(width: 8),
                                   Text(
-                                    l10n?.bottleDetailGrapes ?? (isFr ? 'Composition & Cépages (Raisin)' : 'Composition & Grape Varieties'),
+                                    l10n?.bottleDetailGrapes ?? (trSi(isFr, 'Composition & Cépages (Raisin)', 'Composition & Grape Varieties')),
                                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                   const Spacer(),
                                   if (!isViewOnly)
                                     IconButton(
                                       icon: const Icon(Icons.edit_outlined, size: 18),
-                                      tooltip: isFr ? 'Modifier les cépages' : 'Edit grape varieties',
+                                      tooltip: trSi(isFr, 'Modifier les cépages', 'Edit grape varieties'),
                                       onPressed: () => _showFullEditSheet(wine, bottleObj),
                                     ),
                                 ],
@@ -1960,7 +1959,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     const Icon(Icons.inventory_2_outlined, color: Color(0xFF8B1E3F), size: 20),
                                     const SizedBox(width: 8),
                                     Text(
-                                      isFr ? 'Élevage & Vinification' : 'Aging & Vinification',
+                                      trSi(isFr, 'Élevage & Vinification', 'Aging & Vinification'),
                                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                     ),
                                     if (wine.isTechnicalDataVerified) ...[
@@ -1991,7 +1990,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                isFr ? 'Temps passé en fût & Élevage' : 'Barrel Aging Duration & Method',
+                                                trSi(isFr, 'Temps passé en fût & Élevage', 'Barrel Aging Duration & Method'),
                                                 style: const TextStyle(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
@@ -2030,7 +2029,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   _buildOenologyRow(
                                     context,
                                     icon: Icons.bubble_chart_outlined,
-                                    label: isFr ? 'Fermentation malolactique' : 'Malolactic fermentation',
+                                    label: trSi(isFr, 'Fermentation malolactique', 'Malolactic fermentation'),
                                     value: oenology.malolacticFermentation!,
                                   ),
                                   const SizedBox(height: 10),
@@ -2040,7 +2039,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   _buildOenologyRow(
                                     context,
                                     icon: Icons.agriculture_outlined,
-                                    label: isFr ? 'Mode de vendanges' : 'Harvest method',
+                                    label: trSi(isFr, 'Mode de vendanges', 'Harvest method'),
                                     value: oenology.harvestMethod!,
                                   ),
                                   const SizedBox(height: 10),
@@ -2049,7 +2048,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                 _buildOenologyRow(
                                   context,
                                   icon: Icons.hourglass_top_outlined,
-                                  label: isFr ? 'Potentiel de garde estimé' : 'Estimated aging potential',
+                                  label: trSi(isFr, 'Potentiel de garde estimé', 'Estimated aging potential'),
                                   value: oenology.agingPotential,
                                 ),
 
@@ -2068,9 +2067,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            isFr
-                                                ? 'Données d\'élevage & vinification non renseignées par le domaine.'
-                                                : 'Aging and vinification technical data not provided by estate.',
+                                            trSi(isFr, 'Données d\'élevage & vinification non renseignées par le domaine.', 'Aging and vinification technical data not provided by estate.'),
                                             style: theme.textTheme.bodySmall?.copyWith(
                                               color: theme.colorScheme.onSurfaceVariant,
                                               fontStyle: FontStyle.italic,
@@ -2107,9 +2104,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                 const Icon(Icons.star, color: Colors.amber, size: 20),
                                 const SizedBox(width: 8),
                                 Text(
-                                  isFr
-                                      ? 'Notes & Distinctions des Guides (${wine.vintage ?? "NM"})'
-                                      : 'Ratings & Guide Awards (${wine.vintage ?? "NV"})',
+                                  trSi(isFr, 'Notes & Distinctions des Guides ({v1})', 'Ratings & Guide Awards ({v2})', {'v1': wine.vintage ?? "NM", 'v2': wine.vintage ?? "NV"}),
                                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ],
@@ -2180,16 +2175,18 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                             children: [
                               Icon(Icons.trending_up, color: theme.colorScheme.primary, size: 20),
                               const SizedBox(width: 8),
-                              Text(isFr ? 'Estimation & Valeur patrimoniale' : 'Valuation & Asset Value', style: theme.textTheme.titleMedium),
+                              Text(trSi(isFr, 'Estimation & Valeur patrimoniale', 'Valuation & Asset Value'), style: theme.textTheme.titleMedium),
                               const Spacer(),
                               IconButton(
                                 icon: const Icon(Icons.edit_outlined, size: 18),
-                                tooltip: isFr ? 'Modifier prix ou devise' : 'Edit price or currency',
+                                tooltip: trSi(isFr, 'Modifier prix ou devise', 'Edit price or currency'),
                                 onPressed: _showEditPriceDialog,
                               ),
                               Flexible(
                                 child: Text(
-                                  '$quantity ${isFr ? (quantity > 1 ? "bouteilles en cave" : "bouteille en cave") : (quantity > 1 ? "bottles in cellar" : "bottle in cellar")}',
+                                  quantity > 1
+                                      ? trSi(isFr, '{n} bouteilles en cave', '{n} bottles in cellar', {'n': quantity})
+                                      : trSi(isFr, '{n} bouteille en cave', '{n} bottle in cellar', {'n': quantity}),
                                   style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -2205,16 +2202,16 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      l10n?.bottleDetailPurchasePrice ?? (isFr ? 'Prix d\'achat' : 'Purchase price'),
+                                      l10n?.bottleDetailPurchasePrice ?? (trSi(isFr, 'Prix d\'achat', 'Purchase price')),
                                       style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       isViewOnly
-                                          ? (isFr ? 'Confidentiel' : 'Confidential')
+                                          ? (trSi(isFr, 'Confidentiel', 'Confidential'))
                                           : (purchasePrice != null 
                                               ? CurrencyHelper.formatPrice(purchasePrice, currency: currency, decimals: 2) 
-                                              : (isFr ? 'Non renseigné' : 'Not set')),
+                                              : (trSi(isFr, 'Non renseigné', 'Not set'))),
                                       style: theme.textTheme.titleMedium?.copyWith(
                                         fontWeight: FontWeight.bold,
                                         color: isViewOnly
@@ -2234,7 +2231,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     Row(
                                       children: [
                                         Text(
-                                          l10n?.bottleDetailEstimatedValue ?? (isFr ? 'Valeur estimée' : 'Estimated value'),
+                                          l10n?.bottleDetailEstimatedValue ?? (trSi(isFr, 'Valeur estimée', 'Estimated value')),
                                           style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                                         ),
                                         // Le badge « vérifié » ne s'affiche que pour une cote sourcée.
@@ -2247,11 +2244,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       isViewOnly
-                                          ? (isFr ? 'Confidentiel' : 'Confidential')
+                                          ? (trSi(isFr, 'Confidentiel', 'Confidential'))
                                           : (wine.estimatedMarketValue != null && (wine.valeurSourcee || wine.valeurSaisie)
                                               ? CurrencyHelper.formatPrice(wine.estimatedMarketValue, currency: currency, decimals: 2)
                                               // Avant : « Estimation... », comme si un calcul était en cours.
-                                              : (isFr ? 'Non cotée' : 'Not valued')),
+                                              : (trSi(isFr, 'Non cotée', 'Not valued'))),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleMedium?.copyWith(
@@ -2271,8 +2268,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               // page, ou la valeur que la personne a saisie.
                               wine.valeurSaisie
                                   ? tr('Votre estimation', 'Your own estimate')
-                                  : tr('Cote relevée sur ${Uri.tryParse(wine.valeurSource ?? '')?.host ?? 'le web'}${wine.lastValuationDate != null ? ' le ${DateFormat('dd/MM/yyyy').format(wine.lastValuationDate!)}' : ''}',
-                                      'Price found on ${Uri.tryParse(wine.valeurSource ?? '')?.host ?? 'the web'}${wine.lastValuationDate != null ? ' on ${DateFormat.yMMMd().format(wine.lastValuationDate!)}' : ''}'),
+                                  : _origineDeLaCote(wine),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 fontSize: 11,
                                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
@@ -2307,22 +2303,20 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               final confirm = await showDialog<bool>(
                                 context: context,
                                 builder: (c) => AlertDialog(
-                                  title: Text(isFr ? 'Retirer du meuble ?' : 'Remove from furniture?'),
+                                  title: Text(trSi(isFr, 'Retirer du meuble ?', 'Remove from furniture?')),
                                   content: Text(
-                                      isFr
-                                          ? 'Voulez-vous retirer cette bouteille de son meuble et la replacer en stockage non assigné ?'
-                                          : 'Do you want to remove this bottle from its furniture and return it to unassigned storage?'),
+                                      trSi(isFr, 'Voulez-vous retirer cette bouteille de son meuble et la replacer en stockage non assigné ?', 'Do you want to remove this bottle from its furniture and return it to unassigned storage?')),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(c, false),
-                                      child: Text(isFr ? 'Annuler' : 'Cancel'),
+                                      child: Text(trSi(isFr, 'Annuler', 'Cancel')),
                                     ),
                                     FilledButton(
                                       style: FilledButton.styleFrom(
                                         backgroundColor: Colors.red.shade800,
                                       ),
                                       onPressed: () => Navigator.pop(c, true),
-                                      child: Text(isFr ? 'Retirer' : 'Remove'),
+                                      child: Text(trSi(isFr, 'Retirer', 'Remove')),
                                     ),
                                   ],
                                 ),
@@ -2361,7 +2355,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  '${isFr ? "Provenance" : "Origin"} : ${bottleObj.getProvenanceDisplay(isFr)}',
+                                  '${trSi(isFr, "Provenance", "Origin")} : ${bottleObj.getProvenanceDisplay(isFr)}',
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: theme.brightness == Brightness.dark ? const Color(0xFFF3E5AB) : const Color(0xFF722F37),
@@ -2386,14 +2380,14 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               children: [
                                 const Icon(Icons.shelves, color: Color(0xFF8B1E3F), size: 20),
                                 const SizedBox(width: 8),
-                                Text(l10n?.bottleDetailLocation ?? (isFr ? 'Emplacement & Meuble de cave' : 'Location & Cellar Furniture'),
+                                Text(l10n?.bottleDetailLocation ?? (trSi(isFr, 'Emplacement & Meuble de cave', 'Location & Cellar Furniture')),
                                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                               ],
                             ),
                             const SizedBox(height: 12),
                             OutlinedButton.icon(
                               icon: const Icon(Icons.add_location_alt_outlined, size: 18),
-                              label: Text(isFr ? 'Ranger dans un meuble (Mode Rayonnage)' : 'Store in furniture (Shelf Mode)'),
+                              label: Text(trSi(isFr, 'Ranger dans un meuble (Mode Rayonnage)', 'Store in furniture (Shelf Mode)')),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: const Color(0xFF8B1E3F),
                                 side: const BorderSide(color: Color(0xFF8B1E3F)),
@@ -2418,7 +2412,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      '${isFr ? "Provenance" : "Origin"} : ${bottleObj.getProvenanceDisplay(isFr)}',
+                                      '${trSi(isFr, "Provenance", "Origin")} : ${bottleObj.getProvenanceDisplay(isFr)}',
                                       style: theme.textTheme.bodyMedium?.copyWith(
                                         fontWeight: FontWeight.w600,
                                         color: theme.brightness == Brightness.dark ? const Color(0xFFF3E5AB) : const Color(0xFF722F37),
@@ -2457,11 +2451,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        isFr ? 'Mes Notes & Commentaires Personnels' : 'My Personal Notes & Comments',
+                                        trSi(isFr, 'Mes Notes & Commentaires Personnels', 'My Personal Notes & Comments'),
                                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                       ),
                                       Text(
-                                        isFr ? 'Privé • Rédigé par vous (non modifiable par l\'IA)' : 'Private • Written by you (not modifiable by AI)',
+                                        trSi(isFr, 'Privé • Rédigé par vous (non modifiable par l\'IA)', 'Private • Written by you (not modifiable by AI)'),
                                         style: theme.textTheme.bodySmall?.copyWith(
                                           color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
                                           fontSize: 11,
@@ -2473,24 +2467,24 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                 if (!isViewOnly) ...[
                                   IconButton(
                                     icon: const Icon(Icons.edit_outlined, size: 18),
-                                    tooltip: isFr ? 'Modifier ma note' : 'Edit my note',
+                                    tooltip: trSi(isFr, 'Modifier ma note', 'Edit my note'),
                                     onPressed: () => _showQuickEditPersonalNotes(bottleObj),
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
-                                    tooltip: isFr ? 'Supprimer ma note' : 'Delete my note',
+                                    tooltip: trSi(isFr, 'Supprimer ma note', 'Delete my note'),
                                     onPressed: () async {
                                       final confirm = await showDialog<bool>(
                                         context: context,
                                         builder: (c) => AlertDialog(
-                                          title: Text(isFr ? 'Supprimer votre note ?' : 'Delete your note?'),
-                                          content: Text(isFr ? 'Voulez-vous effacer vos commentaires personnels pour cette bouteille ?' : 'Do you want to erase your personal comments for this bottle?'),
+                                          title: Text(trSi(isFr, 'Supprimer votre note ?', 'Delete your note?')),
+                                          content: Text(trSi(isFr, 'Voulez-vous effacer vos commentaires personnels pour cette bouteille ?', 'Do you want to erase your personal comments for this bottle?')),
                                           actions: [
-                                            TextButton(onPressed: () => Navigator.pop(c, false), child: Text(isFr ? 'Annuler' : 'Cancel')),
+                                            TextButton(onPressed: () => Navigator.pop(c, false), child: Text(trSi(isFr, 'Annuler', 'Cancel'))),
                                             FilledButton(
                                               style: FilledButton.styleFrom(backgroundColor: Colors.red.shade800, foregroundColor: Colors.white),
                                               onPressed: () => Navigator.pop(c, true),
-                                              child: Text(isFr ? 'Supprimer' : 'Delete', style: const TextStyle(color: Colors.white)),
+                                              child: Text(trSi(isFr, 'Supprimer', 'Delete'), style: const TextStyle(color: Colors.white)),
                                             ),
                                           ],
                                         ),
@@ -2526,9 +2520,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                       onPressed: () => _showQuickEditPersonalNotes(bottleObj),
                       icon: const Icon(Icons.edit_note, size: 18, color: Color(0xFFD4AF37)),
                       label: Text(
-                        isFr
-                            ? '+ Ajouter une note personnelle (souvenirs, circonstances d\'achat...)'
-                            : '+ Add a personal note (memories, purchase context...)',
+                        trSi(isFr, '+ Ajouter une note personnelle (souvenirs, circonstances d\'achat...)', '+ Add a personal note (memories, purchase context...)'),
                         style: const TextStyle(fontSize: 13, color: Color(0xFFD4AF37), fontWeight: FontWeight.w600),
                       ),
                       style: OutlinedButton.styleFrom(
@@ -2582,7 +2574,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                             const Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFFD4AF37)),
                             const SizedBox(width: 8),
                             Text(
-                              isFr ? '💬 Discuter de ce vin avec le Chatmelier' : '💬 Chat about this wine with Chatmelier',
+                              trSi(isFr, '💬 Discuter de ce vin avec le Chatmelier', '💬 Chat about this wine with Chatmelier'),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -2635,7 +2627,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          isFr ? 'Recherche IA' : 'AI Search',
+                                          trSi(isFr, 'Recherche IA', 'AI Search'),
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Color(0xFFD4AF37),
@@ -2643,7 +2635,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                           ),
                                         ),
                                         Text(
-                                          isFr ? 'Cépages & Apogée' : 'Grapes & Peak',
+                                          trSi(isFr, 'Cépages & Apogée', 'Grapes & Peak'),
                                           style: const TextStyle(fontSize: 10, color: Colors.grey),
                                         ),
                                       ],
@@ -2683,7 +2675,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            isFr ? 'Modifier la fiche' : 'Edit Details',
+                                            trSi(isFr, 'Modifier la fiche', 'Edit Details'),
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Color(0xFF8B1E3F),
@@ -2691,7 +2683,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                             ),
                                           ),
                                           Text(
-                                            isFr ? 'Tous les champs' : 'All fields',
+                                            trSi(isFr, 'Tous les champs', 'All fields'),
                                             style: const TextStyle(fontSize: 10, color: Colors.grey),
                                           ),
                                         ],
@@ -2718,7 +2710,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                       },
                       icon: const Icon(Icons.add_circle_outline, color: Color(0xFF8B1E3F)),
                       label: Text(
-                        isFr ? '+ 1 Bouteille / Ajouter un exemplaire' : '+ 1 Bottle / Add duplicate',
+                        trSi(isFr, '+ 1 Bouteille / Ajouter un exemplaire', '+ 1 Bottle / Add duplicate'),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       style: FilledButton.styleFrom(
@@ -2741,7 +2733,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                       },
                       icon: const Icon(Icons.delete_forever, color: Colors.redAccent, size: 18),
                       label: Text(
-                        isFr ? 'Supprimer définitivement de la cave' : 'Permanently delete from cellar',
+                        trSi(isFr, 'Supprimer définitivement de la cave', 'Permanently delete from cellar'),
                         style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600),
                       ),
                       style: OutlinedButton.styleFrom(
@@ -2797,10 +2789,10 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         child: Row(
           children: [
             if (wine.tracksFillLevel) ...[
-              _buildQuickNavChip(context, icon: Icons.local_bar, label: isFr ? 'Niveau' : 'Fill Level', targetKey: _fillLevelKey),
+              _buildQuickNavChip(context, icon: Icons.local_bar, label: trSi(isFr, 'Niveau', 'Fill Level'), targetKey: _fillLevelKey),
               const SizedBox(width: 8),
             ] else ...[
-              _buildQuickNavChip(context, icon: Icons.show_chart, label: isFr ? 'Apogée' : 'Peak Window', targetKey: _apogeeKey),
+              _buildQuickNavChip(context, icon: Icons.show_chart, label: trSi(isFr, 'Apogée', 'Peak Window'), targetKey: _apogeeKey),
               const SizedBox(width: 8),
             ],
             _buildQuickNavChip(context, icon: Icons.wine_bar, label: 'Service', targetKey: _serviceKey),
@@ -2808,11 +2800,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
             _buildQuickNavChip(context, icon: Icons.explore_outlined, label: 'Terroir', targetKey: _terroirKey),
             if (!wine.isSpirit) ...[
               const SizedBox(width: 8),
-              _buildQuickNavChip(context, icon: Icons.pie_chart_outline, label: isFr ? 'Cépages' : 'Grapes', targetKey: _grapesKey),
+              _buildQuickNavChip(context, icon: Icons.pie_chart_outline, label: trSi(isFr, 'Cépages', 'Grapes'), targetKey: _grapesKey),
             ],
             if (!wine.tracksFillLevel) ...[
               const SizedBox(width: 8),
-              _buildQuickNavChip(context, icon: Icons.inventory_2_outlined, label: isFr ? 'Élevage' : 'Aging', targetKey: _elevageKey),
+              _buildQuickNavChip(context, icon: Icons.inventory_2_outlined, label: trSi(isFr, 'Élevage', 'Aging'), targetKey: _elevageKey),
             ],
           ],
         ),
@@ -2942,7 +2934,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            isFr ? 'Ajuster le stock / Exemplaire' : 'Adjust Stock / Add Duplicate',
+                            trSi(isFr, 'Ajuster le stock / Exemplaire', 'Adjust Stock / Add Duplicate'),
                             style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -2970,7 +2962,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isFr ? '1. Ajuster le stock de cette fiche' : '1. Adjust stock for this entry',
+                            trSi(isFr, '1. Ajuster le stock de cette fiche', '1. Adjust stock for this entry'),
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                           ),
                           const SizedBox(height: 12),
@@ -2988,7 +2980,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               children: [
                                 Column(
                                   children: [
-                                    Text(isFr ? 'Stock actuel' : 'Current stock', style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant)),
+                                    Text(trSi(isFr, 'Stock actuel', 'Current stock'), style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant)),
                                     const SizedBox(height: 2),
                                     Text('$initialQty', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                   ],
@@ -2996,7 +2988,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                 const Icon(Icons.add, size: 16, color: Colors.grey),
                                 Column(
                                   children: [
-                                    Text(isFr ? 'Ajout' : 'Added', style: const TextStyle(fontSize: 11, color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
+                                    Text(trSi(isFr, 'Ajout', 'Added'), style: const TextStyle(fontSize: 11, color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
                                     const SizedBox(height: 2),
                                     Text('+$extraQty', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
                                   ],
@@ -3004,7 +2996,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                 const Text('=', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
                                 Column(
                                   children: [
-                                    Text(isFr ? 'Nouveau total' : 'New total', style: const TextStyle(fontSize: 11, color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold)),
+                                    Text(trSi(isFr, 'Nouveau total', 'New total'), style: const TextStyle(fontSize: 11, color: Color(0xFF8B1E3F), fontWeight: FontWeight.bold)),
                                     const SizedBox(height: 2),
                                     Text('$currentTotal', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F))),
                                   ],
@@ -3019,7 +3011,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                             children: [
                               Expanded(
                                 flex: 3,
-                                child: Text(isFr ? 'Quantité ajoutée :' : 'Added quantity:', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                                child: Text(trSi(isFr, 'Quantité ajoutée :', 'Added quantity:'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
                               ),
                               IconButton.filledTonal(
                                 visualDensity: VisualDensity.compact,
@@ -3064,7 +3056,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               Expanded(
                                 flex: 3,
                                 child: Text(
-                                  isFr ? 'Nouveau stock total :' : 'New total stock:',
+                                  trSi(isFr, 'Nouveau stock total :', 'New total stock:'),
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF8B1E3F)),
                                 ),
                               ),
@@ -3119,9 +3111,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               messenger.showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    isFr
-                                        ? '🍾 Stock mis à jour : $finalTotal bouteilles en cave !'
-                                        : '🍾 Stock updated: $finalTotal bottles in cellar!',
+                                    trSi(isFr, '🍾 Stock mis à jour : {finalTotal} bouteilles en cave !', '🍾 Stock updated: {finalTotal} bottles in cellar!', {'finalTotal': finalTotal}),
                                   ),
                                   backgroundColor: const Color(0xFF8B1E3F),
                                 ),
@@ -3129,9 +3119,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                             },
                             icon: const Icon(Icons.check, color: Colors.white),
                             label: Text(
-                              isFr
-                                  ? 'Valider le stock total ($currentTotal btl • +$extraQty)'
-                                  : 'Confirm total stock ($currentTotal btl • +$extraQty)',
+                              trSi(isFr, 'Valider le stock total ({currentTotal} btl • +{extraQty})', 'Confirm total stock ({currentTotal} btl • +{extraQty})', {'currentTotal': currentTotal, 'extraQty': extraQty}),
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                             ),
                             style: FilledButton.styleFrom(
@@ -3161,9 +3149,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                       },
                       icon: const Icon(Icons.copy),
                       label: Text(
-                        isFr
-                            ? '2. Créer une nouvelle entrée (autre casier / prix)'
-                            : '2. Create a new entry (different slot / price)',
+                        trSi(isFr, '2. Créer une nouvelle entrée (autre casier / prix)', '2. Create a new entry (different slot / price)'),
                       ),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(48),

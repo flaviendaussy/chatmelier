@@ -291,7 +291,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                     const SizedBox(height: 24),
 
                     // 2. CÉPAGES DYNAMIQUES DE LA CAVE
-                    _buildSectionHeader(tr('Cépages de votre Cave (${_grapes.length})', 'Grapes in your cellar (${_grapes.length})'), icon: Icons.grain),
+                    _buildSectionHeader(tr('Cépages de votre Cave ({grapes_length})', 'Grapes in your cellar ({grapes_length})', {'grapes_length': _grapes.length}), icon: Icons.grain),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -304,7 +304,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                     const SizedBox(height: 24),
 
                     // 3. RÉGIONS & APPELLATIONS DE LA CAVE
-                    _buildSectionHeader(tr('Régions & Appellations (${_appellations.length})', 'Regions & appellations (${_appellations.length})'), icon: Icons.map_outlined),
+                    _buildSectionHeader(tr('Régions & Appellations ({appellations_length})', 'Regions & appellations ({appellations_length})', {'appellations_length': _appellations.length}), icon: Icons.map_outlined),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -318,7 +318,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
 
                     // 4. MILLÉSIMES DISPONIBLES
                     if (_vintages.isNotEmpty) ...[
-                      _buildSectionHeader(tr('Millésimes (${_vintages.length})', 'Vintages (${_vintages.length})'), icon: Icons.calendar_today_outlined),
+                      _buildSectionHeader(tr('Millésimes ({vintages_length})', 'Vintages ({vintages_length})', {'vintages_length': _vintages.length}), icon: Icons.calendar_today_outlined),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -343,7 +343,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                     ],
 
                     // 5. PAYS D'ORIGINE
-                    _buildSectionHeader(tr('Pays d\'origine (${_countries.length})', 'Country of origin (${_countries.length})'), icon: Icons.flag_outlined),
+                    _buildSectionHeader(tr('Pays d\'origine ({countries_length})', 'Country of origin ({countries_length})', {'countries_length': _countries.length}), icon: Icons.flag_outlined),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -394,7 +394,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                     ),
                     child: Text(
                       _current.isActive
-                          ? tr('Appliquer (${_current.activeFilterCount} ${_current.activeFilterCount > 1 ? "filtres actifs" : "filtre actif"})', 'Apply (${_current.activeFilterCount} ${_current.activeFilterCount > 1 ? "active filters" : "active filter"})')
+                          ? tr('Appliquer ({activeFilterCount} {v1})', 'Apply ({activeFilterCount} {v2})', {'activeFilterCount': _current.activeFilterCount, 'v1': _current.activeFilterCount > 1 ? "filtres actifs" : "filtre actif", 'v2': _current.activeFilterCount > 1 ? "active filters" : "active filter"})
                           : tr('Voir toutes les bouteilles', 'See all bottles'),
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                     ),

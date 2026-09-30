@@ -95,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('✉️ Lien de connexion envoyé à $email ! Cliquez sur le lien reçu (vérifiez vos spams) pour entrer directement.', '✉️ Sign-in link sent to $email! Tap the link in that email (check your spam folder) to sign straight in.')),
+            content: Text(tr('✉️ Lien de connexion envoyé à {email} ! Cliquez sur le lien reçu (vérifiez vos spams) pour entrer directement.', '✉️ Sign-in link sent to {email}! Tap the link in that email (check your spam folder) to sign straight in.', {'email': email})),
             backgroundColor: const Color(0xFF10B981),
             duration: const Duration(seconds: 7),
           ),
@@ -234,7 +234,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 if (mounted) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(tr('✉️ Email de réinitialisation envoyé à $targetEmail (vérifiez vos courriers indésirables / spams)', '✉️ Reset email sent to $targetEmail (check your junk / spam folder)')),
+                      content: Text(tr('✉️ Email de réinitialisation envoyé à {targetEmail} (vérifiez vos courriers indésirables / spams)', '✉️ Reset email sent to {targetEmail} (check your junk / spam folder)', {'targetEmail': targetEmail})),
                       backgroundColor: const Color(0xFF10B981),
                       duration: const Duration(seconds: 7),
                     ),
@@ -243,7 +243,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               } catch (err) {
                 if (mounted) {
                   messenger.showSnackBar(
-                    SnackBar(content: Text(tr('Erreur : $err', 'Error: $err')), backgroundColor: Colors.redAccent),
+                    SnackBar(content: Text(tr('Erreur : {err}', 'Error: {err}', {'err': err})), backgroundColor: Colors.redAccent),
                   );
                 }
               }
@@ -268,7 +268,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       AppLogger.error('AUTH', 'Google login failed', e, stack);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Échec de connexion Google : $e', 'Google sign-in failed: $e'))),
+          SnackBar(content: Text(tr('Échec de connexion Google : {e}', 'Google sign-in failed: {e}', {'e': e}))),
         );
       }
     } finally {
@@ -541,7 +541,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                       ),
                                       const SizedBox(height: 10),
                                       Text(
-                                        tr('Un email sécurisé a été envoyé à :\n${_emailCtrl.text.trim()}\n\nOuvrez simplement cet email et cliquez sur le lien pour vous connecter automatiquement à votre cave (vérifiez votre dossier spams si nécessaire).', 'A secure email has been sent to:\n${_emailCtrl.text.trim()}\n\nJust open it and tap the link to sign in to your cellar automatically (check your spam folder if needed).'),
+                                        tr('Un email sécurisé a été envoyé à :\n{v1}\n\nOuvrez simplement cet email et cliquez sur le lien pour vous connecter automatiquement à votre cave (vérifiez votre dossier spams si nécessaire).', 'A secure email has been sent to:\n{v1}\n\nJust open it and tap the link to sign in to your cellar automatically (check your spam folder if needed).', {'v1': _emailCtrl.text.trim()}),
                                         style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
                                       ),
                                     ],

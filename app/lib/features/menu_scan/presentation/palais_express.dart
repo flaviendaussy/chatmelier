@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../auth/domain/wine_taste_radar.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Ce qu'un invité dit de ses goûts en vingt secondes.
 class PalaisSaisi {
@@ -63,11 +64,11 @@ class PalaisSaisi {
       );
 
   String archetype(bool fr) {
-    if (aversions.contains('tanin')) return fr ? 'Aversion aux tanins durs' : 'Dislikes firm tannins';
-    if (tanins >= 7 && corps >= 6) return fr ? 'Grands Rouges Puissants' : 'Big, powerful reds';
-    if (acidite >= 7 && mineralite >= 6) return fr ? 'Blancs Minéraux & Tendus' : 'Taut, mineral whites';
-    if (fruit >= 7 && tanins <= 5) return fr ? 'Rouges Fruits Croquants' : 'Crunchy fruity reds';
-    return fr ? 'Curieux & Éclectique' : 'Curious & eclectic';
+    if (aversions.contains('tanin')) return trSi(fr, 'Aversion aux tanins durs', 'Dislikes firm tannins');
+    if (tanins >= 7 && corps >= 6) return trSi(fr, 'Grands Rouges Puissants', 'Big, powerful reds');
+    if (acidite >= 7 && mineralite >= 6) return trSi(fr, 'Blancs Minéraux & Tendus', 'Taut, mineral whites');
+    if (fruit >= 7 && tanins <= 5) return trSi(fr, 'Rouges Fruits Croquants', 'Crunchy fruity reds');
+    return trSi(fr, 'Curieux & Éclectique', 'Curious & eclectic');
   }
 
   GuestProfile versConvive({required String id, required String nom, required bool fr}) => GuestProfile(
@@ -135,30 +136,28 @@ class _PalaisExpressState extends State<PalaisExpress> {
   /// bière. Replié, il ne prend qu'une ligne.
   static List<(String, String)> lexique(bool fr) => [
         (
-          fr ? 'Tanins' : 'Tannins',
-          fr
-              ? 'Ce qui assèche la bouche, comme un thé trop infusé. Marqués dans un Madiran, discrets dans un Beaujolais.'
-              : 'What dries your mouth, like over-brewed tea. Firm in a Madiran, soft in a Beaujolais.'
+          trSi(fr, 'Tanins', 'Tannins'),
+          trSi(fr, 'Ce qui assèche la bouche, comme un thé trop infusé. Marqués dans un Madiran, discrets dans un Beaujolais.', 'What dries your mouth, like over-brewed tea. Firm in a Madiran, soft in a Beaujolais.')
         ),
         (
-          fr ? 'Corps' : 'Body',
-          fr ? 'Le poids du vin en bouche : léger comme du lait écrémé, ou ample comme de la crème.' : 'The weight in your mouth: skimmed milk, or cream.'
+          trSi(fr, 'Corps', 'Body'),
+          trSi(fr, 'Le poids du vin en bouche : léger comme du lait écrémé, ou ample comme de la crème.', 'The weight in your mouth: skimmed milk, or cream.')
         ),
         (
-          fr ? 'Acidité' : 'Acidity',
-          fr ? 'Ce qui fait saliver et donne de la fraîcheur, comme un zeste de citron. Vive dans un Chablis.' : 'What makes your mouth water, like a squeeze of lemon. Lively in a Chablis.'
+          trSi(fr, 'Acidité', 'Acidity'),
+          trSi(fr, 'Ce qui fait saliver et donne de la fraîcheur, comme un zeste de citron. Vive dans un Chablis.', 'What makes your mouth water, like a squeeze of lemon. Lively in a Chablis.')
         ),
         (
-          fr ? 'Boisé' : 'Oak',
-          fr ? 'La vanille, le toasté ou le fumé que donne l\'élevage en fût de chêne.' : 'Vanilla, toast or smoky notes from ageing in oak barrels.'
+          trSi(fr, 'Boisé', 'Oak'),
+          trSi(fr, 'La vanille, le toasté ou le fumé que donne l\'élevage en fût de chêne.', 'Vanilla, toast or smoky notes from ageing in oak barrels.')
         ),
         (
-          fr ? 'Fruit' : 'Fruit',
-          fr ? 'L\'intensité des arômes de fruits : cerise, cassis, pêche…' : 'How much fruit you taste: cherry, blackcurrant, peach…'
+          trSi(fr, 'Fruit', 'Fruit'),
+          trSi(fr, 'L\'intensité des arômes de fruits : cerise, cassis, pêche…', 'How much fruit you taste: cherry, blackcurrant, peach…')
         ),
         (
-          fr ? 'Minéralité' : 'Minerality',
-          fr ? 'Une sensation saline, de pierre mouillée ou de craie, typique d\'un Chablis ou d\'un Sancerre.' : 'A salty, wet-stone or chalky feel, typical of a Chablis or a Sancerre.'
+          trSi(fr, 'Minéralité', 'Minerality'),
+          trSi(fr, 'Une sensation saline, de pierre mouillée ou de craie, typique d\'un Chablis ou d\'un Sancerre.', 'A salty, wet-stone or chalky feel, typical of a Chablis or a Sancerre.')
         ),
       ];
 
@@ -166,12 +165,12 @@ class _PalaisExpressState extends State<PalaisExpress> {
   Widget build(BuildContext context) {
     final fr = widget.isFr;
     final curseurs = <(String, double, PalaisSaisi Function(double))>[
-      (fr ? 'Tanins' : 'Tannins', _palais.tanins, (v) => _palais.copie(tanins: v)),
-      (fr ? 'Corps' : 'Body', _palais.corps, (v) => _palais.copie(corps: v)),
-      (fr ? 'Acidité' : 'Acidity', _palais.acidite, (v) => _palais.copie(acidite: v)),
-      (fr ? 'Boisé' : 'Oak', _palais.boise, (v) => _palais.copie(boise: v)),
-      (fr ? 'Fruit' : 'Fruit', _palais.fruit, (v) => _palais.copie(fruit: v)),
-      (fr ? 'Minéralité' : 'Minerality', _palais.mineralite, (v) => _palais.copie(mineralite: v)),
+      (trSi(fr, 'Tanins', 'Tannins'), _palais.tanins, (v) => _palais.copie(tanins: v)),
+      (trSi(fr, 'Corps', 'Body'), _palais.corps, (v) => _palais.copie(corps: v)),
+      (trSi(fr, 'Acidité', 'Acidity'), _palais.acidite, (v) => _palais.copie(acidite: v)),
+      (trSi(fr, 'Boisé', 'Oak'), _palais.boise, (v) => _palais.copie(boise: v)),
+      (trSi(fr, 'Fruit', 'Fruit'), _palais.fruit, (v) => _palais.copie(fruit: v)),
+      (trSi(fr, 'Minéralité', 'Minerality'), _palais.mineralite, (v) => _palais.copie(mineralite: v)),
     ];
 
     return Column(
@@ -185,18 +184,18 @@ class _PalaisExpressState extends State<PalaisExpress> {
           dropdownColor: const Color(0xFF281E34),
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
-            labelText: fr ? 'Point de départ (facultatif)' : 'Starting point (optional)',
+            labelText: trSi(fr, 'Point de départ (facultatif)', 'Starting point (optional)'),
             labelStyle: const TextStyle(color: _or),
             filled: true,
             fillColor: Colors.black26,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
           items: [
-            DropdownMenuItem(value: 'sans_tanin', child: Text(fr ? '🕊️ Aversion aux tanins durs' : '🕊️ No firm tannins')),
-            DropdownMenuItem(value: 'mineral', child: Text(fr ? '⚡ Blancs Minéraux & Tendus' : '⚡ Taut, mineral whites')),
-            DropdownMenuItem(value: 'puissant', child: Text(fr ? '🧱 Grands Rouges Puissants' : '🧱 Big, powerful reds')),
-            DropdownMenuItem(value: 'fruit', child: Text(fr ? '🍒 Rouges Fruits Croquants' : '🍒 Crunchy fruity reds')),
-            DropdownMenuItem(value: 'equilibre', child: Text(fr ? '🍷 Curieux & Éclectique' : '🍷 Curious & eclectic')),
+            DropdownMenuItem(value: 'sans_tanin', child: Text(trSi(fr, '🕊️ Aversion aux tanins durs', '🕊️ No firm tannins'))),
+            DropdownMenuItem(value: 'mineral', child: Text(trSi(fr, '⚡ Blancs Minéraux & Tendus', '⚡ Taut, mineral whites'))),
+            DropdownMenuItem(value: 'puissant', child: Text(trSi(fr, '🧱 Grands Rouges Puissants', '🧱 Big, powerful reds'))),
+            DropdownMenuItem(value: 'fruit', child: Text(trSi(fr, '🍒 Rouges Fruits Croquants', '🍒 Crunchy fruity reds'))),
+            DropdownMenuItem(value: 'equilibre', child: Text(trSi(fr, '🍷 Curieux & Éclectique', '🍷 Curious & eclectic'))),
           ],
           onChanged: (v) {
             if (v == null) return;
@@ -246,7 +245,7 @@ class _PalaisExpressState extends State<PalaisExpress> {
                 showLabels: false,
                 isInteractive: false,
                 datasets: [
-                  RadarChartDataset(label: fr ? 'Vos goûts' : 'Your taste', color: _or, metrics: _palais.radar),
+                  RadarChartDataset(label: trSi(fr, 'Vos goûts', 'Your taste'), color: _or, metrics: _palais.radar),
                 ],
               ),
             ),
@@ -257,7 +256,7 @@ class _PalaisExpressState extends State<PalaisExpress> {
           child: TextButton.icon(
             onPressed: () => setState(() => _lexiqueOuvert = !_lexiqueOuvert),
             icon: Icon(_lexiqueOuvert ? Icons.expand_less : Icons.help_outline, size: 16, color: _or),
-            label: Text(fr ? 'Que veulent dire ces mots ?' : 'What do these words mean?',
+            label: Text(trSi(fr, 'Que veulent dire ces mots ?', 'What do these words mean?'),
                 style: const TextStyle(color: _or, fontSize: 12)),
           ),
         ),
@@ -282,16 +281,16 @@ class _PalaisExpressState extends State<PalaisExpress> {
             ),
           ),
         const SizedBox(height: 6),
-        Text(fr ? 'Couleurs que vous aimez' : 'Colours you enjoy',
+        Text(trSi(fr, 'Couleurs que vous aimez', 'Colours you enjoy'),
             style: const TextStyle(color: Colors.white70, fontSize: 12)),
         Wrap(
           spacing: 6,
           children: [
             for (final (cle, libelle) in [
-              ('Rouge', fr ? 'Rouge' : 'Red'),
-              ('Blanc', fr ? 'Blanc' : 'White'),
-              ('Rosé', fr ? 'Rosé' : 'Rosé'),
-              ('Bulles', fr ? 'Bulles' : 'Sparkling'),
+              ('Rouge', trSi(fr, 'Rouge', 'Red')),
+              ('Blanc', trSi(fr, 'Blanc', 'White')),
+              ('Rosé', trSi(fr, 'Rosé', 'Rosé')),
+              ('Bulles', trSi(fr, 'Bulles', 'Sparkling')),
             ])
               FilterChip(
                 label: Text(libelle, style: const TextStyle(fontSize: 12)),
@@ -302,15 +301,15 @@ class _PalaisExpressState extends State<PalaisExpress> {
           ],
         ),
         const SizedBox(height: 6),
-        Text(fr ? 'Ce que vous n\'aimez pas' : 'What you dislike',
+        Text(trSi(fr, 'Ce que vous n\'aimez pas', 'What you dislike'),
             style: const TextStyle(color: Colors.white70, fontSize: 12)),
         Wrap(
           spacing: 6,
           children: [
             for (final (cle, libelle) in [
-              ('tanin', fr ? 'Tanins durs' : 'Firm tannins'),
-              ('boisé', fr ? 'Boisé marqué' : 'Heavy oak'),
-              ('acide', fr ? 'Acidité vive' : 'Sharp acidity'),
+              ('tanin', trSi(fr, 'Tanins durs', 'Firm tannins')),
+              ('boisé', trSi(fr, 'Boisé marqué', 'Heavy oak')),
+              ('acide', trSi(fr, 'Acidité vive', 'Sharp acidity')),
             ])
               FilterChip(
                 label: Text(libelle, style: const TextStyle(fontSize: 12)),
@@ -341,7 +340,7 @@ class _PalaisExpressState extends State<PalaisExpress> {
               onPressed: widget.onJusteMonPrenom,
               child: Text(
                 widget.libelleRefus ??
-                    (fr ? 'Juste mon prénom — je préciserai plus tard' : 'Just my name — I\'ll add my tastes later'),
+                    (trSi(fr, 'Juste mon prénom — je préciserai plus tard', 'Just my name — I\'ll add my tastes later')),
                 style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ),

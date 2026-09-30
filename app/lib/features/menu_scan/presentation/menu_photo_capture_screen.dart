@@ -13,6 +13,7 @@ import '../../auth/data/taste_profile_service.dart';
 import '../../monetization/admob_service.dart';
 import '../data/menu_scan_service.dart';
 import '../domain/menu_wine.dart';
+import '../../../shared/utils/langue.dart';
 
 class MenuPhotoCaptureScreen extends ConsumerStatefulWidget {
   const MenuPhotoCaptureScreen({super.key});
@@ -97,7 +98,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       if (mounted) {
         final isFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isFr ? 'Erreur lors de la prise de photo : $e' : 'Error taking photo: $e')),
+          SnackBar(content: Text(trSi(isFr, 'Erreur lors de la prise de photo : {e}', 'Error taking photo: {e}', {'e': e}))),
         );
       }
     }
@@ -117,7 +118,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       if (mounted) {
         final isFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isFr ? 'Erreur lors de la sélection de photos : $e' : 'Error selecting photos: $e')),
+          SnackBar(content: Text(trSi(isFr, 'Erreur lors de la sélection de photos : {e}', 'Error selecting photos: {e}', {'e': e}))),
         );
       }
     }
@@ -188,18 +189,14 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       }
       if (!recompense) {
         messenger.showSnackBar(SnackBar(
-          content: Text(isFr
-              ? 'Le visionnage de la vidéo est requis pour le scan en mode gratuit.'
-              : 'Watching the video is required for scanning in free mode.'),
+          content: Text(trSi(isFr, 'Le visionnage de la vidéo est requis pour le scan en mode gratuit.', 'Watching the video is required for scanning in free mode.')),
         ));
         return;
       }
       if (menu == null) {
         messenger.showSnackBar(SnackBar(
           // Sans le préfixe technique « Exception: », que voyait l'utilisateur.
-          content: Text(isFr
-              ? 'Erreur d\'analyse du menu : ${'$erreur'.replaceFirst('Exception: ', '')}'
-              : 'Menu analysis failed: ${'$erreur'.replaceFirst('Exception: ', '')}'),
+          content: Text(trSi(isFr, 'Erreur d\'analyse du menu : {v1}', 'Menu analysis failed: {v1}', {'v1': '$erreur'.replaceFirst('Exception: ', '')})),
           backgroundColor: Colors.red.shade800,
         ));
         return;
@@ -208,9 +205,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       context.pushReplacement('/scan/menu/result', extra: menu);
       if (videoRegardee) {
         messenger.showSnackBar(SnackBar(
-          content: Text(isFr
-              ? 'Pendant la vidéo, Chatmelier a lu votre carte : pas une seconde de perdue.'
-              : 'While the video played, Chatmelier read your menu — no time lost.'),
+          content: Text(trSi(isFr, 'Pendant la vidéo, Chatmelier a lu votre carte : pas une seconde de perdue.', 'While the video played, Chatmelier read your menu — no time lost.')),
         ));
       }
     } finally {
@@ -266,7 +261,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isFr ? 'Scanner la Carte des Vins' : 'Scan Wine List'),
+        title: Text(trSi(isFr, 'Scanner la Carte des Vins', 'Scan Wine List')),
         elevation: 0,
         actions: [
           if (_capturedPages.isNotEmpty && !_isAnalyzing)
@@ -274,7 +269,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
               onPressed: _startAnalysis,
               icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
               label: Text(
-                isFr ? 'Analyser (${_capturedPages.length})' : 'Analyze (${_capturedPages.length})',
+                trSi(isFr, 'Analyser ({capturedPages_length})', 'Analyze ({capturedPages_length})', {'capturedPages_length': _capturedPages.length}),
                 style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold),
               ),
             ),
@@ -313,14 +308,12 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              isFr ? 'Capture Multi-Pages' : 'Multi-Page Capture',
+                              trSi(isFr, 'Capture Multi-Pages', 'Multi-Page Capture'),
                               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              isFr
-                                  ? 'Prenez toutes les pages de la carte (blancs, rouges, bulles...). Elles seront fusionnées et analysées en une seule fois par l\'IA !'
-                                  : 'Capture all pages of the list (whites, reds, sparkling...). They will be merged and analyzed together by AI!',
+                              trSi(isFr, 'Prenez toutes les pages de la carte (blancs, rouges, bulles...). Elles seront fusionnées et analysées en une seule fois par l\'IA !', 'Capture all pages of the list (whites, reds, sparkling...). They will be merged and analyzed together by AI!'),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.white70 : Colors.black87,
@@ -347,16 +340,14 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                isFr ? 'Aucune page capturée pour le moment' : 'No pages captured yet',
+                                trSi(isFr, 'Aucune page capturée pour le moment', 'No pages captured yet'),
                                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 8),
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 36.0),
                                 child: Text(
-                                  isFr
-                                      ? 'Prenez la première page de la carte des vins avec l\'appareil photo ou la galerie.'
-                                      : 'Capture the first page of the wine list using the camera or gallery.',
+                                  trSi(isFr, 'Prenez la première page de la carte des vins avec l\'appareil photo ou la galerie.', 'Capture the first page of the wine list using the camera or gallery.'),
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(fontSize: 13, color: Colors.grey),
                                 ),
@@ -372,7 +363,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                     ),
                                     onPressed: _takePhoto,
                                     icon: const Icon(Icons.camera_alt),
-                                    label: Text(isFr ? 'Prendre photo' : 'Take photo'),
+                                    label: Text(trSi(isFr, 'Prendre photo', 'Take photo')),
                                   ),
                                   const SizedBox(width: 12),
                                   OutlinedButton.icon(
@@ -381,7 +372,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                     ),
                                     onPressed: _pickFromGallery,
                                     icon: const Icon(Icons.photo_library),
-                                    label: Text(isFr ? 'Galerie' : 'Gallery'),
+                                    label: Text(trSi(isFr, 'Galerie', 'Gallery')),
                                   ),
                                 ],
                               ),
@@ -410,7 +401,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                           children: [
                                             ListTile(
                                               leading: const Icon(Icons.camera_alt, color: Color(0xFF8B1E3F)),
-                                              title: Text(isFr ? 'Prendre une autre page en photo' : 'Take another page photo'),
+                                              title: Text(trSi(isFr, 'Prendre une autre page en photo', 'Take another page photo')),
                                               onTap: () {
                                                 Navigator.pop(ctx);
                                                 _takePhoto();
@@ -418,7 +409,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                             ),
                                             ListTile(
                                               leading: const Icon(Icons.photo_library, color: Color(0xFF8B1E3F)),
-                                              title: Text(isFr ? 'Ajouter depuis la galerie' : 'Add from gallery'),
+                                              title: Text(trSi(isFr, 'Ajouter depuis la galerie', 'Add from gallery')),
                                               onTap: () {
                                                 Navigator.pop(ctx);
                                                 _pickFromGallery();
@@ -445,11 +436,11 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                                         const Icon(Icons.add_circle_outline, size: 36, color: Color(0xFF8B1E3F)),
                                         const SizedBox(height: 8),
                                         Text(
-                                          isFr ? 'Ajouter une page' : 'Add a page',
+                                          trSi(isFr, 'Ajouter une page', 'Add a page'),
                                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                         ),
                                         Text(
-                                          isFr ? 'Photo ou Galerie' : 'Photo or Gallery',
+                                          trSi(isFr, 'Photo ou Galerie', 'Photo or Gallery'),
                                           style: const TextStyle(fontSize: 11, color: Colors.grey),
                                         ),
                                       ],
@@ -550,9 +541,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                             onPressed: _isAnalyzing ? null : _startAnalysis,
                             icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
                             label: Text(
-                              isFr
-                                  ? 'Analyser la carte (${_capturedPages.length} ${_capturedPages.length > 1 ? "pages" : "page"})'
-                                  : 'Analyze wine list (${_capturedPages.length} ${_capturedPages.length > 1 ? "pages" : "page"})',
+                              trSi(isFr, 'Analyser la carte ({capturedPages_length} {v1})', 'Analyze wine list ({capturedPages_length} {v1})', {'capturedPages_length': _capturedPages.length, 'v1': _capturedPages.length > 1 ? "pages" : "page"}),
                               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -634,7 +623,7 @@ class _MenuAnalysisLoadingOverlayState extends State<_MenuAnalysisLoadingOverlay
 
               // Title: "Analyse du menu par Chatmelier"
               Text(
-                isFr ? 'Analyse du menu par Chatmelier' : 'Menu analysis by Chatmelier',
+                trSi(isFr, 'Analyse du menu par Chatmelier', 'Menu analysis by Chatmelier'),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -707,9 +696,7 @@ class _MenuAnalysisLoadingOverlayState extends State<_MenuAnalysisLoadingOverlay
 
               // Subtext explanation
               Text(
-                isFr
-                    ? 'Extraction des cuvées, millésimes, prix au verre & bouteille, et profils sensoriels.'
-                    : 'Extracting cuvées, vintages, by-the-glass & bottle pricing, and sensory profiles.',
+                trSi(isFr, 'Extraction des cuvées, millésimes, prix au verre & bouteille, et profils sensoriels.', 'Extracting cuvées, vintages, by-the-glass & bottle pricing, and sensory profiles.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 11,

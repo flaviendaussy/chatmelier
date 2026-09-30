@@ -189,7 +189,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
         widget.onCompleted?.call();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('Bienvenue @$rawUser ! Votre profil est prêt.', 'Welcome @$rawUser! Your profile is ready.')),
+            content: Text(tr('Bienvenue @{rawUser} ! Votre profil est prêt.', 'Welcome @{rawUser}! Your profile is ready.', {'rawUser': rawUser})),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -199,7 +199,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _usernameError = tr('Erreur lors de l\'enregistrement : $e', 'Couldn\'t save: $e');
+          _usernameError = tr('Erreur lors de l\'enregistrement : {e}', 'Couldn\'t save: {e}', {'e': e});
         });
       }
     }
@@ -224,7 +224,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
       AppLogger.error('AUTH', 'Error signing out from mandatory username dialog', e);
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text(tr('Déconnexion impossible : $e', 'Couldn\'t sign out: $e')), backgroundColor: Colors.red),
+        SnackBar(content: Text(tr('Déconnexion impossible : {e}', 'Couldn\'t sign out: {e}', {'e': e})), backgroundColor: Colors.red),
       );
     }
   }

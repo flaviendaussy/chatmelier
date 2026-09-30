@@ -60,9 +60,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
         setState(() => _isSearching = false);
         final isFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(isFr
-              ? 'Recherche impossible pour le moment. Vérifiez votre connexion et réessayez.'
-              : 'Search is unavailable right now. Check your connection and try again.'),
+          content: Text(trSi(isFr, 'Recherche impossible pour le moment. Vérifiez votre connexion et réessayez.', 'Search is unavailable right now. Check your connection and try again.')),
         ));
       }
       return;
@@ -86,7 +84,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
         setState(() => _sentRequestUserIds.add(user.id));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('📬 Demande d\'ami envoyée à ${user.displayName} !', '📬 Friend request sent to ${user.displayName}!')),
+            content: Text(tr('📬 Demande d\'ami envoyée à {displayName} !', '📬 Friend request sent to {displayName}!', {'displayName': user.displayName})),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -94,7 +92,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -109,7 +107,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('🎉 Vous êtes désormais ami avec ${friend.displayName} !', '🎉 You\'re now friends with ${friend.displayName}!')),
+            content: Text(tr('🎉 Vous êtes désormais ami avec {displayName} !', '🎉 You\'re now friends with {displayName}!', {'displayName': friend.displayName})),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -117,7 +115,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -136,7 +134,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -166,7 +164,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -218,7 +216,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
           // 1. MES AMIS
           friendsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(child: Text(tr('Erreur: $err', 'Error: $err'))),
+            error: (err, _) => Center(child: Text(tr('Erreur: {err}', 'Error: {err}', {'err': err}))),
             data: (friends) => _buildFriendsList(friends, isDark),
           ),
 
@@ -344,7 +342,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                               context: context,
                               builder: (ctx) => AlertDialog(
                                 title: Text(tr('Retirer cet ami ?', 'Remove this friend?')),
-                                content: Text(tr('Voulez-vous retirer ${friend.displayName} de vos amis ?', 'Remove ${friend.displayName} from your friends?')),
+                                content: Text(tr('Voulez-vous retirer {displayName} de vos amis ?', 'Remove {displayName} from your friends?', {'displayName': friend.displayName})),
                                 actions: [
                                   TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Annuler', 'Cancel'))),
                                   TextButton(
@@ -436,7 +434,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
               const Text('🎁 ', style: TextStyle(fontSize: 22)),
               Expanded(
                 child: Text(
-                  tr('Partager ma cave avec ${friend.displayName}', 'Share my cellar with ${friend.displayName}'),
+                  tr('Partager ma cave avec {displayName}', 'Share my cellar with {displayName}', {'displayName': friend.displayName}),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
@@ -490,7 +488,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                   if (mounted) {
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text(tr('🍾 Accès à votre cave accordé à ${friend.displayName} !', '🍾 ${friend.displayName} now has access to your cellar!')),
+                        content: Text(tr('🍾 Accès à votre cave accordé à {displayName} !', '🍾 {displayName} now has access to your cellar!', {'displayName': friend.displayName})),
                         backgroundColor: const Color(0xFF10B981),
                       ),
                     );
@@ -498,7 +496,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                 } catch (e) {
                   if (mounted) {
                     messenger.showSnackBar(
-                      SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+                      SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
                     );
                   }
                 }
@@ -550,7 +548,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
       children: [
         // 1. Demandes d'amis reçues
         if (incomingFriends.isNotEmpty) ...[
-          _buildSectionTitle(tr('👥 Demandes d\'amis reçues (${incomingFriends.length})', '👥 Friend requests (${incomingFriends.length})')),
+          _buildSectionTitle(tr('👥 Demandes d\'amis reçues ({incomingFriends_length})', '👥 Friend requests ({incomingFriends_length})', {'incomingFriends_length': incomingFriends.length})),
           const SizedBox(height: 8),
           ...incomingFriends.map((f) => _buildIncomingFriendCard(f, isDark)),
           const SizedBox(height: 18),
@@ -558,7 +556,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
 
         // 2. Demandes d'accès cave reçues
         if (incomingCellar.isNotEmpty) ...[
-          _buildSectionTitle(tr('🍷 Demandes d\'accès à votre Cave (${incomingCellar.length})', '🍷 Requests to access your cellar (${incomingCellar.length})')),
+          _buildSectionTitle(tr('🍷 Demandes d\'accès à votre Cave ({incomingCellar_length})', '🍷 Requests to access your cellar ({incomingCellar_length})', {'incomingCellar_length': incomingCellar.length})),
           const SizedBox(height: 8),
           ...incomingCellar.map((req) => _buildIncomingCellarCard(req, isDark)),
           const SizedBox(height: 18),
@@ -645,7 +643,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                     children: [
                       Text(req.requesterName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                       Text(
-                        tr('Demande l\'accès à "${req.cellarName ?? "Ma Cave"}"', 'Asks for access to "${req.cellarName ?? "My cellar"}"'),
+                        tr('Demande l\'accès à "{v1}"', 'Asks for access to "{v2}"', {'v1': req.cellarName ?? "Ma Cave", 'v2': req.cellarName ?? "My cellar"}),
                         style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                       ),
                     ],
@@ -691,7 +689,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   icon: const Icon(Icons.check, size: 16),
-                  label: Text(tr('Accepter (${req.requestedRole == "editor" ? "Éditeur" : "Lecteur"})', 'Accept (${req.requestedRole == "editor" ? "editor" : "viewer"})')),
+                  label: Text(tr('Accepter ({v1})', 'Accept ({v2})', {'v1': req.requestedRole == "editor" ? "Éditeur" : "Lecteur", 'v2': req.requestedRole == "editor" ? "editor" : "viewer"})),
                   onPressed: () => _respondCellarRequest(req, true, req.requestedRole),
                 ),
               ],

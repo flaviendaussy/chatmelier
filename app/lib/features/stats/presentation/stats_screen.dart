@@ -12,6 +12,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../cellar/domain/wine.dart';
 import '../data/stats_repository.dart';
 import '../domain/cellar_stats.dart';
+import '../../../shared/utils/langue.dart';
 
 final statsDisplayCurrencyProvider = StateProvider<String>((ref) => 'EUR');
 
@@ -53,7 +54,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n?.statsTitle ?? (isFr ? 'Statistiques de la Cave' : 'Cellar Statistics')),
+        title: Text(l10n?.statsTitle ?? (trSi(isFr, 'Statistiques de la Cave', 'Cellar Statistics'))),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 12),
@@ -92,7 +93,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.wine_bar, size: 22, color: Color(0xFF8B1E3F)),
                 const SizedBox(width: 8),
                 Text(
-                  isFr ? 'Périmètre :' : 'Scope :',
+                  trSi(isFr, 'Périmètre :', 'Scope :'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.5),
                 ),
                 const SizedBox(width: 10),
@@ -122,7 +123,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                                 const SizedBox(width: 8),
                                 Flexible(
                                   child: Text(
-                                    isFr ? 'Toutes mes caves (Global)' : 'All my cellars (Global / Overall)',
+                                    trSi(isFr, 'Toutes mes caves (Global)', 'All my cellars (Global / Overall)'),
                                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -133,7 +134,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                           ...userCellars.map((c) {
                             final cMap = c['cellars'] as Map<String, dynamic>?;
                             final id = cMap?['id']?.toString() ?? c['cellar_id']?.toString() ?? '';
-                            final name = cMap?['name']?.toString() ?? (isFr ? 'Cave $id' : 'Cellar $id');
+                            final name = cMap?['name']?.toString() ?? (trSi(isFr, 'Cave {id}', 'Cellar {id}', {'id': id}));
                             return DropdownMenuItem(
                               value: id,
                               child: Row(
@@ -177,7 +178,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
                 const SizedBox(height: 12),
                 Text(
-                  isFr ? 'Erreur lors du chargement des statistiques : $err' : 'Error loading statistics: $err',
+                  trSi(isFr, 'Erreur lors du chargement des statistiques : {err}', 'Error loading statistics: {err}', {'err': err}),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -191,15 +192,13 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             return Center(
               child: EmptyState(
                 icon: Icons.bar_chart,
-                title: l10n?.statsTitle ?? (isFr ? 'Statistiques de la Cave' : 'Cellar Statistics'),
+                title: l10n?.statsTitle ?? (trSi(isFr, 'Statistiques de la Cave', 'Cellar Statistics')),
                 subtitle: l10n?.emptyCellarSub ??
-                    (isFr
-                        ? 'Ajoutez votre première bouteille pour débloquer l\'estimation en temps réel, l\'apogée et les statistiques.'
-                        : 'Add your first bottle to unlock real-time valuation, drinking windows, and cellar analytics.'),
+                    (trSi(isFr, 'Ajoutez votre première bouteille pour débloquer l\'estimation en temps réel, l\'apogée et les statistiques.', 'Add your first bottle to unlock real-time valuation, drinking windows, and cellar analytics.')),
                 action: FilledButton.icon(
                   onPressed: () => context.push('/scan'),
                   icon: const Icon(Icons.qr_code_scanner),
-                  label: Text(l10n?.actionAddBottle ?? (isFr ? 'Ajouter une bouteille' : 'Add a bottle')),
+                  label: Text(l10n?.actionAddBottle ?? (trSi(isFr, 'Ajouter une bouteille', 'Add a bottle'))),
                 ),
               ),
             );
@@ -303,9 +302,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                                             const Icon(Icons.alarm, color: Colors.orange),
                                             const SizedBox(width: 8),
                                             Text(
-                                              isFr
-                                                  ? 'Prêtes à boire rapidement (${drinkSoonBottles.length})'
-                                                  : 'Ready to drink soon (${drinkSoonBottles.length})',
+                                              trSi(isFr, 'Prêtes à boire rapidement ({drinkSoonBottles_length})', 'Ready to drink soon ({drinkSoonBottles_length})', {'drinkSoonBottles_length': drinkSoonBottles.length}),
                                               style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                             ),
                                           ],
@@ -316,8 +313,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                                           return ListTile(
                                             dense: true,
                                             contentPadding: EdgeInsets.zero,
-                                            title: Text(wine?.name ?? (isFr ? 'Vin' : 'Wine'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                                            subtitle: Text('${wine?.producer ?? ""} • ${isFr ? "Qté" : "Qty"}: ${b.quantity}'),
+                                            title: Text(wine?.name ?? (trSi(isFr, 'Vin', 'Wine')), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                            subtitle: Text('${wine?.producer ?? ""} • ${trSi(isFr, "Qté", "Qty")}: ${b.quantity}'),
                                             trailing: wine != null ? DrinkingWindowBadge(status: wine.windowStatus) : null,
                                             onTap: () => context.push('/cellar/bottle/${b.id}'),
                                           );
@@ -388,9 +385,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                           const Icon(Icons.alarm, color: Colors.orange),
                           const SizedBox(width: 8),
                           Text(
-                            isFr
-                                ? 'Prêtes à boire rapidement (${drinkSoonBottles.length})'
-                                : 'Ready to drink soon (${drinkSoonBottles.length})',
+                            trSi(isFr, 'Prêtes à boire rapidement ({drinkSoonBottles_length})', 'Ready to drink soon ({drinkSoonBottles_length})', {'drinkSoonBottles_length': drinkSoonBottles.length}),
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -401,8 +396,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           child: ListTile(
-                            title: Text(wine?.name ?? (isFr ? 'Vin' : 'Wine'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('${wine?.producer ?? ""} • ${isFr ? "Qté" : "Qty"}: ${b.quantity}'),
+                            title: Text(wine?.name ?? (trSi(isFr, 'Vin', 'Wine')), style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('${wine?.producer ?? ""} • ${trSi(isFr, "Qté", "Qty")}: ${b.quantity}'),
                             trailing: wine != null ? DrinkingWindowBadge(status: wine.windowStatus) : null,
                             onTap: () => context.push('/cellar/bottle/${b.id}'),
                           ),
@@ -444,7 +439,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     Icon(Icons.account_balance_wallet_outlined, color: theme.colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(
-                      '${l10n?.statsTotalValue ?? (isFr ? "Valeur Totale Estimée" : "Total Estimated Value")} ($currency)',
+                      '${l10n?.statsTotalValue ?? (trSi(isFr, "Valeur Totale Estimée", "Total Estimated Value"))} ($currency)',
                       style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -475,7 +470,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             const SizedBox(height: 6),
             if (stats.totalPaidValue > 0)
               Text(
-                '${l10n?.bottleDetailPurchasePrice ?? (isFr ? "Coût d'achat total" : "Total purchase cost")}: ${CurrencyHelper.formatPrice(stats.totalPaidValue, currency: currency)} (${stats.bottlesWithPriceCount}/${stats.totalBottles} ${isFr ? "bouteilles renseignées" : "bottles specified"})',
+                '${l10n?.bottleDetailPurchasePrice ?? (trSi(isFr, "Coût d'achat total", "Total purchase cost"))}: ${CurrencyHelper.formatPrice(stats.totalPaidValue, currency: currency)} (${stats.bottlesWithPriceCount}/${stats.totalBottles} ${trSi(isFr, "bouteilles renseignées", "bottles specified")})',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
@@ -483,9 +478,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               )
             else
               Text(
-                isFr
-                    ? 'Prix d\'achat non renseigné pour vos bouteilles'
-                    : 'Purchase price not specified for your bottles',
+                trSi(isFr, 'Prix d\'achat non renseigné pour vos bouteilles', 'Purchase price not specified for your bottles'),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: Colors.grey.shade600,
                   fontStyle: FontStyle.italic,
@@ -496,7 +489,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               const Divider(height: 12),
               const SizedBox(height: 4),
               Text(
-                isFr ? 'Devises d\'achat déclarées :' : 'Declared purchase currencies:',
+                trSi(isFr, 'Devises d\'achat déclarées :', 'Declared purchase currencies:'),
                 style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
@@ -531,7 +524,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           children: [
             Expanded(
               child: _StatKpiCard(
-                title: l10n?.statsTotalBottles ?? (isFr ? 'Total Bouteilles' : 'Total Bottles'),
+                title: l10n?.statsTotalBottles ?? (trSi(isFr, 'Total Bouteilles', 'Total Bottles')),
                 value: '${stats.totalBottles}',
                 icon: Icons.wine_bar,
                 color: theme.colorScheme.primary,
@@ -540,7 +533,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _StatKpiCard(
-                title: l10n?.statsBottlesEnjoyed ?? (isFr ? 'Dégustées' : 'Enjoyed'),
+                title: l10n?.statsBottlesEnjoyed ?? (trSi(isFr, 'Dégustées', 'Enjoyed')),
                 value: '${stats.totalConsumed}',
                 icon: Icons.check_circle_outline,
                 color: Colors.teal.shade700,
@@ -553,7 +546,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           children: [
             Expanded(
               child: _StatKpiCard(
-                title: l10n?.maturityDrinkSoon ?? (isFr ? 'À boire vite' : 'Drink Soon'),
+                title: l10n?.maturityDrinkSoon ?? (trSi(isFr, 'À boire vite', 'Drink Soon')),
                 value: '${stats.drinkSoonCount}',
                 icon: Icons.alarm,
                 color: Colors.orange.shade800,
@@ -562,7 +555,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _StatKpiCard(
-                title: l10n?.maturityAtPeak ?? (isFr ? 'À l\'apogée' : 'At Peak'),
+                title: l10n?.maturityAtPeak ?? (trSi(isFr, 'À l\'apogée', 'At Peak')),
                 value: '${stats.atPeakCount}',
                 icon: Icons.auto_awesome,
                 color: Colors.green.shade700,
@@ -575,7 +568,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           children: [
             Expanded(
               child: _StatKpiCard(
-                title: isFr ? 'Prix moyen / btl' : 'Avg price / btl',
+                title: trSi(isFr, 'Prix moyen / btl', 'Avg price / btl'),
                 value: CurrencyHelper.formatPrice(stats.averageBottlePrice, decimals: 0),
                 icon: Icons.euro,
                 color: const Color(0xFFD4AF37),
@@ -584,7 +577,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _StatKpiCard(
-                title: isFr ? 'Doyenne de la cave' : 'Oldest vintage',
+                title: trSi(isFr, 'Doyenne de la cave', 'Oldest vintage'),
                 value: stats.oldestVintage != null ? '${stats.oldestVintage}' : 'N/A',
                 icon: Icons.history_edu,
                 color: const Color(0xFF9333EA),
@@ -602,17 +595,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
         ? ((stats.atPeakCount + stats.drinkSoonCount) / stats.totalBottles * 100).round()
         : 0;
 
-    String advice = isFr
-        ? 'Votre cave est équilibrée avec un bel étalement de millésimes.'
-        : 'Your cellar is well-balanced with a great spread of vintages.';
+    String advice = trSi(isFr, 'Votre cave est équilibrée avec un bel étalement de millésimes.', 'Your cellar is well-balanced with a great spread of vintages.');
     if (stats.drinkSoonCount > 3) {
-      advice = isFr
-          ? 'Attention : ${stats.drinkSoonCount} bouteilles arrivent en fin d\'apogée et devraient être ouvertes prochainement.'
-          : 'Warning: ${stats.drinkSoonCount} bottles are reaching the end of their peak and should be enjoyed soon.';
+      advice = trSi(isFr, 'Attention : {drinkSoonCount} bouteilles arrivent en fin d\'apogée et devraient être ouvertes prochainement.', 'Warning: {drinkSoonCount} bottles are reaching the end of their peak and should be enjoyed soon.', {'drinkSoonCount': stats.drinkSoonCount});
     } else if (readyPct < 25 && stats.totalBottles > 5) {
-      advice = isFr
-          ? 'Une grande majorité de vos bouteilles sont encore en phase de vieillissement. Laissez-les reposer !'
-          : 'A large majority of your bottles are still aging. Let them rest!';
+      advice = trSi(isFr, 'Une grande majorité de vos bouteilles sont encore en phase de vieillissement. Laissez-les reposer !', 'A large majority of your bottles are still aging. Let them rest!');
     }
 
     return Card(
@@ -631,7 +618,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isFr ? 'Analyse & Conseil du Sommelier' : 'Sommelier Insight & Advice',
+                    trSi(isFr, 'Analyse & Conseil du Sommelier', 'Sommelier Insight & Advice'),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -646,9 +633,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   if (stats.topRegion != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      isFr
-                          ? '🏰 Terroir de prédilection : ${stats.topRegion} (${stats.byRegion[stats.topRegion]} btl)'
-                          : '🏰 Favorite terroir: ${stats.topRegion} (${stats.byRegion[stats.topRegion]} btl)',
+                      trSi(isFr, '🏰 Terroir de prédilection : {topRegion} ({v1} btl)', '🏰 Favorite terroir: {topRegion} ({v1} btl)', {'topRegion': stats.topRegion, 'v1': stats.byRegion[stats.topRegion]}),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFD4AF37)),
                     ),
                   ],
@@ -678,7 +663,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.pie_chart, size: 20, color: Color(0xFF722F37)),
                 const SizedBox(width: 8),
                 Text(
-                  isFr ? 'Répartition par Couleur & Type de Vin' : 'Breakdown by Wine Color & Type',
+                  trSi(isFr, 'Répartition par Couleur & Type de Vin', 'Breakdown by Wine Color & Type'),
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -793,7 +778,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.terrain_outlined, size: 20, color: Color(0xFF10B981)),
                 const SizedBox(width: 8),
                 Text(
-                  isFr ? 'Répartition par Grand Vignoble' : 'Breakdown by Wine Region',
+                  trSi(isFr, 'Répartition par Grand Vignoble', 'Breakdown by Wine Region'),
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -899,7 +884,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.bar_chart, size: 20, color: Color(0xFFD4AF37)),
                 const SizedBox(width: 8),
                 Text(
-                  isFr ? 'Histogramme des Millésimes' : 'Vintage Distribution',
+                  trSi(isFr, 'Histogramme des Millésimes', 'Vintage Distribution'),
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -976,10 +961,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   // ================= 8. BAR CHART: DRINKING WINDOW MATURITY =================
   Widget _buildDrinkingWindowCard(ThemeData theme, bool isDark, CellarStats stats, bool isFr) {
     final statusData = [
-      {'label': isFr ? 'En garde & Jeune ⏳' : 'Aging & Young ⏳', 'count': (stats.byWindowStatus[DrinkWindowStatus.aging] ?? 0) + (stats.byWindowStatus[DrinkWindowStatus.tooYoung] ?? 0), 'color': const Color(0xFF38BDF8)},
-      {'label': isFr ? 'À l\'apogée ✨' : 'At Peak ✨', 'count': stats.byWindowStatus[DrinkWindowStatus.inPeak] ?? 0, 'color': const Color(0xFF10B981)},
-      {'label': isFr ? 'À boire rapidement ⏰' : 'Drink Soon ⏰', 'count': stats.byWindowStatus[DrinkWindowStatus.drinkSoon] ?? 0, 'color': const Color(0xFFF59E0B)},
-      {'label': isFr ? 'Passé l\'apogée ⚠️' : 'Past Peak ⚠️', 'count': stats.byWindowStatus[DrinkWindowStatus.pastPeak] ?? 0, 'color': const Color(0xFFE11D48)},
+      {'label': trSi(isFr, 'En garde & Jeune ⏳', 'Aging & Young ⏳'), 'count': (stats.byWindowStatus[DrinkWindowStatus.aging] ?? 0) + (stats.byWindowStatus[DrinkWindowStatus.tooYoung] ?? 0), 'color': const Color(0xFF38BDF8)},
+      {'label': trSi(isFr, 'À l\'apogée ✨', 'At Peak ✨'), 'count': stats.byWindowStatus[DrinkWindowStatus.inPeak] ?? 0, 'color': const Color(0xFF10B981)},
+      {'label': trSi(isFr, 'À boire rapidement ⏰', 'Drink Soon ⏰'), 'count': stats.byWindowStatus[DrinkWindowStatus.drinkSoon] ?? 0, 'color': const Color(0xFFF59E0B)},
+      {'label': trSi(isFr, 'Passé l\'apogée ⚠️', 'Past Peak ⚠️'), 'count': stats.byWindowStatus[DrinkWindowStatus.pastPeak] ?? 0, 'color': const Color(0xFFE11D48)},
     ];
 
     return Card(
@@ -995,7 +980,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.hourglass_bottom, size: 20, color: Color(0xFF38BDF8)),
                 const SizedBox(width: 8),
                 Text(
-                  isFr ? 'Maturité & Fenêtres d\'Apogée' : 'Maturity & Drinking Windows',
+                  trSi(isFr, 'Maturité & Fenêtres d\'Apogée', 'Maturity & Drinking Windows'),
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -1056,7 +1041,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 const Icon(Icons.sell_outlined, size: 20, color: Color(0xFF10B981)),
                 const SizedBox(width: 8),
                 Text(
-                  isFr ? 'Gammes de Valeur / Prix' : 'Value & Price Tiers',
+                  trSi(isFr, 'Gammes de Valeur / Prix', 'Value & Price Tiers'),
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],

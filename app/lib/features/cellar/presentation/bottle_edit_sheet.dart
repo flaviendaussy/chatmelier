@@ -432,7 +432,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('Erreur lors de l\'enregistrement : $e', 'Couldn\'t save: $e')),
+            content: Text(tr('Erreur lors de l\'enregistrement : {e}', 'Couldn\'t save: {e}', {'e': e})),
             backgroundColor: Colors.redAccent,
           ),
         );

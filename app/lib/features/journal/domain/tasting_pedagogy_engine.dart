@@ -938,7 +938,7 @@ class TastingPedagogyEngine {
     if (e != null) {
       final boise = !StyleDuVin.sansBois.contains(e.contenant);
       final duree = e.mois > 0
-          ? tr('${e.mois} mois', '${e.mois} months')
+          ? tr('{mois} mois', '{mois} months', {'mois': e.mois})
           : tr('une durée que le cahier des charges ne fixe pas', 'a length the appellation rules don\'t set');
       final source = e.impose
           ? tr('Durée imposée par le cahier des charges de l\'appellation', 'Length required by the appellation rules')
@@ -946,15 +946,15 @@ class TastingPedagogyEngine {
       final contenant = trDonnee(_nomContenant(e.contenant), pedagogieEnAnglais);
       return FlavorOriginCard(
         title: boise
-            ? tr('Élevage en $contenant ($duree)', 'Aged in $contenant ($duree)')
-            : tr('Élevage en $contenant (sans contact boisé)', 'Aged in $contenant (no oak contact)'),
+            ? tr('Élevage en {contenant} ({duree})', 'Aged in {contenant} ({duree})', {'contenant': contenant, 'duree': duree})
+            : tr('Élevage en {contenant} (sans contact boisé)', 'Aged in {contenant} (no oak contact)', {'contenant': contenant}),
         icon: boise ? '🪵' : '✨',
         category: FlavorOriginCategory.oak,
         badgeText: e.impose ? 'Cahier des charges' : 'Usage de l\'appellation',
         sensoryContribution: boise
             ? carteBois.sensoryContribution
             : carteSansBois.sensoryContribution,
-        detailedWhy: tr('$source : $duree en ${contenant.toLowerCase()}.\n\n', '$source: $duree in ${contenant.toLowerCase()}.\n\n') +
+        detailedWhy: tr('{source} : {duree} en {v1}.\n\n', '{source}: {duree} in {v1}.\n\n', {'source': source, 'duree': duree, 'v1': contenant.toLowerCase()}) +
             trDonnee(boise ? carteBois.detailedWhy : carteSansBois.detailedWhy, pedagogieEnAnglais),
       );
     }
@@ -1246,7 +1246,7 @@ class TastingPedagogyEngine {
     // --- 4. TERROIR & CLIMAT ---
     final regionDisplay = wine.region.isNotEmpty ? wine.region : (wine.appellation ?? 'Terroir');
     cards.add(FlavorOriginCard(
-      title: tr('Empreinte du Terroir & Climat ($regionDisplay)', 'Terroir & climate ($regionDisplay)'),
+      title: tr('Empreinte du Terroir & Climat ({regionDisplay})', 'Terroir & climate ({regionDisplay})', {'regionDisplay': regionDisplay}),
       icon: '⛰️',
       category: FlavorOriginCategory.terroir,
       badgeText: regionDisplay,

@@ -75,9 +75,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
         setState(() => _isSearching = false);
         final isFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(isFr
-              ? 'Recherche impossible pour le moment. Vérifiez votre connexion et réessayez.'
-              : 'Search is unavailable right now. Check your connection and try again.'),
+          content: Text(trSi(isFr, 'Recherche impossible pour le moment. Vérifiez votre connexion et réessayez.', 'Search is unavailable right now. Check your connection and try again.')),
         ));
       }
       return;
@@ -97,16 +95,9 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
   void _shareInviteLink([String? contactName]) {
     // Un numéro ou un e-mail tapé dans la recherche n'est pas un prénom.
     final prenom = contactName?.trim() ?? '';
-    final salut = prenom.isEmpty || RegExp(r'[0-9@]').hasMatch(prenom) ? '' : tr('Salut $prenom ! ', 'Hi $prenom! ');
-    final pseudo = _monPseudo == null ? '' : tr('\nMon pseudo pour me retrouver : @$_monPseudo', '\nFind me there as @$_monPseudo');
-    final inviteMessage = tr(
-      '${salut}Rejoins-moi sur Chatmelier, le sommelier qui apprend nos goûts et garde nos caves !\n\n'
-          'On pourra comparer nos palais et partager nos bouteilles.$pseudo\n\n'
-          'C\'est ici : $_adresseDeLApp',
-      '${salut}Join me on Chatmelier, the sommelier that learns our tastes and keeps our cellars!\n\n'
-          'We can compare palates and share bottles.$pseudo\n\n'
-          "It's here: $_adresseDeLApp",
-    );
+    final salut = prenom.isEmpty || RegExp(r'[0-9@]').hasMatch(prenom) ? '' : tr('Salut {prenom} ! ', 'Hi {prenom}! ', {'prenom': prenom});
+    final pseudo = _monPseudo == null ? '' : tr('\nMon pseudo pour me retrouver : @{monPseudo}', '\nFind me there as @{monPseudo}', {'monPseudo': _monPseudo});
+    final inviteMessage = tr('{salut}Rejoins-moi sur Chatmelier, le sommelier qui apprend nos goûts et garde nos caves !\n\n' 'On pourra comparer nos palais et partager nos bouteilles.{pseudo}\n\n' 'C\'est ici : {adresseDeLApp}', '{salut}Join me on Chatmelier, the sommelier that learns our tastes and keeps our cellars!\n\n' 'We can compare palates and share bottles.{pseudo}\n\n' "It's here: {adresseDeLApp}", {'salut': salut, 'pseudo': pseudo, 'adresseDeLApp': _adresseDeLApp});
 
     Share.share(inviteMessage, subject: tr('Invitation à rejoindre Chatmelier', 'Join me on Chatmelier'));
   }
@@ -119,7 +110,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
         setState(() => _sentRequests.add(user.id));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('📬 Demande d\'ami envoyée à ${user.displayName} !', '📬 Friend request sent to ${user.displayName}!')),
+            content: Text(tr('📬 Demande d\'ami envoyée à {displayName} !', '📬 Friend request sent to {displayName}!', {'displayName': user.displayName})),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -127,7 +118,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur : $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur : {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -344,7 +335,7 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
                           const Icon(Icons.person_search, size: 40, color: Colors.grey),
                           const SizedBox(height: 8),
                           Text(
-                            tr('Personne sur Chatmelier ne correspond à « $query ».', 'No one on Chatmelier matches "$query".'),
+                            tr('Personne sur Chatmelier ne correspond à « {query} ».', 'No one on Chatmelier matches "{query}".', {'query': query}),
                             textAlign: TextAlign.center,
                             style: const TextStyle(color: Colors.grey),
                           ),

@@ -56,7 +56,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  tr('Vous pouvez demander à ${widget.friend.displayName} l\'accès à sa cave à vin. Une notification lui sera envoyée.', 'You can ask ${widget.friend.displayName} for access to their wine cellar. They\'ll get a notification.'),
+                  tr('Vous pouvez demander à {displayName} l\'accès à sa cave à vin. Une notification lui sera envoyée.', 'You can ask {displayName} for access to their wine cellar. They\'ll get a notification.', {'displayName': widget.friend.displayName}),
                   style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
@@ -119,7 +119,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   if (mounted) {
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text(tr('📬 Demande envoyée à ${widget.friend.displayName} !', '📬 Request sent to ${widget.friend.displayName}!')),
+                        content: Text(tr('📬 Demande envoyée à {displayName} !', '📬 Request sent to {displayName}!', {'displayName': widget.friend.displayName})),
                         backgroundColor: const Color(0xFF10B981),
                       ),
                     );
@@ -127,7 +127,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                 } catch (e) {
                   if (mounted) {
                     messenger.showSnackBar(
-                      SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+                      SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
                     );
                   }
                 } finally {
@@ -197,7 +197,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       Text(
-                        tr('avec ${widget.friend.displayName}', 'with ${widget.friend.displayName}'),
+                        tr('avec {displayName}', 'with {displayName}', {'displayName': widget.friend.displayName}),
                         style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                       ),
                     ],
@@ -353,7 +353,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                           if (mounted) {
                             messenger.showSnackBar(
                               SnackBar(
-                                content: Text(tr('🎉 Accès accordé pour $grantedCount cave(s) à ${widget.friend.displayName} !', '🎉 ${widget.friend.displayName} now has access to $grantedCount cellar(s)!')),
+                                content: Text(tr('🎉 Accès accordé pour {grantedCount} cave(s) à {displayName} !', '🎉 {displayName} now has access to {grantedCount} cellar(s)!', {'grantedCount': grantedCount, 'displayName': widget.friend.displayName})),
                                 backgroundColor: const Color(0xFF10B981),
                               ),
                             );
@@ -361,7 +361,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                         } catch (e) {
                           if (mounted) {
                             messenger.showSnackBar(
-                              SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+                              SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
                             );
                           }
                         } finally {
@@ -482,7 +482,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      tr('Accès cave partagée : ${friend.cellarAccessRole == "editor" ? "Sommelier / Éditeur ✍️" : "Consultation 👁️"}', 'Shared cellar access: ${friend.cellarAccessRole == "editor" ? "sommelier / editor ✍️" : "view only 👁️"}'),
+                      tr('Accès cave partagée : {v1}', 'Shared cellar access: {v2}', {'v1': friend.cellarAccessRole == "editor" ? "Sommelier / Éditeur ✍️" : "Consultation 👁️", 'v2': friend.cellarAccessRole == "editor" ? "sommelier / editor ✍️" : "view only 👁️"}),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
                     ),
                   ),
@@ -601,7 +601,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
 
                 // 5. AVERSIONS / À ÉVITER
                 if (taste.dislikedCharacteristics.isNotEmpty) ...[
-                  _buildSectionHeader(tr('🚫 Ce qu\'${friend.displayName} n\'aime pas', '🚫 What ${friend.displayName} doesn\'t like'), isDark),
+                  _buildSectionHeader(tr('🚫 Ce qu\'{displayName} n\'aime pas', '🚫 What {displayName} doesn\'t like', {'displayName': friend.displayName}), isDark),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -690,7 +690,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
             ),
             icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 18),
             label: Text(
-              tr('Demander conseil à Chatmelier pour ${friend.displayName}', 'Ask Chatmelier what to pour for ${friend.displayName}'),
+              tr('Demander conseil à Chatmelier pour {displayName}', 'Ask Chatmelier what to pour for {displayName}', {'displayName': friend.displayName}),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
             onPressed: () {

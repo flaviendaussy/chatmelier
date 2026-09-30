@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/utils/langue.dart';
 
 class ConsumptionReviewScreen extends StatelessWidget {
   const ConsumptionReviewScreen({super.key});
@@ -8,12 +9,12 @@ class ConsumptionReviewScreen extends StatelessWidget {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     return Scaffold(
-      appBar: AppBar(title: Text(isFr ? 'Souvenir de Dégustation' : 'Tasting Memory')),
+      appBar: AppBar(title: Text(trSi(isFr, 'Souvenir de Dégustation', 'Tasting Memory'))),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            isFr ? 'Note attribuée à cette bouteille' : 'Rating given to this bottle',
+            trSi(isFr, 'Note attribuée à cette bouteille', 'Rating given to this bottle'),
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -23,8 +24,8 @@ class ConsumptionReviewScreen extends StatelessWidget {
           const SizedBox(height: 20),
           TextField(
             decoration: InputDecoration(
-              labelText: isFr ? 'Accord mets / Plat dégusté (optionnel)' : 'Food pairing / Dish tasted (optional)',
-              hintText: isFr ? 'ex: Magret de canard, côte de bœuf...' : 'e.g., Duck breast, prime rib, aged cheeses...',
+              labelText: trSi(isFr, 'Accord mets / Plat dégusté (optionnel)', 'Food pairing / Dish tasted (optional)'),
+              hintText: trSi(isFr, 'ex: Magret de canard, côte de bœuf...', 'e.g., Duck breast, prime rib, aged cheeses...'),
               prefixIcon: const Icon(Icons.restaurant),
               border: const OutlineInputBorder(),
             ),
@@ -32,8 +33,8 @@ class ConsumptionReviewScreen extends StatelessWidget {
           const SizedBox(height: 16),
           TextField(
             decoration: InputDecoration(
-              labelText: isFr ? 'Impressions & Commentaires oenologiques' : 'Tasting notes & Sommelier remarks',
-              hintText: isFr ? 'Arômes, texture, tanins, persistance...' : 'Aromas, texture, tannins, persistence...',
+              labelText: trSi(isFr, 'Impressions & Commentaires oenologiques', 'Tasting notes & Sommelier remarks'),
+              hintText: trSi(isFr, 'Arômes, texture, tanins, persistance...', 'Aromas, texture, tannins, persistence...'),
               prefixIcon: const Icon(Icons.edit_note),
               border: const OutlineInputBorder(),
             ),
@@ -51,9 +52,7 @@ class ConsumptionReviewScreen extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    isFr
-                        ? 'Dégustation enregistrée dans votre journal ! Santé ! 🍷'
-                        : 'Tasting recorded in your journal! Cheers! 🍷',
+                    trSi(isFr, 'Dégustation enregistrée dans votre journal ! Santé ! 🍷', 'Tasting recorded in your journal! Cheers! 🍷'),
                   ),
                   backgroundColor: const Color(0xFF8B1E3F),
                 ),
@@ -62,7 +61,7 @@ class ConsumptionReviewScreen extends StatelessWidget {
             },
             icon: const Icon(Icons.check, color: Colors.white),
             label: Text(
-              isFr ? 'Enregistrer la dégustation' : 'Save tasting note',
+              trSi(isFr, 'Enregistrer la dégustation', 'Save tasting note'),
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           )

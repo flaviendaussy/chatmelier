@@ -115,14 +115,14 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       _emailController.clear();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Invitation envoyée à $email', 'Invite sent to $email'))),
+          SnackBar(content: Text(tr('Invitation envoyée à {email}', 'Invite sent to {email}', {'email': email}))),
         );
       }
       _loadData();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur : $e', 'Error: $e'))),
+          SnackBar(content: Text(tr('Erreur : {e}', 'Error: {e}', {'e': e}))),
         );
       }
     } finally {
@@ -161,12 +161,12 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       final link = '$baseUrl/invite/$code';
 
       await Share.share(
-        tr('Rejoins ma cave à vin "${widget.cellarName}" sur Chatmelier !\n$link', 'Join my wine cellar "${widget.cellarName}" on Chatmelier!\n$link'),
+        tr('Rejoins ma cave à vin "{cellarName}" sur Chatmelier !\n{link}', 'Join my wine cellar "{cellarName}" on Chatmelier!\n{link}', {'cellarName': widget.cellarName, 'link': link}),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Impossible de créer le lien : $e', 'Error creating link: $e'))),
+          SnackBar(content: Text(tr('Impossible de créer le lien : {e}', 'Error creating link: {e}', {'e': e}))),
         );
       }
     }
@@ -192,7 +192,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(tr('Erreur: $e', 'Error: $e'))),
+            SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e}))),
           );
         }
       }
@@ -204,7 +204,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(tr('Retirer le membre', 'Remove member')),
-        content: Text(tr('Retirer $memberName de cette cave ?', 'Remove $memberName from this cellar?')),
+        content: Text(tr('Retirer {memberName} de cette cave ?', 'Remove {memberName} from this cellar?', {'memberName': memberName})),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Annuler', 'Cancel'))),
           TextButton(
@@ -236,7 +236,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(tr('Erreur: $e', 'Error: $e'))),
+            SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e}))),
           );
         }
       }
@@ -254,7 +254,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur : $e', 'Error: $e'))),
+          SnackBar(content: Text(tr('Erreur : {e}', 'Error: {e}', {'e': e}))),
         );
       }
     }
@@ -272,7 +272,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr('Partage - ${widget.cellarName}', 'Sharing - ${widget.cellarName}')),
+        title: Text(tr('Partage - {cellarName}', 'Sharing - {cellarName}', {'cellarName': widget.cellarName})),
         actions: const [
           NotificationBellButton(),
         ],
@@ -456,8 +456,9 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                         ),
                         title: Text(email),
                         subtitle: Text(
-                          tr('Invité comme ${role == 'editor' ? 'éditeur' : 'lecteur'} • En attente',
-                              'Invited as ${role == 'editor' ? 'Editor' : 'Viewer'} • Pending'),
+                          role == 'editor'
+                              ? tr('Invité comme éditeur • En attente', 'Invited as Editor • Pending')
+                              : tr('Invité comme lecteur • En attente', 'Invited as Viewer • Pending'),
                         ),
                         trailing: _isAdmin
                             ? IconButton(
@@ -528,7 +529,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
               const Icon(Icons.mark_email_unread_outlined, color: Color(0xFFD4AF37), size: 20),
               const SizedBox(width: 8),
               Text(
-                tr('Demandes d\'accès reçues (${requests.length})', 'Access requests (${requests.length})'),
+                tr('Demandes d\'accès reçues ({requests_length})', 'Access requests ({requests_length})', {'requests_length': requests.length}),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: Color(0xFFD4AF37)),
               ),
             ],
@@ -545,7 +546,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      tr('$reqName souhaite accéder en tant que $role', '$reqName would like access as $role'),
+                      tr('{reqName} souhaite accéder en tant que {role}', '{reqName} would like access as {role}', {'reqName': reqName, 'role': role}),
                       style: const TextStyle(fontSize: 13),
                     ),
                   ),
@@ -594,7 +595,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Erreur: $e', 'Error: $e'))));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e}))));
       }
     }
   }
@@ -622,7 +623,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
         const SizedBox(height: 8),
         friendsAsync.when(
           loading: () => const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator())),
-          error: (err, _) => Text(tr('Erreur amis: $err', 'Friends error: $err'), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          error: (err, _) => Text(tr('Erreur amis: {err}', 'Friends error: {err}', {'err': err}), style: const TextStyle(fontSize: 12, color: Colors.grey)),
           data: (friends) {
             if (friends.isEmpty) {
               return Card(
@@ -715,7 +716,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
               const Text('🎁 ', style: TextStyle(fontSize: 22)),
               Expanded(
                 child: Text(
-                  tr('Accès cave pour ${friend.displayName}', 'Cellar access for ${friend.displayName}'),
+                  tr('Accès cave pour {displayName}', 'Cellar access for {displayName}', {'displayName': friend.displayName}),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
@@ -726,7 +727,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                tr('Donner accès à "${widget.cellarName}" :', 'Give access to "${widget.cellarName}":'),
+                tr('Donner accès à "{cellarName}" :', 'Give access to "{cellarName}":', {'cellarName': widget.cellarName}),
                 style: const TextStyle(fontSize: 13, color: Colors.grey),
               ),
               const SizedBox(height: 12),
@@ -770,7 +771,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                   if (mounted) {
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text(tr('🍾 Accès accordé à ${friend.displayName} !', '🍾 Access granted to ${friend.displayName}!')),
+                        content: Text(tr('🍾 Accès accordé à {displayName} !', '🍾 Access granted to {displayName}!', {'displayName': friend.displayName})),
                         backgroundColor: const Color(0xFF10B981),
                       ),
                     );
@@ -778,7 +779,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                 } catch (e) {
                   if (mounted) {
                     messenger.showSnackBar(
-                      SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+                      SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
                     );
                   }
                 }

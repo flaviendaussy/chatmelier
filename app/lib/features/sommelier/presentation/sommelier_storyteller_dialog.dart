@@ -54,7 +54,7 @@ class _SommelierStorytellerDialogState extends State<SommelierStorytellerDialog>
     _tts = FlutterTts();
     try {
       // La voix parle la langue du récit.
-      await _tts.setLanguage(Langue.estFr ? 'fr-FR' : 'en-US');
+      await _tts.setLanguage(tr('fr-FR', 'en-US'));
       await _tts.setSpeechRate(0.46); // Cadence posée de sommelier
       await _tts.setPitch(0.95); // Voix chaude et chaleureuse
 

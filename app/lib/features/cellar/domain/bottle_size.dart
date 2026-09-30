@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Standard wine and spirit bottle formats / volumes with complete multilingual support
 class BottleSize {
@@ -33,14 +34,14 @@ class BottleSize {
   /// Explicit language-aware localized label
   String localizedLabelForLang(String? lang) {
     final isFr = (lang ?? 'fr').toLowerCase().startsWith('fr');
-    return isFr ? labelFr : labelEn;
+    return trSi(isFr, labelFr, labelEn);
   }
 
   /// Context-aware localized short pill name
   String localizedShortName(BuildContext context) {
     final lang = Localizations.localeOf(context).languageCode;
     final isFr = lang.toLowerCase().startsWith('fr');
-    return isFr ? shortNameFr : shortNameEn;
+    return trSi(isFr, shortNameFr, shortNameEn);
   }
 
   static const String defaultCode = '75cl';

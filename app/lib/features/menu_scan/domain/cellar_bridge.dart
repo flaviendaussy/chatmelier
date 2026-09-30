@@ -1,6 +1,7 @@
 import '../../../shared/utils/currency_helper.dart';
 import '../../cellar/domain/cellar_gap_engine.dart';
 import 'menu_wine.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Une bouteille qu'on possède déjà.
 class VinDeMaCave {
@@ -134,12 +135,10 @@ class CellarBridgeEngine {
       final note = g.note;
       return LienAvecMaCave(
         type: TypeDeLien.dejaGoute,
-        libelle: fr ? 'Vous connaissez ce vin' : 'You know this wine',
+        libelle: trSi(fr, 'Vous connaissez ce vin', 'You know this wine'),
         detail: note == null
             ? _quand(g.quand, fr)
-            : (fr
-                ? 'Vous l\'aviez noté ${_note(note)}/10${_quandSuffixe(g.quand, fr)}'
-                : 'You rated it ${_note(note)}/10${_quandSuffixe(g.quand, fr)}'),
+            : (trSi(fr, 'Vous l\'aviez noté {v1}/10{v2}', 'You rated it {v1}/10{v2}', {'v1': _note(note), 'v2': _quandSuffixe(g.quand, fr)})),
       );
     }
 
@@ -157,21 +156,19 @@ class CellarBridgeEngine {
         final ecart = carte - achat;
         final paye = _prix(achat, c.deviseAchat);
         detail = ecart > 0
-            ? (fr
-                ? 'Vous en avez en cave, payée $paye — soit ${_prix(ecart, c.deviseAchat)} de moins qu\'ici'
-                : 'You have it in your cellar, bought for $paye — ${_prix(ecart, c.deviseAchat)} less than here')
-            : (fr ? 'Vous en avez en cave, payée $paye' : 'You have it in your cellar, bought for $paye');
+            ? (trSi(fr, 'Vous en avez en cave, payée {paye} — soit {v1} de moins qu\'ici', 'You have it in your cellar, bought for {paye} — {v1} less than here', {'paye': paye, 'v1': _prix(ecart, c.deviseAchat)}))
+            : (trSi(fr, 'Vous en avez en cave, payée {paye}', 'You have it in your cellar, bought for {paye}', {'paye': paye}));
       } else if (achat != null && achat > 0 && carte != null && carte > 0) {
         final paye = _prix(achat, c.deviseAchat);
-        detail = fr ? 'Vous en avez en cave, payée $paye' : 'You have it in your cellar, bought for $paye';
+        detail = trSi(fr, 'Vous en avez en cave, payée {paye}', 'You have it in your cellar, bought for {paye}', {'paye': paye});
       } else {
         detail = c.quantite > 1
-            ? (fr ? 'Vous en avez ${c.quantite} en cave' : 'You have ${c.quantite} in your cellar')
-            : (fr ? 'Vous en avez une en cave' : 'You have one in your cellar');
+            ? (trSi(fr, 'Vous en avez {quantite} en cave', 'You have {quantite} in your cellar', {'quantite': c.quantite}))
+            : (trSi(fr, 'Vous en avez une en cave', 'You have one in your cellar'));
       }
       return LienAvecMaCave(
         type: TypeDeLien.enCave,
-        libelle: fr ? 'Déjà dans votre cave' : 'Already in your cellar',
+        libelle: trSi(fr, 'Déjà dans votre cave', 'Already in your cellar'),
         detail: detail,
       );
     }
@@ -192,10 +189,8 @@ class CellarBridgeEngine {
         if (c.contains(r) || r.contains(c)) {
           return LienAvecMaCave(
             type: TypeDeLien.combleUneLacune,
-            libelle: fr ? 'Comblerait un manque' : 'Would fill a gap',
-            detail: fr
-                ? 'Votre cave est légère sur ce registre — l\'occasion de l\'essayer avant d\'en acheter.'
-                : 'Your cellar is light in this style — a chance to try it before buying any.',
+            libelle: trSi(fr, 'Comblerait un manque', 'Would fill a gap'),
+            detail: trSi(fr, 'Votre cave est légère sur ce registre — l\'occasion de l\'essayer avant d\'en acheter.', 'Your cellar is light in this style — a chance to try it before buying any.'),
           );
         }
       }
@@ -270,7 +265,7 @@ class CellarBridgeEngine {
   static String _prix(double v, String devise) => CurrencyHelper.formatPrice(v, currency: devise);
 
   static String? _quand(DateTime? d, bool fr) =>
-      d == null ? null : '${fr ? 'Goûté' : 'Tasted'} ${_moisAnnee(d, fr)}';
+      d == null ? null : '${trSi(fr, 'Goûté', 'Tasted')} ${_moisAnnee(d, fr)}';
 
   static String _quandSuffixe(DateTime? d, bool fr) =>
       d == null ? '' : ', ${_moisAnnee(d, fr)}';
@@ -284,6 +279,6 @@ class CellarBridgeEngine {
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December',
     ];
-    return fr ? 'en ${mois[d.month - 1]} ${d.year}' : 'in ${months[d.month - 1]} ${d.year}';
+    return trSi(fr, 'en {v1} {year}', 'in {v2} {year}', {'v1': mois[d.month - 1], 'year': d.year, 'v2': months[d.month - 1]});
   }
 }

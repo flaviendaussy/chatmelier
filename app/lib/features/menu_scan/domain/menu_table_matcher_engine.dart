@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import 'menu_wine.dart';
 import 'table_matchmaker.dart';
+import '../../../shared/utils/langue.dart';
 
 class MenuTableMatchResult {
   final MenuWine menuWine;
@@ -146,25 +147,19 @@ class MenuTableMatcherEngine {
       if (dl.contains('tanin') || dl.contains('tannin') || dl.contains('dur')) {
         if (radar.tannins >= 7.5) {
           score -= 35.0;
-          alerts.add(isFr
-              ? '${guest.name} a une aversion pour les tanins durs : ce vin est très charpenté (${radar.tannins.toStringAsFixed(1)}/10).'
-              : '${guest.name} dislikes firm tannins: this wine is very structured (${radar.tannins.toStringAsFixed(1)}/10).');
+          alerts.add(trSi(isFr, '{guest_name} a une aversion pour les tanins durs : ce vin est très charpenté ({v1}/10).', '{guest_name} dislikes firm tannins: this wine is very structured ({v1}/10).', {'guest_name': guest.name, 'v1': radar.tannins.toStringAsFixed(1)}));
         }
       }
       if (dl.contains('acid') || dl.contains('acide') || dl.contains('vert')) {
         if (radar.acidity >= 8.5) {
           score -= 30.0;
-          alerts.add(isFr
-              ? '${guest.name} redoute la forte acidité : ce vin est très tranchant (${radar.acidity.toStringAsFixed(1)}/10).'
-              : '${guest.name} avoids high acidity: this wine is very sharp (${radar.acidity.toStringAsFixed(1)}/10).');
+          alerts.add(trSi(isFr, '{guest_name} redoute la forte acidité : ce vin est très tranchant ({v1}/10).', '{guest_name} avoids high acidity: this wine is very sharp ({v1}/10).', {'guest_name': guest.name, 'v1': radar.acidity.toStringAsFixed(1)}));
         }
       }
       if (dl.contains('bois') || dl.contains('chêne') || dl.contains('vanill')) {
         if (radar.oak >= 7.5) {
           score -= 25.0;
-          alerts.add(isFr
-              ? '${guest.name} n\'apprécie pas le boisé marqué : élevage puissant (${radar.oak.toStringAsFixed(1)}/10).'
-              : '${guest.name} dislikes heavy oak: strong barrel ageing (${radar.oak.toStringAsFixed(1)}/10).');
+          alerts.add(trSi(isFr, '{guest_name} n\'apprécie pas le boisé marqué : élevage puissant ({v1}/10).', '{guest_name} dislikes heavy oak: strong barrel ageing ({v1}/10).', {'guest_name': guest.name, 'v1': radar.oak.toStringAsFixed(1)}));
         }
       }
     }
@@ -226,7 +221,7 @@ class RedactionDesRaisons {
       var distinction = ceQuiLeDistingue(r.menuWine, autres, isFr);
       // Le premier sans trait saillant est premier pour une raison : l'équilibre.
       if (distinction.isEmpty && i == 0 && convives.length > 1) {
-        distinction = isFr ? 'le meilleur compromis de la table' : 'the best compromise for the table';
+        distinction = trSi(isFr, 'le meilleur compromis de la table', 'the best compromise for the table');
       }
       final prix = placeEnPrix(r.menuWine, tous, isFr);
 
@@ -237,7 +232,7 @@ class RedactionDesRaisons {
       var raison = _majuscule(_pourQui(r, convives, isFr, idLecteur));
       if (seconde.isNotEmpty) raison = '$raison. ${_majuscule(seconde)}.';
       if (r.aversionAlerts.isNotEmpty) {
-        raison = '$raison ${isFr ? 'Attention' : 'Heads-up'} : ${r.aversionAlerts.first}';
+        raison = '$raison ${trSi(isFr, 'Attention', 'Heads-up')} : ${r.aversionAlerts.first}';
       }
       // Jamais deux fois la même phrase : le nom du vin tranche.
       if (raisons.contains(raison)) {
@@ -253,28 +248,28 @@ class RedactionDesRaisons {
 
   static String _liste(List<String> noms, bool fr) {
     if (noms.length <= 1) return noms.join();
-    return '${noms.sublist(0, noms.length - 1).join(', ')} ${fr ? 'et' : 'and'} ${noms.last}';
+    return '${noms.sublist(0, noms.length - 1).join(', ')} ${trSi(fr, 'et', 'and')} ${noms.last}';
   }
 
   /// Qui l'aimera, qui l'appréciera, et qui risque d'être déçu — avec la raison.
   static String _pourQui(MenuTableMatchResult r, List<GuestProfile> convives, bool fr, String? idLecteur) {
-    if (convives.isEmpty) return fr ? 'Un vin pour la table' : 'A wine for the table';
+    if (convives.isEmpty) return trSi(fr, 'Un vin pour la table', 'A wine for the table');
     // Seuls ceux qui ont voté sont cités : un convive « juste son prénom » n'a pas
     // d'avis, il n'est ni fan ni réticent.
     final notes = [
       for (final g in convives)
         if (r.guestScores.containsKey(g.id)) (g, r.guestScores[g.id]!)
     ]..sort((a, b) => b.$2.compareTo(a.$2));
-    if (notes.isEmpty) return fr ? 'Un vin pour la table' : 'A wine for the table';
+    if (notes.isEmpty) return trSi(fr, 'Un vin pour la table', 'A wine for the table');
 
     // « Vos goûts » seulement si c'est à ce convive qu'on parle : l'invité qui arrive à
     // une table où l'hôte est seul lisait « Dans vos goûts » des goûts de l'hôte (29/09).
     // Sinon, la phrase nominative ci-dessous : « Flavien l'appréciera ».
     if (convives.length == 1 && (idLecteur == null || convives.single.id == idLecteur)) {
       final s = notes.first.$2;
-      if (s >= 85) return fr ? 'Taillé pour vos goûts' : 'Made for your taste';
-      if (s >= 65) return fr ? 'Dans vos goûts' : 'Close to your taste';
-      return fr ? 'Un pas de côté par rapport à vos goûts' : 'A step away from your usual taste';
+      if (s >= 85) return trSi(fr, 'Taillé pour vos goûts', 'Made for your taste');
+      if (s >= 65) return trSi(fr, 'Dans vos goûts', 'Close to your taste');
+      return trSi(fr, 'Un pas de côté par rapport à vos goûts', 'A step away from your usual taste');
     }
 
     // Celui qui lit se lit « vous », en dernier : « Caro et vous l'apprécierez ». L'hôte,
@@ -284,7 +279,7 @@ class RedactionDesRaisons {
     (List<String>, bool) groupe(bool Function(double) dedans) {
       final autres = [for (final n in notes) if (dedans(n.$2) && !estLecteur(n.$1)) n.$1.name];
       final lecteur = notes.any((n) => dedans(n.$2) && estLecteur(n.$1));
-      return ([...autres, if (lecteur) fr ? 'vous' : 'you'], lecteur);
+      return ([...autres, if (lecteur) trSi(fr, 'vous', 'you')], lecteur);
     }
 
     String verbe((List<String>, bool) g, String vous, String un, String plusieurs) =>
@@ -308,11 +303,11 @@ class RedactionDesRaisons {
             : '${_liste(tiedes.$1, fr)} will be fine with it',
       for (final g in reticents.take(2))
         estLecteur(g)
-            ? (fr ? 'vous le trouverez ${_ecart(r.menuWine, g, fr)}' : 'you may find it ${_ecart(r.menuWine, g, fr)}')
-            : (fr ? '${g.name} le trouvera ${_ecart(r.menuWine, g, fr)}' : '${g.name} may find it ${_ecart(r.menuWine, g, fr)}'),
+            ? (trSi(fr, 'vous le trouverez {v1}', 'you may find it {v1}', {'v1': _ecart(r.menuWine, g, fr)}))
+            : (trSi(fr, '{g_name} le trouvera {v1}', '{g_name} may find it {v1}', {'g_name': g.name, 'v1': _ecart(r.menuWine, g, fr)})),
     ];
-    if (parts.isEmpty) return fr ? 'Un compromis pour toute la table' : 'A compromise for the whole table';
-    return parts.join(fr ? ' ; ' : '; ');
+    if (parts.isEmpty) return trSi(fr, 'Un compromis pour toute la table', 'A compromise for the whole table');
+    return parts.join(trSi(fr, ' ; ', '; '));
   }
 
   /// L'axe sur lequel ce vin s'éloigne le plus du palais de ce convive.
@@ -321,10 +316,10 @@ class RedactionDesRaisons {
     final p = g.radar;
     final ecarts = <(double, String, String)>[
       if (vin.isRed)
-        (m.tannins - p.tannin, fr ? 'un peu tannique' : 'a little tannic', fr ? 'trop souple' : 'too soft'),
-      (m.body - p.body, fr ? 'un peu puissant' : 'a little powerful', fr ? 'un peu léger' : 'a little light'),
-      (m.acidity - p.acidity, fr ? 'un peu vif' : 'a little sharp', fr ? 'un peu mou' : 'a little flat'),
-      (m.oak - p.oak, fr ? 'un peu boisé' : 'a little oaky', fr ? 'un peu simple' : 'a little plain'),
+        (m.tannins - p.tannin, trSi(fr, 'un peu tannique', 'a little tannic'), trSi(fr, 'trop souple', 'too soft')),
+      (m.body - p.body, trSi(fr, 'un peu puissant', 'a little powerful'), trSi(fr, 'un peu léger', 'a little light')),
+      (m.acidity - p.acidity, trSi(fr, 'un peu vif', 'a little sharp'), trSi(fr, 'un peu mou', 'a little flat')),
+      (m.oak - p.oak, trSi(fr, 'un peu boisé', 'a little oaky'), trSi(fr, 'un peu simple', 'a little plain')),
     ];
     ecarts.sort((a, b) => b.$1.abs().compareTo(a.$1.abs()));
     final e = ecarts.first;
@@ -336,20 +331,20 @@ class RedactionDesRaisons {
   /// l'extrême, sans quoi « le plus frais des trois » serait faux.
   static String ceQuiLeDistingue(MenuWine vin, List<MenuWine> autres, bool fr) {
     if (autres.isEmpty) return '';
-    final lot = fr ? (autres.length == 1 ? 'des deux' : 'des trois') : (autres.length == 1 ? 'of the two' : 'of the three');
+    final lot = autres.length == 1 ? trSi(fr, 'des deux', 'of the two') : trSi(fr, 'des trois', 'of the three');
 
     String couleur(MenuWine w) => w.isSparkling
-        ? (fr ? 'effervescent' : 'sparkling wine')
+        ? (trSi(fr, 'effervescent', 'sparkling wine'))
         : w.isRose
-            ? (fr ? 'rosé' : 'rosé')
+            ? (trSi(fr, 'rosé', 'rosé'))
             : w.isWhite
-                ? (fr ? 'blanc' : 'white')
+                ? (trSi(fr, 'blanc', 'white'))
                 : w.isRed
-                    ? (fr ? 'rouge' : 'red')
+                    ? (trSi(fr, 'rouge', 'red'))
                     : '';
     final c = couleur(vin);
     if (c.isNotEmpty && autres.every((a) => couleur(a).isNotEmpty && couleur(a) != c)) {
-      return fr ? 'le seul $c $lot' : 'the only $c $lot';
+      return trSi(fr, 'le seul {c} {lot}', 'the only {c} {lot}', {'c': c, 'lot': lot});
     }
 
     // Chaque axe ne se compare que là où il a un sens en dégustation, et seulement dans
@@ -367,34 +362,34 @@ class RedactionDesRaisons {
     final axes = <_Axe>[
       if (tous.every((w) => w.isRed))
         _Axe((w) => w.metrics.tannins,
-            plus: ('le plus charpenté', 'the most structured'),
-            moins: ('le plus souple', 'the silkiest'),
+            plus: Phrase('le plus charpenté', 'the most structured'),
+            moins: Phrase('le plus souple', 'the silkiest'),
             plusSi: (v, a) => auMoins(v, a, 6),
             moinsSi: (v, a) => auPlus(v, a, 5)),
       _Axe((w) => w.metrics.acidity,
-          plus: ('le plus frais', 'the freshest'),
-          moins: ('le plus rond', 'the roundest'),
+          plus: Phrase('le plus frais', 'the freshest'),
+          moins: Phrase('le plus rond', 'the roundest'),
           plusSi: (v, a) => auMoins(v, a, 6),
           moinsSi: (v, a) => auPlus(v, a, 5)),
       _Axe((w) => w.metrics.body,
-          plus: ('le plus ample', 'the fullest'),
-          moins: ('le plus léger', 'the lightest'),
+          plus: Phrase('le plus ample', 'the fullest'),
+          moins: Phrase('le plus léger', 'the lightest'),
           plusSi: (v, a) => auMoins(v, a, 6),
           moinsSi: (v, a) => auPlus(v, a, 5)),
-      _Axe((w) => w.metrics.fruit, plus: ('le plus fruité', 'the fruitiest'), plusSi: (v, a) => auMoins(v, a, 6)),
+      _Axe((w) => w.metrics.fruit, plus: Phrase('le plus fruité', 'the fruitiest'), plusSi: (v, a) => auMoins(v, a, 6)),
       _Axe((w) => w.metrics.oak,
-          plus: ('le plus boisé', 'the oakiest'),
-          moins: ('le moins boisé', 'the least oaky'),
+          plus: Phrase('le plus boisé', 'the oakiest'),
+          moins: Phrase('le moins boisé', 'the least oaky'),
           plusSi: (v, a) => auMoins(v, a, 5),
           moinsSi: (v, a) => auPlus(v, a, 3),
           sansBois: true),
       if (tous.every(blancOuBulles))
-        _Axe((w) => w.metrics.minerality, plus: ('le plus minéral', 'the most mineral'), plusSi: (v, a) => auMoins(v, a, 6)),
+        _Axe((w) => w.metrics.minerality, plus: Phrase('le plus minéral', 'the most mineral'), plusSi: (v, a) => auMoins(v, a, 6)),
       // Doux : seulement un vin qui l'est (demi-sec et au-delà) ; sec : seulement face à
       // des vins qui ne le sont pas.
       _Axe((w) => w.metrics.sweetness,
-          plus: ('le plus doux', 'the sweetest'),
-          moins: ('le seul sec', 'the only dry one'),
+          plus: Phrase('le plus doux', 'the sweetest'),
+          moins: Phrase('le seul sec', 'the only dry one'),
           plusSi: (v, _) => v >= 4,
           moinsSi: (_, autres) => autres.every((o) => o >= 3)),
     ];
@@ -408,21 +403,21 @@ class RedactionDesRaisons {
       final estMax = vals.every((o) => v > o);
       final estMin = vals.every((o) => v < o);
       if (ecart.abs() < 1.0) continue;
-      final (String, String)? libelle;
+      final Phrase? libelle;
       if (estMax && axe.plus != null && axe.plusSi(v, vals)) {
         libelle = axe.plus;
       } else if (estMin && axe.moins != null && axe.moinsSi(v, vals)) {
         // Le seul sans bois se dit tel quel.
-        libelle = axe.sansBois && v <= 2.0 ? ('le seul sans bois', 'the only unoaked one') : axe.moins;
+        libelle = axe.sansBois && v <= 2.0 ? const Phrase('le seul sans bois', 'the only unoaked one') : axe.moins;
       } else {
         continue;
       }
-      final phrase = fr ? libelle!.$1 : libelle!.$2;
+      final phrase = libelle!.dans(fr);
       if (meilleur == null || ecart.abs() > meilleur.$1) meilleur = (ecart.abs(), phrase);
     }
     if (meilleur == null) return '';
     // « Le seul sec » porte déjà sa comparaison : pas de « des trois » derrière.
-    return meilleur.$2.startsWith(fr ? 'le seul' : 'the only') ? meilleur.$2 : '${meilleur.$2} $lot';
+    return meilleur.$2.startsWith(trSi(fr, 'le seul', 'the only')) ? meilleur.$2 : '${meilleur.$2} $lot';
   }
 
   /// Où il se place en prix parmi les finalistes.
@@ -434,10 +429,10 @@ class RedactionDesRaisons {
     if (prix.length == tous.length && prix.length > 1) {
       final min = prix.reduce((a, b) => a < b ? a : b);
       final max = prix.reduce((a, b) => a > b ? a : b);
-      if (min < max && p == min) return fr ? 'le moins cher ($affiche)' : 'the cheapest ($affiche)';
-      if (min < max && p == max) return fr ? 'le plus cher ($affiche)' : 'the priciest ($affiche)';
+      if (min < max && p == min) return trSi(fr, 'le moins cher ({affiche})', 'the cheapest ({affiche})', {'affiche': affiche});
+      if (min < max && p == max) return trSi(fr, 'le plus cher ({affiche})', 'the priciest ({affiche})', {'affiche': affiche});
     }
-    return fr ? 'à $affiche' : 'at $affiche';
+    return trSi(fr, 'à {affiche}', 'at {affiche}', {'affiche': affiche});
   }
 }
 
@@ -446,10 +441,10 @@ class _Axe {
   final double Function(MenuWine) valeur;
 
   /// Le libellé (fr, en) de l'extrême haut, ou nul s'il ne dit rien d'utile.
-  final (String, String)? plus;
+  final Phrase? plus;
 
   /// Le libellé (fr, en) de l'extrême bas, ou nul.
-  final (String, String)? moins;
+  final Phrase? moins;
 
   /// Conditions supplémentaires : la valeur du vin, celles des autres finalistes.
   final bool Function(double, List<double>) plusSi;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/widgets/wine_type_badge.dart';
 import '../../cellar/domain/wine_service_advisor.dart';
+import '../../../shared/utils/langue.dart';
 
 class ChatWineCardData {
   final String? id;
@@ -50,7 +51,7 @@ class ChatWineCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
-    final vintageStr = data.vintage != null ? '${data.vintage}' : (isFr ? 'NM' : 'NV');
+    final vintageStr = data.vintage != null ? '${data.vintage}' : (trSi(isFr, 'NM', 'NV'));
     final hasBottleId = data.id != null && data.id!.isNotEmpty;
 
     return Container(
@@ -259,7 +260,7 @@ class ChatWineCard extends StatelessWidget {
                 const Icon(Icons.thermostat, color: Colors.amber, size: 28),
                 const SizedBox(width: 10),
                 Text(
-                  isFr ? 'Conseils de Service & Dégustation' : 'Service & Tasting Advice',
+                  trSi(isFr, 'Conseils de Service & Dégustation', 'Service & Tasting Advice'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -282,7 +283,7 @@ class ChatWineCard extends StatelessWidget {
                   const Icon(Icons.device_thermostat, color: Colors.amber),
                   const SizedBox(width: 10),
                   Text(
-                    isFr ? 'Température idéale : ${advice.tempLabel}' : 'Ideal temperature: ${advice.tempLabel}',
+                    trSi(isFr, 'Température idéale : {tempLabel}', 'Ideal temperature: {tempLabel}', {'tempLabel': advice.tempLabel}),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
@@ -290,12 +291,12 @@ class ChatWineCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              isFr ? '🍷 Verre conseillé : ${advice.glasswareType}' : '🍷 Recommended glassware: ${advice.glasswareType}',
+              trSi(isFr, '🍷 Verre conseillé : {glasswareType}', '🍷 Recommended glassware: {glasswareType}', {'glasswareType': advice.glasswareType}),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
             Text(
-              isFr ? '⏳ Carafage : ${advice.decantingAdvice}' : '⏳ Decanting: ${advice.decantingAdvice}',
+              trSi(isFr, '⏳ Carafage : {decantingAdvice}', '⏳ Decanting: {decantingAdvice}', {'decantingAdvice': advice.decantingAdvice}),
             ),
             const SizedBox(height: 20),
           ],

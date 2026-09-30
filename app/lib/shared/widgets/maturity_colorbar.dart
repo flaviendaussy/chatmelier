@@ -84,7 +84,7 @@ class MaturityColorbar extends StatelessWidget {
 
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final status = wine.windowStatus;
-    final statusText = isFr ? status.labelFr : status.labelEn;
+    final statusText = status.phrase.dans(isFr);
     final statusColor = status.color;
 
     return Column(

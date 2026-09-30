@@ -44,8 +44,7 @@ class LimiteIaAtteinte implements Exception {
               'The current table and its pairings stay available.');
     }
     final n = limite == null ? '' : ' ($limite)';
-    return tr('Vous avez atteint la limite du jour pour cette fonction$n. Elle se renouvelle demain.',
-        'You\'ve reached today\'s limit for this feature$n. It resets tomorrow.');
+    return tr('Vous avez atteint la limite du jour pour cette fonction{n}. Elle se renouvelle demain.', 'You\'ve reached today\'s limit for this feature{n}. It resets tomorrow.', {'n': n});
   }
 
   @override

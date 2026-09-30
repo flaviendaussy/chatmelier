@@ -23,27 +23,26 @@ class EveningSummary {
     final out = <String>[];
 
     if (verresGoutes > 0) {
-      final ou = nomDuLieu != null ? tr(' à $nomDuLieu', ' at $nomDuLieu') : '';
+      final ou = nomDuLieu != null ? tr(' à {nomDuLieu}', ' at {nomDuLieu}', {'nomDuLieu': nomDuLieu}) : '';
       out.add(verresGoutes == 1
-          ? tr('Un verre goûté$ou', 'One glass tasted$ou')
-          : tr('$verresGoutes verres goûtés$ou', '$verresGoutes glasses tasted$ou'));
+          ? tr('Un verre goûté{ou}', 'One glass tasted{ou}', {'ou': ou})
+          : tr('{verresGoutes} verres goûtés{ou}', '{verresGoutes} glasses tasted{ou}', {'verresGoutes': verresGoutes, 'ou': ou}));
     }
 
     final axe = _axeLePlusObserve(profil);
     if (axe != null) {
-      out.add(tr('Votre palais commence à se dessiner sur ${nomDeLAxe(axe)}',
-          'Your palate is starting to take shape around ${nomDeLAxe(axe)}'));
+      out.add(tr('Votre palais commence à se dessiner sur {v1}', 'Your palate is starting to take shape around {v1}', {'v1': nomDeLAxe(axe)}));
     }
 
     if (profil.favoriteRegions.isNotEmpty) {
       final r = profil.favoriteRegions.take(2).join(tr(' et ', ' and '));
-      out.add(tr('Un goût qui se précise pour $r', 'A growing taste for $r'));
+      out.add(tr('Un goût qui se précise pour {r}', 'A growing taste for {r}', {'r': r}));
     }
 
     if (messagesEchanges > 0) {
       out.add(messagesEchanges == 1
           ? tr('Une question posée au sommelier', 'One question for the sommelier')
-          : tr('$messagesEchanges échanges avec le sommelier', '$messagesEchanges messages with the sommelier'));
+          : tr('{messagesEchanges} échanges avec le sommelier', '{messagesEchanges} messages with the sommelier', {'messagesEchanges': messagesEchanges}));
     }
 
     return out;

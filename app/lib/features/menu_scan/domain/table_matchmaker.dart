@@ -1,6 +1,7 @@
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import 'menu_table_matcher_engine.dart';
 import 'menu_wine.dart';
+import '../../../shared/utils/langue.dart';
 
 /// L'avis d'un convive sur un vin, au matchmaker de table.
 enum AvisDeTable {
@@ -18,10 +19,10 @@ enum AvisDeTable {
       };
 
   String libelle(bool fr) => switch (this) {
-        AvisDeTable.adore => fr ? 'J\'adore' : 'Love it',
-        AvisDeTable.ok => fr ? 'Ça me va' : 'Fine by me',
-        AvisDeTable.plutotPas => fr ? 'Plutôt pas' : 'Rather not',
-        AvisDeTable.non => fr ? 'Non' : 'No',
+        AvisDeTable.adore => trSi(fr, 'J\'adore', 'Love it'),
+        AvisDeTable.ok => trSi(fr, 'Ça me va', 'Fine by me'),
+        AvisDeTable.plutotPas => trSi(fr, 'Plutôt pas', 'Rather not'),
+        AvisDeTable.non => trSi(fr, 'Non', 'No'),
       };
 
   static AvisDeTable? depuis(Object? brut) {
@@ -97,32 +98,35 @@ class TableMatchmaker {
 
   /// L'explication montrée quand un vin d'une autre couleur arrive.
   static String pourquoiCeVin(MenuWine vin, GuestProfile convive, bool fr) {
-    final prefere = convive.favoriteTypes.first.toLowerCase();
-    final sa = fr ? _couleurFr(vin) : _couleurEn(vin);
-    return fr
-        ? 'Vous préférez le $prefere, c\'est noté. Mais la table penchera peut-être pour un $sa : '
-            'dites-nous lequel vous gênerait le moins.'
-        : 'You prefer $prefere — noted. But the table may lean towards a $sa: tell us which one '
-            'you would mind least.';
+    // La couleur préférée est stockée en français (« Rouge ») : on l'affiche dans la langue
+    // de l'écran, comme le reste de la phrase.
+    final prefere = libelleCouleur(convive.favoriteTypes.first, fr);
+    final sa = _couleur(vin, fr);
+    return trSi(fr, 'Vous préférez le {prefere}, c\'est noté. Mais la table penchera peut-être pour un {sa} : ' 'dites-nous lequel vous gênerait le moins.', 'You prefer {prefere} — noted. But the table may lean towards a {sa}: tell us which one ' 'you would mind least.', {'prefere': prefere, 'sa': sa});
   }
 
-  static String _couleurFr(MenuWine w) => w.isSparkling
-      ? 'effervescent'
+  static String _couleur(MenuWine w, bool fr) => w.isSparkling
+      ? trSi(fr, 'effervescent', 'sparkling wine')
       : w.isRose
-          ? 'rosé'
+          ? trSi(fr, 'rosé', 'rosé')
           : w.isWhite
-              ? 'blanc'
+              ? trSi(fr, 'blanc', 'white')
               : w.isRed
-                  ? 'rouge'
-                  : 'vin d\'une autre couleur';
+                  ? trSi(fr, 'rouge', 'red')
+                  : trSi(fr, 'vin d\'une autre couleur', 'wine of another colour');
 
-  static String _couleurEn(MenuWine w) => w.isSparkling
-      ? 'sparkling wine'
-      : w.isRose
-          ? 'rosé'
-          : w.isWhite
-              ? 'white'
-              : w.isRed
-                  ? 'red'
-                  : 'wine of another colour';
+  /// Une couleur telle qu'on la stocke dans un profil (« Rouge », « Bulles »), en minuscules,
+  /// dans la langue de l'écran. Une valeur inconnue s'affiche telle quelle.
+  static String libelleCouleur(String stockee, bool fr) {
+    const couleurs = {
+      'rouge': Phrase('rouge', 'red'),
+      'blanc': Phrase('blanc', 'white'),
+      'rosé': Phrase('rosé', 'rosé'),
+      'bulles': Phrase('bulles', 'sparkling'),
+      'effervescent': Phrase('effervescent', 'sparkling'),
+      'liquoreux': Phrase('liquoreux', 'sweet'),
+    };
+    final cle = stockee.trim().toLowerCase();
+    return couleurs[cle]?.dans(fr) ?? cle;
+  }
 }

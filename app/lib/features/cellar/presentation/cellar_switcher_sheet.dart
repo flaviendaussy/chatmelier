@@ -5,6 +5,7 @@ import '../../../shared/providers/cellar_provider.dart';
 import 'create_cellar_dialog.dart';
 import 'edit_cellar_dialog.dart';
 import '../domain/cellar.dart';
+import '../../../shared/utils/langue.dart';
 
 class CellarSwitcherSheet extends ConsumerWidget {
   const CellarSwitcherSheet({super.key});
@@ -58,7 +59,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                isFr ? 'Mes Caves à Vin' : 'My Wine Cellars',
+                trSi(isFr, 'Mes Caves à Vin', 'My Wine Cellars'),
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -71,9 +72,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            isFr
-                ? 'Basculez facilement entre vos différentes caves ou celles partagées avec vous.'
-                : 'Easily switch between your wine cellars or those shared with you.',
+            trSi(isFr, 'Basculez facilement entre vos différentes caves ou celles partagées avec vous.', 'Easily switch between your wine cellars or those shared with you.'),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
             ),
@@ -90,7 +89,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
             ),
             error: (err, _) => Padding(
               padding: const EdgeInsets.all(16),
-              child: Text('${isFr ? "Erreur" : "Error"} : $err'),
+              child: Text('${trSi(isFr, "Erreur", "Error")} : $err'),
             ),
             data: (rawCellars) {
               // Deduplicate cellars by ID (prefer admin/owner role if present)
@@ -108,7 +107,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
               if (cellars.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text(isFr ? 'Aucune cave trouvée.' : 'No cellars found.'),
+                  child: Text(trSi(isFr, 'Aucune cave trouvée.', 'No cellars found.')),
                 );
               }
 
@@ -134,15 +133,15 @@ class CellarSwitcherSheet extends ConsumerWidget {
                   IconData roleIcon;
 
                   if (role == 'admin') {
-                    roleLabel = isFr ? 'Propriétaire' : 'Owner';
+                    roleLabel = trSi(isFr, 'Propriétaire', 'Owner');
                     roleColor = const Color(0xFF8B1E3F);
                     roleIcon = Icons.stars;
                   } else if (role == 'editor') {
-                    roleLabel = isFr ? 'Lecture & Écriture' : 'Read & Write';
+                    roleLabel = trSi(isFr, 'Lecture & Écriture', 'Read & Write');
                     roleColor = const Color(0xFF2E7D32);
                     roleIcon = Icons.edit_note;
                   } else {
-                    roleLabel = isFr ? 'Lecture seule' : 'Read-only';
+                    roleLabel = trSi(isFr, 'Lecture seule', 'Read-only');
                     roleColor = const Color(0xFF6B7280);
                     roleIcon = Icons.visibility;
                   }
@@ -281,7 +280,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
                           const SizedBox(width: 4),
                           PopupMenuButton<String>(
                             icon: const Icon(Icons.more_vert, size: 20),
-                            tooltip: isFr ? 'Options de la cave' : 'Cellar options',
+                            tooltip: trSi(isFr, 'Options de la cave', 'Cellar options'),
                             onSelected: (action) {
                               if (action == 'share') {
                                 Navigator.of(context).pop();
@@ -316,7 +315,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
                                     children: [
                                       const Icon(Icons.share_outlined, size: 18),
                                       const SizedBox(width: 8),
-                                      Text(isFr ? 'Partages & Accès' : 'Sharing & Access'),
+                                      Text(trSi(isFr, 'Partages & Accès', 'Sharing & Access')),
                                     ],
                                   ),
                                 ),
@@ -326,7 +325,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
                                     children: [
                                       const Icon(Icons.settings_outlined, size: 18),
                                       const SizedBox(width: 8),
-                                      Text(isFr ? 'Gérer / Paramètres' : 'Manage / Settings'),
+                                      Text(trSi(isFr, 'Gérer / Paramètres', 'Manage / Settings')),
                                     ],
                                   ),
                                 ),
@@ -337,7 +336,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
                                       const Icon(Icons.delete_forever_outlined, size: 18, color: Colors.redAccent),
                                       const SizedBox(width: 8),
                                       Text(
-                                        isFr ? 'Supprimer la cave' : 'Delete cellar',
+                                        trSi(isFr, 'Supprimer la cave', 'Delete cellar'),
                                         style: const TextStyle(color: Colors.redAccent),
                                       ),
                                     ],
@@ -351,7 +350,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
                                       const Icon(Icons.logout, size: 18, color: Colors.orange),
                                       const SizedBox(width: 8),
                                       Text(
-                                        isFr ? 'Retirer de mes caves' : 'Remove from my cellars',
+                                        trSi(isFr, 'Retirer de mes caves', 'Remove from my cellars'),
                                         style: const TextStyle(color: Colors.orange),
                                       ),
                                     ],
@@ -387,7 +386,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
                 );
               },
               icon: const Icon(Icons.add),
-              label: Text(isFr ? 'Créer une nouvelle cave' : 'Create a new cellar'),
+              label: Text(trSi(isFr, 'Créer une nouvelle cave', 'Create a new cellar')),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
@@ -416,18 +415,16 @@ class CellarSwitcherSheet extends ConsumerWidget {
           children: [
             const Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
             const SizedBox(width: 8),
-            Expanded(child: Text(isFr ? 'Supprimer "$cellarName" ?' : 'Delete "$cellarName"?')),
+            Expanded(child: Text(trSi(isFr, 'Supprimer "{cellarName}" ?', 'Delete "{cellarName}"?', {'cellarName': cellarName}))),
           ],
         ),
         content: Text(
-          isFr
-              ? 'Attention : Vous êtes le propriétaire de cette cave. La cave et toutes ses bouteilles seront définitivement supprimées pour vous et pour tous les utilisateurs avec qui elle est partagée. Cette action est irréversible.'
-              : 'Warning: You are the owner of this cellar. This cellar and all its bottles will be permanently deleted for you and for all members it is shared with. This action cannot be undone.',
+          trSi(isFr, 'Attention : Vous êtes le propriétaire de cette cave. La cave et toutes ses bouteilles seront définitivement supprimées pour vous et pour tous les utilisateurs avec qui elle est partagée. Cette action est irréversible.', 'Warning: You are the owner of this cellar. This cellar and all its bottles will be permanently deleted for you and for all members it is shared with. This action cannot be undone.'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(isFr ? 'Annuler' : 'Cancel'),
+            child: Text(trSi(isFr, 'Annuler', 'Cancel')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -450,16 +447,14 @@ class CellarSwitcherSheet extends ConsumerWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      isFr
-                          ? 'Cave "$cellarName" supprimée définitivement'
-                          : 'Cellar "$cellarName" permanently deleted',
+                      trSi(isFr, 'Cave "{cellarName}" supprimée définitivement', 'Cellar "{cellarName}" permanently deleted', {'cellarName': cellarName}),
                     ),
                     backgroundColor: Colors.redAccent,
                   ),
                 );
               }
             },
-            child: Text(isFr ? 'Supprimer définitivement' : 'Delete permanently'),
+            child: Text(trSi(isFr, 'Supprimer définitivement', 'Delete permanently')),
           ),
         ],
       ),
@@ -481,20 +476,16 @@ class CellarSwitcherSheet extends ConsumerWidget {
           children: [
             const Icon(Icons.logout, color: Colors.orange),
             const SizedBox(width: 8),
-            Expanded(child: Text(isFr ? 'Retirer "$cellarName" ?' : 'Remove "$cellarName"?')),
+            Expanded(child: Text(trSi(isFr, 'Retirer "{cellarName}" ?', 'Remove "{cellarName}"?', {'cellarName': cellarName}))),
           ],
         ),
         content: Text(
-          isFr
-              ? 'Cette cave partagée ne sera plus visible dans votre application.\n\n'
-                  'Les bouteilles et données restent intactes pour le propriétaire et ses autres membres.'
-              : 'This shared cellar will no longer be visible in your application.\n\n'
-                  'Bottles and cellar data remain intact for the owner and other members.',
+          trSi(isFr, 'Cette cave partagée ne sera plus visible dans votre application.\n\n' 'Les bouteilles et données restent intactes pour le propriétaire et ses autres membres.', 'This shared cellar will no longer be visible in your application.\n\n' 'Bottles and cellar data remain intact for the owner and other members.'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(isFr ? 'Annuler' : 'Cancel'),
+            child: Text(trSi(isFr, 'Annuler', 'Cancel')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -517,16 +508,14 @@ class CellarSwitcherSheet extends ConsumerWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      isFr
-                          ? 'Cave "$cellarName" retirée de votre vue'
-                          : 'Cellar "$cellarName" removed from your view',
+                      trSi(isFr, 'Cave "{cellarName}" retirée de votre vue', 'Cellar "{cellarName}" removed from your view', {'cellarName': cellarName}),
                     ),
                     backgroundColor: Colors.orange.shade800,
                   ),
                 );
               }
             },
-            child: Text(isFr ? 'Retirer de ma vue' : 'Remove from my view'),
+            child: Text(trSi(isFr, 'Retirer de ma vue', 'Remove from my view')),
           ),
         ],
       ),

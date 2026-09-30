@@ -1,6 +1,7 @@
 import 'wine.dart';
 import 'wine_image_service.dart';
 import 'bottle_size.dart';
+import '../../../shared/utils/langue.dart';
 
 enum BottleStatus { inCellar, consumed, gifted, sold }
 
@@ -208,19 +209,19 @@ class Bottle {
     }
     final parts = <String>[];
     if (rack != null && rack!.trim().isNotEmpty) {
-      parts.add(isFr ? 'Casier ${rack!.trim()}' : 'Rack ${rack!.trim()}');
+      parts.add(trSi(isFr, 'Casier {v1}', 'Rack {v1}', {'v1': rack!.trim()}));
     }
     if (shelf != null && shelf!.trim().isNotEmpty) {
-      parts.add(isFr ? 'Tablette ${shelf!.trim()}' : 'Shelf ${shelf!.trim()}');
+      parts.add(trSi(isFr, 'Tablette {v1}', 'Shelf {v1}', {'v1': shelf!.trim()}));
     }
     if (position != null && position!.trim().isNotEmpty) {
       parts.add('Pos ${position!.trim()}');
     }
     if (parts.isNotEmpty) return parts.join(' • ');
     if (furnitureId != null && furnitureId!.trim().isNotEmpty) {
-      return isFr ? 'Dans le meuble (Rangement libre)' : 'In furniture (free placement)';
+      return trSi(isFr, 'Dans le meuble (Rangement libre)', 'In furniture (free placement)');
     }
-    return isFr ? 'Emplacement non défini' : 'Location not set';
+    return trSi(isFr, 'Emplacement non défini', 'Location not set');
   }
 
   String get locationSummary => getLocationSummary(true);
@@ -269,7 +270,7 @@ class Bottle {
         if (purchaseLocation != null && purchaseLocation!.isNotEmpty) {
           return '📍 $purchaseLocation';
         }
-        return isFr ? '📦 Stock cave' : '📦 Cellar stock';
+        return trSi(isFr, '📦 Stock cave', '📦 Cellar stock');
     }
   }
 

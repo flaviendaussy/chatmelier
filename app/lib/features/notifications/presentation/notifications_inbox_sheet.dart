@@ -42,7 +42,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('🎉 Vous êtes désormais ami avec ${friend.displayName} !', '🎉 You\'re now friends with ${friend.displayName}!')),
+            content: Text(tr('🎉 Vous êtes désormais ami avec {displayName} !', '🎉 You\'re now friends with {displayName}!', {'displayName': friend.displayName})),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -50,7 +50,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -72,7 +72,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -85,7 +85,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('$label mis de côté pour plus tard ⏱️', '$label saved for later ⏱️')),
+          content: Text(tr('{label} mis de côté pour plus tard ⏱️', '{label} saved for later ⏱️', {'label': label})),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -112,7 +112,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
           SnackBar(
             content: Text(
               accept
-                  ? tr('🍾 Accès accordé à ${req.requesterName} (${role == "editor" ? "Sommelier" : "Lecteur"}) !', '🍾 Access granted to ${req.requesterName} (${role == "editor" ? "Sommelier" : "Viewer"})!')
+                  ? tr('🍾 Accès accordé à {requesterName} ({v1}) !', '🍾 Access granted to {requesterName} ({v2})!', {'requesterName': req.requesterName, 'v1': role == "editor" ? "Sommelier" : "Lecteur", 'v2': role == "editor" ? "Sommelier" : "Viewer"})
                   : tr('Demande d\'accès refusée.', 'Access request declined.'),
             ),
             backgroundColor: accept ? const Color(0xFF10B981) : Colors.grey.shade800,
@@ -122,7 +122,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur: $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -196,7 +196,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          tr('avec ${req.requesterName}', 'with ${req.requesterName}'),
+                          tr('avec {requesterName}', 'with {requesterName}', {'requesterName': req.requesterName}),
                           style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                         ),
                       ],
@@ -388,7 +388,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('🍾 Accès accordé pour $grantedCount cave(s) à ${req.requesterName} !', '🍾 Access to $grantedCount cellar(s) granted to ${req.requesterName}!')),
+            content: Text(tr('🍾 Accès accordé pour {grantedCount} cave(s) à {requesterName} !', '🍾 Access to {grantedCount} cellar(s) granted to {requesterName}!', {'grantedCount': grantedCount, 'requesterName': req.requesterName})),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -396,7 +396,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Erreur : $e', 'Error: $e')), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(tr('Erreur : {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -528,7 +528,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                   if (activeFriends.isNotEmpty) ...[
                     _buildSectionHeader(
                       context,
-                      title: tr('👥 Demandes d\'amis (${activeFriends.length})', '👥 Friend requests (${activeFriends.length})'),
+                      title: tr('👥 Demandes d\'amis ({activeFriends_length})', '👥 Friend requests ({activeFriends_length})', {'activeFriends_length': activeFriends.length}),
                       color: const Color(0xFF8B1E3F),
                     ),
                     const SizedBox(height: 8),
@@ -540,7 +540,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                   if (activeCellar.isNotEmpty) ...[
                     _buildSectionHeader(
                       context,
-                      title: tr('🍷 Demandes d\'accès à votre Cave (${activeCellar.length})', '🍷 Requests to access your cellar (${activeCellar.length})'),
+                      title: tr('🍷 Demandes d\'accès à votre Cave ({activeCellar_length})', '🍷 Requests to access your cellar ({activeCellar_length})', {'activeCellar_length': activeCellar.length}),
                       color: const Color(0xFFD4AF37),
                     ),
                     const SizedBox(height: 8),
@@ -605,7 +605,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                     Center(
                       child: TextButton.icon(
                         icon: const Icon(Icons.history, size: 16),
-                        label: Text(tr('Afficher les $snoozedCount élément(s) mis de côté', 'Show the $snoozedCount item(s) saved for later')),
+                        label: Text(tr('Afficher les {snoozedCount} élément(s) mis de côté', 'Show the {snoozedCount} item(s) saved for later', {'snoozedCount': snoozedCount})),
                         onPressed: () {
                           ref.read(dismissedNotificationIdsProvider.notifier).clearAll();
                         },
@@ -703,7 +703,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                 IconButton(
                   icon: const Icon(Icons.snooze, size: 19, color: Colors.grey),
                   tooltip: tr('Garder pour plus tard', 'Keep for later'),
-                  onPressed: () => _dismissForLater(friend.id, tr('Demande de ${friend.displayName}', 'Request from ${friend.displayName}')),
+                  onPressed: () => _dismissForLater(friend.id, tr('Demande de {displayName}', 'Request from {displayName}', {'displayName': friend.displayName})),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20, color: Colors.grey),
@@ -750,7 +750,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       Text(
-                        tr('Demande l\'accès à "${req.cellarName ?? 'Ma Cave'}"', 'Asks for access to "${req.cellarName ?? 'My cellar'}"'),
+                        tr('Demande l\'accès à "{v1}"', 'Asks for access to "{v2}"', {'v1': req.cellarName ?? 'Ma Cave', 'v2': req.cellarName ?? 'My cellar'}),
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
@@ -798,7 +798,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                     ),
                     icon: const Icon(Icons.check, size: 16),
                     label: Text(
-                      tr('Accorder l\'accès (${req.requestedRole == "editor" ? "Sommelier" : "Lecteur"})', 'Grant access (${req.requestedRole == "editor" ? "Sommelier" : "Viewer"})'),
+                      tr('Accorder l\'accès ({v1})', 'Grant access ({v2})', {'v1': req.requestedRole == "editor" ? "Sommelier" : "Lecteur", 'v2': req.requestedRole == "editor" ? "Sommelier" : "Viewer"}),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                     onPressed: _isProcessing
@@ -821,7 +821,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                 IconButton(
                   icon: const Icon(Icons.snooze, size: 19, color: Colors.grey),
                   tooltip: tr('Garder pour plus tard', 'Keep for later'),
-                  onPressed: () => _dismissForLater(req.id, tr('Demande de cave de ${req.requesterName}', 'Cellar request from ${req.requesterName}')),
+                  onPressed: () => _dismissForLater(req.id, tr('Demande de cave de {requesterName}', 'Cellar request from {requesterName}', {'requesterName': req.requesterName})),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20, color: Colors.grey),
@@ -919,9 +919,9 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     if (date == null) return '';
     final diff = DateTime.now().difference(date);
     if (diff.inMinutes < 1) return tr('À l\'instant', 'Just now');
-    if (diff.inMinutes < 60) return tr('Il y a ${diff.inMinutes} min', '${diff.inMinutes} min ago');
-    if (diff.inHours < 24) return tr('Il y a ${diff.inHours} h', '${diff.inHours} h ago');
-    if (diff.inDays < 7) return tr('Il y a ${diff.inDays} j', '${diff.inDays} d ago');
+    if (diff.inMinutes < 60) return tr('Il y a {inMinutes} min', '{inMinutes} min ago', {'inMinutes': diff.inMinutes});
+    if (diff.inHours < 24) return tr('Il y a {inHours} h', '{inHours} h ago', {'inHours': diff.inHours});
+    if (diff.inDays < 7) return tr('Il y a {inDays} j', '{inDays} d ago', {'inDays': diff.inDays});
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
   }
 }

@@ -4,6 +4,7 @@ import '../../auth/domain/taste_profile.dart';
 import 'cellar_bridge.dart';
 import '../../auth/domain/wine_taste_radar.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Pricing entry for wine by the glass (e.g. "125ml", "175ml", "150ml", "Verre")
 class MenuWineGlassPrice {
@@ -59,14 +60,14 @@ class MenuWineFlag {
     switch (type) {
       case MenuWineFlagType.deal:
         final tres = const {'Grosse Affaire', 'Très bonne affaire', 'Great deal'}.contains(label);
-        return fr ? (tres ? 'Très bonne affaire' : 'Bonne affaire') : (tres ? 'Great deal' : 'Good deal');
+        return tres ? trSi(fr, 'Très bonne affaire', 'Great deal') : trSi(fr, 'Bonne affaire', 'Good deal');
       case MenuWineFlagType.gem:
-        return fr ? 'Pépite' : 'Hidden gem';
+        return trSi(fr, 'Pépite', 'Hidden gem');
       case MenuWineFlagType.tasteMatch:
         final pct = RegExp(r'(\d+)\s*%').firstMatch(label)?.group(1);
-        return fr
-            ? 'Taillé pour vous${pct != null ? ' · $pct %' : ''}'
-            : 'Made for you${pct != null ? ' · $pct%' : ''}';
+        return pct == null
+            ? trSi(fr, 'Taillé pour vous', 'Made for you')
+            : trSi(fr, 'Taillé pour vous · {pct} %', 'Made for you · {pct}%', {'pct': pct});
     }
   }
 
@@ -78,15 +79,15 @@ class MenuWineFlag {
     final r = reason;
     if (r == null || r.isEmpty) return null;
     const traductions = {
-      'Excellent rapport prix/plaisir sur la carte': ('Excellent rapport prix/plaisir sur la carte', 'Excellent value on this list'),
-      'Domaine d\'exception et référence incontournable': ('Repérée comme une pépite de la carte', 'Flagged as a gem on this list'),
-      'Repérée comme une pépite de la carte': ('Repérée comme une pépite de la carte', 'Flagged as a gem on this list'),
-      'Flacon taillé sur mesure pour vos préférences': ('Très proche de vos goûts', 'Very close to your taste'),
-      'Très proche de vos goûts': ('Très proche de vos goûts', 'Very close to your taste'),
+      'Excellent rapport prix/plaisir sur la carte': Phrase('Excellent rapport prix/plaisir sur la carte', 'Excellent value on this list'),
+      'Domaine d\'exception et référence incontournable': Phrase('Repérée comme une pépite de la carte', 'Flagged as a gem on this list'),
+      'Repérée comme une pépite de la carte': Phrase('Repérée comme une pépite de la carte', 'Flagged as a gem on this list'),
+      'Flacon taillé sur mesure pour vos préférences': Phrase('Très proche de vos goûts', 'Very close to your taste'),
+      'Très proche de vos goûts': Phrase('Très proche de vos goûts', 'Very close to your taste'),
     };
     final t = traductions[r];
     if (t == null) return r;
-    return fr ? t.$1 : t.$2;
+    return t.dans(fr);
   }
 
   String get iconEmoji {
@@ -415,13 +416,13 @@ class MenuWine {
   String prixAffiche(bool fr) {
     final parts = <String>[];
     if (bottlePrice != null && bottlePrice! > 0) {
-      parts.add('${formaterPrix(bottlePrice!)} / ${fr ? 'bt' : 'btl'}');
+      parts.add('${formaterPrix(bottlePrice!)} / ${trSi(fr, 'bt', 'btl')}');
     }
     if (glassPrices.isNotEmpty) {
       final g = glassPrices.first;
       parts.add('${formaterPrix(g.price)} (${g.format})');
     }
-    if (parts.isEmpty) return fr ? 'Prix non indiqué' : 'Price not listed';
+    if (parts.isEmpty) return trSi(fr, 'Prix non indiqué', 'Price not listed');
     return parts.join(' • ');
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../offline/presentation/sync_provider.dart';
+import '../../../shared/utils/langue.dart';
 
 class VintageResolutionDialog extends ConsumerStatefulWidget {
   final String wineName;
@@ -35,7 +36,7 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
     final vintage = _isNonVintage ? null : int.tryParse(_controller.text.trim());
     if (!_isNonVintage && vintage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(isFr ? 'Veuillez saisir une année valide (ex: 2018)' : 'Please enter a valid year (e.g. 2018)')),
+        SnackBar(content: Text(trSi(isFr, 'Veuillez saisir une année valide (ex: 2018)', 'Please enter a valid year (e.g. 2018)'))),
       );
       return;
     }
@@ -69,8 +70,8 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
         SnackBar(
           content: Text(
             vintage != null
-                ? (isFr ? '✨ Millésime $vintage enregistré pour ${widget.wineName} !' : '✨ Vintage $vintage saved for ${widget.wineName}!')
-                : (isFr ? '✨ Enregistré comme Non-Millésimé pour ${widget.wineName} !' : '✨ Saved as Non-Vintage for ${widget.wineName}!'),
+                ? (trSi(isFr, '✨ Millésime {vintage} enregistré pour {wineName} !', '✨ Vintage {vintage} saved for {wineName}!', {'vintage': vintage, 'wineName': widget.wineName}))
+                : (trSi(isFr, '✨ Enregistré comme Non-Millésimé pour {wineName} !', '✨ Saved as Non-Vintage for {wineName}!', {'wineName': widget.wineName})),
           ),
           backgroundColor: const Color(0xFF2E7D32),
         ),
@@ -90,7 +91,7 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              isFr ? 'Préciser le millésime' : 'Specify vintage',
+              trSi(isFr, 'Préciser le millésime', 'Specify vintage'),
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -102,9 +103,7 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isFr
-                  ? 'Cette bouteille a été ajoutée en mode hors-ligne. Veuillez indiquer son année :'
-                  : 'This bottle was added in offline mode. Please indicate its vintage year:',
+              trSi(isFr, 'Cette bouteille a été ajoutée en mode hors-ligne. Veuillez indiquer son année :', 'This bottle was added in offline mode. Please indicate its vintage year:'),
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -129,7 +128,7 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
                   LengthLimitingTextInputFormatter(4),
                 ],
                 decoration: InputDecoration(
-                  labelText: isFr ? 'Année / Millésime' : 'Year / Vintage',
+                  labelText: trSi(isFr, 'Année / Millésime', 'Year / Vintage'),
                   hintText: 'ex: 2019',
                   prefixIcon: const Icon(Icons.calendar_today),
                   border: const OutlineInputBorder(),
@@ -139,7 +138,7 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
             const SizedBox(height: 8),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(isFr ? 'Non-Millésimé (NV / Sans année)' : 'Non-Vintage (NV / No year)'),
+              title: Text(trSi(isFr, 'Non-Millésimé (NV / Sans année)', 'Non-Vintage (NV / No year)')),
               value: _isNonVintage,
               onChanged: (val) {
                 setState(() => _isNonVintage = val ?? false);
@@ -152,7 +151,7 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(isFr ? 'Plus tard' : 'Later'),
+          child: Text(trSi(isFr, 'Plus tard', 'Later')),
         ),
         FilledButton(
           onPressed: _isSaving ? null : () => _submit(isFr),
@@ -162,7 +161,7 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
                   height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(isFr ? 'Enregistrer' : 'Save'),
+              : Text(trSi(isFr, 'Enregistrer', 'Save')),
         ),
       ],
     );

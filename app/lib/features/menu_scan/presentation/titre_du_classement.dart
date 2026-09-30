@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/utils/langue.dart';
 
 /// Le titre du classement de la table, et ce qu'il classe.
 ///
@@ -16,15 +17,11 @@ class TitreDuClassement extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final titre = pourUnPlat
-        ? (isFr ? 'LES BOUTEILLES LES PLUS ADAPTÉES À CE PLAT' : 'THE BOTTLES THAT SUIT THIS DISH BEST')
-        : (isFr ? 'LES 3 BOUTEILLES LES PLUS ADAPTÉES À LA TABLE' : 'THE 3 BOTTLES THAT SUIT YOUR TABLE BEST');
+        ? (trSi(isFr, 'LES BOUTEILLES LES PLUS ADAPTÉES À CE PLAT', 'THE BOTTLES THAT SUIT THIS DISH BEST'))
+        : (trSi(isFr, 'LES 3 BOUTEILLES LES PLUS ADAPTÉES À LA TABLE', 'THE 3 BOTTLES THAT SUIT YOUR TABLE BEST'));
     final critere = pourUnPlat
-        ? (isFr
-            ? 'Pas forcément les plus prestigieuses : celles qui s\'accordent le mieux avec ce plat.'
-            : 'Not necessarily the finest: the ones that pair best with this dish.')
-        : (isFr
-            ? 'Pas forcément les meilleures de la carte : celles qui correspondent le mieux aux goûts de chacun.'
-            : 'Not necessarily the finest on the list: the ones that best fit everyone\'s taste.');
+        ? (trSi(isFr, 'Pas forcément les plus prestigieuses : celles qui s\'accordent le mieux avec ce plat.', 'Not necessarily the finest: the ones that pair best with this dish.'))
+        : (trSi(isFr, 'Pas forcément les meilleures de la carte : celles qui correspondent le mieux aux goûts de chacun.', 'Not necessarily the finest on the list: the ones that best fit everyone\'s taste.'));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -54,6 +51,12 @@ class TitreDuClassement extends StatelessWidget {
 
 
 /// « 7 vins analysés pour 2 convives », pluriels accordés (« pour 1 convives » avant).
-String vinsPourConvives(int vins, int convives, bool fr) => fr
-    ? '$vins ${vins > 1 ? 'vins analysés' : 'vin analysé'} pour $convives ${convives > 1 ? 'convives' : 'convive'}'
-    : '$vins ${vins > 1 ? 'wines' : 'wine'} analysed for $convives ${convives > 1 ? 'guests' : 'guest'}';
+String vinsPourConvives(int vins, int convives, bool fr) {
+  final v = vins > 1
+      ? trSi(fr, '{n} vins analysés', '{n} wines analysed', {'n': vins})
+      : trSi(fr, '{n} vin analysé', '{n} wine analysed', {'n': vins});
+  final c = convives > 1
+      ? trSi(fr, '{n} convives', '{n} guests', {'n': convives})
+      : trSi(fr, '{n} convive', '{n} guest', {'n': convives});
+  return trSi(fr, '{vins} pour {convives}', '{vins} for {convives}', {'vins': v, 'convives': c});
+}

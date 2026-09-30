@@ -4,6 +4,7 @@ import '../../../../shared/providers/cellar_provider.dart';
 import '../../domain/bottle.dart';
 import '../../domain/cellar_furniture.dart';
 import '../shelf_grid_view_sheet.dart';
+import '../../../../shared/utils/langue.dart';
 
 /// A visual and written representation of a bottle's location in cellar furniture.
 /// Supports both rigid grid racks (with slot codes like A7) and loose cupboards
@@ -82,7 +83,7 @@ class FurnitureGraphicCard extends ConsumerWidget {
                 Expanded(
                   child: FilledButton.tonalIcon(
                     icon: const Icon(Icons.fullscreen, size: 18),
-                    label: Text(isFr ? 'Vue rayonnage' : 'Shelf view'),
+                    label: Text(trSi(isFr, 'Vue rayonnage', 'Shelf view')),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF8B1E3F).withValues(alpha: 0.12),
                       foregroundColor: const Color(0xFF8B1E3F),
@@ -103,7 +104,7 @@ class FurnitureGraphicCard extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.edit_location_alt_outlined, size: 16),
-                  label: Text(isFr ? 'Déplacer' : 'Move'),
+                  label: Text(trSi(isFr, 'Déplacer', 'Move')),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: theme.colorScheme.onSurface,
                   ),
@@ -122,7 +123,7 @@ class FurnitureGraphicCard extends ConsumerWidget {
                 const SizedBox(width: 8),
                 IconButton.outlined(
                   icon: const Icon(Icons.location_off_outlined, size: 18, color: Colors.redAccent),
-                  tooltip: isFr ? 'Retirer du meuble' : 'Remove from furniture',
+                  tooltip: trSi(isFr, 'Retirer du meuble', 'Remove from furniture'),
                   onPressed: onUnassignRequested,
                 ),
               ],
@@ -137,8 +138,8 @@ class FurnitureGraphicCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final String furnitureName = furniture?.name ?? (bottle.rack != null ? (isFr ? 'Casier ${bottle.rack}' : 'Rack ${bottle.rack}') : (isFr ? 'Emplacement en cave' : 'Cellar location'));
-    final String shapeTypeLabel = furniture != null ? furniture.getShapeTypeName(isFr) : (isFr ? 'Emplacement manuel' : 'Manual location');
+    final String furnitureName = furniture?.name ?? (bottle.rack != null ? (trSi(isFr, 'Casier {rack}', 'Rack {rack}', {'rack': bottle.rack})) : (trSi(isFr, 'Emplacement en cave', 'Cellar location')));
+    final String shapeTypeLabel = furniture != null ? furniture.getShapeTypeName(isFr) : (trSi(isFr, 'Emplacement manuel', 'Manual location'));
 
     String detailedLocationText = '';
     if (furniture != null) {
@@ -151,24 +152,24 @@ class FurnitureGraphicCard extends ConsumerWidget {
           } else {
             final parsed = CellarFurniture.parseSlotCode(slot);
             if (parsed != null) {
-              detailedLocationText = isFr ? 'Étagère ${parsed.row + 1}' : 'Shelf ${parsed.row + 1}';
+              detailedLocationText = trSi(isFr, 'Étagère {v1}', 'Shelf {v1}', {'v1': parsed.row + 1});
             } else {
               final numMatch = RegExp(r'\d+').firstMatch(slot);
               if (numMatch != null) {
-                detailedLocationText = isFr ? 'Étagère ${numMatch.group(0)}' : 'Shelf ${numMatch.group(0)}';
+                detailedLocationText = trSi(isFr, 'Étagère {v1}', 'Shelf {v1}', {'v1': numMatch.group(0)});
               } else {
-                detailedLocationText = isFr ? 'Rangement libre dans le meuble' : 'Free storage in furniture';
+                detailedLocationText = trSi(isFr, 'Rangement libre dans le meuble', 'Free storage in furniture');
               }
             }
           }
         } else {
-          detailedLocationText = isFr ? 'Rangement libre dans le meuble' : 'Free storage in furniture';
+          detailedLocationText = trSi(isFr, 'Rangement libre dans le meuble', 'Free storage in furniture');
         }
       } else {
         if (bottle.furnitureSlot != null && bottle.furnitureSlot!.isNotEmpty) {
           detailedLocationText = CellarFurniture.describeSlotCode(bottle.furnitureSlot!, isFr);
         } else {
-          detailedLocationText = isFr ? 'Dans le casier' : 'In the rack';
+          detailedLocationText = trSi(isFr, 'Dans le casier', 'In the rack');
         }
       }
     } else {
@@ -176,10 +177,10 @@ class FurnitureGraphicCard extends ConsumerWidget {
       if (bottle.furnitureSlot != null && bottle.furnitureSlot!.isNotEmpty) {
         parts.add(CellarFurniture.describeSlotCode(bottle.furnitureSlot!, isFr));
       }
-      if (bottle.rack != null && bottle.rack!.isNotEmpty) parts.add(isFr ? 'Casier : ${bottle.rack}' : 'Rack: ${bottle.rack}');
-      if (bottle.shelf != null && bottle.shelf!.isNotEmpty) parts.add(isFr ? 'Tablette : ${bottle.shelf}' : 'Shelf: ${bottle.shelf}');
-      if (bottle.position != null && bottle.position!.isNotEmpty) parts.add(isFr ? 'Position : ${bottle.position}' : 'Position: ${bottle.position}');
-      detailedLocationText = parts.isNotEmpty ? parts.join('  •  ') : (isFr ? 'Emplacement défini' : 'Location defined');
+      if (bottle.rack != null && bottle.rack!.isNotEmpty) parts.add(trSi(isFr, 'Casier : {rack}', 'Rack: {rack}', {'rack': bottle.rack}));
+      if (bottle.shelf != null && bottle.shelf!.isNotEmpty) parts.add(trSi(isFr, 'Tablette : {shelf}', 'Shelf: {shelf}', {'shelf': bottle.shelf}));
+      if (bottle.position != null && bottle.position!.isNotEmpty) parts.add(trSi(isFr, 'Position : {position}', 'Position: {position}', {'position': bottle.position}));
+      detailedLocationText = parts.isNotEmpty ? parts.join('  •  ') : (trSi(isFr, 'Emplacement défini', 'Location defined'));
     }
 
     return Column(
@@ -280,7 +281,7 @@ class FurnitureGraphicCard extends ConsumerWidget {
               const Icon(Icons.kitchen_outlined, size: 16, color: Color(0xFF8C7355)),
               const SizedBox(width: 6),
               Text(
-                '${furniture.name} (${isFr ? "Rangement libre en vrac" : "Free bulk storage"})',
+                '${furniture.name} (${trSi(isFr, "Rangement libre en vrac", "Free bulk storage")})',
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF8C7355)),
               ),
               const Spacer(),
@@ -323,7 +324,7 @@ class FurnitureGraphicCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    isFr ? 'Étagère $shelfNum' : 'Shelf $shelfNum',
+                    trSi(isFr, 'Étagère {shelfNum}', 'Shelf {shelfNum}', {'shelfNum': shelfNum}),
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -358,7 +359,7 @@ class FurnitureGraphicCard extends ConsumerWidget {
                                 const Icon(Icons.wine_bar, size: 14, color: Colors.white),
                                 const SizedBox(width: 4),
                                 Text(
-                                  bottle.wine?.name ?? (isFr ? 'Cette bouteille' : 'This bottle'),
+                                  bottle.wine?.name ?? (trSi(isFr, 'Cette bouteille', 'This bottle')),
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
@@ -541,16 +542,16 @@ class FurnitureGraphicCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isFr ? 'Repères manuels enregistrés' : 'Saved manual coordinates',
+                  trSi(isFr, 'Repères manuels enregistrés', 'Saved manual coordinates'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 Text(
                   [
                     if (bottle.furnitureSlot != null && bottle.furnitureSlot!.isNotEmpty)
                       CellarFurniture.describeSlotCode(bottle.furnitureSlot!, isFr),
-                    if (bottle.rack != null && bottle.rack!.isNotEmpty) (isFr ? 'Casier : ${bottle.rack}' : 'Rack: ${bottle.rack}'),
-                    if (bottle.shelf != null && bottle.shelf!.isNotEmpty) (isFr ? 'Tablette : ${bottle.shelf}' : 'Shelf: ${bottle.shelf}'),
-                    if (bottle.position != null && bottle.position!.isNotEmpty) (isFr ? 'Position : ${bottle.position}' : 'Position: ${bottle.position}'),
+                    if (bottle.rack != null && bottle.rack!.isNotEmpty) (trSi(isFr, 'Casier : {rack}', 'Rack: {rack}', {'rack': bottle.rack})),
+                    if (bottle.shelf != null && bottle.shelf!.isNotEmpty) (trSi(isFr, 'Tablette : {shelf}', 'Shelf: {shelf}', {'shelf': bottle.shelf})),
+                    if (bottle.position != null && bottle.position!.isNotEmpty) (trSi(isFr, 'Position : {position}', 'Position: {position}', {'position': bottle.position})),
                   ].join(' • '),
                   style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                 ),

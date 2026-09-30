@@ -17,6 +17,7 @@ import 'menu_table_consensus_sheet.dart';
 import 'menu_flight_sheet.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../sommelier/domain/taste_frontier_engine.dart';
+import '../../../shared/utils/langue.dart';
 
 /// L'écran de résultat ouvert sans carte (lien direct, historique du navigateur, app
 /// restaurée sans son état) : on rouvre la dernière carte scannée, ou on propose d'en
@@ -144,11 +145,11 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(isFr ? '🧭 Pour mieux vous connaître' : '🧭 To get to know you better',
+                Text(trSi(isFr, '🧭 Pour mieux vous connaître', '🧭 To get to know you better'),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
                 const SizedBox(height: 6),
                 Text(
-                  TasteFrontierEngine.phrase(f, isFr ? 'Ce $nom' : 'This $nom', isFr),
+                  TasteFrontierEngine.phrase(f, trSi(isFr, 'Ce {nom}', 'This {nom}', {'nom': nom}), isFr),
                   style: TextStyle(fontSize: 12.5, height: 1.35, color: isDark ? Colors.white70 : Colors.black87),
                 ),
               ],
@@ -235,7 +236,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     return [
       FilterChip(
         avatar: const Text('📓', style: TextStyle(fontSize: 13)),
-        label: Text(isFr ? 'Vous connaissez ($n)' : 'You know ($n)',
+        label: Text(trSi(isFr, 'Vous connaissez ({n})', 'You know ({n})', {'n': n}),
             style: TextStyle(
               fontWeight: _seulementConnus ? FontWeight.bold : FontWeight.w600,
               color: _seulementConnus ? const Color(0xFF6A4C93) : null,
@@ -330,14 +331,14 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isFr ? 'Nom de l\'établissement' : 'Venue Name'),
+        title: Text(trSi(isFr, 'Nom de l\'établissement', 'Venue Name')),
         content: TextField(
           controller: nameCtrl,
           autofocus: true,
-          decoration: InputDecoration(labelText: isFr ? 'Restaurant / Bar' : 'Restaurant / Bar'),
+          decoration: InputDecoration(labelText: trSi(isFr, 'Restaurant / Bar', 'Restaurant / Bar')),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(isFr ? 'Annuler' : 'Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(trSi(isFr, 'Annuler', 'Cancel'))),
           FilledButton(
             onPressed: () {
               final newName = nameCtrl.text.trim();
@@ -348,7 +349,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
               }
               Navigator.pop(ctx);
             },
-            child: Text(isFr ? 'Valider' : 'Save'),
+            child: Text(trSi(isFr, 'Valider', 'Save')),
           ),
         ],
       ),
@@ -368,12 +369,13 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     // Les rosés manquaient au décompte : « 7 références · 2 blancs • 3 rouges • 1 bulles »
     // (The Kitchin, 29/09) laissait un vin introuvable.
     final roseCount = _menu.wines.where((w) => w.isRose && !w.isSparkling).length;
-    String compte(int n, String un, String plusieurs) => '$n ${n > 1 ? plusieurs : un}';
+    // Chaque langue accorde elle-même : « 1 Blanc », « 3 Blancs ».
+    String compte(int n, Phrase un, Phrase plusieurs) => (n > 1 ? plusieurs : un).dans(isFr).replaceFirst('{n}', '$n');
     final decompte = [
-      if (whiteCount > 0) isFr ? compte(whiteCount, 'Blanc', 'Blancs') : compte(whiteCount, 'White', 'Whites'),
-      if (redCount > 0) isFr ? compte(redCount, 'Rouge', 'Rouges') : compte(redCount, 'Red', 'Reds'),
-      if (roseCount > 0) compte(roseCount, 'Rosé', 'Rosés'),
-      if (sparklingCount > 0) isFr ? compte(sparklingCount, 'Bulles', 'Bulles') : compte(sparklingCount, 'Sparkling', 'Sparkling'),
+      if (whiteCount > 0) compte(whiteCount, const Phrase('{n} Blanc', '{n} White'), const Phrase('{n} Blancs', '{n} Whites')),
+      if (redCount > 0) compte(redCount, const Phrase('{n} Rouge', '{n} Red'), const Phrase('{n} Rouges', '{n} Reds')),
+      if (roseCount > 0) compte(roseCount, const Phrase('{n} Rosé', '{n} Rosé'), const Phrase('{n} Rosés', '{n} Rosés')),
+      if (sparklingCount > 0) compte(sparklingCount, const Phrase('{n} Bulles', '{n} Sparkling'), const Phrase('{n} Bulles', '{n} Sparkling')),
     ].join(' • ');
 
     return Scaffold(
@@ -398,8 +400,8 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
         actions: [
           IconButton(
             tooltip: _isCompactView
-                ? (isFr ? 'Afficher la vue détaillée' : 'Show detailed view')
-                : (isFr ? 'Afficher la vue compacte' : 'Show compact view'),
+                ? (trSi(isFr, 'Afficher la vue détaillée', 'Show detailed view'))
+                : (trSi(isFr, 'Afficher la vue compacte', 'Show compact view')),
             icon: Icon(
               _isCompactView ? Icons.view_headline_rounded : Icons.view_agenda_outlined,
               color: const Color(0xFFD4AF37),
@@ -418,7 +420,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
               ),
               icon: const Icon(Icons.groups_rounded, size: 14, color: Color(0xFFD4AF37)),
               label: Text(
-                isFr ? 'En groupe 👥' : 'Group 👥',
+                trSi(isFr, 'En groupe 👥', 'Group 👥'),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
               ),
               onPressed: () => MenuTableConsensusSheet.show(context, menu: _menu),
@@ -435,7 +437,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
               ),
               icon: const Icon(Icons.flight_takeoff_rounded, size: 14, color: Color(0xFFD4AF37)),
               label: Text(
-                isFr ? 'Flight ✈️' : 'Flight ✈️',
+                trSi(isFr, 'Flight ✈️', 'Flight ✈️'),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
               ),
               onPressed: () => MenuFlightSheet.show(context, menu: _menu),
@@ -455,7 +457,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
               ),
               icon: const Icon(Icons.chat_bubble_rounded, size: 14, color: Color(0xFFD4AF37)),
               label: Text(
-                isFr ? 'Chat 💬' : 'Chat 💬',
+                trSi(isFr, 'Chat 💬', 'Chat 💬'),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
               ),
               onPressed: () => MenuChatAssistantSheet.show(context, _menu),
@@ -471,17 +473,17 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
               backgroundColor: isDark ? const Color(0xFF3A2A12) : Colors.orange.shade50,
               leading: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
               content: Text(
-                isFr
-                    ? '${_menu.pagesNonLues == 1 ? 'Une page n\'a' : '${_menu.pagesNonLues} pages n\'ont'} pas pu être lue${_menu.pagesNonLues == 1 ? '' : 's'} : '
-                        'la carte ci-dessous est incomplète. Reprenez-la en photo pour l\'ajouter.'
-                    : '${_menu.pagesNonLues == 1 ? 'One page' : '${_menu.pagesNonLues} pages'} could not be read: '
-                        'this list is incomplete. Take the photo again to add it.',
+                _menu.pagesNonLues == 1
+                    ? trSi(isFr, 'Une page n\'a pas pu être lue : la carte ci-dessous est incomplète. Reprenez-la en photo pour l\'ajouter.',
+                        'One page could not be read: this list is incomplete. Take the photo again to add it.')
+                    : trSi(isFr, '{n} pages n\'ont pas pu être lues : la carte ci-dessous est incomplète. Reprenez-les en photo pour les ajouter.',
+                        '{n} pages could not be read: this list is incomplete. Take the photos again to add them.', {'n': _menu.pagesNonLues}),
                 style: const TextStyle(fontSize: 12.5),
               ),
               actions: [
                 TextButton(
                   onPressed: () => context.pushReplacement('/scan/menu'),
-                  child: Text(isFr ? 'Reprendre' : 'Retake'),
+                  child: Text(trSi(isFr, 'Reprendre', 'Retake')),
                 ),
               ],
             ),
@@ -499,9 +501,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        isFr
-                            ? '${_menu.wines.length} références détectées'
-                            : '${_menu.wines.length} references detected',
+                        trSi(isFr, '{wines_length} références détectées', '{wines_length} references detected', {'wines_length': _menu.wines.length}),
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                       Text(
@@ -533,7 +533,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          _isCompactView ? (isFr ? 'Compact' : 'Compact') : (isFr ? 'Détaillé' : 'Detailed'),
+                          _isCompactView ? (trSi(isFr, 'Compact', 'Compact')) : (trSi(isFr, 'Détaillé', 'Detailed')),
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -602,7 +602,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                             Row(
                               children: [
                                 Text(
-                                  isFr ? 'Discuter avec la Carte' : 'Chat with the Wine List',
+                                  trSi(isFr, 'Discuter avec la Carte', 'Chat with the Wine List'),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -618,7 +618,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    isFr ? 'IA SOMMELIER' : 'AI SOMMELIER',
+                                    trSi(isFr, 'IA SOMMELIER', 'AI SOMMELIER'),
                                     style: const TextStyle(
                                       color: Color(0xFF5B0E2D),
                                       fontWeight: FontWeight.w900,
@@ -630,9 +630,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              isFr
-                                  ? 'Posez vos questions : accords mets & vins, conseils en direct...'
-                                  : 'Ask questions: food & wine pairings, live sommelier advice...',
+                              trSi(isFr, 'Posez vos questions : accords mets & vins, conseils en direct...', 'Ask questions: food & wine pairings, live sommelier advice...'),
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.88),
                                 fontSize: 11.5,
@@ -706,7 +704,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    isFr ? 'Choisir en groupe 👥' : 'Choose as a group 👥',
+                                    trSi(isFr, 'Choisir en groupe 👥', 'Choose as a group 👥'),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -716,7 +714,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    isFr ? 'Consensus multi-palais' : 'Multi-palate consensus',
+                                    trSi(isFr, 'Consensus multi-palais', 'Multi-palate consensus'),
                                     style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 10),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -774,7 +772,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    isFr ? 'Flight Sommelier 🍷' : 'Wine Flight 🍷',
+                                    trSi(isFr, 'Flight Sommelier 🍷', 'Wine Flight 🍷'),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -784,7 +782,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    isFr ? '3 ou 5 verres en ordre' : '3 or 5 glasses in order',
+                                    trSi(isFr, '3 ou 5 verres en ordre', '3 or 5 glasses in order'),
                                     style: const TextStyle(color: Color(0xFFCE93D8), fontSize: 10),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -809,9 +807,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
               controller: _searchCtrl,
               onChanged: (val) => setState(() => _searchQuery = val.trim()),
               decoration: InputDecoration(
-                hintText: isFr
-                    ? 'Rechercher un vin, domaine, cépage, appellation...'
-                    : 'Search wine, estate, grape, appellation...',
+                hintText: trSi(isFr, 'Rechercher un vin, domaine, cépage, appellation...', 'Search wine, estate, grape, appellation...'),
                 prefixIcon: const Icon(Icons.search, size: 20),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -843,11 +839,11 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                 // Un menu sans bonne affaire n'affiche pas de puce « Bons plans » : mieux
                 // vaut un filtre de moins qu'un filtre qui ne filtre rien.
                 ..._puceDeDrapeau(MenuWineFlagType.deal, '💎',
-                    isFr ? 'Bons plans' : 'Deals', isDark),
+                    trSi(isFr, 'Bons plans', 'Deals'), isDark),
                 ..._puceDeDrapeau(MenuWineFlagType.gem, '✨',
-                    isFr ? 'Pépites' : 'Gems', isDark),
+                    trSi(isFr, 'Pépites', 'Gems'), isDark),
                 ..._puceDeDrapeau(MenuWineFlagType.tasteMatch, '🎯',
-                    isFr ? 'Pour vous' : 'For you', isDark),
+                    trSi(isFr, 'Pour vous', 'For you'), isDark),
                 ..._puceDesConnus(isFr, isDark),
                 // Le budget, enfin atteignable. Les seuils viennent de la carte.
                 for (final plafond in _plafondsDePrix) ...[
@@ -877,7 +873,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   const SizedBox(width: 8),
                 ],
                 ChoiceChip(
-                  label: Text(isFr ? 'Tous' : 'All'),
+                  label: Text(trSi(isFr, 'Tous', 'All')),
                   selected: _selectedColor == 'all',
                   onSelected: (_) => setState(() => _selectedColor = 'all'),
                 ),
@@ -885,7 +881,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   const SizedBox(width: 6),
                   ChoiceChip(
                     avatar: const Icon(Icons.circle, size: 12, color: Color(0xFF8B1E3F)),
-                    label: Text(isFr ? 'Rouges ($redCount)' : 'Reds ($redCount)'),
+                    label: Text(trSi(isFr, 'Rouges ({redCount})', 'Reds ({redCount})', {'redCount': redCount})),
                     selected: _selectedColor == 'red',
                     onSelected: (_) => setState(() {
                       _selectedColor = 'red';
@@ -899,7 +895,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   const SizedBox(width: 6),
                   ChoiceChip(
                     avatar: const Icon(Icons.circle, size: 12, color: Color(0xFFE8D08D)),
-                    label: Text(isFr ? 'Blancs ($whiteCount)' : 'Whites ($whiteCount)'),
+                    label: Text(trSi(isFr, 'Blancs ({whiteCount})', 'Whites ({whiteCount})', {'whiteCount': whiteCount})),
                     selected: _selectedColor == 'white',
                     onSelected: (_) => setState(() {
                       _selectedColor = 'white';
@@ -920,7 +916,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   const SizedBox(width: 6),
                   ChoiceChip(
                     avatar: const Icon(Icons.circle, size: 12, color: Color(0xFFD4AF37)),
-                    label: Text(isFr ? 'Bulles ($sparklingCount)' : 'Sparkling ($sparklingCount)'),
+                    label: Text(trSi(isFr, 'Bulles ({sparklingCount})', 'Sparkling ({sparklingCount})', {'sparklingCount': sparklingCount})),
                     selected: _selectedColor == 'sparkling',
                     onSelected: (_) => setState(() {
                       _selectedColor = 'sparkling';
@@ -941,7 +937,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
             child: Row(
               children: [
                 Text(
-                  isFr ? 'Profil : ' : 'Profile: ',
+                  trSi(isFr, 'Profil : ', 'Profile: '),
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
                 ),
                 ..._sensoryFilters.where((tag) {
@@ -997,7 +993,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         const Icon(Icons.filter_list_off, size: 48, color: Colors.grey),
                         const SizedBox(height: 12),
                         Text(
-                          isFr ? 'Aucun vin ne correspond à vos filtres' : 'No wines match your filters',
+                          trSi(isFr, 'Aucun vin ne correspond à vos filtres', 'No wines match your filters'),
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 6),
@@ -1013,7 +1009,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                               _searchQuery = '';
                             });
                           },
-                          child: Text(isFr ? 'Réinitialiser les filtres' : 'Reset filters'),
+                          child: Text(trSi(isFr, 'Réinitialiser les filtres', 'Reset filters')),
                         ),
                       ],
                     ),
@@ -1073,7 +1069,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                 onPressed: () => MenuChatAssistantSheet.show(context, _menu),
                 icon: const Icon(Icons.chat_bubble_rounded, size: 16, color: Color(0xFFD4AF37)),
                 label: Text(
-                  isFr ? 'Chat Menu' : 'Chat Menu',
+                  trSi(isFr, 'Chat Menu', 'Chat Menu'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                 ),
               ),
@@ -1101,8 +1097,8 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                 icon: const Icon(Icons.radar, size: 16),
                 label: Text(
                   _selectedWineIds.length >= 2
-                      ? (isFr ? 'Comparer (${_selectedWineIds.length})' : 'Compare (${_selectedWineIds.length})')
-                      : (isFr ? 'Comparer' : 'Compare'),
+                      ? (trSi(isFr, 'Comparer ({selectedWineIds_length})', 'Compare ({selectedWineIds_length})', {'selectedWineIds_length': _selectedWineIds.length}))
+                      : (trSi(isFr, 'Comparer', 'Compare')),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                 ),
               ),

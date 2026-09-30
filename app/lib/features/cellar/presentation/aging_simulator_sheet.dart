@@ -148,7 +148,7 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  tr('+$_additionalYears ans • Année ${snapshot.targetYear}', '+$_additionalYears years • ${snapshot.targetYear}'),
+                  tr('+{additionalYears} ans • Année {targetYear}', '+{additionalYears} years • {targetYear}', {'additionalYears': _additionalYears, 'targetYear': snapshot.targetYear}),
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ),
@@ -267,7 +267,7 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
               child: WineTasteRadarChart(
                 datasets: [
                   RadarChartDataset(
-                    label: tr('Simulation (${snapshot.targetYear})', 'Simulation (${snapshot.targetYear})'),
+                    label: tr('Simulation ({targetYear})', 'Simulation ({targetYear})', {'targetYear': snapshot.targetYear}),
                     metrics: snapshot.simulatedRadar,
                     color: const Color(0xFFD4AF37),
                   ),

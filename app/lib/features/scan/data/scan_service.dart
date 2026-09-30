@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../config/constants.dart';
-import '../../../shared/services/gemini_model_registry.dart';
+import '../../../shared/services/fonctions_ia.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../../../shared/utils/langue.dart';
 import '../../auth/data/ai_cost_tracker_service.dart';
 import '../domain/scan_result.dart';
 import 'label_image_optimizer.dart';
@@ -16,12 +16,12 @@ import '../domain/grounded_verification_budget.dart';
 
 class ScanService {
   final SupabaseClient _client;
-  static const String _geminiApiKey = String.fromEnvironment(
-    'GEMINI_API_KEY',
-    defaultValue: AppConstants.geminiApiKey,
-  );
+  final FonctionsIa _ia;
 
-  ScanService(this._client);
+  /// Depuis la V2.3, toute l'IA passe par le serveur (scan-label, taches-ia) : l'app n'a
+  /// plus de clé, et plus aucun appel direct à Google.
+  ScanService(this._client, {FonctionsIa? ia, Future<User?> Function()? assurerUneSession})
+      : _ia = ia ?? FonctionsIa(_client, assurerUneSession: assurerUneSession);
 
   /// Helper to safely read bytes from any image path or url across Web, iOS, Android and Desktop
   static Future<Uint8List> _readImageBytes(String imagePath) async {
@@ -58,9 +58,6 @@ class ScanService {
     final effectivePath = imagePath ?? imageFile?.path ?? '';
     AppLogger.info('SCAN_AI', 'Starting label analysis for image: $effectivePath (lang=$languageCode)');
 
-    // Dynamically refresh newest available Gemini models in background
-    GeminiModelRegistry.refreshAvailableModels();
-
     try {
       Uint8List bytes;
       if (imageBytes != null && imageBytes.isNotEmpty) {
@@ -88,206 +85,11 @@ class ScanService {
       final fileSizeKb = (optimizedBytes.length / 1024).round();
       AppLogger.debug('SCAN_AI', 'Encoded optimized image size: $fileSizeKb KB (Hash: ${sha256Hash.substring(0, 10)}...)');
 
-      final isEn = languageCode.toLowerCase().startsWith('en');
-      final notesInst = isEn
-          ? 'Expert sommelier aromas, palate, and structure notes in English.'
-          : 'Expert sommelier aromas, palate, and structure notes in French.';
-      final pairingsInst = isEn
-          ? 'Array of 3 to 5 matching food pairings in English.'
-          : 'Array of 3 to 5 matching food pairings in French.';
-      final summaryInst = isEn
-          ? 'Brief 1-2 sentence sommelier overview in English, systematically mentioning the grape varieties (e.g. "Grapes: 85% Mourvèdre, 10% Grenache, 5% Cinsault").'
-          : 'Brief 1-2 sentence sommelier overview in French, systematically mentioning the grape varieties / cépages (e.g. "Cépage : Mourvèdre 85%, Grenache 10%, Cinsault 5%").';
-
-      final prompt = '''You are Chatmelier, the world-class master sommelier and OCR wine recognition engine.
-Analyze this wine bottle label photo with maximum precision.
-Extract or infer the following factual beverage properties:
-1. "name": The wine or spirit name / cuvée (e.g. "Château Margaux", "Bénédictine D.O.M.", "Chartreuse Verte", "Lagavulin 16").
-2. "producer": The winery, estate, domain, distillery or house name (e.g. "Bénédictine", "Domaine de Terrebrune", "Antinori").
-3. "vintage": Year as integer (e.g. 2018, 2019) or null if non-vintage / not visible / spirit.
-4. "cuvee_parcel": Specific cuvée, parcel, or cask/expression name if indicated, else null.
-5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "grappa", "eau-de-vie", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits, grappas, digestifs, aperitifs, gins, and herbal liqueurs (e.g. Grappa, Acquavite, Marc, Italicus, Rosolio, Bénédictine, Chartreuse, Cointreau, Amaretto, Disaronno, Gin, Pisco, Aguardente, Rum, Whisky, Vodka, Pastis) must be classified as their specific spirit type ("grappa", "eau-de-vie", "gin", "whisky", "rum", "vodka", "tequila", "cognac") or as "liqueur" or "spirit". NEVER classify any grappa, spirit, gin, or liqueur as "red", "white", "wine", "fortified", or "dessert"! "fortified" is STRICTLY reserved for true fortified wines (Porto, Sherry/Xérès, Banyuls, Madeira, Marsala).
-6. "country": Country of origin (e.g. "France", "Italy", "Scotland", "United States").
-7. "region": Region (e.g. "Normandie", "Bordeaux", "Bourgogne", "Islay").
-8. "sub_region": Sub-region if applicable, else null.
-9. "appellation": Appellation or AOC/DOC/AOP/type if applicable, else null.
-10. "classification": Official classification if applicable (e.g. "Liqueur de plantes", "Grand Cru Classé", "Single Malt"), else null.
-11. "alcohol_pct": Alcohol percentage (% vol / ABV) as number (e.g. 40.0 for Bénédictine, 55.0 for Chartreuse Verte, 13.5 for wine). Look closely for % vol on label or provide the verified standard ABV. Do not leave null if known.
-12. "grapes": Array of objects [{"name": "Grape Variety Name", "pct": percentage_number or null}]. YOU MUST strictly extract or deduce the exact grape variety composition (e.g., Bandol Rouge Terrebrune = 85% Mourvèdre, 10% Grenache, 5% Cinsault; Châteauneuf-du-Pape = Grenache, Syrah, Mourvèdre, Cinsault; Bordeaux = Cabernet Sauvignon, Merlot, etc.).
-13. "tasting_notes": $notesInst
-14. "food_pairings": $pairingsInst
-15. "ideal_drinking_start": Recommended start year for drinking window or null.
-16. "ideal_drinking_end": Recommended end year for drinking window or null.
-17. "peak_drinking_start": Peak maturity start year (apogée) or null.
-18. "peak_drinking_end": Peak maturity end year (apogée) or null.
-19. "estimated_market_value": Approximate retail market price estimation in EUR as number (e.g. 45.0, 120.0) or null.
-20. "estimated_value_currency": "EUR".
-21. "ai_summary": $summaryInst
-22. "detected_quantity": Integer count of bottles represented in this photo. If the image shows a carton/box of 6, return 6. If a wooden case of 12, return 12. If multiple identical bottles are visible side-by-side, count them. If a single bottle, return 1.
-23. "packaging_type": One of ["single", "carton_6", "crate_12", "multi_bottles"].
-
-CRITICAL ENOLOGICAL RULES FOR DRINKING WINDOW (APOGÉE) & GRAPES:
-- Search Google in real time for this wine name, producer, and vintage.
-- Retrieve verified data from official guides (Guide Hachette des Vins, Revue du Vin de France, Wine Spectator, Robert Parker, Bettane+Desseauve) to extract the exact drinking window / apogée years.
-- Always identify grape varieties (cépages) with high fidelity.
-- For non-vintage (NM) or everyday table wines, set peak window to current year or 1-2 years max.
-
-Return strictly a valid JSON object matching this schema.''';
-
-      final requestBodyWithSearch = jsonEncode({
-        'contents': [
-          {
-            'role': 'user',
-            'parts': [
-              {
-                'inlineData': {
-                  'mimeType': mimeType,
-                  'data': base64Image,
-                }
-              },
-              {'text': prompt}
-            ]
-          }
-        ],
-        'tools': [
-          {'googleSearch': {}}
-        ]
-      });
-
-      final requestBodyDirect = jsonEncode({
-        'contents': [
-          {
-            'role': 'user',
-            'parts': [
-              {
-                'inlineData': {
-                  'mimeType': mimeType,
-                  'data': base64Image,
-                }
-              },
-              {'text': prompt}
-            ]
-          }
-        ],
-        'generationConfig': {
-          'responseMimeType': 'application/json',
-        }
-      });
-
-      // If no local Gemini API key is configured, invoke Supabase Edge Function directly
-      if (_geminiApiKey.trim().isEmpty) {
-        AppLogger.info('SCAN_AI', 'No local Gemini API key configured, invoking Supabase Edge function directly...');
-        final fallbackResult = await _invokeEdgeFunction(base64Image, mimeType);
-        final duration = DateTime.now().difference(startTime).inMilliseconds;
-        AppLogger.info('SCAN_AI', 'Edge function scan succeeded in ${duration}ms');
-        await ScanCacheService().cacheResult(sha256Hash, fallbackResult);
-        return fallbackResult;
-      }
-
-      final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.standardFlashPreferred);
-
-      // Attempt scanning: Try Direct Fast JSON OCR FIRST (1-2s), then Web Search tool fallback if needed
-      for (int attempt = 1; attempt <= 2; attempt++) {
-        final isSearch = attempt == 2;
-        final reqBody = isSearch ? requestBodyWithSearch : requestBodyDirect;
-        final timeoutSec = isSearch ? 18 : 12;
-
-        for (final model in activeModels) {
-          try {
-            AppLogger.debug('SCAN_AI', 'Calling Gemini API (Attempt $attempt) with model: $model (Search tool: $isSearch, Timeout: ${timeoutSec}s)');
-              final url = Uri.parse(
-                'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-              );
-
-              final response = await http.post(
-                url,
-                headers: {'Content-Type': 'application/json'},
-                body: reqBody,
-              ).timeout(Duration(seconds: timeoutSec));
-
-              if (response.statusCode == 200) {
-                final data = jsonDecode(response.body);
-                String rawText = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '{}';
-                if (rawText.contains('```json')) {
-                  rawText = rawText.split('```json')[1].split('```')[0].trim();
-                } else if (rawText.contains('```')) {
-                  rawText = rawText.split('```')[1].split('```')[0].trim();
-                }
-                final parsed = jsonDecode(rawText) as Map<String, dynamic>;
-                ScanResult result = ScanResult.fromJson(parsed);
-
-                // Deduplication check: cross-reference with existing catalog wine in Supabase
-                try {
-                  final rpcRes = await _client.rpc('find_cached_wine', params: {
-                    'p_producer': result.producer,
-                    'p_name': result.name,
-                    'p_vintage': result.vintage,
-                    'p_cuvee': result.cuveeParcel,
-                  });
-                  if (rpcRes is List && rpcRes.isNotEmpty) {
-                    final cached = rpcRes.first as Map<String, dynamic>;
-                    AppLogger.info('SCAN_AI', 'Found existing wine catalog entry for "${result.name}" in database, merging metadata');
-                    result = result.copyWith(
-                      tastingNotes: result.tastingNotes ?? cached['tasting_notes'] as String?,
-                      foodPairings: result.foodPairings.isEmpty
-                          ? (cached['ai_food_pairings'] is List ? List<String>.from(cached['ai_food_pairings']) : null)
-                          : result.foodPairings,
-                      idealDrinkingStart: result.idealDrinkingStart ?? cached['ideal_drinking_start'] as int?,
-                      idealDrinkingEnd: result.idealDrinkingEnd ?? cached['ideal_drinking_end'] as int?,
-                      peakDrinkingStart: result.peakDrinkingStart ?? cached['peak_drinking_start'] as int?,
-                      peakDrinkingEnd: result.peakDrinkingEnd ?? cached['peak_drinking_end'] as int?,
-                      estimatedMarketValue: result.estimatedMarketValue ?? (cached['estimated_market_value'] as num?)?.toDouble(),
-                      alcoholPct: result.alcoholPct ?? (cached['alcohol_pct'] as num?)?.toDouble(),
-                    );
-                  }
-                } catch (rpcErr) {
-                  AppLogger.debug('SCAN_AI', 'find_cached_wine lookup skipped: $rpcErr');
-                }
-
-                // Cache successful scan result locally
-                await ScanCacheService().cacheResult(sha256Hash, result);
-
-                final duration = DateTime.now().difference(startTime).inMilliseconds;
-                AppLogger.info('SCAN_AI', 'Scan succeeded on attempt $attempt via $model (Search: $isSearch) in ${duration}ms! Found: "${result.name}" (${result.vintage ?? "NM"}), Qty: ${result.detectedQuantity}');
-
-                // Track AI token and cost metrics
-                AiCostTrackerService().recordRawResponse(
-                  model: model,
-                  feature: 'scan_vision',
-                  responseJson: data,
-                  isSearchGrounded: isSearch,
-                  userId: _client.auth.currentUser?.id,
-                );
-
-                return result;
-              } else if (response.statusCode == 429) {
-                GeminiModelRegistry.recordRateLimit(model);
-                AppLogger.warning('SCAN_AI', 'Model $model returned HTTP 429 (Quota limit), moving to next model');
-                break; // Skip to next model immediately
-              } else if (response.statusCode == 404) {
-                GeminiModelRegistry.recordDisabledModel(model);
-                AppLogger.warning('SCAN_AI', 'Model $model returned HTTP 404 (Deprecated), moving to next active model');
-                break;
-              } else {
-                AppLogger.warning('SCAN_AI', 'Model $model returned HTTP ${response.statusCode}: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
-              }
-            } catch (modelErr) {
-              AppLogger.warning('SCAN_AI', 'Model $model failed (Attempt $attempt, Search: $isSearch) with error: $modelErr');
-            }
-          }
-          if (attempt == 1) {
-            // Short delay before second pass
-            await Future.delayed(const Duration(milliseconds: 600));
-          }
-        }
-
-      // If all direct Gemini endpoints failed, try Supabase Edge function
-      AppLogger.info('SCAN_AI', 'Direct Gemini calls failed. Attempting Supabase Edge Function fallback...');
-      final fallbackResult = await _invokeEdgeFunction(base64Image, mimeType);
-      final duration = DateTime.now().difference(startTime).inMilliseconds;
-      AppLogger.info('SCAN_AI', 'Edge function scan succeeded in ${duration}ms');
-      await ScanCacheService().cacheResult(sha256Hash, fallbackResult);
-      return fallbackResult;
+      final resultat = await _analyserParLeServeur(base64Image, mimeType, languageCode);
+      final duree = DateTime.now().difference(startTime).inMilliseconds;
+      AppLogger.info('SCAN_AI', 'Étiquette lue par le serveur en $duree ms');
+      await ScanCacheService().cacheResult(sha256Hash, resultat);
+      return resultat;
     } catch (e, stack) {
       AppLogger.error('SCAN_AI', 'All scan methods failed for image: $effectivePath', e, stack);
       rethrow;
@@ -299,44 +101,22 @@ Return strictly a valid JSON object matching this schema.''';
   /// Sans cela, les scans d'étiquette passés par le serveur échappaient à la mesure du
   /// coût de l'IA (P1). Un vin trouvé au catalogue n'en rapporte qu'un : la lecture.
   static List<Future<void>> enregistrerLesCouts(Map<String, dynamic> reponse, String? userId,
-      {AiCostTrackerService? suivi}) {
-    final couts = reponse['couts'];
-    if (couts is! List) return const [];
-    final t = suivi ?? AiCostTrackerService();
-    return [
-      for (final c in couts)
-        if (c is Map && c['modele'] is String && c['usageMetadata'] is Map)
-          t.recordRawResponse(
-            model: c['modele'] as String,
-            feature: (c['fonction'] as String?) ?? 'scan_vision',
-            responseJson: {'usageMetadata': Map<String, dynamic>.from(c['usageMetadata'] as Map)},
-            isSearchGrounded: c['recherche'] == true,
-            // Nombre de recherches réellement lancées (scan-label ≥ V2.3) ; une par défaut.
-            requetesDeRecherche: c['requetes'] is num ? (c['requetes'] as num).toInt() : 1,
-            userId: userId,
-          ),
-    ];
-  }
+          {AiCostTrackerService? suivi}) =>
+      (suivi ?? AiCostTrackerService()).enregistrerCoutsServeur(reponse, userId);
 
-  Future<ScanResult> _invokeEdgeFunction(String base64Image, String mimeType) async {
-    try {
-      // 60 s et non plus 15 : un scan d'étiquette réussi en prend 16 (le 16/09, 16 391 ms),
-      // et celui d'edith a été abandonné à 15 s pile le 22/09. Le serveur, lui, va au bout
-      // et facture l'appel quand même.
-      final res = await _client.functions.invoke('scan-label', body: {
-        'imageBase64': base64Image,
-        'mimeType': mimeType,
-      }).timeout(const Duration(seconds: 60));
-
-      if (res.data != null) {
-        final data = res.data as Map<String, dynamic>;
-        enregistrerLesCouts(data, _client.auth.currentUser?.id);
-        return ScanResult.fromJson(data);
-      }
-    } catch (e, stack) {
-      AppLogger.error('SCAN_AI', 'Edge function fallback error: $e', e, stack);
-    }
-    throw Exception('Analyse de l\'étiquette impossible. Vérifiez votre connexion ou saisissez les informations manuellement.');
+  Future<ScanResult> _analyserParLeServeur(String base64Image, String mimeType, String languageCode) async {
+    // 60 s : un scan d'étiquette réussi en prend 16 (le 16/09, 16 391 ms), et celui d'edith a
+    // été abandonné à 15 s pile le 22/09. Le serveur, lui, va au bout et facture l'appel.
+    final r = await _ia.appeler('scan-label', {
+      'imageBase64': base64Image,
+      'mimeType': mimeType,
+      'languageCode': languageCode,
+    }, delai: const Duration(seconds: 60));
+    if (r.ok) return ScanResult.fromJson(r.donnees!);
+    if (r.limiteAtteinte) throw Exception(r.messageDeLimite());
+    throw Exception(tr(
+        'Analyse de l\'étiquette impossible. Vérifiez votre connexion ou saisissez les informations manuellement.',
+        'The label couldn\'t be analysed. Check your connection or enter the details manually.'));
   }
 
   /// Uploads photo to Supabase storage bucket 'labels' (Web & Mobile compatible)
@@ -473,6 +253,9 @@ Return strictly a valid JSON object matching this schema.''';
       wineType: wineType,
       // Volontairement sans country/region/subRegion/appellation : la première réponse
       // s'est trompée dessus, les redonner reviendrait à souffler la mauvaise réponse.
+      // Cette seconde source cherche sur le web : c'est le seul appel groundé de l'app, et
+      // GroundedVerificationBudget le borne.
+      avecRecherche: true,
     );
 
     final contradictionRestante = RegionContradictionDetector.detecter(
@@ -511,6 +294,7 @@ Return strictly a valid JSON object matching this schema.''';
     String? appellation,
     String? classification,
     String? wineType,
+    bool avecRecherche = false,
   }) async {
     AppLogger.info('SCAN_AI', 'Enriching wine data: $wineName ($vintage) by $producer');
 
@@ -542,7 +326,11 @@ Return strictly a valid JSON object matching this schema.''';
             'ideal_drinking_end': row['ideal_drinking_end'],
             'peak_drinking_start': row['peak_drinking_start'],
             'peak_drinking_end': row['peak_drinking_end'],
-            'estimated_market_value': (row['estimated_market_value'] as num?)?.toDouble(),
+            // Une valeur de marché ne circule que sourcée (V2.3 · B3).
+            'estimated_market_value': (row['is_verified_online'] == true ||
+                    (row['external_links'] is Map && (row['external_links'] as Map)['valeur_source'] != null))
+                ? (row['estimated_market_value'] as num?)?.toDouble()
+                : null,
             'estimated_value_currency': 'EUR',
             'alcohol_pct': (row['alcohol_pct'] as num?)?.toDouble(),
             'ai_summary': row['ai_summary'],
@@ -553,116 +341,20 @@ Return strictly a valid JSON object matching this schema.''';
       AppLogger.debug('SCAN_AI', 'find_cached_wine check skipped: $e');
     }
 
-    final prompt = '''You are Chatmelier, the world-class sommelier and oenology AI engine.
-Provide comprehensive, verified sommelier data for:
-- Wine Name: $wineName
-- Producer/Domaine: ${producer ?? "Unknown"}
-- Vintage: ${vintage != null ? vintage.toString() : "Non-vintage / Non millésimé"}
-- Region/Terroir: ${region ?? "Unknown"}
-- Appellation: ${appellation ?? "Unknown"}
-- Wine Type: ${wineType ?? "red"}
-
-Search verified wine references (Guide Hachette, Revue du Vin de France, Bettane+Desseauve, Wine Spectator, Decanter) to retrieve exact facts:
-1. "grapes": Array of [{"name": "Grape Name", "pct": percentage or null}]. STRICTLY identify the real blend of this appellation/cuvée.
-2. "appellation": Standardized official Appellation AOC/DOC/AOP.
-3. "region": Primary wine region.
-4. "sub_region": Specific sub-region/commune/cru if applicable.
-5. "classification": Official classification (e.g. Grand Cru Classé, Premier Cru, Cru Bourgeois, AOC), else null.
-6. "tasting_notes": Precise aromas, texture, acidity, and structure notes in French.
-7. "food_pairings": 3-5 harmonious culinary pairings in French.
-8. "ideal_drinking_start": First year this wine becomes enjoyable.
-9. "ideal_drinking_end": Last year of good condition before decline.
-10. "peak_drinking_start": Optimal peak maturity start year (Apogée début).
-11. "peak_drinking_end": Optimal peak maturity end year (Apogée fin).
-12. "estimated_market_value": Approximate fair bottle retail price in EUR as number (e.g. 35.0, 90.0).
-13. "estimated_value_currency": "EUR".
-14. "alcohol_pct": Standard alcohol content as number (e.g. 13.5) or null.
-15. "ai_summary": 1-2 sentence sommelier summary in French systematically highlighting the grape varieties (cépages).
-
-Return strictly a valid JSON object matching this schema.''';
-
-    final requestBodyWithSearch = jsonEncode({
-      'contents': [
-        {
-          'role': 'user',
-          'parts': [{'text': prompt}]
-        }
-      ],
-      'tools': [
-        {'googleSearch': {}}
-      ]
-    });
-
-    final requestBodyDirect = jsonEncode({
-      'contents': [
-        {
-          'role': 'user',
-          'parts': [{'text': prompt}]
-        }
-      ],
-      'generationConfig': {
-        'responseMimeType': 'application/json',
-      }
-    });
-
-    final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.litePreferred);
-
-    for (final model in activeModels) {
-      for (final isSearch in [false, true]) {
-        final reqBody = isSearch ? requestBodyWithSearch : requestBodyDirect;
-        final timeoutSec = isSearch ? 18 : 8;
-        try {
-          final url = Uri.parse(
-            'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-          );
-
-          final response = await http.post(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: reqBody,
-          ).timeout(Duration(seconds: timeoutSec));
-
-          if (response.statusCode == 200) {
-            final jsonResp = jsonDecode(response.body) as Map<String, dynamic>;
-            final candidates = jsonResp['candidates'] as List<dynamic>?;
-            if (candidates != null && candidates.isNotEmpty) {
-              final content = candidates.first['content'] as Map<String, dynamic>?;
-              final parts = content?['parts'] as List<dynamic>?;
-              if (parts != null && parts.isNotEmpty) {
-                final rawText = parts.first['text'] as String? ?? '';
-                final parsed = extractJsonFromText(rawText);
-                if (parsed != null) {
-                  AppLogger.info('SCAN_AI', 'Enrichment succeeded via $model for $wineName');
-
-                  // Track AI token and cost metrics
-                  AiCostTrackerService().recordRawResponse(
-                    model: model,
-                    feature: 'scan_enrichment',
-                    responseJson: jsonResp,
-                    isSearchGrounded: isSearch,
-                    userId: _client.auth.currentUser?.id,
-                  );
-
-                  return parsed;
-                }
-              }
-            }
-          } else if (response.statusCode == 429) {
-            GeminiModelRegistry.recordRateLimit(model);
-            AppLogger.warning('SCAN_AI', 'Model $model returned HTTP 429 (Quota limit) during enrichment, skipping');
-            break;
-          } else if (response.statusCode == 404) {
-            GeminiModelRegistry.recordDisabledModel(model);
-            AppLogger.warning('SCAN_AI', 'Model $model returned HTTP 404 during enrichment, disabled');
-            break;
-          } else {
-            AppLogger.warning('SCAN_AI', 'Model $model returned HTTP ${response.statusCode}');
-          }
-        } catch (err) {
-          AppLogger.warning('SCAN_AI', 'Enrichment failed on $model (Search: $isSearch): $err');
-        }
-      }
-    }
+    final r = await _ia.appeler('taches-ia', {
+      'tache': 'enrichir_fiche',
+      'nom': wineName,
+      if (producer != null) 'producteur': producer,
+      if (vintage != null) 'millesime': vintage,
+      if (region != null) 'region': region,
+      if (appellation != null) 'appellation': appellation,
+      if (wineType != null) 'type': wineType,
+      'recherche': avecRecherche,
+      'langue': Langue.estFr ? 'fr' : 'en',
+    }, delai: Duration(seconds: avecRecherche ? 50 : 35));
+    final brut = r.ok ? r.donnees!['resultat'] : null;
+    if (brut is Map) return Map<String, dynamic>.from(brut);
+    if (r.limiteAtteinte) throw Exception(r.messageDeLimite());
 
     // Curated local enological knowledge fallback (e.g. Domaine de Terrebrune, Bandol, Bordeaux, Bourgogne)
     final localFallback = _getLocalEnologicalFallback(
@@ -795,94 +487,17 @@ Return strictly a valid JSON object matching this schema.''';
     final startTime = DateTime.now();
     AppLogger.info('SCAN_AI', 'Analyzing wine from text: "$text"');
 
-    GeminiModelRegistry.refreshAvailableModels();
-
-    final prompt = '''You are Chatmelier, the world-class master sommelier and enological intelligence engine.
-Analyze the following wine description, restaurant wine list entry, or chalkboard text:
-"$text"
-
-Extract or deduce the exact factual wine or spirit properties:
-1. "name": The wine or spirit name / cuvée (e.g. "Château Margaux", "Bénédictine D.O.M.", "Chartreuse", "Lagavulin 16").
-2. "producer": The winery, estate or distillery producer name (e.g. "Bénédictine", "Domaine Laroche", "Domaine de Terrebrune").
-3. "vintage": Year as integer (e.g. 2021, 2022) or null if not indicated / spirit.
-4. "cuvee_parcel": Specific parcel/cuvée name or null.
-5. "wine_type": One of ["red", "white", "rosé", "sparkling", "dessert", "fortified", "orange", "liqueur", "spirit", "grappa", "eau-de-vie", "whisky", "gin", "rum", "vodka", "tequila", "cognac", "vermouth"]. CRITICAL: Spirits, grappas, digestifs, aperitifs, gins, and herbal liqueurs (e.g. Grappa, Acquavite, Marc, Italicus, Rosolio, Bénédictine, Chartreuse, Cointreau, Amaretto, Disaronno, Gin, Pisco, Aguardente, Rum, Whisky, Vodka, Pastis) must be classified as their specific spirit type ("grappa", "eau-de-vie", "gin", "whisky", "rum", "vodka", "tequila", "cognac") or as "liqueur" or "spirit". NEVER classify any grappa, spirit, gin, or liqueur as "red", "white", "wine", "fortified", or "dessert"! "fortified" is STRICTLY reserved for true fortified wines (Porto, Sherry/Xérès, Banyuls, Madeira, Marsala).
-6. "country": Country of origin (default "France" if French appellation or distillery).
-7. "region": Region (e.g. "Normandie", "Vallée du Rhône", "Bourgogne", "Bordeaux").
-8. "sub_region": Sub-region or null.
-9. "appellation": Appellation or AOC/AOP/IGP or null.
-10. "classification": Official classification or null.
-11. "alcohol_pct": Typical alcohol percentage (% vol / ABV) as number (e.g. 40.0, 13.5) or null.
-12. "grapes": Array of objects [{"name": "Grape Variety", "pct": percentage_number or null}] (e.g. Syrah 100%, Chardonnay 100%, etc.).
-13. "tasting_notes": Expert sommelier aromas, palate, and structure notes.
-14. "food_pairings": Array of 3 to 5 matching food pairings.
-15. "ideal_drinking_start": Recommended start year or null.
-16. "ideal_drinking_end": Recommended end year or null.
-17. "peak_drinking_start": Peak maturity start year or null.
-18. "peak_drinking_end": Peak maturity end year or null.
-19. "estimated_market_value": Approximate retail price in EUR as number or null.
-20. "estimated_value_currency": "EUR".
-21. "ai_summary": Brief 1-2 sentence sommelier overview in French, systematically mentioning the grape varieties / cépages.
-22. "detected_quantity": 1.
-23. "packaging_type": "single".
-
-Return strictly a valid JSON object matching this schema.''';
-
-    final requestBody = jsonEncode({
-      'contents': [
-        {
-          'role': 'user',
-          'parts': [
-            {'text': prompt}
-          ]
-        }
-      ],
-      'generationConfig': {
-        'responseMimeType': 'application/json',
-      }
-    });
-
-    final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.litePreferred);
-
-    for (final model in activeModels) {
-      try {
-        final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-        );
-
-        final response = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: requestBody,
-        ).timeout(const Duration(seconds: 10));
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          String rawText = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '{}';
-          if (rawText.contains('```json')) {
-            rawText = rawText.split('```json')[1].split('```')[0].trim();
-          } else if (rawText.contains('```')) {
-            rawText = rawText.split('```')[1].split('```')[0].trim();
-          }
-          final parsed = jsonDecode(rawText) as Map<String, dynamic>;
-          final result = ScanResult.fromJson(parsed);
-
-          final duration = DateTime.now().difference(startTime).inMilliseconds;
-          AppLogger.info('SCAN_AI', 'Text wine analysis succeeded via $model in ${duration}ms: "${result.name}"');
-
-          AiCostTrackerService().recordRawResponse(
-            model: model,
-            feature: 'text_wine_analysis',
-            responseJson: data,
-            isSearchGrounded: false,
-            userId: _client.auth.currentUser?.id,
-          );
-
-          return result;
-        }
-      } catch (e) {
-        AppLogger.warning('SCAN_AI', 'Model $model text wine analysis failed: $e');
-      }
+    final r = await _ia.appeler('taches-ia', {
+      'tache': 'vin_depuis_texte',
+      'texte': text,
+      'langue': Langue.estFr ? 'fr' : 'en',
+    }, delai: const Duration(seconds: 30));
+    final brut = r.ok ? r.donnees!['resultat'] : null;
+    if (brut is Map) {
+      final result = ScanResult.fromJson(Map<String, dynamic>.from(brut));
+      AppLogger.info('SCAN_AI',
+          'Vin reconnu depuis le texte en ${DateTime.now().difference(startTime).inMilliseconds} ms');
+      return result;
     }
 
     // Heuristic fallback if offline

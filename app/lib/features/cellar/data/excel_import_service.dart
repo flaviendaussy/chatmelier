@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:archive/archive.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import '../../../shared/services/gemini_model_registry.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../shared/services/fonctions_ia.dart';
 import '../../../shared/utils/app_logger.dart';
 
 class ImportedWineCandidate {
@@ -78,10 +78,24 @@ class ImportedWineCandidate {
 }
 
 class ExcelImportService {
-  static const String _geminiApiKey = String.fromEnvironment(
-    'GEMINI_API_KEY',
-    defaultValue: '',
-  );
+  ExcelImportService({FonctionsIa? ia}) : _iaInjecte = ia;
+
+  /// Depuis la V2.3, la lecture passe par la fonction `taches-ia` : l'app n'a plus de clé.
+  final FonctionsIa? _iaInjecte;
+
+  FonctionsIa? get _ia {
+    if (_iaInjecte != null) return _iaInjecte;
+    try {
+      return FonctionsIa(Supabase.instance.client);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Vrai si le dernier lot n'a pas pu être lu faute de serveur : l'écran le dit, au lieu
+  /// d'annoncer « aucun vin trouvé » (c'était le cas depuis le retrait de la clé, 14/09).
+  String? derniereErreur;
+
 
   /// Extracts text lines from a CSV, TSV, or XLSX file bytes.
   static List<String> extractRawRows({
@@ -219,101 +233,25 @@ class ExcelImportService {
   Future<List<ImportedWineCandidate>> normalizeWineBatch(List<String> textRows) async {
     if (textRows.isEmpty) return [];
 
-    final rowsSnippet = textRows.join('\n');
-
-    final prompt = '''
-Tu es un sommelier expert et ingénieur de données vinicoles.
-Voici des lignes extraites d'un tableur ou fichier Excel de cave à vin :
-
-$rowsSnippet
-
-Ta mission :
-Identifie chaque vin présent dans cette liste et extrait ses attributs :
-- "name": Nom du vin / Cuvée (requis, ex: "Château Margaux", "Puligny-Montrachet Les Folatières", "Cuvée Alexandre")
-- "producer": Domaine, Maison, Vignoble ou Château (ex: "Domaine Leflaive", "Château Margaux")
-- "vintage": Millésime (entier ex: 2018, ou null si non millésimé)
-- "type": Couleur/type parmi ["red", "white", "rosé", "sparkling", "dessert", "fortified", "spirit"]
-- "region": Région viticole (ex: "Bordeaux", "Bourgogne", "Champagne", "Vallée du Rhône", "Toscane", "Napa Valley"...)
-- "country": Pays (ex: "France", "Italie", "Espagne", "États-Unis"...)
-- "appellation": AOC, AOP, DOCG, AVA si identifiable
-- "quantity": Nombre de bouteilles indiquées sur la ligne (entier >= 1, défaut: 1)
-- "bottle_size": Format de la bouteille parmi ["37.5cl", "50cl", "75cl", "1.5L", "3L", "6L"] (défaut: "75cl")
-- "purchase_price": Prix unitaire d'achat si mentionné (nombre décimal ou null)
-- "currency": "EUR" par défaut, ou "USD", "GBP", "CHF" si mentionné
-- "rack": Casier / Rangée mentionnée (ex: "A", "Casier 1", null)
-- "shelf": Étagère / Niveau mentionné (null)
-
-RÈGLES CRITIQUES :
-1. Ignore complètement les lignes d'en-tête (ex: "Nom | Producteur | Année | Prix"), totaux, ou métadonnées de fichier.
-2. Déduis intelligemment le type/couleur à partir de l'appellation (ex: Meursault -> white, Pomerol -> red, Champagne -> sparkling).
-3. Si un millésime figure dans le nom, extrais-le dans "vintage".
-
-Retourne STRICTEMENT un tableau JSON d'objets vin :
-[
-  {
-    "name": "...",
-    "producer": "...",
-    "vintage": 2018,
-    "type": "red",
-    "region": "Bordeaux",
-    "country": "France",
-    "appellation": "Margaux",
-    "quantity": 1,
-    "bottle_size": "75cl",
-    "purchase_price": 45.0,
-    "currency": "EUR"
-  }
-]''';
-
-    final requestBody = jsonEncode({
-      'contents': [
-        {
-          'role': 'user',
-          'parts': [
-            {'text': prompt}
-          ]
-        }
-      ],
-      'generationConfig': {
-        'responseMimeType': 'application/json',
-        'temperature': 0.1,
-      }
-    });
-
-    final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.litePreferred);
-
-    for (final model in activeModels) {
-      try {
-        final uri = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey');
-        final response = await http.post(
-          uri,
-          headers: {'Content-Type': 'application/json'},
-          body: requestBody,
-        ).timeout(const Duration(seconds: 15));
-
-        if (response.statusCode == 200) {
-          final jsonRes = jsonDecode(response.body);
-          final candidates = jsonRes['candidates'] as List?;
-          if (candidates != null && candidates.isNotEmpty) {
-            final content = candidates[0]['content'];
-            final parts = content?['parts'] as List?;
-            if (parts != null && parts.isNotEmpty) {
-              final rawText = parts[0]['text'] as String?;
-              if (rawText != null) {
-                final cleaned = rawText.replaceAll('```json', '').replaceAll('```', '').trim();
-                final parsed = jsonDecode(cleaned);
-                if (parsed is List) {
-                  return parsed.map((item) => ImportedWineCandidate.fromJson(item as Map<String, dynamic>)).toList();
-                }
-              }
-            }
-          }
-        }
-      } catch (e) {
-        AppLogger.warning('EXCEL_IMPORT', 'Gemini model $model failed: $e');
-      }
+    final ia = _ia;
+    if (ia == null) {
+      derniereErreur = 'reseau';
+      return [];
     }
-
-    return [];
+    final r = await ia.appeler('taches-ia', {'tache': 'import_cave', 'lignes': textRows},
+        delai: const Duration(seconds: 75));
+    if (!r.ok) {
+      derniereErreur = r.limiteAtteinte ? 'limite_du_jour' : (r.erreur ?? 'serveur');
+      AppLogger.warning('EXCEL_IMPORT', 'Lot non lu : $derniereErreur');
+      return [];
+    }
+    derniereErreur = null;
+    final brut = r.donnees!['resultat'];
+    final liste = brut is List ? brut : (brut is Map && brut['wines'] is List ? brut['wines'] as List : const []);
+    return liste
+        .whereType<Map>()
+        .map((item) => ImportedWineCandidate.fromJson(Map<String, dynamic>.from(item)))
+        .where((c) => c.name.trim().isNotEmpty)
+        .toList();
   }
 }

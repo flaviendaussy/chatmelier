@@ -115,27 +115,27 @@ BEGIN
   END IF;
 END $$;
 
--- Quotas : Camille (anonyme) a 3 scans de carte par jour ; Alice 15 ; l'admin est illimité ;
+-- Quotas : Camille (anonyme) a 8 pages de carte par jour ; Alice 45 ; l'admin est illimité ;
 -- sans session, refus.
 DO $$
 DECLARE r JSONB; i INTEGER;
 BEGIN
   PERFORM public.essai_session('00000000-0000-0000-0000-00000000ca31', true);
-  FOR i IN 1..3 LOOP
+  FOR i IN 1..8 LOOP
     r := public.consommer_quota_ia('scan_carte');
     IF NOT (r ->> 'autorise')::boolean THEN RAISE EXCEPTION 'scan % refusé trop tôt : %', i, r; END IF;
   END LOOP;
   r := public.consommer_quota_ia('scan_carte');
-  IF (r ->> 'autorise')::boolean OR r ->> 'raison' <> 'limite' THEN RAISE EXCEPTION 'le 4e scan anonyme devait être refusé : %', r; END IF;
+  IF (r ->> 'autorise')::boolean OR r ->> 'raison' <> 'limite' THEN RAISE EXCEPTION 'la 9e page anonyme devait être refusée : %', r; END IF;
 
   PERFORM public.essai_session('00000000-0000-0000-0000-00000000a11c');
   r := public.consommer_quota_ia('scan_carte');
-  IF (r ->> 'restant')::int <> 14 THEN RAISE EXCEPTION 'Alice : restant attendu 14, obtenu %', r; END IF;
+  IF (r ->> 'restant')::int <> 44 THEN RAISE EXCEPTION 'Alice : restant attendu 44, obtenu %', r; END IF;
   r := public.consommer_quota_ia('fonction_inconnue');
   IF (r ->> 'limite')::int <> 30 THEN RAISE EXCEPTION 'limite par défaut attendue 30 : %', r; END IF;
 
   PERFORM public.essai_session('00000000-0000-0000-0000-0000000000ad');
-  FOR i IN 1..40 LOOP r := public.consommer_quota_ia('scan_carte'); END LOOP;
+  FOR i IN 1..60 LOOP r := public.consommer_quota_ia('scan_carte'); END LOOP;
   IF NOT (r ->> 'autorise')::boolean THEN RAISE EXCEPTION 'l''admin ne doit pas être limité'; END IF;
 
   PERFORM set_config('request.jwt.claims', '{}', false);

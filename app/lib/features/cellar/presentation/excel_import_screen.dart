@@ -71,11 +71,13 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
         return;
       }
 
-      // 2. Normalize with Gemini in batches of 15-20 rows
+      // 2. Le sommelier du serveur lit le fichier par lots de 40 lignes (V2.3 · C2). Avant,
+      //    15 lignes par lot et 10 lots au plus : une cave de 800 bouteilles s'arrêtait à 150.
       final importService = ExcelImportService();
       final List<ImportedWineCandidate> allCandidates = [];
-      const batchChunk = 15;
-      final totalBatches = (rows.length / batchChunk).ceil().clamp(1, 10); // Cap at 10 batches (150 rows)
+      const batchChunk = 40;
+      final totalBatches = (rows.length / batchChunk).ceil().clamp(1, 25); // 1 000 lignes au plus
+      var lotsNonLus = 0;
 
       for (int b = 0; b < totalBatches; b++) {
         if (!mounted) break;
@@ -90,6 +92,11 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
 
         final batchCandidates = await importService.normalizeWineBatch(chunk);
         allCandidates.addAll(batchCandidates);
+        if (importService.derniereErreur != null) {
+          lotsNonLus++;
+          // Limite du jour atteinte : les lots suivants seraient refusés aussi.
+          if (importService.derniereErreur == 'limite_du_jour') break;
+        }
       }
 
       if (mounted) {
@@ -100,10 +107,19 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
           _analyzeStatus = '';
         });
 
+        // Dire ce qui n'a pas pu être lu, au lieu d'un « 0 vin identifié » qui accuse le fichier.
+        final limite = importService.derniereErreur == 'limite_du_jour';
+        final message = lotsNonLus == 0
+            ? tr('✨ ${_candidates.length} vins identifiés avec succès !', '✨ ${_candidates.length} wines identified!')
+            : limite
+                ? tr('${_candidates.length} vins identifiés. La limite du jour est atteinte : importez le reste demain.',
+                    '${_candidates.length} wines identified. Today\'s limit is reached: import the rest tomorrow.')
+                : tr('${_candidates.length} vins identifiés ; $lotsNonLus partie(s) du fichier n\'ont pas pu être lues. Vérifiez votre connexion et réessayez.',
+                    '${_candidates.length} wines identified; $lotsNonLus part(s) of the file couldn\'t be read. Check your connection and try again.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(tr('✨ ${_candidates.length} vins identifiés avec succès !', '✨ ${_candidates.length} wines identified!')),
-            backgroundColor: const Color(0xFF2E7D32),
+            content: Text(message),
+            backgroundColor: lotsNonLus == 0 ? const Color(0xFF2E7D32) : Colors.orange.shade800,
           ),
         );
       }

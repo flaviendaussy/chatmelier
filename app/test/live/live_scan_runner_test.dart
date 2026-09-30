@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:chatmelier/config/constants.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
 import 'package:chatmelier/features/scan/domain/scan_result.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,7 +27,7 @@ void main() {
 
   final apiKey = envKey.isNotEmpty
       ? envKey
-      : (Platform.environment['GEMINI_API_KEY'] ?? AppConstants.geminiApiKey);
+      : (Platform.environment['GEMINI_API_KEY'] ?? '');
   final isLive = apiKey.trim().isNotEmpty;
   final model = envModel;
   final mode = envMode;

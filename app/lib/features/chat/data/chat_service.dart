@@ -1,18 +1,17 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/providers/cellar_provider.dart';
-import '../../../shared/services/gemini_model_registry.dart';
+import '../../../shared/services/fonctions_ia.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../../../shared/utils/langue.dart';
 import '../../cellar/data/cellar_repository.dart';
 import '../../cellar/domain/bottle.dart';
 import '../../offline/data/offline_storage_service.dart';
 import '../../offline/presentation/sync_provider.dart';
 import '../../auth/data/taste_profile_service.dart';
-import '../../auth/data/ai_cost_tracker_service.dart';
 import '../../friends/data/friends_repository.dart';
 import '../domain/chat_message.dart';
 import '../domain/cellar_macro_summary.dart';
@@ -23,7 +22,8 @@ final chatServiceProvider = Provider<ChatService>((ref) {
   final repo = ref.read(cellarRepositoryProvider);
   final offlineStorage = ref.read(offlineStorageServiceProvider);
   final tasteProfileService = ref.read(tasteProfileServiceProvider);
-  return ChatService(supabase, repo, offlineStorage, tasteProfileService);
+  final ia = FonctionsIa(supabase, assurerUneSession: ref.read(authRepositoryProvider).assurerUneSession);
+  return ChatService(supabase, repo, offlineStorage, tasteProfileService, ia: ia);
 });
 
 class ChatService {
@@ -31,13 +31,10 @@ class ChatService {
   final CellarRepository _repo;
   final OfflineStorageService _offlineStorage;
   final TasteProfileService _tasteProfileService;
+  final FonctionsIa _ia;
 
-  static const String _geminiApiKey = String.fromEnvironment(
-    'GEMINI_API_KEY',
-    defaultValue: '',
-  );
-
-  ChatService(this._client, this._repo, this._offlineStorage, this._tasteProfileService);
+  ChatService(this._client, this._repo, this._offlineStorage, this._tasteProfileService, {FonctionsIa? ia})
+      : _ia = ia ?? FonctionsIa(_client);
 
   /// Strips any raw UUIDs or technical identifier fragments from user-facing text
   static String sanitizeCustomerFacingText(String text) {
@@ -197,340 +194,86 @@ class ChatService {
       return '- ${w?['name'] ?? "Vin"} (${w?['vintage'] ?? "NM"}, $wType${w?['region'] ?? ""}) : Note $noteStr$coStr, Avis: "${t['tasting_notes'] ?? ""}", Plat: "${t['food_paired'] ?? ""}", Contexte: "${t['occasion'] ?? ""}"';
     }).join('\n');
 
-    final langName = languageCode == 'en' ? 'English' : 'French (Français)';
-    final currentYear = DateTime.now().year;
-
-    final isFirstMessageEver = history.isEmpty;
-    final systemInstruction = '''You are Chatmelier, the world-class sommelier, cellar master, and wine intelligence companion.
-Current Year: $currentYear.
-User language: $langName.
-
-CRITICAL IDENTITY & INTRODUCTION RULES:
-${isFirstMessageEver ? '- This is the user\'s first time chatting with you: you may briefly introduce yourself ONCE as "Chatmelier".' : '- DO NOT INTRODUCE YOURSELF! You already know this user and this is an ongoing dialogue. NEVER repeat "Je suis Chatmelier...", "Bonjour, je suis Chatmelier...", "En tant que Chatmelier...", "En tant que sommelier...", or similar self-introductions. Never start with a generic greeting about who you are. Jump DIRECTLY into your answer and wine recommendations!'}
-- Never say "Chatmelier Sommelier", "votre sommelier IA", or "l'IA". Refer to yourself strictly as "Chatmelier" only when naturally required.
-
-$macroSummary
-
-${ragResult.formattedContext}
-
-TASTE PROFILES & PREFERENCES OF USER AND CO-TASTERS:
-$profilesContext
-
-CONNECTED FRIENDS & THEIR WINE TASTE CARDS:
-$friendsTasteContext
-
-PAST TASTING EXPERIENCES & RECENT FEEDBACK (what they loved or disliked):
-${tastingLogSummary.isNotEmpty ? tastingLogSummary : "Pas encore d'historique de dégustation enregistré."}
-
-SOMMELIER RULES:
-1. LANGUAGE: Respond strictly in $langName with warmth, passion, elegance, conciseness, and high professional expertise. Format your answers with clear Markdown (headers, bullet points, bolding).
-2. CELLAR GROUNDING:
-   - DUAL-LAYER INVENTORY INTELLIGENCE:
-     * Macro View: You know the user's exact cellar composition (total count, breakdown of whites/reds/rosés/champagnes, appellation distribution like Chablis vs Sancerre, and apogée readiness). When asked about their collection, stats, or general advice, use this metadata with authority and elegance!
-     * RAG Candidate Selection: When recommending what to drink or what to pair with a meal/dish, PRIORITIZE AND HIGHLIGHT matching bottles from the candidate bottles retrieved via RAG above!
-   - Clearly state why that specific bottle is a fantastic match.
-   - Give the exact location in the cellar (Rack / Shelf) when recommending a bottle from their cellar.
-3. INTERACTIVE WINE CARDS:
-   - Whenever you recommend one or more specific wine bottles from their cellar (or an ideal wine), insert an interactive card tag on its own line:
-   [WINE_CARD: {"id": "bottle_id", "name": "Nom du Vin", "vintage": 2018, "producer": "Domaine", "region": "Bordeaux", "wine_type": "red", "location": "Casier B3", "reason": "Accord parfait avec votre plat"}]
-   Use the exact bottle "id" from the cellar inventory when recommending a cellar bottle.
-4. VOCABULARY: Always use "bouteille" or "vin". NEVER use the word "flacon".
-5. TASTE PROFILE PERSONALIZATION & FRIENDS TASTE CONSULTING:
-   - Use individual taste profiles and connected friends' taste cards.
-   - When recommending for a couple or group of friends, propose harmonious wines that reconcile everyone's preferences while strictly avoiding their stated aversions.
-   - STRICT FACTUAL GROUNDING ON CONVIVES / FRIENDS' TASTES:
-     * NEVER invent or assume unrecorded preferences!
-     * If asked about what a co-taster (e.g. Caro) likes, and her profile has very few or no recordings (e.g. she only tasted one white wine), NEVER hallucinate that she loves red wines or terroirs like Galicia!
-     * Honestly and factually state what she actually tasted (mentioning the wine and context), and clarify that her palate is still being discovered with future tastings.
-6. EXPERTISE ŒNOLOGIQUE :
-   - Accompagne et explique les vins avec passion, précision et profondeur scientifique (molécules aromatiques, terpènes, équilibre des acides, évolution en bouteille).
-   - Fais preuve d'une pédagogie captivante et élégante, qui émerveille aussi bien le novice que le passionné érudit.
-7. ZERO TECHNICAL IDS / NO UUIDS (STRICT CUSTOMER-FACING RULE):
-   - NEVER output raw database IDs, UUIDs, or internal identifiers in your conversational text to the user!
-   - The bottle "id" MUST ONLY appear inside the hidden [WINE_CARD: {"id": "..."}] JSON tag.
-   - NEVER write phrases like "(id: ...)", "(ID: ...)", "id:", "UUID", or mention any hexadecimal strings in your text. The user must only read vineyard names, cuvées, vintages, and producer names.''';
-
-    // Build sanitized alternating conversation history for Gemini API
-    final List<Map<String, dynamic>> contents = [];
-    String? lastRole;
-
-    for (final m in history) {
-      final rawRole = m['role'] as String?;
-      final role = rawRole == 'assistant' ? 'model' : 'user';
-      final text = (m['content'] as String?)?.trim() ?? '';
-      if (text.isEmpty) continue;
-
-      // Gemini history MUST start with a 'user' turn
-      if (contents.isEmpty && role != 'user') continue;
-
-      if (role == lastRole && contents.isNotEmpty) {
-        // Merge consecutive messages from same role
-        final lastEntry = contents.last;
-        final parts = lastEntry['parts'] as List;
-        parts.add({'text': text});
-      } else {
-        contents.add({
-          'role': role,
-          'parts': [{'text': text}],
-        });
-        lastRole = role;
-      }
-    }
-
-    // Now append the current user message
-    if (contents.isNotEmpty && lastRole == 'user') {
-      final lastEntry = contents.last;
-      final parts = lastEntry['parts'] as List;
-      parts.add({'text': message});
-    } else {
-      contents.add({
-        'role': 'user',
-        'parts': [{'text': message}],
-      });
-    }
+    // Depuis la V2.3, les consignes du sommelier vivent dans la fonction `chat` ; l'app
+    // n'envoie que des données : la cave résumée, les bouteilles choisies pour la question,
+    // les palais, les amis et les dernières dégustations.
+    final contexte = [
+      macroSummary,
+      ragResult.formattedContext,
+      'TASTE PROFILES OF THE USER AND CO-TASTERS:\n$profilesContext',
+      'CONNECTED FRIENDS AND THEIR TASTE CARDS:\n$friendsTasteContext',
+      'PAST TASTINGS (what they loved or disliked):\n${tastingLogSummary.isNotEmpty ? tastingLogSummary : '(none recorded yet)'}',
+    ].where((p) => p.trim().isNotEmpty).join('\n\n');
 
     return _ChatContext(
       user: user,
       resolvedCellarId: resolvedCellarId,
       cellarBottles: cellarBottles,
       history: history,
-      systemInstruction: systemInstruction,
-      contents: contents,
+      contexte: contexte.length > 12000 ? contexte.substring(0, 12000) : contexte,
     );
   }
 
+  /// Pose la question au sommelier du serveur. Sans lui (réseau, panne, limite du jour), la
+  /// réponse le dit, puis propose une piste tirée de la cave.
+  Future<String> _demander(String message, _ChatContext ctx, String languageCode) async {
+    final r = await _ia.appeler('chat', {
+      'message': message,
+      'cellarId': ctx.resolvedCellarId ?? '',
+      'contexte': ctx.contexte,
+      'langue': languageCode,
+    });
+    final reply = r.ok ? (r.donnees!['reply']?.toString() ?? '') : '';
+    if (reply.isNotEmpty) return reply;
+    if (r.limiteAtteinte) return r.messageDeLimite();
+    AppLogger.info('CHAT_AI', 'Sommelier injoignable (${r.erreur ?? 'réponse vide'}) : piste locale');
+    return '${tr('*Le sommelier est injoignable pour le moment : voici une piste tirée de votre cave, sans lui.*', '*The sommelier can\'t be reached right now: here is a lead from your cellar, without it.*')}\n\n'
+        '${_generateLocalSommelierAdvice(message, ctx.cellarBottles, languageCode)}';
+  }
+
+  Future<void> _enregistrerLaReponse(_ChatContext ctx, String reply) async {
+    if (ctx.resolvedCellarId == null || ctx.resolvedCellarId!.isEmpty || ctx.user == null || reply.isEmpty) return;
+    try {
+      await _client.from('chat_messages').insert({
+        'cellar_id': ctx.resolvedCellarId,
+        'user_id': ctx.user!.id,
+        'role': 'assistant',
+        'content': reply,
+      });
+    } catch (e) {
+      AppLogger.warning('CHAT_AI', 'Réponse non enregistrée : $e');
+    }
+  }
+
   Future<String> sendMessage(String message, String? cellarId, {String languageCode = 'fr'}) async {
-    final startTime = DateTime.now();
-    AppLogger.info('CHAT_AI', 'User asked Chatmelier: "$message" (Cellar: $cellarId)');
-
-    // Refresh dynamic models in background
-    GeminiModelRegistry.refreshAvailableModels();
-
+    final debut = DateTime.now();
+    // La question elle-même n'est pas journalisée : c'est une donnée personnelle (V2.3 · B4).
+    AppLogger.info('CHAT_AI', 'Question au sommelier (${message.length} caractères)');
     final ctx = await _preparePromptContext(message, cellarId, languageCode);
-
-    String reply = '';
-    final tier = GeminiModelRegistry.classifyChatComplexity(message, conversationTurnCount: ctx.history.length);
-    final activeModels = GeminiModelRegistry.getModelsForTier(tier);
-    AppLogger.info('CHAT_AI', 'Chat query routed to tier: ${tier.name} (first model: ${activeModels.isNotEmpty ? activeModels.first : "none"})');
-
-    // Multi-model fallback cascade for chat sommelier
-    for (final model in activeModels) {
-      try {
-        AppLogger.debug('CHAT_AI', 'Calling Gemini ($model)...');
-
-        final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-        );
-
-        final body = {
-          'systemInstruction': {
-            'parts': [{'text': ctx.systemInstruction}]
-          },
-          'contents': ctx.contents,
-          'generationConfig': {
-            'maxOutputTokens': 1500,
-            'temperature': 0.6,
-          },
-        };
-
-        final res = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(body),
-        ).timeout(const Duration(seconds: 25));
-
-        if (res.statusCode == 200) {
-          final data = jsonDecode(res.body);
-          final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'] as String?;
-          if (text != null && text.trim().isNotEmpty) {
-            reply = text.trim();
-            final duration = DateTime.now().difference(startTime).inMilliseconds;
-            AppLogger.info('CHAT_AI', 'Chat reply generated via $model in ${duration}ms');
-
-            // Track AI token and cost metrics
-            AiCostTrackerService().recordRawResponse(
-              model: model,
-              feature: 'chat_sommelier',
-              responseJson: data,
-              promptFallbackText: message,
-              candidateFallbackText: reply,
-              isSearchGrounded: false,
-              userId: ctx.user?.id,
-            );
-            break;
-          }
-        } else if (res.statusCode == 429) {
-          GeminiModelRegistry.recordRateLimit(model);
-          AppLogger.warning('CHAT_AI', 'Model $model returned HTTP 429 (Quota limit), switching to next model');
-        } else if (res.statusCode == 404) {
-          GeminiModelRegistry.recordDisabledModel(model);
-          AppLogger.warning('CHAT_AI', 'Model $model returned HTTP 404, blacklisting model for session');
-        } else {
-          AppLogger.warning('CHAT_AI', 'Model $model returned HTTP ${res.statusCode}: ${res.body.substring(0, res.body.length > 200 ? 200 : res.body.length)}');
-        }
-      } catch (e) {
-        AppLogger.warning('CHAT_AI', 'Model $model call failed: $e');
-      }
-      if (reply.isNotEmpty) break;
-    }
-
-    // Edge function fallback if direct API calls exhausted
-    if (reply.isEmpty) {
-      try {
-        final edgeRes = await _client.functions.invoke('chat', body: {
-          'message': message,
-          'cellarId': ctx.resolvedCellarId ?? '',
-        });
-        if (edgeRes.data is Map<String, dynamic>) {
-          reply = edgeRes.data['reply']?.toString() ?? '';
-        }
-      } catch (e) {
-        AppLogger.warning('CHAT_AI', 'Edge function chat fallback failed: $e');
-      }
-    }
-
-    // Offline local intelligence fallback
-    if (reply.isEmpty) {
-      AppLogger.info('CHAT_AI', 'Using local sommelier heuristic fallback');
-      reply = _generateLocalSommelierAdvice(message, ctx.cellarBottles, languageCode);
-    }
-
-    reply = sanitizeCustomerFacingText(reply);
-
-    // Save assistant response to database if authenticated
-    if (ctx.resolvedCellarId != null && ctx.resolvedCellarId!.isNotEmpty && ctx.user != null && reply.isNotEmpty) {
-      try {
-        await _client.from('chat_messages').insert({
-          'cellar_id': ctx.resolvedCellarId,
-          'user_id': ctx.user!.id,
-          'role': 'assistant',
-          'content': reply,
-        });
-      } catch (e) {
-        debugPrint('Error saving assistant message: $e');
-      }
-    }
-
+    final reply = sanitizeCustomerFacingText(await _demander(message, ctx, languageCode));
+    AppLogger.info('CHAT_AI', 'Réponse en ${DateTime.now().difference(debut).inMilliseconds} ms');
+    await _enregistrerLaReponse(ctx, reply);
     return reply;
   }
 
-  /// Streams Chatmelier response token-by-token using Gemini SSE endpoint
+  /// La réponse arrive d'un bloc du serveur ; on la déroule mot à mot pour garder l'écriture
+  /// progressive de l'écran.
   Stream<String> sendMessageStream(
     String message,
     String? cellarId, {
     String languageCode = 'fr',
   }) async* {
-    final startTime = DateTime.now();
-    AppLogger.info('CHAT_AI', 'User asked Chatmelier (streaming): "$message" (Cellar: $cellarId)');
-
-    GeminiModelRegistry.refreshAvailableModels();
-
+    final debut = DateTime.now();
+    AppLogger.info('CHAT_AI', 'Question au sommelier (${message.length} caractères)');
     final ctx = await _preparePromptContext(message, cellarId, languageCode);
-    final tier = GeminiModelRegistry.classifyChatComplexity(message, conversationTurnCount: ctx.history.length);
-    final activeModels = GeminiModelRegistry.getModelsForTier(tier);
-
-    final StringBuffer fullReplyBuffer = StringBuffer();
-    bool streamedSuccessfully = false;
-
-    for (final model in activeModels) {
-      try {
-        final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:streamGenerateContent?alt=sse&key=$_geminiApiKey',
-        );
-
-        final client = http.Client();
-        final request = http.Request('POST', url)
-          ..headers['Content-Type'] = 'application/json'
-          ..headers['Accept'] = 'text/event-stream'
-          ..body = jsonEncode({
-            'systemInstruction': {
-              'parts': [{'text': ctx.systemInstruction}]
-            },
-            'contents': ctx.contents,
-            'generationConfig': {
-              'maxOutputTokens': 1500,
-              'temperature': 0.6,
-            },
-          });
-
-        final streamedResponse = await client.send(request).timeout(const Duration(seconds: 25));
-
-        if (streamedResponse.statusCode == 200) {
-          await for (final line in streamedResponse.stream
-              .toStringStream()
-              .transform(const LineSplitter())) {
-            if (line.startsWith('data: ')) {
-              final jsonStr = line.substring(6).trim();
-              if (jsonStr.isEmpty || jsonStr == '[DONE]') continue;
-              try {
-                final data = jsonDecode(jsonStr);
-                final textChunk = data['candidates']?[0]?['content']?['parts']?[0]?['text'] as String?;
-                if (textChunk != null && textChunk.isNotEmpty) {
-                  final sanitizedChunk = sanitizeCustomerFacingText(textChunk);
-                  fullReplyBuffer.write(textChunk);
-                  yield sanitizedChunk;
-                }
-              } catch (_) {}
-            }
-          }
-
-          if (fullReplyBuffer.isNotEmpty) {
-            streamedSuccessfully = true;
-            final duration = DateTime.now().difference(startTime).inMilliseconds;
-            AppLogger.info('CHAT_AI', 'Streamed chat reply via $model in ${duration}ms');
-            break;
-          }
-        } else if (streamedResponse.statusCode == 429) {
-          GeminiModelRegistry.recordRateLimit(model);
-        } else if (streamedResponse.statusCode == 404) {
-          GeminiModelRegistry.recordDisabledModel(model);
-        }
-      } catch (e) {
-        AppLogger.warning('CHAT_AI', 'Streaming failed for model $model: $e');
-      }
+    final reply = sanitizeCustomerFacingText(await _demander(message, ctx, languageCode));
+    AppLogger.info('CHAT_AI', 'Réponse en ${DateTime.now().difference(debut).inMilliseconds} ms');
+    final mots = reply.split(' ');
+    for (var i = 0; i < mots.length; i++) {
+      yield mots[i] + (i < mots.length - 1 ? ' ' : '');
+      await Future<void>.delayed(const Duration(milliseconds: 12));
     }
-
-    // Fallback if direct SSE streaming did not succeed
-    if (!streamedSuccessfully) {
-      String fallbackText = '';
-      try {
-        final edgeRes = await _client.functions.invoke('chat', body: {
-          'message': message,
-          'cellarId': ctx.resolvedCellarId ?? '',
-        });
-        if (edgeRes.data is Map<String, dynamic>) {
-          fallbackText = edgeRes.data['reply']?.toString() ?? '';
-        }
-      } catch (_) {}
-
-      if (fallbackText.isEmpty) {
-        fallbackText = _generateLocalSommelierAdvice(message, ctx.cellarBottles, languageCode);
-      }
-
-      fallbackText = sanitizeCustomerFacingText(fallbackText);
-      fullReplyBuffer.write(fallbackText);
-
-      final words = fallbackText.split(' ');
-      for (int i = 0; i < words.length; i++) {
-        yield words[i] + (i < words.length - 1 ? ' ' : '');
-        await Future.delayed(const Duration(milliseconds: 20));
-      }
-    }
-
-    final finalReply = sanitizeCustomerFacingText(fullReplyBuffer.toString().trim());
-
-    if (ctx.resolvedCellarId != null && ctx.resolvedCellarId!.isNotEmpty && ctx.user != null && finalReply.isNotEmpty) {
-      try {
-        await _client.from('chat_messages').insert({
-          'cellar_id': ctx.resolvedCellarId,
-          'user_id': ctx.user!.id,
-          'role': 'assistant',
-          'content': finalReply,
-        });
-      } catch (e) {
-        debugPrint('Error saving assistant message: $e');
-      }
-    }
+    await _enregistrerLaReponse(ctx, reply);
   }
 
   String _generateLocalSommelierAdvice(String query, List<Bottle> bottles, String langCode) {
@@ -658,16 +401,14 @@ class _ChatContext {
   final String? resolvedCellarId;
   final List<Bottle> cellarBottles;
   final List<Map<String, dynamic>> history;
-  final String systemInstruction;
-  final List<Map<String, dynamic>> contents;
+  final String contexte;
 
   _ChatContext({
     required this.user,
     required this.resolvedCellarId,
     required this.cellarBottles,
     required this.history,
-    required this.systemInstruction,
-    required this.contents,
+    required this.contexte,
   });
 }
 

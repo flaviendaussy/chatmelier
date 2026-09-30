@@ -11,7 +11,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../config/constants.dart';
 import '../../../shared/providers/supabase_provider.dart';
-import '../../../shared/services/gemini_model_registry.dart';
+import '../../../shared/services/fonctions_ia.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../auth/data/ai_cost_tracker_service.dart';
 import '../../auth/domain/taste_profile.dart';
@@ -29,10 +29,6 @@ final menuScanServiceProvider = Provider<MenuScanService>((ref) {
 class MenuScanService {
   final WineKnowledgeCacheService _knowledgeCache;
   final SupabaseClient? _supabaseClient;
-  static const String _geminiApiKey = String.fromEnvironment(
-    'GEMINI_API_KEY',
-    defaultValue: AppConstants.geminiApiKey,
-  );
 
   /// Fabrique une connexion HTTP neuve par appel à scan-menu (voir [_appelScanMenu]).
   final http.Client Function() _nouveauTransport;
@@ -76,7 +72,6 @@ class MenuScanService {
     final isEn = languageCode.toLowerCase().startsWith('en');
     onStepUpdate?.call(isEn ? 'Chatmelier is analyzing the wine menu...' : 'Chatmelier analyse le menu...');
 
-    GeminiModelRegistry.refreshAvailableModels();
 
     final parts = <Map<String, dynamic>>[];
 
@@ -113,150 +108,13 @@ class MenuScanService {
       });
     }
 
-    final langInstructions = isEn
-        ? '''- "tags": Array of relevant keywords in English from: ["mineral", "buttery", "tannic", "fruity", "light", "bold", "oaky", "floral", "spicy", "fresh", "round", "savory"].
-- "sommelier_comment": 1 sharp sentence in English describing the style and dining occasion.
-- "food_pairings": Array of 3 specific restaurant dish pairings in English (e.g. ["Grilled ribeye steak", "Roasted sea bass with fennel", "Aged artisan cheese board"]).
-- "is_gem": boolean. True if this wine is from an acclaimed artisan domain, biodynamic star, cult producer, or exceptional hidden gem.
-- "gem_reason": Short reason in English why this is a gem (e.g. "Biodynamic cult superstar", "Rare sought-after parcel"), or null.
-- "is_deal": boolean. True if this bottle represents an outstanding value / bargain (unusually low restaurant markup or exceptional price-to-pleasure ratio).
-- "deal_reason": Short reason in English why this is a deal (e.g. "Outstanding price very close to cellar door cost", "Exceptional markup advantage"), or null.'''
-        : '''- "tags": Array of relevant keywords in French from: ["minéral", "beurré", "tannique", "fruité", "léger", "puissant", "boisé", "floral", "épicé", "frais", "rond", "gourmand"].
-- "sommelier_comment": 1 sharp sentence in French describing the style and dining occasion.
-- "food_pairings": Array of 3 specific restaurant dish pairings (e.g. ["Côte de bœuf grillée", "Bar rôti au fenouil", "Plateau de fromages affinés"]).
-- "is_gem": boolean. True if this wine is from an acclaimed artisan domain, biodynamic star, cult producer, or exceptional hidden gem.
-- "gem_reason": Short reason in French why this is a gem (e.g. "Vigneron star en biodynamie", "Domaine confidentiel très recherché"), or null.
-- "is_deal": boolean. True if this bottle represents an outstanding value / bargain / "grosse affaire" (unusually low restaurant markup or great quality-to-price ratio).
-- "deal_reason": Short reason in French why this is a deal (e.g. "Tarif exceptionnel très proche du prix domaine", "Superbe rapport prix/plaisir", "Coefficient multiplicateur très avantageux"), or null.''';
-
-    final systemPrompt = '''You are Chatmelier, the world's most capable sommelier and OCR wine recognition AI.
-You are given one or multiple photos of pages from a restaurant's wine menu (carte des vins).
-Extract EVERY single wine listed across all provided pages.
-
-For each wine, output a JSON object with:
-- "name": Official wine cuvée or name (e.g. "Château Smith Haut Lafitte", "Chablis Premier Cru Fourchaume", "Côtes du Rhône Belleruche").
-- "producer": Winery, Domaine, Château, or House.
-- "vintage": Integer year (e.g. 2019, 2020) or null if non-vintage (NV/NM).
-- "wine_type": "red", "white", "rose", "sparkling", "dessert", or "fortified".
-- "appellation": AOC/AOP/DOC or sub-appellation (e.g. "Pessac-Léognan", "Chablis 1er Cru", "Saint-Joseph").
-- "region": Broad wine region (e.g. "Bordeaux", "Bourgogne", "Vallée du Rhône", "Loire", "Alsace", "Toscane").
-- "country": Country of origin (e.g. "France", "Italie", "Espagne").
-- "grapes": Array of strings of grape varieties (e.g. ["Cabernet Sauvignon", "Merlot"] or ["Chardonnay"]).
-- "bottle_price": Numeric price for the whole bottle as written on the menu (e.g. 45.0), or null if not available.
-- "glass_prices": Array of objects [{"format": "125ml", "price": 7.5}, {"format": "175ml", "price": 10.5}] for all glass sizes mentioned on the menu, or empty array [] if none.
-- "metrics": Object with sensory ratings from 1.0 to 10.0:
-    - "tannins": 0.0 for white/rosé/sparkling, 1.0 to 10.0 for red (tannic structure).
-    - "acidity": 1.0 to 10.0 (freshness, tension, liveliness).
-    - "body": 1.0 to 10.0 (fullness, alcohol weight, power).
-    - "fruit": 1.0 to 10.0 (aromatic fruitiness and richness).
-    - "oak": 1.0 to 10.0 (wood aging, vanilla, toast).
-    - "minerality": 1.0 to 10.0 (flinty, chalky, saline terroir character).
-    - "butteriness": 0.0 to 10.0 (brioche/buttery lactic notes, typical in oaked Chardonnay).
-    - "sweetness": 1.0 to 10.0 (residual sugar).
-$langInstructions
-- "estimated_retail_price": Estimated typical retail/merchant price in euros (e.g. 18.0) or null.
-
-Also extract the restaurant name if visible on headers/cover, else return null.
-Return STRICTLY a JSON object with:
-{
-  "restaurant_name": "Name of restaurant if detected or null",
-  "wines": [ ... ]
-}''';
-
-    parts.add({'text': systemPrompt});
-
-    final requestBody = jsonEncode({
-      'contents': [
-        {
-          'role': 'user',
-          'parts': parts,
-        }
-      ],
-      'generationConfig': {
-        'responseMimeType': 'application/json',
-      }
-    });
-
-    // Prioritize high-throughput, fast responsive multimodal vision models with broad fallbacks
-    final registryModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.standardFlashPreferred);
-    final candidateModels = <String>[
-      'gemini-3.8-flash',
-      'gemini-3.6-flash',
-      'gemini-3.5-flash',
-      'gemini-flash-latest',
-      ...registryModels,
-    ].toSet().toList();
-
     Map<String, dynamic>? parsedJson;
     String? usedModel;
 
-    // Fast-path: if direct Gemini API key is empty, invoke Supabase Edge Function directly!
-    if (_geminiApiKey.trim().isEmpty) {
-      AppLogger.info('MENU_SCAN', 'Direct Gemini API key not configured, calling Supabase Edge Function scan-menu...');
-      onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud...' : 'Analyse de la carte des vins via le Cloud Chatmelier...');
-      parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn);
-      usedModel = parsedJson?['modele'] as String?;
-    } else {
-      for (final model in candidateModels) {
-        try {
-          AppLogger.debug('MENU_SCAN', 'Calling Gemini with model $model for ${parts.length - 1} images...');
-          onStepUpdate?.call(isEn ? 'Optical recognition of wines, estates & vintages...' : 'Déchiffrage optique des cuvées, producteurs et millésimes...');
-          final url = Uri.parse(
-            'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-          );
-
-          final response = await http.post(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: requestBody,
-          ).timeout(const Duration(seconds: 55));
-
-          if (response.statusCode == 200) {
-            onStepUpdate?.call(isEn ? 'Extracting prices, pairings & sensory profiles...' : 'Extraction des prix, accords mets & vins et profils sensoriels...');
-            final data = jsonDecode(response.body);
-            String rawText = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '{}';
-            if (rawText.contains('```json')) {
-              rawText = rawText.split('```json')[1].split('```')[0].trim();
-            } else if (rawText.contains('```')) {
-              rawText = rawText.split('```')[1].split('```')[0].trim();
-            }
-
-            try {
-              parsedJson = jsonDecode(rawText) as Map<String, dynamic>;
-            } catch (_) {
-              // Robust repair for minor JSON quirks (trailing commas, unbalanced braces)
-              var repaired = rawText.replaceAll(RegExp(r',\s*\}'), '}').replaceAll(RegExp(r',\s*\]'), ']');
-              final start = repaired.indexOf('{');
-              final end = repaired.lastIndexOf('}');
-              if (start != -1 && end != -1 && end > start) {
-                repaired = repaired.substring(start, end + 1);
-              }
-              parsedJson = jsonDecode(repaired) as Map<String, dynamic>;
-            }
-
-            usedModel = model;
-
-            AiCostTrackerService().recordRawResponse(
-              model: model,
-              feature: 'menu_scan_vision',
-              responseJson: data,
-              isSearchGrounded: false,
-            );
-            break;
-          }
-        } catch (e) {
-          AppLogger.warning('MENU_SCAN', 'Attempt with $model failed: $e. Trying next model...');
-        }
-      }
-
-      // If direct Gemini calls failed, try Supabase Edge Function fallback!
-      if (parsedJson == null) {
-        AppLogger.info('MENU_SCAN', 'Direct Gemini calls failed. Falling back to Supabase Edge Function scan-menu...');
-        onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud fallback...' : 'Analyse de secours via le Cloud Chatmelier...');
-        parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn);
-        usedModel = parsedJson?['modele'] as String?;
-      }
-    }
+    // Depuis la V2.3, seul le serveur lit la carte (scan-menu) : l'app n'a plus de clé.
+    onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud...' : 'Analyse de la carte des vins via le Cloud Chatmelier...');
+    parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn);
+    usedModel = parsedJson?['modele'] as String?;
 
     if (parsedJson == null) {
       throw Exception(isEn
@@ -476,20 +334,6 @@ Return STRICTLY a JSON object with:
 - Notes : ${userProfile.notes.isNotEmpty ? userProfile.notes : 'Non précisé'}''';
     }
 
-    final prompt = '''Tu es Chatmelier, le maître sommelier du restaurant "${menu.restaurantName}".
-Voici la carte des vins exacte disponible sur les tables :
-$wineListText
-$profileContext
-
-Question du client :
-"$userQuestion"
-
-Consignes absolues :
-1. Réponds en français de façon chaleureuse, précise et experte comme un sommelier à table.
-2. Recommande EXCLUSIVEMENT des vins figurant sur la carte ci-dessus. N'invente aucun vin extérieur.
-3. Mentionne toujours le prix (à la bouteille ou au verre) tel qu'affiché sur la carte.
-4. Explique clairement l'accord mets/vins ou la raison de ton conseil en t'appuyant sur les caractéristiques du vin (tannins, minéralité, vivacité, boisé).
-5. Sois concis (2 à 3 paragraphes maximum).''';
 
     // Sans clé embarquée (tous les builds publiés depuis le 14/09), seule la fonction edge
     // peut répondre. L'appel direct ci-dessous n'existe plus que pour le développement :
@@ -498,66 +342,14 @@ Consignes absolues :
     final injoignable = isEn
         ? 'Sorry, the sommelier cannot be reached right now. Please check your connection and try again.'
         : 'Désolé, impossible de joindre le sommelier IA pour le moment. Vérifiez votre connexion et réessayez.';
-    if (_geminiApiKey.trim().isEmpty) {
-      return await _demanderAuSommelierDistant(
-        menu: menu,
-        question: userQuestion,
-        carte: wineListText,
-        profil: profileContext,
-        languageCode: languageCode,
-      ) ??
-          injoignable;
-    }
-
-    final body = jsonEncode({
-      'contents': [
-        {
-          'role': 'user',
-          'parts': [
-            {'text': prompt}
-          ]
-        }
-      ]
-    });
-
-    final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.standardFlashPreferred);
-
-    for (final model in activeModels) {
-      try {
-        final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-        );
-        final res = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: body,
-        ).timeout(const Duration(seconds: 15));
-
-        if (res.statusCode != 200) {
-          AppLogger.warning('MENU_CHAT',
-              'Chat attempt with $model returned HTTP ${res.statusCode}: ${res.body.length > 200 ? res.body.substring(0, 200) : res.body}');
-        }
-        if (res.statusCode == 200) {
-          final data = jsonDecode(res.body);
-          final answer = data['candidates']?[0]?['content']?[0]?['text'] ??
-              data['candidates']?[0]?['content']?['parts']?[0]?['text'] ??
-              'Désolé, je n\'ai pas pu formuler de réponse.';
-
-          AiCostTrackerService().recordRawResponse(
-            model: model,
-            feature: 'menu_chat_assistant',
-            responseJson: data,
-            isSearchGrounded: false,
-          );
-          return answer.toString().trim();
-        }
-      } catch (e) {
-        AppLogger.warning('MENU_CHAT', 'Chat attempt with $model failed: $e');
-      }
-    }
-
-    AppLogger.error('MENU_CHAT', 'Every direct menu chat attempt failed');
-    return injoignable;
+    return await _demanderAuSommelierDistant(
+          menu: menu,
+          question: userQuestion,
+          carte: wineListText,
+          profil: profileContext,
+          languageCode: languageCode,
+        ) ??
+        injoignable;
   }
 
   /// Pose la question à la fonction edge `menu-chat`, qui détient la clé Gemini.
@@ -675,6 +467,9 @@ Consignes absolues :
         return data;
       }
       AppLogger.warning('MENU_SCAN', 'scan-menu returned no usable body');
+    } on LimiteIaAtteinte {
+      // La limite du jour n'est pas une panne : l'écran doit la dire telle quelle.
+      rethrow;
     } catch (e, stack) {
       AppLogger.error('MENU_SCAN', 'Edge function scan-menu error: $e', e, stack);
     }
@@ -699,7 +494,16 @@ Consignes absolues :
     Map<String, dynamic> corps,
     Duration delai,
   ) async {
-    final jeton = (await client.auth.getSession())?.accessToken;
+    // Une session, anonyme au besoin : le serveur peut l'exiger (V2.3 · B2), et elle porte
+    // le quota du jour de la personne.
+    var jeton = client.auth.currentSession?.accessToken;
+    if (jeton == null) {
+      try {
+        jeton = (await client.auth.signInAnonymously()).session?.accessToken;
+      } catch (e) {
+        AppLogger.warning('MENU_SCAN', 'Session anonyme impossible avant scan-menu : $e');
+      }
+    }
     final transport = _nouveauTransport();
     try {
       final res = await transport
@@ -713,6 +517,15 @@ Consignes absolues :
             body: jsonEncode(corps),
           )
           .timeout(delai);
+      if (res.statusCode == 429) {
+        final corpsErreur = jsonDecode(utf8.decode(res.bodyBytes));
+        if (corpsErreur is Map && corpsErreur['error'] == 'limite_du_jour') {
+          throw LimiteIaAtteinte(
+            limite: (corpsErreur['limite'] as num?)?.toInt(),
+            anonyme: corpsErreur['anonyme'] == true,
+          );
+        }
+      }
       if (res.statusCode != 200) {
         final extrait = res.body.length > 200 ? res.body.substring(0, 200) : res.body;
         throw http.ClientException('scan-menu HTTP ${res.statusCode} : $extrait');

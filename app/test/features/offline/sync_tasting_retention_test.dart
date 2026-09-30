@@ -145,7 +145,7 @@ void main() {
         'created_at': '2026-09-01T00:00:00Z',
       },
     }));
-    sync = SyncService(supabase: supabase, offlineStorage: stockage, geminiApiKey: '');
+    sync = SyncService(supabase: supabase, offlineStorage: stockage, enrichir: false);
   });
 
   Future<SyncResult> synchroniser() =>

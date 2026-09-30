@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -8,9 +7,8 @@ import '../domain/offline_action.dart';
 import 'offline_storage_service.dart';
 import '../../cellar/domain/bottle.dart';
 import '../../../config/constants.dart';
-import '../../../shared/services/gemini_model_registry.dart';
+import '../../../shared/services/fonctions_ia.dart';
 import '../../../shared/utils/app_logger.dart';
-import '../../auth/data/ai_cost_tracker_service.dart';
 
 class SyncResult {
   final int totalProcessed;
@@ -31,7 +29,8 @@ class SyncResult {
 class SyncService {
   final SupabaseClient _supabase;
   final OfflineStorageService _offlineStorage;
-  final String _geminiApiKey;
+  final bool _enrichir;
+  final FonctionsIa _ia;
 
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
@@ -43,10 +42,12 @@ class SyncService {
   SyncService({
     required SupabaseClient supabase,
     required OfflineStorageService offlineStorage,
-    String? geminiApiKey,
+    bool enrichir = true,
+    FonctionsIa? ia,
   })  : _supabase = supabase,
         _offlineStorage = offlineStorage,
-        _geminiApiKey = geminiApiKey ?? AppConstants.geminiApiKey;
+        _enrichir = enrichir,
+        _ia = ia ?? FonctionsIa(supabase);
 
   /// Check whether we currently have internet access to Supabase
   Future<bool> checkOnlineStatus() async {
@@ -256,7 +257,7 @@ class SyncService {
     bool needsVintageResolution = false;
     if (vintage == null || region == null || region.isEmpty) {
       try {
-        final enriched = await _enrichWineWithGemini(wineName, vintage);
+        final enriched = await _enrichirLeVin(wineName, vintage);
         if (enriched != null) {
           wineName = enriched['name'] as String? ?? wineName;
           producer = enriched['producer'] as String? ?? producer;
@@ -909,75 +910,22 @@ class SyncService {
   }
 
   // ---------------------------------------------------------------------------
-  // Gemini 3.6 Flash Wine Enrichment
+  // La fiche d'un vin saisi hors ligne, par le sommelier du serveur (V2.3 · C2)
   // ---------------------------------------------------------------------------
 
-  Future<Map<String, dynamic>?> _enrichWineWithGemini(String wineName, int? vintage) async {
-    if (_geminiApiKey.isEmpty) return null;
-
-    final prompt = '''
-Tu es un sommelier expert. Identifie ce vin et renvoie EXCLUSIVEMENT un objet JSON valide avec les clés suivantes :
-{
-  "name": "Nom complet du vin",
-  "producer": "Nom du domaine / producteur",
-  "vintage": ${vintage ?? "null ou entier estimé"},
-  "wine_type": "red|white|rosé|sparkling|dessert|fortified|orange",
-  "country": "Pays",
-  "region": "Région",
-  "appellation": "Appellation",
-  "grapes": ["Cépage 1", "Cépage 2"],
-  "ideal_drinking_start": 2024,
-  "ideal_drinking_end": 2032
-}
-
-Vin à analyser : "$wineName" ${vintage != null ? "Millésime : $vintage" : ""}
-Réponds UNIQUEMENT avec le JSON strict, sans markdown ni texte additionnel.
-''';
-
-    final activeModels = GeminiModelRegistry.getModelsForTier(GeminiTaskTier.litePreferred);
-
-    for (final model in activeModels) {
-      try {
-        final uri = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-        );
-
-        final res = await http.post(
-          uri,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'contents': [
-              {
-                'parts': [{'text': prompt}]
-              }
-            ],
-            'generationConfig': {'temperature': 0.1, 'responseMimeType': 'application/json'}
-          }),
-        ).timeout(const Duration(seconds: 10));
-
-        if (res.statusCode == 200) {
-          final json = jsonDecode(res.body);
-          final text = json['candidates']?[0]?['content']?[0]?['text'] ??
-              json['candidates']?[0]?['content']?['parts']?[0]?['text'];
-          if (text != null) {
-            AiCostTrackerService().recordRawResponse(
-              model: model,
-              feature: 'offline_enrichment',
-              responseJson: json,
-              promptFallbackText: prompt,
-              candidateFallbackText: text,
-              userId: _supabase.auth.currentUser?.id,
-            );
-            return jsonDecode(text.trim()) as Map<String, dynamic>;
-          }
-        } else if (res.statusCode == 429) {
-          GeminiModelRegistry.recordRateLimit(model);
-          AppLogger.warning('SYNC_AI', 'Model $model hit 429 during sync enrichment, trying next');
-        }
-      } catch (e) {
-        AppLogger.warning('SYNC_AI', 'Model $model sync enrichment error: $e');
-      }
-    }
+  /// Depuis le retrait de la clé embarquée (14/09), ce complément ne tournait plus du tout :
+  /// il passe désormais par la fonction `taches-ia`. Sans réponse, le vin garde ce que la
+  /// personne a saisi.
+  Future<Map<String, dynamic>?> _enrichirLeVin(String wineName, int? vintage) async {
+    if (!_enrichir) return null;
+    final r = await _ia.appeler('taches-ia', {
+      'tache': 'fiche_texte',
+      'nom': wineName,
+      if (vintage != null) 'millesime': vintage,
+    }, delai: const Duration(seconds: 30));
+    final resultat = r.ok ? r.donnees!['resultat'] : null;
+    if (resultat is Map) return Map<String, dynamic>.from(resultat);
+    AppLogger.info('SYNC_AI', 'Fiche du vin hors ligne non complétée (${r.erreur ?? 'réponse vide'})');
     return null;
   }
 

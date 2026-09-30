@@ -1,7 +1,8 @@
-import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../shared/services/fonctions_ia.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../../../shared/utils/langue.dart';
 import '../domain/tasting_questionnaire_result.dart';
 
 final tastingAiAssistantServiceProvider = Provider<TastingAiAssistantService>((ref) {
@@ -98,16 +99,34 @@ class BlindQuizData {
 
 /// AI Assistant for guided tastings, speech dictation, blind tastings, and table storytelling.
 class TastingAiAssistantService {
-  static const String _geminiApiKey = String.fromEnvironment(
-    'GEMINI_API_KEY',
-    defaultValue: '',
-  );
+  /// Depuis la V2.3, ces tâches passent par la fonction `taches-ia` : l'app n'a plus de clé.
+  /// Sans serveur (hors ligne, Supabase non initialisé dans un essai), les replis locaux
+  /// prennent le relais, comme avant.
+  TastingAiAssistantService({FonctionsIa? ia}) : _iaInjecte = ia;
 
-  static const List<String> _candidateModels = [
-    'gemini-3.1-flash-lite',
-    'gemini-3.5-flash',
-    'gemini-flash-latest',
-  ];
+  final FonctionsIa? _iaInjecte;
+
+  FonctionsIa? get _ia {
+    if (_iaInjecte != null) return _iaInjecte;
+    try {
+      return FonctionsIa(Supabase.instance.client);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Le résultat d'une tâche du serveur, ou `null` si elle n'a pas abouti.
+  Future<dynamic> _tache(String tache, Map<String, dynamic> entrees) async {
+    final ia = _ia;
+    if (ia == null) return null;
+    final r = await ia.appeler('taches-ia', {'tache': tache, 'langue': Langue.estFr ? 'fr' : 'en', ...entrees},
+        delai: const Duration(seconds: 40));
+    if (!r.ok) {
+      AppLogger.info('TASTING_AI', '$tache sans le sommelier (${r.erreur}) : repli local');
+      return null;
+    }
+    return r.donnees!['resultat'];
+  }
 
   /// 🎙️ Parse spoken or natural language tasting notes into structured questionnaire results.
   /// Example input: "Bernard a adoré, 8.5/10 avec des arômes de mûre et de sous-bois. Caro lui met 7/10 en trouvant qu'il manque un peu de fraîcheur."
@@ -121,47 +140,15 @@ class TastingAiAssistantService {
     final isRed = cleanWineType.contains('rouge') || cleanWineType.contains('red');
     final validAromaIds = TastingQuestionnaireResult.aromaOptions.map((a) => a.id).toList();
 
-    final systemPrompt = '''Tu es le sommelier IA de Chatmelier.
-L'utilisateur te transmet une retranscription vocale ou des notes libres de dégustation saisies à table :
-"$spokenText"
-
-Le vin dégusté est : "$wineName" (Type : $cleanWineType).
-Les dégustateurs présents sont : ${tasterNames.join(', ')}.
-
-TÂCHE :
-Analyse le texte et extrait pour chaque personne mentionnée (ou pour le dégustateur principal si une seule personne est évoquée) les valeurs suivantes :
-1. "profile_name" : Nom du dégustateur (doit correspondre au mieux à l'un des noms fournis : ${tasterNames.join(', ')}).
-2. "note" : Note sur 10 (flottant entre 1.0 et 10.0). Si non mentionné explicitement, déduis-le du sentiment (ex. "adoré" -> 8.5, "correct" -> 6.5, "moyen" -> 5.0).
-3. "emoji_impression" : Entier entre 0 et 4 (0=😖, 1=😕, 2=😐, 3=😊, 4=😍).
-4. "aromas" : Tableau d'IDs d'arômes détectés parmi UNIQUEMENT : ${jsonEncode(validAromaIds)}.
-5. "acidity" : Flottant 0.0 (mou) à 1.0 (vif/tranchant). Défaut 0.5.
-6. ${isRed ? '"tannins" : Flottant 0.0 (soyeux/fondus) à 1.0 (très tannique/râpeux). Défaut 0.5.' : '"mineralite" : Flottant 0.0 à 1.0 (minéralité et tension). Défaut 0.5.'}
-7. "body" : Flottant 0.0 (léger) à 1.0 (puissant). Défaut 0.5.
-8. "length" : Flottant 0.0 (court) à 1.0 (persistant). Défaut 0.5.
-9. "raw_comment" : Brève synthèse en 1 phrase du commentaire de cette personne.
-
-Fournis aussi un "summary" global de 1 phrase résumant l'impression générale.
-
-Réponds STRICTEMENT sous forme d'un objet JSON :
-{
-  "summary": "...",
-  "tasters": [
-    {
-      "profile_name": "...",
-      "note": 8.5,
-      "emoji_impression": 3,
-      "aromas": ["fruits_noirs", "boise"],
-      "acidity": 0.5,
-      ${isRed ? '"tannins": 0.6,' : '"mineralite": 0.7,'}
-      "body": 0.6,
-      "length": 0.7,
-      "raw_comment": "..."
-    }
-  ]
-}''';
-
     try {
-      final jsonResponse = await _callGeminiJson(systemPrompt);
+      final brut = await _tache('notes_degustation', {
+        'texte': spokenText,
+        'degustateurs': tasterNames,
+        'type_vin': wineType,
+        'nom_vin': wineName,
+        'aromes': validAromaIds,
+      });
+      final jsonResponse = brut is Map ? Map<String, dynamic>.from(brut) : null;
       if (jsonResponse != null && jsonResponse['tasters'] is List) {
         final Map<String, TastingParsedProfile> profiles = {};
         final summary = jsonResponse['summary']?.toString() ?? 'Notes de dégustation extraites avec succès.';
@@ -225,31 +212,17 @@ Réponds STRICTEMENT sous forme d'un objet JSON :
     String? wineType,
     List<String>? grapes,
   }) async {
-    final prompt = '''Tu es un sommelier érudit et conteur passionné.
-Pour le vin suivant servi à table :
-- Vin : $wineName
-- Domaine / Producteur : ${producer ?? "Inconnu"}
-- Millésime : ${vintage ?? "Non millésimé"}
-- Région / Appellation : ${region ?? ""} ${appellation ?? ""}
-- Cépages : ${grapes?.join(', ') ?? "Non spécifiés"}
-- Type : ${wineType ?? "Rouge"}
-
-Génère 3 courtes anecdotes captivantes et élégantes en français, parfaites pour le maître de maison qui souhaite raconter l'histoire de la bouteille à ses invités :
-1. "terroir_and_grape" : Le terroir et la typicité des cépages (1 à 2 phrases percutantes).
-2. "vintage_climate" : Le millésime et son contexte climatique marquant (1 à 2 phrases).
-3. "sommelier_tip" : Le conseil du sommelier pour apprécier pleinement le vin à table.
-4. "fun_fact" : Une anecdote historique ou insolite sur le domaine, la région ou ce style de vin.
-
-Réponds STRICTEMENT sous forme d'un objet JSON :
-{
-  "terroir_and_grape": "...",
-  "vintage_climate": "...",
-  "sommelier_tip": "...",
-  "fun_fact": "..."
-}''';
-
     try {
-      final res = await _callGeminiJson(prompt);
+      final brut = await _tache('recit', {
+        'nom': wineName,
+        if (vintage != null) 'millesime': vintage,
+        if (producer != null) 'producteur': producer,
+        if (region != null) 'region': region,
+        if (appellation != null) 'appellation': appellation,
+        if (wineType != null) 'type': wineType,
+        'cepages': grapes ?? const <String>[],
+      });
+      final res = brut is Map ? Map<String, dynamic>.from(brut) : null;
       if (res != null) {
         return WineStorytellingData(
           terroirAndGrape: res['terroir_and_grape']?.toString() ?? 'Un vin issu d\'un terroir remarquable.',
@@ -281,23 +254,14 @@ Réponds STRICTEMENT sous forme d'un objet JSON :
       return '${r.profileName} lui attribue la note de ${r.noteOutOf10.toStringAsFixed(1)}/10 (${TastingQuestionnaireResult.emojiLabels[r.emojiImpression]}).';
     }
 
-    final summaryItems = results.map((r) {
+    final avis = results.map((r) {
       final aromas = r.perceivedAromas.join(', ');
       return '${r.profileName}: ${r.noteOutOf10}/10, émoji: ${TastingQuestionnaireResult.emojiLabels[r.emojiImpression]}, arômes: [$aromas], avis: ${r.wouldBuyAgain}';
-    }).join('; ');
-
-    final prompt = '''Tu es un sommelier qui anime une table d'amis.
-Voici les avis enregistrés pour la dégustation de "$wineName" :
-$summaryItems
-
-Rédige en français la "Synthèse du Conclave" en 1 ou 2 phrases vivantes et élégantes :
-- Indique si le vin a fait l'unanimité ou a créé un débat passionné.
-- Mets en lumière les accords ou les contrastes de perception (ex: notes, fraîcheur, arômes).
-- Donne la note moyenne de la table.
-Reste concis, chaleureux et convivial. Pas de puces, pas de JSON, juste le texte fluide.''';
+    }).toList();
 
     try {
-      final text = await _callGeminiText(prompt);
+      final brut = await _tache('synthese_table', {'nom_vin': wineName, 'avis': avis});
+      final text = brut is String ? brut : null;
       if (text != null && text.trim().isNotEmpty) {
         return text.trim();
       }
@@ -424,80 +388,6 @@ Reste concis, chaleureux et convivial. Pas de puces, pas de JSON, juste le texte
   // Internal Helpers
   // =========================================================================
 
-  Future<Map<String, dynamic>?> _callGeminiJson(String prompt) async {
-    for (final model in _candidateModels) {
-      try {
-        final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-        );
-
-        final response = await http
-            .post(
-              url,
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'contents': [
-                  {
-                    'role': 'user',
-                    'parts': [{'text': prompt}],
-                  }
-                ],
-                'generationConfig': {
-                  'responseMimeType': 'application/json',
-                }
-              }),
-            )
-            .timeout(const Duration(seconds: 15));
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-          if (text is String && text.isNotEmpty) {
-            return jsonDecode(text) as Map<String, dynamic>;
-          }
-        }
-      } catch (_) {
-        // Try next candidate model
-      }
-    }
-    return null;
-  }
-
-  Future<String?> _callGeminiText(String prompt) async {
-    for (final model in _candidateModels) {
-      try {
-        final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-        );
-
-        final response = await http
-            .post(
-              url,
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'contents': [
-                  {
-                    'role': 'user',
-                    'parts': [{'text': prompt}],
-                  }
-                ],
-              }),
-            )
-            .timeout(const Duration(seconds: 12));
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-          if (text is String && text.isNotEmpty) {
-            return text;
-          }
-        }
-      } catch (_) {
-        // Try next candidate model
-      }
-    }
-    return null;
-  }
 
   TastingNaturalParsedResult _fallbackParseNotes(String text, List<String> tasterNames, bool isRed) {
     final lower = text.toLowerCase();

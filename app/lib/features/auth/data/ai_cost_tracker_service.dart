@@ -191,6 +191,26 @@ class AiCostTrackerService {
     }
   }
 
+  /// Enregistre ce qu'une fonction IA du serveur a payé (champ `couts`) : un événement par
+  /// appel au modèle, avec le nombre réel de recherches Google. Une réponse sans `couts`
+  /// (ancienne fonction) n'enregistre rien.
+  List<Future<AiCostEvent?>> enregistrerCoutsServeur(Map<String, dynamic> reponse, String? userId) {
+    final couts = reponse['couts'];
+    if (couts is! List) return const [];
+    return [
+      for (final c in couts)
+        if (c is Map && c['modele'] is String && c['usageMetadata'] is Map)
+          recordRawResponse(
+            model: c['modele'] as String,
+            feature: (c['fonction'] as String?) ?? 'ia',
+            responseJson: {'usageMetadata': Map<String, dynamic>.from(c['usageMetadata'] as Map)},
+            isSearchGrounded: c['recherche'] == true,
+            requetesDeRecherche: c['requetes'] is num ? (c['requetes'] as num).toInt() : 1,
+            userId: userId,
+          ),
+    ];
+  }
+
   /// Aggregates multi-period statistics (Daily, Weekly, Monthly, Yearly, All-Time).
   Future<AiCostStats> getStats({String? userId}) async {
     // Plus d'historique d'exemple quand il est vide : ces événements inventés s'affichaient

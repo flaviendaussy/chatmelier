@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../shared/services/fonctions_ia.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../../shared/widgets/chatmelier_loader.dart';
 import '../../auth/data/taste_profile_service.dart';
@@ -142,9 +143,17 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       // 23/09 : pub fermée à 19:05:18, analyse lancée à 19:05:18).
       final analyse = _executeAnalysis();
 
+      // Une limite du jour déjà atteinte se sait en moins d'une seconde : on ne montre pas
+      // une vidéo pour annoncer ensuite un refus. L'ordre ne change pas : l'analyse est
+      // partie avant.
+      final dejaRefuse = await Future.any<bool>([
+        analyse.then((r) => r.$2 is LimiteIaAtteinte),
+        Future<bool>.delayed(const Duration(milliseconds: 1200), () => false),
+      ]);
+
       var videoRegardee = false;
       var recompense = true;
-      if (!ref.read(premiumProvider)) {
+      if (!dejaRefuse && !ref.read(premiumProvider)) {
         final issue = Completer<bool>();
         final pubMontree = await AdMobService().showRewardedAd(
           emplacement: 'scan_carte',
@@ -169,6 +178,14 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
 
+      if (erreur is LimiteIaAtteinte) {
+        messenger.showSnackBar(SnackBar(
+          content: Text(erreur.message()),
+          backgroundColor: Colors.orange.shade800,
+          duration: const Duration(seconds: 8),
+        ));
+        return;
+      }
       if (!recompense) {
         messenger.showSnackBar(SnackBar(
           content: Text(isFr

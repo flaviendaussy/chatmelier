@@ -124,6 +124,53 @@ async function appelerGemini(
   throw derniereErreur || new Error('All Gemini models failed')
 }
 
+// ─── Garde commune (V2.3 · B2) ───────────────────────────────────────────────────
+// Avec une session : le quota du jour, tenu en base (consommer_quota_ia, migration 052).
+// Sans session : refus si app_config.ia_session_obligatoire est vrai (après le build 72),
+// sinon une limite par adresse en mémoire. scan-label n'en avait aucune.
+const requestCounts = new Map<string, { count: number; resetAt: number }>()
+
+function checkRateLimit(identifier: string, maxRequests = 10, windowMs = 60_000) {
+  const now = Date.now()
+  const entry = requestCounts.get(identifier)
+  if (!entry || now >= entry.resetAt) {
+    requestCounts.set(identifier, { count: 1, resetAt: now + windowMs })
+    return { allowed: true, retryAfterMs: 0 }
+  }
+  entry.count++
+  if (entry.count > maxRequests) return { allowed: false, retryAfterMs: entry.resetAt - now }
+  return { allowed: true, retryAfterMs: 0 }
+}
+
+function reponse(obj: unknown, status = 200, entetes: Record<string, string> = {}): Response {
+  return new Response(JSON.stringify(obj), { status, headers: { ...corsHeaders, ...entetes, 'Content-Type': 'application/json' } })
+}
+
+async function garder(req: Request, supabase: any, fonction: string, strict: boolean): Promise<Response | null> {
+  let utilisateur = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    utilisateur = data?.user ?? null
+  } catch (_) { /* jeton absent ou clé publique seule */ }
+  if (!utilisateur) {
+    if (strict) return reponse({ error: 'session_requise' }, 401)
+    const ip = (req.headers.get('x-forwarded-for') ?? 'anon').split(',')[0].trim()
+    const { allowed, retryAfterMs } = checkRateLimit(`${fonction}:${ip}`, 10, 60_000)
+    if (!allowed) {
+      return reponse({ error: 'Trop de requêtes. Veuillez patienter.' }, 429,
+        { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) })
+    }
+    return null
+  }
+  try {
+    const { data, error } = await supabase.rpc('consommer_quota_ia', { p_fonction: fonction })
+    if (!error && data && data.autorise === false && data.raison === 'limite') {
+      return reponse({ error: 'limite_du_jour', limite: data.limite, anonyme: data.anonyme === true }, 429)
+    }
+  } catch (_) { /* migration 052 absente : pas de quota */ }
+  return null
+}
+
 // Une fiche du catalogue suffit si elle dit l'essentiel : de quoi le vin est fait, ce
 // qu'on y sent, et quand le boire. Une fiche saisie à la main sans notes ne suffit pas.
 function ficheRiche(f: any): boolean {
@@ -213,14 +260,42 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const body = await req.json()
-    const { photoUrls, imageBase64, mimeType = 'image/jpeg', forceRefresh = false } = body
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } } },
     )
+
+    // Réglages : la recherche Google (048), les modèles et la session obligatoire (V2.3).
+    let avecRecherche = false
+    let sessionObligatoire = false
+    const reglages: Record<string, Reglage> = { ...REGLAGES_PAR_DEFAUT }
+    try {
+      const { data } = await supabase.from('app_config').select('cle, valeur')
+        .in('cle', ['scan_etiquette_recherche', 'modeles_ia', 'ia_session_obligatoire'])
+      for (const ligne of data ?? []) {
+        if (ligne.cle === 'scan_etiquette_recherche') avecRecherche = ligne.valeur === true
+        if (ligne.cle === 'ia_session_obligatoire') sessionObligatoire = ligne.valeur === true
+        if (ligne.cle === 'modeles_ia' && ligne.valeur && typeof ligne.valeur === 'object') {
+          for (const tache of Object.keys(REGLAGES_PAR_DEFAUT)) {
+            const r = (ligne.valeur as any)[tache]
+            if (r && typeof r.modele === 'string') {
+              reglages[tache] = { modele: r.modele, reflexion: typeof r.reflexion === 'string' ? r.reflexion : reglages[tache].reflexion }
+            }
+          }
+        }
+      }
+    } catch (_) { /* configuration absente : valeurs par défaut, pas de recherche */ }
+
+    const refus = await garder(req, supabase, 'scan_etiquette', sessionObligatoire)
+    if (refus) return refus
+
+    const body = await req.json()
+    const { photoUrls, imageBase64, mimeType = 'image/jpeg', forceRefresh = false } = body
+    // Langue des notes et des accords. Les versions de l'app antérieures à la V2.3 ne
+    // l'envoyaient pas : le français, langue de la grande majorité des comptes.
+    const codeLangue = String(body.languageCode ?? 'fr').toLowerCase()
+    const langue = codeLangue.startsWith('fr') ? 'French' : codeLangue.startsWith('es') ? 'Spanish' : 'English'
 
     const imageParts: any[] = []
     if (imageBase64 && typeof imageBase64 === 'string') {
@@ -252,25 +327,6 @@ serve(async (req) => {
       })
     }
 
-    // Réglages : la recherche Google (048) et les modèles (V2.3), lus en une fois.
-    let avecRecherche = false
-    const reglages: Record<string, Reglage> = { ...REGLAGES_PAR_DEFAUT }
-    try {
-      const { data } = await supabase.from('app_config').select('cle, valeur')
-        .in('cle', ['scan_etiquette_recherche', 'modeles_ia'])
-      for (const ligne of data ?? []) {
-        if (ligne.cle === 'scan_etiquette_recherche') avecRecherche = ligne.valeur === true
-        if (ligne.cle === 'modeles_ia' && ligne.valeur && typeof ligne.valeur === 'object') {
-          for (const tache of Object.keys(REGLAGES_PAR_DEFAUT)) {
-            const r = (ligne.valeur as any)[tache]
-            if (r && typeof r.modele === 'string') {
-              reglages[tache] = { modele: r.modele, reflexion: typeof r.reflexion === 'string' ? r.reflexion : reglages[tache].reflexion }
-            }
-          }
-        }
-      }
-    } catch (_) { /* configuration absente : valeurs par défaut, pas de recherche */ }
-
     // Chaque appel payant est rendu au client, qui l'enregistre dans ai_cost_events (P1) :
     // sans cela, les scans d'étiquette échappaient à la mesure.
     const couts: any[] = []
@@ -284,14 +340,15 @@ Return strictly a valid JSON object matching this schema:
   "name": string,
   "vintage": number | null,
   "cuvee_parcel": string | null,
-  "wine_type": "red" | "white" | "rosé" | "sparkling" | "dessert" | "fortified" | "orange",
+  "wine_type": "red" | "white" | "rosé" | "sparkling" | "dessert" | "fortified" | "orange" | "liqueur" | "spirit" | "grappa" | "eau-de-vie" | "whisky" | "gin" | "rum" | "vodka" | "tequila" | "cognac" | "vermouth",
   "country": string,
   "region": string,
   "sub_region": string | null,
   "appellation": string | null,
   "classification": string | null,
   "alcohol_pct": number | null
-}`
+}
+Spirits, grappas, digestifs and herbal liqueurs (Grappa, Marc, Bénédictine, Chartreuse, Cointreau, Amaretto, Gin, Rum, Whisky, Vodka, Pastis…) take their spirit type, or "liqueur" / "spirit": never red, white, fortified or dessert. "fortified" is only for true fortified wines (Port, Sherry, Banyuls, Madeira, Marsala).`
     const lecture = await appelerGemini(apiKey, [{ role: 'user', parts: [...imageParts, { text: extractPrompt }] }],
       reglages.scan_etiquette_lecture)
     const extracted = lecture.resultat
@@ -360,6 +417,7 @@ Region: ${extracted.region}, ${extracted.country}`
     const enrichPrompt = avecRecherche
       ? `Search the web for this specific wine and extract factual data from trusted sources (producer site, Guide Hachette, RVF, Wine Spectator, Decanter, Jancis Robinson).
 ${identite}
+Write "tasting_notes", "food_pairings" and "ai_summary" in ${langue}; "ai_summary" names the grape varieties.
 Return strictly a valid JSON object, and nothing else:
 {
   "tasting_notes": string,
@@ -381,6 +439,7 @@ Only include a critic score or a source you actually found. Leave arrays empty r
       : `Describe this wine as a sommelier would, from general knowledge of its appellation, producer and vintage.
 ${identite}
 If you are unsure about a value, give the typical value for the appellation rather than a precise-looking guess.
+Write "tasting_notes", "food_pairings" and "ai_summary" in ${langue}; "ai_summary" names the grape varieties.
 Return strictly a valid JSON object matching this schema:
 {
   "tasting_notes": string,

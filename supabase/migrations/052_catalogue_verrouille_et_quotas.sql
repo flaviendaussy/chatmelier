@@ -14,8 +14,9 @@
 --    personne) sont effacées, comme 048 l'a fait pour les notes de critiques.
 -- 4. Quotas d'IA par personne et par jour, tenus en base : `consommer_quota_ia(fonction)`.
 --    Les fonctions edge l'appellent avec le jeton de l'appelant (aucun secret de plus). Les
---    limites vivent dans app_config.quotas_ia. Une session anonyme a ses propres limites :
---    3 scans de carte par jour sur le web, par exemple (J5).
+--    limites vivent dans app_config.quotas_ia. Une session anonyme a ses propres limites.
+--    Le scan de carte se compte en PAGES (l'app lit chaque page par un appel) : 45 par jour
+--    pour un compte, 8 pour une session anonyme, soit environ 3 cartes sur le web (J5).
 --
 -- Idempotente.
 
@@ -136,10 +137,11 @@ ALTER TABLE public.quotas_ia ENABLE ROW LEVEL SECURITY;
 INSERT INTO public.app_config (cle, valeur)
 VALUES ('quotas_ia', '{
   "scan_etiquette": {"compte": 80, "anonyme": 10},
-  "scan_carte":     {"compte": 15, "anonyme": 3},
+  "scan_carte":     {"compte": 45, "anonyme": 8},
   "question_carte": {"compte": 60, "anonyme": 20},
   "chat":           {"compte": 60, "anonyme": 10},
   "taches":         {"compte": 40, "anonyme": 5},
+  "import_cave":    {"compte": 100, "anonyme": 0},
   "defaut":         {"compte": 30, "anonyme": 5}
 }'::jsonb)
 ON CONFLICT (cle) DO NOTHING;

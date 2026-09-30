@@ -102,6 +102,7 @@ class AiCostTrackerService {
     required int promptTokens,
     required int candidatesTokens,
     bool isSearchGrounded = false,
+    int requetesDeRecherche = 1,
     String? userId,
     DateTime? timestamp,
   }) async {
@@ -111,6 +112,8 @@ class AiCostTrackerService {
       promptTokens: promptTokens,
       candidateTokens: candidatesTokens,
       isSearchGrounded: isSearchGrounded,
+      requetesDeRecherche: requetesDeRecherche,
+      le: eventTimestamp,
     );
 
     final event = AiCostEvent(
@@ -144,6 +147,7 @@ class AiCostTrackerService {
     String? promptFallbackText,
     String? candidateFallbackText,
     bool isSearchGrounded = false,
+    int requetesDeRecherche = 1,
     String? userId,
   }) async {
     try {
@@ -178,6 +182,7 @@ class AiCostTrackerService {
         promptTokens: promptTokens,
         candidatesTokens: candidateTokens,
         isSearchGrounded: isSearchGrounded,
+        requetesDeRecherche: requetesDeRecherche,
         userId: userId,
       );
     } catch (e) {
@@ -188,12 +193,8 @@ class AiCostTrackerService {
 
   /// Aggregates multi-period statistics (Daily, Weekly, Monthly, Yearly, All-Time).
   Future<AiCostStats> getStats({String? userId}) async {
-    final allEvents = await _loadEvents();
-
-    if (allEvents.isEmpty) {
-      await _seedInitialHistoryIfEmpty(userId);
-    }
-
+    // Plus d'historique d'exemple quand il est vide : ces événements inventés s'affichaient
+    // comme la consommation réelle de la personne.
     final events = await _loadEvents();
     final now = DateTime.now();
 
@@ -259,81 +260,6 @@ class AiCostTrackerService {
       byFeature: byFeature,
       recentEvents: recent.take(30).toList(),
     );
-  }
-
-  /// Seeds realistic initial telemetry for early users so the breakdown is immediately informative.
-  Future<void> _seedInitialHistoryIfEmpty(String? userId) async {
-    final now = DateTime.now();
-    final sampleEvents = [
-      AiCostEvent(
-        id: const Uuid().v4(),
-        model: 'gemini-3.7-flash',
-        feature: 'scan_vision',
-        promptTokens: 1420,
-        candidatesTokens: 380,
-        totalTokens: 1800,
-        isSearchGrounded: true,
-        costEur: 0.0324,
-        costUsd: 0.0352,
-        timestamp: now.subtract(const Duration(minutes: 15)),
-        userId: userId,
-      ),
-      AiCostEvent(
-        id: const Uuid().v4(),
-        model: 'gemini-3.7-flash',
-        feature: 'chat_sommelier',
-        promptTokens: 2150,
-        candidatesTokens: 410,
-        totalTokens: 2560,
-        isSearchGrounded: false,
-        costEur: 0.00026,
-        costUsd: 0.00028,
-        timestamp: now.subtract(const Duration(hours: 3)),
-        userId: userId,
-      ),
-      AiCostEvent(
-        id: const Uuid().v4(),
-        model: 'gemini-2.5-flash',
-        feature: 'scan_enrichment',
-        promptTokens: 980,
-        candidatesTokens: 260,
-        totalTokens: 1240,
-        isSearchGrounded: false,
-        costEur: 0.00014,
-        costUsd: 0.00015,
-        timestamp: now.subtract(const Duration(days: 2)),
-        userId: userId,
-      ),
-      AiCostEvent(
-        id: const Uuid().v4(),
-        model: 'gemini-3.7-flash',
-        feature: 'chat_sommelier',
-        promptTokens: 1800,
-        candidatesTokens: 390,
-        totalTokens: 2190,
-        isSearchGrounded: true,
-        costEur: 0.0324,
-        costUsd: 0.0352,
-        timestamp: now.subtract(const Duration(days: 4)),
-        userId: userId,
-      ),
-      AiCostEvent(
-        id: const Uuid().v4(),
-        model: 'gemini-3.1-flash-lite',
-        feature: 'offline_enrichment',
-        promptTokens: 850,
-        candidatesTokens: 190,
-        totalTokens: 1040,
-        isSearchGrounded: false,
-        costEur: 0.00005,
-        costUsd: 0.00006,
-        timestamp: now.subtract(const Duration(days: 12)),
-        userId: userId,
-      ),
-    ];
-
-    await _saveEvents(sampleEvents);
-    AppLogger.info('AI_COST', 'Seeded initial realistic AI usage events');
   }
 
   Future<void> clearHistory() async {

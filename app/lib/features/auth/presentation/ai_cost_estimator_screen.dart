@@ -495,20 +495,20 @@ class _AiCostEstimatorScreenState extends ConsumerState<AiCostEstimatorScreen> w
     return const ExpansionTile(
       leading: Icon(Icons.price_check, color: Color(0xFFD4AF37)),
       title: Text('Barème & Tarifs Officiels Google Gemini', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold)),
-      subtitle: Text('Tarification officielle par million de tokens', style: TextStyle(fontSize: 10.5, color: Colors.grey)),
+      subtitle: Text('Par million de jetons, réflexion comprise (relevé du 30/09/2026)', style: TextStyle(fontSize: 10.5, color: Colors.grey)),
       children: [
         Padding(
           padding: EdgeInsets.fromLTRB(16, 0, 16, 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _PricingRow('Gemini Flash (3.7 / 2.5 / latest)', '\$0.075 / 1M', '\$0.30 / 1M', '0.070 € / 0.28 €'),
+              _PricingRow('Gemini Flash 3.6 · 3.7 · 3.8 (×2 au 1/1/2027)', '\$0.75 / 1M', '\$3.75 / 1M', '0,69 € / 3,45 €'),
               Divider(height: 12),
-              _PricingRow('Gemini Flash-Lite (3.1 / 2.5)', '\$0.0375 / 1M', '\$0.15 / 1M', '0.035 € / 0.14 €'),
+              _PricingRow('Gemini 3.5 Flash', '\$1.50 / 1M', '\$9.00 / 1M', '1,38 € / 8,28 €'),
               Divider(height: 12),
-              _PricingRow('Gemini Pro (1.5 / 2.0 / latest)', '\$1.25 / 1M', '\$5.00 / 1M', '1.15 € / 4.60 €'),
+              _PricingRow('Gemini Flash-Lite 3.1', '\$0.25 / 1M', '\$1.50 / 1M', '0,23 € / 1,38 €'),
               Divider(height: 12),
-              _PricingRow('Google Search Grounding', '\$0.035 / recherche', '-', '0.032 € / req'),
+              _PricingRow('Recherche Google (3.x), 5 000 offertes par mois', '\$0.014 / req', '-', '0,013 € / req'),
             ],
           ),
         ),

@@ -4,9 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///
 /// POURQUOI UN BUDGET, ET PAS SEULEMENT UNE CONDITION
 ///
-/// Le `search grounding` coûte **0,035 $ forfaitaires par requête**, soit 119 fois le
-/// coût en jetons de l'appel qui l'accompagne et 16 fois un scan de carte complet
-/// (`ai_cost_event.dart`). C'est le premier poste de dépense du produit. Une garde qui
+/// Le `search grounding` des modèles 3.x est offert jusqu'à 5 000 requêtes par mois, puis
+/// coûte **0,014 $ par requête** (`ai_cost_event.dart`, tarifs du 30/09/2026) : au-delà de
+/// la franchise, c'est l'équivalent d'un scan d'étiquette entier. Une garde qui
 /// ne dépendrait que de « y a-t-il contradiction ? » suffirait en théorie, puisque la
 /// détection est locale et rare — mais une régression de l'enrichissement, ou un cépage
 /// dont le nom ressemble à une région, suffirait à la rendre systématique sans que rien

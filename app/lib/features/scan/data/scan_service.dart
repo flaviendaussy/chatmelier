@@ -311,6 +311,8 @@ Return strictly a valid JSON object matching this schema.''';
             feature: (c['fonction'] as String?) ?? 'scan_vision',
             responseJson: {'usageMetadata': Map<String, dynamic>.from(c['usageMetadata'] as Map)},
             isSearchGrounded: c['recherche'] == true,
+            // Nombre de recherches réellement lancées (scan-label ≥ V2.3) ; une par défaut.
+            requetesDeRecherche: c['requetes'] is num ? (c['requetes'] as num).toInt() : 1,
             userId: userId,
           ),
     ];

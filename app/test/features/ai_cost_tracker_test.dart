@@ -7,34 +7,58 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('AI Pricing Calculator Tests', () {
-    test('Flash Tier cost computation (0.10\$ / 1M prompt, 0.40\$ / 1M candidate)', () {
-      // 100,000 prompt tokens, 20,000 candidate tokens
+    final automne2026 = DateTime(2026, 10, 1);
+
+    test('Flash 3.x : 0,75 \$ / 3,75 \$ le million, réflexion comprise', () {
       final res = AiPricingCalculator.computeCost(
         model: 'gemini-3.7-flash',
         promptTokens: 100000,
         candidateTokens: 20000,
-        isSearchGrounded: false,
+        le: automne2026,
       );
-
-      // 100k * 0.10 / 1M = 0.010$
-      // 20k * 0.40 / 1M = 0.008$
-      // Total = 0.018$
-      expect(res.costUsd, closeTo(0.018, 0.0001));
-      expect(res.costEur, closeTo(0.018 * 0.92, 0.0001));
+      // 100k × 0,75 / 1M = 0,075 $ ; 20k × 3,75 / 1M = 0,075 $
+      expect(res.costUsd, closeTo(0.15, 0.0001));
+      expect(res.costEur, closeTo(0.15 * 0.92, 0.0001));
     });
 
-    test('Flash-Lite Tier cost computation (0.075\$ / 1M prompt, 0.30\$ / 1M candidate)', () {
+    test('les Flash 3.x doublent le 1er janvier 2027', () {
+      final avant = AiPricingCalculator.computeCost(
+          model: 'gemini-3.8-flash', promptTokens: 100000, candidateTokens: 20000, le: DateTime(2026, 12, 31));
+      final apres = AiPricingCalculator.computeCost(
+          model: 'gemini-3.8-flash', promptTokens: 100000, candidateTokens: 20000, le: DateTime(2027, 1, 1));
+      expect(apres.costUsd, closeTo(avant.costUsd * 2, 0.0001));
+    });
+
+    test('3.5-flash est le plus cher des Flash (1,50 \$ / 9,00 \$)', () {
+      final res = AiPricingCalculator.computeCost(
+          model: 'gemini-3.5-flash', promptTokens: 100000, candidateTokens: 20000, le: automne2026);
+      expect(res.costUsd, closeTo(0.15 + 0.18, 0.0001));
+    });
+
+    test('Flash-Lite 3.1 : 0,25 \$ / 1,50 \$', () {
       final res = AiPricingCalculator.computeCost(
         model: 'gemini-3.1-flash-lite',
         promptTokens: 100000,
         candidateTokens: 20000,
-        isSearchGrounded: false,
+        le: automne2026,
       );
+      // 0,025 $ + 0,03 $
+      expect(res.costUsd, closeTo(0.055, 0.0001));
+    });
 
-      // 100k * 0.075 / 1M = 0.0075$
-      // 20k * 0.30 / 1M = 0.006$
-      // Total = 0.0135$
-      expect(res.costUsd, closeTo(0.0135, 0.0001));
+    test('les alias suivent le modèle le plus récent de leur famille', () {
+      expect(AiPricingCalculator.tarif('gemini-flash-latest', le: automne2026), (entree: 0.75, sortie: 3.75));
+      expect(AiPricingCalculator.tarif('gemini-flash-lite-latest', le: automne2026), (entree: 0.30, sortie: 2.50));
+    });
+
+    test('le scan d\'étiquette relevé le 29/09 coûte environ 0,72 c€, pas 0,08', () {
+      // Lecture : 1 284 jetons en entrée, 111 de réponse + 552 de réflexion.
+      // Description : 222 en entrée, 387 de réponse + 730 de réflexion.
+      final lecture = AiPricingCalculator.computeCost(
+          model: 'gemini-3.8-flash', promptTokens: 1284, candidateTokens: 663, le: DateTime(2026, 9, 29));
+      final description = AiPricingCalculator.computeCost(
+          model: 'gemini-3.8-flash', promptTokens: 222, candidateTokens: 1117, le: DateTime(2026, 9, 29));
+      expect(lecture.costEur + description.costEur, closeTo(0.00718, 0.0001));
     });
 
     test('Pro Tier cost computation (1.25\$ / 1M prompt, 5.00\$ / 1M candidate)', () {
@@ -44,22 +68,16 @@ void main() {
         candidateTokens: 1000,
         isSearchGrounded: false,
       );
-
-      // 10k * 1.25 / 1M = 0.0125$
-      // 1k * 5.00 / 1M = 0.005$
-      // Total = 0.0175$
       expect(res.costUsd, closeTo(0.0175, 0.0001));
     });
 
-    test('Search Grounding surcharge (0.035\$ per query)', () {
-      final res = AiPricingCalculator.computeCost(
-        model: 'gemini-3.7-flash',
-        promptTokens: 1000,
-        candidateTokens: 100,
-        isSearchGrounded: true,
-      );
-
-      expect(res.costUsd, greaterThan(0.035));
+    test('recherche Google : 0,014 \$ par requête au-delà de la franchise', () {
+      final sans = AiPricingCalculator.computeCost(
+          model: 'gemini-3.7-flash', promptTokens: 1000, candidateTokens: 100, le: automne2026);
+      final avec = AiPricingCalculator.computeCost(
+          model: 'gemini-3.7-flash', promptTokens: 1000, candidateTokens: 100,
+          isSearchGrounded: true, requetesDeRecherche: 3, le: automne2026);
+      expect(avec.costUsd - sans.costUsd, closeTo(0.042, 0.00001));
     });
   });
 

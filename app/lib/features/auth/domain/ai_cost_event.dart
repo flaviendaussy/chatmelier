@@ -70,59 +70,62 @@ class AiCostEvent {
   }
 }
 
-/// Official Gemini API Pricing Calculator (USD + EUR conversion ~1.08 USD/EUR)
+/// Tarifs Gemini (offre payante standard), relevés sur la page officielle le 30/09/2026 :
+/// https://ai.google.dev/gemini-api/docs/pricing. Prix en dollars par million de jetons ; la
+/// sortie inclut les jetons de réflexion.
+///
+/// Jusqu'au 29/09, l'app comptait 0,10 $ / 0,40 $ pour tous les Flash — le tarif d'un ancien
+/// 2.0 Flash —, soit environ neuf fois moins que ce que coûte `gemini-3.8-flash`.
 class AiPricingCalculator {
   static const double usdToEurRate = 0.92;
 
-  // Flash Tier (2.0 Flash, 2.5 Flash, 3.x Flash, flash-latest)
-  // $0.10 / 1M prompt tokens, $0.40 / 1M output tokens (including thoughts)
-  static const double flashPromptPerMillionUsd = 0.10;
-  static const double flashCandidatePerMillionUsd = 0.40;
+  /// Les Flash 3.6 à 3.8 doublent le 1er janvier 2027.
+  static final DateTime doublementDesFlash = DateTime(2027, 1, 1);
 
-  // Flash-Lite Tier (2.0 Flash-Lite, 2.5 Flash-Lite, 3.x Flash-Lite, flash-lite-latest)
-  // $0.075 / 1M prompt tokens, $0.30 / 1M output tokens
-  static const double flashLitePromptPerMillionUsd = 0.075;
-  static const double flashLiteCandidatePerMillionUsd = 0.30;
+  /// Recherche Google pour les modèles 3.x : 5 000 requêtes offertes par mois, puis 14 $ les
+  /// 1 000. Un événement isolé ne sait pas où en est le mois : on compte le prix marginal,
+  /// et la console (migration 051) applique la franchise mensuelle.
+  static const double rechercheParRequeteUsd = 0.014;
+  static const int rechercheFranchiseMensuelle = 5000;
 
-  // Pro Tier (1.5 Pro, 2.0 Pro, 2.5 Pro, pro-latest)
-  // $1.25 / 1M prompt tokens, $5.00 / 1M output tokens
-  static const double proPromptPerMillionUsd = 1.25;
-  static const double proCandidatePerMillionUsd = 5.00;
+  /// Ancien nom, gardé pour les appelants : le prix d'une requête de recherche.
+  static const double searchGroundingPerQueryUsd = rechercheParRequeteUsd;
 
-  // Google Search Grounding: $35 per 1,000 search queries = $0.035 / query
-  static const double searchGroundingPerQueryUsd = 0.035;
+  /// (entrée, sortie) en dollars par million de jetons, pour ce modèle à cette date.
+  /// Les alias (`gemini-flash-latest`, `gemini-flash-lite-latest`) suivent le modèle le plus
+  /// récent de leur famille. Un modèle inconnu est compté au tarif Flash courant : mieux vaut
+  /// surestimer que l'inverse.
+  static ({double entree, double sortie}) tarif(String model, {DateTime? le}) {
+    final m = model.toLowerCase();
+    final date = le ?? DateTime.now();
+    if (m.contains('pro') && !m.contains('flash')) return (entree: 1.25, sortie: 5.00);
+    if (m.contains('lite')) {
+      if (m.contains('2.0-flash-lite') || m.contains('2.5-flash-lite')) return (entree: 0.10, sortie: 0.40);
+      if (m.contains('3.1-flash-lite')) return (entree: 0.25, sortie: 1.50);
+      return (entree: 0.30, sortie: 2.50); // 3.5-flash-lite, flash-lite-latest
+    }
+    if (m.contains('2.0-flash')) return (entree: 0.10, sortie: 0.40);
+    if (m.contains('2.5-flash')) return (entree: 0.30, sortie: 2.50);
+    if (m.contains('3.5-flash')) return (entree: 1.50, sortie: 9.00);
+    // 3.6, 3.7, 3.8-flash, flash-latest, préversions 3.x.
+    return date.isBefore(doublementDesFlash) ? (entree: 0.75, sortie: 3.75) : (entree: 1.50, sortie: 7.50);
+  }
 
   static ({double costUsd, double costEur}) computeCost({
     required String model,
     required int promptTokens,
     required int candidateTokens,
     bool isSearchGrounded = false,
+    int requetesDeRecherche = 1,
+    DateTime? le,
   }) {
-    final m = model.toLowerCase();
-
-    double promptRateUsd;
-    double candidateRateUsd;
-
-    if (m.contains('lite')) {
-      promptRateUsd = flashLitePromptPerMillionUsd;
-      candidateRateUsd = flashLiteCandidatePerMillionUsd;
-    } else if (m.contains('pro') && !m.contains('flash')) {
-      promptRateUsd = proPromptPerMillionUsd;
-      candidateRateUsd = proCandidatePerMillionUsd;
-    } else {
-      // Default standard Flash tier
-      promptRateUsd = flashPromptPerMillionUsd;
-      candidateRateUsd = flashCandidatePerMillionUsd;
-    }
-
-    final promptCostUsd = (promptTokens / 1000000.0) * promptRateUsd;
-    final candidateCostUsd = (candidateTokens / 1000000.0) * candidateRateUsd;
-    final searchCostUsd = isSearchGrounded ? searchGroundingPerQueryUsd : 0.0;
+    final t = tarif(model, le: le);
+    final promptCostUsd = (promptTokens / 1000000.0) * t.entree;
+    final candidateCostUsd = (candidateTokens / 1000000.0) * t.sortie;
+    final searchCostUsd = isSearchGrounded ? rechercheParRequeteUsd * (requetesDeRecherche < 1 ? 1 : requetesDeRecherche) : 0.0;
 
     final totalUsd = promptCostUsd + candidateCostUsd + searchCostUsd;
-    final totalEur = totalUsd * usdToEurRate;
-
-    return (costUsd: totalUsd, costEur: totalEur);
+    return (costUsd: totalUsd, costEur: totalUsd * usdToEurRate);
   }
 }
 

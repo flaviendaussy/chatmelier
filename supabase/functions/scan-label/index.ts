@@ -12,15 +12,22 @@ const corsHeaders = {
 // Remplaçable pour les essais en local contre un faux serveur ; Google en production.
 const GEMINI_BASE = Deno.env.get('GEMINI_BASE_URL') ?? 'https://generativelanguage.googleapis.com'
 
-const GEMINI_MODELS = [
-  'gemini-3.8-flash',
-  'gemini-3.7-flash',
-  'gemini-3.6-flash',
-  'gemini-3.5-flash',
-  'gemini-flash-latest',
-  'gemini-3.1-flash-lite',
-  'gemini-flash-lite-latest',
-]
+// Le modèle de chaque tâche se règle dans app_config.modeles_ia, sans redéploiement (V2.3).
+// Les replis vont vers moins cher, jamais vers plus cher : gemini-3.5-flash (1,50 $ / 9 $ le
+// million de jetons, tarifs du 30/09) n'y figure plus.
+const REPLIS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite']
+
+const REGLAGES_PAR_DEFAUT: Record<string, Reglage> = {
+  // Lire une étiquette ne demande pas de réfléchir : le 29/09, 552 des 663 jetons de sortie
+  // de la lecture étaient de la réflexion, facturée au prix de la sortie.
+  scan_etiquette_lecture: { modele: 'gemini-3.8-flash', reflexion: 'minimal' },
+  scan_etiquette_description: { modele: 'gemini-3.8-flash', reflexion: 'low' },
+}
+
+interface Reglage {
+  modele: string
+  reflexion: string // minimal | low | medium | high
+}
 
 // Un modèle bloqué ne doit pas consommer tout le budget de la fonction : au-delà, on
 // passe au suivant (même leçon que scan-menu, 29/09). La recherche Google allonge
@@ -35,6 +42,8 @@ interface AppelGemini {
   // Vrai seulement si Gemini a réellement lancé des recherches : la présence de l'outil
   // dans la requête ne garantit pas qu'il s'en soit servi.
   recherche: boolean
+  requetes: number
+  reflexion: string | null
 }
 
 function lireJson(raw: string): any {
@@ -52,40 +61,64 @@ function lireJson(raw: string): any {
   }
 }
 
-async function appelerGemini(apiKey: string, contents: any[], avecRecherche = false): Promise<AppelGemini> {
+// Les Flash 3.7 et 3.8 n'acceptent pas « minimal » (doc du 30/09 : low, medium, high) ; 3.6
+// et les Lite, si. On demande le plus bas niveau que le modèle connaît.
+function niveauPour(modele: string, souhaite: string): string {
+  if (souhaite === 'minimal' && /3\.[78]-flash|flash-latest/.test(modele) && !modele.includes('lite')) return 'low'
+  return souhaite
+}
+
+function chaine(reglage: Reglage): string[] {
+  return [reglage.modele, ...REPLIS].filter((m, i, t) => m && t.indexOf(m) === i)
+}
+
+async function appelerGemini(
+  apiKey: string, contents: any[], reglage: Reglage, avecRecherche = false,
+): Promise<AppelGemini> {
   let derniereErreur: unknown = null
-  for (const model of GEMINI_MODELS) {
-    try {
-      const url = `${GEMINI_BASE}/v1beta/models/${model}:generateContent?key=${apiKey}`
-      // L'outil de recherche et la sortie JSON imposée ne se combinent pas : avec la
-      // recherche, on lit le JSON dans le texte.
-      const corps = avecRecherche
-        ? { contents, tools: [{ google_search: {} }] }
-        : { contents, generationConfig: { responseMimeType: 'application/json' } }
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(corps),
-        signal: AbortSignal.timeout(avecRecherche ? DELAI_RECHERCHE_MS : DELAI_LECTURE_MS),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        const candidat = data.candidates?.[0]
-        const raw = candidat?.content?.parts?.map((p: any) => p.text ?? '').join('') || '{}'
-        const requetes = candidat?.groundingMetadata?.webSearchQueries
-        return {
-          resultat: lireJson(raw),
-          modele: model,
-          usage: data.usageMetadata ?? null,
-          recherche: avecRecherche && Array.isArray(requetes) && requetes.length > 0,
+  for (const model of chaine(reglage)) {
+    const niveau = niveauPour(model, reglage.reflexion)
+    // Avec le réglage de réflexion d'abord ; si Google le refuse (400), le même modèle sans.
+    for (const avecReglage of [true, false]) {
+      try {
+        const url = `${GEMINI_BASE}/v1beta/models/${model}:generateContent?key=${apiKey}`
+        const generationConfig: Record<string, unknown> = {}
+        // L'outil de recherche et la sortie JSON imposée ne se combinent pas : avec la
+        // recherche, on lit le JSON dans le texte.
+        if (!avecRecherche) generationConfig.responseMimeType = 'application/json'
+        if (avecReglage) generationConfig.thinkingConfig = { thinkingLevel: niveau }
+        const corps: Record<string, unknown> = { contents, generationConfig }
+        if (avecRecherche) corps.tools = [{ google_search: {} }]
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(corps),
+          signal: AbortSignal.timeout(avecRecherche ? DELAI_RECHERCHE_MS : DELAI_LECTURE_MS),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          const candidat = data.candidates?.[0]
+          const raw = candidat?.content?.parts?.filter((p: any) => !p.thought).map((p: any) => p.text ?? '').join('') || '{}'
+          const requetes = candidat?.groundingMetadata?.webSearchQueries
+          const n = Array.isArray(requetes) ? requetes.length : 0
+          return {
+            resultat: lireJson(raw),
+            modele: model,
+            usage: data.usageMetadata ?? null,
+            recherche: avecRecherche && n > 0,
+            requetes: n,
+            reflexion: avecReglage ? niveau : null,
+          }
         }
+        const texte = await res.text()
+        console.warn(`Model ${model} (réflexion ${avecReglage ? niveau : 'par défaut'}) returned ${res.status}: ${texte.slice(0, 300)}`)
+        derniereErreur = new Error(`Model ${model} error (${res.status})`)
+        if (!(avecReglage && res.status === 400)) break
+      } catch (e) {
+        console.warn(`Model ${model} failed:`, e)
+        derniereErreur = e
+        break
       }
-      const texte = await res.text()
-      console.warn(`Model ${model} returned ${res.status}: ${texte}`)
-      derniereErreur = new Error(`Model ${model} error (${res.status})`)
-    } catch (e) {
-      console.warn(`Model ${model} failed:`, e)
-      derniereErreur = e
     }
   }
   throw derniereErreur || new Error('All Gemini models failed')
@@ -99,6 +132,81 @@ function ficheRiche(f: any): boolean {
   return !!(f.tasting_notes && String(f.tasting_notes).trim().length > 20) &&
     cepages > 0 &&
     (f.peak_drinking_start != null || f.ideal_drinking_start != null)
+}
+
+function vide(v: unknown): boolean {
+  if (v === null || v === undefined) return true
+  if (typeof v === 'string') return v.trim() === ''
+  if (Array.isArray(v)) return v.length === 0
+  return false
+}
+
+// Une valeur de marché n'est gardée que si une vraie recherche l'a trouvée, avec sa source.
+// Sans recherche, le modèle l'inventait, et elle s'affichait comme une cote (30/09).
+function valeurSourcee(enrichi: any, verifiee: boolean): { valeur: number | null; source: string | null } {
+  const v = Number(enrichi?.estimated_market_value)
+  const source = typeof enrichi?.valeur_source === 'string' && /^https?:\/\//.test(enrichi.valeur_source)
+    ? enrichi.valeur_source : null
+  if (!verifiee || !source || !Number.isFinite(v) || v <= 0) return { valeur: null, source: null }
+  return { valeur: v, source }
+}
+
+// Le catalogue apprend de chaque description, une seule fois par vin (V2.3 · B1). La fiche
+// du serveur (`decrite_par_serveur`) est complétée champ vide par champ vide, jamais
+// réécrite ; les fiches des utilisateurs ne sont pas touchées. Sans la migration 052 (colonne
+// absente), l'écriture échoue en silence et rien d'autre ne change.
+async function enrichirLeCatalogue(ficheTrouvee: any, lue: any, enrichi: any, verifiee: boolean, valeur: { valeur: number | null; source: string | null }) {
+  const cle = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!cle || !lue?.name || !enrichi || vide(enrichi.tasting_notes)) return
+  const serveur = createClient(Deno.env.get('SUPABASE_URL') ?? '', cle, { auth: { persistSession: false } })
+  const description: Record<string, unknown> = {
+    name: lue.name,
+    producer: lue.producer ?? null,
+    cuvee_parcel: lue.cuvee_parcel ?? null,
+    vintage: lue.vintage ?? null,
+    wine_type: lue.wine_type ?? null,
+    country: lue.country ?? null,
+    region: lue.region ?? null,
+    sub_region: lue.sub_region ?? null,
+    appellation: lue.appellation ?? null,
+    classification: lue.classification ?? null,
+    alcohol_pct: lue.alcohol_pct ?? null,
+    grapes: Array.isArray(enrichi.grapes) ? enrichi.grapes : [],
+    tasting_notes: enrichi.tasting_notes ?? null,
+    ideal_drinking_start: enrichi.ideal_drinking_start ?? null,
+    ideal_drinking_end: enrichi.ideal_drinking_end ?? null,
+    peak_drinking_start: enrichi.peak_drinking_start ?? null,
+    peak_drinking_end: enrichi.peak_drinking_end ?? null,
+    ai_summary: enrichi.ai_summary ?? null,
+    ai_food_pairings: Array.isArray(enrichi.food_pairings) ? enrichi.food_pairings : [],
+  }
+  if (verifiee) {
+    description.critic_scores = Array.isArray(enrichi.critic_scores) ? enrichi.critic_scores : []
+    description.sources_verified = Array.isArray(enrichi.sources_verified) ? enrichi.sources_verified : []
+    description.is_verified_online = true
+  }
+  if (valeur.valeur !== null) {
+    description.estimated_market_value = valeur.valeur
+    description.estimated_value_currency = 'EUR'
+    description.last_valuation_date = new Date().toISOString()
+    description.external_links = { valeur_source: valeur.source }
+  }
+  try {
+    if (ficheTrouvee?.decrite_par_serveur === true) {
+      const complement: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(description)) {
+        if (!vide(v) && vide(ficheTrouvee[k])) complement[k] = v
+      }
+      if (Object.keys(complement).length === 0) return
+      const { error } = await serveur.from('wines').update(complement).eq('id', ficheTrouvee.id)
+      if (error) console.warn('Catalogue : complément refusé :', error.message)
+    } else {
+      const { error } = await serveur.from('wines').insert({ ...description, decrite_par_serveur: true, created_by: null })
+      if (error) console.warn('Catalogue : fiche serveur refusée :', error.message)
+    }
+  } catch (e) {
+    console.warn('Catalogue indisponible :', e)
+  }
 }
 
 serve(async (req) => {
@@ -144,6 +252,25 @@ serve(async (req) => {
       })
     }
 
+    // Réglages : la recherche Google (048) et les modèles (V2.3), lus en une fois.
+    let avecRecherche = false
+    const reglages: Record<string, Reglage> = { ...REGLAGES_PAR_DEFAUT }
+    try {
+      const { data } = await supabase.from('app_config').select('cle, valeur')
+        .in('cle', ['scan_etiquette_recherche', 'modeles_ia'])
+      for (const ligne of data ?? []) {
+        if (ligne.cle === 'scan_etiquette_recherche') avecRecherche = ligne.valeur === true
+        if (ligne.cle === 'modeles_ia' && ligne.valeur && typeof ligne.valeur === 'object') {
+          for (const tache of Object.keys(REGLAGES_PAR_DEFAUT)) {
+            const r = (ligne.valeur as any)[tache]
+            if (r && typeof r.modele === 'string') {
+              reglages[tache] = { modele: r.modele, reflexion: typeof r.reflexion === 'string' ? r.reflexion : reglages[tache].reflexion }
+            }
+          }
+        }
+      }
+    } catch (_) { /* configuration absente : valeurs par défaut, pas de recherche */ }
+
     // Chaque appel payant est rendu au client, qui l'enregistre dans ai_cost_events (P1) :
     // sans cela, les scans d'étiquette échappaient à la mesure.
     const couts: any[] = []
@@ -165,14 +292,16 @@ Return strictly a valid JSON object matching this schema:
   "classification": string | null,
   "alcohol_pct": number | null
 }`
-    const lecture = await appelerGemini(apiKey, [{ role: 'user', parts: [...imageParts, { text: extractPrompt }] }])
+    const lecture = await appelerGemini(apiKey, [{ role: 'user', parts: [...imageParts, { text: extractPrompt }] }],
+      reglages.scan_etiquette_lecture)
     const extracted = lecture.resultat
-    couts.push({ fonction: 'scan_vision', modele: lecture.modele, usageMetadata: lecture.usage, recherche: false })
+    couts.push({ fonction: 'scan_vision', modele: lecture.modele, usageMetadata: lecture.usage, recherche: false, reflexion: lecture.reflexion })
 
     // 2. Le catalogue d'abord : un vin déjà décrit ne se redécrit pas. C'est une économie,
     //    et c'est surtout la cohérence — deux personnes qui scannent le même vin lisent la
     //    même fenêtre de garde, au lieu de deux inventions différentes.
-    if (!forceRefresh && extracted?.name) {
+    let fiche: any = null
+    if (extracted?.name) {
       try {
         const { data: lignes } = await supabase.rpc('find_cached_wine', {
           p_producer: extracted.producer ?? null,
@@ -180,9 +309,10 @@ Return strictly a valid JSON object matching this schema:
           p_vintage: extracted.vintage ?? null,
           p_cuvee: extracted.cuvee_parcel ?? null,
         })
-        const fiche = Array.isArray(lignes) ? lignes[0] : null
-        if (ficheRiche(fiche)) {
+        fiche = Array.isArray(lignes) ? lignes[0] : null
+        if (!forceRefresh && ficheRiche(fiche)) {
           const verifiee = fiche.is_verified_online === true
+          const valeurConnue = verifiee || (fiche.external_links?.valeur_source ?? null) !== null
           return new Response(JSON.stringify({
             ...extracted,
             region: extracted.region || fiche.region,
@@ -198,9 +328,10 @@ Return strictly a valid JSON object matching this schema:
             peak_drinking_start: fiche.peak_drinking_start,
             peak_drinking_end: fiche.peak_drinking_end,
             ai_summary: fiche.ai_summary,
-            estimated_market_value: fiche.estimated_market_value,
+            // Une valeur de marché ne circule que si elle a une source.
+            estimated_market_value: valeurConnue ? fiche.estimated_market_value : null,
             estimated_value_currency: fiche.estimated_value_currency ?? 'EUR',
-            last_valuation_date: fiche.last_valuation_date,
+            last_valuation_date: valeurConnue ? fiche.last_valuation_date : null,
             // Des notes de critiques et des sources ne se transmettent que si une vraie
             // recherche les a trouvées.
             critic_scores: verifiee ? (fiche.critic_scores ?? []) : [],
@@ -216,22 +347,16 @@ Return strictly a valid JSON object matching this schema:
     }
 
     // 3. Vin inconnu (ou fiche pauvre) : on le décrit. Avec la recherche Google si Flavien
-    //    l'a activée (app_config.scan_etiquette_recherche) — elle coûte environ 3 c€, mais
-    //    une seule fois par vin puisque la fiche rejoint ensuite le catalogue.
-    let avecRecherche = false
-    try {
-      const { data } = await supabase.from('app_config').select('valeur').eq('cle', 'scan_etiquette_recherche').maybeSingle()
-      avecRecherche = data?.valeur === true
-    } catch (_) { /* configuration absente : pas de recherche */ }
-
+    //    l'a activée (app_config.scan_etiquette_recherche) : pour les modèles 3.x, les 5 000
+    //    premières requêtes du mois sont offertes, puis 0,014 $ chacune.
     const identite = `Producer: ${extracted.producer || 'Unknown'}
 Name: ${extracted.name}
 Cuvée/Parcel: ${extracted.cuvee_parcel || 'Standard'}
 Vintage: ${extracted.vintage ? extracted.vintage : 'Non-Vintage (NV)'}
 Region: ${extracted.region}, ${extracted.country}`
 
-    // Sans recherche, on ne demande ni notes de critiques ni sources : le modèle les
-    // inventerait, et elles étaient renvoyées marquées « vérifiées » (29/09).
+    // Sans recherche, on ne demande ni notes de critiques, ni sources, ni valeur de marché :
+    // le modèle les inventait (29/09 pour les critiques, 30/09 pour la valeur).
     const enrichPrompt = avecRecherche
       ? `Search the web for this specific wine and extract factual data from trusted sources (producer site, Guide Hachette, RVF, Wine Spectator, Decanter, Jancis Robinson).
 ${identite}
@@ -246,10 +371,12 @@ Return strictly a valid JSON object, and nothing else:
   "food_pairings": [string],
   "ai_summary": string,
   "estimated_market_value": number | null,
+  "valeur_source": string | null,
   "estimated_value_currency": "EUR",
   "critic_scores": [{"source": string, "score": string, "reviewer": string | null, "year": number | null, "notes": string | null}],
   "sources_verified": [string]
 }
+"estimated_market_value" is a typical current retail price in EUR that you found on a merchant or auction page; "valeur_source" is the URL of that page. Leave both null if you did not find one.
 Only include a critic score or a source you actually found. Leave arrays empty rather than guessing.`
       : `Describe this wine as a sommelier would, from general knowledge of its appellation, producer and vintage.
 ${identite}
@@ -263,29 +390,38 @@ Return strictly a valid JSON object matching this schema:
   "peak_drinking_start": number | null,
   "peak_drinking_end": number | null,
   "food_pairings": [string],
-  "ai_summary": string,
-  "estimated_market_value": number | null,
-  "estimated_value_currency": "EUR"
+  "ai_summary": string
 }`
 
     let enriched: any = {}
     let verifiee = false
     try {
-      const description = await appelerGemini(apiKey, [{ role: 'user', parts: [{ text: enrichPrompt }] }], avecRecherche)
+      const description = await appelerGemini(apiKey, [{ role: 'user', parts: [{ text: enrichPrompt }] }],
+        reglages.scan_etiquette_description, avecRecherche)
       enriched = description.resultat
       verifiee = description.recherche
-      couts.push({ fonction: 'scan_enrichment', modele: description.modele, usageMetadata: description.usage, recherche: description.recherche })
+      couts.push({
+        fonction: 'scan_enrichment', modele: description.modele, usageMetadata: description.usage,
+        recherche: description.recherche, requetes: description.requetes, reflexion: description.reflexion,
+      })
     } catch (enrichErr) {
       console.warn('Enrichment step warning:', enrichErr)
     }
 
+    const valeur = valeurSourcee(enriched, verifiee)
+    await enrichirLeCatalogue(fiche, extracted, enriched, verifiee, valeur)
+
+    const { valeur_source: _source, ...enrichedSansSource } = enriched ?? {}
     const finalResult = {
       ...extracted,
-      ...enriched,
+      ...enrichedSansSource,
+      estimated_market_value: valeur.valeur,
+      estimated_value_currency: 'EUR',
+      valeur_source: valeur.source,
       critic_scores: verifiee ? (enriched.critic_scores ?? []) : [],
       sources_verified: verifiee ? (enriched.sources_verified ?? []) : [],
       is_verified_online: verifiee,
-      last_valuation_date: new Date().toISOString(),
+      last_valuation_date: valeur.valeur !== null ? new Date().toISOString() : null,
       from_cache: false,
       couts,
     }

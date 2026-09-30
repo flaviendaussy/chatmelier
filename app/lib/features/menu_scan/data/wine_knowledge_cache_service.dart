@@ -1,3 +1,4 @@
+import '../../../shared/utils/app_logger.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -120,7 +121,9 @@ class WineKnowledgeCacheService {
     _memoryCache?.forEach((_, data) {
       try {
         list.add(MenuWine.fromJson(data));
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('MENU_SCAN', 'Repli : $e');
+      }
     });
     return list;
   }

@@ -383,14 +383,18 @@ class ScanService {
     try {
       final decoded = jsonDecode(clean);
       if (decoded is Map<String, dynamic>) return decoded;
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('SCAN_AI', 'Repli : $e');
+      }
 
     final match = RegExp(r'\{[\s\S]*\}').firstMatch(rawText);
     if (match != null) {
       try {
         final decoded = jsonDecode(match.group(0)!);
         if (decoded is Map<String, dynamic>) return decoded;
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('SCAN_AI', 'Repli : $e');
+      }
     }
     return null;
   }

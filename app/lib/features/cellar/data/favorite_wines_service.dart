@@ -1,3 +1,4 @@
+import '../../../shared/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,7 +16,9 @@ class FavoriteWinesNotifier extends StateNotifier<Set<String>> {
       final prefs = await SharedPreferences.getInstance();
       final list = prefs.getStringList(_storageKey) ?? [];
       state = list.toSet();
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('CELLAR', 'Repli : $e');
+      }
   }
 
   Future<void> toggleFavorite(String id) async {
@@ -33,7 +36,9 @@ class FavoriteWinesNotifier extends StateNotifier<Set<String>> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList(_storageKey, next.toList());
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('CELLAR', 'Repli : $e');
+      }
   }
 
   bool isFavorite(String id) => state.contains(id.trim());

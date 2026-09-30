@@ -1,3 +1,5 @@
+import '../../features/notifications/data/local_notification_service.dart';
+import '../../features/notifications/data/planificateur_apogee.dart';
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/cellar/data/cellar_repository.dart';
@@ -146,6 +148,8 @@ Future<List<Bottle>> _chargerLesBouteilles(Ref ref, String? cellarId) async {
 /// toutes celles qui scanneront le même vin.
 final apogeeBackfillProvider = FutureProvider<int>((ref) async {
   final bottles = await ref.watch(bottlesProvider(null).future);
+  // Le rendez-vous d'apogée de la semaine (V2.3 · D5), programmé à l'ouverture de la cave.
+  unawaited(PlanificateurApogee.planifier(bottles, ref.read(localNotificationServiceProvider)));
   final vins = <String, Wine>{};
   for (final b in bottles) {
     final w = b.wine;

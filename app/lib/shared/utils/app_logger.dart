@@ -102,7 +102,9 @@ class AppLogger {
     );
 
     _logs.add(entry);
-    _pendingServerQueue.add(entry);
+    // Le niveau « debug » reste sur l'appareil (rapport de diagnostic) : il ne part plus au
+    // serveur, où il faisait du bruit (799 lignes en 21 jours, V2.3 · D4).
+    if (level != LogLevel.debug) _pendingServerQueue.add(entry);
 
     if (_logs.length > _maxLogs) {
       _logs.removeAt(0);
@@ -117,6 +119,28 @@ class AppLogger {
     if ((level == LogLevel.error || level == LogLevel.warning) && _supabaseClient != null) {
       Future.delayed(const Duration(milliseconds: 300), () => flushToServer());
     }
+  }
+
+  static final Map<String, DateTime> _dernieresFois = {};
+  static final Map<String, int> _tus = {};
+
+  /// Vrai si cette erreur n'a pas été journalisée dans les [fenetre] dernières minutes
+  /// (V2.3 · D3). Une même panne qui se répète — un renouvellement de session qui échoue en
+  /// boucle hors réseau — produisait 216 lignes pour une seule personne. La signature ignore
+  /// les chiffres, pour regrouper les répétitions qui ne diffèrent que par un compteur.
+  static bool premiereFois(Object erreur, {Duration fenetre = const Duration(minutes: 10)}) {
+    final signature = '${erreur.runtimeType}:${erreur.toString().replaceAll(RegExp(r'[0-9]+'), '#')}';
+    final cle = signature.length > 160 ? signature.substring(0, 160) : signature;
+    final maintenant = DateTime.now();
+    final derniere = _dernieresFois[cle];
+    if (derniere != null && maintenant.difference(derniere) < fenetre) {
+      _tus[cle] = (_tus[cle] ?? 0) + 1;
+      return false;
+    }
+    final tues = _tus.remove(cle);
+    _dernieresFois[cle] = maintenant;
+    if (tues != null && tues > 0) info('LOGGER', '$tues répétition(s) tue(s) de : ${cle.length > 80 ? cle.substring(0, 80) : cle}');
+    return true;
   }
 
   static void debug(String tag, String message) {

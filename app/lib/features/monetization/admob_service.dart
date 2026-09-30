@@ -59,7 +59,7 @@ class AdMobService {
   Future<void> initialize() async {
     if (_isInitialized) return;
     if (!AdMobConfig.isPlatformSupported) {
-      AppLogger.info('ADMOB', 'Platform not supported for native AdMob (Web/Desktop).');
+      AppLogger.debug('ADMOB', 'Platform not supported for native AdMob (Web/Desktop).');
       return;
     }
 
@@ -69,7 +69,7 @@ class AdMobService {
       final lastMs = prefs.getInt(_prefKeyLastAnyAdShowTime);
       if (lastMs != null) {
         _lastAnyAdShowTime = DateTime.fromMillisecondsSinceEpoch(lastMs);
-        AppLogger.info('ADMOB', 'Restored lastAnyAdShowTime: $_lastAnyAdShowTime');
+        AppLogger.debug('ADMOB', 'Restored lastAnyAdShowTime: $_lastAnyAdShowTime');
       }
     } catch (_) {}
 
@@ -86,7 +86,7 @@ class AdMobService {
               AppLogger.warning('ADMOB', 'UMP ConsentForm error: ${formError.message} (code: ${formError.errorCode})');
             }
             final canRequest = await ConsentInformation.instance.canRequestAds();
-            AppLogger.info('ADMOB', 'UMP consent resolved. canRequestAds: $canRequest');
+            AppLogger.debug('ADMOB', 'UMP consent resolved. canRequestAds: $canRequest');
             if (canRequest) {
               await _initMobileAds();
             } else {
@@ -112,7 +112,7 @@ class AdMobService {
     await completer.future.timeout(
       const Duration(seconds: 3),
       onTimeout: () {
-        AppLogger.info('ADMOB', 'UMP consent setup still resolving in background.');
+        AppLogger.debug('ADMOB', 'UMP consent setup still resolving in background.');
       },
     );
   }
@@ -124,14 +124,14 @@ class AdMobService {
         await MobileAds.instance.updateRequestConfiguration(
           RequestConfiguration(testDeviceIds: AdMobConfig.testDeviceIds),
         );
-        AppLogger.info('ADMOB', 'Configured testDeviceIds: ${AdMobConfig.testDeviceIds}');
+        AppLogger.debug('ADMOB', 'Configured testDeviceIds: ${AdMobConfig.testDeviceIds}');
       }
       final initStatus = await MobileAds.instance.initialize();
       _isInitialized = true;
       final adapterStatuses = initStatus.adapterStatuses.entries
           .map((e) => '${e.key}: ${e.value.state.name}')
           .join(', ');
-      AppLogger.info('ADMOB', 'MobileAds SDK initialized. Adapters: [$adapterStatuses]');
+      AppLogger.debug('ADMOB', 'MobileAds SDK initialized. Adapters: [$adapterStatuses]');
       preloadRewardedAd();
       preloadAppOpenAd();
     } catch (e, st) {
@@ -175,19 +175,19 @@ class AdMobService {
     if (adUnitId.isEmpty) return;
 
     _isAdLoading = true;
-    AppLogger.info('ADMOB', 'Preloading RewardedAd with ID: $adUnitId (testMode: ${AdMobConfig.useTestAds})');
+    AppLogger.debug('ADMOB', 'Preloading RewardedAd with ID: $adUnitId (testMode: ${AdMobConfig.useTestAds})');
 
     RewardedAd.load(
       adUnitId: adUnitId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (RewardedAd ad) {
-          AppLogger.info('ADMOB', 'RewardedAd loaded successfully.');
+          AppLogger.debug('ADMOB', 'RewardedAd loaded successfully.');
           _rewardedAd = ad;
           _isAdLoading = false;
         },
         onAdFailedToLoad: (LoadAdError error) {
-          AppLogger.warning('ADMOB', 'RewardedAd failed to load: code=${error.code}, message=${error.message}, domain=${error.domain}');
+          AppLogger.info('ADMOB', 'RewardedAd failed to load: code=${error.code}, message=${error.message}, domain=${error.domain}');
           _rewardedAd = null;
           _isAdLoading = false;
         },
@@ -208,7 +208,7 @@ class AdMobService {
     String emplacement = 'autre',
   }) async {
     if (!AdMobConfig.isPlatformSupported || _rewardedAd == null) {
-      AppLogger.info('ADMOB', 'Native AdMob rewarded ad not available (isPlatformSupported: ${AdMobConfig.isPlatformSupported}, isReady: ${_rewardedAd != null}).');
+      AppLogger.debug('ADMOB', 'Native AdMob rewarded ad not available (isPlatformSupported: ${AdMobConfig.isPlatformSupported}, isReady: ${_rewardedAd != null}).');
       // Replenish for next time
       preloadRewardedAd();
       return false;
@@ -226,7 +226,7 @@ class AdMobService {
         AppLogger.info('ADMOB', 'RewardedAd showed full screen content.');
       },
       onAdDismissedFullScreenContent: (RewardedAd ad) {
-        AppLogger.info('ADMOB', 'RewardedAd dismissed full screen content. Reward earned: $userEarnedReward');
+        AppLogger.debug('ADMOB', 'RewardedAd dismissed full screen content. Reward earned: $userEarnedReward');
         ad.dispose();
         // Immediately replenish the inventory
         preloadRewardedAd();
@@ -277,14 +277,14 @@ class AdMobService {
 
     _isAppOpenAdLoading = true;
     _appOpenCompleter = Completer<bool>();
-    AppLogger.info('ADMOB', 'Preloading AppOpenAd with ID: $adUnitId (testMode: ${AdMobConfig.useTestAds})');
+    AppLogger.debug('ADMOB', 'Preloading AppOpenAd with ID: $adUnitId (testMode: ${AdMobConfig.useTestAds})');
 
     AppOpenAd.load(
       adUnitId: adUnitId,
       request: const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (AppOpenAd ad) {
-          AppLogger.info('ADMOB', 'AppOpenAd loaded successfully.');
+          AppLogger.debug('ADMOB', 'AppOpenAd loaded successfully.');
           _appOpenAd = ad;
           _appOpenLoadTime = DateTime.now();
           _isAppOpenAdLoading = false;
@@ -299,7 +299,7 @@ class AdMobService {
                 ? now.difference(_appStartTime!).inSeconds
                 : 999;
             if (elapsedSinceStart <= 45) {
-              AppLogger.info('ADMOB', 'Displaying deferred startup AppOpenAd (${elapsedSinceStart}s after launch).');
+              AppLogger.debug('ADMOB', 'Displaying deferred startup AppOpenAd (${elapsedSinceStart}s after launch).');
               _pendingStartupAd = false;
               _hasShownStartupAd = true;
               showAppOpenAdIfAvailable();
@@ -309,7 +309,7 @@ class AdMobService {
           }
         },
         onAdFailedToLoad: (LoadAdError error) {
-          AppLogger.warning('ADMOB', 'AppOpenAd failed to load: code=${error.code}, message=${error.message}, domain=${error.domain}');
+          AppLogger.info('ADMOB', 'AppOpenAd failed to load: code=${error.code}, message=${error.message}, domain=${error.domain}');
           _appOpenAd = null;
           _isAppOpenAdLoading = false;
           if (_appOpenCompleter != null && !_appOpenCompleter!.isCompleted) {
@@ -350,7 +350,7 @@ class AdMobService {
       final loaded = await preloadAppOpenAd().timeout(
         timeout,
         onTimeout: () {
-          AppLogger.info('ADMOB', 'Startup ad not ready within initial ${timeout.inMilliseconds}ms. Continuing app launch; ad will display as soon as ready.');
+          AppLogger.debug('ADMOB', 'Startup ad not ready within initial ${timeout.inMilliseconds}ms. Continuing app launch; ad will display as soon as ready.');
           return false;
         },
       );
@@ -381,7 +381,7 @@ class AdMobService {
         DateTime.now().difference(_lastAnyAdShowTime!) < const Duration(minutes: 10)) {
       final remainingSec = const Duration(minutes: 10).inSeconds -
           DateTime.now().difference(_lastAnyAdShowTime!).inSeconds;
-      AppLogger.info('ADMOB', 'AppOpenAd ignored: 10-minute cooldown active since last ad ($remainingSec s remaining).');
+      AppLogger.debug('ADMOB', 'AppOpenAd ignored: 10-minute cooldown active since last ad ($remainingSec s remaining).');
       onDismissed?.call();
       return false;
     }
@@ -398,7 +398,7 @@ class AdMobService {
         AppLogger.info('ADMOB', 'AppOpenAd showed full screen content.');
       },
       onAdDismissedFullScreenContent: (ad) {
-        AppLogger.info('ADMOB', 'AppOpenAd dismissed full screen content.');
+        AppLogger.debug('ADMOB', 'AppOpenAd dismissed full screen content.');
         _isShowingAppOpenAd = false;
         ad.dispose();
         preloadAppOpenAd();
@@ -440,7 +440,7 @@ class AdMobService {
         _lastPausedTime ??= DateTime.now();
       },
       onResume: () {
-        AppLogger.info('ADMOB', 'App resumed from background. Checking AppOpenAd eligibility...');
+        AppLogger.debug('ADMOB', 'App resumed from background. Checking AppOpenAd eligibility...');
         final premium = _isPremiumChecker?.call() ?? false;
         if (premium) return;
 
@@ -453,7 +453,7 @@ class AdMobService {
           // Only show ad if the app was backgrounded for at least 30 seconds
           // to avoid showing ads when simply locking/unlocking or quickly switching apps
           if (backgroundDuration < const Duration(seconds: 30)) {
-            AppLogger.info('ADMOB', 'AppOpenAd skipped on resume: in background for only ${backgroundDuration.inSeconds}s (< 30s threshold).');
+            AppLogger.debug('ADMOB', 'AppOpenAd skipped on resume: in background for only ${backgroundDuration.inSeconds}s (< 30s threshold).');
             return;
           }
         }
@@ -463,14 +463,14 @@ class AdMobService {
             DateTime.now().difference(_lastAnyAdShowTime!) < const Duration(minutes: 10)) {
           final remainingSec = const Duration(minutes: 10).inSeconds -
               DateTime.now().difference(_lastAnyAdShowTime!).inSeconds;
-          AppLogger.info('ADMOB', 'AppOpenAd skipped on resume: an ad was shown within the last 10 minutes ($remainingSec s remaining).');
+          AppLogger.debug('ADMOB', 'AppOpenAd skipped on resume: an ad was shown within the last 10 minutes ($remainingSec s remaining).');
           return;
         }
 
         showAppOpenAdIfAvailable();
       },
     );
-    AppLogger.info('ADMOB', 'AppLifecycleListener registered for AppOpenAd.');
+    AppLogger.debug('ADMOB', 'AppLifecycleListener registered for AppOpenAd.');
   }
 
   /// Disposes the lifecycle listener when tearing down.

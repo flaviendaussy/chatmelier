@@ -1,3 +1,4 @@
+import '../../../shared/utils/app_logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../domain/terroir_catalog.dart';
@@ -41,7 +42,9 @@ class ScratchcardRepository {
         final key = '$name $producer $region $country $appellation'.toLowerCase();
         tastedKeywords.putIfAbsent(key, () => []).add(name);
       }
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('SCRATCHCARD', 'Repli : $e');
+      }
 
     // 2. Fetch cellar bottles
     try {
@@ -60,7 +63,9 @@ class ScratchcardRepository {
         final key = '$name $producer $region $country $appellation'.toLowerCase();
         tastedKeywords.putIfAbsent(key, () => []).add(name);
       }
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('SCRATCHCARD', 'Repli : $e');
+      }
 
     final List<TerroirNode> evaluated = [];
 

@@ -199,7 +199,9 @@ class LocalNotificationService {
       } else if (Platform.isIOS || Platform.isMacOS) {
         return true;
       }
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('NOTIF', 'Repli : $e');
+      }
     return true;
   }
 
@@ -305,7 +307,9 @@ class LocalNotificationService {
   Future<void> cancelReminder(int id) async {
     try {
       await _plugin.cancel(id: id);
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('NOTIF', 'Repli : $e');
+      }
   }
 
   static const int liveAerationNotificationId = 88888;
@@ -372,7 +376,9 @@ class LocalNotificationService {
     try {
       await _plugin.cancel(id: liveAerationNotificationId);
       AppLogger.info('NOTIF', 'Live aeration notification stopped');
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('NOTIF', 'Repli : $e');
+      }
   }
 
   /// Send a completion notification when aeration finishes.

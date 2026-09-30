@@ -71,6 +71,7 @@ void main() async {
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
+    if (!AppLogger.premiereFois(details.exception)) return;
     AppLogger.error('FLUTTER_UI', details.exceptionAsString(), details.exception, details.stack);
   };
   PlatformDispatcher.instance.onError = (error, stack) {
@@ -79,6 +80,13 @@ void main() async {
     // surtout sur les appareils de pré-lancement du Play Store, noyaient les vraies.
     if (error.toString().contains('Failed to load font')) {
       AppLogger.warning('FONTS', error.toString());
+      return true;
+    }
+    if (!AppLogger.premiereFois(error)) return true;
+    // Un renouvellement de session qui échoue faute de réseau n'est pas un bogue : le SDK
+    // réessaie seul. On le note, sans le compter parmi les erreurs.
+    if (error is AuthRetryableFetchException) {
+      AppLogger.warning('AUTH_RESEAU', error.toString());
       return true;
     }
     AppLogger.error('ASYNC_UNCAUGHT', error.toString(), error, stack);

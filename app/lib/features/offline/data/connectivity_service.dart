@@ -1,3 +1,4 @@
+import '../../../shared/utils/app_logger.dart';
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -84,7 +85,9 @@ class ConnectivityService {
           _handleOnline();
           return;
         }
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('CONNECTIVITY', 'Repli : $e');
+      }
 
       // Still unreachable after 5 seconds debounce -> officially offline
       _ref.read(isOnlineProvider.notifier).state = false;

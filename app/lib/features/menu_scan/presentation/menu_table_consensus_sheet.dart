@@ -11,6 +11,8 @@ import '../data/menu_table_session_manager.dart';
 import '../data/table_session_service.dart';
 import '../domain/table_matchmaker.dart';
 import 'table_matchmaker_sheet.dart';
+import '../../../shared/widgets/bandeau_connexion_perdue.dart';
+import '../../../shared/services/sondage_espace.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import 'titre_du_classement.dart';
@@ -50,7 +52,8 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
   bool _ouvertureEnCours = true;
 
   /// Les convives qui ont rejoint depuis leur propre téléphone.
-  Timer? _sondage;
+  SondageEspace? _sondage;
+  bool _connexionPerdue = false;
 
   @override
   void initState() {
@@ -63,7 +66,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
 
   @override
   void dispose() {
-    _sondage?.cancel();
+    _sondage?.arreter();
     super.dispose();
   }
 
@@ -84,7 +87,13 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       // paramètre, et l'ouvrir à tous laisserait lister les tables en cours. Quatre
       // convives autour d'une table ne justifient pas d'y sacrifier ça — six secondes
       // suffisent à ce que l'arrivée d'un ami paraisse immédiate.
-      _sondage = Timer.periodic(const Duration(seconds: 6), (_) => _rafraichirConvives());
+      _sondage = SondageEspace(
+        etiquette: 'Convives de la table ${t.code}',
+        tache: _rafraichirConvives,
+        surAlerte: (alerte) {
+          if (mounted) setState(() => _connexionPerdue = alerte);
+        },
+      )..demarrer(immediat: false);
     } catch (_) {
       if (!mounted) return;
       // La table reste utilisable en local : l'hôte garde son écran, ses convives ajoutés
@@ -156,11 +165,13 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
     }
   }
 
-  Future<void> _rafraichirConvives() async {
+  Future<bool> _rafraichirConvives() async {
     final code = _codeServeur;
-    if (code == null || !mounted) return;
-    final distants = await ref.read(tableSessionServiceProvider).convives(code);
-    if (!mounted || distants.isEmpty) return;
+    if (code == null || !mounted) return true;
+    final lus = await ref.read(tableSessionServiceProvider).lireConvives(code);
+    if (lus == null) return false;
+    final distants = lus;
+    if (!mounted || distants.isEmpty) return true;
     setState(() {
       for (final g in distants) {
         // L'hôte est déjà à l'écran, sous son profil local : ne pas le compter deux fois.
@@ -178,6 +189,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       }
     });
     _calculateConsensus();
+    return true;
   }
 
   Future<void> _initHostAndDemo() async {
@@ -570,6 +582,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: Column(
                   children: [
+                    if (_connexionPerdue) BandeauConnexionPerdue(onReessayer: () => _sondage?.relancer()),
                     Text(_isFr ? 'CODE DE LA TABLE' : 'TABLE CODE',
                         style: const TextStyle(
                             color: Colors.white54,

@@ -886,7 +886,9 @@ class SyncService {
         'user_id': userId,
         'role': 'admin',
       });
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('OFFLINE_SYNC', 'Repli : $e');
+      }
 
     // Remap any subsequent actions in queue that were tied to oldTempId
     if (oldTempId != null && oldTempId.startsWith('temp_')) {

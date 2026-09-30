@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../shared/widgets/bandeau_connexion_perdue.dart';
+import '../../../shared/services/sondage_espace.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../data/table_session_service.dart';
@@ -92,7 +94,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
   /// Code serveur de la table, s'il est connu (paramètre, ou `?table=` de l'URL).
   String? _code;
-  Timer? _sondage;
+  SondageEspace? _sondage;
+  bool _connexionPerdue = false;
 
   /// Le prénom sous lequel cet invité a rejoint la table côté serveur.
   String? _monNomAssis;
@@ -110,8 +113,14 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     if (_code != null) {
       // Même cadence que l'hôte : six secondes suffisent à ce qu'une arrivée paraisse
       // immédiate, sans ouvrir la lecture des tables à tous.
-      WidgetsBinding.instance.addPostFrameCallback((_) => _rafraichirConvives());
-      _sondage = Timer.periodic(const Duration(seconds: 6), (_) => _rafraichirConvives());
+      _sondage = SondageEspace(
+        etiquette: 'Convives de la table $_code (invité)',
+        tache: _rafraichirConvives,
+        surAlerte: (alerte) {
+          if (mounted) setState(() => _connexionPerdue = alerte);
+        },
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) => _sondage?.demarrer());
     }
   }
 
@@ -135,7 +144,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
   @override
   void dispose() {
-    _sondage?.cancel();
+    _sondage?.arreter();
     _nameCtrl.dispose();
     _wineSearchCtrl.dispose();
     _dishSearchCtrl.dispose();
@@ -551,11 +560,13 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
   /// Qui est à table, lu sur le serveur. Remplace la liste locale : l'hôte y figure avec
   /// son vrai palais, et chaque convive qui arrive y apparaît.
-  Future<void> _rafraichirConvives() async {
+  Future<bool> _rafraichirConvives() async {
     final code = _code;
-    if (code == null || !mounted) return;
-    final distants = await ref.read(tableSessionServiceProvider).convives(code);
-    if (!mounted || distants.isEmpty) return;
+    if (code == null || !mounted) return true;
+    final lus = await ref.read(tableSessionServiceProvider).lireConvives(code);
+    if (lus == null) return false;
+    final distants = lus;
+    if (!mounted || distants.isEmpty) return true;
     final moi = _guests.where((g) => g.id == 'guest_me').toList();
     final dejaListe = _monNomAssis != null &&
         distants.any((g) => g.name.trim().toLowerCase() == _monNomAssis!.toLowerCase());
@@ -567,6 +578,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         ..addAll(dejaListe ? const <GuestProfile>[] : moi);
     });
     _recalculateConsensus();
+    return true;
   }
 
   Future<void> _launchStore() async {
@@ -684,6 +696,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (_connexionPerdue) BandeauConnexionPerdue(onReessayer: () => _sondage?.relancer()),
         // Banner Héroïque
         Container(
           padding: const EdgeInsets.all(16),

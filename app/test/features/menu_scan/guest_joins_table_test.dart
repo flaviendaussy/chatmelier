@@ -46,6 +46,9 @@ class _FausseTable extends Fake implements TableSessionService {
 
   @override
   Future<List<GuestProfile>> convives(String code) async => aTable;
+
+  @override
+  Future<List<GuestProfile>?> lireConvives(String code) async => aTable;
 }
 
 /// Le palais Chatmelier de l'appareil : douze dégustations, un goût des rouges charpentés.

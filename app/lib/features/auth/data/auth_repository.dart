@@ -39,7 +39,9 @@ class AuthRepository {
           final normalizedPath = path.isEmpty ? '/' : (path.endsWith('/') ? path : '$path/');
           return '$origin$normalizedPath';
         }
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('AUTH', 'Repli : $e');
+      }
       final base = Uri.base;
       final portStr = (base.hasPort && base.port != 80 && base.port != 443) ? ':${base.port}' : '';
       final path = base.path.isEmpty ? '/' : (base.path.endsWith('/') ? base.path : '${base.path}/');
@@ -211,7 +213,9 @@ class AuthRepository {
           cachedEmail ??= prefs.getString('user_profile_email_$userId');
           cachedName ??= prefs.getString('user_profile_name_$userId');
           cachedAvatar ??= prefs.getString('user_profile_avatar_$userId');
-        } catch (_) {}
+        } catch (e) {
+        AppLogger.debug('AUTH', 'Repli : $e');
+      }
 
         if (profile != null) {
           profile = profile.copyWith(
@@ -259,7 +263,9 @@ class AuthRepository {
           return false;
         }
       }
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('AUTH', 'Repli : $e');
+      }
 
     return true;
   }
@@ -286,7 +292,9 @@ class AuthRepository {
           }
         }
       }
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('AUTH', 'Repli : $e');
+      }
 
     return true;
   }
@@ -310,7 +318,9 @@ class AuthRepository {
           return false;
         }
       }
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('AUTH', 'Repli : $e');
+      }
 
     return true;
   }
@@ -412,7 +422,9 @@ class AuthRepository {
       if (defaultCurrency != null) {
         await prefs.setString('user_profile_currency_${user.id}', defaultCurrency);
       }
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('AUTH', 'Repli : $e');
+      }
 
     // 3. Remote Postgres profiles table Update with fallback
     //
@@ -488,7 +500,9 @@ class AuthRepository {
     // 3. Déconnexion de la session
     try {
       await _client.auth.signOut();
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('AUTH', 'Repli : $e');
+      }
     AppLogger.info('AUTH', 'Account deletion complete and session terminated.');
   }
 }

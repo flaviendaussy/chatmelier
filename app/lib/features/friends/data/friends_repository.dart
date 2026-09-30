@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -106,6 +107,20 @@ void refreshFriendsAndNotifications(WidgetRef ref) {
 }
 
 class FriendsRepository {
+  /// 8 s et non plus 3 : ces lectures partent en arrière-plan, souvent au démarrage, en même
+  /// temps que la cave. À 3 s, six personnes ont cumulé environ 200 dépassements en 21 jours
+  /// (journaux du 30/09), sans rien de cassé pour autant.
+  static const _delaiReseau = Duration(seconds: 8);
+
+  /// Un délai dépassé sur le réseau mobile n'est pas une anomalie : il se note sans alerter.
+  static void _journaliserEchec(String quoi, Object e) {
+    if (e is TimeoutException) {
+      AppLogger.info('FRIENDS', '$quoi : délai dépassé');
+    } else {
+      AppLogger.warning('FRIENDS', '$quoi: $e');
+    }
+  }
+
   final SupabaseClient _client;
   static const String _cacheKey = 'chatmelier_friends_cache_v2';
 
@@ -153,7 +168,9 @@ class FriendsRepository {
         phone ??= uriParams['p'] ?? uriParams['phone'];
         email ??= uriParams['e'] ?? uriParams['email'];
         avatar = uriParams['avatar'];
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
     }
 
     return (
@@ -183,7 +200,7 @@ class FriendsRepository {
             ''')
             .or('user_id.eq.${user.id},friend_id.eq.${user.id}')
             .eq('status', 'accepted')
-            .timeout(const Duration(seconds: 4));
+            .timeout(_delaiReseau);
 
         final List<Friend> friendsList = [];
 
@@ -207,7 +224,9 @@ class FriendsRepository {
               friendCellarNames[ownerId] = cellar['name']?.toString() ?? tr('Cave Partagée', 'Shared cellar');
             }
           }
-        } catch (_) {}
+        } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
 
         for (final row in (res as List<dynamic>)) {
           final map = row as Map<String, dynamic>;
@@ -277,7 +296,7 @@ class FriendsRepository {
           ''')
           .eq('friend_id', user.id)
           .eq('status', 'pending')
-          .timeout(const Duration(seconds: 3));
+          .timeout(_delaiReseau);
 
       final list = <Friend>[];
       for (final item in (res as List<dynamic>)) {
@@ -308,7 +327,7 @@ class FriendsRepository {
       }
       return list;
     } catch (e) {
-      AppLogger.warning('FRIENDS', 'Could not fetch pending incoming requests: $e');
+      _journaliserEchec('Could not fetch pending incoming requests', e);
       return [];
     }
   }
@@ -329,7 +348,7 @@ class FriendsRepository {
           ''')
           .eq('user_id', user.id)
           .eq('status', 'pending')
-          .timeout(const Duration(seconds: 3));
+          .timeout(_delaiReseau);
 
       final list = <Friend>[];
       for (final item in (res as List<dynamic>)) {
@@ -512,7 +531,9 @@ class FriendsRepository {
           targetCellarId = cellarRes['id'].toString();
           targetCellarName = cellarRes['name']?.toString() ?? 'Cave Partagée';
         }
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
     }
 
     if (targetCellarId.isEmpty || targetCellarId == ownerId) {
@@ -531,7 +552,9 @@ class FriendsRepository {
             targetCellarName = cMap['name'].toString();
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
     }
 
     final requestId = const Uuid().v4();
@@ -605,7 +628,9 @@ class FriendsRepository {
           targetCellarId = myCellar['id'].toString();
           cellarName ??= myCellar['name']?.toString();
         }
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
     }
 
     if (targetCellarId.isEmpty) {
@@ -614,7 +639,9 @@ class FriendsRepository {
         if (myMember != null && myMember['cellar_id'] != null) {
           targetCellarId = myMember['cellar_id'].toString();
         }
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
     }
 
     if (accept) {
@@ -624,7 +651,9 @@ class FriendsRepository {
             .from('cellar_access_requests')
             .update({'status': 'accepted', 'responded_at': DateTime.now().toIso8601String()})
             .eq('id', requestId);
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
 
       // 2. Add member to cellar_members
       if (targetCellarId.isNotEmpty) {
@@ -661,7 +690,9 @@ class FriendsRepository {
             .from('cellar_access_requests')
             .update({'status': 'rejected', 'responded_at': DateTime.now().toIso8601String()})
             .eq('id', requestId);
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
 
       final myName = user.userMetadata?['display_name'] as String? ?? 'Le propriétaire';
       try {
@@ -673,7 +704,9 @@ class FriendsRepository {
           'body': '$myName a décliné votre demande d\'accès à sa cave.',
           'data': {'cellar_id': targetCellarId},
         });
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
     }
 
     // Always remove/mark read related notifications for the owner
@@ -691,7 +724,9 @@ class FriendsRepository {
             .update({'is_read': true})
             .eq('user_id', user.id)
             .eq('type', 'cellar_request');
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
     }
   }
 
@@ -707,7 +742,9 @@ class FriendsRepository {
           .from('cellar_access_requests')
           .update({'status': 'rejected', 'responded_at': DateTime.now().toIso8601String()})
           .eq('id', requestId);
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
 
     try {
       await _client
@@ -723,7 +760,9 @@ class FriendsRepository {
             .update({'is_read': true})
             .eq('user_id', user.id)
             .eq('type', 'cellar_request');
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
     }
   }
 
@@ -782,7 +821,9 @@ class FriendsRepository {
           'role': role,
         },
       });
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
 
     AppLogger.info('FRIENDS', 'Owner granted cellar $targetCellarId access to friend $friendUserId as $role');
   }
@@ -820,13 +861,13 @@ class FriendsRepository {
           ''')
           .eq('owner_id', user.id)
           .eq('status', 'pending')
-          .timeout(const Duration(seconds: 3));
+          .timeout(_delaiReseau);
 
       for (final j in (res as List<dynamic>)) {
         requests.add(CellarAccessRequest.fromJson(j as Map<String, dynamic>));
       }
     } catch (e) {
-      AppLogger.warning('FRIENDS', 'Could not fetch incoming cellar requests from table: $e');
+      _journaliserEchec('Could not fetch incoming cellar requests from table', e);
     }
 
     // Complement with pending cellar requests from notifications
@@ -863,7 +904,9 @@ class FriendsRepository {
             await _client.from('user_notifications').update({'is_read': true}).eq('id', n['id']);
             continue;
           }
-        } catch (_) {}
+        } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
 
         final actorProfile = n['actor'] as Map<String, dynamic>?;
         final extracted = _extractProfileData(actorProfile ?? {});
@@ -884,7 +927,9 @@ class FriendsRepository {
           ),
         );
       }
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
 
     return requests;
   }
@@ -906,11 +951,11 @@ class FriendsRepository {
           .eq('user_id', user.id)
           .order('created_at', ascending: false)
           .limit(30)
-          .timeout(const Duration(seconds: 3));
+          .timeout(_delaiReseau);
 
       return (res as List<dynamic>).map((j) => UserNotification.fromJson(j as Map<String, dynamic>)).toList();
     } catch (e) {
-      AppLogger.warning('FRIENDS', 'Could not fetch notifications: $e');
+      _journaliserEchec('Could not fetch notifications', e);
       return [];
     }
   }
@@ -921,7 +966,9 @@ class FriendsRepository {
           .from('user_notifications')
           .update({'is_read': true})
           .eq('id', notificationId);
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
   }
 
   Future<void> markAllNotificationsRead() async {
@@ -933,7 +980,9 @@ class FriendsRepository {
           .update({'is_read': true})
           .eq('user_id', user.id)
           .eq('is_read', false);
-    } catch (_) {}
+    } catch (e) {
+        AppLogger.debug('FRIENDS', 'Repli : $e');
+      }
   }
 
   Future<void> deleteNotification(String notificationId) async {

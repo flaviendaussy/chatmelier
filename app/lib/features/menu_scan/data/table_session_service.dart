@@ -132,7 +132,9 @@ class TableSessionService {
   ///
   /// Le code est redemandé à chaque appel : c'est lui qui tient lieu d'autorisation, et un
   /// identifiant de session capté ailleurs ne doit pas suffire.
-  Future<List<GuestProfile>> convives(String code) async {
+  /// Les convives de la table, ou `null` si la lecture a échoué (réseau, table expirée).
+  /// Le sondage de l'écran s'espace sur `null` et journalise lui-même, une seule fois.
+  Future<List<GuestProfile>?> lireConvives(String code) async {
     try {
       final res = await _client.rpc('read_table_session_guests', params: {
         'p_code': code.trim().toUpperCase(),
@@ -154,10 +156,12 @@ class TableSessionService {
             ),
       ];
     } catch (e) {
-      AppLogger.warning('TABLE', 'Lecture des convives impossible ($code): $e');
-      return const [];
+      AppLogger.debug('TABLE', 'Lecture des convives impossible ($code): $e');
+      return null;
     }
   }
+
+  Future<List<GuestProfile>> convives(String code) async => await lireConvives(code) ?? const [];
 
   /// Les fonctions renvoient une table d'une ligne ; PostgREST la rend en liste.
   static Map<String, dynamic>? _premiere(dynamic res) {

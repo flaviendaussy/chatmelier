@@ -130,7 +130,9 @@ class CellarRepository {
           'user_id': userId,
           'role': 'admin',
         });
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.debug('CELLAR_REPO', 'Repli : $e');
+      }
 
       final newCellar = Cellar.fromJson(res);
 

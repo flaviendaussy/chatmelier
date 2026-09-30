@@ -25,8 +25,6 @@ import '../features/friends/presentation/friends_screen.dart';
 import '../features/menu_scan/domain/menu_wine.dart';
 import '../features/menu_scan/presentation/menu_photo_capture_screen.dart';
 import '../features/menu_scan/presentation/enriched_menu_screen.dart';
-import '../features/blind_battle/presentation/blind_battle_guest_screen.dart';
-import '../features/blind_battle/presentation/blind_battle_host_screen.dart';
 import '../features/menu_scan/presentation/menu_table_consensus_guest_screen.dart';
 import '../shared/widgets/adaptive_app_shell.dart';
 import '../shared/providers/supabase_provider.dart';
@@ -82,7 +80,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
       final isInviteRoute = state.matchedLocation.startsWith('/invite/');
-      final isBlindBattleRoute = state.matchedLocation.startsWith('/blind');
       final isTableConsensusRoute = state.matchedLocation.startsWith('/table-consensus') ||
           state.matchedLocation.startsWith('/menu-match');
       final isMenuScanRoute = state.matchedLocation.startsWith('/scan/menu');
@@ -98,7 +95,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      if (!isLoggedIn && !isAuthRoute && !isInviteRoute && !isBlindBattleRoute && !isTableConsensusRoute && !isMenuScanRoute) return '/login';
+      if (!isLoggedIn && !isAuthRoute && !isInviteRoute && !isTableConsensusRoute && !isMenuScanRoute) return '/login';
       if (isLoggedIn && isAuthRoute) return '/';
       return null;
     },
@@ -121,27 +118,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Blind Battle routes (public access for guests via QR code or host)
-      GoRoute(
-        path: '/blind',
-        builder: (context, state) {
-          final sessionId = state.uri.queryParameters['session'];
-          return BlindBattleGuestScreen(initialSessionId: sessionId);
-        },
-      ),
-      GoRoute(
-        path: '/blind/:sessionId',
-        builder: (context, state) {
-          final sessionId = state.pathParameters['sessionId'];
-          return BlindBattleGuestScreen(initialSessionId: sessionId);
-        },
-      ),
-      GoRoute(
-        path: '/blind-host',
-        builder: (context, state) {
-          return const BlindBattleHostScreen();
-        },
-      ),
+      // Blind Battle est masqué (V2.3 · I2) : un ancien QR mène à l'accueil plutôt qu'à une
+      // partie qui n'existe que sur le téléphone de l'hôte.
+      GoRoute(path: '/blind', redirect: (context, state) => '/login'),
+      GoRoute(path: '/blind/:sessionId', redirect: (context, state) => '/login'),
+      GoRoute(path: '/blind-host', redirect: (context, state) => '/'),
 
       // Table Consensus routes (public access for guests via QR code on web or app)
       GoRoute(

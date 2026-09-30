@@ -36,7 +36,6 @@ import '../data/vineyard_knowledge_service.dart';
 import '../../sommelier/presentation/thermal_aeration_calculator_sheet.dart';
 import '../../sommelier/presentation/sommelier_storyteller_dialog.dart';
 import 'aging_simulator_sheet.dart';
-import '../../blind_battle/presentation/blind_battle_host_screen.dart';
 
 class BottleDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -1562,30 +1561,9 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         },
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                          side: const BorderSide(color: Color(0xFF8B1E3F)),
-                                        ),
-                                        icon: const Icon(Icons.sports_esports_outlined, color: Color(0xFF8B1E3F), size: 18),
-                                        label: Text(
-                                          isFr ? 'Blind Battle' : 'Blind Battle',
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        onPressed: () {
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (_) => BlindBattleHostScreen(initialBottle: bottleObj),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
+                                    // Blind Battle est masqué (V2.3 · I2) : ses parties vivaient sur le
+                                    // seul téléphone de l'hôte, et un invité ailleurs recevait une
+                                    // fausse partie. Il reviendra en variante « à l'aveugle » du comptoir.
                                   ],
                                 ),
                               ],

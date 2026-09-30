@@ -345,9 +345,9 @@ class GuestMatcherEngine {
     }
 
     // Bonus de type favori (ex: Rouge, Blanc sec, Champagne)
-    if (guest.favoriteTypes.isNotEmpty && wine.type != null) {
+    if (guest.favoriteTypes.isNotEmpty) {
       final matchesType = guest.favoriteTypes.any((t) =>
-          t.toLowerCase().contains(wine.type!.toLowerCase()) || wine.type!.toLowerCase().contains(t.toLowerCase()));
+          t.toLowerCase().contains(wine.type.toLowerCase()) || wine.type.toLowerCase().contains(t.toLowerCase()));
       if (matchesType) baseScore += 8.0;
     }
 
@@ -365,8 +365,8 @@ class GuestMatcherEngine {
     double minerality = 5.0;
     double acidity = 5.5;
 
-    final typeLower = (wine.type ?? '').toLowerCase();
-    final regionLower = (wine.region ?? '').toLowerCase();
+    final typeLower = wine.type.toLowerCase();
+    final regionLower = wine.region.toLowerCase();
     final grapesLower = wine.grapes.map((g) => g.name.toLowerCase()).join(' ');
 
     if (typeLower.contains('rouge') || typeLower.contains('red')) {

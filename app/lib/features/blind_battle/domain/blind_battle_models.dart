@@ -216,7 +216,7 @@ class BlindBattleScorer {
 
     // 1. Couleur (20 pts)
     int colorScore = 0;
-    final secretType = (secretWine.type ?? '').toLowerCase();
+    final secretType = secretWine.type.toLowerCase();
     final guessColor = guess.color.toLowerCase();
 
     if (secretType.contains('rouge') && guessColor.contains('rouge')) {
@@ -234,7 +234,7 @@ class BlindBattleScorer {
         feedback.add('🎯 Effervescence repérée (+20 pts)');
       }
     } else {
-      feedback.add('❌ Robe manquée (${secretWine.type ?? "Inconnu"}) (+0 pt)');
+      feedback.add('❌ Robe manquée (${secretWine.type.isNotEmpty ? secretWine.type : "Inconnu"}) (+0 pt)');
     }
 
     // 2. Cépage (30 pts)
@@ -253,7 +253,7 @@ class BlindBattleScorer {
 
     // 3. Région / Appellation (25 pts)
     int regionScore = 0;
-    final secretRegion = (secretWine.region ?? '').toLowerCase();
+    final secretRegion = secretWine.region.toLowerCase();
     final secretAppellation = (secretWine.appellation ?? '').toLowerCase();
     final guessRegion = guess.region.trim().toLowerCase();
 
@@ -265,7 +265,7 @@ class BlindBattleScorer {
         regionScore = 20;
         feedback.add('📍 Région "${secretWine.region}" bien ciblée ! (+20 pts)');
       } else {
-        feedback.add('📍 Terroir manqué (origine : ${secretWine.region ?? secretWine.appellation ?? "Non spécifié"}) (+0 pt)');
+        feedback.add('📍 Terroir manqué (origine : ${secretWine.region.isNotEmpty ? secretWine.region : (secretWine.appellation ?? "Non spécifié")}) (+0 pt)');
       }
     }
 

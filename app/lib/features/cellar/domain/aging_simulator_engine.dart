@@ -52,7 +52,7 @@ class AgingSimulatorEngine {
 
     // Potentiel de garde estimé (ex: 8 ans pour rouge standard, 20 ans pour Grand Cru Bordeaux)
     int guardPotential = 10;
-    final regionLower = (wine.region ?? '').toLowerCase();
+    final regionLower = wine.region.toLowerCase();
     final nameLower = wine.name.toLowerCase();
     final appLower = (wine.appellation ?? '').toLowerCase();
 

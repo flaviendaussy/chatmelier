@@ -941,7 +941,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         final matches = wine.name.toLowerCase().contains(q) ||
             (wine.appellation?.toLowerCase().contains(q) ?? false) ||
             (wine.region?.toLowerCase().contains(q) ?? false) ||
-            (wine.producer?.toLowerCase().contains(q) ?? false);
+            wine.producer.toLowerCase().contains(q);
         if (!matches) return false;
       }
 
@@ -1175,7 +1175,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                         Text(wine.name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 2),
                         Text(
-                          '${wine.producer ?? ""} • ${wine.region ?? ""} • ${wine.vintage ?? "NV"}',
+                          '${wine.producer} • ${wine.region ?? ""} • ${wine.vintage ?? "NV"}',
                           style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 13),
                         ),
                       ],
@@ -1208,21 +1208,21 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 ),
                 const SizedBox(height: 14),
               ],
-              if (m != null) ...[
+              ...[
                 Text(
                   isFr ? 'Profil sensoriel estimé :' : 'Estimated sensory profile:',
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
-                _buildRadarBar(isFr ? 'Corps / Puissance' : 'Body / Power', m.body ?? 5.0, Colors.amber),
-                _buildRadarBar(isFr ? 'Acidité / Fraîcheur' : 'Acidity / Freshness', m.acidity ?? 5.0, Colors.cyan),
-                _buildRadarBar(isFr ? 'Fruit' : 'Fruit', m.fruit ?? 5.0, Colors.redAccent),
+                _buildRadarBar(isFr ? 'Corps / Puissance' : 'Body / Power', m.body, Colors.amber),
+                _buildRadarBar(isFr ? 'Acidité / Fraîcheur' : 'Acidity / Freshness', m.acidity, Colors.cyan),
+                _buildRadarBar(isFr ? 'Fruit' : 'Fruit', m.fruit, Colors.redAccent),
                 // Les tanins ne se disent que des rouges, la minéralité des blancs et des
                 // bulles : mêmes règles de plausibilité que le consensus (29/09).
-                if (wine.isRed && (m.tannins ?? 0.0) > 0)
-                  _buildRadarBar(isFr ? 'Tanins & Structure' : 'Tannins & Structure', m.tannins ?? 5.0, Colors.deepPurpleAccent),
-                if (!wine.isRed && (m.minerality ?? 0.0) > 0)
-                  _buildRadarBar(isFr ? 'Minéralité & Tension' : 'Minerality & Tension', m.minerality ?? 5.0, Colors.tealAccent),
+                if (wine.isRed && m.tannins > 0)
+                  _buildRadarBar(isFr ? 'Tanins & Structure' : 'Tannins & Structure', m.tannins, Colors.deepPurpleAccent),
+                if (!wine.isRed && m.minerality > 0)
+                  _buildRadarBar(isFr ? 'Minéralité & Tension' : 'Minerality & Tension', m.minerality, Colors.tealAccent),
               ],
               const SizedBox(height: 16),
               SizedBox(

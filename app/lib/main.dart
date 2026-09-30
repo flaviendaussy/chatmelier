@@ -1,3 +1,4 @@
+import 'shared/services/croissance.dart';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -65,8 +66,12 @@ void main() async {
     if (!rapatrie) PalaisDistant.planifierEnvoi();
   }));
   Supabase.instance.client.auth.onAuthStateChange.listen((etat) {
-    if (etat.event == AuthChangeEvent.signedIn) unawaited(PalaisDistant.recuperer());
+    if (etat.event == AuthChangeEvent.signedIn) {
+      unawaited(PalaisDistant.recuperer());
+      unawaited(Croissance.noterPremiereOuvertureSiBesoin());
+    }
   });
+  unawaited(Croissance.noterPremiereOuvertureSiBesoin());
   AppLogger.info('SYSTEM', 'Chatmelier app launched and centralized logging initialized');
 
   FlutterError.onError = (details) {

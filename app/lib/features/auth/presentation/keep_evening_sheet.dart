@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../shared/services/croissance.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import 'package:flutter/services.dart';
@@ -77,6 +79,7 @@ class _KeepEveningSheetState extends ConsumerState<KeepEveningSheet> {
     });
     try {
       await ref.read(authRepositoryProvider).convertirEnCompte(email);
+      unawaited(Croissance.noter('soiree_gardee', source: 'email'));
       if (!mounted) return;
       setState(() {
         _enCours = false;
@@ -105,6 +108,7 @@ class _KeepEveningSheetState extends ConsumerState<KeepEveningSheet> {
     try {
       await PalaisDistant.envoyer();
       final code = await ref.read(supabaseProvider).rpc('creer_code_de_reprise');
+      unawaited(Croissance.noter('soiree_gardee', source: 'code'));
       if (!mounted) return;
       setState(() {
         _enCours = false;

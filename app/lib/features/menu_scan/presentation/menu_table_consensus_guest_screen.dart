@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../shared/services/croissance.dart';
 import '../../../shared/widgets/bandeau_connexion_perdue.dart';
 import '../../../shared/services/sondage_espace.dart';
 import '../../../shared/providers/auth_provider.dart';
@@ -532,6 +533,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       if (!mounted) return;
       if (_menu == null || t.menu.wines.length > _menu!.wines.length) {
         setState(() => _menu = t.menu);
+        if (kIsWeb) unawaited(Croissance.noter('invite_web_arrivee', tableCode: code));
       }
       await _rafraichirConvives();
     } on TableSessionException catch (e) {
@@ -581,13 +583,18 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     return true;
   }
 
+  /// Le Play Store, et non plus le site lui-même (où l'invité se trouvait déjà) : le bouton
+  /// « Découvrir Chatmelier » ne menait nulle part ailleurs jusqu'au 30/09.
   Future<void> _launchStore() async {
-    const url = 'https://chatmelier.github.io';
-    final uri = Uri.parse(url);
+    unawaited(Croissance.noter('clic_installer', source: 'page_invite', tableCode: _code));
+    final uri = Uri.parse(Croissance.lienPlayStore(source: 'page_invite', tableCode: _code));
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
+
+  /// Il n'existe pas encore d'app iPhone : on ne l'annonce pas.
+  bool get _surIPhone => defaultTargetPlatform == TargetPlatform.iOS;
 
   /// Ce qu'on affiche quand la carte n'a pas pu être lue.
   ///
@@ -858,20 +865,26 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  isFr
-                      ? 'Gérez votre cave et découvrez des accords sur-mesure sur iOS et Android.'
-                      : 'Manage your cellar and discover tailored pairings on iOS & Android.',
+                  // Pas d'app iPhone à ce jour : le texte disait « sur iOS et Android ».
+                  _surIPhone
+                      ? (isFr
+                          ? 'L\'app arrive bientôt sur iPhone. D\'ici là, gardez votre soirée avec un code de reprise, juste au-dessus.'
+                          : 'The iPhone app is coming soon. Until then, keep your evening with a recovery code, just above.')
+                      : (isFr
+                          ? 'Gardez votre palais, gérez votre cave et découvrez des accords sur mesure dans l\'app Android.'
+                          : 'Keep your palate, manage your cellar and discover tailored pairings in the Android app.'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.white60, fontSize: 12),
                 ),
                 const SizedBox(height: 12),
+                if (!_surIPhone)
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFD4AF37),
                     side: const BorderSide(color: Color(0xFFD4AF37)),
                   ),
                   icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                  label: Text(isFr ? 'Découvrir Chatmelier' : 'Discover Chatmelier'),
+                  label: Text(isFr ? 'Installer l\'app' : 'Install the app'),
                   onPressed: _launchStore,
                 ),
               ],

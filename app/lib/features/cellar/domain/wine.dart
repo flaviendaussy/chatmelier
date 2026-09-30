@@ -189,6 +189,14 @@ class Wine {
   final String? imageUrl;
   final List<String> userOverrides;
 
+  /// La page où la valeur de marché a été relevée (recherche Google, V2.3 · B3). Une valeur
+  /// sans source ni saisie par la personne n'est plus gardée : elle était inventée.
+  final String? valeurSource;
+
+  /// Une valeur qu'on peut montrer : sourcée, ou saisie par la personne elle-même.
+  bool get valeurSourcee => valeurSource != null || isVerifiedOnline;
+  bool get valeurSaisie => userOverrides.contains('estimated_market_value');
+
   const Wine({
     required this.id,
     required this.name,
@@ -227,6 +235,7 @@ class Wine {
     this.isTechnicalDataVerified = false,
     this.imageUrl,
     this.userOverrides = const [],
+    this.valeurSource,
   });
 
   factory Wine.fromJson(Map<String, dynamic> json) {
@@ -356,6 +365,7 @@ class Wine {
           ?? (json['external_links'] is Map && (json['external_links'] as Map)['user_overrides'] is List
               ? ((json['external_links'] as Map)['user_overrides'] as List<dynamic>).map((e) => e.toString()).toList()
               : const []),
+      valeurSource: json['external_links'] is Map ? (json['external_links'] as Map)['valeur_source'] as String? : null,
     );
   }
 
@@ -630,7 +640,8 @@ class Wine {
     'is_technical_data_verified': isTechnicalDataVerified,
     if (imageUrl != null) 'image_url': imageUrl,
     if (userOverrides.isNotEmpty) 'user_overrides': userOverrides,
-    if (userOverrides.isNotEmpty) 'external_links': {'user_overrides': userOverrides},
+    if (userOverrides.isNotEmpty)
+      'external_links': {'user_overrides': userOverrides, if (valeurSource != null) 'valeur_source': valeurSource},
   };
 
   Wine copyWith({
@@ -671,6 +682,7 @@ class Wine {
     bool? isTechnicalDataVerified,
     String? imageUrl,
     List<String>? userOverrides,
+    String? valeurSource,
   }) {
     return Wine(
       id: id ?? this.id,
@@ -710,6 +722,7 @@ class Wine {
       isTechnicalDataVerified: isTechnicalDataVerified ?? this.isTechnicalDataVerified,
       imageUrl: imageUrl ?? this.imageUrl,
       userOverrides: userOverrides ?? this.userOverrides,
+      valeurSource: valeurSource ?? this.valeurSource,
     );
   }
 }

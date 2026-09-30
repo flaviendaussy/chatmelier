@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../../shared/utils/langue.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/utils/currency_helper.dart';
@@ -2258,17 +2259,21 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                           l10n?.bottleDetailEstimatedValue ?? (isFr ? 'Valeur estimée' : 'Estimated value'),
                                           style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                                         ),
-                                        const SizedBox(width: 4),
-                                        const Icon(Icons.verified, size: 14, color: Colors.blue),
+                                        // Le badge « vérifié » ne s'affiche que pour une cote sourcée.
+                                        if (wine.valeurSourcee) ...[
+                                          const SizedBox(width: 4),
+                                          const Icon(Icons.verified, size: 14, color: Colors.blue),
+                                        ],
                                       ],
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       isViewOnly
                                           ? (isFr ? 'Confidentiel' : 'Confidential')
-                                          : (wine.estimatedMarketValue != null
+                                          : (wine.estimatedMarketValue != null && (wine.valeurSourcee || wine.valeurSaisie)
                                               ? CurrencyHelper.formatPrice(wine.estimatedMarketValue, currency: currency, decimals: 2)
-                                              : (isFr ? 'Estimation...' : 'Estimating...')),
+                                              // Avant : « Estimation... », comme si un calcul était en cours.
+                                              : (isFr ? 'Non cotée' : 'Not valued')),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleMedium?.copyWith(
@@ -2281,14 +2286,15 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               ),
                             ],
                           ),
-                          if (!isViewOnly && wine.lastValuationDate != null) ...[
+                          if (!isViewOnly && wine.estimatedMarketValue != null && (wine.valeurSourcee || wine.valeurSaisie)) ...[
                             const SizedBox(height: 12),
                             Text(
-                              // Estimation de Gemini (fonction update-wine-values), sans source :
-                              // la dire « vérifiée » était faux (29/09).
-                              isFr
-                                  ? 'Estimation par IA, à titre indicatif • ${DateFormat('dd/MM/yyyy').format(wine.lastValuationDate!)}'
-                                  : 'AI estimate, for guidance only • ${DateFormat.yMMMd().format(wine.lastValuationDate!)}',
+                              // D'où vient le chiffre, toujours (V2.3 · B3) : une cote relevée sur une
+                              // page, ou la valeur que la personne a saisie.
+                              wine.valeurSaisie
+                                  ? tr('Votre estimation', 'Your own estimate')
+                                  : tr('Cote relevée sur ${Uri.tryParse(wine.valeurSource ?? '')?.host ?? 'le web'}${wine.lastValuationDate != null ? ' le ${DateFormat('dd/MM/yyyy').format(wine.lastValuationDate!)}' : ''}',
+                                      'Price found on ${Uri.tryParse(wine.valeurSource ?? '')?.host ?? 'the web'}${wine.lastValuationDate != null ? ' on ${DateFormat.yMMMd().format(wine.lastValuationDate!)}' : ''}'),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 fontSize: 11,
                                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),

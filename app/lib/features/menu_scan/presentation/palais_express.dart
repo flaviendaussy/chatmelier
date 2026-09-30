@@ -128,6 +128,40 @@ class _PalaisExpressState extends State<PalaisExpress> {
 
   static const _or = Color(0xFFD4AF37);
 
+  /// Le lexique sous les curseurs, replié par défaut (V2.3 · G3).
+  bool _lexiqueOuvert = false;
+
+  /// Un exemple concret par mot : « tanins » ne dit rien à quelqu'un qui boit surtout de la
+  /// bière. Replié, il ne prend qu'une ligne.
+  static List<(String, String)> lexique(bool fr) => [
+        (
+          fr ? 'Tanins' : 'Tannins',
+          fr
+              ? 'Ce qui assèche la bouche, comme un thé trop infusé. Marqués dans un Madiran, discrets dans un Beaujolais.'
+              : 'What dries your mouth, like over-brewed tea. Firm in a Madiran, soft in a Beaujolais.'
+        ),
+        (
+          fr ? 'Corps' : 'Body',
+          fr ? 'Le poids du vin en bouche : léger comme du lait écrémé, ou ample comme de la crème.' : 'The weight in your mouth: skimmed milk, or cream.'
+        ),
+        (
+          fr ? 'Acidité' : 'Acidity',
+          fr ? 'Ce qui fait saliver et donne de la fraîcheur, comme un zeste de citron. Vive dans un Chablis.' : 'What makes your mouth water, like a squeeze of lemon. Lively in a Chablis.'
+        ),
+        (
+          fr ? 'Boisé' : 'Oak',
+          fr ? 'La vanille, le toasté ou le fumé que donne l\'élevage en fût de chêne.' : 'Vanilla, toast or smoky notes from ageing in oak barrels.'
+        ),
+        (
+          fr ? 'Fruit' : 'Fruit',
+          fr ? 'L\'intensité des arômes de fruits : cerise, cassis, pêche…' : 'How much fruit you taste: cherry, blackcurrant, peach…'
+        ),
+        (
+          fr ? 'Minéralité' : 'Minerality',
+          fr ? 'Une sensation saline, de pierre mouillée ou de craie, typique d\'un Chablis ou d\'un Sancerre.' : 'A salty, wet-stone or chalky feel, typical of a Chablis or a Sancerre.'
+        ),
+      ];
+
   @override
   Widget build(BuildContext context) {
     final fr = widget.isFr;
@@ -144,6 +178,9 @@ class _PalaisExpressState extends State<PalaisExpress> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownButtonFormField<String>(
+          // Sans cela, « 🕊️ Aversion aux tanins durs » débordait de 20 pixels sur un
+          // téléphone de 400 points de large.
+          isExpanded: true,
           initialValue: _prereglage,
           dropdownColor: const Color(0xFF281E34),
           style: const TextStyle(color: Colors.white),
@@ -215,6 +252,35 @@ class _PalaisExpressState extends State<PalaisExpress> {
             ),
           ],
         ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () => setState(() => _lexiqueOuvert = !_lexiqueOuvert),
+            icon: Icon(_lexiqueOuvert ? Icons.expand_less : Icons.help_outline, size: 16, color: _or),
+            label: Text(fr ? 'Que veulent dire ces mots ?' : 'What do these words mean?',
+                style: const TextStyle(color: _or, fontSize: 12)),
+          ),
+        ),
+        if (_lexiqueOuvert)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final (mot, exemple) in lexique(fr))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(text: '$mot : ', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: exemple),
+                      ]),
+                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         const SizedBox(height: 6),
         Text(fr ? 'Couleurs que vous aimez' : 'Colours you enjoy',
             style: const TextStyle(color: Colors.white70, fontSize: 12)),

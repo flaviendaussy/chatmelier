@@ -260,9 +260,15 @@ class AdMobService {
     }
   }
 
+  /// Plus de publicité à l'ouverture ni au retour dans l'app (V2.3 · G1, décision du 30/09).
+  /// Elle surgissait au lancement et à chaque retour après 30 s d'absence — à table, au
+  /// restaurant, au moment de montrer l'app à ses amis — pour environ 0,3 c€ l'affichage.
+  /// Le code reste en place : repasser ce drapeau à vrai suffit à la rétablir.
+  static const bool pubALOuverture = false;
+
   /// Preloads an App Open ad in the background.
   Future<bool> preloadAppOpenAd() {
-    if (!AdMobConfig.isPlatformSupported) {
+    if (!pubALOuverture || !AdMobConfig.isPlatformSupported) {
       return Future.value(false);
     }
     if (isAppOpenAdAvailable) {
@@ -330,6 +336,10 @@ class AdMobService {
     Duration timeout = const Duration(milliseconds: 2500),
     VoidCallback? onDismissed,
   }) async {
+    if (!pubALOuverture) {
+      onDismissed?.call();
+      return false;
+    }
     if (!AdMobConfig.isPlatformSupported) {
       onDismissed?.call();
       return false;
@@ -431,7 +441,7 @@ class AdMobService {
   /// when the user brings the app back to the foreground, if user is not premium.
   void startAppLifecycleObservation({required bool Function() isPremium}) {
     _isPremiumChecker = isPremium;
-    if (_lifecycleListener != null) return;
+    if (!pubALOuverture || _lifecycleListener != null) return;
     _lifecycleListener = AppLifecycleListener(
       onPause: () {
         _lastPausedTime = DateTime.now();

@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../monetization/domain/politique_pub.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../../shared/utils/app_logger.dart';
@@ -190,8 +191,9 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
 
       if (!mounted) return;
 
-      if (!isPremium && _candidates.isNotEmpty) {
-        // Show real AdMob rewarded ad if available between batches; otherwise proceed directly (no fake ads)
+      // Plus de vidéo entre deux lots d'import (V2.3 · G2) : on n'interrompt pas quelqu'un
+      // qui met sa cave en ordre.
+      if (PolitiquePub.doitMontrer(emplacement: 'import_excel', premium: isPremium) && _candidates.isNotEmpty) {
         await AdMobService().showRewardedAd(
           emplacement: 'import_excel',
           onRewardEarned: () {},

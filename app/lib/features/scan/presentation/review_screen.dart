@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../monetization/domain/politique_pub.dart';
 import '../../../l10n/app_localizations.dart';
 
 import '../../../shared/providers/supabase_provider.dart';
@@ -94,7 +96,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
   void _checkAndTriggerAnalysis() async {
     final isPremium = ref.read(premiumProvider);
-    if (isPremium) {
+    final uid = ref.read(supabaseProvider).auth.currentUser?.id;
+    final dejaFaits = await PolitiquePub.scansEtiquette(uid);
+    unawaited(PolitiquePub.compterUnScanEtiquette(uid));
+    // Le premier inventaire (30 étiquettes) se fait sans vidéo (V2.3 · G2).
+    if (!PolitiquePub.doitMontrer(emplacement: 'scan_etiquette', premium: isPremium, scansEtiquetteDejaFaits: dejaFaits)) {
       await _analyzeImage(runPrompts: true);
       return;
     }

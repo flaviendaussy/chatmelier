@@ -11,11 +11,15 @@ Modes :
   session            un utilisateur connecté, quota disponible
   limite             un utilisateur connecté, quota du jour épuisé
   strict             sans session, avec app_config.ia_session_obligatoire = true
+  banc               pour le banc d'essai : session, aucun catalogue, quota libre ; le réglage
+                     des modèles vient de la variable FAUX_MODELES_IA (JSON) et Gemini est le
+                     vrai (GEMINI_BASE_URL non défini dans le conteneur)
 
 Chaque requête reçue est écrite dans le journal (une ligne JSON), pour que l'essai vérifie
 ce que la fonction a réellement envoyé.
 """
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -56,7 +60,7 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         noter(methode='GET', chemin=self.path)
         if '/auth/v1/user' in self.path:
-            if MODE in ('session', 'limite'):
+            if MODE in ('session', 'limite', 'banc'):
                 return self.rep({"id": "00000000-0000-0000-0000-00000000a11c", "aud": "authenticated", "role": "authenticated"})
             return self.rep({"msg": "invalid JWT"}, 401)
         if '/rest/v1/chat_messages' in self.path:
@@ -71,6 +75,9 @@ class H(BaseHTTPRequestHandler):
                                         "wine_type": "red", "region": "Provence", "appellation": "Bandol",
                                         "ideal_drinking_start": 2024, "ideal_drinking_end": 2040}}])
         if '/rest/v1/app_config' in self.path:
+            if MODE == 'banc':
+                return self.rep([{"cle": "modeles_ia", "valeur": json.loads(os.environ.get('FAUX_MODELES_IA', '{}'))},
+                                 {"cle": "scan_etiquette_recherche", "valeur": False}])
             lignes = [{"cle": "ia_session_obligatoire", "valeur": MODE == 'strict'},{"cle": "scan_etiquette_recherche", "valeur": MODE in ('inconnu', 'refuse_reflexion')},
                       {"cle": "modeles_ia", "valeur": {"scan_etiquette_lecture": {"modele": "gemini-3.1-flash-lite", "reflexion": "minimal"}}}]
             return self.rep(lignes)

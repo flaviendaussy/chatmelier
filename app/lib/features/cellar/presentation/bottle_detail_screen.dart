@@ -1548,7 +1548,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         ),
                                         icon: const Icon(Icons.history_toggle_off, color: Color(0xFFD4AF37), size: 18),
                                         label: Text(
-                                          trSi(isFr, 'Jumeau Numérique', 'Aging Simulator'),
+                                          trSi(isFr, 'Dans quelques années', 'In a few years'),
                                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,

@@ -76,7 +76,7 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        tr('Jumeau Numérique & Vieillissement', 'Digital twin & ageing'),
+                        tr('Ce vin dans quelques années', 'This wine in a few years'),
                         style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                       Text(
@@ -239,6 +239,13 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
   }
 
   Widget _buildRadarSection(AgingSnapshot snapshot) {
+    // « Aujourd'hui » en fond dès qu'on regarde une autre année : c'est l'écart entre les
+    // deux tracés qui raconte le vieillissement (demande de Flavien, 30/09).
+    final aujourdhui = _additionalYears > 0
+        ? AgingSimulatorEngine.simulateAging(wine: widget.wine, additionalYears: 0)
+        : null;
+    const couleurAujourdhui = Color(0xFF9FB4C7);
+    const couleurProjection = Color(0xFFD4AF37);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -254,7 +261,7 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
               const Icon(Icons.radar_rounded, color: Color(0xFFD4AF37), size: 18),
               const SizedBox(width: 8),
               Text(
-                tr('Évolution Cinétique des 8 Piliers Gustatifs', 'How the 8 taste pillars evolve'),
+                tr('Comment son goût évolue', 'How its taste changes'),
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ],
@@ -264,21 +271,53 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
             child: SizedBox(
               height: 220,
               width: 280,
-              child: WineTasteRadarChart(
-                datasets: [
-                  RadarChartDataset(
-                    label: tr('Simulation ({targetYear})', 'Simulation ({targetYear})', {'targetYear': snapshot.targetYear}),
-                    metrics: snapshot.simulatedRadar,
-                    color: const Color(0xFFD4AF37),
-                  ),
-                ],
+              // La feuille est sombre quel que soit le thème de l'app : le radar doit l'être
+              // aussi. En thème clair, ses libellés s'écrivaient en sombre sur ce fond sombre,
+              // presque illisibles (01/10). Même parti que la carte d'empreinte.
+              child: Theme(
+                data: ThemeData(brightness: Brightness.dark, useMaterial3: true),
+                child: WineTasteRadarChart(
+                  datasets: [
+                    if (aujourdhui != null)
+                      RadarChartDataset(
+                        label: tr('Aujourd\'hui', 'Today'),
+                        metrics: aujourdhui.simulatedRadar,
+                        color: couleurAujourdhui,
+                      ),
+                    RadarChartDataset(
+                      label: tr('Simulation ({targetYear})', 'Simulation ({targetYear})', {'targetYear': snapshot.targetYear}),
+                      metrics: snapshot.simulatedRadar,
+                      color: couleurProjection,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+          if (aujourdhui != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _pastille(couleurAujourdhui, tr('Aujourd\'hui', 'Today')),
+                const SizedBox(width: 18),
+                _pastille(couleurProjection, tr('En {annee}', 'In {annee}', {'annee': snapshot.targetYear})),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
+
+  Widget _pastille(Color couleur, String libelle) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 10, height: 10, decoration: BoxDecoration(color: couleur, shape: BoxShape.circle)),
+          const SizedBox(width: 6),
+          Text(libelle, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        ],
+      );
 
   Widget _buildTastingProjection(AgingSnapshot snapshot) {
     return Container(

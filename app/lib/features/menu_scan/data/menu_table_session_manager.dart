@@ -23,32 +23,40 @@ class MenuTableSessionManager {
   static double _d1(double v) => double.parse(v.toStringAsFixed(1));
 
   /// Compresse et encode un ScannedMenu dans une charge utile URL-safe compacte et optimisée pour QR code
-  static String encodeMenuPayload(ScannedMenu menu) {
-    try {
-      final wines = menu.wines;
-      final selectedWines = <MenuWine>[];
-      if (wines.length <= 16) {
-        selectedWines.addAll(wines);
-      } else {
-        // Sélection diversifiée (blancs/bulles, rouges, rosés/autres) pour garantir une matrice QR légère et rapide à scanner
-        final whites = wines.where((w) => w.isWhite || w.isSparkling).take(5);
-        final reds = wines.where((w) => w.isRed).take(6);
-        final others = wines.where((w) => !w.isWhite && !w.isSparkling && !w.isRed).take(5);
-        selectedWines.addAll(whites);
-        selectedWines.addAll(reds);
-        selectedWines.addAll(others);
-        for (final w in wines) {
-          if (selectedWines.length >= 16) break;
-          if (!selectedWines.contains(w)) selectedWines.add(w);
-        }
-      }
+  static String encodeMenuPayload(ScannedMenu menu, {int? longueurMax}) {
+    // Sans plafond : seize vins, commentaires du sommelier compris.
+    if (longueurMax == null) return _encoder(menu, _selection(menu.wines, 16), avecCommentaires: true);
+    // Avec plafond : les commentaires partent d'abord (ce sont eux qui pèsent), puis des
+    // vins, jusqu'à tenir. Une carte partielle vaut mieux qu'un QR illisible ; l'invité
+    // qui rejoint la table reçoit de toute façon la carte complète du serveur.
+    for (final (n, avecCommentaires) in [
+      (16, true), (16, false), (12, false), (10, false), (8, false), (6, false), (4, false), (2, false), (1, false),
+    ]) {
+      final charge = _encoder(menu, _selection(menu.wines, n), avecCommentaires: avecCommentaires);
+      if (charge.isNotEmpty && charge.length <= longueurMax) return charge;
+    }
+    return '';
+  }
 
-      // Le moteur de consensus a besoin des MÉTRIQUES : sans elles il note tous les
-      // vins à la même valeur par défaut, l'écart entre le premier et le dernier tombe à
-      // deux points sur sept vins, et une aversion déclarée aux tanins ne change rien au
-      // classement. Les cépages et les prix au verre suivent la même logique — ce qui
-      // n'est pas embarqué n'existe pas pour l'invité.
-      final compactList = selectedWines.map((w) => [
+  /// Au plus [n] vins, en gardant de chaque couleur (blancs et bulles, rouges, autres)
+  /// pour que la table ait de quoi choisir.
+  static List<MenuWine> _selection(List<MenuWine> wines, int n) {
+    if (wines.length <= n) return wines;
+    final choisis = <MenuWine>[
+      ...wines.where((w) => w.isWhite || w.isSparkling).take((n * 5) ~/ 16),
+      ...wines.where((w) => w.isRed).take((n * 6) ~/ 16),
+      ...wines.where((w) => !w.isWhite && !w.isSparkling && !w.isRed).take((n * 5) ~/ 16),
+    ];
+    for (final w in wines) {
+      if (choisis.length >= n) break;
+      if (!choisis.contains(w)) choisis.add(w);
+    }
+    return choisis;
+  }
+
+  static String _encoder(ScannedMenu menu, List<MenuWine> vins, {required bool avecCommentaires}) {
+    try {
+      final compactList = vins.map((w) => [
         w.name,
         w.wineType,
         w.bottlePrice != null ? double.parse(w.bottlePrice!.toStringAsFixed(1)) : 0.0,
@@ -58,7 +66,7 @@ class MenuTableSessionManager {
         w.tags.take(3).join(','),
         w.isGem ? 1 : 0,
         w.isDeal ? 1 : 0,
-        w.sommelierComment ?? '',
+        avecCommentaires ? (w.sommelierComment ?? '') : '',
         // Métriques, arrondies au dixième : la précision au centième ne change aucun
         // classement et alourdit la matrice du QR.
         [
@@ -242,11 +250,19 @@ class MenuTableSessionManager {
     );
   }
 
-  /// Génère l'URL complète pour le QR Code avec session et données embarquées
+  /// La longueur au-delà de laquelle un QR devient trop dense pour être lu d'un
+  /// téléphone à travers une table (version 30 environ, 137 modules de côté).
+  static const longueurQrMax = 1200;
+
+  /// L'adresse que porte le QR, et le lien partagé.
   ///
-  /// [code] est le code de la table côté serveur. Sans lui, l'invité arrivé par le QR
-  /// avait la carte mais ne rejoignait jamais la table : l'hôte ne le voyait pas (Caro,
-  /// 23/09). La carte embarquée reste en secours, pour un invité sans réseau.
+  /// Avec un code serveur ([code]), le code SEUL : l'invité lit la carte sur le serveur
+  /// (`lire_carte_de_table`). La carte entière dans l'URL dépassait la capacité d'un QR
+  /// dès qu'elle portait les commentaires du sommelier — 35 vins, 19 500 bits pour
+  /// 18 672 (30/09) — et l'hôte voyait une zone vide à la place du QR.
+  ///
+  /// Sans code (hôte hors ligne), la carte voyage dans l'URL, réduite jusqu'à tenir dans
+  /// [longueurQrMax] caractères.
   ///
   /// Le paramètre s'appelle `table` et surtout pas `code` : sur le web, Supabase lit un
   /// `?code=` comme le retour d'une connexion OAuth (PKCE) et tenterait de l'échanger.
@@ -256,12 +272,11 @@ class MenuTableSessionManager {
     String? code,
     String baseUrl = 'https://chatmelier.github.io/table-consensus',
   }) {
-    final payload = encodeMenuPayload(menu);
-    final normSession = sessionId.toUpperCase().trim();
-    final avecCode = code != null && code.trim().isNotEmpty ? '&table=${code.trim().toUpperCase()}' : '';
-    if (payload.isNotEmpty) {
-      return '$baseUrl?session=$normSession$avecCode&data=$payload';
+    if (code != null && code.trim().isNotEmpty) {
+      return '$baseUrl?table=${code.trim().toUpperCase()}';
     }
-    return '$baseUrl?session=$normSession$avecCode';
+    final debut = '$baseUrl?session=${sessionId.toUpperCase().trim()}';
+    final payload = encodeMenuPayload(menu, longueurMax: longueurQrMax - debut.length - '&data='.length);
+    return payload.isEmpty ? debut : '$debut&data=$payload';
   }
 }

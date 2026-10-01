@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../shared/utils/langue.dart';
+
 class StylizedChatmelierQr extends StatelessWidget {
   final String sessionId;
   final String? customUrl;
@@ -11,6 +13,10 @@ class StylizedChatmelierQr extends StatelessWidget {
   final IconData icon;
   final String? shareMessage;
   final String? shareSubject;
+
+  /// Le code montré sous le QR. Faux quand l'écran l'affiche déjà en grand : deux
+  /// codes différents à l'écran (le local et celui du serveur) prêtaient à confusion.
+  final bool afficherLeCode;
 
   const StylizedChatmelierQr({
     super.key,
@@ -21,6 +27,7 @@ class StylizedChatmelierQr extends StatelessWidget {
     this.icon = Icons.sports_esports_rounded,
     this.shareMessage,
     this.shareSubject,
+    this.afficherLeCode = true,
   });
 
   String get targetUrl =>
@@ -119,12 +126,26 @@ class StylizedChatmelierQr extends StatelessWidget {
               embeddedImageStyle: const QrEmbeddedImageStyle(
                 size: Size(28, 28),
               ),
+              // Jamais de zone vide : si l'adresse ne tient pas dans un QR, on le dit, et le
+              // code reste là (30/09 : une carte de 35 vins débordait, l'hôte voyait un vide).
+              errorStateBuilder: (context, erreur) => SizedBox(
+                width: size,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    tr('Le QR ne peut pas s\'afficher : donnez le code de la table.',
+                        'The QR code can\'t be shown: share the table code instead.'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Color(0xFF1E1A24), fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 16),
 
           // Code de session pill
-          Container(
+          if (afficherLeCode) Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: const Color(0xFF1E1A24),
@@ -134,9 +155,9 @@ class StylizedChatmelierQr extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Code de table : ',
-                  style: TextStyle(color: Colors.white60, fontSize: 13),
+                Text(
+                  tr('Code de table : ', 'Table code: '),
+                  style: const TextStyle(color: Colors.white60, fontSize: 13),
                 ),
                 Text(
                   sessionId,
@@ -157,7 +178,7 @@ class StylizedChatmelierQr extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         backgroundColor: const Color(0xFF8B1E3F),
-                        content: Text('Code $sessionId copié !'),
+                        content: Text(tr('Code {code} copié !', 'Code {code} copied!', {'code': sessionId})),
                         duration: const Duration(seconds: 2),
                       ),
                     );
@@ -175,11 +196,12 @@ class StylizedChatmelierQr extends StatelessWidget {
               textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             ),
             icon: const Icon(Icons.share_rounded, size: 16),
-            label: const Text('Partager le lien aux convives'),
+            label: Text(tr('Partager le lien aux convives', 'Share the link with your guests')),
             onPressed: () {
               final msg = shareMessage ??
-                  'Rejoins ma dégustation à l\'aveugle Chatmelier ! Entre le code $sessionId ou clique ici : $targetUrl';
-              final subj = shareSubject ?? 'Blind Battle Chatmelier - Code $sessionId';
+                  tr('Rejoins ma dégustation à l\'aveugle Chatmelier ! Entre le code {code} ou clique ici : {lien}',
+                      'Join my Chatmelier blind tasting! Enter the code {code} or tap here: {lien}', {'code': sessionId, 'lien': targetUrl});
+              final subj = shareSubject ?? tr('Blind Battle Chatmelier - Code {code}', 'Chatmelier Blind Battle - Code {code}', {'code': sessionId});
               Share.share(msg, subject: subj);
             },
           ),

@@ -191,3 +191,15 @@ RETURNS VOID LANGUAGE sql AS $$
     jsonb_build_object('sub', p_uid, 'role', 'authenticated', 'is_anonymous', p_anonyme)::text, false);
 $$;
 GRANT EXECUTE ON FUNCTION public.essai_session(UUID, BOOLEAN) TO authenticated, anon;
+
+-- Les tables de restaurant (038), réduites à ce que les essais utilisent.
+CREATE TABLE IF NOT EXISTS public.table_sessions (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code            TEXT NOT NULL UNIQUE,
+  host_user_id    UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  restaurant_name TEXT NOT NULL DEFAULT 'Restaurant',
+  menu            JSONB NOT NULL,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at      TIMESTAMPTZ NOT NULL DEFAULT now() + interval '4 hours'
+);
+ALTER TABLE public.table_sessions ENABLE ROW LEVEL SECURITY;

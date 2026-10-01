@@ -128,6 +128,22 @@ class TableSessionService {
     }
   }
 
+  /// La carte d'une table, lue par son code, sans s'y asseoir : l'invité arrivé par le QR
+  /// la parcourt avant de se présenter. `null` si la lecture échoue — réseau, table
+  /// expirée, ou fonction absente tant que la migration 054 n'est pas appliquée.
+  Future<ScannedMenu?> lireCarte(String code) async {
+    try {
+      final res = await _client.rpc('lire_carte_de_table', params: {'p_code': code.trim().toUpperCase()});
+      final brut = _premiere(res)?['menu'];
+      if (brut is! Map) return null;
+      final menu = ScannedMenu.fromJson(Map<String, dynamic>.from(brut));
+      return menu.wines.isEmpty ? null : menu;
+    } catch (e) {
+      AppLogger.warning('TABLE', 'Carte de la table $code illisible avant de s\'asseoir : $e');
+      return null;
+    }
+  }
+
   /// Qui est à table, et avec quels goûts.
   ///
   /// Le code est redemandé à chaque appel : c'est lui qui tient lieu d'autorisation, et un

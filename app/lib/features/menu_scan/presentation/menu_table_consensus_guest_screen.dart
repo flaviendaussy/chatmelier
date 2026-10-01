@@ -102,6 +102,9 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   /// Le prénom sous lequel cet invité a rejoint la table côté serveur.
   String? _monNomAssis;
 
+  /// Arrivé par un QR qui ne porte que le code : la carte se lit sur le serveur.
+  bool _carteEnChargement = false;
+
   @override
   void initState() {
     super.initState();
@@ -137,7 +140,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     if (isFr != _isFr) {
       _isFr = isFr;
       // Le prénom proposé suit la langue, tant que l'invité n'en a pas choisi un.
-      if (!_hasJoined && (_nameCtrl.text == 'Invité' || _nameCtrl.text == 'Guest')) {
+      if (!_hasJoined && const {'Invité', 'Guest', 'Invitado'}.contains(_nameCtrl.text)) {
         _nameCtrl.text = trSi(isFr, 'Invité', 'Guest');
       }
       _recalculateConsensus();
@@ -198,7 +201,13 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     // rescanner.
     _menu = resolved;
 
-
+    // Le QR ne porte plus que le code de la table (la carte entière n'y tenait pas) :
+    // la carte se lit sur le serveur. Si la lecture échoue, l'invité rejoint d'abord, et
+    // la carte arrive avec sa place à table.
+    if (_menu == null && _code != null) {
+      _carteEnChargement = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _chargerLaCarte());
+    }
 
     // Sans code serveur (ancien QR), la table reste locale : on garde un hôte générique
     // pour que le consensus ait un point de départ. Avec un code, les vrais convives —
@@ -212,6 +221,18 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       ));
     }
 
+    _recalculateConsensus();
+  }
+
+  Future<void> _chargerLaCarte() async {
+    final code = _code;
+    if (code == null) return;
+    final carte = await ref.read(tableSessionServiceProvider).lireCarte(code);
+    if (!mounted) return;
+    setState(() {
+      _carteEnChargement = false;
+      if (carte != null && _menu == null) _menu = carte;
+    });
     _recalculateConsensus();
   }
 
@@ -524,7 +545,10 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       _monNomAssis = nom;
       if (!mounted) return;
       if (_menu == null || t.menu.wines.length > _menu!.wines.length) {
-        setState(() => _menu = t.menu);
+        setState(() {
+          _menu = t.menu;
+          _carteEnChargement = false;
+        });
         if (kIsWeb) unawaited(Croissance.noter('invite_web_arrivee', tableCode: code));
       }
       await _rafraichirConvives();
@@ -533,6 +557,13 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       // n'avait laissé aucune trace.
       AppLogger.warning('TABLE', 'Invité non assis à la table $code (${e.cause.name})');
       if (!mounted) return;
+      if (_carteEnChargement) {
+        // Sans carte, l'invité revient à l'écran d'arrivée pour réessayer.
+        setState(() {
+          _carteEnChargement = false;
+          if (_menu == null) _hasJoined = false;
+        });
+      }
       final isFr = Localizations.localeOf(context).languageCode == 'fr';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(e.cause == EchecDeTable.introuvable
@@ -590,6 +621,84 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   /// l'invité a le droit de savoir qu'il ne regarde pas la carte de l'établissement où il
   /// est assis. Le message dit quoi faire — redemander le QR — plutôt que de nommer une
   /// cause technique qui ne lui sert à rien.
+  Widget _ecranChargementDeLaCarte(bool isFr) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF140F1A),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1F1528),
+        elevation: 0,
+        title: Text(trSi(isFr, 'Table {code}', 'Table {code}', {'code': _code ?? ''})),
+      ),
+      body: const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37))),
+    );
+  }
+
+  /// La table existe mais sa carte n'a pas pu être lue d'avance : l'invité rejoint
+  /// d'abord (son prénom suffit), et la carte arrive avec sa place à table. Il pourra
+  /// décrire ses goûts ensuite.
+  Widget _ecranRejoindreDAbord(bool isFr) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF140F1A),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1F1528),
+        elevation: 0,
+        title: Text(trSi(isFr, 'Table {code}', 'Table {code}', {'code': _code ?? ''})),
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.groups_rounded, size: 56, color: Color(0xFFD4AF37)),
+              const SizedBox(height: 20),
+              Text(
+                trSi(isFr, 'Rejoignez la table pour voir la carte', 'Join the table to see the wine list'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                trSi(isFr, 'Votre prénom suffit : la carte arrive dès que vous êtes à table, et vous pourrez décrire vos goûts ensuite.',
+                    'Your first name is enough: the wine list arrives as soon as you are at the table, and you can describe your tastes afterwards.'),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: _nameCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: trSi(isFr, 'Votre prénom', 'Your first name'),
+                  labelStyle: const TextStyle(color: Colors.white54),
+                  enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4AF37))),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B1E3F),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () {
+                    setState(() => _carteEnChargement = true);
+                    _rejoindreSansPreferences();
+                  },
+                  icon: const Icon(Icons.login_rounded),
+                  label: Text(trSi(isFr, 'Rejoindre la table', 'Join the table')),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _ecranCarteIllisible(bool isFr) {
     return Scaffold(
       backgroundColor: const Color(0xFF140F1A),
@@ -631,7 +740,11 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   @override
   Widget build(BuildContext context) {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
-    if (_menu == null || _menu!.wines.isEmpty) return _ecranCarteIllisible(isFr);
+    if (_menu == null || _menu!.wines.isEmpty) {
+      if (_carteEnChargement) return _ecranChargementDeLaCarte(isFr);
+      if (_code != null && !_hasJoined) return _ecranRejoindreDAbord(isFr);
+      return _ecranCarteIllisible(isFr);
+    }
     final menu = _menu!;
 
     return DefaultTabController(

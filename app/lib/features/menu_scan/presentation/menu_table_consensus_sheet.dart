@@ -621,6 +621,9 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                 shareSubject: _codeServeur != null
                     ? (trSi(_isFr, 'Table Chatmelier — code {codeServeur}', 'Chatmelier table — code {codeServeur}', {'codeServeur': _codeServeur}))
                     : (trSi(_isFr, 'Table Chatmelier', 'Chatmelier table')),
+                // Le code serveur est déjà affiché en grand au-dessus ; l'identifiant local
+                // de la table ne sert à personne.
+                afficherLeCode: false,
                 size: 260,
               ),
             ),

@@ -410,23 +410,13 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
             ),
             onPressed: _toggleViewMode,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF281832),
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              icon: const Icon(Icons.groups_rounded, size: 14, color: Color(0xFFD4AF37)),
-              label: Text(
-                trSi(isFr, 'En groupe 👥', 'Group 👥'),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-              ),
-              onPressed: () => MenuTableConsensusSheet.show(context, menu: _menu),
-            ),
+          // Trois raccourcis en icônes. En pastilles avec libellé, ils ne laissaient au nom
+          // du restaurant que 25 px sur un téléphone, écrasé en colonne (01/10). Les mêmes
+          // actions ont leurs grandes cartes, avec libellé, juste en dessous.
+          IconButton(
+            tooltip: trSi(isFr, 'Choisir en groupe 👥', 'Choose as a group 👥'),
+            icon: const Icon(Icons.groups_rounded, color: Color(0xFFD4AF37)),
+            onPressed: () => MenuTableConsensusSheet.show(context, menu: _menu),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),

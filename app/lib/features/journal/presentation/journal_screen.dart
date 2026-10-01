@@ -545,6 +545,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                 isDark,
                                 theme,
                                 isFr,
+                                enGrille: true,
                               ),
                               childCount: filteredEntries.length,
                             ),
@@ -575,8 +576,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     TastingEntry entry,
     bool isDark,
     ThemeData theme,
-    bool isFr,
-  ) {
+    bool isFr, {
+    bool enGrille = false,
+  }) {
     final wineName = entry.wineName ?? (trSi(isFr, 'Vin dégusté', 'Tasted wine'));
     final vintage = entry.vintage != null && entry.vintage! > 0
         ? ' (${entry.vintage})'
@@ -777,18 +779,26 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 ),
               ],
 
-              const Spacer(),
+              // Dans la grille (tablette), la carte a une hauteur fixe et le bas de carte s'y
+              // aligne. Dans la liste du téléphone, la hauteur n'est pas bornée : un Spacer y
+              // faisait échouer la mise en page, et l'onglet entier restait vide (01/10).
+              if (enGrille) const Spacer() else const SizedBox(height: 8),
 
               // Bottom Actions: Questionnaire Sheet & Detail Link
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    trSi(isFr, 'Fiche complète & arômes', 'Full details & aromas'),
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF8B1E3F).withValues(alpha: 0.8),
+                  // Souple : en espagnol, ou sur un petit écran, la ligne débordait.
+                  Flexible(
+                    child: Text(
+                      trSi(isFr, 'Fiche complète & arômes', 'Full details & aromas'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF8B1E3F).withValues(alpha: 0.8),
+                      ),
                     ),
                   ),
                   TextButton.icon(
@@ -842,15 +852,19 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             children: [
               const Icon(Icons.wine_bar, size: 20, color: Color(0xFF8B1E3F)),
               const SizedBox(width: 8),
-              Text(
-                trSi(isFr, 'Espace Dégustation', 'Tasting Hub'),
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF1F2937),
+              Expanded(
+                child: Text(
+                  trSi(isFr, 'Espace Dégustation', 'Tasting Hub'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF1F2937),
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(

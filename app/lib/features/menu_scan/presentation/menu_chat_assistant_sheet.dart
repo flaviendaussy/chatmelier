@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../data/menu_scan_service.dart';
@@ -245,14 +246,29 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
                         bottomLeft: !msg.isUser ? const Radius.circular(2) : const Radius.circular(16),
                       ),
                     ),
-                    child: Text(
-                      msg.text,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        color: msg.isUser ? Colors.white : (isDark ? Colors.white : Colors.black87),
-                        height: 1.4,
-                      ),
-                    ),
+                    // Le sommelier écrit en Markdown (gras pour les vins et les prix) : en texte
+                    // brut, les « ** » s'affichaient tels quels (01/10). Même rendu que le chat.
+                    child: msg.isUser
+                        ? Text(
+                            msg.text,
+                            style: const TextStyle(fontSize: 13.5, color: Colors.white, height: 1.4),
+                          )
+                        : MarkdownBody(
+                            data: msg.text,
+                            styleSheet: MarkdownStyleSheet(
+                              p: TextStyle(
+                                fontSize: 13.5,
+                                color: isDark ? Colors.white : Colors.black87,
+                                height: 1.4,
+                              ),
+                              strong: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? const Color(0xFFE2C480) : const Color(0xFF8B1E3F),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
                   ),
                 );
               },

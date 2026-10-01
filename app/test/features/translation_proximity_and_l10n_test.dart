@@ -129,10 +129,12 @@ void main() {
       };
     });
 
-    test('All 13 locales must have 100% key parity with template (0 missing keys)', () {
-      const expectedLocales = [
-        'en', 'fr', 'es', 'it', 'de', 'pt', 'nl', 'sv', 'ca', 'la', 'ja', 'zh', 'ko'
-      ];
+    // Français, anglais, espagnol depuis la V2.3 (H6). Les dix autres `.arb` attendent dans
+    // `l10n_plus_tard/`, hors génération : ils ne sont plus tenus à jour ni vérifiés ici.
+    test('Les trois langues de l\'app ont toutes les clés du modèle', () {
+      const expectedLocales = ['en', 'fr', 'es'];
+      expect(arbData.keys.toSet(), expectedLocales.toSet(),
+          reason: 'lib/l10n ne contient que les langues de l\'app');
 
       final missingByLocale = <String, List<String>>{};
 
@@ -157,52 +159,8 @@ void main() {
       }
     });
 
-    test('Non-Latin scripts (ja, zh, ko) must NOT contain untranslated Latin ASCII strings', () {
-      final kanaOrKanjiRegex = RegExp(r'[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]');
-      final hanziRegex = RegExp(r'[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]');
-      final hangulRegex = RegExp(r'[\uac00-\ud7af\u1100-\u11ff]');
-
-      final untranslatedByLocale = <String, List<String>>{};
-
-      void checkLocale(String loc, RegExp scriptRegex) {
-        final data = arbData[loc] ?? {};
-        final untranslated = <String>[];
-
-        for (final key in enKeys) {
-          if (allowlistedKeyExceptions.contains(key)) continue;
-
-          final val = (data[key] as String?)?.trim() ?? '';
-          if (val.isEmpty) continue;
-
-          // If the string is purely symbols or allowlisted
-          if (universalAllowlist.contains(val)) continue;
-
-          // If text is longer than 4 chars and contains 0 characters of the target script
-          final cleanVal = val.replaceAll(RegExp(r'\{[a-zA-Z0-9_]+\}'), '').replaceAll(RegExp(r'[\s0-9\.,:;!\?_/\-\(\)•✨🍾🍷🥂🍓🍇🍒🍋🫐🪨⏱️🎯🎙️🍽️👑]'), '');
-          if (cleanVal.length >= 3 && !scriptRegex.hasMatch(cleanVal)) {
-            untranslated.add('$key ("$val")');
-          }
-        }
-
-        if (untranslated.isNotEmpty) {
-          untranslatedByLocale[loc] = untranslated;
-        }
-      }
-
-      checkLocale('ja', kanaOrKanjiRegex);
-      checkLocale('zh', hanziRegex);
-      checkLocale('ko', hangulRegex);
-
-      if (untranslatedByLocale.isNotEmpty) {
-        final summary = untranslatedByLocale.entries
-            .map((e) => '${e.key}: ${e.value.length} untranslated strings:\n  - ${e.value.take(10).join('\n  - ')}')
-            .join('\n\n');
-        fail('Script integrity failure! English/Latin strings detected in non-Latin locales:\n$summary');
-      }
-    });
-
-    test('Hash collisions across 5 distinct language families (fr, en, de, ja, zh) flag untranslated duplicates', () {
-      final distantLangs = ['ja', 'zh', 'ko', 'de', 'it', 'pt', 'nl', 'sv', 'es', 'ca', 'la'];
+    test('L\'espagnol ne recopie ni l\'anglais ni le français', () {
+      final distantLangs = ['es'];
       final suspiciousCollisions = <String, List<String>>{};
 
       for (final loc in distantLangs) {
@@ -249,7 +207,7 @@ void main() {
       }
     });
 
-    test('ICU Placeholders and variables are preserved identically in all 13 locales', () {
+    test('ICU Placeholders and variables are preserved identically in every language', () {
       final placeholderRegex = RegExp(r'\{([a-zA-Z0-9_]+)\}');
       final brokenPlaceholders = <String, List<String>>{};
 

@@ -54,3 +54,6 @@ supabase/supabase/
 
 # Assets parqués — hors bundle, conservés pour un retour éventuel (badges, scratchcard)
 _parked_assets/
+
+# Caches Python des outils (tool/langues)
+__pycache__/

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../shared/utils/langue.dart';
 import '../../../config/router.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../journal/presentation/tasting_questionnaire_sheet.dart';
@@ -550,7 +551,7 @@ class PostTastingNotificationService {
     final diff = DateTime.now().difference(since);
     if (diff.inHours < 1) return '${diff.inMinutes} min';
     if (diff.inHours < 24) return '${diff.inHours}h';
-    return '${diff.inDays} jour${diff.inDays > 1 ? 's' : ''}';
+    return diff.inDays > 1 ? tr('{n} jours', '{n} days', {'n': diff.inDays}) : tr('{n} jour', '{n} day', {'n': diff.inDays});
   }
 }
 

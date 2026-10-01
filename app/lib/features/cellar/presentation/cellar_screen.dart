@@ -402,7 +402,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
   }
 
   List<Widget> _buildLocationSummaryChips(List<Bottle> bottleList, {dynamic lang = 'fr'}) {
-    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final code = codeDeLangue(lang);
     final isFr = code == 'fr';
     final isLa = code == 'la';
 
@@ -475,7 +475,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     if (_searchQuery.isEmpty) return const SizedBox.shrink();
 
     final totalCount = filteredList.fold<int>(0, (sum, b) => sum + b.quantity);
-    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final code = codeDeLangue(lang);
     final isFr = code == 'fr';
     final isLa = code == 'la';
 
@@ -1752,7 +1752,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
   }
 
   Widget _buildTotalCostsBanner(ThemeData theme, int totalBottles, int totalReferences, double totalValue, dynamic lang) {
-    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final code = codeDeLangue(lang);
     final isFr = code == 'fr';
     final isLa = code == 'la';
 

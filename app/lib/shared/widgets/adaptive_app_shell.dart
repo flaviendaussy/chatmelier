@@ -151,7 +151,7 @@ class _MobileAppShell extends ConsumerWidget {
       (
         icon: Icons.restaurant_menu_outlined,
         activeIcon: Icons.restaurant_menu,
-        label: l10n?.navJournal ?? (Localizations.localeOf(context).languageCode == 'fr' ? 'Dégust.' : 'Tasting'),
+        label: l10n?.navJournal ?? trSi(Localizations.localeOf(context).languageCode == 'fr', 'Dégust.', 'Tasting'),
       ),
       (
         icon: Icons.person_outline,

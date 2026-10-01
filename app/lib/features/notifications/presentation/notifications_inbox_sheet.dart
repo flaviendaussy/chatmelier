@@ -112,7 +112,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
           SnackBar(
             content: Text(
               accept
-                  ? tr('🍾 Accès accordé à {requesterName} ({v1}) !', '🍾 Access granted to {requesterName} ({v2})!', {'requesterName': req.requesterName, 'v1': role == "editor" ? "Sommelier" : "Lecteur", 'v2': role == "editor" ? "Sommelier" : "Viewer"})
+                  ? tr('🍾 Accès accordé à {requesterName} ({v1}) !', '🍾 Access granted to {requesterName} ({v1})!', {'requesterName': req.requesterName, 'v1': role == "editor" ? tr('Sommelier', 'Sommelier') : tr('Lecteur', 'Viewer')})
                   : tr('Demande d\'accès refusée.', 'Access request declined.'),
             ),
             backgroundColor: accept ? const Color(0xFF10B981) : Colors.grey.shade800,
@@ -798,7 +798,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                     ),
                     icon: const Icon(Icons.check, size: 16),
                     label: Text(
-                      tr('Accorder l\'accès ({v1})', 'Grant access ({v2})', {'v1': req.requestedRole == "editor" ? "Sommelier" : "Lecteur", 'v2': req.requestedRole == "editor" ? "Sommelier" : "Viewer"}),
+                      tr('Accorder l\'accès ({v1})', 'Grant access ({v1})', {'v1': req.requestedRole == "editor" ? tr('Sommelier', 'Sommelier') : tr('Lecteur', 'Viewer')}),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                     onPressed: _isProcessing

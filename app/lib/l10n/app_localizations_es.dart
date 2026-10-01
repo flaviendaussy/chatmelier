@@ -21,7 +21,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navChat => 'Chat';
 
   @override
-  String get navJournal => 'Historial';
+  String get navJournal => 'Catas';
 
   @override
   String get navStats => 'Estadísticas';

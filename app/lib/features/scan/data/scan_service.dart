@@ -356,7 +356,7 @@ class ScanService {
       if (appellation != null) 'appellation': appellation,
       if (wineType != null) 'type': wineType,
       'recherche': avecRecherche,
-      'langue': tr('fr', 'en'),
+      'langue': Langue.code,
     }, delai: Duration(seconds: avecRecherche ? 50 : 35));
     final brut = r.ok ? r.donnees!['resultat'] : null;
     if (brut is Map) return Map<String, dynamic>.from(brut);
@@ -500,7 +500,7 @@ class ScanService {
     final r = await _ia.appeler('taches-ia', {
       'tache': 'vin_depuis_texte',
       'texte': text,
-      'langue': tr('fr', 'en'),
+      'langue': Langue.code,
     }, delai: const Duration(seconds: 30));
     final brut = r.ok ? r.donnees!['resultat'] : null;
     if (brut is Map) {

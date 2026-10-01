@@ -68,37 +68,26 @@ class _MockAuthRepo implements AuthRepository {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('13-Language Localization Completeness & Switching', () {
-    test('All 13 expected locales are supported by AppLocalizations', () {
-      final supportedCodes = AppLocalizations.supportedLocales.map((l) => l.languageCode).toSet();
-      const expectedCodes = {
-        'fr', 'en', 'it', 'es', 'ca', 'pt', 'nl', 'de', 'ja', 'zh', 'ko', 'sv', 'la'
-      };
-
-      for (final code in expectedCodes) {
-        expect(supportedCodes.contains(code), isTrue,
-            reason: 'Locale $code should be in AppLocalizations.supportedLocales');
-      }
+  // Depuis la V2.3 (H6), l'app parle français, anglais et espagnol. Les dix autres `.arb`
+  // attendent dans `l10n_plus_tard/` : ils reviendront avec leur catalogue de phrases
+  // (`tool/langues`), sans quoi l'écran mêlerait leur langue et l'anglais.
+  group('Langues de l\'app : français, anglais, espagnol', () {
+    test('les traductions générées et le choix du profil proposent les trois mêmes langues', () {
+      final codes = AppLocalizations.supportedLocales.map((l) => l.languageCode).toSet();
+      expect(codes, {'fr', 'en', 'es'});
+      expect(kSupportedLanguageCodes.toSet(), codes);
     });
 
-    testWidgets('BadgeCategory and BadgeTier display authentic translations in all 13 locales', (tester) async {
-      final testLocales = [
-        const Locale('fr'),
-        const Locale('en'),
-        const Locale('it'),
-        const Locale('es'),
-        const Locale('ca'),
-        const Locale('pt'),
-        const Locale('nl'),
-        const Locale('de'),
-        const Locale('ja'),
-        const Locale('zh'),
-        const Locale('ko'),
-        const Locale('sv'),
-        const Locale('la'),
-      ];
+    test('une langue choisie avant la 72 et mise de côté revient à celle du téléphone', () async {
+      SharedPreferences.setMockInitialValues({'user_selected_locale': 'it'});
+      final notifier = LocaleNotifier();
+      await Future<void>.delayed(Duration.zero);
+      expect(notifier.state, isNull);
+      notifier.dispose();
+    });
 
-      for (final loc in testLocales) {
+    testWidgets('BadgeCategory and BadgeTier display authentic translations in fr, en, es', (tester) async {
+      for (final loc in const [Locale('fr'), Locale('en'), Locale('es')]) {
         await tester.pumpWidget(
           MaterialApp(
             locale: loc,
@@ -107,42 +96,18 @@ void main() {
             home: Builder(
               builder: (ctx) {
                 for (final cat in BadgeCategory.values) {
-                  final lbl = cat.label(ctx);
-                  expect(lbl.isNotEmpty, isTrue,
+                  expect(cat.label(ctx).isNotEmpty, isTrue,
                       reason: 'Category $cat should have non-empty label for ${loc.languageCode}');
                 }
                 for (final tier in BadgeTier.values) {
-                  final tLbl = tier.label(ctx);
-                  expect(tLbl.isNotEmpty, isTrue,
+                  expect(tier.label(ctx).isNotEmpty, isTrue,
                       reason: 'Tier $tier should have non-empty label for ${loc.languageCode}');
                 }
-
-                if (loc.languageCode == 'it') {
-                  expect(BadgeCategory.milestones.label(ctx), 'Traguardi Cantina');
-                  expect(BadgeCategory.grapes.label(ctx), 'Vitigni');
-                  expect(BadgeCategory.chatmelierSavant.label(ctx), 'Il Chatmelier Sapiente');
-                } else if (loc.languageCode == 'es') {
+                if (loc.languageCode == 'es') {
                   expect(BadgeCategory.milestones.label(ctx), 'Hitos de Bodega');
                   expect(BadgeCategory.grapes.label(ctx), 'Variedades de Uva');
                   expect(BadgeCategory.chatmelierSavant.label(ctx), 'El Chatmelier Erudito');
-                } else if (loc.languageCode == 'ca') {
-                  expect(BadgeCategory.milestones.label(ctx), 'Fites de Celler');
-                  expect(BadgeCategory.grapes.label(ctx), 'Varietats de Raïm');
-                } else if (loc.languageCode == 'de') {
-                  expect(BadgeCategory.milestones.label(ctx), 'Keller-Meilensteine');
-                  expect(BadgeCategory.grapes.label(ctx), 'Rebsorten');
-                } else if (loc.languageCode == 'ja') {
-                  expect(BadgeCategory.milestones.label(ctx), 'セラーのマイルストーン');
-                  expect(BadgeCategory.grapes.label(ctx), 'ブドウ品種');
-                } else if (loc.languageCode == 'zh') {
-                  expect(BadgeCategory.milestones.label(ctx), '酒窖里程碑');
-                  expect(BadgeCategory.grapes.label(ctx), '葡萄品种');
-                } else if (loc.languageCode == 'la') {
-                  expect(BadgeCategory.milestones.label(ctx), 'Miliaria Cellae');
-                  expect(BadgeCategory.grapes.label(ctx), 'Uvae Varietates');
-                  expect(BadgeCategory.chatmelierSavant.label(ctx), 'Chatmelier Doctus');
                 }
-
                 return const SizedBox();
               },
             ),
@@ -151,7 +116,7 @@ void main() {
       }
     });
 
-    testWidgets('App navigation destinations update dynamically across multiple locales', (tester) async {
+    testWidgets('App navigation destinations update dynamically across the three languages', (tester) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
@@ -197,72 +162,29 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // In French (default)
       expect(find.text('Cave'), findsWidgets);
       expect(find.text('Chat'), findsWidgets);
       expect(find.text('Degust.'), findsWidgets);
       expect(find.text('Profil'), findsWidgets);
 
-      // Switch to Italian
-      container.read(localeProvider.notifier).setLocale(const Locale('it'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Cantina'), findsWidgets);
-      expect(find.text('Profilo'), findsWidgets);
-      expect(find.text('Storico'), findsWidgets);
-
-      // Switch to Spanish
       container.read(localeProvider.notifier).setLocale(const Locale('es'));
       await tester.pumpAndSettle();
 
       expect(find.text('Bodega'), findsWidgets);
-      expect(find.text('Perfil'), findsWidgets);
-      expect(find.text('Historial'), findsWidgets);
-
-      // Switch to Catalan
-      container.read(localeProvider.notifier).setLocale(const Locale('ca'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Celler'), findsWidgets);
-      expect(find.text('Xat'), findsWidgets);
-      expect(find.text('Històric'), findsWidgets);
+      expect(find.text('Catas'), findsWidgets);
       expect(find.text('Perfil'), findsWidgets);
 
-      // Switch to German
-      container.read(localeProvider.notifier).setLocale(const Locale('de'));
+      container.read(localeProvider.notifier).setLocale(const Locale('en'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Keller'), findsWidgets);
-      expect(find.text('Profil'), findsWidgets);
+      expect(find.text('Cellar'), findsWidgets);
+      expect(find.text('Tasting'), findsWidgets);
+      expect(find.text('Profile'), findsWidgets);
 
-      // Switch to Japanese
-      container.read(localeProvider.notifier).setLocale(const Locale('ja'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('セラー'), findsWidgets);
-      expect(find.text('マイページ'), findsWidgets);
-
-      // Switch to Chinese
-      container.read(localeProvider.notifier).setLocale(const Locale('zh'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('酒窖'), findsWidgets);
-      expect(find.text('个人'), findsWidgets);
-
-      // Switch to Latin (Vaticanum)
-      container.read(localeProvider.notifier).setLocale(const Locale('la'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Cella'), findsWidgets);
-      expect(find.text('Colloquium'), findsWidgets);
-      expect(find.text('Gustatio'), findsWidgets);
-      expect(find.text('Profili'), findsWidgets);
-
-      // Verify preference was persisted in SharedPreferences
-      expect(prefs.getString('user_selected_locale'), 'la');
+      expect(prefs.getString('user_selected_locale'), 'en');
     });
 
-    testWidgets('ProfileScreen tabs translate accurately across locales', (tester) async {
+    testWidgets('ProfileScreen tabs translate accurately across the three languages', (tester) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final mockAuth = _MockAuthRepo();
@@ -308,13 +230,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // French tabs
       expect(find.text('Palais'), findsOneWidget);
       expect(find.text('Réglages'), findsOneWidget);
       expect(find.text('Outils'), findsOneWidget);
       expect(find.text('Compte'), findsOneWidget);
 
-      // Switch to English
       container.read(localeProvider.notifier).setLocale(const Locale('en'));
       await tester.pumpAndSettle();
 
@@ -323,15 +243,6 @@ void main() {
       expect(find.text('Tools'), findsOneWidget);
       expect(find.text('Account'), findsOneWidget);
 
-      // Switch to Italian
-      container.read(localeProvider.notifier).setLocale(const Locale('it'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Palato'), findsOneWidget);
-      expect(find.text('Impostazioni'), findsOneWidget);
-      expect(find.text('Strumenti'), findsOneWidget);
-
-      // Switch to Spanish
       container.read(localeProvider.notifier).setLocale(const Locale('es'));
       await tester.pumpAndSettle();
 
@@ -339,33 +250,6 @@ void main() {
       expect(find.text('Ajustes'), findsOneWidget);
       expect(find.text('Herramientas'), findsOneWidget);
       expect(find.text('Cuenta'), findsOneWidget);
-
-      // Switch to Catalan
-      container.read(localeProvider.notifier).setLocale(const Locale('ca'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Paladar'), findsOneWidget);
-      expect(find.text('Ajustos'), findsOneWidget);
-      expect(find.text('Eines'), findsOneWidget);
-      expect(find.text('Compte'), findsOneWidget);
-
-      // Switch to German
-      container.read(localeProvider.notifier).setLocale(const Locale('de'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Gaumen'), findsOneWidget);
-      expect(find.text('Einstellungen'), findsOneWidget);
-      expect(find.text('Werkzeuge'), findsOneWidget);
-      expect(find.text('Konto'), findsOneWidget);
-
-      // Switch to Latin
-      container.read(localeProvider.notifier).setLocale(const Locale('la'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Palatum'), findsOneWidget);
-      expect(find.text('Praecepta'), findsOneWidget);
-      expect(find.text('Instrumenta'), findsOneWidget);
-      expect(find.text('Ratio'), findsOneWidget);
     });
 
     test('Cellar domain models localize correctly in English and French', () {
@@ -425,65 +309,5 @@ void main() {
       expect(boughtBottle.getProvenanceDisplay(false), '🏪 Wine merchant: La Maison du Whisky');
 
     });
-
-    testWidgets('Latin cellar & feedback localizations match expected classical church Latin', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('la'),
-          localizationsDelegates: kAppLocalizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Builder(
-            builder: (ctx) {
-              final l10n = AppLocalizations.of(ctx)!;
-
-              // Cellar keys
-              expect(l10n.cellarWinesTab, '🍷 Vina');
-              expect(l10n.cellarSpiritsTab, '🥃 Spiritus');
-              expect(l10n.cellarPairWithDish, 'Quod vinum huic cibo?');
-              expect(l10n.cellarCollapseAll, 'Omnia complica');
-              expect(l10n.cellarExpandAll, 'Omnia explica');
-              expect(l10n.cellarSort, 'Ordina');
-              expect(l10n.cellarCategories, 'Categoriae');
-              expect(l10n.cellarFavorites, 'Dilecta');
-              expect(l10n.cellarGridView, 'Cancellata');
-              expect(l10n.cellarListView, 'Index');
-              expect(l10n.cellarClearFilters, 'Filtra dele');
-              expect(l10n.cellarNoBottlesCategory, 'Nulla ampulla in hac categoria');
-              expect(l10n.cellarNoBottlesCriteria, 'Nulla ampulla his regulis convenit');
-
-              // Feedback keys
-              expect(l10n.feedbackSheetTitle, 'Refert Inspectoris & Adnotatio');
-              expect(l10n.feedbackStylus, 'Stilus :');
-              expect(l10n.feedbackUndo, 'Priorem lineam dele');
-              expect(l10n.feedbackClear, 'Omnia dele');
-              expect(l10n.feedbackSubmit, 'Mitte rationem');
-              expect(l10n.feedbackSubmitting, 'Mittens...');
-              expect(l10n.feedbackNoScreenshot, 'Nulla scaenae imago adest');
-              expect(l10n.feedbackEmptyError, 'Quaeso adde notam aut lineam in imagine.');
-              expect(l10n.feedbackSuccess, 'Gratias agimus! 🍷 Renuntiatio missa est.');
-              expect(l10n.feedbackError('404'), 'Error in mittendo: 404');
-
-              return const SizedBox();
-            },
-          ),
-        ),
-      );
-
-      // Domain localization Latin checks
-      expect(CellarSortBy.vintageAsc.localizedLabel('la'), 'Annata (Antiquißima)');
-      expect(CellarSortBy.priceDesc.localizedLabel('la'), 'Pretium (Carißimum)');
-      expect(CellarGroupBy.color.localizedLabel('la'), 'Color');
-      expect(CellarGroupBy.maturity.localizedLabel('la'), 'Maturitas / Fastigium');
-      expect(CellarGroupBy.appellation.localizedLabel('la'), 'Appellatio');
-      expect(CellarGroupBy.country.localizedLabel('la'), 'Terra');
-
-      final sections = CellarGroupEngine.partitionBottles(
-        [],
-        CellarGroupBy.none,
-        lang: 'la',
-      );
-      expect(sections.first.title, 'Omnes Ampullae');
-    });
   });
 }
-

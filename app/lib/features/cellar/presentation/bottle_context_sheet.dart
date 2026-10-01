@@ -355,7 +355,7 @@ class BottleContextSheet extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                trSi(isFr, 'Combien de bouteilles de "{v1}" souhaitez-vous ajouter ?', 'How many bottles of "{v2}" would you like to add?', {'v1': bottle.wine?.name ?? "ce vin", 'v2': bottle.wine?.name ?? "this wine"}),
+                trSi(isFr, 'Combien de bouteilles de "{v1}" souhaitez-vous ajouter ?', 'How many bottles of "{v1}" would you like to add?', {'v1': bottle.wine?.name ?? trSi(isFr, 'ce vin', 'this wine')}),
               ),
               const SizedBox(height: 16),
               Row(
@@ -475,7 +475,7 @@ class BottleContextSheet extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(trSi(isFr, 'Vin : {v1} ({quantity} en stock)', 'Wine: {v2} ({quantity} in stock)', {'v1': bottle.wine?.name ?? "Vin", 'quantity': bottle.quantity, 'v2': bottle.wine?.name ?? "Wine"})),
+              Text(trSi(isFr, 'Vin : {v1} ({quantity} en stock)', 'Wine: {v1} ({quantity} in stock)', {'v1': bottle.wine?.name ?? trSi(isFr, 'Vin', 'Wine'), 'quantity': bottle.quantity})),
               const SizedBox(height: 16),
               Text(
                 trSi(isFr, 'Sélectionner la cave de destination :', 'Select destination cellar:'),

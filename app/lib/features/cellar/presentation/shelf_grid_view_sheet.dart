@@ -185,7 +185,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                 Text(
                   target.furnitureSlot != null
                       ? (trSi(isFr, 'Souhaitez-vous échanger les places entre ces deux bouteilles ?', 'Would you like to swap places between these two bottles?'))
-                      : (trSi(isFr, 'Souhaitez-vous placer "{v1}" ici et déplacer l\'autre ?', 'Would you like to place "{v2}" here and relocate the other?', {'v1': target.wine?.name ?? 'cette bouteille', 'v2': target.wine?.name ?? 'this bottle'})),
+                      : (trSi(isFr, 'Souhaitez-vous placer "{v1}" ici et déplacer l\'autre ?', 'Would you like to place "{v1}" here and relocate the other?', {'v1': target.wine?.name ?? trSi(isFr, 'cette bouteille', 'this bottle')})),
                   style: const TextStyle(fontSize: 13),
                 ),
               ],
@@ -782,7 +782,9 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           items: furnitures.map((f) {
                             final label = f.isCupboard
-                                ? (trSi(isFr, '{f_name} ({rows} niveau{v1})', '{f_name} ({rows} shelf levels)', {'f_name': f.name, 'rows': f.rows, 'v1': f.rows > 1 ? "x" : ""}))
+                                ? (f.rows > 1
+                                    ? trSi(isFr, '{f_name} ({rows} niveaux)', '{f_name} ({rows} shelf levels)', {'f_name': f.name, 'rows': f.rows})
+                                    : trSi(isFr, '{f_name} ({rows} niveau)', '{f_name} ({rows} shelf level)', {'f_name': f.name, 'rows': f.rows}))
                                 : '${f.name} (${f.columns}x${f.rows})';
                             return DropdownMenuItem(
                               value: f.id,
@@ -860,7 +862,7 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          trSi(isFr, 'Touchez un casier pour y ranger "{v1}"', 'Tap a slot to place "{v2}"', {'v1': widget.bottleToPlace!.wine?.name ?? 'la bouteille', 'v2': widget.bottleToPlace!.wine?.name ?? 'the bottle'}),
+                          trSi(isFr, 'Touchez un casier pour y ranger "{v1}"', 'Tap a slot to place "{v1}"', {'v1': widget.bottleToPlace!.wine?.name ?? trSi(isFr, 'la bouteille', 'the bottle')}),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                         ),
                       ),

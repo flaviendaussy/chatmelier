@@ -872,20 +872,16 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
           // 1. Phénols & Couleur
           _buildMoleculeTopic(
             emoji: '🍇',
-            title: isFr
-                ? (isRed ? 'Anthocyanes & Tannins Polymérisés' : (isSparkling ? 'Mannoprotéines & Autolyse' : 'Acides Hydroxycinnamiques'))
-                : (isRed ? 'Anthocyanins & Polymerized Tannins' : (isSparkling ? 'Mannoproteins & Autolysis' : 'Hydroxycinnamic Acids')),
-            description: isFr
-                ? (isRed
-                    ? 'Malvidine-3-glucoside et tannins condensés (proanthocyanidines). Au fil des ans, les tannins se polymérisent, adoucissant l\'astringence en précipitant moins les protéines salivaires (proline).'
-                    : (isSparkling
-                        ? 'L\'élevage sur lies libère des mannoprotéines par autolyse des levures (Saccharomyces cerevisiae), stabilisant la texture crémeuse et la finesse de l\'effervescence.'
-                        : 'Acide caftarique et flavonoïdes offrant la brillance jaune doré et agissant comme antioxydants naturels.'))
-                : (isRed
-                    ? 'Malvidin-3-glucoside and condensed tannins (proanthocyanidins). Over time, tannins polymerize, softening astringency by binding fewer salivary proteins (proline).'
-                    : (isSparkling
-                        ? 'Aging on lees releases mannoproteins through yeast autolysis (Saccharomyces cerevisiae), stabilizing creamy texture and bubble finesse.'
-                        : 'Caftaric acid and flavonoids providing golden brilliance and acting as natural antioxidants.')),
+            title: isRed
+                ? trSi(isFr, 'Anthocyanes & Tannins Polymérisés', 'Anthocyanins & Polymerized Tannins')
+                : (isSparkling
+                    ? trSi(isFr, 'Mannoprotéines & Autolyse', 'Mannoproteins & Autolysis')
+                    : trSi(isFr, 'Acides Hydroxycinnamiques', 'Hydroxycinnamic Acids')),
+            description: isRed
+                ? trSi(isFr, 'Malvidine-3-glucoside et tannins condensés (proanthocyanidines). Au fil des ans, les tannins se polymérisent, adoucissant l\'astringence en précipitant moins les protéines salivaires (proline).', 'Malvidin-3-glucoside and condensed tannins (proanthocyanidins). Over time, tannins polymerize, softening astringency by binding fewer salivary proteins (proline).')
+                : (isSparkling
+                    ? trSi(isFr, 'L\'élevage sur lies libère des mannoprotéines par autolyse des levures (Saccharomyces cerevisiae), stabilisant la texture crémeuse et la finesse de l\'effervescence.', 'Aging on lees releases mannoproteins through yeast autolysis (Saccharomyces cerevisiae), stabilizing creamy texture and bubble finesse.')
+                    : trSi(isFr, 'Acide caftarique et flavonoïdes offrant la brillance jaune doré et agissant comme antioxydants naturels.', 'Caftaric acid and flavonoids providing golden brilliance and acting as natural antioxidants.')),
             isDark: isDark,
           ),
           const SizedBox(height: 10),

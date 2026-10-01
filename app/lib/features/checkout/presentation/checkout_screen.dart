@@ -268,7 +268,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             content: Text(
               l10n?.distantCellarCheckoutConfirm(warning, targetCellar!.displayName) ??
-                  tr('{warning}\n\nSouhaitez-vous quand même enregistrer la sortie de cette bouteille depuis la cave "{v1}" ?', '{warning}\n\nDo you still want to take this bottle out of the cellar "{displayName}"?', {'warning': warning, 'v1': targetCellar!.displayName, 'displayName': targetCellar.displayName}),
+                  tr('{warning}\n\nSouhaitez-vous quand même enregistrer la sortie de cette bouteille depuis la cave "{v1}" ?', '{warning}\n\nDo you still want to take this bottle out of the cellar "{v1}"?', {'warning': warning, 'v1': targetCellar!.displayName}),
             ),
             actions: [
               TextButton(

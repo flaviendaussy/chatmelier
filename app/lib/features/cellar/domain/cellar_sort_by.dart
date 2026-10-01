@@ -1,3 +1,4 @@
+import '../../../shared/utils/langue.dart';
 import 'package:flutter/material.dart';
 import 'bottle.dart';
 import 'wine.dart';
@@ -24,7 +25,7 @@ enum CellarSortBy {
   const CellarSortBy(this.key, this.label, this.icon);
 
   String localizedLabel(dynamic lang) {
-    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final code = codeDeLangue(lang);
     if (code == 'fr') return label;
 
     if (code == 'la') {

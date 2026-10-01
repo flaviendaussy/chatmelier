@@ -239,45 +239,29 @@ class MenuWineRadarMetrics {
     );
   }
 
-  static List<String> redAxisLabelsLocalized([bool isFr = true]) => isFr
-      ? [
-          'Tannins &\nStructure',
-          'Puissance\n& Corps',
-          'Fraîcheur\n& Acidité',
-          'Fruit &\nBaies',
-          'Boisé &\nÉlevage',
-          'Minéralité\n& Épices',
-          'Persistance\n& Rondeur',
-        ]
-      : [
-          'Tannins &\nStructure',
-          'Body &\nPower',
-          'Freshness\n& Acidity',
-          'Fruit &\nBerries',
-          'Oak &\nComplexity',
-          'Minerality\n& Spices',
-          'Finish &\nRoundness',
-        ];
+  static const _axesRouges = [
+    Phrase('Tannins &\nStructure', 'Tannins &\nStructure'),
+    Phrase('Puissance\n& Corps', 'Body &\nPower'),
+    Phrase('Fraîcheur\n& Acidité', 'Freshness\n& Acidity'),
+    Phrase('Fruit &\nBaies', 'Fruit &\nBerries'),
+    Phrase('Boisé &\nÉlevage', 'Oak &\nComplexity'),
+    Phrase('Minéralité\n& Épices', 'Minerality\n& Spices'),
+    Phrase('Persistance\n& Rondeur', 'Finish &\nRoundness'),
+  ];
 
-  static List<String> whiteAxisLabelsLocalized([bool isFr = true]) => isFr
-      ? [
-          'Minéralité\n& Tension',
-          'Fraîcheur\n& Vivacité',
-          'Fruit &\nFleurs',
-          'Beurré &\nRondeur',
-          'Boisé &\nToasté',
-          'Douceur &\nSucre',
-          'Corps &\nPuissance',
-        ]
-      : [
-          'Minerality\n& Crispness',
-          'Freshness\n& Vivacity',
-          'Fruit &\nFloral',
-          'Buttery &\nRound',
-          'Oak &\nToasted',
-          'Sweetness\n& Sugar',
-          'Body &\nPower',
-        ];
+  static const _axesBlancs = [
+    Phrase('Minéralité\n& Tension', 'Minerality\n& Crispness'),
+    Phrase('Fraîcheur\n& Vivacité', 'Freshness\n& Vivacity'),
+    Phrase('Fruit &\nFleurs', 'Fruit &\nFloral'),
+    Phrase('Beurré &\nRondeur', 'Buttery &\nRound'),
+    Phrase('Boisé &\nToasté', 'Oak &\nToasted'),
+    Phrase('Douceur &\nSucre', 'Sweetness\n& Sugar'),
+    Phrase('Corps &\nPuissance', 'Body &\nPower'),
+  ];
+
+  static List<String> redAxisLabelsLocalized([bool isFr = true]) => [for (final a in _axesRouges) a.dans(isFr)];
+
+  static List<String> whiteAxisLabelsLocalized([bool isFr = true]) => [for (final a in _axesBlancs) a.dans(isFr)];
 
   static List<String> get redAxisLabels => redAxisLabelsLocalized(true);
 

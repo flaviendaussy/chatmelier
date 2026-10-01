@@ -36,7 +36,7 @@ enum CellarGroupBy {
   }
 
   String localizedLabel(dynamic lang) {
-    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final code = codeDeLangue(lang);
     if (code == 'fr') return label;
     if (code == 'la') {
       switch (this) {
@@ -212,7 +212,7 @@ class CellarGroupEngine {
     CellarSortBy? sortBy,
     dynamic lang = 'fr',
   }) {
-    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final code = codeDeLangue(lang);
     final isFr = code == 'fr';
 
     if (groupBy == CellarGroupBy.none) {
@@ -423,7 +423,7 @@ class CellarGroupEngine {
 
   static String _extractKey(Bottle bottle, Wine? wine, CellarGroupBy groupBy, {dynamic lang = 'fr'}) {
     if (wine == null) return 'unknown';
-    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final code = codeDeLangue(lang);
     final isFr = code == 'fr';
 
     switch (groupBy) {
@@ -503,7 +503,7 @@ class CellarGroupEngine {
   }
 
   static String _getContinent(String country, {dynamic lang = 'fr'}) {
-    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final code = codeDeLangue(lang);
     final isFr = code == 'fr';
     final c = country.toLowerCase().trim();
     if (c.contains('france') ||
@@ -573,7 +573,7 @@ class CellarGroupEngine {
     String key, {
     dynamic lang = 'fr',
   }) {
-    final code = (lang is bool ? (lang ? 'fr' : 'en') : lang?.toString() ?? 'en').toLowerCase();
+    final code = codeDeLangue(lang);
     final isFr = code == 'fr';
 
     switch (groupBy) {

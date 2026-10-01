@@ -278,7 +278,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                   final snackFr = Localizations.localeOf(context).languageCode == 'fr';
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(snackFr ? '✨ Étiquette officielle du domaine appliquée !' : '✨ Official estate label applied!'),
+                      content: Text(trSi(snackFr, '✨ Étiquette officielle du domaine appliquée !', '✨ Official estate label applied!')),
                       backgroundColor: const Color(0xFF2E7D32),
                     ),
                   );
@@ -349,7 +349,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         final snackFr = Localizations.localeOf(context).languageCode == 'fr';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(snackFr ? '📸 Photo de la bouteille enregistrée avec succès !' : '📸 Bottle photo saved successfully!'),
+            content: Text(trSi(snackFr, '📸 Photo de la bouteille enregistrée avec succès !', '📸 Bottle photo saved successfully!')),
             backgroundColor: const Color(0xFF2E7D32),
           ),
         );
@@ -636,9 +636,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    sFr
-                        ? '✨ Données et apogée mis à jour avec vos sélections !'
-                        : '✨ Data and peak window updated with your selections!',
+                    trSi(sFr, '✨ Données et apogée mis à jour avec vos sélections !', '✨ Data and peak window updated with your selections!'),
                   ),
                   backgroundColor: const Color(0xFF2E7D32),
                 ),
@@ -694,9 +692,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              sFr
-                  ? '✨ Données œnologiques, cépages et apogée enrichis avec succès !'
-                  : '✨ Oenological data, grapes, and peak window successfully enriched!',
+              trSi(sFr, '✨ Données œnologiques, cépages et apogée enrichis avec succès !', '✨ Oenological data, grapes, and peak window successfully enriched!'),
             ),
             backgroundColor: const Color(0xFF2E7D32),
           ),
@@ -708,7 +704,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              sFr ? 'Impossible d\'enrichir les données : $e' : 'Unable to enrich data: $e',
+              trSi(sFr, 'Impossible d\'enrichir les données : {e}', 'Unable to enrich data: {e}', {'e': e}),
             ),
             backgroundColor: Colors.redAccent,
           ),
@@ -892,7 +888,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
     if (_error != null || _bottleData == null) {
       return Scaffold(
         appBar: AppBar(title: Text(trSi(isFr, 'Fiche Bouteille', 'Bottle Details'))),
-        body: Center(child: Text(trSi(isFr, 'Erreur : {v1}', 'Error: {v2}', {'v1': _error ?? "Bouteille introuvable", 'v2': _error ?? "Bottle not found"}))),
+        body: Center(child: Text(trSi(isFr, 'Erreur : {v1}', 'Error: {v1}', {'v1': _error ?? trSi(isFr, 'Bouteille introuvable', 'Bottle not found')}))),
       );
     }
 
@@ -1689,13 +1685,9 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 20),
                                   const SizedBox(width: 8),
                                   Text(
-                                    isFr
-                                        ? (wine.vintage != null && wine.vintage! > 0
-                                            ? 'Garde & Fenêtre d\'Apogée'
-                                            : 'Garde & Maturité (Non Millésimé)')
-                                        : (wine.vintage != null && wine.vintage! > 0
-                                            ? 'Aging & Peak Drinking Window'
-                                            : 'Aging & Maturity (Non-Vintage)'),
+                                    wine.vintage != null && wine.vintage! > 0
+                                        ? trSi(isFr, 'Garde & Fenêtre d\'Apogée', 'Aging & Peak Drinking Window')
+                                        : trSi(isFr, 'Garde & Maturité (Non Millésimé)', 'Aging & Maturity (Non-Vintage)'),
                                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                   if (wine.userOverrides.any((k) => k.contains('drinking') || k.contains('peak'))) ...[
@@ -2001,7 +1993,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                 const Icon(Icons.star, color: Colors.amber, size: 20),
                                 const SizedBox(width: 8),
                                 Text(
-                                  trSi(isFr, 'Notes & Distinctions des Guides ({v1})', 'Ratings & Guide Awards ({v2})', {'v1': wine.vintage ?? "NM", 'v2': wine.vintage ?? "NV"}),
+                                  trSi(isFr, 'Notes & Distinctions des Guides ({v1})', 'Ratings & Guide Awards ({v1})', {'v1': wine.vintage ?? trSi(isFr, 'NM', 'NV')}),
                                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ],

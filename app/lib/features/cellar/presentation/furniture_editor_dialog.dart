@@ -646,7 +646,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
                                     ),
                                     Expanded(
                                       child: Text(
-                                        tr('{rows} étagère{v1}', '{rows} shel{v2}', {'rows': _rows, 'v1': _rows > 1 ? "s" : "", 'v2': _rows > 1 ? "ves" : "f"}),
+                                        _rows > 1 ? tr('{rows} étagères', '{rows} shelves', {'rows': _rows}) : tr('{rows} étagère', '{rows} shelf', {'rows': _rows}),
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                       ),

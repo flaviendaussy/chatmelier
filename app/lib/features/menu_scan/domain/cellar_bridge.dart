@@ -265,13 +265,11 @@ class CellarBridgeEngine {
 
   static String _moisAnnee(DateTime d, bool fr) {
     const mois = [
-      'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+      Phrase('janvier', 'January'), Phrase('février', 'February'), Phrase('mars', 'March'),
+      Phrase('avril', 'April'), Phrase('mai', 'May'), Phrase('juin', 'June'),
+      Phrase('juillet', 'July'), Phrase('août', 'August'), Phrase('septembre', 'September'),
+      Phrase('octobre', 'October'), Phrase('novembre', 'November'), Phrase('décembre', 'December'),
     ];
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    return trSi(fr, 'en {v1} {year}', 'in {v2} {year}', {'v1': mois[d.month - 1], 'year': d.year, 'v2': months[d.month - 1]});
+    return trSi(fr, 'en {mois} {year}', 'in {mois} {year}', {'mois': mois[d.month - 1].dans(fr), 'year': d.year});
   }
 }

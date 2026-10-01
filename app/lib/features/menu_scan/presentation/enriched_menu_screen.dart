@@ -377,7 +377,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
       if (whiteCount > 0) compte(whiteCount, const Phrase('{n} Blanc', '{n} White'), const Phrase('{n} Blancs', '{n} Whites')),
       if (redCount > 0) compte(redCount, const Phrase('{n} Rouge', '{n} Red'), const Phrase('{n} Rouges', '{n} Reds')),
       if (roseCount > 0) compte(roseCount, const Phrase('{n} Rosé', '{n} Rosé'), const Phrase('{n} Rosés', '{n} Rosés')),
-      if (sparklingCount > 0) compte(sparklingCount, const Phrase('{n} Bulles', '{n} Sparkling'), const Phrase('{n} Bulles', '{n} Sparkling')),
+      if (sparklingCount > 0) compte(sparklingCount, const Phrase('{n} Effervescent', '{n} Sparkling'), const Phrase('{n} Effervescents', '{n} Sparkling')),
     ].join(' • ');
 
     return Scaffold(
@@ -418,42 +418,15 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
             icon: const Icon(Icons.groups_rounded, color: Color(0xFFD4AF37)),
             onPressed: () => MenuTableConsensusSheet.show(context, menu: _menu),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFD4AF37),
-                side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              icon: const Icon(Icons.flight_takeoff_rounded, size: 14, color: Color(0xFFD4AF37)),
-              label: Text(
-                trSi(isFr, 'Flight ✈️', 'Flight ✈️'),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-              ),
-              onPressed: () => MenuFlightSheet.show(context, menu: _menu),
-            ),
+          IconButton(
+            tooltip: trSi(isFr, 'Flight Sommelier 🍷', 'Wine Flight 🍷'),
+            icon: const Icon(Icons.flight_takeoff_rounded, color: Color(0xFFD4AF37)),
+            onPressed: () => MenuFlightSheet.show(context, menu: _menu),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B1E3F),
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Color(0xFFD4AF37), width: 1.5),
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                elevation: 3,
-                shadowColor: const Color(0xFF8B1E3F).withValues(alpha: 0.5),
-              ),
-              icon: const Icon(Icons.chat_bubble_rounded, size: 14, color: Color(0xFFD4AF37)),
-              label: Text(
-                trSi(isFr, 'Chat 💬', 'Chat 💬'),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
-              ),
-              onPressed: () => MenuChatAssistantSheet.show(context, _menu),
-            ),
+          IconButton(
+            tooltip: trSi(isFr, 'Discuter avec la Carte', 'Chat with the Wine List'),
+            icon: const Icon(Icons.chat_bubble_rounded, color: Color(0xFF8B1E3F)),
+            onPressed: () => MenuChatAssistantSheet.show(context, _menu),
           ),
         ],
       ),
@@ -938,18 +911,16 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   return true;
                 }).map((tag) {
                   final isSelected = _selectedTag == tag;
-                  final localizedLabel = isFr
-                      ? (tag[0].toUpperCase() + tag.substring(1))
-                      : switch (tag) {
-                          'minéral' => 'Mineral',
-                          'beurré' => 'Buttery',
-                          'tannique' => 'Tannic',
-                          'fruité' => 'Fruity',
-                          'léger' => 'Light',
-                          'puissant' => 'Bold',
-                          'boisé' => 'Oaked',
-                          _ => tag[0].toUpperCase() + tag.substring(1),
-                        };
+                  final localizedLabel = switch (tag) {
+                    'minéral' => trSi(isFr, 'Minéral', 'Mineral'),
+                    'beurré' => trSi(isFr, 'Beurré', 'Buttery'),
+                    'tannique' => trSi(isFr, 'Tannique', 'Tannic'),
+                    'fruité' => trSi(isFr, 'Fruité', 'Fruity'),
+                    'léger' => trSi(isFr, 'Léger', 'Light'),
+                    'puissant' => trSi(isFr, 'Puissant', 'Bold'),
+                    'boisé' => trSi(isFr, 'Boisé', 'Oaked'),
+                    _ => tag[0].toUpperCase() + tag.substring(1),
+                  };
                   return Padding(
                     padding: const EdgeInsets.only(right: 6.0),
                     child: FilterChip(
@@ -1275,7 +1246,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     )
                   else if (effectiveGlassPrice != null)
                     Text(
-                      '${_prix(effectiveGlassPrice.price)}/${_estFr ? 'v' : 'glass'}',
+                      '${_prix(effectiveGlassPrice.price)}/${trSi(_estFr, 'v', 'glass')}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -1336,7 +1307,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     Expanded(
                       child: Text(
                         '${wine.producer.isNotEmpty ? "${wine.producer} • " : ""}'
-                        '${wine.vintage != null ? wine.vintage.toString() : (_estFr ? "NM" : "NV")}'
+                        '${wine.vintage != null ? wine.vintage.toString() : (trSi(_estFr, 'NM', 'NV'))}'
                         '${wine.countryWithFlag.isNotEmpty ? " • ${wine.countryWithFlag}" : ""}'
                         '${wine.appellation != null ? " • ${wine.appellation}" : (wine.region != null ? " • ${wine.region}" : "")}',
                         maxLines: 1,
@@ -1350,7 +1321,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     if (effectiveBottlePrice != null && effectiveGlassPrice != null) ...[
                       const SizedBox(width: 6),
                       Text(
-                        '${_prix(effectiveGlassPrice.price)}/${_estFr ? 'v' : 'glass'}',
+                        '${_prix(effectiveGlassPrice.price)}/${trSi(_estFr, 'v', 'glass')}',
                         style: TextStyle(fontSize: 10.5, color: isDark ? Colors.white54 : Colors.grey.shade600),
                       ),
                     ],
@@ -1389,7 +1360,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         Padding(
                           padding: const EdgeInsets.only(right: 4),
                           child: _buildCompactMetricPill(
-                            '${Localizations.localeOf(context).languageCode == 'fr' ? 'Tanins' : 'Tannins'} ${wine.metrics.tannins.toStringAsFixed(1)}',
+                            '${trSi(Localizations.localeOf(context).languageCode == 'fr', 'Tanins', 'Tannins')} ${wine.metrics.tannins.toStringAsFixed(1)}',
                             const Color(0xFF8B1E3F),
                           ),
                         ),
@@ -1397,7 +1368,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         Padding(
                           padding: const EdgeInsets.only(right: 4),
                           child: _buildCompactMetricPill(
-                            '${Localizations.localeOf(context).languageCode == 'fr' ? 'Minéralité' : 'Minerality'} ${wine.metrics.minerality.toStringAsFixed(1)}',
+                            '${trSi(Localizations.localeOf(context).languageCode == 'fr', 'Minéralité', 'Minerality')} ${wine.metrics.minerality.toStringAsFixed(1)}',
                             const Color(0xFF00897B),
                           ),
                         ),
@@ -1564,7 +1535,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '${wine.producer} • ${wine.vintage != null ? wine.vintage.toString() : (_estFr ? "NM" : "NV")}'
+                          '${wine.producer} • ${wine.vintage != null ? wine.vintage.toString() : (trSi(_estFr, 'NM', 'NV'))}'
                           '${wine.countryWithFlag.isNotEmpty ? " • ${wine.countryWithFlag}" : ""}'
                           '${wine.appellation != null ? " • ${wine.appellation}" : (wine.region != null ? " • ${wine.region}" : "")}',
                           style: const TextStyle(fontSize: 12.5, color: Colors.grey),
@@ -1608,12 +1579,12 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                       children: [
                         if (wine.isRed && wine.metrics.tannins > 0)
                           _buildMetricPill(
-                            '${Localizations.localeOf(context).languageCode == 'fr' ? 'Tanins' : 'Tannins'} ${wine.metrics.tannins.toStringAsFixed(1)}/10',
+                            '${trSi(Localizations.localeOf(context).languageCode == 'fr', 'Tanins', 'Tannins')} ${wine.metrics.tannins.toStringAsFixed(1)}/10',
                             const Color(0xFF8B1E3F),
                           ),
                         if (wine.isWhite && wine.metrics.minerality > 0)
                           _buildMetricPill(
-                            '${Localizations.localeOf(context).languageCode == 'fr' ? 'Minéralité' : 'Minerality'} ${wine.metrics.minerality.toStringAsFixed(1)}/10',
+                            '${trSi(Localizations.localeOf(context).languageCode == 'fr', 'Minéralité', 'Minerality')} ${wine.metrics.minerality.toStringAsFixed(1)}/10',
                             const Color(0xFF00897B),
                           ),
                         ...wine.tags.take(3).map((t) => _buildTagPill(t, isDark)),

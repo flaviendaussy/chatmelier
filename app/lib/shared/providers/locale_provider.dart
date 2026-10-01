@@ -4,22 +4,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _kLocalePrefKey = 'user_selected_locale';
 
-/// Supported language codes in Chatmelier
-const kSupportedLanguageCodes = [
-  'fr',
-  'en',
-  'it',
-  'es',
-  'ca',
-  'pt',
-  'nl',
-  'de',
-  'ja',
-  'zh',
-  'ko',
-  'sv',
-  'la',
+/// Une langue proposée dans l'app : son code et son nom dans cette langue.
+class LangueProposee {
+  final String code;
+  final String nom;
+  const LangueProposee(this.code, this.nom);
+}
+
+/// Les langues de l'app. En ajouter une : son catalogue (`tool/langues`), son `.arb`
+/// (ramené de `l10n_plus_tard/`), puis une ligne ici et dans `Langue.supportees`.
+const kLangues = [
+  LangueProposee('fr', 'Français 🇫🇷'),
+  LangueProposee('en', 'English 🇬🇧'),
+  LangueProposee('es', 'Español 🇪🇸'),
 ];
+
+final kSupportedLanguageCodes = [for (final l in kLangues) l.code];
 
 /// Manages app locale state:
 /// - null: follows the user's phone / device system language

@@ -282,25 +282,16 @@ class RedactionDesRaisons {
       return ([...autres, if (lecteur) trSi(fr, 'vous', 'you')], lecteur);
     }
 
-    String verbe((List<String>, bool) g, String vous, String un, String plusieurs) =>
-        '${_liste(g.$1, fr)} ${g.$2 ? vous : (g.$1.length > 1 ? plusieurs : un)}';
+    String verbe((List<String>, bool) g, FormesDuVerbe formes) =>
+        '${_liste(g.$1, fr)} ${formes.pour(fr: fr, lecteur: g.$2, plusieurs: g.$1.length > 1)}';
     final fans = groupe((s) => s >= 85);
     final contents = groupe((s) => s >= 65 && s < 85);
     final tiedes = groupe((s) => s >= 55 && s < 65);
     final reticents = [for (final n in notes) if (n.$2 < 55) n.$1];
     final parts = <String>[
-      if (fans.$1.isNotEmpty)
-        fr
-            ? verbe(fans, 'allez l\'adorer', 'va l\'adorer', 'vont l\'adorer')
-            : '${_liste(fans.$1, fr)} will love it',
-      if (contents.$1.isNotEmpty)
-        fr
-            ? verbe(contents, 'l\'apprécierez', 'l\'appréciera', 'l\'apprécieront')
-            : '${_liste(contents.$1, fr)} will enjoy it',
-      if (tiedes.$1.isNotEmpty)
-        fr
-            ? verbe(tiedes, 'vous en accommoderez', 's\'en accommodera', 's\'en accommoderont')
-            : '${_liste(tiedes.$1, fr)} will be fine with it',
+      if (fans.$1.isNotEmpty) verbe(fans, FormesDuVerbe.adorer),
+      if (contents.$1.isNotEmpty) verbe(contents, FormesDuVerbe.apprecier),
+      if (tiedes.$1.isNotEmpty) verbe(tiedes, FormesDuVerbe.sAccommoder),
       for (final g in reticents.take(2))
         estLecteur(g)
             ? (trSi(fr, 'vous le trouverez {v1}', 'you may find it {v1}', {'v1': _ecart(r.menuWine, g, fr)}))

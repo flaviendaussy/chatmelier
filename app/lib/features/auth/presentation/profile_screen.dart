@@ -1235,7 +1235,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildSettingsTab(BuildContext context, ThemeData theme, bool isDark, bool isFr) {
     final l10n = AppLocalizations.of(context);
     final userLocale = ref.watch(localeProvider);
-    final currentLangValue = userLocale == null ? 'system' : userLocale.languageCode;
+    final currentLangValue =
+        userLocale == null || !kSupportedLanguageCodes.contains(userLocale.languageCode) ? 'system' : userLocale.languageCode;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -1266,58 +1267,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       value: 'system',
                       child: Text(l10n?.profileLanguageSystem ?? (trSi(isFr, 'Système 🌐', 'System 🌐')), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     ),
-                    const DropdownMenuItem(
-                      value: 'fr',
-                      child: Text('Français 🇫🇷', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'en',
-                      child: Text('English 🇬🇧', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'it',
-                      child: Text('Italiano 🇮🇹', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'es',
-                      child: Text('Español 🇪🇸', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'ca',
-                      child: Text('Català 🟡🔴', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'pt',
-                      child: Text('Português 🇵🇹', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'nl',
-                      child: Text('Nederlands 🇳🇱', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'de',
-                      child: Text('Deutsch 🇩🇪', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'ja',
-                      child: Text('日本語 🇯🇵', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'zh',
-                      child: Text('中文 (简体) 🇨🇳', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'ko',
-                      child: Text('한국어 🇰🇷', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'sv',
-                      child: Text('Svenska 🇸🇪', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
-                    const DropdownMenuItem(
-                      value: 'la',
-                      child: Text('Latina (Vaticanum) 🏛️', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    ),
+                    for (final langue in kLangues)
+                      DropdownMenuItem(
+                        value: langue.code,
+                        child: Text(langue.nom, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                      ),
                   ],
                   onChanged: (val) {
                     if (val != null) {

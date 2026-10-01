@@ -99,13 +99,10 @@ class _LigneState extends ConsumerState<_Ligne> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(trSi(isFr, 'Retirer ce retour ?', 'Withdraw this report?')),
-        content: Text(isFr
-            ? (avecCapture
-                ? 'Votre message et la capture d\'écran jointe seront supprimés.'
-                : 'Votre message sera supprimé.')
-            : (avecCapture
-                ? 'Your message and the attached screenshot will be deleted.'
-                : 'Your message will be deleted.')),
+        content: Text(avecCapture
+            ? trSi(isFr, 'Votre message et la capture d\'écran jointe seront supprimés.',
+                'Your message and the attached screenshot will be deleted.')
+            : trSi(isFr, 'Votre message sera supprimé.', 'Your message will be deleted.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),

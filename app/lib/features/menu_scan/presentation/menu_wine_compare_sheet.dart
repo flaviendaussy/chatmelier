@@ -243,7 +243,7 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                       ),
                                       Text(
-                                        '${wine.producer} • ${wine.vintage ?? (Localizations.localeOf(context).languageCode == 'fr' ? 'NM' : 'NV')} • ${wine.region ?? ""}',
+                                        '${wine.producer} • ${wine.vintage ?? trSi(Localizations.localeOf(context).languageCode == 'fr', 'NM', 'NV')} • ${wine.region ?? ""}',
                                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                                       ),
                                       if (wine.tags.isNotEmpty)

@@ -65,7 +65,7 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
         ? widget.menu.restaurantName
         : (trSi(_isFr, 'Carte des vins', 'Wine list'));
     buffer.writeln('🍷 ${_proposal.title} — $restName');
-    buffer.writeln(trSi(_isFr, 'Thème : {v1} ({glassCount} verres)', 'Theme: {v2} ({glassCount} glasses)', {'v1': _color.label(true), 'glassCount': _format.glassCount, 'v2': _color.label(false)}));
+    buffer.writeln(trSi(_isFr, 'Thème : {v1} ({glassCount} verres)', 'Theme: {v1} ({glassCount} glasses)', {'v1': _color.label(_isFr), 'glassCount': _format.glassCount}));
     buffer.writeln(_proposal.storyline);
     buffer.writeln('');
     for (final step in _proposal.steps) {

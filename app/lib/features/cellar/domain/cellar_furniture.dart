@@ -110,12 +110,17 @@ class CellarFurniture {
     final colNum = parsed.col + 1;
     final rowNum = parsed.row + 1;
     final colLetter = String.fromCharCode(65 + parsed.col);
+    // Les ordinaux ne passent pas par le catalogue : chaque langue a sa forme.
     final colDesc = isFr
         ? (colNum == 1 ? '1ère colonne' : '${colNum}e colonne')
-        : '${_ordinalEn(colNum)} column';
+        : Langue.code == 'es'
+            ? '$colNum.ª columna'
+            : '${_ordinalEn(colNum)} column';
     final rowDesc = isFr
         ? (rowNum == 1 ? '1ère rangée' : '${rowNum}e rangée')
-        : '${_ordinalEn(rowNum)} row';
+        : Langue.code == 'es'
+            ? '$rowNum.ª fila'
+            : '${_ordinalEn(rowNum)} row';
     return '$colLetter$rowNum ($colDesc, $rowDesc)';
   }
 

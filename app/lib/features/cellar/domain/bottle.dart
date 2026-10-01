@@ -229,43 +229,30 @@ class Bottle {
   /// Returns user-facing sommelier display text for bottle origin
   String getProvenanceDisplay([bool isFr = true]) {
     final details = sourceDetails?.trim();
+    final avecDetails = details != null && details.isNotEmpty;
     switch (sourceType) {
       case 'estate':
-        if (isFr) {
-          return details != null && details.isNotEmpty ? '🏰 Acheté au domaine ($details)' : '🏰 Acheté au domaine';
-        } else {
-          return details != null && details.isNotEmpty ? '🏰 Bought at estate ($details)' : '🏰 Bought at estate';
-        }
+        return avecDetails
+            ? trSi(isFr, '🏰 Acheté au domaine ({details})', '🏰 Bought at estate ({details})', {'details': details})
+            : trSi(isFr, '🏰 Acheté au domaine', '🏰 Bought at estate');
       case 'merchant':
-        if (isFr) {
-          return details != null && details.isNotEmpty ? '🏪 Caviste : $details' : '🏪 Chez un caviste';
-        } else {
-          return details != null && details.isNotEmpty ? '🏪 Wine merchant: $details' : '🏪 Wine merchant';
-        }
+        return avecDetails
+            ? trSi(isFr, '🏪 Caviste : {details}', '🏪 Wine merchant: {details}', {'details': details})
+            : trSi(isFr, '🏪 Chez un caviste', '🏪 Wine merchant');
       case 'gift':
-        if (isFr) {
-          return details != null && details.isNotEmpty ? '🎁 Offert par $details' : '🎁 Bouteille offerte';
-        } else {
-          return details != null && details.isNotEmpty ? '🎁 Gift from $details' : '🎁 Gift bottle';
-        }
+        return avecDetails
+            ? trSi(isFr, '🎁 Offert par {details}', '🎁 Gift from {details}', {'details': details})
+            : trSi(isFr, '🎁 Bouteille offerte', '🎁 Gift bottle');
       case 'supermarket':
-        if (isFr) {
-          return details != null && details.isNotEmpty ? '🛒 Grande surface ($details)' : '🛒 Grande surface';
-        } else {
-          return details != null && details.isNotEmpty ? '🛒 Supermarket ($details)' : '🛒 Supermarket';
-        }
+        return avecDetails
+            ? trSi(isFr, '🛒 Grande surface ({details})', '🛒 Supermarket ({details})', {'details': details})
+            : trSi(isFr, '🛒 Grande surface', '🛒 Supermarket');
       case 'auction':
-        if (isFr) {
-          return details != null && details.isNotEmpty ? '🔨 Enchères ($details)' : '🔨 Vente aux enchères';
-        } else {
-          return details != null && details.isNotEmpty ? '🔨 Auction ($details)' : '🔨 Wine auction';
-        }
+        return avecDetails
+            ? trSi(isFr, '🔨 Enchères ({details})', '🔨 Auction ({details})', {'details': details})
+            : trSi(isFr, '🔨 Vente aux enchères', '🔨 Wine auction');
       case 'other':
-        if (isFr) {
-          return details != null && details.isNotEmpty ? '📦 $details' : '📦 Autre provenance';
-        } else {
-          return details != null && details.isNotEmpty ? '📦 $details' : '📦 Other origin';
-        }
+        return avecDetails ? '📦 $details' : trSi(isFr, '📦 Autre provenance', '📦 Other origin');
       default:
         if (purchaseLocation != null && purchaseLocation!.isNotEmpty) {
           return '📍 $purchaseLocation';

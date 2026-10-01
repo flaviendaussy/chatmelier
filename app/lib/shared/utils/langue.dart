@@ -74,6 +74,22 @@ String trDonnee(String fr, Map<String, String> anglais) {
 /// Une phrase déclarée d'avance en deux langues (énumérations, listes de suggestions) : le
 /// français sert de clé aux catalogues, comme pour [tr]. Garder la paire côte à côte dans
 /// le code permet à `tool/langues/extraire.py` de la retrouver.
+/// Comme [trDonnee], mais la langue est donnée, comme pour [trSi] : `fr` choisit le
+/// français ; sinon la langue de l'app si ce n'est pas le français, et l'anglais sinon.
+String trDonneeSi(bool fr, String texteFr, Map<String, String> anglais) {
+  if (fr) return texteFr;
+  final code = Langue.code;
+  if (code == 'fr' || code == 'en') return anglais[texteFr] ?? texteFr;
+  return catalogues[code]?[texteFr] ?? anglais[texteFr] ?? texteFr;
+}
+
+/// Le code de langue d'un paramètre hérité, booléen (« en français ? ») ou code.
+/// Un booléen faux désigne la langue de l'app quand ce n'est pas le français, sinon l'anglais.
+String codeDeLangue(Object? lang) {
+  if (lang is bool) return lang ? 'fr' : (Langue.code == 'fr' ? 'en' : Langue.code);
+  return (lang?.toString() ?? 'en').toLowerCase();
+}
+
 class Phrase {
   final String fr;
   final String en;

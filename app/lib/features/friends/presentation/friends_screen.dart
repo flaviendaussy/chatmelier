@@ -643,7 +643,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                     children: [
                       Text(req.requesterName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                       Text(
-                        tr('Demande l\'accès à "{v1}"', 'Asks for access to "{v2}"', {'v1': req.cellarName ?? "Ma Cave", 'v2': req.cellarName ?? "My cellar"}),
+                        tr('Demande l\'accès à "{v1}"', 'Asks for access to "{v1}"', {'v1': req.cellarName ?? tr('Ma Cave', 'My cellar')}),
                         style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                       ),
                     ],
@@ -689,7 +689,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   icon: const Icon(Icons.check, size: 16),
-                  label: Text(tr('Accepter ({v1})', 'Accept ({v2})', {'v1': req.requestedRole == "editor" ? "Éditeur" : "Lecteur", 'v2': req.requestedRole == "editor" ? "editor" : "viewer"})),
+                  label: Text(tr('Accepter ({v1})', 'Accept ({v1})', {'v1': req.requestedRole == "editor" ? tr('Éditeur', 'editor') : tr('Lecteur', 'viewer')})),
                   onPressed: () => _respondCellarRequest(req, true, req.requestedRole),
                 ),
               ],

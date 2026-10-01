@@ -44,27 +44,16 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
     _statusStepIndex = 0;
     final isFr = mounted ? (Localizations.localeOf(context).languageCode == 'fr') : true;
     final restSuffix = restaurantName != null && restaurantName.isNotEmpty ? ' ($restaurantName)' : '';
-    final steps = isFr
-        ? [
-            'Chatmelier analyse le menu$restSuffix...',
-            'Déchiffrage optique des cuvées, producteurs et millésimes...',
-            'Chatmelier s\'informe sur les domaines et terroirs viticoles...',
-            'Extraction des prix à la bouteille et des formats au verre...',
-            'Calcul des profils sensoriels (tanins, minéralité, vivacité)...',
-            'Vérification dans la cave de connaissances Chatmelier...',
-            'Génération des accords mets-vins personnalisés...',
-            'Finalisation de votre carte des vins enrichie...',
-          ]
-        : [
-            'Chatmelier is analyzing the menu$restSuffix...',
-            'Optical recognition of cuvées, producers and vintages...',
-            'Chatmelier explores estates and wine terroirs...',
-            'Extracting bottle and by-the-glass pricing...',
-            'Computing sensory profiles (tannins, minerality, acidity)...',
-            'Cross-referencing Chatmelier knowledge cellar...',
-            'Generating personalized food & wine pairings...',
-            'Finalizing your enriched wine list...',
-          ];
+    final steps = [
+      trSi(isFr, 'Chatmelier analyse le menu{suffixe}...', 'Chatmelier is analyzing the menu{suffixe}...', {'suffixe': restSuffix}),
+      trSi(isFr, 'Déchiffrage optique des cuvées, producteurs et millésimes...', 'Optical recognition of cuvées, producers and vintages...'),
+      trSi(isFr, 'Chatmelier s\'informe sur les domaines et terroirs viticoles...', 'Chatmelier explores estates and wine terroirs...'),
+      trSi(isFr, 'Extraction des prix à la bouteille et des formats au verre...', 'Extracting bottle and by-the-glass pricing...'),
+      trSi(isFr, 'Calcul des profils sensoriels (tanins, minéralité, vivacité)...', 'Computing sensory profiles (tannins, minerality, acidity)...'),
+      trSi(isFr, 'Vérification dans la cave de connaissances Chatmelier...', 'Cross-referencing Chatmelier knowledge cellar...'),
+      trSi(isFr, 'Génération des accords mets-vins personnalisés...', 'Generating personalized food & wine pairings...'),
+      trSi(isFr, 'Finalisation de votre carte des vins enrichie...', 'Finalizing your enriched wine list...'),
+    ];
     _currentStatusStep = steps[0];
     _statusTimer = Timer.periodic(const Duration(milliseconds: 2700), (t) {
       if (!mounted) {
@@ -541,7 +530,9 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                             onPressed: _isAnalyzing ? null : _startAnalysis,
                             icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
                             label: Text(
-                              trSi(isFr, 'Analyser la carte ({capturedPages_length} {v1})', 'Analyze wine list ({capturedPages_length} {v1})', {'capturedPages_length': _capturedPages.length, 'v1': _capturedPages.length > 1 ? "pages" : "page"}),
+                              _capturedPages.length > 1
+                                  ? trSi(isFr, 'Analyser la carte ({n} pages)', 'Analyze wine list ({n} pages)', {'n': _capturedPages.length})
+                                  : trSi(isFr, 'Analyser la carte ({n} page)', 'Analyze wine list ({n} page)', {'n': _capturedPages.length}),
                               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                             ),
                           ),

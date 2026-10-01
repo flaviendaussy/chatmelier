@@ -394,7 +394,9 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                     ),
                     child: Text(
                       _current.isActive
-                          ? tr('Appliquer ({activeFilterCount} {v1})', 'Apply ({activeFilterCount} {v2})', {'activeFilterCount': _current.activeFilterCount, 'v1': _current.activeFilterCount > 1 ? "filtres actifs" : "filtre actif", 'v2': _current.activeFilterCount > 1 ? "active filters" : "active filter"})
+                          ? (_current.activeFilterCount > 1
+                              ? tr('Appliquer ({n} filtres actifs)', 'Apply ({n} active filters)', {'n': _current.activeFilterCount})
+                              : tr('Appliquer ({n} filtre actif)', 'Apply ({n} active filter)', {'n': _current.activeFilterCount}))
                           : tr('Voir toutes les bouteilles', 'See all bottles'),
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                     ),

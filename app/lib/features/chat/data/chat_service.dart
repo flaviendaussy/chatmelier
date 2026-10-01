@@ -279,6 +279,11 @@ class ChatService {
   String _generateLocalSommelierAdvice(String query, List<Bottle> bottles, String langCode) {
     final q = query.toLowerCase();
     final isFr = langCode == 'fr';
+    // Les mots des questions, en français, en anglais et en espagnol.
+    bool parle(List<String> mots) => mots.any(q.contains);
+    final viande = parle(['viande', 'boeuf', 'bœuf', 'steak', 'côte de b', 'entrecôte', 'magret', 'gibier', 'beef', 'lamb', 'carne', 'ternera', 'cordero', 'chuletón']);
+    final poisson = parle(['poisson', 'fruits de mer', 'huitre', 'huître', 'saumon', 'fish', 'seafood', 'oyster', 'salmon', 'pescado', 'marisco', 'ostra', 'salmón']);
+    final fromage = parle(['fromage', 'cheese', 'chèvre', 'queso']);
 
     // Check if user has matching bottles in cellar
     Bottle? bestMatch;
@@ -289,12 +294,12 @@ class ChatService {
       final reg = bw.region.toLowerCase();
       final app = (bw.appellation ?? '').toLowerCase();
 
-      if (q.contains('viande') || q.contains('boeuf') || q.contains('steak') || q.contains('côte') || q.contains('magret')) {
+      if (viande) {
         if (bw.type.contains('red') && (reg.contains('bordeaux') || reg.contains('rhône') || app.contains('bandol') || reg.contains('bourgogne'))) {
           bestMatch = b;
           break;
         }
-      } else if (q.contains('poisson') || q.contains('huitre') || q.contains('mer') || q.contains('saumon')) {
+      } else if (poisson) {
         if (bw.type.contains('white') && (reg.contains('chablis') || reg.contains('bourgogne') || reg.contains('loire') || reg.contains('alsace'))) {
           bestMatch = b;
           break;
@@ -302,60 +307,54 @@ class ChatService {
       }
     }
 
-    if (q.contains('viande') || q.contains('boeuf') || q.contains('côte') || q.contains('steak') || q.contains('gibier')) {
-      if (isFr) {
-        final buffer = StringBuffer();
-        buffer.writeln("### 🥩 Accord Idéal pour Viande Rouge / Grillades\n");
-        if (bestMatch != null) {
-          final wineName = bestMatch.wine != null ? bestMatch.wine!.fullDisplayName : 'bouteille';
-          buffer.writeln("Dans votre cave, je vous recommande tout particulièrement votre **$wineName** !\n");
-          buffer.writeln("[WINE_CARD: {\"id\": \"${bestMatch.id}\", \"name\": \"${bestMatch.wine?.name}\", \"vintage\": ${bestMatch.wine?.vintage ?? 2020}, \"producer\": \"${bestMatch.wine?.producer ?? ''}\", \"region\": \"${bestMatch.wine?.region ?? ''}\", \"wine_type\": \"red\", \"location\": \"Casier ${bestMatch.rack ?? '-'}\", \"reason\": \"Idéal sur viande rouge\"}]\n");
-        }
-        buffer.writeln("1. **Bordeaux / Médoc ou Rhône Septentrional** : La puissance tannique enrobe parfaitement le jus et le gras de la viande.");
-        buffer.writeln("2. **Température de service** : **16°C à 17°C** (carafez 1h à l'avance si le millésime a moins de 8 ans).");
-        return buffer.toString();
-      } else {
-        return "### 🥩 Ideal Pairing for Red Meat / Steaks\n\n"
-            "For a grilled ribeye or roasted red meat, here are my sommelier recommendations:\n\n"
-            "1. **Bordeaux / Médoc or Northern Rhône**: Rich tannins and deep dark fruit notes balance the savory richness.\n"
-            "2. **Service temperature**: 16°C to 17°C with 1 to 2 hours decanting for younger vintages.";
+    String carte(Bottle b, int millesimeParDefaut, String couleur, String raison) =>
+        "[WINE_CARD: {\"id\": \"${b.id}\", \"name\": \"${b.wine?.name}\", \"vintage\": ${b.wine?.vintage ?? millesimeParDefaut}, \"producer\": \"${b.wine?.producer ?? ''}\", \"region\": \"${b.wine?.region ?? ''}\", \"wine_type\": \"$couleur\", \"location\": \"${trSi(isFr, 'Casier', 'Rack')} ${b.rack ?? '-'}\", \"reason\": \"$raison\"}]\n";
+
+    if (viande) {
+      final buffer = StringBuffer();
+      buffer.writeln(trSi(isFr, '### 🥩 Accord Idéal pour Viande Rouge / Grillades\n', '### 🥩 Ideal Pairing for Red Meat / Steaks\n'));
+      if (bestMatch != null) {
+        final wineName = bestMatch.wine != null ? bestMatch.wine!.fullDisplayName : trSi(isFr, 'bouteille', 'bottle');
+        buffer.writeln(trSi(isFr, 'Dans votre cave, je vous recommande tout particulièrement votre **{vin}** !\n', 'From your cellar, I especially recommend your **{vin}**!\n', {'vin': wineName}));
+        buffer.writeln(carte(bestMatch, 2020, 'red', trSi(isFr, 'Idéal sur viande rouge', 'Ideal with red meat')));
       }
+      buffer.writeln(trSi(isFr, '1. **Bordeaux / Médoc ou Rhône Septentrional** : La puissance tannique enrobe parfaitement le jus et le gras de la viande.', '1. **Bordeaux / Médoc or Northern Rhône**: Rich tannins and deep dark fruit notes balance the savory richness.'));
+      buffer.writeln(trSi(isFr, '2. **Température de service** : **16°C à 17°C** (carafez 1h à l\'avance si le millésime a moins de 8 ans).', '2. **Service temperature**: **16°C to 17°C** (decant 1 hour ahead if the vintage is less than 8 years old).'));
+      return buffer.toString();
     }
 
-    if (q.contains('poisson') || q.contains('fruits de mer') || q.contains('huitre') || q.contains('huître') || q.contains('saumon')) {
-      if (isFr) {
-        final buffer = StringBuffer();
-        buffer.writeln("### 🐟 Accord Idéal pour Poissons & Fruits de Mer\n");
-        if (bestMatch != null) {
-          final wineName = bestMatch.wine != null ? bestMatch.wine!.fullDisplayName : 'bouteille';
-          buffer.writeln("Dans votre cave, je vous conseille d'ouvrir votre **$wineName** !\n");
-          buffer.writeln("[WINE_CARD: {\"id\": \"${bestMatch.id}\", \"name\": \"${bestMatch.wine?.name}\", \"vintage\": ${bestMatch.wine?.vintage ?? 2022}, \"producer\": \"${bestMatch.wine?.producer ?? ''}\", \"region\": \"${bestMatch.wine?.region ?? ''}\", \"wine_type\": \"white\", \"location\": \"Casier ${bestMatch.rack ?? '-'}\", \"reason\": \"Fraîcheur iodée idéale\"}]\n");
-        }
-        buffer.writeln("1. **Chablis / Sancerre blanc** : Minéralité tranchante et vivacité pour accompagner la chair délicate.");
-        buffer.writeln("2. **Température de service** : **9°C à 11°C**.");
-        return buffer.toString();
+    if (poisson) {
+      final buffer = StringBuffer();
+      buffer.writeln(trSi(isFr, '### 🐟 Accord Idéal pour Poissons & Fruits de Mer\n', '### 🐟 Ideal Pairing for Fish & Seafood\n'));
+      if (bestMatch != null) {
+        final wineName = bestMatch.wine != null ? bestMatch.wine!.fullDisplayName : trSi(isFr, 'bouteille', 'bottle');
+        buffer.writeln(trSi(isFr, 'Dans votre cave, je vous conseille d\'ouvrir votre **{vin}** !\n', 'From your cellar, I suggest opening your **{vin}**!\n', {'vin': wineName}));
+        buffer.writeln(carte(bestMatch, 2022, 'white', trSi(isFr, 'Fraîcheur iodée idéale', 'Ideal briny freshness')));
       }
+      buffer.writeln(trSi(isFr, '1. **Chablis / Sancerre blanc** : Minéralité tranchante et vivacité pour accompagner la chair délicate.', '1. **Chablis / white Sancerre**: Sharp minerality and freshness for delicate fish.'));
+      buffer.writeln(trSi(isFr, '2. **Température de service** : **9°C à 11°C**.', '2. **Service temperature**: **9°C to 11°C**.'));
+      return buffer.toString();
     }
 
-    if (q.contains('fromage') || q.contains('cheese') || q.contains('chèvre')) {
-      if (isFr) {
-        return "### 🧀 Accord Fromages & Vins\n\n"
-            "Contrairement aux idées reçues, les vins blancs sont souvent les meilleurs compagnons du fromage :\n\n"
-            "1. **Chèvre** : Sancerre blanc ou Pouilly-Fumé (Sauvignon blanc vif et minéral).\n"
-            "2. **Pâtes dures (Comté affiné, Beaufort)** : Vin Jaune du Jura ou grand Chardonnay boisé.\n"
-            "3. **Pâtes persillées (Roquefort, Bleu)** : Vin liquoreux (Sauternes, Monbazillac).";
-      }
+    if (fromage) {
+      return trSi(isFr, '### 🧀 Accord Fromages & Vins\n\n'
+          'Contrairement aux idées reçues, les vins blancs sont souvent les meilleurs compagnons du fromage :\n\n'
+          '1. **Chèvre** : Sancerre blanc ou Pouilly-Fumé (Sauvignon blanc vif et minéral).\n'
+          '2. **Pâtes dures (Comté affiné, Beaufort)** : Vin Jaune du Jura ou grand Chardonnay boisé.\n'
+          '3. **Pâtes persillées (Roquefort, Bleu)** : Vin liquoreux (Sauternes, Monbazillac).',
+          '### 🧀 Cheese & Wine Pairing\n\n'
+          'Contrary to popular belief, white wines are often the best partners for cheese:\n\n'
+          '1. **Goat\'s cheese**: white Sancerre or Pouilly-Fumé (crisp, mineral Sauvignon Blanc).\n'
+          '2. **Hard cheeses (aged Comté, Beaufort)**: Vin Jaune from the Jura or a great oaked Chardonnay.\n'
+          '3. **Blue cheeses (Roquefort, Stilton)**: a sweet wine (Sauternes, Monbazillac).');
     }
 
-    if (isFr) {
-      return "### 🍷 Conseils & Suggestions Sommelier\n\n"
-          "- **Accords mets-vins** : Indiquez-moi votre plat ou vos ingrédients pour trouver la meilleure bouteille dans votre cave.\n"
-          "- **Apogée & Dégustation** : Demandez-moi si un millésime est prêt à boire ou la température idéale de service.";
-    } else {
-      return "### 🍷 Sommelier Recommendations\n\n"
-          "- **Food Pairing**: Tell me what you're cooking and I'll find the best matching bottle in your cellar.\n"
-          "- **Drinking Windows**: Ask me which bottles are at their peak or how long to decant.";
-    }
+    return trSi(isFr, '### 🍷 Conseils & Suggestions Sommelier\n\n'
+        '- **Accords mets-vins** : Indiquez-moi votre plat ou vos ingrédients pour trouver la meilleure bouteille dans votre cave.\n'
+        '- **Apogée & Dégustation** : Demandez-moi si un millésime est prêt à boire ou la température idéale de service.',
+        '### 🍷 Sommelier Recommendations\n\n'
+        '- **Food Pairing**: Tell me what you\'re cooking and I\'ll find the best matching bottle in your cellar.\n'
+        '- **Drinking Windows**: Ask me which bottles are at their peak or how long to decant.');
   }
 
   /// Efface la conversation d'une cave.

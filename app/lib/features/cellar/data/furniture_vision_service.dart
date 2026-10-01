@@ -103,7 +103,7 @@ class FurnitureVisionService {
               'tache': 'meuble',
               'imageBase64': base64Image,
               'mimeType': mimeType,
-              'langue': tr('fr', 'en'),
+              'langue': Langue.code,
             }, delai: const Duration(seconds: 45));
       final parsed = r != null && r.ok && r.donnees!['resultat'] is Map
           ? Map<String, dynamic>.from(r.donnees!['resultat'] as Map)

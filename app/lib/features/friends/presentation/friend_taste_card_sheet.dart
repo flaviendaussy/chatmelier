@@ -482,7 +482,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      tr('Accès cave partagée : {v1}', 'Shared cellar access: {v2}', {'v1': friend.cellarAccessRole == "editor" ? "Sommelier / Éditeur ✍️" : "Consultation 👁️", 'v2': friend.cellarAccessRole == "editor" ? "sommelier / editor ✍️" : "view only 👁️"}),
+                      tr('Accès cave partagée : {v1}', 'Shared cellar access: {v1}', {'v1': friend.cellarAccessRole == "editor" ? tr('Sommelier / Éditeur ✍️', 'sommelier / editor ✍️') : tr('Consultation 👁️', 'view only 👁️')}),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
                     ),
                   ),

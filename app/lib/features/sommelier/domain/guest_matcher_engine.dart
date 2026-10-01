@@ -158,11 +158,17 @@ class GuestProfile {
       'Rouges Fruits Croquants': 'Crunchy fruity reds',
       'Fruit Croquant': 'Crunchy fruit',
     };
-    if (!fr) return versAnglais[archetype] ?? archetype;
-    for (final e in versAnglais.entries) {
-      if (e.value == archetype) return e.key;
+    // La clé française d'abord : un invité anglophone a pu l'enregistrer en anglais.
+    var francais = archetype;
+    if (!versAnglais.containsKey(archetype)) {
+      for (final e in versAnglais.entries) {
+        if (e.value == archetype) {
+          francais = e.key;
+          break;
+        }
+      }
     }
-    return archetype;
+    return trDonneeSi(fr, francais, versAnglais);
   }
 
   static String _detectArchetype(TasteProfile tp) {
@@ -461,31 +467,17 @@ class GuestMatcherEngine {
         return ([...autres, if (lecteur) tr('vous', 'you')], lecteur);
       }
 
-      // Le verbe s'accorde avec le groupe, et chaque langue a ses formes : en français
-      // « vous » vaut pour la personne seule comme pour le groupe où elle figure ; en
-      // espagnol, « tú » seul (« lo vas a adorar ») et le groupe (« lo van a adorar »)
-      // diffèrent. Une clé de catalogue ne suffit pas : les formes sont données ici.
-      String verbe((List<String>, bool) g, _Formes formes) {
-        final plusieursPersonnes = g.$1.length > 1;
-        final String forme;
-        if (fr) {
-          forme = g.$2 ? formes.vous : (plusieursPersonnes ? formes.plusieurs : formes.un);
-        } else if (Langue.code == 'es') {
-          forme = plusieursPersonnes ? formes.esPlusieurs : (g.$2 ? formes.esTu : formes.esUn);
-        } else {
-          forme = formes.en;
-        }
-        return '${_liste(g.$1, fr)} $forme';
-      }
+      String verbe((List<String>, bool) g, FormesDuVerbe formes) =>
+          '${_liste(g.$1, fr)} ${formes.pour(fr: fr, lecteur: g.$2, plusieurs: g.$1.length > 1)}';
       final fans = groupe((s) => s >= 85);
       final contents = groupe((s) => s >= 65 && s < 85);
       final tiedes = groupe((s) => s >= 55 && s < 65);
       final reticents = groupe((s) => s < 55);
       final parts = [
-        if (fans.$1.isNotEmpty) verbe(fans, _Formes.adorer),
-        if (contents.$1.isNotEmpty) verbe(contents, _Formes.apprecier),
-        if (tiedes.$1.isNotEmpty) verbe(tiedes, _Formes.sAccommoder),
-        if (reticents.$1.isNotEmpty) verbe(reticents, _Formes.moinsAimer),
+        if (fans.$1.isNotEmpty) verbe(fans, FormesDuVerbe.adorer),
+        if (contents.$1.isNotEmpty) verbe(contents, FormesDuVerbe.apprecier),
+        if (tiedes.$1.isNotEmpty) verbe(tiedes, FormesDuVerbe.sAccommoder),
+        if (reticents.$1.isNotEmpty) verbe(reticents, FormesDuVerbe.moinsAimer),
       ];
       phrase = parts.join(trSi(fr, ' ; ', '; '));
     }
@@ -500,18 +492,29 @@ class GuestMatcherEngine {
 }
 
 /// Les formes d'un verbe selon le groupe qui l'emploie, par langue.
-class _Formes {
+/// Un verbe qui s'accorde avec le groupe de convives qu'il suit, dans chaque langue.
+/// En français, « vous » vaut pour la personne seule comme pour le groupe où elle figure ;
+/// en espagnol, « tú » seul (« lo vas a adorar ») et le groupe (« lo van a adorar »)
+/// diffèrent. Une clé de catalogue ne suffit pas : les formes sont données ici.
+class FormesDuVerbe {
   final String vous, un, plusieurs, en, esTu, esUn, esPlusieurs;
 
-  const _Formes(this.vous, this.un, this.plusieurs, this.en, this.esTu, this.esUn, this.esPlusieurs);
+  const FormesDuVerbe(this.vous, this.un, this.plusieurs, this.en, this.esTu, this.esUn, this.esPlusieurs);
 
-  static const adorer = _Formes('allez l\'adorer', 'va l\'adorer', 'vont l\'adorer', 'will love it',
+  /// [lecteur] : celui qui lit fait partie du groupe ; [plusieurs] : plus d'une personne.
+  String pour({required bool fr, required bool lecteur, required bool plusieurs}) {
+    if (fr) return lecteur ? vous : (plusieurs ? this.plusieurs : un);
+    if (Langue.code == 'es') return plusieurs ? esPlusieurs : (lecteur ? esTu : esUn);
+    return en;
+  }
+
+  static const adorer = FormesDuVerbe('allez l\'adorer', 'va l\'adorer', 'vont l\'adorer', 'will love it',
       'lo vas a adorar', 'lo va a adorar', 'lo van a adorar');
-  static const apprecier = _Formes('l\'apprécierez', 'l\'appréciera', 'l\'apprécieront', 'will enjoy it',
+  static const apprecier = FormesDuVerbe('l\'apprécierez', 'l\'appréciera', 'l\'apprécieront', 'will enjoy it',
       'lo disfrutarás', 'lo disfrutará', 'lo disfrutarán');
-  static const sAccommoder = _Formes('vous en accommoderez', 's\'en accommodera', 's\'en accommoderont',
+  static const sAccommoder = FormesDuVerbe('vous en accommoderez', 's\'en accommodera', 's\'en accommoderont',
       'will be fine with it', 'lo aceptarás', 'lo aceptará', 'lo aceptarán');
-  static const moinsAimer = _Formes('risquez de moins l\'aimer', 'risque de moins l\'aimer',
+  static const moinsAimer = FormesDuVerbe('risquez de moins l\'aimer', 'risque de moins l\'aimer',
       'risquent de moins l\'aimer', 'may like it less', 'quizá lo disfrutes menos', 'quizá lo disfrute menos',
       'quizá lo disfruten menos');
 }

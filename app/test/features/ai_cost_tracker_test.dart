@@ -91,6 +91,10 @@ void main() {
       await service.clearHistory();
 
       final now = DateTime.now();
+      // « Aujourd'hui » est le jour du calendrier : entre minuit et minuit dix, il y a dix
+      // minutes, c'était hier (échec du 02/10 à 00 h 03).
+      final ilYADixMinutes = now.subtract(const Duration(minutes: 10));
+      final aujourdhui = ilYADixMinutes.day == now.day ? ilYADixMinutes : now;
 
       // 1. Today event
       await service.recordUsage(
@@ -99,7 +103,7 @@ void main() {
         promptTokens: 1500,
         candidatesTokens: 500,
         isSearchGrounded: true,
-        timestamp: now.subtract(const Duration(minutes: 10)),
+        timestamp: aujourdhui,
       );
 
       // 2. 3 days ago event (this week, this month, this year)

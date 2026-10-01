@@ -57,8 +57,8 @@ void main() {
       expect(wine.glassPrices.length, 2);
       expect(wine.glassPrices[0].format, '125ml');
       expect(wine.glassPrices[0].price, 110.0);
-      expect(wine.priceDisplay.contains('650 € / bt'), true);
-      expect(wine.priceDisplay.contains('110 € (125ml)'), true);
+      expect(wine.prixAffiche(true).contains('650 € / bt'), true);
+      expect(wine.prixAffiche(true).contains('110 € (125ml)'), true);
       expect(wine.metrics.tannins, 8.5);
 
       final serialized = wine.toJson();
@@ -120,8 +120,8 @@ void main() {
       expect(menu.wines.length, 2);
       expect(menu.redWines.length, 1);
       expect(menu.whiteWines.length, 1);
-      expect(menu.whiteWines.first.priceDisplay.contains('85 € / bt'), true);
-      expect(menu.whiteWines.first.priceDisplay.contains('16 € (125ml)'), true);
+      expect(menu.whiteWines.first.prixAffiche(true).contains('85 € / bt'), true);
+      expect(menu.whiteWines.first.prixAffiche(true).contains('16 € (125ml)'), true);
     });
   });
 

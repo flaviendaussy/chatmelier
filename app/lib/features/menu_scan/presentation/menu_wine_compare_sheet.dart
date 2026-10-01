@@ -214,7 +214,6 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                             final gStr = '${wine.formaterPrix(g.price)} (${g.format})';
                             priceLabel = priceLabel.isNotEmpty ? '$priceLabel • $gStr' : gStr;
                           }
-                          if (priceLabel.isEmpty) priceLabel = trSi(isFr, 'Prix non indiqué', 'Price not listed');
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),
@@ -266,10 +265,11 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    Text(
-                                      priceLabel,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                    ),
+                                    if (priceLabel.isNotEmpty)
+                                      Text(
+                                        priceLabel,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      ),
                                     if (wine.userMatchScore != null)
                                       Container(
                                         margin: const EdgeInsets.only(top: 4),

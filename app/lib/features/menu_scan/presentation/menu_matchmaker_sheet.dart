@@ -1124,10 +1124,11 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(
-                            wine.prixAffiche(isFr),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
+                          if (wine.aUnPrix)
+                            Text(
+                              wine.prixAffiche(isFr),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
                           if (wine.userMatchScore != null)
                             Container(
                               margin: const EdgeInsets.only(top: 4),

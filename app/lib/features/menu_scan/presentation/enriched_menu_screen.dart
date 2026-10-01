@@ -399,36 +399,10 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
             ],
           ),
         ),
-        actions: [
-          IconButton(
-            tooltip: _isCompactView
-                ? (trSi(isFr, 'Afficher la vue détaillée', 'Show detailed view'))
-                : (trSi(isFr, 'Afficher la vue compacte', 'Show compact view')),
-            icon: Icon(
-              _isCompactView ? Icons.view_headline_rounded : Icons.view_agenda_outlined,
-              color: const Color(0xFFD4AF37),
-            ),
-            onPressed: _toggleViewMode,
-          ),
-          // Trois raccourcis en icônes. En pastilles avec libellé, ils ne laissaient au nom
-          // du restaurant que 25 px sur un téléphone, écrasé en colonne (01/10). Les mêmes
-          // actions ont leurs grandes cartes, avec libellé, juste en dessous.
-          IconButton(
-            tooltip: trSi(isFr, 'Choisir en groupe 👥', 'Choose as a group 👥'),
-            icon: const Icon(Icons.groups_rounded, color: Color(0xFFD4AF37)),
-            onPressed: () => MenuTableConsensusSheet.show(context, menu: _menu),
-          ),
-          IconButton(
-            tooltip: trSi(isFr, 'Flight Sommelier 🍷', 'Wine Flight 🍷'),
-            icon: const Icon(Icons.flight_takeoff_rounded, color: Color(0xFFD4AF37)),
-            onPressed: () => MenuFlightSheet.show(context, menu: _menu),
-          ),
-          IconButton(
-            tooltip: trSi(isFr, 'Discuter avec la Carte', 'Chat with the Wine List'),
-            icon: const Icon(Icons.chat_bubble_rounded, color: Color(0xFF8B1E3F)),
-            onPressed: () => MenuChatAssistantSheet.show(context, _menu),
-          ),
-        ],
+        // Rien d'autre dans la barre : « on montre deux fois la même chose, enlevons celle
+        // du haut » (Flavien, 01/10). Le bouton « Compact » y doublait celui du bandeau
+        // juste dessous, et les raccourcis En groupe, Flight et Chat les grandes cartes
+        // de l'écran.
       ),
       body: Column(
         children: [
@@ -473,6 +447,13 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         decompte,
                         style: const TextStyle(fontSize: 11, color: Colors.grey),
                       ),
+                      // Salon d'aéroport, avion, formule : une carte sans aucun prix se
+                      // choisit au goût, et l'écran le dit une fois plutôt que sous chaque vin.
+                      if (_menu.sansPrix)
+                        Text(
+                          tr('Carte sans prix : on choisit au goût.', 'No prices on this list: choose by taste.'),
+                          style: const TextStyle(fontSize: 11, color: Colors.grey, fontStyle: FontStyle.italic),
+                        ),
                     ],
                   ),
                 ),

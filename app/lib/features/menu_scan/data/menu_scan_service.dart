@@ -320,6 +320,26 @@ class MenuScanService {
     };
   }
 
+  /// La carte telle que le sommelier la lit, dans la langue de la conversation.
+  ///
+  /// Écrite en français d'office, elle faisait recopier « (Prix non indiqué) » dans une
+  /// réponse anglaise (carte de salon sans aucun prix, 01/10). Sans prix, on n'en dit
+  /// rien ; une carte qui n'en affiche aucun est annoncée comme telle.
+  @visibleForTesting
+  static String carteLueParLeSommelier(ScannedMenu menu, String languageCode) {
+    final fr = languageCode.toLowerCase().startsWith('fr');
+    return [
+      if (menu.sansPrix)
+        fr
+            ? '(Carte sans aucun prix — salon, avion ou formule tout compris : ne parle ni de prix ni de rapport qualité-prix.)'
+            : '(This list shows no prices at all — a lounge, a flight or an all-inclusive offer: do not mention prices or value for money.)',
+      for (final w in menu.wines)
+        '- "${w.name}" (${w.vintage ?? "NM"}), ${w.producer} [${w.wineType}, ${w.region ?? w.appellation ?? ""}]'
+            '${w.aUnPrix ? ' - ${w.prixAffiche(fr)}' : ''}. ${fr ? 'Profil' : 'Profile'}: ${w.tags.join(', ')}. '
+            'Style: ${w.sommelierComment ?? ""}',
+    ].join('\n');
+  }
+
   /// 💬 Contextual Sommelier Chat grounded specifically in this scanned menu
   Future<String> askMenuSommelier({
     required ScannedMenu menu,
@@ -327,11 +347,7 @@ class MenuScanService {
     TasteProfile? userProfile,
     String languageCode = 'fr',
   }) async {
-    final wineListText = menu.wines.map((w) {
-      final priceStr = w.priceDisplay;
-      final tagsStr = w.tags.join(', ');
-      return '- "${w.name}" (${w.vintage ?? "NM"}), ${w.producer} [${w.wineType}, ${w.region ?? w.appellation ?? ""}] - $priceStr. Profil: $tagsStr. Style: ${w.sommelierComment ?? ""}';
-    }).join('\n');
+    final wineListText = carteLueParLeSommelier(menu, languageCode);
 
     String profileContext = '';
     if (userProfile != null) {

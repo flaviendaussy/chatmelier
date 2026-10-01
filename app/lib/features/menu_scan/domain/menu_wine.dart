@@ -393,10 +393,14 @@ class MenuWine {
   String formaterPrix(double prix) =>
       CurrencyHelper.formatPrice(prix, currency: devise, decimals: prix % 1 == 0 ? 0 : 2);
 
-  /// Les prix du vin en une ligne (en français : c'est aussi ce que lit le sommelier de
-  /// la carte). À l'écran, [prixAffiche] parle la langue du lecteur.
-  String get priceDisplay => prixAffiche(true);
+  /// Le vin a-t-il un prix sur la carte ? Une carte de salon, d'avion ou une formule
+  /// tout compris n'en affiche aucun.
+  bool get aUnPrix => (bottlePrice ?? 0) > 0 || glassPrices.isNotEmpty;
 
+  /// Les prix du vin en une ligne, dans la langue du lecteur ; vide s'il n'en a pas.
+  /// « Prix non indiqué » sous chaque vin n'était que du bruit sur une carte qui n'en
+  /// affiche aucun, et il passait tel quel, en français, dans le contexte du sommelier
+  /// (« (Prix non indiqué) » dans une réponse anglaise, 01/10).
   String prixAffiche(bool fr) {
     final parts = <String>[];
     if (bottlePrice != null && bottlePrice! > 0) {
@@ -406,7 +410,6 @@ class MenuWine {
       final g = glassPrices.first;
       parts.add('${formaterPrix(g.price)} (${g.format})');
     }
-    if (parts.isEmpty) return trSi(fr, 'Prix non indiqué', 'Price not listed');
     return parts.join(' • ');
   }
 
@@ -584,6 +587,10 @@ class ScannedMenu {
   /// La même carte, autrement nommée ou avec d'autres vins (annotés par la cave) : la
   /// devise et les pages non lues suivent. Reconstruire la carte champ par champ les
   /// perdait, et une carte d'Édimbourg repassait en euros (29/09).
+  /// Une carte qui n'affiche aucun prix : salon d'aéroport, avion, formule tout compris.
+  /// On y choisit au goût, et ni l'écran ni le sommelier ne parlent de prix.
+  bool get sansPrix => wines.isNotEmpty && !wines.any((w) => w.aUnPrix);
+
   ScannedMenu copie({String? restaurantName, List<MenuWine>? wines}) => ScannedMenu(
         id: id,
         restaurantName: restaurantName ?? this.restaurantName,

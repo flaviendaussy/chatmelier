@@ -156,7 +156,7 @@ void main() {
       final v = vin('Rioja', 'red', prix: 45, devise: 'GBP').copyWith(
         glassPrices: const [MenuWineGlassPrice(format: '175ml', price: 7.5)],
       );
-      expect(v.priceDisplay, '£45 / bt • £7.50 (175ml)');
+      expect(v.prixAffiche(true), '£45 / bt • £7.50 (175ml)');
     });
 
     test('une carte relue transmet sa devise à ses vins', () {

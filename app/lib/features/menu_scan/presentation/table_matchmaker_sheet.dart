@@ -156,8 +156,9 @@ class _TableMatchmakerSheetState extends State<TableMatchmakerSheet> {
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
-                Text(vin.prixAffiche(Localizations.localeOf(context).languageCode == 'fr'),
-                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                if (vin.aUnPrix)
+                  Text(vin.prixAffiche(Localizations.localeOf(context).languageCode == 'fr'),
+                      style: const TextStyle(color: Colors.white70, fontSize: 12)),
               ],
             ),
             const SizedBox(height: 4),

@@ -134,7 +134,7 @@ void main() {
             builder: (context, state, child) => AdaptiveAppShell(child: child),
             routes: [
               GoRoute(path: '/', builder: (_, __) => const Scaffold(body: Text('Home Content'))),
-              GoRoute(path: '/chat', builder: (_, __) => const Scaffold(body: Text('Chat Content'))),
+              GoRoute(path: '/ce-soir', builder: (_, __) => const Scaffold(body: Text('Tonight Content'))),
               GoRoute(path: '/history', builder: (_, __) => const Scaffold(body: Text('History Content'))),
               GoRoute(path: '/stats', builder: (_, __) => const Scaffold(body: Text('Stats Content'))),
               GoRoute(path: '/profile', builder: (_, __) => const Scaffold(body: Text('Profile Content'))),
@@ -162,23 +162,27 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      // Ce soir · Cave · Journal · Profil (V2.3 · E1) : le chat n'est plus un onglet.
+      expect(find.text('Ce soir'), findsWidgets);
       expect(find.text('Cave'), findsWidgets);
-      expect(find.text('Chat'), findsWidgets);
-      expect(find.text('Degust.'), findsWidgets);
+      expect(find.text('Journal'), findsWidgets);
       expect(find.text('Profil'), findsWidgets);
+      expect(find.text('Chat'), findsNothing);
 
       container.read(localeProvider.notifier).setLocale(const Locale('es'));
       await tester.pumpAndSettle();
 
+      expect(find.text('Esta noche'), findsWidgets);
       expect(find.text('Bodega'), findsWidgets);
-      expect(find.text('Catas'), findsWidgets);
+      expect(find.text('Diario'), findsWidgets);
       expect(find.text('Perfil'), findsWidgets);
 
       container.read(localeProvider.notifier).setLocale(const Locale('en'));
       await tester.pumpAndSettle();
 
+      expect(find.text('Tonight'), findsWidgets);
       expect(find.text('Cellar'), findsWidgets);
-      expect(find.text('Tasting'), findsWidgets);
+      expect(find.text('Journal'), findsWidgets);
       expect(find.text('Profile'), findsWidgets);
 
       expect(prefs.getString('user_selected_locale'), 'en');

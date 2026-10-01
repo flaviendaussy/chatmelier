@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -8,18 +7,15 @@ import '../../../shared/utils/responsive_layout.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/tasting_entry.dart';
 import 'external_tasting_dialog.dart';
-import '../../menu_scan/presentation/join_table_sheet.dart';
-import '../../menu_scan/data/recent_menus_store.dart';
 import 'tasting_questionnaire_sheet.dart';
 import 'tasting_entry_detail_screen.dart';
 import '../../cellar/data/favorite_wines_service.dart';
-import '../../cellar/presentation/cellar_food_pairing_sheet.dart';
-import '../../../shared/providers/cellar_provider.dart';
 
 import '../../../features/offline/domain/offline_action.dart';
 import '../../../features/offline/presentation/sync_provider.dart';
 import '../../offline/data/offline_storage_service.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/onglets.dart';
 
 final tastingLogProvider = FutureProvider<List<TastingEntry>>((ref) async {
   final supabase = ref.watch(supabaseProvider);
@@ -247,8 +243,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(trSi(isFr, 'Dégustation', 'Tasting Journal')),
+        title: Text(trSi(isFr, 'Journal de dégustation', 'Tasting journal')),
         actions: [
+          const BoutonSommelier(),
           IconButton(
             icon: const Icon(Icons.add_circle_outline, color: Color(0xFF8B1E3F)),
             tooltip: trSi(isFr, 'Dégustation Hors-Cave (Restaurant, Amis)', 'Out-of-Cellar Tasting (Restaurant, Friends)'),
@@ -277,7 +274,6 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildTastingHubActions(context, isDark, isFr),
                   const SizedBox(height: 16),
                   EmptyState(
                     icon: Icons.menu_book,
@@ -311,10 +307,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             onRefresh: () async => ref.refresh(tastingLogProvider.future),
             child: CustomScrollView(
               slivers: [
-                // 0. Tasting Hub Actions (Sortir de la cave, Déguster hors-cave, Scanner un menu)
-                SliverToBoxAdapter(
-                  child: _buildTastingHubActions(context, isDark, isFr),
-                ),
+                // L'« Espace Dégustation » (scanner une carte, rejoindre une table, rouvrir
+                // la dernière carte…) est devenu l'onglet « Ce soir » (V2.3 · E1).
                 // 1. Search Bar & Multi-fields Search Filter Header
                 SliverToBoxAdapter(
                   child: Padding(
@@ -819,319 +813,6 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                     },
                   ),
                 ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTastingHubActions(BuildContext context, bool isDark, bool isFr) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.07),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.wine_bar, size: 20, color: Color(0xFF8B1E3F)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  trSi(isFr, 'Espace Dégustation', 'Tasting Hub'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF1F2937),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  trSi(isFr, 'Cave & Hors-Cave', 'Cellar & Out-of-Cellar'),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF8B1E3F),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              // 1. Sortir de ma cave
-              Expanded(
-                child: _buildActionTile(
-                  context,
-                  icon: Icons.inventory_2_outlined,
-                  // Quatre tuiles au lieu de trois : les titres doivent tenir. « Check out
-                  // cellar bottle » se coupait après « cellar », ce qui laissait un
-                  // libellé tronqué sur l'action la plus utilisée de l'écran.
-                  title: trSi(isFr, 'Sortir de\nma cave', 'From my\ncellar'),
-                  subtitle: trSi(isFr, 'Boire un flacon', 'Drink a bottle'),
-                  badgeColor: const Color(0xFF8B1E3F),
-                  onTap: () => context.push('/checkout'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // 2. Déguster Hors-Cave
-              Expanded(
-                child: _buildActionTile(
-                  context,
-                  icon: Icons.restaurant,
-                  title: trSi(isFr, 'Déguster\nailleurs', 'Taste\nelsewhere'),
-                  subtitle: trSi(isFr, 'Resto ou amis', 'Resto or friends'),
-                  badgeColor: Colors.orange.shade800,
-                  onTap: () => ExternalTastingDialog.show(context),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // 3. Scanner un menu
-              Expanded(
-                child: _buildActionTile(
-                  context,
-                  icon: Icons.document_scanner_outlined,
-                  title: trSi(isFr, 'Scanner\nun menu', 'Scan\na menu'),
-                  subtitle: trSi(isFr, 'Carte des vins', 'Wine list'),
-                  badgeColor: Colors.teal.shade700,
-                  onTap: () => context.push('/scan/menu'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // 4. Rejoindre une table ouverte par quelqu'un d'autre.
-              //
-              // Le QR restait la seule porte d'entrée, et il échoue pour des raisons
-              // banales : écran rayé, lumière basse, téléphone sans appareil photo,
-              // invité arrivé après le dessert.
-              Expanded(
-                child: _buildActionTile(
-                  context,
-                  icon: Icons.groups_rounded,
-                  title: trSi(isFr, 'Rejoindre\nune table', 'Join\na table'),
-                  subtitle: trSi(isFr, 'Avec un code', 'With a code'),
-                  badgeColor: const Color(0xFF6A4C93),
-                  onTap: () => JoinTableSheet.show(context),
-                ),
-              ),
-            ],
-          ),
-          // Rouvrir la dernière carte scannée.
-          //
-          // Une carte ne survivait pas à la fermeture de son écran : sortir pour prendre
-          // un appel obligeait à tout rescanner — nouvel appel IA, nouvelles photos, et
-          // la table ouverte perdue au passage. N'apparaît que s'il y a une carte à
-          // rouvrir.
-          Consumer(builder: (context, ref, _) {
-            final recentes = ref.watch(recentMenusProvider).valueOrNull ?? const [];
-            if (recentes.isEmpty) return const SizedBox.shrink();
-            final derniere = recentes.first;
-            return Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Material(
-                color: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => context.push('/scan/menu/result', extra: derniere),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    child: Row(
-                      children: [
-                        Icon(Icons.history_rounded,
-                            size: 20, color: Colors.teal.shade700),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                trSi(isFr, 'Rouvrir « {restaurantName} »', 'Reopen “{restaurantName}”', {'restaurantName': derniere.restaurantName}),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 13),
-                              ),
-                              Text(
-                                trSi(isFr, '{wines_length} vins · sans rescanner', '{wines_length} wines · no rescan needed', {'wines_length': derniere.wines.length}),
-                                style: const TextStyle(
-                                    fontSize: 11, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right, size: 18),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-
-          const SizedBox(height: 10),
-          // 4. Sommelier Accord Mets & Vins Shortcut
-          Material(
-            color: isDark ? const Color(0xFF2B221E) : const Color(0xFFFAF0E6),
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {
-                final currentCellarId = ref.read(currentCellarIdProvider);
-                final bottles = (ref.read(bottlesProvider(currentCellarId)).valueOrNull ?? []);
-                final cellars = ref.read(userCellarsProvider).valueOrNull ?? [];
-                String cellarName = trSi(isFr, 'Ma Cave', 'My Cellar');
-                for (final item in cellars) {
-                  final cMap = item['cellars'];
-                  if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
-                    cellarName = cMap['name']?.toString() ?? (trSi(isFr, 'Ma Cave', 'My Cellar'));
-                    break;
-                  }
-                }
-                CellarFoodPairingSheet.show(
-                  context,
-                  bottles: bottles,
-                  cellarName: cellarName,
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFD4AF37).withValues(alpha: 0.6),
-                    width: 1.2,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Text('🍽️', style: TextStyle(fontSize: 18)),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            trSi(isFr, 'Quel vin pour mon plat ? (Accords mets & vins)', 'Which wine for my dish? (Food & wine pairings)'),
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFD4AF37),
-                            ),
-                          ),
-                          Text(
-                            trSi(isFr, 'Trouvez le flacon idéal de votre cave pour votre repas', 'Find the ideal bottle from your cellar for your meal'),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark ? Colors.white70 : Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 14,
-                      color: Color(0xFFD4AF37),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color badgeColor,
-    required VoidCallback onTap,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: isDark
-          ? badgeColor.withValues(alpha: 0.14)
-          : badgeColor.withValues(alpha: 0.07),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: badgeColor.withValues(alpha: 0.25),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.18),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 20, color: badgeColor),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  height: 1.15,
-                ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 9.5,
-                  color: isDark ? Colors.white54 : Colors.black54,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

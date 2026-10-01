@@ -127,8 +127,14 @@ abstract class AppLocalizations {
   /// No description provided for @navJournal.
   ///
   /// In en, this message translates to:
-  /// **'Tasting'**
+  /// **'Journal'**
   String get navJournal;
+
+  /// No description provided for @navTonight.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight'**
+  String get navTonight;
 
   /// No description provided for @navStats.
   ///
@@ -823,7 +829,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginTagline.
   ///
   /// In en, this message translates to:
-  /// **'Your Shared AI-Powered Wine Cellar'**
+  /// **'The sommelier for your table'**
   String get loginTagline;
 
   /// No description provided for @loginTabMagicLink.

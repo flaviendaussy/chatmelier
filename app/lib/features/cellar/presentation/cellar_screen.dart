@@ -33,6 +33,7 @@ import '../../../shared/widgets/grape_chart.dart';
 import '../../../shared/utils/responsive_layout.dart';
 import '../../../shared/widgets/notification_bell_button.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/onglets.dart';
 
 enum CellarViewMode { grid, list }
 
@@ -77,7 +78,27 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
       await MandatoryUsernameDialog.checkAndPromptIfNeeded(context, ref);
       // Puis, une seule fois et seulement pour un palais vierge : le palais de départ.
       if (mounted) await PalaisDeDepartSheet.proposerSiBesoin(context, ref);
+      if (mounted) await _arriverSurCeSoirSiLaCaveEstVide();
     });
+  }
+
+  /// Une cave vide n'a rien à montrer : à l'ouverture de l'app, on arrive sur « Ce soir »
+  /// (V2.3 · E1). Une seule fois par lancement : qui revient exprès sur l'onglet Cave y
+  /// reste.
+  static bool _accueilDecide = false;
+
+  Future<void> _arriverSurCeSoirSiLaCaveEstVide() async {
+    if (_accueilDecide) return;
+    _accueilDecide = true;
+    try {
+      final id = ref.read(currentCellarIdProvider);
+      final bouteilles = await ref.read(bottlesProvider(id).future).timeout(const Duration(seconds: 5));
+      if (!mounted || bouteilles.isNotEmpty) return;
+      if (GoRouterState.of(context).matchedLocation != '/') return;
+      context.go('/ce-soir');
+    } catch (_) {
+      // Hors ligne, cave illisible : on reste sur la cave.
+    }
   }
 
   Future<void> _loadTotalCostsPreference() async {
@@ -664,15 +685,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
               }
             },
           ),
-          // Importer Excel / CSV
-          IconButton(
-            icon: const Icon(Icons.table_chart_outlined, color: Color(0xFF2E7D32)),
-            tooltip: trSi(isFr, 'Importer un fichier (Excel / CSV)', 'Import file (Excel / CSV)'),
-            onPressed: () {
-              final cid = currentCellarId;
-              context.push('/cellar/import-excel?cellarId=${cid ?? ""}');
-            },
-          ),
+          // Le sommelier (V2.3 · E1) prend la place de l'import Excel, geste rare qui reste
+          // dans le menu « + » de la cave et dans les outils du profil.
+          const BoutonSommelier(),
           // Voice Dictation
           // View Mode Selector (Grid / Liste)
           PopupMenuButton<CellarViewMode>(

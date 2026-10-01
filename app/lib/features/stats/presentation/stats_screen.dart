@@ -13,6 +13,7 @@ import '../../cellar/domain/wine.dart';
 import '../data/stats_repository.dart';
 import '../domain/cellar_stats.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/onglets.dart';
 
 final statsDisplayCurrencyProvider = StateProvider<String>((ref) => 'EUR');
 
@@ -56,6 +57,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       appBar: AppBar(
         title: Text(l10n?.statsTitle ?? (trSi(isFr, 'Statistiques de la Cave', 'Cellar Statistics'))),
         actions: [
+          const BoutonSommelier(),
           Container(
             margin: const EdgeInsets.only(right: 12),
             padding: const EdgeInsets.symmetric(horizontal: 8),

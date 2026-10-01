@@ -31,6 +31,7 @@ import '../shared/providers/supabase_provider.dart';
 
 export 'navigator_keys.dart';
 import 'navigator_keys.dart';
+import '../features/ce_soir/presentation/ce_soir_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
@@ -184,9 +185,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
-            path: '/chat',
+            path: '/ce-soir',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: ChatScreen(),
+              child: CeSoirScreen(),
             ),
           ),
           GoRoute(
@@ -220,6 +221,17 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
         ],
+      ),
+
+      // Le sommelier (le chat) n'a plus d'onglet : un bouton l'ouvre de partout, en plein
+      // écran par-dessus l'onglet en cours (V2.3 · E1). Une question peut l'accompagner :
+      // jusqu'ici elle était transmise puis ignorée (« demander au sommelier » depuis les
+      // accords inversés ou la pédagogie ouvrait un chat vide).
+      GoRoute(
+        path: '/chat',
+        builder: (context, state) => ChatScreen(
+          questionInitiale: state.extra is String ? state.extra as String : null,
+        ),
       ),
 
       // Full-screen routes (outside shell)

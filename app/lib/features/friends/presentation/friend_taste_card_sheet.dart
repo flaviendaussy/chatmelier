@@ -695,7 +695,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
             ),
             onPressed: () {
               Navigator.of(context).pop();
-              context.go('/chat');
+              context.push('/chat');
             },
           ),
         ],

@@ -21,7 +21,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navChat => 'Chat';
 
   @override
-  String get navJournal => 'Tasting';
+  String get navJournal => 'Journal';
+
+  @override
+  String get navTonight => 'Tonight';
 
   @override
   String get navStats => 'Stats';
@@ -398,7 +401,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginTitle => 'Login';
 
   @override
-  String get loginTagline => 'Your Shared AI-Powered Wine Cellar';
+  String get loginTagline => 'The sommelier for your table';
 
   @override
   String get loginTabMagicLink => '✉️ Sign-in Link';

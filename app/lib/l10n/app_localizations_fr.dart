@@ -21,7 +21,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navChat => 'Chat';
 
   @override
-  String get navJournal => 'Degust.';
+  String get navJournal => 'Journal';
+
+  @override
+  String get navTonight => 'Ce soir';
 
   @override
   String get navStats => 'Stats';
@@ -400,7 +403,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loginTitle => 'Connexion';
 
   @override
-  String get loginTagline => 'Votre cave à vin intelligente et partagée';
+  String get loginTagline => 'Le sommelier de votre table';
 
   @override
   String get loginTabMagicLink => '✉️ Lien de connexion';

@@ -22,6 +22,10 @@ class ChatScreen extends ConsumerStatefulWidget {
   final String? region;
   final String? wineType;
 
+  /// Une question à poser dès l'ouverture (« demander au sommelier » depuis une autre
+  /// feuille).
+  final String? questionInitiale;
+
   const ChatScreen({
     super.key,
     this.bottleId,
@@ -30,6 +34,7 @@ class ChatScreen extends ConsumerStatefulWidget {
     this.producer,
     this.region,
     this.wineType,
+    this.questionInitiale,
   });
 
   @override
@@ -68,6 +73,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (!_initialized) {
       _initialized = true;
       _ajouterMessageAccueil();
+      final question = widget.questionInitiale?.trim();
+      if (question != null && question.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _sendMessage(question);
+        });
+      }
     }
   }
 

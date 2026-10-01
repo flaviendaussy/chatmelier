@@ -11,32 +11,14 @@ import '../utils/responsive_layout.dart';
 import '../../features/cellar/presentation/shelf_grid_view_sheet.dart';
 import '../../config/navigator_keys.dart';
 import '../../shared/utils/langue.dart';
+import 'onglets.dart';
 
 class AdaptiveAppShell extends ConsumerWidget {
   final Widget child;
 
   const AdaptiveAppShell({super.key, required this.child});
 
-  int _currentIndex(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/chat')) {
-      return 1;
-    }
-    if (location.startsWith('/journal') ||
-        location.startsWith('/history') ||
-        location.startsWith('/historique')) {
-      return 2;
-    }
-    if (location.startsWith('/stats')) {
-      return 3;
-    }
-    if (location.startsWith('/profile')) {
-      return 4;
-    }
-    return 0;
-  }
-
-  void _onNavigate(BuildContext context, int index) {
+  void _onNavigate(BuildContext context, String chemin) {
     // Pop any open modal bottom sheets, dialogs or pushed routes first
     while (shellNavigatorKey.currentState?.canPop() ?? false) {
       shellNavigatorKey.currentState?.pop();
@@ -44,59 +26,41 @@ class AdaptiveAppShell extends ConsumerWidget {
     while (rootNavigatorKey.currentState?.canPop() ?? false) {
       rootNavigatorKey.currentState?.pop();
     }
-
-    switch (index) {
-      case 0:
-        context.go('/');
-        break;
-      case 1:
-        context.go('/chat');
-        break;
-      case 2:
-        context.go('/history');
-        break;
-      case 3:
-        context.go('/stats');
-        break;
-      case 4:
-        context.go('/profile');
-        break;
-    }
+    context.go(chemin);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formFactor = Responsive.formFactor(context);
-    final currentIndex = _currentIndex(context);
+    final onglets = ongletsDeLApp(grandEcran: formFactor != FormFactor.mobile);
+    final currentIndex = indexDeLOnglet(GoRouterState.of(context).matchedLocation, onglets);
+    void naviguer(int i) => _onNavigate(context, onglets[i].chemin);
 
     final Widget shell;
     if (formFactor == FormFactor.desktop) {
       shell = _DesktopAppShell(
+        onglets: onglets,
         currentIndex: currentIndex,
-        onNavigate: (i) => _onNavigate(context, i),
+        onNavigate: naviguer,
         child: child,
       );
     } else if (formFactor == FormFactor.tablet) {
       shell = _TabletAppShell(
+        onglets: onglets,
         currentIndex: currentIndex,
-        onNavigate: (i) => _onNavigate(context, i),
+        onNavigate: naviguer,
         child: child,
       );
     } else {
       shell = _MobileAppShell(
-        currentIndex: currentIndex >= 3 ? 3 : currentIndex,
-        onNavigate: (i) {
-          if (i == 3) {
-            _onNavigate(context, 4);
-          } else {
-            _onNavigate(context, i);
-          }
-        },
+        onglets: onglets,
+        currentIndex: currentIndex,
+        onNavigate: naviguer,
         child: child,
       );
     }
 
-    final isRootCellar = currentIndex == 0;
+    final isRootCellar = onglets[currentIndex].chemin == '/';
     final canPopShell = shellNavigatorKey.currentState?.canPop() ?? false;
 
     return PopScope(
@@ -122,11 +86,13 @@ class AdaptiveAppShell extends ConsumerWidget {
 
 /// 📱 Mobile Layout: Bottom Navigation Bar + FAB
 class _MobileAppShell extends ConsumerWidget {
+  final List<OngletDeLApp> onglets;
   final int currentIndex;
   final ValueChanged<int> onNavigate;
   final Widget child;
 
   const _MobileAppShell({
+    required this.onglets,
     required this.currentIndex,
     required this.onNavigate,
     required this.child,
@@ -134,46 +100,23 @@ class _MobileAppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
     final canEdit = ref.watch(currentCellarRoleProvider) != 'viewer';
-
-    final tabs = [
-      (
-        icon: Icons.wine_bar_outlined,
-        activeIcon: Icons.wine_bar,
-        label: l10n?.navCellar ?? 'Cave'
-      ),
-      (
-        icon: Icons.auto_awesome_outlined,
-        activeIcon: Icons.auto_awesome,
-        label: l10n?.navChat ?? 'Chat'
-      ),
-      (
-        icon: Icons.restaurant_menu_outlined,
-        activeIcon: Icons.restaurant_menu,
-        label: l10n?.navJournal ?? trSi(Localizations.localeOf(context).languageCode == 'fr', 'Dégust.', 'Tasting'),
-      ),
-      (
-        icon: Icons.person_outline,
-        activeIcon: Icons.person,
-        label: l10n?.navProfile ?? 'Profil',
-      ),
-    ];
 
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: onNavigate,
-        destinations: tabs
-            .map((t) => NavigationDestination(
-                  icon: Icon(t.icon),
-                  selectedIcon: Icon(t.activeIcon),
-                  label: t.label,
-                ))
-            .toList(),
+        destinations: [
+          for (final o in onglets)
+            NavigationDestination(
+              icon: Icon(o.icone),
+              selectedIcon: Icon(o.iconeActive),
+              label: o.libelle(context),
+            ),
+        ],
       ),
-      floatingActionButton: (currentIndex == 0 && canEdit)
+      floatingActionButton: (onglets[currentIndex].chemin == '/' && canEdit)
           ? FloatingActionButton(
               onPressed: () => _showCellarActionMenu(context, ref),
               backgroundColor: const Color(0xFF8B1E3F),
@@ -331,11 +274,13 @@ class _MobileAppShell extends ConsumerWidget {
 
 /// 📟 Tablet Layout: Sleek Side Navigation Rail
 class _TabletAppShell extends ConsumerWidget {
+  final List<OngletDeLApp> onglets;
   final int currentIndex;
   final ValueChanged<int> onNavigate;
   final Widget child;
 
   const _TabletAppShell({
+    required this.onglets,
     required this.currentIndex,
     required this.onNavigate,
     required this.child,
@@ -345,7 +290,6 @@ class _TabletAppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     return Scaffold(
@@ -410,31 +354,12 @@ class _TabletAppShell extends ConsumerWidget {
               ),
             ),
             destinations: [
-              NavigationRailDestination(
-                icon: const Icon(Icons.wine_bar_outlined),
-                selectedIcon: const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navCellar ?? (trSi(isFr, 'Cave', 'Cellar'))),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.auto_awesome_outlined),
-                selectedIcon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
-                label: Text(l10n?.navChat ?? (trSi(isFr, 'Chat', 'Chat'))),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.restaurant_menu_outlined),
-                selectedIcon: const Icon(Icons.restaurant_menu, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navJournal ?? (trSi(isFr, 'Dégust.', 'Tasting'))),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.insights_outlined),
-                selectedIcon: const Icon(Icons.insights, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navStats ?? (trSi(isFr, 'Stats', 'Stats'))),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.person_outline),
-                selectedIcon: const Icon(Icons.person, color: Color(0xFF8B1E3F)),
-                label: Text(l10n?.navProfile ?? (trSi(isFr, 'Profil', 'Profile'))),
-              ),
+              for (final o in onglets)
+                NavigationRailDestination(
+                  icon: Icon(o.icone),
+                  selectedIcon: Icon(o.iconeActive, color: const Color(0xFF8B1E3F)),
+                  label: Text(o.libelle(context)),
+                ),
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
@@ -447,11 +372,13 @@ class _TabletAppShell extends ConsumerWidget {
 
 /// 💻 Desktop / Computer Web Layout: Permanent Sidebar Navigation Drawer
 class _DesktopAppShell extends ConsumerWidget {
+  final List<OngletDeLApp> onglets;
   final int currentIndex;
   final ValueChanged<int> onNavigate;
   final Widget child;
 
   const _DesktopAppShell({
+    required this.onglets,
     required this.currentIndex,
     required this.onNavigate,
     required this.child,
@@ -598,46 +525,16 @@ class _DesktopAppShell extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Column(
                     children: [
-                      _SidebarNavItem(
-                        icon: Icons.wine_bar_outlined,
-                        activeIcon: Icons.wine_bar,
-                        label: l10n?.navCellar ?? (trSi(isFr, 'Cave', 'Cellar')),
-                        isSelected: currentIndex == 0,
-                        onTap: () => onNavigate(0),
-                      ),
-                      const SizedBox(height: 4),
-                      _SidebarNavItem(
-                        icon: Icons.auto_awesome_outlined,
-                        activeIcon: Icons.auto_awesome,
-                        label: l10n?.navChat ?? (trSi(isFr, 'Chat', 'Chat')),
-                        isSelected: currentIndex == 1,
-                        activeColor: const Color(0xFFD4AF37),
-                        onTap: () => onNavigate(1),
-                      ),
-                      const SizedBox(height: 4),
-                      _SidebarNavItem(
-                        icon: Icons.restaurant_menu_outlined,
-                        activeIcon: Icons.restaurant_menu,
-                        label: l10n?.navJournal ?? (trSi(isFr, 'Dégust.', 'Tasting')),
-                        isSelected: currentIndex == 2,
-                        onTap: () => onNavigate(2),
-                      ),
-                      const SizedBox(height: 4),
-                      _SidebarNavItem(
-                        icon: Icons.insights_outlined,
-                        activeIcon: Icons.insights,
-                        label: l10n?.navStats ?? (trSi(isFr, 'Stats', 'Stats')),
-                        isSelected: currentIndex == 3,
-                        onTap: () => onNavigate(3),
-                      ),
-                      const SizedBox(height: 4),
-                      _SidebarNavItem(
-                        icon: Icons.person_outline,
-                        activeIcon: Icons.person,
-                        label: l10n?.navProfile ?? (trSi(isFr, 'Profil', 'Profile')),
-                        isSelected: currentIndex == 4,
-                        onTap: () => onNavigate(4),
-                      ),
+                      for (var i = 0; i < onglets.length; i++) ...[
+                        if (i > 0) const SizedBox(height: 4),
+                        _SidebarNavItem(
+                          icon: onglets[i].icone,
+                          activeIcon: onglets[i].iconeActive,
+                          label: onglets[i].libelle(context),
+                          isSelected: currentIndex == i,
+                          onTap: () => onNavigate(i),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -666,6 +563,13 @@ class _DesktopAppShell extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Column(
                     children: [
+                      // Le sommelier n'a plus d'onglet : il est un bouton, ici comme ailleurs.
+                      _SidebarActionItem(
+                        icon: Icons.auto_awesome,
+                        label: tr('Demander au sommelier', 'Ask the sommelier'),
+                        color: const Color(0xFFD4AF37),
+                        onTap: () => context.push('/chat'),
+                      ),
                       _SidebarActionItem(
                         icon: Icons.add_circle_outline,
                         label: l10n?.actionAddBottle ?? (trSi(isFr, 'Ajouter une bouteille', 'Add a bottle')),
@@ -772,15 +676,15 @@ class _SidebarNavItem extends StatelessWidget {
   final IconData activeIcon;
   final String label;
   final bool isSelected;
-  final Color activeColor;
   final VoidCallback onTap;
+
+  static const activeColor = Color(0xFF8B1E3F);
 
   const _SidebarNavItem({
     required this.icon,
     required this.activeIcon,
     required this.label,
     required this.isSelected,
-    this.activeColor = const Color(0xFF8B1E3F),
     required this.onTap,
   });
 

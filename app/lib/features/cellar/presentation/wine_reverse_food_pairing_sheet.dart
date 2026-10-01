@@ -56,7 +56,7 @@ class _WineReverseFoodPairingSheetState extends State<WineReverseFoodPairingShee
     };
 
     Navigator.pop(context);
-    context.go('/chat', extra: prompt);
+    context.push('/chat', extra: prompt);
   }
 
   @override

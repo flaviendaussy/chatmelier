@@ -487,9 +487,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                     child: TabBar(
                       controller: _tabController,
                       indicatorSize: TabBarIndicatorSize.tab,
+                      // Sur deux lignes s'il le faut : « Lien de connexion » se coupait en
+                      // fondu sur un petit écran (V2.3 · E1), et l'espagnol est plus long.
                       tabs: [
-                        Tab(text: l10n?.loginTabMagicLink ?? tr('✉️ Lien de connexion', '✉️ Sign-in link')),
-                        Tab(text: l10n?.loginTabPassword ?? tr('🔑 Mot de passe', '🔑 Password')),
+                        for (final libelle in [
+                          l10n?.loginTabMagicLink ?? tr('✉️ Lien de connexion', '✉️ Sign-in link'),
+                          l10n?.loginTabPassword ?? tr('🔑 Mot de passe', '🔑 Password'),
+                        ])
+                          Tab(
+                            height: 52,
+                            child: Text(libelle, textAlign: TextAlign.center, maxLines: 2, softWrap: true),
+                          ),
                       ],
                     ),
                   ),

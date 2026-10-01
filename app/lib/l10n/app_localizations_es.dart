@@ -21,7 +21,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navChat => 'Chat';
 
   @override
-  String get navJournal => 'Catas';
+  String get navJournal => 'Diario';
+
+  @override
+  String get navTonight => 'Esta noche';
 
   @override
   String get navStats => 'Estadísticas';
@@ -400,7 +403,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get loginTitle => 'Iniciar Sesión';
 
   @override
-  String get loginTagline => 'Tu Bodega Inteligente Compartida con IA';
+  String get loginTagline => 'El sumiller de tu mesa';
 
   @override
   String get loginTabMagicLink => '✉️ Enlace de Acceso';

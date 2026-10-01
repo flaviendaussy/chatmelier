@@ -38,6 +38,7 @@ import '../../cellar/domain/wine.dart';
 import '../../sommelier/domain/taste_frontier_engine.dart';
 import 'partage_empreinte_sheet.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/onglets.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -868,6 +869,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         appBar: AppBar(
           title: Text(l10n?.profileTitle ?? (trSi(isFr, 'Profil & Réglages', 'Profile & Settings'))),
           actions: const [
+            BoutonSommelier(),
             NotificationBellButton(),
           ],
           bottom: PreferredSize(

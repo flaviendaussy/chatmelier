@@ -430,8 +430,10 @@ void main() {
       // Now the toggle should say 'Détaillé'
       expect(find.text('Détaillé'), findsOneWidget);
 
-      // Tap on the AppBar toggle icon to switch back to compact
-      await tester.tap(find.byTooltip('Afficher la vue compacte'));
+      // Le même bouton du bandeau ramène la vue compacte : la barre du haut n'en a plus
+      // de second exemplaire (« we show the same thing twice », 01/10).
+      expect(find.byTooltip('Afficher la vue compacte'), findsNothing);
+      await tester.tap(find.text('Détaillé'));
       await tester.pumpAndSettle();
 
       // Back in compact mode

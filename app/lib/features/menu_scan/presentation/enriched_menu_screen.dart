@@ -88,8 +88,11 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     super.initState();
     _menu = widget.menu;
     _loadViewPreference();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _croiserAvecMaCave();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // La suggestion « pour mieux vous connaître » vient APRÈS le croisement avec la cave :
+      // elle écarte les vins qu'on a chez soi ou déjà goûtés (01/10 : elle proposait le
+      // Clio, à 85 £, à quelqu'un qui en a une bouteille en cave).
+      await _croiserAvecMaCave();
       _chercherLaFrontiere();
     });
     // Conserver la carte dès son ouverture, et non à la sortie : on quitte cet écran de
@@ -113,10 +116,11 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
       if (profils.isEmpty || !mounted) return;
       final principal = profils.firstWhere((p) => p.isPrimary, orElse: () => profils.first);
       final s = TasteFrontierEngine.choisir<MenuWine>(
-        _menu.wines,
+        TasteFrontierEngine.candidatsDeLaCarte(_menu.wines),
         principal,
         profilDe: ProfilDeVin.depuisLaCarte,
         plaisir: (w) => w.userMatchScore,
+        prix: (w) => w.bottlePrice,
       );
       if (mounted) setState(() => _frontiere = s);
     } catch (_) {

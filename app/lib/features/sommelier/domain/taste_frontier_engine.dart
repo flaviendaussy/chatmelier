@@ -1,5 +1,6 @@
 import '../../auth/domain/taste_profile.dart';
 import '../../cellar/domain/wine.dart';
+import '../../menu_scan/domain/cellar_bridge.dart';
 import '../../menu_scan/domain/menu_wine.dart';
 import '../../../shared/utils/langue.dart';
 
@@ -56,13 +57,21 @@ class TasteFrontierEngine {
   ///
   /// [plaisir] : score prédit (0–100) du candidat, ou nul s'il est inconnu — seules les
   /// aversions déclarées filtrent alors.
+  ///
+  /// [prix] : pour apprendre, une bouteille du milieu de la carte au plus (prix médian,
+  /// dès quatre prix connus), puis, à gain presque égal (au moins [partDuMeilleurGain] du
+  /// meilleur), la moins chère. Le gain additionne les axes : les grands crus, marqués sur
+  /// tout à la fois (tanins, corps, bois), passaient donc devant. Sur une carte écossaise,
+  /// le moteur envoyait apprendre « ce que vous pensez des vins corsés » avec le Léoville
+  /// Las Cases 2012 à 420 £ (01/10).
   static SuggestionDeFrontiere<T>? choisir<T>(
     List<T> candidats,
     TasteProfile profil, {
     required ProfilDeVin Function(T) profilDe,
     double? Function(T)? plaisir,
+    double? Function(T)? prix,
   }) {
-    SuggestionDeFrontiere<T>? retenue;
+    final retenus = <(SuggestionDeFrontiere<T>, double?)>[];
     for (final c in candidats) {
       final p = profilDe(c);
       final r = evaluer(p, profil);
@@ -73,11 +82,53 @@ class TasteFrontierEngine {
       final score = plaisir?.call(c);
       if (score != null && score < plaisirMinimal) continue;
       if (_heurteUneAversion(p, profil)) continue;
-      if (retenue == null || gain > retenue.gain) {
-        retenue = SuggestionDeFrontiere(c, axe, gain, score, p.axes[axe]!);
-      }
+      retenus.add((SuggestionDeFrontiere(c, axe, gain, score, p.axes[axe]!), prix?.call(c)));
     }
-    return retenue;
+    if (retenus.isEmpty) return null;
+
+    final prixConnus = [
+      for (final c in candidats)
+        if (prix?.call(c) case final p?) p,
+    ]..sort();
+    final plafond = prixConnus.length >= 4 ? prixConnus[(prixConnus.length - 1) ~/ 2] : null;
+    final abordables =
+        plafond == null ? retenus : [for (final r in retenus) if (r.$2 == null || r.$2! <= plafond) r];
+    final parmi = abordables.isNotEmpty ? abordables : retenus;
+
+    var meilleurGain = 0.0;
+    for (final r in parmi) {
+      if (r.$1.gain > meilleurGain) meilleurGain = r.$1.gain;
+    }
+    final proches = parmi.where((r) => r.$1.gain >= meilleurGain * partDuMeilleurGain).toList()
+      ..sort((a, b) {
+        final pa = a.$2;
+        final pb = b.$2;
+        if (pa != null && pb != null && pa != pb) return pa.compareTo(pb);
+        if (pa != null && pb == null) return -1;
+        if (pa == null && pb != null) return 1;
+        return b.$1.gain.compareTo(a.$1.gain);
+      });
+    // Sans prix connu, l'ordre est celui du gain : le plus instructif d'abord.
+    return proches.any((r) => r.$2 != null) ? proches.first.$1 : _plusInstructif(retenus);
+  }
+
+  /// Les vins de la carte qui peuvent apprendre quelque chose au restaurant : ni ceux
+  /// qu'on a déjà goûtés (le palais les connaît), ni ceux qu'on a en cave (ils s'ouvrent à
+  /// la maison, au prix payé, pas à celui de la carte).
+  static List<MenuWine> candidatsDeLaCarte(List<MenuWine> carte) => [
+        for (final w in carte)
+          if (w.pontDeCave?.type != TypeDeLien.enCave && w.pontDeCave?.type != TypeDeLien.dejaGoute) w,
+      ];
+
+  /// La part du meilleur gain en deçà de laquelle un vin moins cher n'est plus proposé.
+  static const double partDuMeilleurGain = 0.85;
+
+  static SuggestionDeFrontiere<T> _plusInstructif<T>(List<(SuggestionDeFrontiere<T>, double?)> retenus) {
+    var meilleur = retenus.first.$1;
+    for (final r in retenus) {
+      if (r.$1.gain > meilleur.gain) meilleur = r.$1;
+    }
+    return meilleur;
   }
 
   /// On ne propose pas un vin très marqué sur ce que la personne a dit ne pas aimer.

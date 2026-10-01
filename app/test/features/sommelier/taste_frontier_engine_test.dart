@@ -1,5 +1,6 @@
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/cellar/domain/wine.dart';
+import 'package:chatmelier/features/menu_scan/domain/cellar_bridge.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
 import 'package:chatmelier/features/sommelier/domain/taste_frontier_engine.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -119,6 +120,62 @@ void main() {
       expect(p.axes['acidity'], 8.5);
       expect(p.axes['minerality'], 8);
       expect(p.axes['oak'], 1.5);
+    });
+  });
+  test('au restaurant, ni un vin de sa cave ni un vin déjà goûté (01/10)', () {
+    final carte = [
+      vin('Clio', 'red', corps: 9.5, tanins: 8).copyWith(
+          pontDeCave: const LienAvecMaCave(type: TypeDeLien.enCave, libelle: 'Vous en avez en cave')),
+      vin('Bandol', 'red', corps: 9, tanins: 8).copyWith(
+          pontDeCave: const LienAvecMaCave(type: TypeDeLien.dejaGoute, libelle: 'Vous l\'avez goûté')),
+      vin('Priorat', 'red', corps: 9, tanins: 7.5).copyWith(
+          pontDeCave: const LienAvecMaCave(type: TypeDeLien.combleUneLacune, libelle: 'Comblerait un manque')),
+    ];
+    final candidats = TasteFrontierEngine.candidatsDeLaCarte(carte);
+    expect(candidats.map((w) => w.name), ['Priorat']);
+    expect(choisir(candidats, profil())?.vin.name, 'Priorat');
+  });
+
+  group('Le prix (01/10)', () {
+    MenuWine rouge(String nom, double prix, {double corps = 9, double tanins = 8}) => MenuWine(
+          id: nom,
+          name: nom,
+          producer: 'Domaine',
+          wineType: 'red',
+          bottlePrice: prix,
+          metrics: MenuWineRadarMetrics(tannins: tanins, body: corps),
+        );
+    SuggestionDeFrontiere<MenuWine>? choisirAvecPrix(List<MenuWine> carte) => TasteFrontierEngine.choisir<MenuWine>(
+        carte, profil(),
+        profilDe: ProfilDeVin.depuisLaCarte, prix: (w) => w.bottlePrice);
+
+    test('à apprentissage presque égal, la bouteille la moins chère', () {
+      final s = choisirAvecPrix([
+        rouge('Léoville Las Cases 2012', 420, corps: 9.5, tanins: 8.5),
+        rouge('Malbec', 44),
+      ]);
+      expect(s?.vin.name, 'Malbec');
+    });
+
+    test('pour apprendre, une bouteille du milieu de la carte au plus', () {
+      // La carte de « The Kitchin » (01/10) : le Léoville, marqué sur tout, avait le plus
+      // gros gain ; une bouteille à 40 £ apprend presque autant.
+      final s = choisirAvecPrix([
+        rouge('Léoville Las Cases 2012', 420, corps: 9, tanins: 8.5),
+        rouge('Lynch-Bages 2015', 240, corps: 8.5, tanins: 8),
+        rouge('Crianza 2019', 55, corps: 8, tanins: 7.5),
+        rouge('Côtes du Rhône 2021', 36, corps: 6.5, tanins: 6),
+        rouge('Morgon 2022', 48, corps: 5.5, tanins: 4.5),
+      ]);
+      expect(s?.vin.name, 'Crianza 2019');
+    });
+
+    test('mais pas un vin qui apprendrait nettement moins', () {
+      final s = choisirAvecPrix([
+        rouge('Grand rouge charpenté', 120, corps: 9.5, tanins: 9.5),
+        rouge('Rouge léger', 25, corps: 6.5, tanins: 6),
+      ]);
+      expect(s?.vin.name, 'Grand rouge charpenté');
     });
   });
 }

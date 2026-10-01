@@ -161,8 +161,8 @@ class ReponsesDuConvive {
 
   /// Ce que le palais apprendra de ce tour.
   ///
-  /// Le plat et l'accord ne partent que si le vin a été bu avec un plat ; les tanins et
-  /// l'effervescence, que si la couleur les a fait demander.
+  /// Le plat et l'accord ne partent que si le vin a été bu avec un plat ; les tanins, la
+  /// minéralité et l'effervescence, que si la couleur les a fait demander.
   TastingQuestionnaireResult resultat({
     required String profileId,
     required String profileName,
@@ -185,6 +185,7 @@ class ReponsesDuConvive {
       aromaIntensity: intensiteAromatique,
       acidity: acidite,
       tannins: vin.demandeLesTanins ? tanins : null,
+      mineralite: vin.demandeLaMineralite ? mineralite : null,
       body: corps,
       length: longueur,
       effervescence: vin.demandeLEffervescence ? effervescence : null,

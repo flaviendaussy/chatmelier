@@ -19,6 +19,9 @@ class TastingQuestionnaireResult {
   /// comme une observation : le modèle gagnait de la confiance sans avoir rien appris.
   final double? acidity;
   final double? tannins; // 0.0 (fondus) → 1.0 (puissants) — only for reds, null for whites/sparkling/rosé
+  /// 0.0 (neutre) → 1.0 (saline, crayeuse). Demandée aux blancs et aux rosés, nulle
+  /// ailleurs. Le curseur existait sans que rien ne la transmette au palais.
+  final double? mineralite;
   /// 0.0 (léger) → 1.0 (puissant). Nul si non mesuré — voir [acidity].
   final double? body;
   final double length; // 0.0 (courte) → 1.0 (interminable)
@@ -54,6 +57,7 @@ class TastingQuestionnaireResult {
     required this.aromaIntensity,
     this.acidity,
     this.tannins,
+    this.mineralite,
     this.body,
     required this.length,
     this.effervescence,
@@ -79,6 +83,7 @@ class TastingQuestionnaireResult {
     'aroma_intensity': aromaIntensity,
     if (acidity != null) 'acidity': acidity,
     if (tannins != null) 'tannins': tannins,
+    if (mineralite != null) 'mineralite': mineralite,
     if (body != null) 'body': body,
     'length': length,
     'effervescence': effervescence,
@@ -113,6 +118,7 @@ class TastingQuestionnaireResult {
       aromaIntensity: (json['aroma_intensity'] as num?)?.toDouble() ?? 0.5,
       acidity: (json['acidity'] as num?)?.toDouble(),
       tannins: (json['tannins'] as num?)?.toDouble(),
+      mineralite: (json['mineralite'] as num?)?.toDouble(),
       body: (json['body'] as num?)?.toDouble(),
       length: (json['length'] as num?)?.toDouble() ?? 0.5,
       effervescence: (json['effervescence'] as num?)?.toDouble(),

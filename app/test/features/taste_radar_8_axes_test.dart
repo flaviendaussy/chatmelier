@@ -191,6 +191,34 @@ void main() {
       expect(metrics.tannin, greaterThan(5.5));
     });
 
+    test('la minéralité répondue sur un blanc aimé nourrit l\'axe, et compte comme une observation', () async {
+      const depart = TasteProfile(id: 'mineral', name: 'Maxime', isPrimary: true);
+      await service.saveProfiles([depart]);
+
+      const chablis = TastingQuestionnaireResult(
+        emojiImpression: 3,
+        noteOutOf10: 8.5,
+        perceivedAromas: {'agrumes'},
+        aromaIntensity: 0.5,
+        acidity: 0.8,
+        mineralite: 0.9,
+        body: 0.4,
+        length: 0.7,
+        wouldBuyAgain: 'yes',
+        idealMoment: 'repas',
+        whatLikedMost: {},
+        whatDislikedMost: {},
+        profileId: 'mineral',
+        profileName: 'Maxime',
+      );
+      expect(TastingQuestionnaireResult.fromJson(chablis.toJson()).mineralite, 0.9);
+
+      await service.applyQuestionnaireResult(result: chablis, wineType: 'white');
+      final apres = (await service.getProfiles()).firstWhere((p) => p.id == 'mineral');
+      expect(apres.avgMineralityPreference, closeTo(0.9, 1e-9));
+      expect(apres.axisObservations['minerality'], 1);
+    });
+
     test('Hard negative filtering: low rating flags aversions', () async {
       const initial = TasteProfile(
         id: 'aversion_test',

@@ -111,6 +111,11 @@ void main() {
       expect(avecPlat.platAccorde, 'huîtres');
       expect(avecPlat.isExpressMode, isTrue);
 
+      final rouge = r.resultat(profileId: 'moi', profileName: 'Moi', vin: QuestionnaireDuVin('red'), express: false);
+      expect(blanc.mineralite, 0.5, reason: 'la minéralité d\'un blanc part au palais');
+      expect(rouge.mineralite, isNull, reason: 'on ne la demande pas à un rouge');
+      expect(rouge.tannins, 0.9);
+
       // Le résultat ne bouge plus quand le formulaire continue de changer.
       r.aromes.add('floral');
       expect(blanc.perceivedAromas, {'agrumes'});

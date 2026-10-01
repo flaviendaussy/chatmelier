@@ -416,7 +416,10 @@ class TasteProfileService {
       double? newRipeFruit = profile.avgRipeFruitPreference;
       double? newSpice = profile.avgSpicePreference;
       double? newFreshFruit = profile.avgFreshFruitPreference;
-      double? newMinerality = profile.avgMineralityPreference;
+      // La minéralité perçue d'un blanc ou d'un rosé aimé, comme l'acidité et le corps.
+      double? newMinerality = result.mineralite == null
+          ? profile.avgMineralityPreference
+          : _runningAvg(profile.avgMineralityPreference, result.mineralite!, n);
 
       final cleanType = (wineType ?? '').toLowerCase();
       final isRedWine = cleanType.contains('rouge') || cleanType == 'red';

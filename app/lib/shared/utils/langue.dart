@@ -32,6 +32,20 @@ class Langue {
       code = supportees.contains(locale.languageCode) ? locale.languageCode : 'en';
 }
 
+/// Le résultat de [calcul] rédigé dans la langue [code] plutôt que dans celle de l'écran :
+/// le résultat d'une table, publié pour des convives qui ne lisent pas la langue de l'hôte.
+///
+/// Le calcul doit être synchrone : la langue de l'app est rétablie dès qu'il rend la main.
+T dansLaLangue<T>(String code, T Function() calcul) {
+  final avant = Langue.code;
+  Langue.code = code;
+  try {
+    return calcul();
+  } finally {
+    Langue.code = avant;
+  }
+}
+
 final _marque = RegExp(r'\{(\w+)\}');
 
 /// Remplit les {marques} d'un modèle : `remplir('{n} vins', {'n': 3})` → « 3 vins ».

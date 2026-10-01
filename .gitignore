@@ -47,6 +47,10 @@ admin_console/
 *.env
 !.env.example
 .chatmelier/
+# Configuration de la page invité légère, écrite par build_and_sync_web.sh (qui recopie le
+# build à la racine) : l'adresse et la clé publiable n'ont pas à être suivies une seconde fois.
+table/config.js
+app/web/table/config.js
 
 # Artefacts temporaires de la CLI Supabase
 supabase/.temp/

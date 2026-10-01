@@ -301,6 +301,23 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
     );
     if (podium.isEmpty) return;
     final paire = _paire;
+    // Les convives lisent la page dans leur langue, pas forcément celle de l'hôte : les
+    // raisons sont rédigées dans chaque langue de l'app.
+    final raisonsTraduites = <String, Map<String, String>>{};
+    final phrasesDeLaPaire = <String, String>{};
+    for (final langue in Langue.supportees) {
+      dansLaLangue(langue, () {
+        final enFrancais = langue == 'fr';
+        for (final r in MenuTableMatcherEngine.rankTop3WinesForTable(
+          menuWines: widget.menu.wines,
+          guests: convives,
+          isFr: enFrancais,
+        )) {
+          (raisonsTraduites[r.menuWine.cacheKey] ??= {})[langue] = r.consensusRationale;
+        }
+        if (paire != null) phrasesDeLaPaire[langue] = RedactionDesRaisons.phraseDeLaPaire(paire, isFr: enFrancais);
+      });
+    }
     final resultat = ResultatDeTable.publier(
       restaurant: widget.menu.restaurantName,
       langue: Localizations.localeOf(context).languageCode,
@@ -308,6 +325,8 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       podium: podium,
       paire: paire,
       phraseDeLaPaire: paire == null ? null : RedactionDesRaisons.phraseDeLaPaire(paire, isFr: fr),
+      raisonsTraduites: raisonsTraduites,
+      phrasesDeLaPaire: phrasesDeLaPaire,
     );
     final empreinte = jsonEncode(resultat);
     if (empreinte == _dernierResultatPublie) return;

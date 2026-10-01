@@ -35,9 +35,9 @@ void main() {
       ).status ==
       QrValidationStatus.valid;
 
-  test('avec une table au serveur, le QR ne porte que son code', () {
+  test('avec une table au serveur, le QR ne porte que son code, vers la page légère', () {
     final url = MenuTableSessionManager.buildQrUrl(sessionId: 'TABLE-1', menu: carte(35), code: 'kyz3yz');
-    expect(url, 'https://chatmelier.github.io/table-consensus?table=KYZ3YZ');
+    expect(url, 'https://chatmelier.github.io/table/?t=KYZ3YZ');
     expect(tientDansUnQr(url), isTrue);
   });
 

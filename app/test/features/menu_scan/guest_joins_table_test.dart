@@ -95,7 +95,7 @@ class _FauxCompte extends Fake implements AuthRepository {
 void main() {
   test('le QR porte le code de la table côté serveur', () {
     final url = MenuTableSessionManager.buildQrUrl(sessionId: 'table-1', menu: _carte, code: 'kyz3yz');
-    expect(Uri.parse(url).queryParameters['table'], 'KYZ3YZ');
+    expect(Uri.parse(url).queryParameters['t'], 'KYZ3YZ');
     // Jamais `code` : sur le web, Supabase le prendrait pour un retour de connexion OAuth.
     expect(Uri.parse(url).queryParameters.containsKey('code'), isFalse);
   });

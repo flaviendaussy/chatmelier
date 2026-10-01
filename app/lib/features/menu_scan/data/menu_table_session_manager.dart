@@ -264,16 +264,22 @@ class MenuTableSessionManager {
   /// Sans code (hôte hors ligne), la carte voyage dans l'URL, réduite jusqu'à tenir dans
   /// [longueurQrMax] caractères.
   ///
-  /// Le paramètre s'appelle `table` et surtout pas `code` : sur le web, Supabase lit un
-  /// `?code=` comme le retour d'une connexion OAuth (PKCE) et tenterait de l'échanger.
+  /// Avec un code, le QR ouvre la page invité légère (`web/table/`, V2.3 · F2) : quelques
+  /// dizaines de kilo-octets au lieu des 16,5 Mo de l'app Flutter, au moment où l'invité
+  /// attend à table. La page renvoie vers [baseUrl] (`?table=`) pour qui veut son compte.
+  /// Sans code, la carte voyagée dans l'URL n'est lisible que par l'app : [baseUrl].
+  ///
+  /// Jamais `?code=` : sur le web, Supabase le prendrait pour le retour d'une connexion
+  /// OAuth (PKCE) et tenterait de l'échanger. D'où `t` pour la page, `table` pour l'app.
   static String buildQrUrl({
     required String sessionId,
     required ScannedMenu menu,
     String? code,
     String baseUrl = 'https://chatmelier.github.io/table-consensus',
+    String pageInvite = 'https://chatmelier.github.io/table/',
   }) {
     if (code != null && code.trim().isNotEmpty) {
-      return '$baseUrl?table=${code.trim().toUpperCase()}';
+      return '$pageInvite?t=${code.trim().toUpperCase()}';
     }
     final debut = '$baseUrl?session=${sessionId.toUpperCase().trim()}';
     final payload = encodeMenuPayload(menu, longueurMax: longueurQrMax - debut.length - '&data='.length);

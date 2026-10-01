@@ -22,6 +22,17 @@ flutter build web --release \
 echo "⚡ Applying cache-busting to flutter_bootstrap.js..."
 sed -i "s|\"mainJsPath\":\"main.dart.js\"|\"mainJsPath\":\"main.dart.js?v=${VERSION}-${BUILD_TIME}\"|g" build/web/flutter_bootstrap.js
 
+# La page invité légère (web/table/, V2.3 · F2) : HTML et JS sans Flutter, copiés tels
+# quels par `flutter build web`. Elle lit l'adresse du projet et sa clé publiable dans ce
+# fichier, écrit ici depuis les mêmes variables que l'app : aucun fichier suivi n'en porte
+# de copie.
+if [ ! -f build/web/table/index.html ]; then
+  echo "❌ build/web/table/ absent : la page invité ne serait pas publiée." >&2
+  exit 1
+fi
+printf "window.CHATMELIER_CONFIG = { supabaseUrl: '%s', supabaseKey: '%s' };\n" \
+  "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > build/web/table/config.js
+
 echo "📦 Syncing web build artifacts to repository root..."
 cp -r build/web/* "$DIR/"
 cp "$DIR/index.html" "$DIR/404.html"

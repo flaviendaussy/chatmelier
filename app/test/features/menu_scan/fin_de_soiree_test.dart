@@ -3,6 +3,7 @@ import 'package:chatmelier/features/menu_scan/domain/fin_de_soiree.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_table_matcher_engine.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
 import 'package:chatmelier/features/sommelier/domain/guest_matcher_engine.dart';
+import 'package:chatmelier/shared/utils/langue.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// La fin de soirée (V2.3 · E2, F1).
@@ -75,5 +76,44 @@ void main() {
     expect(premier['raison'], 'Caro et Paul l\'apprécieront.');
     expect((r['convives'] as List).last, {'nom': 'Léa', 'ne_boit_pas': true});
     expect(r.containsKey('paire'), isFalse);
+  });
+
+  test('chaque convive lit les raisons dans sa langue, et l\'hôte garde la sienne', () {
+    const carte = [
+      MenuWine(id: 'm', name: 'Morgon', producer: 'Foillard', vintage: 2022, wineType: 'Red', bottlePrice: 58),
+      MenuWine(id: 'c', name: 'Chablis', producer: 'Servin', vintage: 2021, wineType: 'White', bottlePrice: 64),
+      MenuWine(id: 'b', name: 'Bandol', producer: 'Tempier', vintage: 2019, wineType: 'Red', bottlePrice: 72),
+    ];
+    const convives = [
+      GuestProfile(id: 'p', name: 'Paul', favoriteTypes: ['Rouge']),
+      GuestProfile(id: 'c', name: 'Caro', favoriteTypes: ['Blanc'], dislikedCharacteristics: ['tanin']),
+    ];
+    Langue.code = 'fr';
+    final raisons = <String, Map<String, String>>{};
+    for (final langue in Langue.supportees) {
+      dansLaLangue(langue, () {
+        for (final r in MenuTableMatcherEngine.rankTop3WinesForTable(
+            menuWines: carte, guests: convives, isFr: langue == 'fr')) {
+          (raisons[r.menuWine.cacheKey] ??= {})[langue] = r.consensusRationale;
+        }
+      });
+    }
+    expect(Langue.code, 'fr', reason: 'la langue de l\'écran revient après le calcul');
+
+    final podium = MenuTableMatcherEngine.rankTop3WinesForTable(menuWines: carte, guests: convives);
+    final r = ResultatDeTable.publier(
+      restaurant: 'Le Comptoir',
+      langue: 'fr',
+      convives: convives,
+      podium: podium,
+      raisonsTraduites: raisons,
+    );
+    for (final v in (r['podium'] as List).cast<Map>()) {
+      final parLangue = v['raisons'] as Map;
+      expect(parLangue.keys, unorderedEquals(Langue.supportees));
+      expect(parLangue['fr'], v['raison'], reason: 'la raison de l\'hôte est la version française');
+      expect({parLangue['fr'], parLangue['en'], parLangue['es']}, hasLength(3),
+          reason: 'trois langues, trois rédactions : ${v['nom']}');
+    }
   });
 }

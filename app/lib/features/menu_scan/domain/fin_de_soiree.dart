@@ -92,7 +92,9 @@ class NoteDUnGeste {
 /// Le résultat de la table, publié par l'hôte pour la page invité (V2.3 · F1).
 ///
 /// L'hôte calcule, la page invité affiche : elle n'a rien à recalculer, et rien à
-/// dupliquer du moteur de consensus. Les textes sont rédigés dans la langue de l'hôte.
+/// dupliquer du moteur de consensus. `raison` et `phrase` sont dans la langue de l'hôte ;
+/// `raisons` et `phrases`, quand l'hôte les fournit, dans chaque langue de l'app, pour que
+/// chaque convive les lise dans la sienne.
 class ResultatDeTable {
   static Map<String, dynamic> publier({
     required String restaurant,
@@ -101,6 +103,9 @@ class ResultatDeTable {
     required List<MenuTableMatchResult> podium,
     PaireDeBouteilles? paire,
     String? phraseDeLaPaire,
+    // Clé du vin → langue → raison.
+    Map<String, Map<String, String>> raisonsTraduites = const {},
+    Map<String, String> phrasesDeLaPaire = const {},
   }) {
     final nomParId = {for (final g in convives) g.id: g.name};
     return {
@@ -125,6 +130,8 @@ class ResultatDeTable {
             if (r.menuWine.bottlePrice != null) 'prix': r.menuWine.formaterPrix(r.menuWine.bottlePrice!),
             'accord': r.harmonyScore.round(),
             'raison': r.consensusRationale,
+            if (raisonsTraduites[r.menuWine.cacheKey]?.isNotEmpty ?? false)
+              'raisons': raisonsTraduites[r.menuWine.cacheKey],
             'scores': {
               for (final e in r.guestScores.entries) (nomParId[e.key] ?? e.key): e.value.round(),
             },
@@ -133,6 +140,7 @@ class ResultatDeTable {
       if (paire != null && phraseDeLaPaire != null)
         'paire': {
           'phrase': phraseDeLaPaire,
+          if (phrasesDeLaPaire.isNotEmpty) 'phrases': phrasesDeLaPaire,
           'vins': [paire.premiere.menuWine.cacheKey, paire.seconde.menuWine.cacheKey],
         },
     };

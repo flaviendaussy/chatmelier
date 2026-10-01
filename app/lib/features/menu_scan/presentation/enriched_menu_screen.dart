@@ -95,9 +95,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     // Conserver la carte dès son ouverture, et non à la sortie : on quitte cet écran de
     // mille façons — retour, appel entrant, app tuée — et une seule d'entre elles serait
     // passée par un `dispose`.
-    RecentMenusStore.ouvrir()
-        .then((s) => s.enregistrer(widget.menu))
-        .catchError((_) {});
+    ref.read(recentMenusProvider.notifier).retenir(widget.menu).catchError((_) {});
   }
 
   /// Annote la carte avec ce que la cave et le journal savent.

@@ -70,6 +70,22 @@ class RecentMenusStore {
   Future<void> vider() => _prefs.remove(_cle);
 }
 
-final recentMenusProvider = FutureProvider<List<ScannedMenu>>((ref) async {
-  return (await RecentMenusStore.ouvrir()).lire();
-});
+/// Les cartes récentes, telles que tous les écrans les montrent.
+///
+/// L'enregistrement passe par ici, et non par le magasin directement : le 30/09, la
+/// liste était lue une fois pour toutes, et « Rouvrir » (onglet Dégustation) montrait la
+/// carte connue au premier affichage, pas la dernière scannée.
+class CartesRecentes extends AsyncNotifier<List<ScannedMenu>> {
+  @override
+  Future<List<ScannedMenu>> build() async => (await RecentMenusStore.ouvrir()).lire();
+
+  /// Retient une carte, en tête de liste, et met à jour tous les écrans qui la montrent.
+  Future<void> retenir(ScannedMenu menu) async {
+    final magasin = await RecentMenusStore.ouvrir();
+    await magasin.enregistrer(menu);
+    state = AsyncData(magasin.lire());
+  }
+}
+
+final recentMenusProvider =
+    AsyncNotifierProvider<CartesRecentes, List<ScannedMenu>>(CartesRecentes.new);

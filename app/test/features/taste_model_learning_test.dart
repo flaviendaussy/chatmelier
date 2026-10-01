@@ -58,6 +58,22 @@ void main() {
       expect(updated.favoriteGrapes, isNot(contains('Tannat')));
     });
 
+    test('un blanc aimé se range parmi les blancs, pas parmi les rouges', () async {
+      final service = TasteProfileService();
+      final profile = await service.getPrimaryProfile();
+      for (final (type, region) in [('white', 'Chablis'), ('sparkling', 'Champagne'), ('dessert', 'Sauternes')]) {
+        await service.recordTastingExperience(
+          nameOrId: profile.id,
+          wine: wineFrom(region: region, grape: 'Chardonnay', type: type),
+          rating: 9.0,
+        );
+      }
+      final apres = await service.getPrimaryProfile();
+      expect(apres.favoriteTypes, unorderedEquals(['Blanc', 'Bulles']),
+          reason: 'les fiches rangent « white » : y chercher « blanc » donnait « Rouge » ; '
+              'un moelleux n\'ajoute aucune couleur plutôt qu\'une fausse');
+    });
+
     test('le compteur d\'expérience avance même sur une déception', () async {
       final service = TasteProfileService();
       final before = (await service.getPrimaryProfile()).questionnairesCompleted;

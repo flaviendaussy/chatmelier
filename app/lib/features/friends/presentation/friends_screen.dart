@@ -11,6 +11,7 @@ import '../domain/user_notification.dart';
 import 'friend_taste_card_sheet.dart';
 import 'contact_invite_sheet.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/valeurs_rangees.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});
@@ -374,7 +375,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                       if (taste.favoriteGrapes.isNotEmpty)
                         ...taste.favoriteGrapes.take(2).map((g) => _buildMiniChip('🍇 $g', isDark)),
                       if (taste.favoriteRegions.isNotEmpty)
-                        ...taste.favoriteRegions.take(2).map((r) => _buildMiniChip('🗺️ $r', isDark)),
+                        ...taste.favoriteRegions.take(2).map((r) => _buildMiniChip('🗺️ ${valeurAffichee(r)}', isDark)),
                     ],
                   ),
                   const SizedBox(height: 12),

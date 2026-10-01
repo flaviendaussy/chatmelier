@@ -1,5 +1,6 @@
 import '../../../shared/utils/langue.dart';
 import 'taste_profile.dart';
+import '../../../shared/utils/valeurs_rangees.dart';
 
 /// Ce qu'une soirée a laissé, dit en toutes lettres.
 ///
@@ -35,7 +36,7 @@ class EveningSummary {
     }
 
     if (profil.favoriteRegions.isNotEmpty) {
-      final r = profil.favoriteRegions.take(2).join(tr(' et ', ' and '));
+      final r = profil.favoriteRegions.take(2).map(valeurAffichee).join(tr(' et ', ' and '));
       out.add(tr('Un goût qui se précise pour {r}', 'A growing taste for {r}', {'r': r}));
     }
 

@@ -39,6 +39,7 @@ import '../../sommelier/domain/taste_frontier_engine.dart';
 import 'partage_empreinte_sheet.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/widgets/onglets.dart';
+import '../../../shared/utils/valeurs_rangees.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -289,16 +290,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     final parts = <String>[];
     if (p.favoriteTypes.isNotEmpty) {
-      parts.add('$stylesLabel : ${p.favoriteTypes.take(2).join(", ")}');
+      parts.add('$stylesLabel : ${p.favoriteTypes.take(2).map(valeurAffichee).join(", ")}');
     }
     if (p.favoriteRegions.isNotEmpty) {
-      parts.add('$terroirsLabel : ${p.favoriteRegions.take(2).join(", ")}');
+      parts.add('$terroirsLabel : ${p.favoriteRegions.take(2).map(valeurAffichee).join(", ")}');
     }
     if (p.favoriteGrapes.isNotEmpty) {
       parts.add('$grapesLabel : ${p.favoriteGrapes.take(2).join(", ")}');
     }
     if (p.dislikedCharacteristics.isNotEmpty) {
-      parts.add('$dislikesLabel : ${p.dislikedCharacteristics.take(1).join(", ")}');
+      parts.add('$dislikesLabel : ${p.dislikedCharacteristics.take(1).map(valeurAffichee).join(", ")}');
     }
     return parts.join(' • ');
   }

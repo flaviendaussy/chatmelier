@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/valeurs_rangees.dart';
 
 class TasteProfileEditSheet extends ConsumerStatefulWidget {
   final TasteProfile profile;
@@ -580,7 +581,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
         ...allChoices.map((choice) {
           final isSelected = items.contains(choice);
           return FilterChip(
-            label: Text(choice),
+            label: Text(valeurAffichee(choice)),
             selected: isSelected,
             selectedColor: activeSelectedColor.withValues(alpha: 0.18),
             checkmarkColor: activeSelectedColor,

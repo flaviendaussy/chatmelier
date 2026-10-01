@@ -3,6 +3,7 @@ import '../domain/bottle.dart';
 import '../domain/cellar_filter_state.dart';
 import '../../../shared/widgets/grape_chart.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/valeurs_rangees.dart';
 
 class CellarFilterSheet extends StatefulWidget {
   final CellarFilterState initialFilter;
@@ -309,7 +310,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                       spacing: 8,
                       runSpacing: 8,
                       children: _appellations.map((appellation) {
-                        return _buildChoiceChip(appellation, appellation, _current.appellation, (v) {
+                        return _buildChoiceChip(valeurAffichee(appellation), appellation, _current.appellation, (v) {
                           setState(() => _current = _current.copyWith(appellation: () => v ? appellation : null));
                         });
                       }).toList(),
@@ -348,7 +349,7 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                       spacing: 8,
                       runSpacing: 8,
                       children: _countries.map((country) {
-                        return _buildChoiceChip(country, country, _current.country, (v) {
+                        return _buildChoiceChip(valeurAffichee(country), country, _current.country, (v) {
                           setState(() => _current = _current.copyWith(country: () => v ? country : null));
                         });
                       }).toList(),
@@ -356,12 +357,12 @@ class _CellarFilterSheetState extends State<CellarFilterSheet> {
                     const SizedBox(height: 24),
 
                     // 6. CONTINENT
-                    _buildSectionHeader('Continent', icon: Icons.public),
+                    _buildSectionHeader(tr('Continent', 'Continent'), icon: Icons.public),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: _continents.map((continent) {
-                        return _buildChoiceChip(continent, continent, _current.continent, (v) {
+                        return _buildChoiceChip(valeurAffichee(continent), continent, _current.continent, (v) {
                           setState(() => _current = _current.copyWith(continent: () => v ? continent : null));
                         });
                       }).toList(),

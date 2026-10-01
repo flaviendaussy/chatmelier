@@ -12,6 +12,7 @@ import '../domain/cellar_behaviour_evidence.dart';
 import '../domain/cellar_concentration.dart';
 import '../../cellar/domain/wine.dart';
 import '../../friends/domain/friend.dart';
+import '../../journal/domain/questionnaire_de_degustation.dart';
 import '../../journal/domain/tasting_questionnaire_result.dart';
 import 'palais_distant.dart';
 
@@ -282,11 +283,16 @@ class TasteProfileService {
       final favRegions = Set<String>.from(profile.favoriteRegions);
       final favGrapes = Set<String>.from(profile.favoriteGrapes);
 
-      final normalizedType = wine.type.isEmpty
-          ? null
-          : (wine.type.toLowerCase().contains('blanc')
-              ? 'Blanc'
-              : (wine.type.toLowerCase().contains('ros') ? 'Rosé' : 'Rouge'));
+      // La couleur dans le vocabulaire du profil. Les fiches rangent `white`, `red`… :
+      // chercher « blanc » dans `white` rangeait chaque blanc aimé parmi les rouges. Un
+      // moelleux ou un type inconnu n'ajoute aucune couleur plutôt qu'une fausse.
+      final normalizedType = switch (couleurDuQuestionnaire(wine.type)) {
+        'red' => 'Rouge',
+        'white' => 'Blanc',
+        'rose' => 'Rosé',
+        'sparkling' => 'Bulles',
+        _ => null,
+      };
       final region = (wine.region.isNotEmpty && wine.region != 'Autre') ? wine.region : null;
       final grapes = wine.grapes.map((g) => g.name).where((n) => n.isNotEmpty).toList();
 

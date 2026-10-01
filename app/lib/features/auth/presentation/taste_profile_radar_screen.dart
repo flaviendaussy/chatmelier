@@ -8,6 +8,7 @@ import 'widgets/radar_legende.dart';
 import 'widgets/wine_taste_radar_chart.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/supabase_provider.dart';
+import '../../../shared/utils/valeurs_rangees.dart';
 
 /// 🎨 Distinct Vibrant Color Palette for Multi-Guest Overlays
 const List<Color> kRadarPalette = [
@@ -405,15 +406,15 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                   spacing: 6,
                   runSpacing: 6,
                   children: [
-                    ...currentProfile.favoriteTypes.map((t) => _buildChipTag(t, const Color(0xFF8B1E3F))),
-                    ...currentProfile.favoriteRegions.map((r) => _buildChipTag(r, const Color(0xFFD4AF37))),
+                    ...currentProfile.favoriteTypes.map((t) => _buildChipTag(valeurAffichee(t), const Color(0xFF8B1E3F))),
+                    ...currentProfile.favoriteRegions.map((r) => _buildChipTag(valeurAffichee(r), const Color(0xFFD4AF37))),
                     ...currentProfile.favoriteGrapes.map((g) => _buildChipTag(g, const Color(0xFF2E7D32))),
                   ],
                 ),
                 if (currentProfile.dislikedCharacteristics.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
-                    '${_langCode == 'fr' ? "Évite : " : (_langCode == 'es' ? "Evita: " : (_langCode == 'ca' ? "Evita: " : (_langCode == 'la' ? "Vitat: " : "Avoids: ")))}${currentProfile.dislikedCharacteristics.join(", ")}',
+                    '${_langCode == 'fr' ? "Évite : " : (_langCode == 'es' ? "Evita: " : (_langCode == 'ca' ? "Evita: " : (_langCode == 'la' ? "Vitat: " : "Avoids: ")))}${currentProfile.dislikedCharacteristics.map(valeurAffichee).join(", ")}',
                     style: const TextStyle(color: Colors.redAccent, fontSize: 11.5),
                   ),
                 ],

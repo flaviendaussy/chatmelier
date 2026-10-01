@@ -5,6 +5,7 @@ import '../domain/taste_profile.dart';
 import 'taste_profile_radar_screen.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/valeurs_rangees.dart';
 
 class TasteProfilesDialog extends ConsumerStatefulWidget {
   const TasteProfilesDialog({super.key});
@@ -240,7 +241,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
-                                      '${_t("Avoids: ", "Evita: ", "Evita: ", "Vitat: ", "Évite : ")}${profile.dislikedCharacteristics.join(", ")}',
+                                      '${_t("Avoids: ", "Evita: ", "Evita: ", "Vitat: ", "Évite : ")}${profile.dislikedCharacteristics.map(valeurAffichee).join(", ")}',
                                       style: const TextStyle(fontSize: 11.5, color: Colors.red),
                                     ),
                                   ),

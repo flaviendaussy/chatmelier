@@ -1,3 +1,4 @@
+import '../../../../shared/utils/sans_accents.dart';
 import 'regions_europe.dart';
 import 'regions_france.dart';
 import 'regions_iberie.dart';
@@ -33,15 +34,10 @@ class WineWorld {
     ...regionsNouveauMonde,
   ];
 
-  static String _norm(String? s) => (s ?? '')
-      .toLowerCase()
-      .replaceAll(RegExp(r'[àâä]'), 'a')
-      .replaceAll(RegExp(r'[éèêë]'), 'e')
-      .replaceAll(RegExp(r'[îï]'), 'i')
-      .replaceAll(RegExp(r'[ôö]'), 'o')
-      .replaceAll(RegExp(r'[ùûü]'), 'u')
-      .replaceAll('ç', 'c')
-      .replaceAll(RegExp(r"[^a-z0-9\s'-]"), ' ')
+  // Le trait d'union compte comme une espace : « Côtes-du-Rhône » et « Côtes du Rhône »
+  // sont la même appellation, et seule la seconde graphie était reconnue (30/09).
+  static String _norm(String? s) => sansAccents(s ?? '')
+      .replaceAll(RegExp(r"[^a-z0-9\s']"), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
 
@@ -82,6 +78,44 @@ class WineWorld {
     }
     return null;
   }
+
+  /// Le nom du vin désigne-t-il une appellation de la base, dans son propre pays ?
+  ///
+  /// Une fiche sans appellation la porte souvent dans son nom : « Châteauneuf-du-Pape »,
+  /// région « Vallée du Rhône ». Le pays garde du contresens : un « Chablis » californien
+  /// n'est pas un chablis.
+  static bool appellationDansLeNom(String? nom, {String? pays}) {
+    final r = region(appellation: nom);
+    return r != null && memePays(r.pays, pays);
+  }
+
+  /// Deux noms du même pays, en français, en anglais ou en espagnol. Un pays inconnu
+  /// ou absent ne contredit rien.
+  static bool memePays(String? a, String? b) {
+    final x = _norm(a);
+    final y = _norm(b);
+    if (x.isEmpty || y.isEmpty) return true;
+    return (_pays[x] ?? x) == (_pays[y] ?? y);
+  }
+
+  static const Map<String, String> _pays = {
+    'francia': 'france', 'frankreich': 'france',
+    'spain': 'espagne', 'espana': 'espagne',
+    'italy': 'italie', 'italia': 'italie',
+    'germany': 'allemagne', 'alemania': 'allemagne', 'deutschland': 'allemagne',
+    'austria': 'autriche', 'osterreich': 'autriche',
+    'england': 'angleterre', 'uk': 'angleterre', 'united kingdom': 'angleterre',
+    'royaume uni': 'angleterre', 'inglaterra': 'angleterre', 'reino unido': 'angleterre',
+    'greece': 'grece', 'grecia': 'grece',
+    'hungary': 'hongrie', 'hungria': 'hongrie',
+    'usa': 'etats unis', 'us': 'etats unis', 'united states': 'etats unis',
+    'estados unidos': 'etats unis', 'eeuu': 'etats unis',
+    'argentina': 'argentine',
+    'chile': 'chili',
+    'australia': 'australie',
+    'new zealand': 'nouvelle zelande', 'nueva zelanda': 'nouvelle zelande',
+    'south africa': 'afrique du sud', 'sudafrica': 'afrique du sud',
+  };
 
   /// La référence nommée qui correspond à ce vin, s'il y en a une.
   ///

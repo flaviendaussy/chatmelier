@@ -118,7 +118,7 @@ void main() {
         ('États-Unis', 'Napa Valley', 'red', 15, 35),
         ('Argentine', 'Mendoza', 'red', 10, 25),
         ('Chili', 'Maipo', 'red', 12, 28),
-        ('Australie', 'Barossa Valley', 'red', 15, 35),
+        ('Australie', 'Barossa Valley', 'red', 12, 35),
         ('Nouvelle-Zélande', 'Marlborough', 'white', 3, 10),
         ('Afrique du Sud', 'Stellenbosch', 'red', 12, 28),
       ];

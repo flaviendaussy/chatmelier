@@ -17,9 +17,9 @@ const List<RegionVin> regionsNouveauMonde = [
     cepages: ['Cabernet Sauvignon', 'Merlot'],
     longevites: {
       'red': AgingProfile(id: 'napa_rouge', libelle: 'Napa rouge',
-          debut: 4, picDebut: 8, picFin: 18, fin: 26),
+          debut: 2, picDebut: 5, picFin: 10, fin: 15),
       'white': AgingProfile(id: 'napa_blanc', libelle: 'Napa blanc',
-          debut: 1, picDebut: 3, picFin: 9, fin: 13),
+          debut: 1, picDebut: 2, picFin: 6, fin: 8),
     },
     references: [
       ReferenceVin(nom: 'Screaming Eagle', certitude: Certitude.verifiee,
@@ -49,9 +49,9 @@ const List<RegionVin> regionsNouveauMonde = [
     cepages: ['Pinot Noir', 'Chardonnay', 'Zinfandel'],
     longevites: {
       'red': AgingProfile(id: 'sonoma_rouge', libelle: 'Sonoma rouge',
-          debut: 2, picDebut: 5, picFin: 13, fin: 18),
+          debut: 1, picDebut: 3, picFin: 9, fin: 12),
       'white': AgingProfile(id: 'sonoma_blanc', libelle: 'Sonoma blanc',
-          debut: 1, picDebut: 3, picFin: 9, fin: 13),
+          debut: 1, picDebut: 2, picFin: 6, fin: 8),
     },
     references: [
       ReferenceVin(nom: 'Kistler'),
@@ -73,9 +73,9 @@ const List<RegionVin> regionsNouveauMonde = [
     cepages: ['Pinot Noir', 'Cabernet Sauvignon', 'Syrah'],
     longevites: {
       'red': AgingProfile(id: 'pnw_rouge', libelle: 'Rouge du Nord-Ouest',
-          debut: 2, picDebut: 5, picFin: 14, fin: 20),
+          debut: 1, picDebut: 3, picFin: 8, fin: 12),
       'white': AgingProfile(id: 'pnw_blanc', libelle: 'Blanc du Nord-Ouest',
-          debut: 1, picDebut: 2, picFin: 8, fin: 12),
+          debut: 1, picDebut: 2, picFin: 5, fin: 7),
     },
     references: [
       ReferenceVin(nom: 'Domaine Drouhin Oregon'),
@@ -95,7 +95,7 @@ const List<RegionVin> regionsNouveauMonde = [
     cepages: ['Malbec', 'Cabernet Sauvignon', 'Bonarda'],
     longevites: {
       'red': AgingProfile(id: 'mendoza_rouge', libelle: 'Mendoza rouge',
-          debut: 2, picDebut: 5, picFin: 13, fin: 18),
+          debut: 1, picDebut: 3, picFin: 7, fin: 10),
       'white': AgingProfile(id: 'mendoza_blanc', libelle: 'Mendoza blanc',
           debut: 1, picDebut: 2, picFin: 6, fin: 9),
     },
@@ -118,7 +118,7 @@ const List<RegionVin> regionsNouveauMonde = [
     cepages: ['Torrontés', 'Malbec', 'Pinot Noir'],
     longevites: {
       'red': AgingProfile(id: 'ar_nord_sud_rouge', libelle: 'Salta & Patagonie rouge',
-          debut: 2, picDebut: 4, picFin: 11, fin: 16),
+          debut: 1, picDebut: 2, picFin: 7, fin: 10),
       'white': AgingProfile(id: 'torrontes', libelle: 'Torrontés',
           debut: 0, picDebut: 1, picFin: 3, fin: 5),
     },
@@ -134,7 +134,7 @@ const List<RegionVin> regionsNouveauMonde = [
     alias: ['maipo', 'cachapoal', 'puente alto', 'alto maipo'],
     cepages: ['Cabernet Sauvignon', 'Carménère'],
     longevites: {'red': AgingProfile(id: 'maipo', libelle: 'Maipo',
-        debut: 3, picDebut: 6, picFin: 15, fin: 20)},
+        debut: 2, picDebut: 4, picFin: 9, fin: 12)},
     references: [
       ReferenceVin(nom: 'Almaviva', certitude: Certitude.verifiee,
           longevite: AgingProfile(id: 'almaviva', libelle: 'Almaviva',
@@ -160,7 +160,7 @@ const List<RegionVin> regionsNouveauMonde = [
       'curico', 'maule'],
     cepages: ['Carménère', 'Cabernet Sauvignon', 'Syrah'],
     longevites: {'red': AgingProfile(id: 'colchagua', libelle: 'Colchagua',
-        debut: 2, picDebut: 5, picFin: 13, fin: 18)},
+        debut: 1, picDebut: 3, picFin: 7, fin: 10)},
     references: [
       ReferenceVin(nom: 'Clos Apalta', alias: ['lapostolle']),
       ReferenceVin(nom: 'Montes', raison: RaisonDePresence.lesDeux),
@@ -179,7 +179,7 @@ const List<RegionVin> regionsNouveauMonde = [
       'white': AgingProfile(id: 'cl_blanc', libelle: 'Blanc chilien côtier',
           debut: 0, picDebut: 1, picFin: 5, fin: 8),
       'red': AgingProfile(id: 'cl_cotier_rouge', libelle: 'Rouge chilien côtier',
-          debut: 2, picDebut: 4, picFin: 11, fin: 16),
+          debut: 1, picDebut: 2, picFin: 7, fin: 10),
     },
   ),
 
@@ -193,9 +193,9 @@ const List<RegionVin> regionsNouveauMonde = [
     cepages: ['Shiraz', 'Riesling', 'Grenache'],
     longevites: {
       'red': AgingProfile(id: 'barossa', libelle: 'Barossa Shiraz',
-          debut: 3, picDebut: 7, picFin: 18, fin: 25),
+          debut: 2, picDebut: 4, picFin: 10, fin: 14),
       'white': AgingProfile(id: 'clare_riesling', libelle: 'Riesling de Clare',
-          debut: 1, picDebut: 4, picFin: 14, fin: 20),
+          debut: 1, picDebut: 3, picFin: 10, fin: 14),
     },
     references: [
       ReferenceVin(nom: 'Penfolds Grange', alias: ['grange'],
@@ -226,7 +226,7 @@ const List<RegionVin> regionsNouveauMonde = [
       'padthaway'],
     cepages: ['Cabernet Sauvignon', 'Shiraz'],
     longevites: {'red': AgingProfile(id: 'coonawarra', libelle: 'Coonawarra & McLaren',
-        debut: 3, picDebut: 6, picFin: 16, fin: 22)},
+        debut: 2, picDebut: 4, picFin: 10, fin: 14)},
     references: [
       ReferenceVin(nom: 'Wynns Coonawarra', alias: ['wynns']),
       ReferenceVin(nom: 'd\'Arenberg', alias: ['darenberg']),
@@ -241,9 +241,9 @@ const List<RegionVin> regionsNouveauMonde = [
     cepages: ['Chardonnay', 'Cabernet Sauvignon', 'Pinot Noir', 'Semillon'],
     longevites: {
       'red': AgingProfile(id: 'au_est_rouge', libelle: 'Rouge de l\'Est australien',
-          debut: 2, picDebut: 5, picFin: 14, fin: 20),
+          debut: 1, picDebut: 3, picFin: 8, fin: 12),
       'white': AgingProfile(id: 'au_est_blanc', libelle: 'Blanc australien',
-          debut: 1, picDebut: 3, picFin: 10, fin: 15),
+          debut: 1, picDebut: 2, picFin: 5, fin: 8),
     },
     references: [
       ReferenceVin(nom: 'Leeuwin Estate'),
@@ -305,9 +305,9 @@ const List<RegionVin> regionsNouveauMonde = [
     cepages: ['Pinot Noir', 'Syrah', 'Chardonnay'],
     longevites: {
       'red': AgingProfile(id: 'nz_rouge', libelle: 'Rouge néo-zélandais',
-          debut: 2, picDebut: 4, picFin: 11, fin: 16),
+          debut: 1, picDebut: 2, picFin: 7, fin: 10),
       'white': AgingProfile(id: 'nz_blanc', libelle: 'Blanc néo-zélandais',
-          debut: 1, picDebut: 2, picFin: 7, fin: 11),
+          debut: 1, picDebut: 2, picFin: 4, fin: 6),
     },
     references: [
       ReferenceVin(nom: 'Felton Road'),
@@ -327,9 +327,9 @@ const List<RegionVin> regionsNouveauMonde = [
     cepages: ['Cabernet Sauvignon', 'Pinotage', 'Chenin Blanc'],
     longevites: {
       'red': AgingProfile(id: 'stellenbosch_rouge', libelle: 'Stellenbosch rouge',
-          debut: 2, picDebut: 5, picFin: 14, fin: 20),
+          debut: 1, picDebut: 3, picFin: 9, fin: 13),
       'white': AgingProfile(id: 'za_chenin', libelle: 'Chenin sud-africain',
-          debut: 1, picDebut: 3, picFin: 10, fin: 15),
+          debut: 1, picDebut: 2, picFin: 5, fin: 8),
     },
     references: [
       ReferenceVin(nom: 'Kanonkop'),
@@ -347,9 +347,9 @@ const List<RegionVin> regionsNouveauMonde = [
     cepages: ['Syrah', 'Chenin Blanc', 'Pinot Noir'],
     longevites: {
       'red': AgingProfile(id: 'swartland_rouge', libelle: 'Swartland rouge',
-          debut: 2, picDebut: 5, picFin: 13, fin: 18),
+          debut: 1, picDebut: 3, picFin: 9, fin: 12),
       'white': AgingProfile(id: 'cap_blanc', libelle: 'Blanc du Cap',
-          debut: 1, picDebut: 2, picFin: 8, fin: 12),
+          debut: 1, picDebut: 2, picFin: 5, fin: 7),
       'sweet': AgingProfile(id: 'constantia', libelle: 'Vin de Constance',
           debut: 3, picDebut: 10, picFin: 30, fin: 50),
     },

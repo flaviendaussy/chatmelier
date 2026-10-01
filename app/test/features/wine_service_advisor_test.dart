@@ -165,8 +165,11 @@ void main() {
       expect(advice.malolacticFermentation, isNull);
       final finChablis = RegExp(r'à (\d+) ans').firstMatch(advice.agingPotential);
       expect(finChablis, isNotNull);
-      expect(int.parse(finChablis!.group(1)!), greaterThanOrEqualTo(20),
-          reason: 'Un Chablis grand cru tient vingt à trente ans.');
+      // Laroche Les Clos 2020 : la critique le boit jusque vers 2035. Vingt ans et plus,
+      // c'est l'exception des plus grands (Raveneau, Dauvissat), pas le cas général.
+      final fin = int.parse(finChablis!.group(1)!);
+      expect(fin, inInclusiveRange(15, 20),
+          reason: 'Un Chablis grand cru se garde une quinzaine d\'années.');
     });
   });
 

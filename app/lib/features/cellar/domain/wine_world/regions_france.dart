@@ -13,10 +13,14 @@ const List<RegionVin> regionsFrance = [
     nom: 'Médoc — communales de prestige',
     elevages: {'red': Elevage(ContenantElevage.barrique, 18)},
     alias: ['margaux', 'pauillac', 'saint-julien', 'saint julien',
-      'saint-estephe', 'saint estephe', 'moulis', 'listrac'],
+      'saint-estephe', 'saint estephe'],
     cepages: ['Cabernet Sauvignon', 'Merlot', 'Cabernet Franc', 'Petit Verdot'],
+    // Le vin « standard » de ces communes (non classé, négoce) : dix à vingt ans. Un cru
+    // classé passe par le rang « sommet » (× 1,9), soit une quarantaine d'années ; les
+    // premiers crus ont leur propre fiche. Jusqu'au 30/09 la base valait 28 ans, et un
+    // cru classé en recevait 53.
     longevites: {'red': AgingProfile(id: 'medoc_cru', libelle: 'Médoc communal',
-        debut: 5, picDebut: 10, picFin: 20, fin: 28)},
+        debut: 4, picDebut: 8, picFin: 14, fin: 20)},
     references: [
       ReferenceVin(nom: 'Château Margaux', certitude: Certitude.verifiee,
           longevite: AgingProfile(id: 'margaux_1er', libelle: 'Premier cru',
@@ -50,29 +54,60 @@ const List<RegionVin> regionsFrance = [
     ],
   ),
   RegionVin(
+    id: 'fr_moulis_listrac',
+    pays: 'France',
+    nom: 'Moulis & Listrac',
+    elevages: {'red': Elevage(ContenantElevage.barrique, 14)},
+    alias: ['moulis', 'listrac'],
+    cepages: ['Cabernet Sauvignon', 'Merlot'],
+    longevites: {'red': AgingProfile(id: 'moulis_listrac', libelle: 'Moulis & Listrac',
+        debut: 3, picDebut: 6, picFin: 12, fin: 16)},
+    references: [ReferenceVin(nom: 'Château Chasse-Spleen', alias: ['chasse spleen'])],
+  ),
+  RegionVin(
     id: 'fr_medoc_haut',
     pays: 'France',
     nom: 'Haut-Médoc & Médoc',
     alias: ['haut-medoc', 'haut medoc', 'medoc'],
     cepages: ['Cabernet Sauvignon', 'Merlot'],
     longevites: {'red': AgingProfile(id: 'haut_medoc', libelle: 'Haut-Médoc',
-        debut: 3, picDebut: 7, picFin: 14, fin: 20)},
+        debut: 3, picDebut: 5, picFin: 11, fin: 15)},
     references: [
       ReferenceVin(nom: 'Château Sociando-Mallet', alias: ['sociando mallet']),
       ReferenceVin(nom: 'Château Cantemerle'),
       ReferenceVin(nom: 'Château La Lagune'),
     ],
   ),
+  // Les satellites avant Saint-Émilion : « Puisseguin Saint-Émilion » contient
+  // « saint-emilion », et en héritait les vingt-quatre ans.
+  RegionVin(
+    id: 'fr_satellites_libournais',
+    pays: 'France',
+    nom: 'Satellites du Libournais',
+    elevages: {'red': Elevage(ContenantElevage.barrique, 12)},
+    alias: ['puisseguin', 'lussac', 'montagne saint-emilion', 'montagne-saint-emilion',
+      'saint-georges saint-emilion', 'saint-georges-saint-emilion', 'castillon',
+      'francs', 'lalande-de-pomerol', 'lalande de pomerol', 'lalande',
+      'fronsac', 'canon-fronsac'],
+    cepages: ['Merlot', 'Cabernet Franc'],
+    longevites: {'red': AgingProfile(id: 'satellites_libournais', libelle: 'Satellites du Libournais',
+        debut: 2, picDebut: 4, picFin: 9, fin: 13)},
+    references: [
+      ReferenceVin(nom: 'Château Chêne-Vieux', alias: ['chene-vieux', 'chene vieux']),
+      ReferenceVin(nom: 'Château de Musset'),
+    ],
+  ),
   RegionVin(
     id: 'fr_saint_emilion',
     pays: 'France',
-    nom: 'Saint-Émilion & satellites',
+    nom: 'Saint-Émilion',
     elevages: {'red': Elevage(ContenantElevage.barrique, 16)},
-    alias: ['saint-emilion', 'saint emilion', 'puisseguin', 'lussac',
-      'montagne saint-emilion', 'castillon'],
+    alias: ['saint-emilion', 'saint emilion'],
     cepages: ['Merlot', 'Cabernet Franc'],
+    // « Saint-Émilion grand cru » est une appellation, pas un classement : le rang le
+    // traite en « supérieur » (voir AgingReference.rangDe), le cru classé en « sommet ».
     longevites: {'red': AgingProfile(id: 'saint_emilion', libelle: 'Saint-Émilion',
-        debut: 4, picDebut: 8, picFin: 16, fin: 24)},
+        debut: 3, picDebut: 6, picFin: 12, fin: 16)},
     references: [
       ReferenceVin(nom: 'Château Cheval Blanc', certitude: Certitude.verifiee,
           longevite: AgingProfile(id: 'cheval_blanc', libelle: 'Premier grand cru A',
@@ -91,13 +126,12 @@ const List<RegionVin> regionsFrance = [
   RegionVin(
     id: 'fr_pomerol',
     pays: 'France',
-    nom: 'Pomerol & Lalande',
+    nom: 'Pomerol',
     elevages: {'red': Elevage(ContenantElevage.barrique, 18)},
-    alias: ['pomerol', 'lalande-de-pomerol', 'lalande de pomerol', 'lalande',
-      'fronsac', 'canon-fronsac'],
+    alias: ['pomerol'],
     cepages: ['Merlot', 'Cabernet Franc'],
     longevites: {'red': AgingProfile(id: 'pomerol', libelle: 'Pomerol',
-        debut: 4, picDebut: 9, picFin: 18, fin: 26)},
+        debut: 4, picDebut: 7, picFin: 14, fin: 19)},
     references: [
       ReferenceVin(nom: 'Pétrus', certitude: Certitude.verifiee,
           longevite: AgingProfile(id: 'petrus', libelle: 'Pétrus',
@@ -113,16 +147,16 @@ const List<RegionVin> regionsFrance = [
   RegionVin(
     id: 'fr_pessac',
     pays: 'France',
-    nom: 'Pessac-Léognan & Graves',
+    nom: 'Pessac-Léognan',
     elevages: {'red': Elevage(ContenantElevage.barrique, 16),
       'white': Elevage(ContenantElevage.barrique, 10)},
-    alias: ['pessac-leognan', 'pessac leognan', 'graves', 'pessac'],
+    alias: ['pessac-leognan', 'pessac leognan', 'pessac'],
     cepages: ['Cabernet Sauvignon', 'Merlot', 'Sauvignon Blanc', 'Sémillon'],
     longevites: {
       'red': AgingProfile(id: 'pessac_rouge', libelle: 'Pessac rouge',
-          debut: 4, picDebut: 8, picFin: 18, fin: 25),
+          debut: 3, picDebut: 7, picFin: 13, fin: 18),
       'white': AgingProfile(id: 'pessac_blanc', libelle: 'Pessac blanc',
-          debut: 2, picDebut: 5, picFin: 14, fin: 20),
+          debut: 1, picDebut: 3, picFin: 8, fin: 12),
     },
     references: [
       ReferenceVin(nom: 'Château Haut-Brion', alias: ['haut brion'],
@@ -134,8 +168,25 @@ const List<RegionVin> regionsFrance = [
       ReferenceVin(nom: 'Domaine de Chevalier'),
       ReferenceVin(nom: 'Château Smith Haut Lafitte'),
       ReferenceVin(nom: 'Château Carbonnieux'),
-      ReferenceVin(nom: 'Château Crabitey'),
     ],
+  ),
+  RegionVin(
+    id: 'fr_graves',
+    pays: 'France',
+    nom: 'Graves',
+    elevages: {'red': Elevage(ContenantElevage.barrique, 12),
+      'white': Elevage(ContenantElevage.inox, 6)},
+    alias: ['graves'],
+    cepages: ['Merlot', 'Cabernet Sauvignon', 'Sauvignon Blanc', 'Sémillon'],
+    longevites: {
+      'red': AgingProfile(id: 'graves_rouge', libelle: 'Graves rouge',
+          debut: 2, picDebut: 4, picFin: 9, fin: 13),
+      'white': AgingProfile(id: 'graves_blanc', libelle: 'Graves blanc',
+          debut: 1, picDebut: 2, picFin: 5, fin: 8),
+      'sweet': AgingProfile(id: 'graves_superieures', libelle: 'Graves supérieures',
+          debut: 2, picDebut: 5, picFin: 12, fin: 18),
+    },
+    references: [ReferenceVin(nom: 'Château Crabitey')],
   ),
   RegionVin(
     id: 'fr_bordeaux_generique',
@@ -144,13 +195,15 @@ const List<RegionVin> regionsFrance = [
     elevages: {'red': Elevage(ContenantElevage.inox, 6),
       'white': Elevage(ContenantElevage.inox, 4)},
     alias: ['bordeaux superieur', 'bordeaux', 'entre-deux-mers',
-      'cotes de bourg', 'blaye', 'cadillac'],
+      'cotes de bourg', 'blaye'],
     cepages: ['Merlot', 'Cabernet Sauvignon', 'Sauvignon Blanc'],
     longevites: {
+      // Un Bordeaux ou Bordeaux supérieur se boit dans ses cinq à dix ans ; la base en
+      // donnait quinze, et la tolérance de 1,8 laissait passer vingt-sept.
       'red': AgingProfile(id: 'bdx_generique_rouge', libelle: 'Bordeaux',
-          debut: 2, picDebut: 4, picFin: 10, fin: 15),
+          debut: 1, picDebut: 2, picFin: 6, fin: 9),
       'white': AgingProfile(id: 'bdx_generique_blanc', libelle: 'Bordeaux blanc',
-          debut: 1, picDebut: 2, picFin: 5, fin: 8),
+          debut: 0, picDebut: 1, picFin: 3, fin: 5),
       'rose': AgingProfile(id: 'bdx_rose', libelle: 'Bordeaux rosé',
           debut: 0, picDebut: 1, picFin: 2, fin: 3),
     },
@@ -166,11 +219,10 @@ const List<RegionVin> regionsFrance = [
     pays: 'France',
     nom: 'Sauternes & Barsac',
     elevages: {'*': Elevage(ContenantElevage.barrique, 18)},
-    alias: ['sauternes', 'barsac', 'cerons', 'loupiac',
-      'sainte-croix-du-mont', 'monbazillac'],
+    alias: ['sauternes', 'barsac'],
     cepages: ['Sémillon', 'Sauvignon Blanc', 'Muscadelle'],
     longevites: {'*': AgingProfile(id: 'sauternes', libelle: 'Sauternes',
-        debut: 3, picDebut: 10, picFin: 30, fin: 50)},
+        debut: 3, picDebut: 8, picFin: 22, fin: 35)},
     references: [
       ReferenceVin(nom: 'Château d\'Yquem', alias: ['yquem'],
           certitude: Certitude.verifiee,
@@ -182,7 +234,22 @@ const List<RegionVin> regionsFrance = [
       ReferenceVin(nom: 'Château Rieussec'),
       ReferenceVin(nom: 'Château Coutet'),
       ReferenceVin(nom: 'Château Bastor-Lamontagne'),
+      // « So Sauternes » : une cuvée pensée pour être bue jeune, sur le fruit (l'IA lui
+      // donnait cinquante ans de garde, 30/09).
+      ReferenceVin(nom: 'So Sauternes', raison: RaisonDePresence.grandVolume,
+          longevite: AgingProfile(id: 'so_sauternes', libelle: 'So Sauternes',
+              debut: 0, picDebut: 1, picFin: 5, fin: 9)),
     ],
+  ),
+  RegionVin(
+    id: 'fr_liquoreux_voisins',
+    pays: 'France',
+    nom: 'Liquoreux voisins de Sauternes',
+    elevages: {'*': Elevage(ContenantElevage.barrique, 12)},
+    alias: ['cerons', 'loupiac', 'sainte-croix-du-mont', 'cadillac', 'monbazillac', 'saussignac'],
+    cepages: ['Sémillon', 'Sauvignon Blanc', 'Muscadelle'],
+    longevites: {'*': AgingProfile(id: 'liquoreux_voisins', libelle: 'Liquoreux de la Garonne et de Bergerac',
+        debut: 2, picDebut: 5, picFin: 12, fin: 18)},
   ),
 
   // ═══════════════ BOURGOGNE ═══════════════
@@ -196,11 +263,12 @@ const List<RegionVin> regionsFrance = [
       'nuits-saint-georges', 'morey-saint-denis', 'vougeot', 'fixin',
       'marsannay', 'cote de nuits'],
     cepages: ['Pinot Noir'],
+    // Le village. Un premier ou un grand cru passe par le rang « sommet » (× 1,9).
     longevites: {
       'red': AgingProfile(id: 'cdn_rouge', libelle: 'Côte de Nuits',
-          debut: 4, picDebut: 8, picFin: 18, fin: 25),
+          debut: 3, picDebut: 5, picFin: 11, fin: 15),
       'white': AgingProfile(id: 'cdn_blanc', libelle: 'Côte de Nuits blanc',
-          debut: 2, picDebut: 4, picFin: 10, fin: 15),
+          debut: 2, picDebut: 3, picFin: 7, fin: 10),
     },
     references: [
       ReferenceVin(nom: 'Domaine de la Romanée-Conti', alias: ['romanee-conti', 'drc'],
@@ -229,17 +297,20 @@ const List<RegionVin> regionsFrance = [
       'chassagne-montrachet', 'corton', 'aloxe-corton', 'savigny',
       'saint-aubin', 'santenay', 'cote de beaune', 'montrachet'],
     cepages: ['Pinot Noir', 'Chardonnay'],
+    // Le village (Chorey, Savigny, Santenay, Meursault village…). Un premier ou un grand
+    // cru passe par le rang « sommet » (× 1,9).
     longevites: {
       'red': AgingProfile(id: 'cdb_rouge', libelle: 'Côte de Beaune rouge',
-          debut: 3, picDebut: 6, picFin: 14, fin: 20),
+          debut: 2, picDebut: 4, picFin: 9, fin: 12),
       'white': AgingProfile(id: 'cdb_blanc', libelle: 'Côte de Beaune blanc',
-          debut: 2, picDebut: 5, picFin: 12, fin: 18),
+          debut: 2, picDebut: 3, picFin: 8, fin: 11),
     },
     references: [
       ReferenceVin(nom: 'Domaine Leflaive'),
       ReferenceVin(nom: 'Domaine Coche-Dury', alias: ['coche dury'],
           elevage: Elevage(ContenantElevage.barrique, 20)),
-      ReferenceVin(nom: 'Domaine des Comtes Lafon', alias: ['comtes lafon']),
+      ReferenceVin(nom: 'Domaine des Comtes Lafon', alias: ['comtes lafon'],
+          elevage: Elevage(ContenantElevage.barrique, 18)),
       ReferenceVin(nom: 'Domaine Ramonet'),
       ReferenceVin(nom: 'Bouchard Père & Fils', alias: ['bouchard pere']),
       ReferenceVin(nom: 'Olivier Leflaive'),
@@ -253,7 +324,7 @@ const List<RegionVin> regionsFrance = [
     alias: ['chablis', 'petit chablis', 'irancy'],
     cepages: ['Chardonnay'],
     longevites: {'white': AgingProfile(id: 'chablis', libelle: 'Chablis',
-        debut: 2, picDebut: 4, picFin: 10, fin: 15)},
+        debut: 1, picDebut: 2, picFin: 6, fin: 9)},
     references: [
       ReferenceVin(nom: 'Domaine Raveneau', alias: ['raveneau']),
       ReferenceVin(nom: 'Domaine Dauvissat', alias: ['vincent dauvissat']),
@@ -271,9 +342,9 @@ const List<RegionVin> regionsFrance = [
     cepages: ['Pinot Noir', 'Chardonnay', 'Aligoté', 'Gamay'],
     longevites: {
       'red': AgingProfile(id: 'bgn_reg_rouge', libelle: 'Bourgogne régional',
-          debut: 1, picDebut: 3, picFin: 7, fin: 10),
+          debut: 1, picDebut: 2, picFin: 5, fin: 8),
       'white': AgingProfile(id: 'bgn_reg_blanc', libelle: 'Bourgogne blanc régional',
-          debut: 1, picDebut: 2, picFin: 6, fin: 9),
+          debut: 0, picDebut: 1, picFin: 4, fin: 6),
     },
     references: [ReferenceVin(nom: 'Moillard', raison: RaisonDePresence.grandVolume)],
   ),
@@ -288,7 +359,7 @@ const List<RegionVin> regionsFrance = [
       'red': AgingProfile(id: 'chalon_rouge', libelle: 'Chalonnaise rouge',
           debut: 2, picDebut: 4, picFin: 9, fin: 13),
       'white': AgingProfile(id: 'chalon_blanc', libelle: 'Mâconnais blanc',
-          debut: 1, picDebut: 3, picFin: 7, fin: 10),
+          debut: 1, picDebut: 2, picFin: 5, fin: 8),
     },
   ),
 
@@ -302,7 +373,7 @@ const List<RegionVin> regionsFrance = [
       'chiroubles', 'saint-amour', 'regnie', 'brouilly', 'cote de brouilly'],
     cepages: ['Gamay'],
     longevites: {'red': AgingProfile(id: 'beaujolais_cru', libelle: 'Cru du Beaujolais',
-        debut: 2, picDebut: 4, picFin: 9, fin: 13)},
+        debut: 1, picDebut: 3, picFin: 7, fin: 10)},
     references: [
       ReferenceVin(nom: 'Marcel Lapierre', alias: ['lapierre']),
       ReferenceVin(nom: 'Jean Foillard', alias: ['foillard']),
@@ -323,17 +394,39 @@ const List<RegionVin> regionsFrance = [
   ),
 
   // ═══════════════ RHÔNE ═══════════════
+  // Crozes-Hermitage et Saint-Joseph avant l'Hermitage : « crozes-hermitage » contient
+  // « hermitage », et en héritait les vingt-cinq ans (Cave de Tain, 30/09). Condrieu et
+  // Saint-Péray, blancs à boire jeunes, les rejoignent.
+  RegionVin(
+    id: 'fr_rhone_nord_village',
+    pays: 'France',
+    nom: 'Crozes-Hermitage, Saint-Joseph & Condrieu',
+    elevages: {'red': Elevage(ContenantElevage.foudre, 12)},
+    alias: ['crozes-hermitage', 'crozes', 'saint-joseph', 'condrieu', 'saint-peray',
+      // La région seule, sans appellation : le vin le plus courant du nord.
+      'rhone septentrional', 'rhone nord', 'northern rhone'],
+    cepages: ['Syrah', 'Viognier', 'Marsanne', 'Roussanne'],
+    longevites: {
+      'red': AgingProfile(id: 'rhone_nord_village_rouge', libelle: 'Crozes & Saint-Joseph',
+          debut: 1, picDebut: 3, picFin: 7, fin: 10),
+      'white': AgingProfile(id: 'rhone_nord_village_blanc', libelle: 'Condrieu & blancs du nord',
+          debut: 0, picDebut: 1, picFin: 4, fin: 6),
+    },
+    references: [
+      ReferenceVin(nom: 'Cave de Tain', raison: RaisonDePresence.grandVolume),
+      ReferenceVin(nom: 'Domaine Alain Graillot', alias: ['graillot']),
+    ],
+  ),
   RegionVin(
     id: 'fr_rhone_nord',
     pays: 'France',
     nom: 'Rhône septentrional',
     elevages: {'red': Elevage(ContenantElevage.foudre, 18)},
-    alias: ['cote-rotie', 'hermitage', 'crozes-hermitage', 'crozes', 'cornas',
-      'saint-joseph', 'saint-peray', 'condrieu', 'chateau-grillet'],
+    alias: ['cote-rotie', 'hermitage', 'cornas', 'chateau-grillet'],
     cepages: ['Syrah', 'Viognier', 'Marsanne', 'Roussanne'],
     longevites: {
-      'red': AgingProfile(id: 'rhone_nord_rouge', libelle: 'Rhône nord',
-          debut: 4, picDebut: 8, picFin: 18, fin: 25),
+      'red': AgingProfile(id: 'rhone_nord_rouge', libelle: 'Hermitage, Côte-Rôtie & Cornas',
+          debut: 4, picDebut: 8, picFin: 16, fin: 22),
       'white': AgingProfile(id: 'rhone_nord_blanc', libelle: 'Rhône nord blanc',
           debut: 2, picDebut: 4, picFin: 10, fin: 15),
     },
@@ -353,13 +446,12 @@ const List<RegionVin> regionsFrance = [
   RegionVin(
     id: 'fr_chateauneuf',
     pays: 'France',
-    nom: 'Châteauneuf-du-Pape & crus du sud',
+    nom: 'Châteauneuf-du-Pape',
     elevages: {'red': Elevage(ContenantElevage.foudre, 15)},
-    alias: ['chateauneuf-du-pape', 'chateauneuf', 'gigondas', 'vacqueyras',
-      'cairanne', 'rasteau', 'lirac', 'vinsobres', 'beaumes-de-venise'],
+    alias: ['chateauneuf-du-pape', 'chateauneuf'],
     cepages: ['Grenache', 'Syrah', 'Mourvèdre'],
-    longevites: {'red': AgingProfile(id: 'cnp', libelle: 'Châteauneuf & crus',
-        debut: 3, picDebut: 7, picFin: 16, fin: 22)},
+    longevites: {'red': AgingProfile(id: 'cnp', libelle: 'Châteauneuf-du-Pape',
+        debut: 3, picDebut: 6, picFin: 13, fin: 18)},
     references: [
       ReferenceVin(nom: 'Château Rayas', alias: ['rayas'],
           longevite: AgingProfile(id: 'rayas', libelle: 'Rayas',
@@ -371,16 +463,51 @@ const List<RegionVin> regionsFrance = [
     ],
   ),
   RegionVin(
+    id: 'fr_gigondas',
+    pays: 'France',
+    nom: 'Gigondas & Vacqueyras',
+    elevages: {'red': Elevage(ContenantElevage.foudre, 12)},
+    alias: ['gigondas', 'vacqueyras'],
+    cepages: ['Grenache', 'Syrah', 'Mourvèdre'],
+    longevites: {'red': AgingProfile(id: 'gigondas', libelle: 'Gigondas & Vacqueyras',
+        debut: 2, picDebut: 4, picFin: 9, fin: 13)},
+  ),
+  // Cairanne était rangé avec Châteauneuf : un Cairanne de coopérative recevait trente
+  // ans (vingt-deux, × 1,35 pour « Réserve »), 30/09.
+  RegionVin(
+    id: 'fr_crus_rhone_sud',
+    pays: 'France',
+    nom: 'Crus du Rhône méridional',
+    elevages: {'red': Elevage(ContenantElevage.inox, 8)},
+    alias: ['cairanne', 'rasteau', 'lirac', 'vinsobres', 'beaumes-de-venise',
+      'beaumes de venise', 'cotes du rhone villages'],
+    cepages: ['Grenache', 'Syrah', 'Mourvèdre'],
+    longevites: {
+      'red': AgingProfile(id: 'crus_rhone_sud', libelle: 'Crus du Rhône méridional',
+          debut: 1, picDebut: 3, picFin: 7, fin: 10),
+      'white': AgingProfile(id: 'crus_rhone_sud_blanc', libelle: 'Blancs du Rhône méridional',
+          debut: 0, picDebut: 1, picFin: 3, fin: 5),
+    },
+  ),
+  RegionVin(
     id: 'fr_rhone_villages',
     pays: 'France',
     nom: 'Côtes du Rhône & villages',
     elevages: {'*': Elevage(ContenantElevage.inox, 6)},
     alias: ['cotes du rhone', 'ventoux', 'luberon', 'costieres de nimes',
-      'duche d\'uzes', 'uzes', 'grignan', 'vivarais'],
+      'duche d\'uzes', 'uzes', 'grignan', 'vivarais',
+      // La région seule, sans appellation : « Vallée du Rhône » ne correspondait à rien,
+      // et un vin ainsi décrit n'avait que l'enveloppe de sa couleur (30/09). Le vin le
+      // plus courant de la vallée est un côtes-du-rhône. Déclarées ici, après les crus :
+      // une appellation reconnue passe toujours avant.
+      'vallee du rhone', 'rhone valley', 'valle del rodano', 'rhone meridional',
+      'rhone sud', 'southern rhone'],
     cepages: ['Grenache', 'Syrah', 'Carignan'],
     longevites: {
       'red': AgingProfile(id: 'cdr', libelle: 'Côtes du Rhône',
-          debut: 1, picDebut: 3, picFin: 7, fin: 10),
+          debut: 1, picDebut: 2, picFin: 5, fin: 7),
+      'white': AgingProfile(id: 'cdr_blanc', libelle: 'Côtes du Rhône blanc',
+          debut: 0, picDebut: 1, picFin: 3, fin: 4),
       'rose': AgingProfile(id: 'cdr_rose', libelle: 'Rosé du Rhône',
           debut: 0, picDebut: 1, picFin: 2, fin: 3),
     },
@@ -392,7 +519,7 @@ const List<RegionVin> regionsFrance = [
     alias: ['tavel'],
     cepages: ['Grenache', 'Cinsault'],
     longevites: {'*': AgingProfile(id: 'tavel', libelle: 'Tavel',
-        debut: 1, picDebut: 2, picFin: 6, fin: 8)},
+        debut: 0, picDebut: 1, picFin: 4, fin: 6)},
   ),
 
   // ═══════════════ PROVENCE & CORSE ═══════════════
@@ -407,19 +534,29 @@ const List<RegionVin> regionsFrance = [
     cepages: ['Mourvèdre', 'Grenache', 'Cinsault'],
     longevites: {
       'red': AgingProfile(id: 'bandol_rouge', libelle: 'Bandol rouge',
-          debut: 4, picDebut: 8, picFin: 18, fin: 25),
+          debut: 3, picDebut: 6, picFin: 14, fin: 20),
+      // Un rosé de Bandol se boit dans ses trois à cinq ans ; les plus grands tiennent
+      // davantage, par leur fiche de domaine. La base en donnait quatorze, et des rosés
+      // 2023 s'affichaient « à boire jusqu'en 2037 » (30/09).
       'rose': AgingProfile(id: 'bandol_rose', libelle: 'Bandol rosé',
-          debut: 1, picDebut: 3, picFin: 9, fin: 14),
+          debut: 0, picDebut: 1, picFin: 3, fin: 5),
       'white': AgingProfile(id: 'bandol_blanc', libelle: 'Bandol blanc',
-          debut: 1, picDebut: 3, picFin: 9, fin: 14),
+          debut: 0, picDebut: 1, picFin: 4, fin: 7),
     },
     references: [
       ReferenceVin(nom: 'Domaine Tempier', alias: ['tempier'],
           certitude: Certitude.verifiee),
+      // La longévité de Terrebrune est celle de son rouge ; son rosé, réputé de garde,
+      // tient une dizaine d'années.
       ReferenceVin(nom: 'Domaine de Terrebrune', alias: ['terrebrune'],
           certitude: Certitude.verifiee,
+          couleurs: {'red'},
           longevite: AgingProfile(id: 'terrebrune', libelle: 'Terrebrune',
-              debut: 2, picDebut: 5, picFin: 14, fin: 20)),
+              debut: 2, picDebut: 5, picFin: 14, fin: 20),
+          longevitesParCouleur: {
+            'rose': AgingProfile(id: 'terrebrune_rose', libelle: 'Terrebrune rosé',
+                debut: 0, picDebut: 2, picFin: 6, fin: 10),
+          }),
       ReferenceVin(nom: 'Château Pradeaux', alias: ['pradeaux']),
       ReferenceVin(nom: 'Château de Pibarnon', alias: ['pibarnon']),
       ReferenceVin(nom: 'Domaine de La Tour du Bon', alias: ['tour du bon'],
@@ -431,6 +568,7 @@ const List<RegionVin> regionsFrance = [
       // un assemblage. C'est exactement le cas qui justifie le niveau « domaine ».
       ReferenceVin(nom: 'En Sol', alias: ['tour du bon en sol'],
           certitude: Certitude.verifiee,
+          couleurs: {'red'},
           elevage: Elevage(ContenantElevage.amphore, 6),
           longevite: AgingProfile(id: 'en_sol', libelle: 'En Sol',
               debut: 1, picDebut: 3, picFin: 10, fin: 15)),
@@ -449,7 +587,7 @@ const List<RegionVin> regionsFrance = [
       'rose': AgingProfile(id: 'provence_rose', libelle: 'Rosé de Provence',
           debut: 0, picDebut: 1, picFin: 2, fin: 4),
       'red': AgingProfile(id: 'provence_rouge', libelle: 'Provence rouge',
-          debut: 2, picDebut: 4, picFin: 9, fin: 13),
+          debut: 1, picDebut: 3, picFin: 7, fin: 10),
       'white': AgingProfile(id: 'provence_blanc', libelle: 'Provence blanc',
           debut: 0, picDebut: 1, picFin: 4, fin: 6),
     },
@@ -488,12 +626,15 @@ const List<RegionVin> regionsFrance = [
     cepages: ['Syrah', 'Grenache', 'Mourvèdre', 'Carignan'],
     longevites: {
       'red': AgingProfile(id: 'languedoc_rouge', libelle: 'Languedoc rouge',
-          debut: 2, picDebut: 4, picFin: 10, fin: 14),
+          debut: 1, picDebut: 3, picFin: 7, fin: 10),
+      'rose': AgingProfile(id: 'languedoc_rose', libelle: 'Languedoc rosé',
+          debut: 0, picDebut: 1, picFin: 2, fin: 3),
       'white': AgingProfile(id: 'languedoc_blanc', libelle: 'Languedoc blanc',
           debut: 1, picDebut: 2, picFin: 5, fin: 8),
     },
     references: [
       ReferenceVin(nom: 'Mas de Daumas Gassac', alias: ['daumas gassac'],
+          couleurs: {'red'},
           longevite: AgingProfile(id: 'daumas_gassac', libelle: 'Daumas Gassac',
               debut: 4, picDebut: 8, picFin: 20, fin: 28)),
       ReferenceVin(nom: 'Château de Pech-Redon'),
@@ -507,7 +648,7 @@ const List<RegionVin> regionsFrance = [
     alias: ['cotes du roussillon', 'collioure', 'maury sec', 'agly'],
     cepages: ['Grenache', 'Carignan', 'Syrah'],
     longevites: {'red': AgingProfile(id: 'roussillon', libelle: 'Roussillon',
-        debut: 2, picDebut: 5, picFin: 12, fin: 17)},
+        debut: 1, picDebut: 3, picFin: 8, fin: 12)},
     references: [ReferenceVin(nom: 'Domaine Gauby', alias: ['gauby'])],
   ),
   RegionVin(
@@ -533,9 +674,9 @@ const List<RegionVin> regionsFrance = [
     cepages: ['Sauvignon Blanc', 'Pinot Noir'],
     longevites: {
       'white': AgingProfile(id: 'centre_loire_blanc', libelle: 'Sancerre & Pouilly',
-          debut: 1, picDebut: 2, picFin: 6, fin: 9),
+          debut: 0, picDebut: 1, picFin: 4, fin: 7),
       'red': AgingProfile(id: 'centre_loire_rouge', libelle: 'Sancerre rouge',
-          debut: 1, picDebut: 3, picFin: 7, fin: 10),
+          debut: 1, picDebut: 2, picFin: 5, fin: 8),
     },
     references: [
       ReferenceVin(nom: 'Didier Dagueneau', alias: ['dagueneau'],
@@ -583,10 +724,11 @@ const List<RegionVin> regionsFrance = [
       'saumur-champigny', 'anjou rouge'],
     cepages: ['Cabernet Franc'],
     longevites: {'red': AgingProfile(id: 'loire_cf', libelle: 'Cabernet franc',
-        debut: 2, picDebut: 5, picFin: 12, fin: 18)},
+        debut: 1, picDebut: 3, picFin: 8, fin: 12)},
     references: [
       ReferenceVin(nom: 'Charles Joguet'),
       ReferenceVin(nom: 'Clos Rougeard', alias: ['rougeard'],
+          couleurs: {'red'},
           longevite: AgingProfile(id: 'rougeard', libelle: 'Clos Rougeard',
               debut: 5, picDebut: 10, picFin: 25, fin: 35),
           elevage: Elevage(ContenantElevage.barrique, 24)),
@@ -600,7 +742,7 @@ const List<RegionVin> regionsFrance = [
     alias: ['muscadet', 'sevre et maine', 'gros plant'],
     cepages: ['Melon de Bourgogne'],
     longevites: {'white': AgingProfile(id: 'muscadet', libelle: 'Muscadet',
-        debut: 0, picDebut: 1, picFin: 5, fin: 8)},
+        debut: 0, picDebut: 1, picFin: 3, fin: 6)},
   ),
 
   // ═══════════════ ALSACE, JURA, SAVOIE ═══════════════
@@ -612,8 +754,9 @@ const List<RegionVin> regionsFrance = [
     alias: ['alsace', 'alsace grand cru', 'cremant d\'alsace'],
     cepages: ['Riesling', 'Gewurztraminer', 'Pinot Gris', 'Muscat'],
     longevites: {
+      // L'Alsace générique ; un grand cru passe par le rang « sommet » (× 1,9).
       'white': AgingProfile(id: 'alsace_blanc', libelle: 'Alsace',
-          debut: 1, picDebut: 3, picFin: 10, fin: 16),
+          debut: 1, picDebut: 2, picFin: 5, fin: 8),
       'sweet': AgingProfile(id: 'alsace_vt', libelle: 'Vendanges tardives',
           debut: 3, picDebut: 8, picFin: 25, fin: 40),
     },
@@ -634,8 +777,9 @@ const List<RegionVin> regionsFrance = [
       'cremant du jura', 'jura'],
     cepages: ['Savagnin', 'Chardonnay', 'Poulsard', 'Trousseau'],
     longevites: {
+      // Le blanc ouillé ; le vin jaune passe par le rang « sommet » (voir rangDe).
       'white': AgingProfile(id: 'jura_blanc', libelle: 'Jura blanc',
-          debut: 2, picDebut: 5, picFin: 15, fin: 25),
+          debut: 1, picDebut: 3, picFin: 8, fin: 12),
       'red': AgingProfile(id: 'jura_rouge', libelle: 'Jura rouge',
           debut: 2, picDebut: 4, picFin: 10, fin: 15),
       'sparkling': AgingProfile(id: 'cremant_jura', libelle: 'Crémant du Jura',
@@ -671,14 +815,13 @@ const List<RegionVin> regionsFrance = [
   RegionVin(
     id: 'fr_sud_ouest',
     pays: 'France',
-    nom: 'Sud-Ouest',
+    nom: 'Madiran, Cahors & Irouléguy',
     elevages: {'red': Elevage(ContenantElevage.barrique, 14)},
-    alias: ['madiran', 'cahors', 'irouleguy', 'fronton', 'gaillac',
-      'bergerac', 'pecharmant', 'marcillac', 'saint-mont', 'buzet'],
+    alias: ['madiran', 'cahors', 'irouleguy'],
     cepages: ['Tannat', 'Malbec', 'Fer Servadou', 'Négrette'],
     longevites: {
-      'red': AgingProfile(id: 'sud_ouest_rouge', libelle: 'Sud-Ouest rouge',
-          debut: 3, picDebut: 6, picFin: 14, fin: 20),
+      'red': AgingProfile(id: 'sud_ouest_rouge', libelle: 'Madiran & Cahors',
+          debut: 3, picDebut: 5, picFin: 11, fin: 15),
       'white': AgingProfile(id: 'sud_ouest_blanc', libelle: 'Sud-Ouest blanc',
           debut: 1, picDebut: 2, picFin: 6, fin: 9),
     },
@@ -686,6 +829,20 @@ const List<RegionVin> regionsFrance = [
       ReferenceVin(nom: 'Château Montus', alias: ['montus']),
       ReferenceVin(nom: 'Clos Triguedina'),
     ],
+  ),
+  RegionVin(
+    id: 'fr_sud_ouest_fruite',
+    pays: 'France',
+    nom: 'Sud-Ouest',
+    alias: ['fronton', 'gaillac', 'bergerac', 'pecharmant', 'marcillac', 'saint-mont',
+      'buzet', 'cotes de gascogne', 'marmandais', 'duras'],
+    cepages: ['Négrette', 'Fer Servadou', 'Merlot', 'Colombard'],
+    longevites: {
+      'red': AgingProfile(id: 'sud_ouest_fruite', libelle: 'Sud-Ouest rouge',
+          debut: 1, picDebut: 2, picFin: 5, fin: 8),
+      'white': AgingProfile(id: 'sud_ouest_fruite_blanc', libelle: 'Sud-Ouest blanc',
+          debut: 0, picDebut: 1, picFin: 2, fin: 4),
+    },
   ),
   RegionVin(
     id: 'fr_jurancon',
@@ -710,7 +867,7 @@ const List<RegionVin> regionsFrance = [
     alias: ['champagne'],
     cepages: ['Chardonnay', 'Pinot Noir', 'Pinot Meunier'],
     longevites: {'*': AgingProfile(id: 'champagne_millesime', libelle: 'Champagne',
-        debut: 2, picDebut: 6, picFin: 18, fin: 28)},
+        debut: 2, picDebut: 5, picFin: 14, fin: 20)},
     references: [
       ReferenceVin(nom: 'Krug', certitude: Certitude.verifiee,
           longevite: AgingProfile(id: 'krug', libelle: 'Krug',

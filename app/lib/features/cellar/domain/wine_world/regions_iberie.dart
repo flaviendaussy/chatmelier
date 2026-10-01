@@ -11,14 +11,19 @@ const List<RegionVin> regionsIberie = [
     id: 'es_rioja',
     pays: 'Espagne',
     nom: 'Rioja',
-    elevages: {'red': Elevage(ContenantElevage.barrique, 12, impose: true)},
+    // Douze mois de barrique : l'usage du Crianza, pas une règle pour tout Rioja (un
+    // Joven n'en a aucun). La durée n'est donc plus présentée comme imposée.
+    elevages: {'red': Elevage(ContenantElevage.barrique, 12)},
     alias: ['rioja', 'rioja alta', 'rioja alavesa', 'rioja oriental'],
     cepages: ['Tempranillo', 'Garnacha', 'Graciano'],
     longevites: {
+      // La base est le Rioja sans mention ; Crianza (× 0,6), Reserva (× 1,35) et Gran
+      // Reserva (× 1,9) passent par le rang. À vingt ans de base, une Reserva en
+      // recevait vingt-sept (30/09).
       'red': AgingProfile(id: 'rioja_rouge', libelle: 'Rioja',
-          debut: 3, picDebut: 6, picFin: 14, fin: 20),
+          debut: 2, picDebut: 4, picFin: 9, fin: 12),
       'white': AgingProfile(id: 'rioja_blanc', libelle: 'Rioja blanc',
-          debut: 1, picDebut: 3, picFin: 10, fin: 15),
+          debut: 0, picDebut: 1, picFin: 4, fin: 7),
     },
     references: [
       ReferenceVin(nom: 'R. López de Heredia', alias: ['lopez de heredia', 'tondonia'],
@@ -38,12 +43,12 @@ const List<RegionVin> regionsIberie = [
     id: 'es_ribera',
     pays: 'Espagne',
     nom: 'Ribera del Duero & Duero',
-    elevages: {'red': Elevage(ContenantElevage.barrique, 12, impose: true)},
+    elevages: {'red': Elevage(ContenantElevage.barrique, 12)},
     alias: ['ribera del duero', 'toro', 'rueda', 'cigales'],
     cepages: ['Tempranillo', 'Verdejo'],
     longevites: {
       'red': AgingProfile(id: 'ribera_rouge', libelle: 'Ribera del Duero',
-          debut: 3, picDebut: 7, picFin: 16, fin: 22),
+          debut: 2, picDebut: 4, picFin: 9, fin: 12),
       'white': AgingProfile(id: 'rueda', libelle: 'Rueda',
           debut: 0, picDebut: 1, picFin: 4, fin: 6),
     },
@@ -67,7 +72,7 @@ const List<RegionVin> regionsIberie = [
     alias: ['priorat', 'montsant'],
     cepages: ['Garnacha', 'Cariñena'],
     longevites: {'red': AgingProfile(id: 'priorat', libelle: 'Priorat',
-        debut: 4, picDebut: 8, picFin: 18, fin: 26)},
+        debut: 3, picDebut: 5, picFin: 11, fin: 15)},
     references: [
       ReferenceVin(nom: 'Clos Mogador'),
       ReferenceVin(nom: 'Álvaro Palacios', alias: ['alvaro palacios', 'l\'ermita']),
@@ -81,7 +86,7 @@ const List<RegionVin> regionsIberie = [
     alias: ['jumilla', 'yecla', 'alicante', 'bullas', 'almansa'],
     cepages: ['Monastrell'],
     longevites: {'red': AgingProfile(id: 'jumilla', libelle: 'Monastrell du Levant',
-        debut: 2, picDebut: 5, picFin: 12, fin: 16)},
+        debut: 1, picDebut: 3, picFin: 7, fin: 10)},
     references: [
       ReferenceVin(nom: 'Bodegas El Nido', alias: ['el nido', 'clio'],
           certitude: Certitude.verifiee,
@@ -102,7 +107,7 @@ const List<RegionVin> regionsIberie = [
       'white': AgingProfile(id: 'albarino', libelle: 'Albariño & Godello',
           debut: 1, picDebut: 2, picFin: 7, fin: 10),
       'red': AgingProfile(id: 'mencia', libelle: 'Mencía',
-          debut: 2, picDebut: 4, picFin: 11, fin: 16),
+          debut: 1, picDebut: 3, picFin: 7, fin: 10),
     },
     references: [
       ReferenceVin(nom: 'Pazo de Señorans', alias: ['pazo de senorans']),
@@ -120,7 +125,7 @@ const List<RegionVin> regionsIberie = [
       'sparkling': AgingProfile(id: 'cava', libelle: 'Cava',
           debut: 0, picDebut: 1, picFin: 4, fin: 6),
       'red': AgingProfile(id: 'penedes_rouge', libelle: 'Penedès rouge',
-          debut: 1, picDebut: 3, picFin: 9, fin: 13),
+          debut: 1, picDebut: 2, picFin: 6, fin: 9),
       'white': AgingProfile(id: 'penedes_blanc', libelle: 'Penedès blanc',
           debut: 0, picDebut: 1, picFin: 4, fin: 7),
     },
@@ -137,7 +142,7 @@ const List<RegionVin> regionsIberie = [
     id: 'es_jerez',
     pays: 'Espagne',
     nom: 'Jerez & Montilla',
-    elevages: {'*': Elevage(ContenantElevage.barrique, 36, impose: true)},
+    elevages: {'*': Elevage(ContenantElevage.barrique, 36)},
     alias: ['jerez', 'sherry', 'xeres', 'manzanilla', 'montilla',
       'fino', 'amontillado', 'oloroso', 'palo cortado'],
     cepages: ['Palomino', 'Pedro Ximénez'],
@@ -158,7 +163,7 @@ const List<RegionVin> regionsIberie = [
       'somontano', 'navarra'],
     cepages: ['Tempranillo', 'Garnacha'],
     longevites: {'red': AgingProfile(id: 'mancha', libelle: 'Castille rouge',
-        debut: 1, picDebut: 3, picFin: 8, fin: 12)},
+        debut: 1, picDebut: 2, picFin: 5, fin: 8)},
   ),
 
   // ═══════════════ PORTUGAL ═══════════════
@@ -196,7 +201,7 @@ const List<RegionVin> regionsIberie = [
     cepages: ['Touriga Nacional', 'Touriga Franca'],
     longevites: {
       'red': AgingProfile(id: 'douro_rouge', libelle: 'Douro rouge',
-          debut: 3, picDebut: 7, picFin: 16, fin: 22),
+          debut: 2, picDebut: 4, picFin: 9, fin: 12),
       'white': AgingProfile(id: 'douro_blanc', libelle: 'Douro blanc',
           debut: 1, picDebut: 2, picFin: 7, fin: 11),
     },
@@ -251,7 +256,7 @@ const List<RegionVin> regionsIberie = [
     id: 'pt_madere',
     pays: 'Portugal',
     nom: 'Madère',
-    elevages: {'*': Elevage(ContenantElevage.foudre, 36, impose: true)},
+    elevages: {'*': Elevage(ContenantElevage.foudre, 36)},
     alias: ['madeira', 'madere', 'sercial', 'verdelho', 'bual', 'malmsey'],
     cepages: ['Sercial', 'Verdelho', 'Bual', 'Malvasia'],
     longevites: {'*': AgingProfile(id: 'madeira', libelle: 'Madère',

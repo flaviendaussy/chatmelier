@@ -20,15 +20,17 @@ void main() {
       );
 
   // Un Bandol dont la fenêtre se referme cette année, un Chablis à son apogée, un Pauillac
-  // trop jeune, et une Chartreuse (suivie au niveau, pas à l'apogée).
+  // trop jeune, et une Chartreuse (suivie au niveau, pas à l'apogée). Le Bandol a dix-huit
+  // ans : un Bandol rouge se garde une vingtaine d'années, une fin de vie à douze ans ne
+  // serait pas crue (le nom suffit désormais à le reconnaître, 30/09).
   final bandol = Wine(
       id: 'bandol', name: 'Bandol Rouge', type: 'red', region: 'Provence', country: 'France',
-      vintage: annee - 12, drinkStart: annee - 8, drinkEnd: annee, peakStart: annee - 5, peakEnd: annee - 1);
+      vintage: annee - 18, drinkStart: annee - 14, drinkEnd: annee, peakStart: annee - 10, peakEnd: annee - 3);
   final chablis = Wine(
       id: 'chablis', name: 'Chablis Premier Cru', type: 'white', region: 'Bourgogne', country: 'France',
       vintage: annee - 4, drinkStart: annee - 2, drinkEnd: annee + 6, peakStart: annee - 1, peakEnd: annee + 2);
   final pauillac = Wine(
-      id: 'pauillac', name: 'Pauillac', type: 'red', region: 'Bordeaux', country: 'France',
+      id: 'pauillac', name: 'Pauillac', type: 'red', region: 'Bordeaux', appellation: 'Pauillac', country: 'France',
       vintage: annee - 2, drinkStart: annee + 6, drinkEnd: annee + 30, peakStart: annee + 12, peakEnd: annee + 25);
   final chartreuse = Wine(id: 'chartreuse', name: 'Chartreuse Verte', type: 'liqueur', region: 'Isère', country: 'France');
 
@@ -51,7 +53,7 @@ void main() {
   test('le message nomme les vins, avec leur millésime', () {
     final m = DigestApogee.message(DigestApogee.aBoire([bouteille('1', bandol), bouteille('2', chablis)]))!;
     expect(m.$1, contains('2'));
-    expect(m.$2, contains('Bandol Rouge ${annee - 12}'));
+    expect(m.$2, contains('Bandol Rouge ${annee - 18}'));
     expect(DigestApogee.message(const []), isNull);
   });
 

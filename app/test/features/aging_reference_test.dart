@@ -100,8 +100,10 @@ void main() {
         type: 'red', millesime: 2018, pays: 'Italie',
         appellation: 'Aglianico del Vulture', cepages: ['Aglianico'],
       );
-      expect(f.fin, greaterThanOrEqualTo(20),
-          reason: 'Avant, il tombait dans le générique par couleur : douze ans.');
+      // Un Aglianico du Vulture courant tient une quinzaine d'années ; le générique
+      // rouge en donne neuf.
+      expect(f.fin, greaterThanOrEqualTo(14),
+          reason: 'Il ne doit pas tomber dans le générique par couleur.');
     });
 
     test('un Barolo vit plus longtemps qu\'un Chianti', () {
@@ -114,11 +116,11 @@ void main() {
 
     test('un chilien, un espagnol et un australien sont reconnus', () {
       expect(fenetre(type: 'red', millesime: 2020, pays: 'Chili',
-              appellation: 'Valle del Maipo').fin, greaterThan(12));
+              appellation: 'Valle del Maipo').fin, greaterThanOrEqualTo(10));
       expect(fenetre(type: 'white', millesime: 2024, pays: 'Portugal',
               appellation: 'Vinho Verde').fin, lessThan(12));
       expect(fenetre(type: 'red', millesime: 2020, pays: 'Australie',
-              appellation: 'Barossa Valley').fin, greaterThan(15));
+              appellation: 'Barossa Valley').fin, greaterThanOrEqualTo(12));
     });
   });
 
@@ -144,10 +146,22 @@ void main() {
       expect(f.fin, lessThanOrEqualTo(10));
     });
 
-    test('un Bandol blanc se garde aussi', () {
+    test('un Bandol blanc se garde un peu plus qu\'un blanc de Provence', () {
       final f = fenetre(
           type: 'Blanc', millesime: 2022, region: 'Provence', appellation: 'Bandol');
-      expect(f.fin, greaterThanOrEqualTo(10));
+      final provence = fenetre(
+          type: 'Blanc', millesime: 2022, region: 'Provence', appellation: 'Côtes de Provence');
+      expect(f.fin, greaterThan(provence.fin));
+      expect(f.fin, lessThanOrEqualTo(10), reason: 'un blanc de Provence n\'est pas un vin de longue garde');
+    });
+
+    test('un Bandol rosé courant n\'est pas un vin de garde (30/09)', () {
+      // La base en donnait quatorze ans : des rosés 2023 s'affichaient « à boire jusqu'en
+      // 2037 ».
+      final f = fenetre(
+          type: 'Rosé', millesime: 2023, region: 'Provence', appellation: 'Bandol',
+          nom: 'Coste Brune Cuvée Prestige', iaDebut: 2024, iaFin: 2037);
+      expect(f.fin, lessThanOrEqualTo(6));
     });
   });
 
@@ -183,14 +197,22 @@ void main() {
     });
 
     test('une fenêtre absurdement courte est ramenée à la catégorie', () {
+      // Trois ans pour un Bordeaux rouge : hors fourchette. (Sept ans ne l'est pas : un
+      // Bordeaux générique se boit justement dans ses sept à neuf ans.)
       final f = fenetre(
         type: 'red', millesime: 2019, region: 'Bordeaux',
-        iaDebut: 2021, iaFin: 2026,
+        iaDebut: 2020, iaFin: 2022,
       );
-      expect(f.fin, greaterThanOrEqualTo(12),
-          reason: 'Sept ans pour un Bordeaux rouge : hors fourchette, on réconcilie. '
-              'La base donne 15 ans à une AOC Bordeaux sans appellation précise — moins '
-              'que les 22 de l\'ancienne règle, qui appliquait un niveau Médoc à tout.');
+      expect(f.fin, greaterThanOrEqualTo(8));
+    });
+
+    test('une fenêtre absurdement longue est ramenée à la catégorie (30/09)', () {
+      // Un Cairanne de coopérative « à boire jusqu'en 2051 ».
+      final f = fenetre(
+        type: 'red', millesime: 2021, region: 'Vallée du Rhône', appellation: 'Cairanne',
+        nom: 'Réserve des Hospitaliers', iaDebut: 2025, iaFin: 2051,
+      );
+      expect(f.fin, lessThanOrEqualTo(15));
     });
   });
 

@@ -56,7 +56,7 @@ void main() {
 
     test('la charge écrite porte les quatre colonnes', () {
       final c = ApogeeBackfill.aCorriger([
-        vin(nom: 'So Sauternes', region: 'Bordeaux', appellation: 'Sauternes',
+        vin(nom: 'Château Suduiraut', region: 'Bordeaux', appellation: 'Sauternes',
             type: 'Moelleux', millesime: 2022, debut: 2023, fin: 2030),
       ]).single;
       expect(c.payload.keys, containsAll(<String>[
@@ -64,7 +64,19 @@ void main() {
         'peak_drinking_start', 'peak_drinking_end',
       ]));
       expect(c.payload['ideal_drinking_end'], greaterThan(2050),
-          reason: 'Un Sauternes se garde vingt à cent ans.');
+          reason: 'Un grand Sauternes se garde plusieurs décennies.');
+    });
+
+    test('« So Sauternes » garde sa fenêtre courte (30/09)', () {
+      // Ce test exigeait l'inverse, et le rattrapage avait écrit 2072 dans la fiche
+      // partagée de cette cuvée faite pour être bue jeune.
+      expect(
+        ApogeeBackfill.aCorriger([
+          vin(nom: 'So Sauternes', region: 'Bordeaux', appellation: 'Sauternes',
+              type: 'Moelleux', millesime: 2022, debut: 2023, fin: 2030),
+        ]),
+        isEmpty,
+      );
     });
   });
 

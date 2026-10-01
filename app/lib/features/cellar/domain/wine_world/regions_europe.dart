@@ -17,7 +17,7 @@ const List<RegionVin> regionsEurope = [
     cepages: ['Riesling'],
     longevites: {
       'white': AgingProfile(id: 'mosel', libelle: 'Riesling de Mosel',
-          debut: 1, picDebut: 5, picFin: 18, fin: 30),
+          debut: 0, picDebut: 2, picFin: 9, fin: 15),
       'sweet': AgingProfile(id: 'mosel_doux', libelle: 'Riesling doux',
           debut: 3, picDebut: 10, picFin: 35, fin: 60),
     },
@@ -43,9 +43,9 @@ const List<RegionVin> regionsEurope = [
     cepages: ['Riesling', 'Spätburgunder'],
     longevites: {
       'white': AgingProfile(id: 'rheingau', libelle: 'Riesling du Rhin',
-          debut: 1, picDebut: 5, picFin: 18, fin: 28),
+          debut: 0, picDebut: 2, picFin: 9, fin: 14),
       'red': AgingProfile(id: 'spatburgunder', libelle: 'Spätburgunder',
-          debut: 2, picDebut: 5, picFin: 13, fin: 18),
+          debut: 1, picDebut: 3, picFin: 7, fin: 10),
     },
     references: [
       ReferenceVin(nom: 'Robert Weil'),
@@ -65,7 +65,7 @@ const List<RegionVin> regionsEurope = [
     cepages: ['Spätburgunder', 'Grauburgunder'],
     longevites: {
       'red': AgingProfile(id: 'baden_rouge', libelle: 'Baden rouge',
-          debut: 2, picDebut: 4, picFin: 11, fin: 16),
+          debut: 1, picDebut: 2, picFin: 7, fin: 10),
       'white': AgingProfile(id: 'baden_blanc', libelle: 'Baden blanc',
           debut: 1, picDebut: 2, picFin: 7, fin: 11),
     },
@@ -81,7 +81,7 @@ const List<RegionVin> regionsEurope = [
       'federspiel'],
     cepages: ['Grüner Veltliner', 'Riesling'],
     longevites: {'white': AgingProfile(id: 'wachau', libelle: 'Wachau & Kamptal',
-        debut: 1, picDebut: 4, picFin: 14, fin: 22)},
+        debut: 1, picDebut: 2, picFin: 8, fin: 12)},
     references: [
       ReferenceVin(nom: 'F.X. Pichler', alias: ['fx pichler']),
       ReferenceVin(nom: 'Emmerich Knoll', alias: ['knoll']),
@@ -98,7 +98,7 @@ const List<RegionVin> regionsEurope = [
     cepages: ['Blaufränkisch', 'Zweigelt', 'Sauvignon Blanc'],
     longevites: {
       'red': AgingProfile(id: 'blaufrankisch', libelle: 'Blaufränkisch',
-          debut: 2, picDebut: 5, picFin: 13, fin: 19),
+          debut: 1, picDebut: 3, picFin: 8, fin: 12),
       'sweet': AgingProfile(id: 'burgenland_doux', libelle: 'Liquoreux du Burgenland',
           debut: 3, picDebut: 8, picFin: 25, fin: 40),
     },
@@ -122,7 +122,7 @@ const List<RegionVin> regionsEurope = [
       'sweet': AgingProfile(id: 'tokaji_aszu', libelle: 'Tokaji Aszú',
           debut: 5, picDebut: 15, picFin: 50, fin: 80),
       'white': AgingProfile(id: 'furmint_sec', libelle: 'Furmint sec',
-          debut: 1, picDebut: 3, picFin: 10, fin: 16),
+          debut: 1, picDebut: 2, picFin: 6, fin: 10),
     },
     references: [
       ReferenceVin(nom: 'Royal Tokaji', certitude: Certitude.verifiee),
@@ -138,7 +138,7 @@ const List<RegionVin> regionsEurope = [
     cepages: ['Kékfrankos', 'Kadarka'],
     longevites: {
       'red': AgingProfile(id: 'hu_rouge', libelle: 'Rouge hongrois',
-          debut: 2, picDebut: 4, picFin: 11, fin: 16),
+          debut: 1, picDebut: 2, picFin: 7, fin: 10),
       'white': AgingProfile(id: 'hu_blanc', libelle: 'Blanc hongrois',
           debut: 1, picDebut: 2, picFin: 6, fin: 9),
     },
@@ -154,7 +154,7 @@ const List<RegionVin> regionsEurope = [
     cepages: ['Assyrtiko'],
     longevites: {
       'white': AgingProfile(id: 'assyrtiko', libelle: 'Assyrtiko de Santorin',
-          debut: 1, picDebut: 4, picFin: 14, fin: 20),
+          debut: 0, picDebut: 2, picFin: 7, fin: 10),
       'sweet': AgingProfile(id: 'vinsanto_gr', libelle: 'Vinsanto',
           debut: 3, picDebut: 10, picFin: 35, fin: 55),
     },
@@ -171,7 +171,7 @@ const List<RegionVin> regionsEurope = [
       'macedoine', 'peloponnese'],
     cepages: ['Xinomavro', 'Agiorgitiko'],
     longevites: {'red': AgingProfile(id: 'xinomavro', libelle: 'Xinomavro & Agiorgitiko',
-        debut: 3, picDebut: 7, picFin: 16, fin: 24)},
+        debut: 2, picDebut: 4, picFin: 10, fin: 15)},
     references: [
       ReferenceVin(nom: 'Kir-Yianni', alias: ['kir yianni']),
       ReferenceVin(nom: 'Thymiopoulos'),
@@ -196,7 +196,7 @@ const List<RegionVin> regionsEurope = [
     id: 'gb_sparkling',
     pays: 'Angleterre',
     nom: 'Effervescent anglais',
-    elevages: {'sparkling': Elevage(ContenantElevage.bouteille, 15, impose: true)},
+    elevages: {'sparkling': Elevage(ContenantElevage.bouteille, 15)},
     alias: ['sussex', 'kent', 'hampshire', 'england sparkling',
       'english sparkling'],
     cepages: ['Chardonnay', 'Pinot Noir', 'Pinot Meunier'],

@@ -208,7 +208,31 @@ void main() {
       expect(sameProducerResult, isTrue, reason: 'Exact producer, name, vintage and color must match as duplicate');
     });
 
-    test('Moillard 2022 with peak 2030 is En Garde and NOT À l\'apogée', () {
+    test('Un grand vin de garde dont l\'apogée est à venir est « En garde », pas « À l\'apogée »', () {
+      const leoville = Wine(
+        id: 'leoville-2016',
+        name: 'Château Léoville Las Cases',
+        producer: 'Château Léoville Las Cases',
+        vintage: 2016,
+        type: 'red',
+        country: 'France',
+        region: 'Bordeaux',
+        appellation: 'Saint-Julien',
+        classification: 'Deuxième Grand Cru Classé',
+        drinkStart: 2024,
+        peakStart: 2030,
+        peakEnd: 2045,
+        drinkEnd: 2055,
+      );
+
+      expect(leoville.windowStatus, DrinkWindowStatus.aging);
+      expect(leoville.windowStatus.labelFr, 'En garde');
+    });
+
+    test('Moillard Hautes-Côtes de Nuits 2022 : une apogée en 2030-2035 n\'est pas crue', () {
+      // Ce test attendait « En garde » jusqu'au 30/09. Or un Hautes-Côtes de Nuits se boit
+      // dans ses sept à huit ans : une apogée à huit-treize ans, fin de vie à dix-huit, est
+      // une erreur de l'enrichissement, que l'enveloppe de la catégorie écarte.
       const moillard = Wine(
         id: 'moillard-2022',
         name: 'Hautes Côtes de Nuits',
@@ -223,8 +247,9 @@ void main() {
         drinkEnd: 2040,
       );
 
-      expect(moillard.windowStatus, DrinkWindowStatus.aging);
-      expect(moillard.windowStatus.labelFr, 'En garde');
+      final f = moillard.fenetreEffective;
+      expect(f.drinkEnd, lessThanOrEqualTo(2032));
+      expect(f.peakStart, lessThanOrEqualTo(2027));
     });
 
     test('Short aging rosé has strict peak window', () {

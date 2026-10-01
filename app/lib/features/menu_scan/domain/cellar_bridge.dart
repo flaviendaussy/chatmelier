@@ -2,6 +2,7 @@ import '../../../shared/utils/currency_helper.dart';
 import '../../cellar/domain/cellar_gap_engine.dart';
 import 'menu_wine.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/sans_accents.dart';
 
 /// Une bouteille qu'on possède déjà.
 class VinDeMaCave {
@@ -249,15 +250,7 @@ class CellarBridgeEngine {
         .toSet();
   }
 
-  static String _norm(String? s) => (s ?? '')
-      .toLowerCase()
-      .replaceAll(RegExp(r'[àâä]'), 'a')
-      .replaceAll(RegExp(r'[éèêë]'), 'e')
-      .replaceAll(RegExp(r'[îï]'), 'i')
-      .replaceAll(RegExp(r'[ôö]'), 'o')
-      .replaceAll(RegExp(r'[ùûü]'), 'u')
-      .replaceAll('ç', 'c')
-      .trim();
+  static String _norm(String? s) => sansAccents(s ?? '').trim();
 
   static String _note(double n) =>
       n % 1 == 0 ? n.toStringAsFixed(0) : n.toStringAsFixed(1);

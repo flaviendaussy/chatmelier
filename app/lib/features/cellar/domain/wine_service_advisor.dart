@@ -392,19 +392,27 @@ class WineOenologyAdvisor {
     // Terrebrune en tient vingt. C'est le seul niveau qui permette de ne pas se limiter
     // à des moyennes d'appellation.
     final refNommee = WineWorld.reference(nom: wineName, producteur: producer);
-    final longeviteNommee = refNommee?.longevite;
+    final longeviteNommee = refNommee?.longevitePour(AgingReference.couleurDe(wineType));
+
+    // Une fiche sans appellation la porte souvent dans son nom : « Châteauneuf-du-Pape »,
+    // région « Vallée du Rhône ». Sans ce repli, la catégorie retenue était celle de toute
+    // la vallée, et le vin passait pour un côtes-du-rhône à boire dans les sept ans (30/09).
+    final appellationRetenue = (appellation ?? '').trim().isNotEmpty
+        ? appellation
+        : (WineWorld.appellationDansLeNom(wineName, pays: country) ? wineName : null);
 
     final reference = longeviteNommee ??
         AgingReference.chercher(
       pays: country,
       region: region,
-      appellation: appellation,
+      appellation: appellationRetenue,
       type: wineType,
       cepages: grapes,
         )?.pourRang(AgingReference.rangDe(
           nom: wineName,
           classification: classification,
           appellation: appellation,
+          producteur: producer,
         ));
 
     // Une fenêtre qui commence avant la vendange est impossible, pas discutable.
@@ -417,11 +425,14 @@ class WineOenologyAdvisor {
     if (iaUtilisable && reference != null) {
       final vieIa = explicitDrinkEnd - v;
       final vieRef = reference.fin;
-      // Tolérance volontairement large : la référence décrit une catégorie, pas un vin.
-      // Un domaine sérieux ou un millésime faible justifient un écart — pas un facteur
-      // deux.
+      // Tolérance large vers le bas, plus serrée vers le haut : la référence décrit une
+      // catégorie, pas un vin, et un domaine sérieux justifie un écart. Mais une garde
+      // trop longue trompe davantage qu'une garde trop courte — on attend en vain un vin
+      // qui décline. À 1,8, un Chorey-lès-Beaune gardait vingt ans (30/09).
       final rapport = vieRef == 0 ? 1.0 : vieIa / vieRef;
-      if (rapport < 0.55 || rapport > 1.8) {
+      // Vers le bas, 0,65 : un Margaux « mort » à douze ans (0,6 de sa catégorie) reste
+      // hors fourchette maintenant que les catégories décrivent le vin ordinaire.
+      if (rapport < 0.65 || rapport > 1.5) {
         iaUtilisable = false;
       }
     }

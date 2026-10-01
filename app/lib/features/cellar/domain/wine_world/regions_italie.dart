@@ -3,15 +3,18 @@ import 'wine_world_model.dart';
 /// Italie — le pays où la longévité est la plus mal estimée par défaut : un Barolo et un
 /// Prosecco partagent une nationalité et rien d'autre.
 const List<RegionVin> regionsItalie = [
+  // Barolo : dix-huit mois sous bois au minimum (trente-huit de vieillissement). Le
+  // Barbaresco (neuf mois) et le Langhe Nebbiolo (aucun) n'ont pas cette règle : ils
+  // étaient rangés ici, avec le bois « imposé » du Barolo (30/09).
   RegionVin(
     id: 'it_barolo',
     pays: 'Italie',
-    nom: 'Barolo & Barbaresco',
+    nom: 'Barolo',
     elevages: {'red': Elevage(ContenantElevage.foudre, 18, impose: true)},
-    alias: ['barolo', 'barbaresco', 'langhe nebbiolo', 'roero'],
+    alias: ['barolo'],
     cepages: ['Nebbiolo'],
     longevites: {'red': AgingProfile(id: 'barolo', libelle: 'Barolo',
-        debut: 6, picDebut: 12, picFin: 25, fin: 35)},
+        debut: 5, picDebut: 10, picFin: 20, fin: 25)},
     references: [
       ReferenceVin(nom: 'Giacomo Conterno', alias: ['conterno monfortino'],
           certitude: Certitude.verifiee,
@@ -28,6 +31,25 @@ const List<RegionVin> regionsItalie = [
     ],
   ),
   RegionVin(
+    id: 'it_barbaresco',
+    pays: 'Italie',
+    nom: 'Barbaresco',
+    elevages: {'red': Elevage(ContenantElevage.foudre, 9, impose: true)},
+    alias: ['barbaresco'],
+    cepages: ['Nebbiolo'],
+    longevites: {'red': AgingProfile(id: 'barbaresco', libelle: 'Barbaresco',
+        debut: 4, picDebut: 7, picFin: 15, fin: 20)},
+  ),
+  RegionVin(
+    id: 'it_langhe_nebbiolo',
+    pays: 'Italie',
+    nom: 'Langhe Nebbiolo & Roero',
+    alias: ['langhe nebbiolo', 'nebbiolo d\'alba', 'roero'],
+    cepages: ['Nebbiolo'],
+    longevites: {'red': AgingProfile(id: 'langhe_nebbiolo', libelle: 'Langhe Nebbiolo',
+        debut: 1, picDebut: 3, picFin: 7, fin: 10)},
+  ),
+  RegionVin(
     id: 'it_piemonte_autres',
     pays: 'Italie',
     nom: 'Piémont — Barbera, Dolcetto, Gavi',
@@ -42,15 +64,26 @@ const List<RegionVin> regionsItalie = [
           debut: 0, picDebut: 1, picFin: 4, fin: 6),
     },
   ),
+  // Le Rosso di Montalcino avant le Brunello : il n'a aucune durée de bois imposée, et
+  // héritait des vingt-quatre mois du Brunello (30/09).
+  RegionVin(
+    id: 'it_rosso_montalcino',
+    pays: 'Italie',
+    nom: 'Rosso di Montalcino',
+    alias: ['rosso di montalcino'],
+    cepages: ['Sangiovese'],
+    longevites: {'red': AgingProfile(id: 'rosso_montalcino', libelle: 'Rosso di Montalcino',
+        debut: 1, picDebut: 2, picFin: 6, fin: 9)},
+  ),
   RegionVin(
     id: 'it_brunello',
     pays: 'Italie',
-    nom: 'Montalcino',
+    nom: 'Brunello di Montalcino',
     elevages: {'red': Elevage(ContenantElevage.foudre, 24, impose: true)},
-    alias: ['brunello', 'montalcino', 'rosso di montalcino'],
+    alias: ['brunello', 'montalcino'],
     cepages: ['Sangiovese'],
     longevites: {'red': AgingProfile(id: 'brunello', libelle: 'Brunello',
-        debut: 5, picDebut: 10, picFin: 22, fin: 32)},
+        debut: 5, picDebut: 9, picFin: 18, fin: 25)},
     references: [
       ReferenceVin(nom: 'Biondi-Santi', alias: ['biondi santi'],
           certitude: Certitude.verifiee,
@@ -70,8 +103,9 @@ const List<RegionVin> regionsItalie = [
     alias: ['chianti', 'chianti classico', 'vino nobile', 'montepulciano',
       'carmignano', 'morellino'],
     cepages: ['Sangiovese'],
+    // Le Chianti sans mention ; Riserva et Gran Selezione passent par le rang.
     longevites: {'red': AgingProfile(id: 'chianti', libelle: 'Chianti',
-        debut: 2, picDebut: 5, picFin: 12, fin: 18)},
+        debut: 1, picDebut: 3, picFin: 7, fin: 9)},
     references: [
       ReferenceVin(nom: 'Castello di Ama'),
       ReferenceVin(nom: 'Fontodi'),
@@ -88,7 +122,7 @@ const List<RegionVin> regionsItalie = [
     alias: ['bolgheri', 'maremma', 'sassicaia', 'toscana igt'],
     cepages: ['Cabernet Sauvignon', 'Merlot', 'Cabernet Franc'],
     longevites: {'red': AgingProfile(id: 'bolgheri', libelle: 'Bolgheri',
-        debut: 4, picDebut: 8, picFin: 20, fin: 28)},
+        debut: 2, picDebut: 4, picFin: 9, fin: 12)},
     references: [
       ReferenceVin(nom: 'Sassicaia', certitude: Certitude.verifiee,
           longevite: AgingProfile(id: 'sassicaia', libelle: 'Sassicaia',
@@ -101,25 +135,38 @@ const List<RegionVin> regionsItalie = [
       ReferenceVin(nom: 'Tignanello'),
     ],
   ),
+  // L'Amarone à part : deux ans de vieillissement au minimum (sans que le bois soit
+  // exigé). Valpolicella, Ripasso et Bardolino se boivent jeunes, et recevaient la garde
+  // et le bois « imposé » de l'Amarone (30/09).
   RegionVin(
-    id: 'it_veneto',
+    id: 'it_amarone',
     pays: 'Italie',
-    nom: 'Vénétie — Amarone & Valpolicella',
-    elevages: {'red': Elevage(ContenantElevage.foudre, 24, impose: true),
-      'white': Elevage(ContenantElevage.inox, 6)},
-    alias: ['amarone', 'valpolicella', 'ripasso', 'recioto', 'bardolino',
-      'soave'],
-    cepages: ['Corvina', 'Rondinella', 'Garganega'],
-    longevites: {
-      'red': AgingProfile(id: 'amarone', libelle: 'Amarone & Valpolicella',
-          debut: 4, picDebut: 8, picFin: 20, fin: 28),
-      'white': AgingProfile(id: 'soave', libelle: 'Soave',
-          debut: 1, picDebut: 2, picFin: 6, fin: 9),
-    },
+    nom: 'Amarone & Recioto',
+    elevages: {'red': Elevage(ContenantElevage.foudre, 24)},
+    alias: ['amarone', 'recioto'],
+    cepages: ['Corvina', 'Rondinella'],
+    longevites: {'red': AgingProfile(id: 'amarone', libelle: 'Amarone',
+        debut: 4, picDebut: 6, picFin: 14, fin: 20)},
     references: [
       ReferenceVin(nom: 'Giuseppe Quintarelli', alias: ['quintarelli'],
           elevage: Elevage(ContenantElevage.foudre, 84)),
       ReferenceVin(nom: 'Dal Forno Romano', alias: ['dal forno']),
+    ],
+  ),
+  RegionVin(
+    id: 'it_veneto',
+    pays: 'Italie',
+    nom: 'Vénétie — Valpolicella, Bardolino & Soave',
+    elevages: {'white': Elevage(ContenantElevage.inox, 6)},
+    alias: ['valpolicella', 'ripasso', 'bardolino', 'soave'],
+    cepages: ['Corvina', 'Rondinella', 'Garganega'],
+    longevites: {
+      'red': AgingProfile(id: 'valpolicella', libelle: 'Valpolicella & Ripasso',
+          debut: 1, picDebut: 2, picFin: 5, fin: 7),
+      'white': AgingProfile(id: 'soave', libelle: 'Soave',
+          debut: 0, picDebut: 1, picFin: 3, fin: 5),
+    },
+    references: [
       ReferenceVin(nom: 'Masi', raison: RaisonDePresence.grandVolume),
     ],
   ),
@@ -151,7 +198,7 @@ const List<RegionVin> regionsItalie = [
     cepages: ['Aglianico', 'Fiano', 'Greco'],
     longevites: {
       'red': AgingProfile(id: 'aglianico', libelle: 'Aglianico',
-          debut: 4, picDebut: 8, picFin: 18, fin: 25),
+          debut: 3, picDebut: 5, picFin: 11, fin: 16),
       'white': AgingProfile(id: 'fiano', libelle: 'Fiano & Greco',
           debut: 1, picDebut: 3, picFin: 8, fin: 12),
     },
@@ -170,9 +217,9 @@ const List<RegionVin> regionsItalie = [
     cepages: ['Nerello Mascalese', 'Nero d\'Avola', 'Carricante'],
     longevites: {
       'red': AgingProfile(id: 'etna_rouge', libelle: 'Etna & Sicile rouge',
-          debut: 2, picDebut: 5, picFin: 14, fin: 20),
+          debut: 1, picDebut: 3, picFin: 8, fin: 12),
       'white': AgingProfile(id: 'etna_blanc', libelle: 'Etna blanc',
-          debut: 1, picDebut: 3, picFin: 9, fin: 14),
+          debut: 1, picDebut: 2, picFin: 6, fin: 9),
       'fortified': AgingProfile(id: 'marsala', libelle: 'Marsala',
           debut: 1, picDebut: 5, picFin: 25, fin: 40),
     },

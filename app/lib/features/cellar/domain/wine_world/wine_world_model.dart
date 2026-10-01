@@ -100,6 +100,15 @@ class ReferenceVin {
   /// Surcharge l'élevage de la région, quand le domaine s'en écarte notablement.
   final Elevage? elevage;
 
+  /// Les couleurs auxquelles [longevite] s'applique ; nul pour toutes. La longévité d'un
+  /// domaine est souvent celle de son rouge : sans cette précision, le rosé de
+  /// Terrebrune héritait des vingt ans de son rouge.
+  final Set<String>? couleurs;
+
+  /// Une longévité propre à une couleur, quand le domaine s'écarte AUSSI de la catégorie
+  /// dans cette couleur (le rosé de Terrebrune, réputé de garde).
+  final Map<String, AgingProfile>? longevitesParCouleur;
+
   const ReferenceVin({
     required this.nom,
     this.alias = const [],
@@ -107,7 +116,14 @@ class ReferenceVin {
     this.raison = RaisonDePresence.grandVin,
     this.certitude = Certitude.estimee,
     this.elevage,
+    this.couleurs,
+    this.longevitesParCouleur,
   });
+
+  /// La longévité de ce domaine pour un vin de cette couleur, s'il en a une.
+  AgingProfile? longevitePour(String couleur) =>
+      longevitesParCouleur?[couleur] ??
+      ((couleurs == null || couleurs!.contains(couleur)) ? longevite : null);
 }
 
 /// Une région viticole, avec tout ce qu'on en sait.

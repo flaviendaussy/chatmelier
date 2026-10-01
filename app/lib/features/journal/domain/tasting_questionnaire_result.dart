@@ -31,6 +31,10 @@ class TastingQuestionnaireResult {
   final Set<String> whatDislikedMost; // IDs from dislikedOptions
   final String? foodPairingSynergy; // 'sublime', 'harmonious', 'neutral', 'clashing'
 
+  /// Le plat bu avec le vin, quand la personne l'a dit. L'accord (`foodPairingSynergy`)
+  /// n'est demandé qu'une fois établi qu'il y avait un plat (Flavien, 30/09).
+  final String? platAccorde;
+
   // — 3 Emotional Micro-Taps ("Fast-Tasting") —
   final String? mouthfeelTexture; // 'silky_lacy', 'crisp_salivating', 'dense_structured'
   final String? fruitProfile; // 'crunchy_tart', 'deep_ripe', 'spicy_herbal'
@@ -58,6 +62,7 @@ class TastingQuestionnaireResult {
     required this.whatLikedMost,
     required this.whatDislikedMost,
     this.foodPairingSynergy,
+    this.platAccorde,
     this.mouthfeelTexture,
     this.fruitProfile,
     this.customAromas = const [],
@@ -82,6 +87,7 @@ class TastingQuestionnaireResult {
     'liked_most': whatLikedMost.toList(),
     'disliked_most': whatDislikedMost.toList(),
     if (foodPairingSynergy != null) 'food_pairing_synergy': foodPairingSynergy,
+    if (platAccorde != null) 'plat_accorde': platAccorde,
     if (mouthfeelTexture != null) 'mouthfeel_texture': mouthfeelTexture,
     if (fruitProfile != null) 'fruit_profile': fruitProfile,
     'is_express_mode': isExpressMode,
@@ -119,6 +125,7 @@ class TastingQuestionnaireResult {
           ? Set<String>.from((rawDisliked as List).map((e) => e.toString()))
           : const <String>{},
       foodPairingSynergy: json['food_pairing_synergy'] as String?,
+      platAccorde: json['plat_accorde'] as String?,
       mouthfeelTexture: json['mouthfeel_texture'] as String?,
       fruitProfile: json['fruit_profile'] as String?,
       isExpressMode: (json['is_express_mode'] as bool?) ?? false,
@@ -564,6 +571,6 @@ List<String> libellesDesAromes(Iterable<String> ids) {
   final parId = {for (final o in TastingQuestionnaireResult.aromaOptions) o.id: o};
   return [
     for (final id in ids)
-      if (parId[id] != null) '${parId[id]!.emoji} ${Langue.estFr ? parId[id]!.label : parId[id]!.localizedLabel(lookupAppLocalizations(const Locale('en')))}',
+      if (parId[id] != null) '${parId[id]!.emoji} ${Langue.estFr ? parId[id]!.label : parId[id]!.localizedLabel(lookupAppLocalizations(Locale(Langue.code)))}',
   ];
 }

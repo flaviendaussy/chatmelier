@@ -153,6 +153,11 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   late bool _isExpressMode;
   final List<String> _customAromas = [];
   String? _foodPairingSynergy;
+
+  /// Vrai quand le vin a été bu avec un plat ; nul tant que la personne ne l'a pas dit.
+  /// Commun à toute la table : il ne change pas d'un convive à l'autre.
+  bool? _avecUnPlat;
+  final TextEditingController _platCtrl = TextEditingController();
   String? _selectedMouthfeelTexture;
   String? _selectedFruitProfile;
 
@@ -234,6 +239,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   @override
   void dispose() {
     _pageController.dispose();
+    _platCtrl.dispose();
     super.dispose();
   }
 
@@ -347,7 +353,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       noteOutOf10: _noteSlider,
       perceivedAromas: Set<String>.from(_selectedAromas),
       customAromas: List<String>.from(_customAromas),
-      foodPairingSynergy: _foodPairingSynergy,
+      foodPairingSynergy: _avecUnPlat == true ? _foodPairingSynergy : null,
+      platAccorde: _avecUnPlat == true && _platCtrl.text.trim().isNotEmpty ? _platCtrl.text.trim() : null,
       mouthfeelTexture: _selectedMouthfeelTexture,
       fruitProfile: _selectedFruitProfile,
       isExpressMode: _isExpressMode,
@@ -513,6 +520,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         'rating_scale': 10,
         'is_blind': _isBlindTasting,
         if (_fault != null) 'fault': _fault,
+        if (primaryResult?.platAccorde != null) 'food_paired': primaryResult!.platAccorde,
         'consumed_at': DateTime.now().toIso8601String(),
         'wines': {
           'name': widget.wineName,
@@ -538,6 +546,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           'rating_scale': 10,
           'is_blind': _isBlindTasting,
           if (_fault != null) 'fault': _fault,
+          if (primaryResult?.platAccorde != null) 'food_paired': primaryResult!.platAccorde,
           'consumed_at': DateTime.now().toIso8601String(),
         };
 
@@ -780,11 +789,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                     ),
                   ),
 
-                // Mode switcher (Express ⚡ vs Sommelier 🎓)
+                // Mode switcher (Express ⚡ vs Sommelier 🎓). Un Wrap, pas une Row : en anglais
+                // les deux pastilles débordaient de 51 px sur un téléphone, en espagnol plus
+                // encore (01/10) ; elles passent sur deux lignes quand il le faut.
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    runSpacing: 6,
                     children: [
                       ChoiceChip(
                         avatar: const Icon(Icons.bolt, size: 14, color: Color(0xFFF59E0B)),
@@ -1600,7 +1612,9 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   Widget _buildStep4Verdict() {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final likedList = TastingQuestionnaireResult.getLikedOptions(l10n);
+    final likedList = TastingQuestionnaireResult.getLikedOptions(l10n)
+        .where((o) => o.id != 'accord_plat' || _avecUnPlat == true)
+        .toList();
     final dislikedList = TastingQuestionnaireResult.getDislikedOptions(l10n);
 
     return ListView(
@@ -1688,42 +1702,9 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         ),
         const SizedBox(height: 20),
 
-        // Accord Mets & Vins - Synergie (Food-Wine Synergy)
-        Text(
-          l10n.tastingFoodSynergyTitle,
-          style: theme.textTheme.titleSmall,
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _buildChoiceChip(
-              l10n.tastingSynergySublime,
-              'sublime',
-              _foodPairingSynergy,
-              (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
-            ),
-            _buildChoiceChip(
-              l10n.tastingSynergyHarmonious,
-              'harmonious',
-              _foodPairingSynergy,
-              (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
-            ),
-            _buildChoiceChip(
-              l10n.tastingSynergyNeutral,
-              'neutral',
-              _foodPairingSynergy,
-              (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
-            ),
-            _buildChoiceChip(
-              l10n.tastingSynergyClashing,
-              'clashing',
-              _foodPairingSynergy,
-              (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
-            ),
-          ],
-        ),
+        // Le plat d'abord, puis l'accord : on ne demande pas l'accord avec un plat sans
+        // savoir s'il y en avait un (Flavien, 30/09).
+        _blocDuPlat(theme, l10n),
         const SizedBox(height: 20),
 
         // What liked most
@@ -2418,6 +2399,67 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     );
   }
 
+  /// « Avec un plat ? », puis le plat (facultatif), puis l'accord. Le 30/09, Flavien se
+  /// voyait demander si l'accord était « sublime » sans qu'on lui ait demandé ce qu'il
+  /// avait mangé — ni même s'il avait mangé.
+  Widget _blocDuPlat(ThemeData theme, AppLocalizations l10n, {bool compact = false}) {
+    final titre = compact ? const TextStyle(fontSize: 12, fontWeight: FontWeight.w600) : theme.textTheme.titleSmall;
+    final choix = _avecUnPlat == null ? null : (_avecUnPlat! ? 'oui' : 'non');
+    final plat = _platCtrl.text.trim();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(tr('Vous l\'avez bu avec un plat ?', 'Did you have it with food?'), style: titre),
+        SizedBox(height: compact ? 6 : 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildChoiceChip(tr('Oui, avec un plat', 'Yes, with food'), 'oui', choix,
+                (_) => setState(() => _avecUnPlat = true)),
+            _buildChoiceChip(tr('Non, seul', 'No, on its own'), 'non', choix, (_) => setState(() {
+                  _avecUnPlat = false;
+                  _foodPairingSynergy = null;
+                })),
+          ],
+        ),
+        if (_avecUnPlat == true) ...[
+          const SizedBox(height: 10),
+          TextField(
+            controller: _platCtrl,
+            textCapitalization: TextCapitalization.sentences,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              labelText: tr('Quel plat ? (facultatif)', 'Which dish? (optional)'),
+              isDense: true,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            plat.isEmpty ? l10n.tastingFoodSynergyTitle : tr('L\'accord avec « {plat} »', 'The pairing with "{plat}"', {'plat': plat}),
+            style: titre,
+          ),
+          SizedBox(height: compact ? 6 : 8),
+          Wrap(
+            spacing: compact ? 6 : 8,
+            runSpacing: compact ? 6 : 8,
+            children: [
+              for (final (libelle, valeur) in [
+                (l10n.tastingSynergySublime, 'sublime'),
+                (l10n.tastingSynergyHarmonious, 'harmonious'),
+                (l10n.tastingSynergyNeutral, 'neutral'),
+                (l10n.tastingSynergyClashing, 'clashing'),
+              ])
+                _buildChoiceChip(libelle, valeur, _foodPairingSynergy,
+                    (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v)),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildChoiceChip(String label, String value, String? currentValue, ValueChanged<String> onChanged) {
     final isSelected = currentValue == value;
     return GestureDetector(
@@ -2808,7 +2850,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
           ),
           Text(
-            tr('{v1} • {v2}', '{v3} • {v4}', {'v1': widget.producer ?? "Domaine", 'v2': widget.region ?? tr("Région", 'Region'), 'v3': widget.producer ?? "Producer", 'v4': widget.region ?? "Region"}),
+            '${widget.producer ?? tr('Domaine', 'Producer')} • ${widget.region ?? tr('Région', 'Region')}',
             style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
           ),
           if (widget.wineGrapes != null && widget.wineGrapes!.isNotEmpty)
@@ -3363,39 +3405,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              // Synergie mets
-              Text(l10n.tastingFoodSynergyTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  _buildChoiceChip(
-                    l10n.tastingSynergySublime,
-                    'sublime',
-                    _foodPairingSynergy,
-                    (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
-                  ),
-                  _buildChoiceChip(
-                    l10n.tastingSynergyHarmonious,
-                    'harmonious',
-                    _foodPairingSynergy,
-                    (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
-                  ),
-                  _buildChoiceChip(
-                    l10n.tastingSynergyNeutral,
-                    'neutral',
-                    _foodPairingSynergy,
-                    (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
-                  ),
-                  _buildChoiceChip(
-                    l10n.tastingSynergyClashing,
-                    'clashing',
-                    _foodPairingSynergy,
-                    (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v),
-                  ),
-                ],
-              ),
+              _blocDuPlat(theme, l10n, compact: true),
               const SizedBox(height: 12),
               // Would buy again
               Text(l10n.tastingBuyAgain, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),

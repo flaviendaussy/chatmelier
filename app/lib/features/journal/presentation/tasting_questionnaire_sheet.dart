@@ -12,6 +12,7 @@ import '../../friends/domain/friend.dart';
 import '../../offline/presentation/sync_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../data/tasting_ai_assistant_service.dart';
+import '../domain/questionnaire_de_degustation.dart';
 import '../domain/tasting_questionnaire_result.dart';
 import '../../cellar/domain/wine.dart';
 import '../domain/tasting_pedagogy_engine.dart';
@@ -128,7 +129,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   /// Défaut identifié sur la bouteille. Non nul ⇒ la dégustation est exclue du modèle
   /// de goût : un vin bouchonné n'apprend rien sur le palais, et lui ferait même croire
   /// qu'il déteste une région entière.
-  String? _fault;
+  ///
+  /// C'est la bouteille qui est bouchonnée, pas le convive : le défaut reste signalé au
+  /// suivant (qui peut le retirer), et la ligne de journal le garde même si le dernier à
+  /// répondre ne l'a pas vu. La sensibilité au bouchon varie beaucoup d'une personne à
+  /// l'autre ; le vin, lui, est le même pour tous.
+  String? _defaut;
   bool _isTransitioningToNextTaster = false;
   bool _isCompleted = false;
   final Map<String, TastingQuestionnaireResult> _completedResults = {};
@@ -145,39 +151,15 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   int _currentProfileIndex = 0;
   List<TasteProfile> _selectedProfiles = [];
 
-  // Step 1: Impression
-  int _emojiIndex = 3; // default 😊
-  double _noteSlider = 7.0;
+  /// Les réponses du convive dont c'est le tour (domaine : `ReponsesDuConvive`).
+  ReponsesDuConvive _r = ReponsesDuConvive();
 
-  // Express mode & Picky connoisseur / Foodie enhancements
   late bool _isExpressMode;
-  final List<String> _customAromas = [];
-  String? _foodPairingSynergy;
 
   /// Vrai quand le vin a été bu avec un plat ; nul tant que la personne ne l'a pas dit.
   /// Commun à toute la table : il ne change pas d'un convive à l'autre.
   bool? _avecUnPlat;
   final TextEditingController _platCtrl = TextEditingController();
-  String? _selectedMouthfeelTexture;
-  String? _selectedFruitProfile;
-
-  // Step 2: Nez
-  Set<String> _selectedAromas = {};
-  double _aromaIntensity = 0.5;
-
-  // Step 3: Bouche
-  double _acidity = 0.5;
-  double _tannins = 0.5;
-  double _mineralite = 0.5; // for whites and rosés
-  double _body = 0.5;
-  double _length = 0.5;
-  double _effervescence = 0.5;
-
-  // Step 4: Verdict
-  String _wouldBuyAgain = 'maybe';
-  String _idealMoment = 'repas';
-  Set<String> _whatLiked = {};
-  Set<String> _whatDisliked = {};
 
   // Blind Tasting Mode 🙈
   bool _isBlindTasting = false;
@@ -196,29 +178,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
   bool _isSaving = false;
 
-  String get _normalizedType {
-    final t = (widget.wineType ?? '').toLowerCase().trim();
-    if (t.contains('rouge') || t == 'red') return 'red';
-    if (t.contains('blanc') || t == 'white') return 'white';
-    if (t.contains('ros') || t == 'rose') return 'rose';
-    if (t.contains('champ') || t.contains('sparkling') || t.contains('bulles') || t.contains('effervescent')) return 'sparkling';
-    if (t.contains('liquoreux') || t.contains('moelleux') || t.contains('dessert') || t.contains('doux')) return 'dessert';
-    return t;
-  }
-
-  bool get _isRed => _normalizedType == 'red';
-  bool get _isWhite => _normalizedType == 'white';
-  bool get _isSparkling => _normalizedType == 'sparkling';
-  bool get _isRose => _normalizedType == 'rose';
-
-  // Tanins are strictly for red wines. White, rosé, sparkling wines do NOT have tannins!
-  bool get _showTannins => _isRed;
-
-  static bool _isValidUuid(String? id) {
-    if (id == null || id.isEmpty) return false;
-    final uuidRegex = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
-    return uuidRegex.hasMatch(id);
-  }
+  QuestionnaireDuVin get _vin => QuestionnaireDuVin(widget.wineType);
+  bool get _isRed => _vin.estRouge;
+  bool get _isWhite => _vin.estBlanc;
+  bool get _isSparkling => _vin.estEffervescent;
+  bool get _isRose => _vin.estRose;
+  bool get _showTannins => _vin.demandeLesTanins;
 
   String _profileDisplayName(TasteProfile profile) {
     if (!profile.isPrimary) return profile.name;
@@ -251,40 +216,9 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       friends = await ref.read(friendsRepositoryProvider).getFriends();
     } catch (_) {}
 
-    // Link friends with matching companion profiles
-    final merged = profiles.map((p) {
-      final match = friends.where((f) => f.displayName.toLowerCase() == p.name.toLowerCase()).firstOrNull;
-      if (match != null) {
-        return p.copyWith(friendUserId: match.friendUserId);
-      }
-      return p;
-    }).toList();
-
-    // Add friends who don't have a companion profile yet
-    for (final f in friends) {
-      if (!merged.any((p) => p.name.toLowerCase() == f.displayName.toLowerCase())) {
-        merged.add(TasteProfile(
-          id: f.friendUserId,
-          name: f.displayName,
-          friendUserId: f.friendUserId,
-        ));
-      }
-    }
-
+    final merged = ConvivesDuQuestionnaire.rassembler(profiles, friends);
     if (mounted) {
-      final primary = merged.firstWhere((p) => p.isPrimary, orElse: () => merged.first);
-      final initialSelected = <String>{primary.id};
-
-      // Pre-select any tasters passed in arguments
-      if (widget.preselectedTasters != null) {
-        for (final tasterName in widget.preselectedTasters!) {
-          final found = merged.where((p) => p.name.toLowerCase() == tasterName.toLowerCase()).firstOrNull;
-          if (found != null) {
-            initialSelected.add(found.id);
-          }
-        }
-      }
-
+      final initialSelected = ConvivesDuQuestionnaire.selectionInitiale(merged, widget.preselectedTasters);
       setState(() {
         _allProfiles = merged;
         _selectedProfileIds = initialSelected;
@@ -294,27 +228,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     }
   }
 
-  void _resetAnswers() {
-    _fault = null;
-    _emojiIndex = 3;
-    _noteSlider = 7.0;
-    _selectedAromas = {};
-    _customAromas.clear();
-    _foodPairingSynergy = null;
-    _aromaIntensity = 0.5;
-    _acidity = 0.5;
-    _tannins = 0.5;
-    _mineralite = 0.5;
-    _body = 0.5;
-    _length = 0.5;
-    _effervescence = 0.5;
-    _wouldBuyAgain = 'maybe';
-    _idealMoment = 'repas';
-    _whatLiked = {};
-    _whatDisliked = {};
-    _selectedMouthfeelTexture = null;
-    _selectedFruitProfile = null;
-  }
+  void _resetAnswers() => _r = ReponsesDuConvive();
 
   void _nextStep() {
     if (_currentStep < 4) {
@@ -348,38 +262,23 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     final profile = _selectedProfiles.isNotEmpty
         ? _selectedProfiles[_currentProfileIndex]
         : (_allProfiles.firstOrNull ?? TasteProfile(id: 'me', name: tr('Moi', 'Me'), isPrimary: true));
-    final result = TastingQuestionnaireResult(
-      emojiImpression: _emojiIndex,
-      noteOutOf10: _noteSlider,
-      perceivedAromas: Set<String>.from(_selectedAromas),
-      customAromas: List<String>.from(_customAromas),
-      foodPairingSynergy: _avecUnPlat == true ? _foodPairingSynergy : null,
-      platAccorde: _avecUnPlat == true && _platCtrl.text.trim().isNotEmpty ? _platCtrl.text.trim() : null,
-      mouthfeelTexture: _selectedMouthfeelTexture,
-      fruitProfile: _selectedFruitProfile,
-      isExpressMode: _isExpressMode,
-      aromaIntensity: _aromaIntensity,
-      acidity: _acidity,
-      tannins: _showTannins ? _tannins : null,
-      body: _body,
-      length: _length,
-      effervescence: _isSparkling ? _effervescence : null,
-      wouldBuyAgain: _wouldBuyAgain,
-      idealMoment: _idealMoment,
-      whatLikedMost: Set<String>.from(_whatLiked),
-      whatDislikedMost: Set<String>.from(_whatDisliked),
+    final result = _r.resultat(
       profileId: profile.id,
       profileName: profile.name,
+      vin: _vin,
+      express: _isExpressMode,
+      avecUnPlat: _avecUnPlat,
+      plat: _platCtrl.text,
     );
 
     setState(() => _isSaving = true);
     try {
-      if (_fault != null) {
+      if (_defaut != null) {
         // Bouteille défectueuse : la dégustation est enregistrée dans le journal — elle a
         // bien eu lieu — mais elle n'alimente PAS le profil de goût. Apprendre de ce vin
         // enseignerait à la personne qu'elle déteste une région qu'elle n'a pas goûtée.
         AppLogger.info('QUESTIONNAIRE',
-            'Profil non modifié pour ${profile.name} : bouteille défectueuse ($_fault)');
+            'Profil non modifié pour ${profile.name} : bouteille défectueuse ($_defaut)');
       } else {
         final service = ref.read(tasteProfileServiceProvider);
         await service.applyQuestionnaireResult(
@@ -402,22 +301,17 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     if (profile.friendUserId != null && widget.wineId != null) {
       try {
         final supabase = ref.read(supabaseProvider);
-        await supabase.rpc('record_shared_tasting_log', params: {
-          'p_wine_id': widget.wineId,
-          'p_friend_user_id': profile.friendUserId,
-          'p_rating': result.noteOutOf10,
-          if (_isValidUuid(widget.bottleId)) 'p_bottle_id': widget.bottleId,
-          if (_isValidUuid(widget.cellarId)) 'p_cellar_id': widget.cellarId,
-          'p_notes': result.perceivedAromas.isNotEmpty
-              ? tr('Dégustation partagée. Arômes : {v1}', 'Shared tasting. Aromas: {v1}', {'v1': result.perceivedAromas.join(", ")})
-              : tr('Dégustation partagée.', 'Shared tasting.'),
-          'p_occasion': result.idealMoment,
-          'p_co_tasters': _selectedProfiles.map((p) => p.name).toList(),
-          if (_isValidUuid(widget.bottleOwnerId)) 'p_bottle_owner_id': widget.bottleOwnerId,
-          if (widget.bottleOwnerName != null) 'p_bottle_owner_name': widget.bottleOwnerName,
-          'p_is_external': false,
-          'p_questionnaire_data': result.toJson(),
-        });
+        await supabase.rpc('record_shared_tasting_log',
+            params: degustationPartagee(
+              wineId: widget.wineId!,
+              amiId: profile.friendUserId!,
+              resultat: result,
+              convives: _selectedProfiles.map((p) => p.name).toList(),
+              bottleId: widget.bottleId,
+              cellarId: widget.cellarId,
+              proprietaireId: widget.bottleOwnerId,
+              proprietaireNom: widget.bottleOwnerName,
+            ));
         _syncedFriendNames.add(profile.name);
         AppLogger.info('QUESTIONNAIRE', 'Synced shared tasting to friend ${profile.name}');
       } catch (e) {
@@ -460,19 +354,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             .select('quantity, status')
             .eq('id', widget.bottleId!)
             .maybeSingle();
-        final currentQty = bRes?['quantity'] as int? ?? 1;
-        if (currentQty > widget.quantityToConsume) {
-          await supabase
-              .from('bottles')
-              .update({'quantity': currentQty - widget.quantityToConsume})
-              .eq('id', widget.bottleId!);
-        } else {
-          await supabase.from('bottles').update({
-            'quantity': 0,
-            'status': 'consumed',
-            'consumed_at': DateTime.now().toIso8601String(),
-          }).eq('id', widget.bottleId!);
-        }
+        await supabase
+            .from('bottles')
+            .update(bouteilleApresDegustation(
+              quantite: bRes?['quantity'] as int? ?? 1,
+              bues: widget.quantityToConsume,
+              quand: DateTime.now(),
+            ))
+            .eq('id', widget.bottleId!);
 
         final offlineStorage = ref.read(offlineStorageServiceProvider);
         if (widget.cellarId != null) {
@@ -493,131 +382,50 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       // d'autre : goûté à trois, noté 7,5, et le journal affichait le 9 de Paul. Les
       // profils de goût, eux, étaient justes — chacun reçoit le sien — d'où un écran qui
       // se contredisait lui-même sans que rien ne le signale.
-      final primaryResult = _resultatDuMaitreDeCave();
-      final cleanOwnerId = _isValidUuid(widget.bottleOwnerId) ? widget.bottleOwnerId : null;
-      final ratingOutOf10 = primaryResult?.noteOutOf10 ?? 8.0;
-      final tastingNotes = primaryResult != null && primaryResult.perceivedAromas.isNotEmpty
-          ? tr('Dégustation guidée. Arômes : {v1}', 'Guided tasting. Aromas: {v1}', {'v1': primaryResult.perceivedAromas.join(", ")})
-          : tr('Dégustation guidée.', 'Guided tasting.');
-      final occasionStr = _occasion.isNotEmpty ? _occasion : (primaryResult?.idealMoment ?? tr('Dégustation guidée', 'Guided tasting'));
+      final ligne = LigneDuQuestionnaire(
+        id: _tastingId,
+        wineId: widget.wineId!,
+        userId: user.id,
+        bottleId: widget.bottleId,
+        cellarId: widget.cellarId,
+        resultat: _resultatDuMaitreDeCave(),
+        convives: _selectedProfiles,
+        occasionSaisie: _occasion,
+        photo: _tastingPhoto?.path,
+        proprietaireId: widget.bottleOwnerId,
+        proprietaireNom: widget.bottleOwnerName,
+        aLAveugle: _isBlindTasting,
+        defaut: _defaut,
+        quand: DateTime.now(),
+      );
       final offlineStorage = ref.read(offlineStorageServiceProvider);
-
       final localPayload = <String, dynamic>{
         OfflineStorageService.pendingSyncKey: true,
-        'id': _tastingId,
-        'wine_id': widget.wineId,
-        if (_isValidUuid(widget.bottleId)) 'bottle_id': widget.bottleId,
-        'user_id': user.id,
-        if (_isValidUuid(widget.cellarId)) 'cellar_id': widget.cellarId,
-        'rating': ratingOutOf10,
-        'occasion': occasionStr,
-        if (_tastingPhoto != null) 'photo_url': _tastingPhoto!.path,
-        'tasting_notes': tastingNotes,
-        'co_tasters': _selectedProfiles.where((p) => !p.isPrimary).map((p) => p.name).toList(),
-        if (cleanOwnerId != null) 'bottle_owner_id': cleanOwnerId,
-        if (widget.bottleOwnerName != null) 'bottle_owner_name': widget.bottleOwnerName,
-        'is_external': false,
-        'rating_scale': 10,
-        'is_blind': _isBlindTasting,
-        if (_fault != null) 'fault': _fault,
-        if (primaryResult?.platAccorde != null) 'food_paired': primaryResult!.platAccorde,
-        'consumed_at': DateTime.now().toIso8601String(),
+        ...ligne.complete(),
         'wines': {
           'name': widget.wineName,
           'vintage': widget.vintage,
         },
       };
 
-      try {
-        final payload = <String, dynamic>{
-          'id': _tastingId,
-          'wine_id': widget.wineId,
-          if (_isValidUuid(widget.bottleId)) 'bottle_id': widget.bottleId,
-          'user_id': user.id,
-          if (_isValidUuid(widget.cellarId)) 'cellar_id': widget.cellarId,
-          'rating': ratingOutOf10,
-          'occasion': occasionStr,
-          if (_tastingPhoto != null) 'photo_url': _tastingPhoto!.path,
-          'tasting_notes': tastingNotes,
-          'co_tasters': _selectedProfiles.where((p) => !p.isPrimary).map((p) => p.name).toList(),
-          if (cleanOwnerId != null) 'bottle_owner_id': cleanOwnerId,
-          if (widget.bottleOwnerName != null) 'bottle_owner_name': widget.bottleOwnerName,
-          'is_external': false,
-          'rating_scale': 10,
-          'is_blind': _isBlindTasting,
-          if (_fault != null) 'fault': _fault,
-          if (primaryResult?.platAccorde != null) 'food_paired': primaryResult!.platAccorde,
-          'consumed_at': DateTime.now().toIso8601String(),
-        };
-
+      // La ligne entière, puis le noyau (colonnes récentes absentes), puis l'ancienne
+      // échelle sur 5 : chaque base restée en retard garde au moins la dégustation. La
+      // ligne relue du serveur va au cache ; sans elle, la ligne locale, marquée en attente.
+      Map<String, dynamic>? inseree;
+      final essais = [ligne.complete(), ligne.essentielle(), ligne.ancienneEchelle()];
+      for (var i = 0; i < essais.length && inseree == null; i++) {
         try {
-          final inserted = await supabase
-              .from('tasting_log')
-              .insert(payload)
-              .select('*, wines(*)')
-              .maybeSingle();
-          if (inserted != null) {
-            await offlineStorage.addCachedTasting(inserted);
-          } else {
-            await offlineStorage.addCachedTasting(localPayload);
-          }
-        } catch (insertErr) {
-          debugPrint('Questionnaire tasting log insert failed ($insertErr), retrying with core schema...');
-          final corePayload = <String, dynamic>{
-            'id': _tastingId,
-            'wine_id': widget.wineId,
-            if (_isValidUuid(widget.bottleId)) 'bottle_id': widget.bottleId,
-            'user_id': user.id,
-            if (_isValidUuid(widget.cellarId)) 'cellar_id': widget.cellarId,
-            'rating': ratingOutOf10,
-            'occasion': occasionStr,
-            if (_tastingPhoto != null) 'photo_url': _tastingPhoto!.path,
-            'tasting_notes': tastingNotes,
-            'consumed_at': payload['consumed_at'],
-          };
-          try {
-            final inserted = await supabase
-                .from('tasting_log')
-                .insert(corePayload)
-                .select('*, wines(*)')
-                .maybeSingle();
-            if (inserted != null) {
-              await offlineStorage.addCachedTasting(inserted);
-            } else {
-              await offlineStorage.addCachedTasting(localPayload);
-            }
-          } catch (coreErr) {
-            debugPrint('Questionnaire tasting log core insert failed ($coreErr), retrying with normalized rating...');
-            try {
-              // Dernier recours pour une base restée sur l'ancienne contrainte ≤ 5.
-              // On NE marque PAS l'échelle ici : si on en est arrivé à cet étage, c'est que
-              // la contrainte n'a pas été élargie, donc que la migration 032 n'a pas tourné,
-              // donc que la colonne `rating_scale` n'existe pas — l'ajouter ferait échouer
-              // cet insert aussi et la dégustation ne quitterait jamais l'appareil.
-              // La relecture s'en sort seule : colonne absente ⇒ échelle 5
-              // (voir TastingEntry.fromJson). Une fois 032 appliquée, cet étage ne sert plus.
-              corePayload['rating'] = (ratingOutOf10 / 2.0).clamp(0.0, 5.0);
-              final inserted = await supabase
-                  .from('tasting_log')
-                  .insert(corePayload)
-                  .select('*, wines(*)')
-                  .maybeSingle();
-              if (inserted != null) {
-                // Ne pas réécrire `rating` ici : le cache contredirait la base. L'échelle
-                // enregistrée suffit à relire correctement (voir TastingEntry.displayRating).
-                await offlineStorage.addCachedTasting(inserted);
-              } else {
-                await offlineStorage.addCachedTasting(localPayload);
-              }
-            } catch (retryErr) {
-              debugPrint('Questionnaire tasting log retry insert failed: $retryErr');
-              await offlineStorage.addCachedTasting(localPayload);
-            }
-          }
+          inseree = await supabase.from('tasting_log').insert(essais[i]).select('*, wines(*)').maybeSingle() ??
+              localPayload;
+        } catch (e) {
+          AppLogger.warning('QUESTIONNAIRE',
+              i < essais.length - 1 ? 'tasting_log refusé ($e), essai suivant' : 'tasting_log refusé, gardé en local : $e');
         }
+      }
+      try {
+        await offlineStorage.addCachedTasting(inseree ?? localPayload);
       } catch (e) {
-        AppLogger.error('QUESTIONNAIRE', 'Error inserting primary tasting log', e);
-        await offlineStorage.addCachedTasting(localPayload);
+        AppLogger.error('QUESTIONNAIRE', 'Error caching primary tasting log', e);
       }
     }
 
@@ -1222,14 +1030,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(5, (i) {
-            final isSelected = _emojiIndex == i;
+            final isSelected = _r.visage == i;
             return GestureDetector(
               onTap: () {
-                final defaultNoteForEmoji = [2.5, 4.5, 6.5, 8.0, 9.5][i];
-                setState(() {
-                  _emojiIndex = i;
-                  _noteSlider = defaultNoteForEmoji;
-                });
+                setState(() => _r.choisirLeVisage(i));
                 HapticFeedback.selectionClick();
               },
               child: AnimatedContainer(
@@ -1280,15 +1084,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             const Text('😖', style: TextStyle(fontSize: 20)),
             Expanded(
               child: Slider(
-                value: _noteSlider,
+                value: _r.note,
                 min: 1,
                 max: 10,
                 divisions: 18,
                 activeColor: const Color(0xFF8B1E3F),
-                label: _noteSlider.toStringAsFixed(1),
+                label: _r.note.toStringAsFixed(1),
                 onChanged: (v) => setState(() {
-                  _noteSlider = v;
-                  _emojiIndex = TastingQuestionnaireResult.emojiIndexForRating(v);
+                  _r.reglerLaNote(v);
                 }),
               ),
             ),
@@ -1297,7 +1100,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         ),
         Center(
           child: Text(
-            '${_noteSlider.toStringAsFixed(1)} / 10',
+            '${_r.note.toStringAsFixed(1)} / 10',
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: const Color(0xFF8B1E3F),
@@ -1337,17 +1140,17 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       ),
     ];
 
-    final selected = faults.where((f) => f.id == _fault).firstOrNull;
+    final selected = faults.where((f) => f.id == _defaut).firstOrNull;
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _fault == null
+        color: _defaut == null
             ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35)
             : const Color(0xFFB3261E).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: _fault == null
+          color: _defaut == null
               ? Colors.grey.withValues(alpha: 0.3)
               : const Color(0xFFB3261E).withValues(alpha: 0.5),
         ),
@@ -1372,10 +1175,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               for (final f in faults)
                 FilterChip(
                   label: Text(f.label, style: const TextStyle(fontSize: 11.5)),
-                  selected: _fault == f.id,
+                  selected: _defaut == f.id,
                   selectedColor: const Color(0xFFB3261E).withValues(alpha: 0.18),
                   checkmarkColor: const Color(0xFFB3261E),
-                  onSelected: (v) => setState(() => _fault = v ? f.id : null),
+                  onSelected: (v) => setState(() => _defaut = v ? f.id : null),
                 ),
             ],
           ),
@@ -1427,7 +1230,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           runSpacing: 8,
           children: [
             ...aromaList.map((aroma) {
-              final isSelected = _selectedAromas.contains(aroma.id);
+              final isSelected = _r.aromes.contains(aroma.id);
               return FilterChip(
                 selected: isSelected,
                 label: Text('${aroma.emoji} ${aroma.localizedLabel(l10n)}'),
@@ -1436,16 +1239,16 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 onSelected: (val) {
                   setState(() {
                     if (val) {
-                      _selectedAromas.add(aroma.id);
+                      _r.aromes.add(aroma.id);
                     } else {
-                      _selectedAromas.remove(aroma.id);
+                      _r.aromes.remove(aroma.id);
                     }
                   });
                   HapticFeedback.selectionClick();
                 },
               );
             }),
-            ..._customAromas.map((customAroma) {
+            ..._r.aromesLibres.map((customAroma) {
               return InputChip(
                 avatar: const Icon(Icons.star, size: 14, color: Color(0xFFD4AF37)),
                 label: Text(customAroma),
@@ -1454,7 +1257,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 checkmarkColor: const Color(0xFFD4AF37),
                 onDeleted: () {
                   setState(() {
-                    _customAromas.remove(customAroma);
+                    _r.aromesLibres.remove(customAroma);
                   });
                 },
               );
@@ -1477,8 +1280,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         _buildSliderRow(
           leftLabel: l10n.tastingAromaDiscreet,
           rightLabel: l10n.tastingAromaExplosive,
-          value: _aromaIntensity,
-          onChanged: (v) => setState(() => _aromaIntensity = v),
+          value: _r.intensiteAromatique,
+          onChanged: (v) => setState(() => _r.intensiteAromatique = v),
         ),
       ],
     );
@@ -1515,8 +1318,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         _buildSliderRow(
           leftLabel: l10n.tastingAcidityFlat,
           rightLabel: l10n.tastingAciditySharp,
-          value: _acidity,
-          onChanged: (v) => setState(() => _acidity = v),
+          value: _r.acidite,
+          onChanged: (v) => setState(() => _r.acidite = v),
         ),
         const SizedBox(height: 16),
 
@@ -1529,8 +1332,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           _buildSliderRow(
             leftLabel: l10n.tastingTanninsSilky,
             rightLabel: l10n.tastingTanninsGrippy,
-            value: _tannins,
-            onChanged: (v) => setState(() => _tannins = v),
+            value: _r.tanins,
+            onChanged: (v) => setState(() => _r.tanins = v),
           ),
           const SizedBox(height: 16),
         ],
@@ -1544,8 +1347,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           _buildSliderRow(
             leftLabel: l10n.tastingMineralityRound,
             rightLabel: l10n.tastingMineralityCrisp,
-            value: _mineralite,
-            onChanged: (v) => setState(() => _mineralite = v),
+            value: _r.mineralite,
+            onChanged: (v) => setState(() => _r.mineralite = v),
           ),
           const SizedBox(height: 16),
         ],
@@ -1559,8 +1362,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           _buildSliderRow(
             leftLabel: l10n.tastingEffervescenceDelicate,
             rightLabel: l10n.tastingEffervescenceVibrant,
-            value: _effervescence,
-            onChanged: (v) => setState(() => _effervescence = v),
+            value: _r.effervescence,
+            onChanged: (v) => setState(() => _r.effervescence = v),
           ),
           const SizedBox(height: 16),
         ],
@@ -1573,8 +1376,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         _buildSliderRow(
           leftLabel: l10n.tastingBodyLight,
           rightLabel: l10n.tastingBodyFull,
-          value: _body,
-          onChanged: (v) => setState(() => _body = v),
+          value: _r.corps,
+          onChanged: (v) => setState(() => _r.corps = v),
         ),
         const SizedBox(height: 16),
 
@@ -1599,8 +1402,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         _buildSliderRow(
           leftLabel: l10n.tastingLengthShort,
           rightLabel: l10n.tastingLengthLong,
-          value: _length,
-          onChanged: (v) => setState(() => _length = v),
+          value: _r.longueur,
+          onChanged: (v) => setState(() => _r.longueur = v),
         ),
       ],
     );
@@ -1637,22 +1440,22 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             _buildChoiceChip(
               l10n.tastingBuyAgainYes,
               'yes',
-              _wouldBuyAgain,
-              (v) => setState(() => _wouldBuyAgain = v),
+              _r.racheter,
+              (v) => setState(() => _r.racheter = v),
             ),
             const SizedBox(width: 8),
             _buildChoiceChip(
               l10n.tastingBuyAgainMaybe,
               'maybe',
-              _wouldBuyAgain,
-              (v) => setState(() => _wouldBuyAgain = v),
+              _r.racheter,
+              (v) => setState(() => _r.racheter = v),
             ),
             const SizedBox(width: 8),
             _buildChoiceChip(
               l10n.tastingBuyAgainNo,
               'no',
-              _wouldBuyAgain,
-              (v) => setState(() => _wouldBuyAgain = v),
+              _r.racheter,
+              (v) => setState(() => _r.racheter = v),
             ),
           ],
         ),
@@ -1671,32 +1474,32 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             _buildChoiceChip(
               l10n.tastingMomentApero,
               'apero',
-              _idealMoment,
-              (v) => setState(() => _idealMoment = v),
+              _r.moment,
+              (v) => setState(() => _r.moment = v),
             ),
             _buildChoiceChip(
               l10n.tastingMomentMeal,
               'repas',
-              _idealMoment,
-              (v) => setState(() => _idealMoment = v),
+              _r.moment,
+              (v) => setState(() => _r.moment = v),
             ),
             _buildChoiceChip(
               l10n.tastingMomentDinner,
               'grand_diner',
-              _idealMoment,
-              (v) => setState(() => _idealMoment = v),
+              _r.moment,
+              (v) => setState(() => _r.moment = v),
             ),
             _buildChoiceChip(
               l10n.tastingMomentRomantic,
               'diner_romantique',
-              _idealMoment,
-              (v) => setState(() => _idealMoment = v),
+              _r.moment,
+              (v) => setState(() => _r.moment = v),
             ),
             _buildChoiceChip(
               l10n.tastingMomentSolo,
               'solo',
-              _idealMoment,
-              (v) => setState(() => _idealMoment = v),
+              _r.moment,
+              (v) => setState(() => _r.moment = v),
             ),
           ],
         ),
@@ -1717,7 +1520,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           spacing: 6,
           runSpacing: 6,
           children: likedList.map((opt) {
-            final isSelected = _whatLiked.contains(opt.id);
+            final isSelected = _r.aime.contains(opt.id);
             return FilterChip(
               selected: isSelected,
               label: Text(opt.localizedLabel(l10n), style: const TextStyle(fontSize: 12)),
@@ -1726,9 +1529,9 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               onSelected: (val) {
                 setState(() {
                   if (val) {
-                    _whatLiked.add(opt.id);
+                    _r.aime.add(opt.id);
                   } else {
-                    _whatLiked.remove(opt.id);
+                    _r.aime.remove(opt.id);
                   }
                 });
               },
@@ -1749,7 +1552,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           children: dislikedList
               .where((opt) => _showTannins || opt.id != 'trop_tannique')
               .map((opt) {
-            final isSelected = _whatDisliked.contains(opt.id);
+            final isSelected = _r.aimePas.contains(opt.id);
             return FilterChip(
               selected: isSelected,
               label: Text(opt.localizedLabel(l10n), style: const TextStyle(fontSize: 12)),
@@ -1760,13 +1563,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                   if (val) {
                     // If "rien" is selected, clear everything else
                     if (opt.id == 'rien') {
-                      _whatDisliked = {'rien'};
+                      _r.aimePas = {'rien'};
                     } else {
-                      _whatDisliked.remove('rien');
-                      _whatDisliked.add(opt.id);
+                      _r.aimePas.remove('rien');
+                      _r.aimePas.add(opt.id);
                     }
                   } else {
-                    _whatDisliked.remove(opt.id);
+                    _r.aimePas.remove(opt.id);
                   }
                 });
               },
@@ -2419,7 +2222,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 (_) => setState(() => _avecUnPlat = true)),
             _buildChoiceChip(tr('Non, seul', 'No, on its own'), 'non', choix, (_) => setState(() {
                   _avecUnPlat = false;
-                  _foodPairingSynergy = null;
+                  _r.accordAvecLePlat = null;
                 })),
           ],
         ),
@@ -2451,8 +2254,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 (l10n.tastingSynergyNeutral, 'neutral'),
                 (l10n.tastingSynergyClashing, 'clashing'),
               ])
-                _buildChoiceChip(libelle, valeur, _foodPairingSynergy,
-                    (v) => setState(() => _foodPairingSynergy = _foodPairingSynergy == v ? null : v)),
+                _buildChoiceChip(libelle, valeur, _r.accordAvecLePlat,
+                    (v) => setState(() => _r.accordAvecLePlat = _r.accordAvecLePlat == v ? null : v)),
             ],
           ),
         ],
@@ -2733,20 +2536,17 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                               // Apply parsed notes for current taster
                               final parsed = res.profiles[currentTasterName] ?? res.profiles.values.firstOrNull;
                               if (parsed != null && mounted) {
-                                setState(() {
-                                  _noteSlider = parsed.noteOutOf10;
-                                  _emojiIndex = parsed.emojiImpression;
-                                  _selectedAromas = parsed.perceivedAromas;
-                                  _acidity = parsed.acidity;
-                                  if (parsed.tannins != null && _showTannins) {
-                                    _tannins = parsed.tannins!;
-                                  }
-                                  if (parsed.mineralite != null && !_showTannins) {
-                                    _mineralite = parsed.mineralite!;
-                                  }
-                                  _body = parsed.body;
-                                  _length = parsed.length;
-                                });
+                                setState(() => _r.appliquerLaDictee(
+                                      vin: _vin,
+                                      note: parsed.noteOutOf10,
+                                      visage: parsed.emojiImpression,
+                                      aromes: parsed.perceivedAromas,
+                                      acidite: parsed.acidity,
+                                      tanins: parsed.tannins,
+                                      mineralite: parsed.mineralite,
+                                      corps: parsed.body,
+                                      longueur: parsed.length,
+                                    ));
                               }
 
                               if (mounted && context.mounted && parentContext.mounted) {
@@ -3014,7 +2814,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '${_noteSlider.toStringAsFixed(1)} / 10',
+                      '${_r.note.toStringAsFixed(1)} / 10',
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                   ),
@@ -3025,13 +2825,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: List.generate(5, (i) {
-                  final isSelected = i == _emojiIndex;
+                  final isSelected = i == _r.visage;
                   return GestureDetector(
                     onTap: () {
-                      setState(() {
-                        _emojiIndex = i;
-                        _noteSlider = [3.0, 5.0, 7.0, 8.5, 9.5][i];
-                      });
+                      setState(() => _r.choisirLeVisage(i));
                       HapticFeedback.selectionClick();
                     },
                     child: AnimatedContainer(
@@ -3053,20 +2850,19 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               const SizedBox(height: 4),
               Center(
                 child: Text(
-                  emojiDescs[_emojiIndex],
+                  emojiDescs[_r.visage],
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF8B1E3F)),
                 ),
               ),
               Slider(
-                value: _noteSlider,
+                value: _r.note,
                 min: 1,
                 max: 10,
                 divisions: 18,
                 activeColor: const Color(0xFF8B1E3F),
-                label: _noteSlider.toStringAsFixed(1),
+                label: _r.note.toStringAsFixed(1),
                 onChanged: (v) => setState(() {
-                  _noteSlider = v;
-                  _emojiIndex = TastingQuestionnaireResult.emojiIndexForRating(v);
+                  _r.reglerLaNote(v);
                 }),
               ),
             ],
@@ -3104,27 +2900,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               const SizedBox(height: 6),
               Row(
                 children: TastingQuestionnaireResult.textureOptions.map((opt) {
-                  final isSelected = _selectedMouthfeelTexture == opt.id;
+                  final isSelected = _r.texture == opt.id;
                   return Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 3),
                       child: InkWell(
                         onTap: () {
-                          setState(() {
-                            _selectedMouthfeelTexture = isSelected ? null : opt.id;
-                            if (!isSelected) {
-                              if (opt.id == 'silky_lacy') {
-                                _tannins = 0.40;
-                                _acidity = 0.55;
-                              } else if (opt.id == 'crisp_salivating') {
-                                _acidity = 0.80;
-                                _mineralite = 0.75;
-                              } else if (opt.id == 'dense_structured') {
-                                _body = 0.80;
-                                _tannins = 0.80;
-                              }
-                            }
-                          });
+                          setState(() => _r.basculerLaTexture(opt.id));
                           HapticFeedback.selectionClick();
                         },
                         borderRadius: BorderRadius.circular(12),
@@ -3172,26 +2954,13 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               const SizedBox(height: 6),
               Row(
                 children: TastingQuestionnaireResult.fruitProfileOptions.map((opt) {
-                  final isSelected = _selectedFruitProfile == opt.id;
+                  final isSelected = _r.fruit == opt.id;
                   return Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 3),
                       child: InkWell(
                         onTap: () {
-                          setState(() {
-                            _selectedFruitProfile = isSelected ? null : opt.id;
-                            if (!isSelected) {
-                              if (opt.id == 'crunchy_tart') {
-                                _selectedAromas.add('fruits_rouges');
-                                _acidity = 0.70;
-                              } else if (opt.id == 'deep_ripe') {
-                                _selectedAromas.add('fruits_noirs');
-                                _body = 0.70;
-                              } else if (opt.id == 'spicy_herbal') {
-                                _selectedAromas.add('epices_vives');
-                              }
-                            }
-                          });
+                          setState(() => _r.basculerLeFruit(opt.id));
                           HapticFeedback.selectionClick();
                         },
                         borderRadius: BorderRadius.circular(12),
@@ -3252,9 +3021,9 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                     '2. ${l10n.tastingStepNezNav}',
                     style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  if (_selectedAromas.isNotEmpty || _customAromas.isNotEmpty)
+                  if (_r.aromes.isNotEmpty || _r.aromesLibres.isNotEmpty)
                     Text(
-                      tr('{v1} sélectionné(s)', '{v1} selected', {'v1': _selectedAromas.length + _customAromas.length}),
+                      tr('{v1} sélectionné(s)', '{v1} selected', {'v1': _r.aromes.length + _r.aromesLibres.length}),
                       style: const TextStyle(fontSize: 11, color: Color(0xFF8B1E3F), fontWeight: FontWeight.w600),
                     ),
                 ],
@@ -3265,7 +3034,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 runSpacing: 6,
                 children: [
                   ...aromaList.map((aroma) {
-                    final isSelected = _selectedAromas.contains(aroma.id);
+                    final isSelected = _r.aromes.contains(aroma.id);
                     return FilterChip(
                       selected: isSelected,
                       label: Text('${aroma.emoji} ${aroma.localizedLabel(l10n)}', style: const TextStyle(fontSize: 12)),
@@ -3274,16 +3043,16 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                       onSelected: (val) {
                         setState(() {
                           if (val) {
-                            _selectedAromas.add(aroma.id);
+                            _r.aromes.add(aroma.id);
                           } else {
-                            _selectedAromas.remove(aroma.id);
+                            _r.aromes.remove(aroma.id);
                           }
                         });
                         HapticFeedback.selectionClick();
                       },
                     );
                   }),
-                  ..._customAromas.map((customAroma) {
+                  ..._r.aromesLibres.map((customAroma) {
                     return InputChip(
                       avatar: const Icon(Icons.star, size: 14, color: Color(0xFFD4AF37)),
                       label: Text(customAroma, style: const TextStyle(fontSize: 12)),
@@ -3292,7 +3061,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                       checkmarkColor: const Color(0xFFD4AF37),
                       onDeleted: () {
                         setState(() {
-                          _customAromas.remove(customAroma);
+                          _r.aromesLibres.remove(customAroma);
                         });
                       },
                     );
@@ -3330,8 +3099,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               _buildSliderRow(
                 leftLabel: l10n.tastingAcidityFlat,
                 rightLabel: l10n.tastingAciditySharp,
-                value: _acidity,
-                onChanged: (v) => setState(() => _acidity = v),
+                value: _r.acidite,
+                onChanged: (v) => setState(() => _r.acidite = v),
               ),
               // Tanins (reds)
               if (_showTannins) ...[
@@ -3340,8 +3109,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 _buildSliderRow(
                   leftLabel: l10n.tastingTanninsSilky,
                   rightLabel: l10n.tastingTanninsGrippy,
-                  value: _tannins,
-                  onChanged: (v) => setState(() => _tannins = v),
+                  value: _r.tanins,
+                  onChanged: (v) => setState(() => _r.tanins = v),
                 ),
               ],
               // Minéralité (whites/rosés)
@@ -3351,8 +3120,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 _buildSliderRow(
                   leftLabel: l10n.tastingMineralityRound,
                   rightLabel: l10n.tastingMineralityCrisp,
-                  value: _mineralite,
-                  onChanged: (v) => setState(() => _mineralite = v),
+                  value: _r.mineralite,
+                  onChanged: (v) => setState(() => _r.mineralite = v),
                 ),
               ],
               // Effervescence (sparkling)
@@ -3362,8 +3131,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 _buildSliderRow(
                   leftLabel: l10n.tastingEffervescenceDelicate,
                   rightLabel: l10n.tastingEffervescenceVibrant,
-                  value: _effervescence,
-                  onChanged: (v) => setState(() => _effervescence = v),
+                  value: _r.effervescence,
+                  onChanged: (v) => setState(() => _r.effervescence = v),
                 ),
               ],
               const SizedBox(height: 8),
@@ -3381,8 +3150,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               _buildSliderRow(
                 leftLabel: l10n.tastingLengthShort,
                 rightLabel: l10n.tastingLengthLong,
-                value: _length,
-                onChanged: (v) => setState(() => _length = v),
+                value: _r.longueur,
+                onChanged: (v) => setState(() => _r.longueur = v),
               ),
             ],
           ),
@@ -3415,22 +3184,22 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                   _buildChoiceChip(
                     l10n.tastingBuyAgainYes,
                     'yes',
-                    _wouldBuyAgain,
-                    (v) => setState(() => _wouldBuyAgain = v),
+                    _r.racheter,
+                    (v) => setState(() => _r.racheter = v),
                   ),
                   const SizedBox(width: 6),
                   _buildChoiceChip(
                     l10n.tastingBuyAgainMaybe,
                     'maybe',
-                    _wouldBuyAgain,
-                    (v) => setState(() => _wouldBuyAgain = v),
+                    _r.racheter,
+                    (v) => setState(() => _r.racheter = v),
                   ),
                   const SizedBox(width: 6),
                   _buildChoiceChip(
                     l10n.tastingBuyAgainNo,
                     'no',
-                    _wouldBuyAgain,
-                    (v) => setState(() => _wouldBuyAgain = v),
+                    _r.racheter,
+                    (v) => setState(() => _r.racheter = v),
                   ),
                 ],
               ),
@@ -3521,8 +3290,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               final val = textController.text.trim();
               if (val.isNotEmpty) {
                 setState(() {
-                  if (!_customAromas.contains(val)) {
-                    _customAromas.add(val);
+                  if (!_r.aromesLibres.contains(val)) {
+                    _r.aromesLibres.add(val);
                   }
                 });
               }

@@ -1,3 +1,4 @@
+import '../../journal/domain/tasting_questionnaire_result.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import 'menu_table_matcher_engine.dart';
 import 'menu_wine.dart';
@@ -80,13 +81,11 @@ class EtatDeTable {
       );
 }
 
-/// Noter d'un geste : cinq visages, et ce que chacun vaut sur dix.
-///
-/// Le milieu de chaque tranche de `TastingQuestionnaireResult.emojiIndexForRating` : relue
-/// par le journal, une note donnée d'un geste retombe sur le même visage.
+/// Noter d'un geste : cinq visages, et ce que chacun vaut sur dix — les mêmes que le
+/// questionnaire : relue par le journal, une note donnée d'un geste retombe sur son visage.
 class NoteDUnGeste {
-  static const visages = ['😖', '😕', '😐', '😊', '😍'];
-  static const notes = [2.5, 4.5, 6.5, 8.0, 9.5];
+  static const visages = TastingQuestionnaireResult.emojiLabels;
+  static const notes = TastingQuestionnaireResult.notesDesVisages;
 }
 
 /// Le résultat de la table, publié par l'hôte pour la page invité (V2.3 · F1).

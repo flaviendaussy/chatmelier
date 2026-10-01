@@ -238,6 +238,11 @@ class TastingQuestionnaireResult {
     ];
   }
 
+  /// La note que donne chaque visage : le questionnaire guidé, le mode express et le geste
+  /// de fin de soirée donnent la même au même visage (le mode express donnait 7 au 😐,
+  /// le guidé 6,5). Chacune retombe sur son visage par [emojiIndexForRating].
+  static const List<double> notesDesVisages = [2.5, 4.5, 6.5, 8.0, 9.5];
+
   static int emojiIndexForRating(double rating) {
     if (rating >= 9.0) return 4; // 😍
     if (rating >= 7.5) return 3; // 😊

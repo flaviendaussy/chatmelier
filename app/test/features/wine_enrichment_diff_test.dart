@@ -64,7 +64,8 @@ void main() {
       expect(appliedPayload, isNotNull);
       expect(appliedPayload!['peak_drinking_start'], 2028);
       expect(appliedPayload!['classification'], 'Premier Grand Cru Classé');
-      expect(appliedPayload!['is_verified_online'], true);
+      // Un enrichissement par l'IA ne vérifie rien : le drapeau n'est plus posé (30/09).
+      expect(appliedPayload!.containsKey('is_verified_online'), isFalse);
       expect(updatedOverrides, isNotNull);
     });
 

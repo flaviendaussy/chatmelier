@@ -120,11 +120,16 @@ class ScanService {
   }
 
   /// Uploads photo to Supabase storage bucket 'labels' (Web & Mobile compatible)
+  ///
+  /// [rattacherALaBouteille] faux pour une photo sans bouteille en cave (dégustation hors
+  /// cave) : la ligne `bottle_photos` exige une bouteille existante, et l'essai
+  /// d'insertion échouait à chaque fois (30/09).
   Future<String?> uploadPhoto({
     required String bottleId,
     String? imagePath,
     Uint8List? imageBytes,
     File? file,
+    bool rattacherALaBouteille = true,
   }) async {
     try {
       final user = _client.auth.currentUser;
@@ -164,7 +169,7 @@ class ScanService {
       final publicUrl = _client.storage.from('labels').getPublicUrl(fileName);
 
       // Save to bottle_photos table only if bottleId is a valid UUID (not a temporary offline string)
-      if (!bottleId.startsWith('temp_')) {
+      if (rattacherALaBouteille && !bottleId.startsWith('temp_')) {
         try {
           await _client.from('bottle_photos').insert({
             'bottle_id': bottleId,
@@ -327,8 +332,9 @@ class ScanService {
             'peak_drinking_start': row['peak_drinking_start'],
             'peak_drinking_end': row['peak_drinking_end'],
             // Une valeur de marché ne circule que sourcée (V2.3 · B3).
-            'estimated_market_value': (row['is_verified_online'] == true ||
-                    (row['external_links'] is Map && (row['external_links'] as Map)['valeur_source'] != null))
+            // `is_verified_online` n'en est plus la preuve : l'app le posait après chaque
+            // enrichissement par l'IA, qui ne vérifiait rien (30/09).
+            'estimated_market_value': (row['external_links'] is Map && (row['external_links'] as Map)['valeur_source'] != null)
                 ? (row['estimated_market_value'] as num?)?.toDouble()
                 : null,
             'estimated_value_currency': 'EUR',

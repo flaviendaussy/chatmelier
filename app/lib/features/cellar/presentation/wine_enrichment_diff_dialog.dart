@@ -290,7 +290,6 @@ class _WineEnrichmentDiffDialogState extends State<WineEnrichmentDiffDialog> {
       }
     }
 
-    finalPayload['is_verified_online'] = true;
     finalPayload['user_overrides'] = updatedOverrides;
     finalPayload['external_links'] = {'user_overrides': updatedOverrides};
 

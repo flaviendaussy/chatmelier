@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../domain/bottle.dart';
+import '../../../shared/utils/langue.dart';
 
 class CellarExportService {
   static Future<void> exportToCsv({
@@ -46,7 +47,7 @@ class CellarExportService {
         b.quantity,
         b.purchasePrice ?? '',
         b.currency,
-        w?.estimatedMarketValue ?? '',
+        w?.valeurFiable ?? '',
         w?.windowStatus.name ?? b.status,
         w?.drinkStart ?? '',
         w?.drinkEnd ?? '',
@@ -64,76 +65,95 @@ class CellarExportService {
 
     await Share.shareXFiles(
       [XFile(file.path)],
-      text: 'Export de la cave "$cellarName" (${bottles.length} références) - Chatmelier',
+      text: tr('Export de la cave « {cave} » ({n} références) - Chatmelier', 'Export of the cellar "{cave}" ({n} wines) - Chatmelier', {'cave': cellarName, 'n': bottles.length}),
     );
   }
 
+  /// L'inventaire de la cave, avec des valeurs INDICATIVES.
+  ///
+  /// Il s'intitulait « Rapport d'expertise — Certificat de valorisation » et se disait
+  /// « document certifié, transmissible à votre assurance », alors que ses valeurs
+  /// venaient d'estimations de l'IA sans source, ou du prix d'achat (30/09). Rien ici
+  /// n'est une expertise : le document le dit, et renvoie à un professionnel.
   static Future<void> exportInsuranceReport({
     required String cellarName,
     required String userName,
     required List<Bottle> bottles,
   }) async {
-    final dateStr = DateFormat('dd/MM/yyyy à HH:mm').format(DateTime.now());
+    final dateStr = DateFormat(tr('dd/MM/yyyy à HH:mm', 'dd/MM/yyyy, HH:mm')).format(DateTime.now());
     int totalBottles = 0;
     double totalPurchaseVal = 0.0;
     double totalEstimatedVal = 0.0;
+
+    // Seule une valeur sourcée ou saisie par la personne compte ; à défaut, le prix d'achat.
+    double? valeurUnitaire(Bottle b) {
+      final w = b.wine;
+      final v = w?.estimatedMarketValue;
+      if (w != null && v != null && (w.valeurSourcee || w.valeurSaisie)) return v;
+      return b.purchasePrice;
+    }
 
     for (final b in bottles) {
       totalBottles += b.quantity;
       if (b.purchasePrice != null) {
         totalPurchaseVal += b.purchasePrice! * b.quantity;
       }
-      final est = b.wine?.estimatedMarketValue ?? b.purchasePrice ?? 0.0;
-      totalEstimatedVal += est * b.quantity;
+      totalEstimatedVal += (valeurUnitaire(b) ?? 0.0) * b.quantity;
     }
 
     final buffer = StringBuffer();
     buffer.writeln('===========================================================');
-    buffer.writeln('          CHATMELIER - RAPPORT D\'EXPERTISE DE CAVE         ');
-    buffer.writeln('               CERTIFICAT DE VALORISATION                  ');
+    buffer.writeln(tr('          CHATMELIER - INVENTAIRE DE CAVE', '          CHATMELIER - CELLAR INVENTORY'));
+    buffer.writeln(tr('          Valeurs indicatives, sans valeur d\'expertise', '          Indicative values, not a professional appraisal'));
     buffer.writeln('===========================================================');
-    buffer.writeln('Cave : $cellarName');
-    buffer.writeln('Propriétaire : $userName');
-    buffer.writeln('Date d\'émission : $dateStr');
+    buffer.writeln(tr('Cave : {cave}', 'Cellar: {cave}', {'cave': cellarName}));
+    buffer.writeln(tr('Propriétaire : {nom}', 'Owner: {nom}', {'nom': userName}));
+    buffer.writeln(tr('Date : {date}', 'Date: {date}', {'date': dateStr}));
     buffer.writeln('-----------------------------------------------------------');
-    buffer.writeln('SYNTHÈSE PATRIMONIALE :');
-    buffer.writeln('• Nombre total de bouteilles en stock : $totalBottles');
-    buffer.writeln('• Coût d\'acquisition cumulé : ${totalPurchaseVal.toStringAsFixed(2)} €');
-    buffer.writeln('• Valeur marchande estimée (Assurance) : ${totalEstimatedVal.toStringAsFixed(2)} €');
+    buffer.writeln(tr('SYNTHÈSE :', 'SUMMARY:'));
+    buffer.writeln(tr('• Bouteilles en stock : {n}', '• Bottles in stock: {n}', {'n': totalBottles}));
+    buffer.writeln(tr('• Coût d\'acquisition cumulé : {v}', '• Total purchase cost: {v}', {'v': totalPurchaseVal.toStringAsFixed(2)}));
+    buffer.writeln(tr('• Valeur indicative : {v}', '• Indicative value: {v}', {'v': totalEstimatedVal.toStringAsFixed(2)}));
     buffer.writeln('-----------------------------------------------------------');
-    buffer.writeln('INVENTAIRE DÉTAILLÉ DU STOCK :');
+    buffer.writeln(tr('INVENTAIRE DÉTAILLÉ :', 'DETAILED INVENTORY:'));
     buffer.writeln('');
 
     int idx = 1;
     for (final b in bottles) {
       final w = b.wine;
-      final priceStr = b.purchasePrice != null ? '${b.purchasePrice} ${b.currency}' : 'Non renseigné';
-      final valStr = w?.estimatedMarketValue != null ? '${w!.estimatedMarketValue} €' : priceStr;
-      final wineName = w?.name ?? 'Bouteille';
-      final vintageStr = w?.vintage != null ? '(${w!.vintage})' : '(NV)';
-      
+      final nonRenseigne = tr('Non renseigné', 'Not specified');
+      final priceStr = b.purchasePrice != null ? '${b.purchasePrice} ${b.currency}' : nonRenseigne;
+      final valeur = valeurUnitaire(b);
+      final valStr = valeur != null ? valeur.toStringAsFixed(2) : nonRenseigne;
+      final wineName = w?.name ?? tr('Bouteille', 'Bottle');
+      final vintageStr = w?.vintage != null ? '(${w!.vintage})' : tr('(NM)', '(NV)');
+
       buffer.writeln('$idx. $wineName $vintageStr');
-      buffer.writeln('   Domaine : ${w?.producer ?? "Inconnu"} | Terroir : ${w?.region ?? ""} (${w?.country ?? ""})');
-      buffer.writeln('   Quantité : ${b.quantity} btl | Prix achat : $priceStr | Valeur estimée unitaire : $valStr');
-      buffer.writeln('   Emplacement : Casier ${b.rack ?? "-"}, Niveau ${b.shelf ?? "-"}');
-      buffer.writeln('   Fenêtre d\'apogée : ${w?.drinkStart ?? "?"} - ${w?.drinkEnd ?? "?"}');
+      buffer.writeln(tr('   Domaine : {d} | Origine : {r} ({p})', '   Producer: {d} | Origin: {r} ({p})',
+          {'d': w?.producer ?? tr('Inconnu', 'Unknown'), 'r': w?.region ?? '', 'p': w?.country ?? ''}));
+      buffer.writeln(tr('   Quantité : {q} | Prix d\'achat : {a} | Valeur indicative unitaire : {v}',
+          '   Quantity: {q} | Purchase price: {a} | Indicative unit value: {v}', {'q': b.quantity, 'a': priceStr, 'v': valStr}));
+      buffer.writeln(tr('   Emplacement : casier {c}, niveau {n}', '   Location: rack {c}, level {n}', {'c': b.rack ?? '-', 'n': b.shelf ?? '-'}));
+      buffer.writeln(tr('   Fenêtre de dégustation : {d} - {f}', '   Drinking window: {d} - {f}', {'d': w?.drinkStart ?? '?', 'f': w?.drinkEnd ?? '?'}));
       buffer.writeln('');
       idx++;
     }
 
     buffer.writeln('===========================================================');
-    buffer.writeln('Document certifié généré par l\'application Chatmelier.');
-    buffer.writeln('Ce rapport peut être transmis directement à votre compagnie d\'assurance habitation.');
+    buffer.writeln(tr('Document généré par l\'application Chatmelier.', 'Document generated by the Chatmelier app.'));
+    buffer.writeln(tr('Les valeurs sont indicatives : valeur relevée avec sa source, valeur saisie, ou prix d\'achat.',
+        'Values are indicative: a value found with its source, a value you entered, or the purchase price.'));
+    buffer.writeln(tr('Pour une assurance, faites estimer votre cave par un expert.', 'For insurance purposes, have your cellar appraised by an expert.'));
     buffer.writeln('===========================================================');
 
     final tempDir = await getTemporaryDirectory();
-    final fileName = 'rapport_assurance_${cellarName.replaceAll(RegExp(r'\s+'), '_').toLowerCase()}_${DateFormat('yyyyMMdd').format(DateTime.now())}.txt';
+    final fileName = 'inventaire_valeurs_${cellarName.replaceAll(RegExp(r'\s+'), '_').toLowerCase()}_${DateFormat('yyyyMMdd').format(DateTime.now())}.txt';
     final file = File('${tempDir.path}/$fileName');
     await file.writeAsString(buffer.toString());
 
     await Share.shareXFiles(
       [XFile(file.path)],
-      text: 'Rapport d\'assurance et valorisation de cave "$cellarName" ($totalEstimatedVal €)',
+      text: tr('Inventaire de la cave « {cave} » (valeurs indicatives)', 'Inventory of the cellar "{cave}" (indicative values)', {'cave': cellarName}),
     );
   }
 }

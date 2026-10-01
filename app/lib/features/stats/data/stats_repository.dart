@@ -89,9 +89,9 @@ class StatsRepository {
           }
 
           // Robust Valuation: use estimatedMarketValue if present, fallback to purchasePrice
-          if (wine.estimatedMarketValue != null && wine.estimatedMarketValue! > 0) {
+          if (wine.valeurFiable != null && wine.valeurFiable! > 0) {
             final convertedEst = CurrencyHelper.convert(
-              wine.estimatedMarketValue! * b.quantity,
+              wine.valeurFiable! * b.quantity,
               from: 'EUR',
               to: displayCurrency,
             );

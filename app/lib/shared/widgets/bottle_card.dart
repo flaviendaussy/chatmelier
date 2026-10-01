@@ -74,7 +74,7 @@ class BottleCard extends StatelessWidget {
     final status = wine?.windowStatus ?? DrinkWindowStatus.inPeak;
     final maturityColor = _getMaturityColor(status);
     final maturityText = _getMaturityLabel(status, isFr);
-    final displayPrice = bottle.purchasePrice ?? wine?.estimatedMarketValue;
+    final displayPrice = bottle.purchasePrice ?? wine?.valeurFiable;
     final hasAppellation = wine != null && (wine.appellation?.isNotEmpty ?? false);
     final hasRegion = wine != null && wine.region.isNotEmpty;
     final hasRack = bottle.rack != null && bottle.rack!.isNotEmpty;

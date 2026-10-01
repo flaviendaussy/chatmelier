@@ -63,7 +63,7 @@ class BottleListItem extends StatelessWidget {
     final maturityColor = _getMaturityColor(status);
     final maturityText = _getMaturityLabel(status, isFr);
 
-    final displayPrice = bottle.purchasePrice ?? wine?.estimatedMarketValue;
+    final displayPrice = bottle.purchasePrice ?? wine?.valeurFiable;
     final currencySymbol = bottle.currency == 'USD' ? '\$' : (bottle.currency == 'GBP' ? '£' : '€');
 
     return Card(

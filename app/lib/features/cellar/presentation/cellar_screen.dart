@@ -1612,7 +1612,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     final sortedList = _sortBy.sort(filteredList);
     final totalBottles = sortedList.fold<int>(0, (sum, b) => sum + b.quantity);
     final totalValue = sortedList.fold<double>(0.0, (sum, b) {
-      final val = b.wine?.estimatedMarketValue ?? b.purchasePrice ?? 0.0;
+      final val = b.wine?.valeurFiable ?? b.purchasePrice ?? 0.0;
       return sum + (val * b.quantity);
     });
 

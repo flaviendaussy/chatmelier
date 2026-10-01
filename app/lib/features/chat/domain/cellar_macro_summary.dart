@@ -27,8 +27,8 @@ class CellarMacroSummary {
       totalBottlesCount += qty;
       final wine = b.wine;
       if (wine != null) {
-        if (wine.estimatedMarketValue != null) {
-          totalEstimatedValue += wine.estimatedMarketValue! * qty;
+        if (wine.valeurFiable != null) {
+          totalEstimatedValue += wine.valeurFiable! * qty;
         }
 
         switch (wine.windowStatus) {

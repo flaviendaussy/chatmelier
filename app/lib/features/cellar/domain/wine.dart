@@ -178,8 +178,14 @@ class Wine {
   final String? valeurSource;
 
   /// Une valeur qu'on peut montrer : sourcée, ou saisie par la personne elle-même.
-  bool get valeurSourcee => valeurSource != null || isVerifiedOnline;
+  /// `isVerifiedOnline` n'en fait plus partie : l'app le posait après chaque
+  /// enrichissement par l'IA, qui ne vérifiait rien (30/09).
+  bool get valeurSourcee => valeurSource != null;
   bool get valeurSaisie => userOverrides.contains('estimated_market_value');
+
+  /// La valeur de marché qu'on peut additionner, trier ou montrer : sourcée ou saisie.
+  /// Une estimation de l'IA sans source n'est pas une valeur.
+  double? get valeurFiable => (valeurSourcee || valeurSaisie) ? estimatedMarketValue : null;
 
   const Wine({
     required this.id,
@@ -624,8 +630,13 @@ class Wine {
     'is_technical_data_verified': isTechnicalDataVerified,
     if (imageUrl != null) 'image_url': imageUrl,
     if (userOverrides.isNotEmpty) 'user_overrides': userOverrides,
-    if (userOverrides.isNotEmpty)
-      'external_links': {'user_overrides': userOverrides, if (valeurSource != null) 'valeur_source': valeurSource},
+    // La source de la valeur voyage même sans champ saisi : sinon une valeur sourcée
+    // disparaîtrait du cache hors ligne au premier aller-retour.
+    if (userOverrides.isNotEmpty || valeurSource != null)
+      'external_links': {
+        if (userOverrides.isNotEmpty) 'user_overrides': userOverrides,
+        if (valeurSource != null) 'valeur_source': valeurSource,
+      },
   };
 
   Wine copyWith({

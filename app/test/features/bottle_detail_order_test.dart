@@ -33,8 +33,9 @@ void main() {
     test('la description précède l\'apogée et le terroir', () {
       expect(position('TASTING NOTES & FOOD PAIRINGS'),
           lessThan(position('DRINKING WINDOW GAUSSIAN CURVE')));
-      expect(position('VERIFIED VINEYARD KNOWLEDGE'),
-          lessThan(position('DRINKING WINDOW GAUSSIAN CURVE')));
+      // « Histoire & Terroir du Domaine » s'intercalait ici : un gabarit jamais vérifié,
+      // retiré le 30/09 (voir aucune_fausse_garantie_test.dart).
+      expect(source.contains('VERIFIED VINEYARD KNOWLEDGE'), isFalse);
       expect(position('DRINKING WINDOW GAUSSIAN CURVE'),
           lessThan(position('TERROIR & GEOGRAPHY MAP')));
     });

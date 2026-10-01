@@ -220,9 +220,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           }
           // Note: result.tastingNotes is an enological property of the wine, stored on Wine,
           // not user's personal bottle notes (_notesCtrl.text remains clean for user input).
-          if (result.estimatedMarketValue != null && _priceCtrl.text.isEmpty) {
-            _priceCtrl.text = result.estimatedMarketValue!.toStringAsFixed(0);
-          }
+          // Le prix d'achat n'est pas la valeur de marché : on ne le préremplit plus avec
+          // une estimation (30/09). La personne saisit ce qu'elle a payé.
         });
 
         if (runPrompts) {

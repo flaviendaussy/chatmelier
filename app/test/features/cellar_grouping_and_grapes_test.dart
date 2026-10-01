@@ -161,6 +161,7 @@ void main() {
       appellation: 'Oakville',
       vintage: 2018,
       estimatedMarketValue: 380.0,
+      valeurSource: 'https://www.example.org/cote/opus-one-2018',
       grapes: [],
       foodPairings: [],
       criticScores: [],
@@ -188,7 +189,9 @@ void main() {
       final redGroup = sections.firstWhere((s) => s.key == 'red');
       expect(redGroup.bottles.length, equals(3));
       expect(redGroup.totalBottleCount, equals(6)); // 3 + 2 + 1
-      expect(redGroup.totalEstimatedValue, equals(3 * 45.0 + 2 * 75.0 + 1 * 380.0));
+      // Une valeur sans source n'est pas une valeur (30/09) : les deux Bandol comptent à
+      // leur prix d'achat, l'Opus One à sa cote sourcée.
+      expect(redGroup.totalEstimatedValue, equals(3 * 38.0 + 2 * 65.0 + 1 * 380.0));
 
       final whiteGroup = sections.firstWhere((s) => s.key == 'white');
       expect(whiteGroup.bottles.length, equals(1));

@@ -200,7 +200,7 @@ class CellarGroupSection {
   int get totalBottleCount => bottles.fold(0, (sum, b) => sum + b.quantity);
 
   double get totalEstimatedValue => bottles.fold(0.0, (sum, b) {
-        final val = b.wine?.estimatedMarketValue ?? b.purchasePrice ?? 0.0;
+        final val = b.wine?.valeurFiable ?? b.purchasePrice ?? 0.0;
         return sum + (val * b.quantity);
       });
 }

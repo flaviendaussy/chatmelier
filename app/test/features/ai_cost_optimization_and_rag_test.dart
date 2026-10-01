@@ -109,6 +109,7 @@ void main() {
           region: 'Bourgogne',
           appellation: 'Chablis',
           estimatedMarketValue: 40.0,
+          userOverrides: ['estimated_market_value'],
           drinkStart: 2022,
           drinkEnd: 2028,
           peakStart: 2024,
@@ -137,6 +138,7 @@ void main() {
           region: 'Bordeaux',
           appellation: 'Pauillac',
           estimatedMarketValue: 160.0,
+          valeurSource: 'https://www.example.org/cote/lynch-bages-2016',
           drinkStart: 2024,
           drinkEnd: 2040,
           peakStart: 2026,
@@ -160,7 +162,9 @@ void main() {
       final summary = CellarMacroSummary.generate(bottles);
 
       expect(summary, contains('Total en cave : 9 bouteilles'));
-      expect(summary, contains('Valeur estimée'));
+      // 40 × 3 (saisie) + 160 × 4 (sourcée) ; les 25 € du Sancerre, estimés par l'IA sans
+      // source, ne comptent pas.
+      expect(summary, contains('Valeur estimée : ~760 €'));
       expect(summary, contains('Blancs (5)'));
       expect(summary, contains('Chablis (3)'));
       expect(summary, contains('Sancerre (2)'));

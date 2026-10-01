@@ -25,7 +25,7 @@ class CellarPdfExportService {
 
     for (final b in activeBottles) {
       totalBottleCount += b.quantity;
-      final est = b.wine?.estimatedMarketValue ?? b.purchasePrice ?? 0.0;
+      final est = b.wine?.valeurFiable ?? b.purchasePrice ?? 0.0;
       totalEstValue += est * b.quantity;
       final status = b.wine?.windowStatus;
       if (status == DrinkWindowStatus.inPeak || status == DrinkWindowStatus.drinkSoon) {
@@ -218,8 +218,8 @@ class CellarPdfExportService {
                           : (w?.windowStatus.labelFr ?? '-');
                       final location = b.rack != null ? '${b.rack}${b.shelf != null ? "-${b.shelf}" : ""}' : '-';
                       final qte = '${b.quantity}';
-                      final price = w?.estimatedMarketValue != null
-                          ? '${w!.estimatedMarketValue!.toStringAsFixed(0)} €'
+                      final price = w?.valeurFiable != null
+                          ? '${w!.valeurFiable!.toStringAsFixed(0)} €'
                           : (b.purchasePrice != null ? '${b.purchasePrice!.toStringAsFixed(0)} €' : '-');
 
                       return [name, vintage, regionApp, grapes, apogee, location, qte, price];

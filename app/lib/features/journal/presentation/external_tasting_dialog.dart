@@ -283,6 +283,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           bottleId: const Uuid().v4(),
           imagePath: picked.path,
           imageBytes: bytes,
+          rattacherALaBouteille: false,
         );
         if (publicUrl != null && mounted) {
           setState(() => _photoUrl = publicUrl);

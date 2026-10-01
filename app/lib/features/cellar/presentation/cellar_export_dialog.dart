@@ -94,7 +94,7 @@ class CellarExportDialog extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
 
-          // Option 4: Rapport d'Assurance
+          // Option 4: inventaire avec valeurs (indicatives)
           ListTile(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -104,8 +104,8 @@ class CellarExportDialog extends ConsumerWidget {
               backgroundColor: Color(0xFFEDE7F6),
               child: Icon(Icons.security, color: Color(0xFF512DA8)),
             ),
-            title: Text(tr('Rapport d\'Assurance Certifié', 'Certified insurance report'), style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(tr('Certificat de valorisation patrimoniale', 'Valuation certificate')),
+            title: Text(tr('Inventaire avec valeurs', 'Inventory with values'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(tr('Valeurs indicatives, sans valeur d\'expertise', 'Indicative values, not a professional appraisal')),
             onTap: () async {
               Navigator.pop(context);
               await CellarExportService.exportInsuranceReport(

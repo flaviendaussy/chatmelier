@@ -304,13 +304,13 @@ enum CellarSortBy {
           return (wineA?.name ?? '').compareTo(wineB?.name ?? '');
 
         case CellarSortBy.priceDesc:
-          final valA = wineA?.estimatedMarketValue ?? a.purchasePrice ?? 0.0;
-          final valB = wineB?.estimatedMarketValue ?? b.purchasePrice ?? 0.0;
+          final valA = wineA?.valeurFiable ?? a.purchasePrice ?? 0.0;
+          final valB = wineB?.valeurFiable ?? b.purchasePrice ?? 0.0;
           return valB.compareTo(valA);
 
         case CellarSortBy.priceAsc:
-          final valA = wineA?.estimatedMarketValue ?? a.purchasePrice ?? 999999.0;
-          final valB = wineB?.estimatedMarketValue ?? b.purchasePrice ?? 999999.0;
+          final valA = wineA?.valeurFiable ?? a.purchasePrice ?? 999999.0;
+          final valB = wineB?.valeurFiable ?? b.purchasePrice ?? 999999.0;
           return valA.compareTo(valB);
 
         case CellarSortBy.recentlyAdded:

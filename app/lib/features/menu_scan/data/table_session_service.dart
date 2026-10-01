@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
+import '../domain/fin_de_soiree.dart';
 import '../domain/menu_wine.dart';
 
 /// Ce que l'ouverture d'une table rend.
@@ -178,6 +179,48 @@ class TableSessionService {
   }
 
   Future<List<GuestProfile>> convives(String code) async => await lireConvives(code) ?? const [];
+
+  /// L'hôte indique ce que la table a commandé (V2.3 · E2) : chaque convive pourra le noter
+  /// d'un geste. Une liste vide efface le choix. Vrai si le serveur l'a pris.
+  Future<bool> choisirVins(String code, List<VinChoisi> vins) async {
+    try {
+      await _client.rpc('choisir_vins_de_table', params: {
+        'p_code': code.trim().toUpperCase(),
+        'p_choix': [for (final v in vins.take(3)) v.toJson()],
+      });
+      return true;
+    } catch (e) {
+      AppLogger.warning('TABLE', 'Choix des vins non enregistré ($code) : $e');
+      return false;
+    }
+  }
+
+  /// L'hôte publie le résultat de sa table, pour la page invité (V2.3 · F1).
+  Future<bool> publierResultat(String code, Map<String, dynamic> resultat) async {
+    try {
+      await _client.rpc('publier_resultat_table', params: {
+        'p_code': code.trim().toUpperCase(),
+        'p_resultat': resultat,
+      });
+      return true;
+    } catch (e) {
+      AppLogger.debug('TABLE', 'Résultat de la table non publié ($code) : $e');
+      return false;
+    }
+  }
+
+  /// Ce que la table a choisi et publié, ou `null` si la lecture échoue — réseau, table
+  /// expirée, ou fonction absente tant que la migration 057 n'est pas appliquée.
+  Future<EtatDeTable?> lireEtat(String code) async {
+    try {
+      final res = await _client.rpc('lire_etat_table', params: {'p_code': code.trim().toUpperCase()});
+      final row = _premiere(res);
+      return row == null ? null : EtatDeTable.fromRow(row);
+    } catch (e) {
+      AppLogger.debug('TABLE', 'État de la table illisible ($code) : $e');
+      return null;
+    }
+  }
 
   /// Les fonctions renvoient une table d'une ligne ; PostgREST la rend en liste.
   static Map<String, dynamic>? _premiere(dynamic res) {

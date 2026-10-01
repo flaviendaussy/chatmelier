@@ -27,6 +27,8 @@ import '../../auth/domain/evening_summary.dart';
 import '../../auth/presentation/keep_evening_sheet.dart';
 import '../../../shared/utils/langue.dart';
 import 'carte_deux_bouteilles.dart';
+import '../domain/fin_de_soiree.dart';
+import 'note_d_un_geste_sheet.dart';
 
 class MenuTableConsensusGuestScreen extends ConsumerStatefulWidget {
   final String? initialSessionId;
@@ -85,6 +87,11 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
   /// Deux bouteilles, quand une seule laisse trop de convives de côté (E4).
   PaireDeBouteilles? _paire;
+
+  /// Ce que la table a commandé, indiqué par l'hôte (E2), et les notes données ce soir sur
+  /// ce téléphone.
+  List<VinChoisi> _choixDeLaTable = const [];
+  final Map<String, double> _notesDuSoir = {};
   bool _hasJoined = false;
 
   // Tab 1: Carte des Vins
@@ -627,6 +634,10 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     if (code == null || !mounted) return true;
     final lus = await ref.read(tableSessionServiceProvider).lireConvives(code);
     if (lus == null) return false;
+    // Ce que l'hôte a indiqué avoir commandé, pour le noter d'un geste (E2). Sans la
+    // migration 057, `null` : rien ne change.
+    final etat = await ref.read(tableSessionServiceProvider).lireEtat(code);
+    if (etat != null && mounted) setState(() => _choixDeLaTable = etat.choix);
     final distants = lus;
     if (!mounted || distants.isEmpty) return true;
     final moi = _guests.where((g) => g.id == 'guest_me').toList();
@@ -958,6 +969,12 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         ],
 
         // Les plus adaptées à la table, pas les meilleures de la carte.
+        if (_choixDeLaTable.isNotEmpty)
+          CarteDuChoixDeLaTable(
+            choix: _choixDeLaTable,
+            notes: _notesDuSoir,
+            onNoter: (vin) => _noter(vin, menu),
+          ),
         TitreDuClassement(isFr: isFr),
         const SizedBox(height: 12),
 
@@ -1029,6 +1046,20 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
   /// Proposée seulement à un compte anonyme, et seulement s'il y a quelque chose de vrai
   /// à garder : réclamer une adresse pour sauvegarder le vide ne sert à rien.
+  Future<void> _noter(VinChoisi vin, ScannedMenu menu) async {
+    final moi = _monNomAssis?.toLowerCase();
+    final note = await NoteDUnGesteSheet.show(
+      context,
+      vin: vin,
+      restaurant: menu.restaurantName,
+      convives: [
+        for (final g in _guests)
+          if (g.id != 'guest_me' && g.name.trim().toLowerCase() != moi) g.name,
+      ],
+    );
+    if (note != null && mounted) setState(() => _notesDuSoir[vin.cle] = note);
+  }
+
   Widget _carteGarderLaSoiree(bool isFr, ScannedMenu menu) {
     // Un bonus : quoi qu'il arrive (pas de session, pas de fournisseur), l'écran de table
     // doit s'afficher.
@@ -1044,7 +1075,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     if (principal == null) return const SizedBox.shrink();
     final lignes = EveningSummary.lignes(
       profil: principal,
-      verresGoutes: 0,
+      verresGoutes: _notesDuSoir.length,
       nomDuLieu: menu.restaurantName.trim().isEmpty ? null : menu.restaurantName.trim(),
     );
     if (lignes.isEmpty) return const SizedBox.shrink();

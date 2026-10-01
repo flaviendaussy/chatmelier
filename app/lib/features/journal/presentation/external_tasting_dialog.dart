@@ -10,18 +10,15 @@ import '../../../shared/services/cellar_location_service.dart';
 import '../../../shared/services/nearby_places_service.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/widgets/bottle_image_view.dart';
-import '../../offline/domain/offline_action.dart';
-import '../../offline/presentation/sync_provider.dart';
 import '../../scan/data/scan_service.dart';
 import '../../friends/data/friends_repository.dart';
 import '../../friends/domain/friend.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../auth/data/taste_profile_service.dart';
-import '../../cellar/domain/wine.dart';
 import 'journal_screen.dart';
 import '../domain/tasting_questionnaire_result.dart';
 import 'tasting_questionnaire_sheet.dart';
-import '../../offline/data/offline_storage_service.dart';
+import '../data/degustation_rapide.dart';
 
 class ExternalTastingDialog extends ConsumerStatefulWidget {
   final String? initialWineName;
@@ -102,8 +99,6 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   String? _fruitProfile;
   String? _wouldBuyAgain;
 
-  bool get _hasSipData =>
-      _mouthfeelTexture != null || _fruitProfile != null || _wouldBuyAgain != null;
 
   // Friends & Co-tasters
   List<Friend> _friends = [];
@@ -427,9 +422,6 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     }
 
     setState(() => _isSaving = true);
-    final supabase = ref.read(supabaseProvider);
-    final offlineStorage = ref.read(offlineStorageServiceProvider);
-    final user = supabase.auth.currentUser;
 
     final vintage = int.tryParse(_vintageController.text.trim());
     final producer = _producerController.text.trim();
@@ -456,231 +448,28 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
       }
     }
 
-    final wineId = const Uuid().v4();
-    final tastingId = const Uuid().v4();
-
     try {
-      bool savedOnline = false;
-      if (user != null) {
-        // Create wine record in database.
-        //
-        // La colonne s'appelle `wine_type`. Avec `type`, l'insert échouait à chaque fois
-        // (PGRST204), la dégustation butait ensuite sur la clé étrangère, et elle finissait
-        // dans une file que la synchronisation ne savait pas vider : le Margaux du 16/09.
-        var wineCreated = false;
-        try {
-          await supabase.from('wines').insert({
-            'id': wineId,
-            'name': wineName,
-            'producer': producer.isNotEmpty ? producer : null,
-            'vintage': vintage,
-            'wine_type': _wineType,
-            'region': region.isNotEmpty ? region : 'Autre',
-            'image_url': _photoUrl,
-          });
-          wineCreated = true;
-        } catch (e) {
-          AppLogger.warning('EXTERNAL_TASTING', 'Could not insert standalone wine, queueing the tasting: $e');
-        }
-
-        // Sans le vin, la clé étrangère refuse la dégustation à coup sûr : on la confie
-        // directement à la file, qui recréera le vin sous le même identifiant.
-        if (wineCreated) {
-        // Insert into tasting_log
-        try {
-          await supabase.from('tasting_log').insert({
-            'id': tastingId,
-            'wine_id': wineId,
-            'user_id': user.id,
-            'rating': effectiveRating,
-            'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
-            'food_paired': food.isNotEmpty ? food : null,
-            'tasting_notes': notes.isNotEmpty ? notes : null,
-            'photo_url': _photoUrl,
-            'co_tasters': _selectedCoTasters.toList(),
-            'location_name': occasion.isNotEmpty ? occasion : null,
-            'is_external': true,
-            'rating_scale': 10,
-            'is_favorite': _isFavorite,
-            'consumed_at': DateTime.now().toIso8601String(),
-          });
-          savedOnline = true;
-        } catch (e) {
-          AppLogger.warning('EXTERNAL_TASTING', 'Could not save full tasting_log online ($e), retrying with core schema...');
-          try {
-            await supabase.from('tasting_log').insert({
-              'id': tastingId,
-              'wine_id': wineId,
-              'user_id': user.id,
-              'rating': effectiveRating,
-              'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
-              'food_paired': food.isNotEmpty ? food : null,
-              'tasting_notes': notes.isNotEmpty ? notes : null,
-              'photo_url': _photoUrl,
-              'rating_scale': 10,
-              'consumed_at': DateTime.now().toIso8601String(),
-            });
-            savedOnline = true;
-          } catch (e2) {
-            try {
-              await supabase.from('tasting_log').insert({
-                'id': tastingId,
-                'wine_id': wineId,
-                'user_id': user.id,
-                // Dernier recours, pour une base dont la contrainte est restée à ≤ 5
-                // (migration 027 jamais appliquée en production). On divise sans marquer
-                // l'échelle : arriver ici prouve que 032 n'a pas tourné, donc que la colonne
-                // `rating_scale` n'existe pas encore. La relecture la déduit de son absence.
-                'rating': effectiveRating == null ? null : (effectiveRating / 2.0).clamp(0.0, 5.0),
-                'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
-                'food_paired': food.isNotEmpty ? food : null,
-                'tasting_notes': notes.isNotEmpty ? notes : null,
-                'photo_url': _photoUrl,
-                'consumed_at': DateTime.now().toIso8601String(),
-              });
-              savedOnline = true;
-            } catch (e3) {
-              AppLogger.warning('EXTERNAL_TASTING', 'Could not save online, queueing offline: $e3');
-              savedOnline = false;
-            }
-          }
-        }
-        }
-      }
-
-    // Only queue offline action if online insert failed
-    if (!savedOnline) {
-      await offlineStorage.queueAction(OfflineAction(
-        id: tastingId,
-        type: OfflineActionType.consumeBottle,
-        status: OfflineActionStatus.pending,
-        data: {
-          'tasting_id': tastingId,
-          'wine_id': wineId,
-          'wine_name': wineName,
-          'producer': producer,
-          'vintage': vintage,
-          'region': region,
-          'wine_type': _wineType,
-          'rating': effectiveRating,
-          'occasion': occasion,
-          'food_paired': food,
-          'tasting_notes': notes,
-          'photo_url': _photoUrl,
-          'co_tasters': _selectedCoTasters.toList(),
-          'location_name': occasion.isNotEmpty ? occasion : null,
-          'is_external': true,
-          'rating_scale': 10,
-          'is_favorite': _isFavorite,
-        },
-        createdAt: DateTime.now(),
-      ));
-    }
-
-      // Cache immediately locally for instant display and persistence
-      await offlineStorage.addCachedTasting({
-        // Marque tant que `savedOnline` est faux : voir OfflineStorageService.pendingSyncKey.
-        if (!savedOnline) OfflineStorageService.pendingSyncKey: true,
-        'id': tastingId,
-        'wine_id': wineId,
-        'user_id': user?.id,
-        'rating': effectiveRating,
-        'occasion': occasion.isNotEmpty ? occasion : 'Dégustation hors cave',
-        'food_paired': food.isNotEmpty ? food : null,
-        'tasting_notes': notes.isNotEmpty ? notes : null,
-        'photo_url': _photoUrl,
-        'co_tasters': _selectedCoTasters.toList(),
-        'location_name': occasion.isNotEmpty ? occasion : null,
-        'is_external': true,
-        'rating_scale': 10,
-        'is_favorite': _isFavorite,
-        'consumed_at': DateTime.now().toIso8601String(),
-        'wines': {
-          'id': wineId,
-          'name': wineName,
-          'producer': producer.isNotEmpty ? producer : null,
-          'vintage': vintage,
-          'type': _wineType,
-          'region': region.isNotEmpty ? region : 'Autre',
-          'image_url': _photoUrl,
-        },
-      });
-
-      // Invalidate tasting log
+      // La fiche, la dégustation, la file hors ligne et le palais : le même service que la
+      // fin de soirée d'une table (V2.3 · E2).
+      await ref.read(degustationRapideProvider).enregistrer(VinBuDehors(
+            nom: wineName,
+            producteur: producer,
+            millesime: vintage,
+            region: region,
+            couleur: _wineType,
+            note: effectiveRating,
+            lieu: occasion,
+            plat: food,
+            notes: notes,
+            photoUrl: _photoUrl,
+            convives: _selectedCoTasters.toList(),
+            coupDeCoeur: _isFavorite,
+            texture: _mouthfeelTexture,
+            fruit: _fruitProfile,
+            racheter: _wouldBuyAgain,
+          ));
       ref.invalidate(tastingLogProvider);
-
-      // Reinforce taste profiles for primary user and co-tasters
-      try {
-        final standaloneWine = Wine(
-          id: wineId,
-          name: wineName,
-          producer: producer,
-          vintage: vintage,
-          region: region,
-          country: 'France',
-          type: _wineType,
-          imageUrl: _photoUrl,
-        );
-        final tasteService = ref.read(tasteProfileServiceProvider);
-        final primaryProfile = await tasteService.getPrimaryProfile();
-
-        // Avec une gorgée renseignée, la dégustation passe par le même chemin que le
-        // questionnaire complet : les micro-touches sont déjà câblées sur les axes du
-        // profil, et l'écran cesse d'être un puits sans apprentissage. Sans elle, on garde
-        // le chemin court, qui n'apprend que la région et le cépage.
-        // Les deux chemins incrémentent le compteur : appeler les deux le doublerait.
-        Future<void> learn(String profileId, String profileName) async {
-          // Sans note, rien à apprendre : on n'invente pas un avis.
-          if (effectiveRating == null) return;
-          if (!_hasSipData) {
-            return tasteService.recordTastingExperience(
-              nameOrId: profileId,
-              wine: standaloneWine,
-              rating: effectiveRating,
-              tastingId: tastingId,
-            );
-          }
-          return tasteService.applyQuestionnaireResult(
-            result: TastingQuestionnaireResult(
-              emojiImpression:
-                  TastingQuestionnaireResult.emojiIndexForRating(effectiveRating),
-              noteOutOf10: effectiveRating,
-              // La gorgée ne mesure ni les arômes ni la bouche : on ne prétend pas le
-              // contraire. Les champs restent nuls ou vides plutôt que neutres.
-              perceivedAromas: const {},
-              aromaIntensity: 0.5,
-              acidity: null,
-              body: null,
-              length: 0.5,
-              wouldBuyAgain: _wouldBuyAgain ?? 'maybe',
-              idealMoment: 'repas',
-              whatLikedMost: const {},
-              whatDislikedMost: const {},
-              mouthfeelTexture: _mouthfeelTexture,
-              fruitProfile: _fruitProfile,
-              isExpressMode: true,
-              profileId: profileId,
-              profileName: profileName,
-            ),
-            wineRegion: region.isNotEmpty && region != 'Autre' ? region : null,
-            wineGrapes: null,
-            wineType: _wineType,
-            tastingId: tastingId,
-            wineName: wineName,
-          );
-        }
-
-        await learn(primaryProfile.id, primaryProfile.name);
-        for (final coTaster in _selectedCoTasters) {
-          // Les convives sont désignés par leur nom : `applyQuestionnaireResult` cherche un
-          // profil par identifiant, donc on résout d'abord.
-          final profile = await tasteService.addOrGetProfileByName(coTaster);
-          await learn(profile.id, profile.name);
-        }
-        ref.invalidate(tasteProfilesListProvider);
-      } catch (e) {
-        debugPrint('External tasting profile update notice: $e');
-      }
+      ref.invalidate(tasteProfilesListProvider);
 
       if (mounted) {
         Navigator.pop(context);

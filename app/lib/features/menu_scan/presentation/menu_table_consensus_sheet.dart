@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +19,8 @@ import '../../../shared/utils/app_logger.dart';
 import 'titre_du_classement.dart';
 import '../../../shared/utils/langue.dart';
 import 'carte_deux_bouteilles.dart';
+import '../domain/fin_de_soiree.dart';
+import 'note_d_un_geste_sheet.dart';
 
 class MenuTableConsensusSheet extends ConsumerStatefulWidget {
   final ScannedMenu menu;
@@ -45,6 +48,13 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
 
   /// Deux bouteilles, quand une seule laisse trop de convives de côté (E4).
   PaireDeBouteilles? _paire;
+
+  /// Ce que la table a commandé (E2), et les notes données ce soir sur ce téléphone.
+  final List<VinChoisi> _choix = [];
+  final Map<String, double> _notesDuSoir = {};
+
+  /// Le dernier résultat publié pour la page invité (F1) : on ne republie que s'il change.
+  String? _dernierResultatPublie;
   bool _showQrCode = false;
   late final String _tableSessionId;
 
@@ -270,6 +280,65 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       _top3 = top3;
       _paire = paire;
     });
+    _publierLeResultat(fr);
+  }
+
+  /// Publie le résultat de la table pour la page invité (V2.3 · F1), s'il a changé.
+  ///
+  /// Les raisons sont rédigées sans « vous » : elles seront lues par les convives, pas par
+  /// l'hôte. L'hôte y figure sous le prénom qu'il a donné à la table.
+  void _publierLeResultat(bool fr) {
+    final code = _codeServeur;
+    if (code == null || _tableGuests.isEmpty) return;
+    final convives = [
+      for (final g in _tableGuests)
+        g.id == _idHote && _nomHoteInscrit != null ? g.copie(name: _nomHoteInscrit) : g,
+    ];
+    final podium = MenuTableMatcherEngine.rankTop3WinesForTable(
+      menuWines: widget.menu.wines,
+      guests: convives,
+      isFr: fr,
+    );
+    if (podium.isEmpty) return;
+    final paire = _paire;
+    final resultat = ResultatDeTable.publier(
+      restaurant: widget.menu.restaurantName,
+      langue: Localizations.localeOf(context).languageCode,
+      convives: convives,
+      podium: podium,
+      paire: paire,
+      phraseDeLaPaire: paire == null ? null : RedactionDesRaisons.phraseDeLaPaire(paire, isFr: fr),
+    );
+    final empreinte = jsonEncode(resultat);
+    if (empreinte == _dernierResultatPublie) return;
+    _dernierResultatPublie = empreinte;
+    unawaited(ref.read(tableSessionServiceProvider).publierResultat(code, resultat));
+  }
+
+  bool _estChoisi(MenuWine w) => _choix.any((c) => c.cle == w.cacheKey);
+
+  /// « Nous prenons celle-ci » (V2.3 · E2) : trois bouteilles au plus. Le choix part au
+  /// serveur, où chaque convive le verra pour le noter d'un geste.
+  void _basculerLeChoix(MenuWine w) {
+    setState(() {
+      if (_estChoisi(w)) {
+        _choix.removeWhere((c) => c.cle == w.cacheKey);
+      } else if (_choix.length < 3) {
+        _choix.add(VinChoisi.depuisLaCarte(w));
+      }
+    });
+    final code = _codeServeur;
+    if (code != null) unawaited(ref.read(tableSessionServiceProvider).choisirVins(code, List.of(_choix)));
+  }
+
+  Future<void> _noter(VinChoisi vin) async {
+    final note = await NoteDUnGesteSheet.show(
+      context,
+      vin: vin,
+      restaurant: widget.menu.restaurantName,
+      convives: [for (final g in _tableGuests) if (g.id != _idHote) g.name],
+    );
+    if (note != null && mounted) setState(() => _notesDuSoir[vin.cle] = note);
   }
 
   void _addGuestDialog() {
@@ -530,6 +599,8 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
 
                 // Les plus ADAPTÉES, pas les meilleures : le premier de la carte peut
                 // déplaire à toute la table (retour du 29/09).
+                if (_choix.isNotEmpty)
+                  CarteDuChoixDeLaTable(choix: _choix, notes: _notesDuSoir, onNoter: _noter),
                 TitreDuClassement(isFr: Localizations.localeOf(context).languageCode == 'fr'),
                 const SizedBox(height: 12),
 
@@ -794,6 +865,28 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
               ),
             ),
           ],
+
+          // La boucle de la soirée (E2) : ce que la table commande.
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: _estChoisi(match.menuWine)
+                ? TextButton.icon(
+                    style: TextButton.styleFrom(foregroundColor: const Color(0xFFD4AF37)),
+                    onPressed: () => _basculerLeChoix(match.menuWine),
+                    icon: const Icon(Icons.check_circle, size: 18),
+                    label: Text(trSi(_isFr, 'Choisie ce soir · annuler', 'Chosen tonight · undo')),
+                  )
+                : OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFD4AF37),
+                      side: const BorderSide(color: Color(0xFFD4AF37)),
+                    ),
+                    onPressed: _choix.length >= 3 ? null : () => _basculerLeChoix(match.menuWine),
+                    icon: const Icon(Icons.local_bar_outlined, size: 18),
+                    label: Text(trSi(_isFr, 'Nous prenons celle-ci', 'We\'re having this one')),
+                  ),
+          ),
         ],
       ),
     );

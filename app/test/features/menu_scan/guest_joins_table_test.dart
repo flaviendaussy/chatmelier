@@ -1,6 +1,9 @@
 import 'package:chatmelier/features/auth/data/auth_repository.dart';
 import 'package:chatmelier/features/auth/data/taste_profile_service.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
+import 'package:chatmelier/features/journal/data/degustation_rapide.dart';
+import 'package:chatmelier/features/menu_scan/domain/fin_de_soiree.dart';
+import 'package:chatmelier/shared/utils/langue.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_table_matcher_engine.dart';
 import 'package:chatmelier/features/menu_scan/data/menu_table_session_manager.dart';
 import 'package:chatmelier/features/menu_scan/data/table_session_service.dart';
@@ -49,6 +52,12 @@ class _FausseTable extends Fake implements TableSessionService {
 
   @override
   Future<List<GuestProfile>?> lireConvives(String code) async => aTable;
+
+  /// Ce que l'hôte a indiqué avoir commandé (E2).
+  List<VinChoisi> choix = const [];
+
+  @override
+  Future<EtatDeTable?> lireEtat(String code) async => EtatDeTable(choix: choix);
 }
 
 /// Le palais Chatmelier de l'appareil : douze dégustations, un goût des rouges charpentés.
@@ -58,6 +67,17 @@ class _PalaisDeLAppareil extends Fake implements TasteProfileService {
 
   @override
   Future<TasteProfile> getPrimaryProfile() async => palais ?? const TasteProfile(id: 'vide', name: 'Moi');
+}
+
+/// La dégustation rapide, sans base : on garde ce qui aurait été enregistré.
+class _FausseDegustation extends Fake implements DegustationRapide {
+  VinBuDehors? recu;
+
+  @override
+  Future<({String id, bool enLigne})> enregistrer(VinBuDehors v) async {
+    recu = v;
+    return (id: 'degustation', enLigne: true);
+  }
 }
 
 class _FauxCompte extends Fake implements AuthRepository {
@@ -193,6 +213,56 @@ void main() {
     expect(table.arrivees.single, ('KYZ3YZ', 'Léa'));
     expect(table.profils.single!.neBoitPas, isTrue);
     expect(find.textContaining('without drinking tonight'), findsOneWidget);
+  });
+
+  testWidgets('fin de soirée : l\'hôte a choisi, l\'invité le note d\'un geste (V2.3 · E2)', (tester) async {
+    Langue.code = 'en';
+    addTearDown(() => Langue.code = 'fr');
+    tester.view.physicalSize = const Size(1200, 2600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final table = _FausseTable()
+      ..choix = const [VinChoisi(cle: 'barolo', nom: 'Barolo', producteur: 'Vietti', millesime: 2019)];
+    final degustation = _FausseDegustation();
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        tableSessionServiceProvider.overrideWithValue(table),
+        authRepositoryProvider.overrideWithValue(_FauxCompte()),
+        tasteProfileServiceProvider.overrideWithValue(_PalaisDeLAppareil(null)),
+        degustationRapideProvider.overrideWithValue(degustation),
+      ],
+      child: MaterialApp(
+        home: MenuTableConsensusGuestScreen(codeTable: 'KYZ3YZ', prechargedMenu: _carte),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Paul');
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
+    final refus = find.textContaining('Just my name');
+    await tester.ensureVisible(refus);
+    await tester.tap(refus);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tonight, the table chose'), findsOneWidget);
+    expect(find.text('Barolo 2019'), findsOneWidget);
+    final noter = find.text('Rate it in one tap');
+    await tester.ensureVisible(noter);
+    await tester.tap(noter);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('😊'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final recu = degustation.recu!;
+    expect(recu.nom, 'Barolo');
+    expect(recu.millesime, 2019);
+    expect(recu.note, 8.0);
+    expect(recu.lieu, 'The Kitchin');
+    expect(recu.convives, ['Flavien'], reason: 'les autres convives, pas soi-même');
+    expect(recu.convivesApprennent, isFalse, reason: 'chacun note sur son propre téléphone');
+    expect(find.textContaining('rated'), findsOneWidget);
   });
 
   testWidgets('« Oui, j\'ai un compte » : le palais Chatmelier de l\'appareil part à table', (tester) async {

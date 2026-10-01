@@ -15963,571 +15963,583 @@
   "fr": "Sans préférences déclarées",
   "en": "No stated preferences",
   "es": "Sin preferencias indicadas",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:364"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:371"
  },
  {
   "fr": "Convive",
   "en": "Guest",
   "es": "Comensal",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:369"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:376"
  },
  {
   "fr": "Vous êtes à table sans boire ce soir : les bouteilles se choisissent pour les autres. Si vous changez d'avis, décrivez vos goûts :",
   "en": "You're at the table without drinking tonight: the bottles are chosen for the others. If you change your mind, describe your tastes:",
   "es": "Estás en la mesa sin beber esta noche: las botellas se eligen para los demás. Si cambias de idea, describe tus gustos:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:445"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:452"
  },
  {
   "fr": "Vous êtes à table sans préférences : le classement ne tient pas compte de vos goûts. Décrivez-les quand vous voulez :",
   "en": "You joined without preferences: the ranking ignores your taste. Describe it whenever you like:",
   "es": "Estás en la mesa sin preferencias: la clasificación no tiene en cuenta tus gustos. Descríbelos cuando quieras:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:452"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:459"
  },
  {
   "fr": "Mettre à jour mes préférences",
   "en": "Update my preferences",
   "es": "Actualizar mis preferencias",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:459"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:466"
  },
  {
   "fr": "Vous avez un compte Chatmelier ?",
   "en": "Do you have a Chatmelier account?",
   "es": "¿Tienes una cuenta de Chatmelier?",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:470"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:477"
  },
  {
   "fr": "Oui",
   "en": "Yes",
   "es": "Sí",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:480"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:487"
  },
  {
   "fr": "Votre palais Chatmelier sera utilisé ({questionnairesCompleted} dégustations).",
   "en": "Your Chatmelier palate will be used ({questionnairesCompleted} tastings).",
   "es": "Se usará tu paladar de Chatmelier ({questionnairesCompleted} catas).",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:506"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:513"
  },
  {
   "fr": "Votre palais",
   "en": "Your palate",
   "es": "Tu paladar",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:520"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:527"
  },
  {
   "fr": "Rejoindre avec mon palais",
   "en": "Join with my palate",
   "es": "Unirme con mi paladar",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:539"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:546"
  },
  {
   "fr": "Plutôt décrire mes goûts ici",
   "en": "Describe my tastes here instead",
   "es": "Mejor describir mis gustos aquí",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:547"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:554"
  },
  {
   "fr": "Aucun palais Chatmelier sur cet appareil. Décrivez vos goûts en vingt secondes — c'est facultatif :",
   "en": "No Chatmelier palate on this device. Describe your tastes in twenty seconds — optional:",
   "es": "No hay ningún paladar de Chatmelier en este dispositivo. Describe tus gustos en veinte segundos (es opcional):",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:558"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:565"
  },
  {
   "fr": "Décrivez vos goûts en vingt secondes — c'est facultatif :",
   "en": "Describe your tastes in twenty seconds — optional:",
   "es": "Describe tus gustos en veinte segundos (es opcional):",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:559"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:566"
  },
  {
   "fr": "Valider mes goûts pour la table",
   "en": "Confirm my tastes for the table",
   "es": "Confirmar mis gustos para la mesa",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:565"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:572"
  },
  {
   "fr": "Cette table a expiré : l'hôte ne vous verra pas. Demandez-lui un nouveau code.",
   "en": "This table has expired: the host won't see you. Ask for a new code.",
   "es": "Esta mesa ha caducado: el anfitrión no te verá. Pídele un código nuevo.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:611"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:618"
  },
  {
   "fr": "Pas de réseau : l'hôte ne vous voit pas encore.",
   "en": "No connection: the host can't see you yet.",
   "es": "Sin red: el anfitrión aún no te ve.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:612"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:619"
  },
  {
   "fr": "Réessayer",
   "en": "Retry",
   "es": "Reintentar",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:615"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:622"
  },
  {
   "fr": "Table {code}",
   "en": "Table {code}",
   "es": "Mesa {code}",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:671"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:682"
  },
  {
   "fr": "Rejoignez la table pour voir la carte",
   "en": "Join the table to see the wine list",
   "es": "Únete a la mesa para ver la carta",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:697"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:708"
  },
  {
   "fr": "Votre prénom suffit : la carte arrive dès que vous êtes à table, et vous pourrez décrire vos goûts ensuite.",
   "en": "Your first name is enough: the wine list arrives as soon as you are at the table, and you can describe your tastes afterwards.",
   "es": "Basta con tu nombre: la carta llega en cuanto estás en la mesa, y podrás describir tus gustos después.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:703"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:714"
  },
  {
   "fr": "Rejoindre la table",
   "en": "Join the table",
   "es": "Unirme a la mesa",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:733"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:744"
  },
  {
   "fr": "Carte indisponible",
   "en": "Menu unavailable",
   "es": "Carta no disponible",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:749"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:760"
  },
  {
   "fr": "Cette carte n'a pas pu être chargée",
   "en": "This menu could not be loaded",
   "es": "No se pudo cargar esta carta",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:761"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:772"
  },
  {
   "fr": "Le lien est incomplet ou a expiré. Demandez à la personne qui a scanné la carte de réafficher son QR code, puis scannez-le à nouveau.",
   "en": "The link is incomplete or has expired. Ask whoever scanned the menu to show their QR code again, then scan it once more.",
   "es": "El enlace está incompleto o ha caducado. Pide a quien escaneó la carta que vuelva a mostrar su código QR y escanéalo de nuevo.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:770"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:781"
  },
  {
   "fr": "Menu de Table",
   "en": "Table Menu",
   "es": "Carta de la mesa",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:799"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:810"
  },
  {
   "fr": "Actualiser",
   "en": "Refresh",
   "es": "Actualizar",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:805"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:816"
  },
  {
   "fr": "Consensus",
   "en": "Consensus",
   "es": "Consenso",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:816"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:827"
  },
  {
   "fr": "Carte des Vins",
   "en": "Wine List",
   "es": "Carta de vinos",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:817"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:828"
  },
  {
   "fr": "Flights",
   "en": "Flights",
   "es": "Recorridos",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:818"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:829"
  },
  {
   "fr": "Accords Mets",
   "en": "Food Match",
   "es": "Maridajes",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:819"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:830"
  },
  {
   "fr": "Consensus de Table Multi-Palais",
   "en": "Multi-Palate Table Consensus",
   "es": "Consenso de mesa para varios paladares",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:864"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:875"
  },
  {
   "fr": "Vos préférences à table :",
   "en": "Your palate preferences:",
   "es": "Tus preferencias en la mesa:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:897"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:908"
  },
  {
   "fr": "Rejoindre la table avec vos goûts :",
   "en": "Join the table with your tastes:",
   "es": "Únete a la mesa con tus gustos:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:898"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:909"
  },
  {
   "fr": "Convives à table :",
   "en": "Guests at the table:",
   "es": "Comensales en la mesa:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:912"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:923"
  },
  {
   "fr": "Hôte de la table",
   "en": "Table host",
   "es": "Anfitrión de la mesa",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:931"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:942"
  },
  {
   "fr": "Donner mon avis sur les vins",
   "en": "Give my view on the wines",
   "es": "Dar mi opinión sobre los vinos",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:953"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:964"
  },
  {
   "fr": "Revoir mes {mesAvis_length} avis",
   "en": "Review my {mesAvis_length} views",
   "es": "Revisar mis {mesAvis_length} opiniones",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:954"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:965"
  },
  {
   "fr": "Aucune correspondance trouvée sur cette carte.",
   "en": "No match found on this list.",
   "es": "No se ha encontrado ninguna coincidencia en esta carta.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:968"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:985"
  },
  {
   "fr": "Chatmelier — Sommelier Intelligent",
   "en": "Chatmelier — Your Smart Sommelier",
   "es": "Chatmelier — Sumiller inteligente",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1000"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1017"
  },
  {
   "fr": "L'app arrive bientôt sur iPhone. D'ici là, gardez votre soirée avec un code de reprise, juste au-dessus.",
   "en": "The iPhone app is coming soon. Until then, keep your evening with a recovery code, just above.",
   "es": "La app llegará pronto a iPhone. Mientras tanto, guarda tu velada con un código de recuperación, justo arriba.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1007"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1024"
  },
  {
   "fr": "Gardez votre palais, gérez votre cave et découvrez des accords sur mesure dans l'app Android.",
   "en": "Keep your palate, manage your cellar and discover tailored pairings in the Android app.",
   "es": "Guarda tu paladar, gestiona tu bodega y descubre maridajes a medida en la app de Android.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1008"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1025"
  },
  {
   "fr": "Installer l'app",
   "en": "Install the app",
   "es": "Instalar la app",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1020"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1037"
  },
  {
   "fr": "Rechercher un vin, domaine, appellation...",
   "en": "Search wine, estate, appellation...",
   "es": "Buscar un vino, productor, denominación...",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1105"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1136"
  },
  {
   "fr": "✨ Bulles",
   "en": "✨ Sparkling",
   "es": "✨ Espumosos",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1139"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1170"
  },
  {
   "fr": "⭐ Pépites & Bons Plans",
   "en": "⭐ Gems & Deals",
   "es": "⭐ Joyas y ofertas",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1143"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1174"
  },
  {
   "fr": "{n} vins trouvés",
   "en": "{n} wines found",
   "es": "{n} vinos encontrados",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1163"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1194"
  },
  {
   "fr": "{n} vin trouvé",
   "en": "{n} wine found",
   "es": "{n} vino encontrado",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1164"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1195"
  },
  {
   "fr": "Aucun vin ne correspond à ces critères.",
   "en": "No wine matches these filters.",
   "es": "Ningún vino cumple estos criterios.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1173"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1204"
  },
  {
   "fr": "Verre : ",
   "en": "Glass: ",
   "es": "Copa: ",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1198"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1229"
  },
  {
   "fr": "⭐ Pépite",
   "en": "⭐ Gem",
   "es": "⭐ Joya",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1258"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1289"
  },
  {
   "fr": "🏷️ Bon Plan",
   "en": "🏷️ Deal",
   "es": "🏷️ Oferta",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1268"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1299"
  },
  {
   "fr": "Profil sensoriel estimé :",
   "en": "Estimated sensory profile:",
   "es": "Perfil sensorial estimado:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1346"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1377"
  },
  {
   "fr": "Corps / Puissance",
   "en": "Body / Power",
   "es": "Cuerpo / potencia",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1350"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1381"
  },
  {
   "fr": "Acidité / Fraîcheur",
   "en": "Acidity / Freshness",
   "es": "Acidez / frescor",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1351"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1382"
  },
  {
   "fr": "Tanins & Structure",
   "en": "Tannins & Structure",
   "es": "Taninos y estructura",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1356"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1387"
  },
  {
   "fr": "Minéralité & Tension",
   "en": "Minerality & Tension",
   "es": "Mineralidad y tensión",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1358"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1389"
  },
  {
   "fr": "Parcours Dégustation (Flights)",
   "en": "Tasting Flights",
   "es": "Recorridos de cata",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1438"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1469"
  },
  {
   "fr": "Une progression œnologique sur-mesure composée sur la carte",
   "en": "A tailored sommelier progression composed from this menu",
   "es": "Una progresión enológica a medida, compuesta con la carta",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1442"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1473"
  },
  {
   "fr": "3 Verres (Express)",
   "en": "3 Glasses (Express)",
   "es": "3 copas (exprés)",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1457"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1488"
  },
  {
   "fr": "5 Verres (Grand Sommelier)",
   "en": "5 Glasses (Grand Sommelier)",
   "es": "5 copas (gran sumiller)",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1470"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1501"
  },
  {
   "fr": "bout.",
   "en": "btl",
   "es": "bot.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1551"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1582"
  },
  {
   "fr": "Accords Mets & Vins",
   "en": "Food & Wine Pairings",
   "es": "Maridajes",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1661"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1692"
  },
  {
   "fr": "Trouvez la bouteille idéale de cette carte pour accompagner votre plat",
   "en": "Find the ideal bottle on this menu to accompany your dish",
   "es": "Encuentra en esta carta la botella ideal para acompañar tu plato",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1665"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1696"
  },
  {
   "fr": "Quel plat mangez-vous ? (ex: Côte de bœuf, Saumon, Risotto)",
   "en": "What are you eating? (e.g., Steak, Salmon, Risotto)",
   "es": "¿Qué vas a comer? (p. ej.: chuletón, salmón, risotto)",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1680"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1711"
  },
  {
   "fr": "🥩 Viande Rouge",
   "en": "🥩 Red Meat",
   "es": "🥩 Carne roja",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1705"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1736"
  },
  {
   "fr": "🐟 Poisson & Crustacés",
   "en": "🐟 Fish & Shellfish",
   "es": "🐟 Pescado y marisco",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1707"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1738"
  },
  {
   "fr": "🍗 Volaille",
   "en": "🍗 Poultry",
   "es": "🍗 Aves",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1709"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1740"
  },
  {
   "fr": "🧀 Fromages",
   "en": "🧀 Cheese",
   "es": "🧀 Quesos",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1711"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1742"
  },
  {
   "fr": "🍝 Pâtes & Risotto",
   "en": "🍝 Pasta & Risotto",
   "es": "🍝 Pasta y risotto",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1713"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1744"
  },
  {
   "fr": "🍰 Desserts",
   "en": "🍰 Desserts",
   "es": "🍰 Postres",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1715"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1746"
  },
  {
   "fr": "Aucun vin adapté trouvé sur cette carte.",
   "en": "No suitable wine on this list.",
   "es": "No se ha encontrado ningún vino adecuado en esta carta.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1731"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1762"
  },
  {
   "fr": "{v1}% Accord",
   "en": "{v1}% match",
   "es": "{v1} % de afinidad",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1794"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1825"
  },
  {
   "fr": "Harmonie",
   "en": "match",
   "es": "afinidad",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1883"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1914"
  },
  {
   "fr": "Ajouter un convive à table",
   "en": "Add a guest to the table",
   "es": "Añadir un comensal a la mesa",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:285"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:354"
  },
  {
   "fr": "Prénom du convive",
   "en": "Guest's first name",
   "es": "Nombre del comensal",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:295"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:364"
  },
  {
   "fr": "Profil / Préférences :",
   "en": "Profile / Preferences:",
   "es": "Perfil / preferencias:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:301"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:370"
  },
  {
   "fr": "🍷 Curieux & Éclectique",
   "en": "🍷 Curious & eclectic",
   "es": "🍷 Curioso y ecléctico",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:310"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:379"
  },
  {
   "fr": "🧱 Grands Rouges Puissants & Tanniques",
   "en": "🧱 Big, powerful, tannic reds",
   "es": "🧱 Grandes tintos potentes y tánicos",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:313"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:382"
  },
  {
   "fr": "⚡ Blancs Tendus, Frais & Minéraux",
   "en": "⚡ Taut, crisp, mineral whites",
   "es": "⚡ Blancos tensos, frescos y minerales",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:315"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:384"
  },
  {
   "fr": "🍒 Rouges Fruit Croquant & Souples",
   "en": "🍒 Crunchy, supple fruity reds",
   "es": "🍒 Tintos suaves de fruta crujiente",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:317"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:386"
  },
  {
   "fr": "🕊️ Aversion stricte aux tanins durs",
   "en": "🕊️ No firm tannins at all",
   "es": "🕊️ Aversión total a los taninos duros",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:319"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:388"
  },
  {
   "fr": "Ajouter à table",
   "en": "Add to table",
   "es": "Añadir a la mesa",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:379"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:448"
  },
  {
   "fr": "Convives autour de la table :",
   "en": "Around the table:",
   "es": "Comensales en torno a la mesa:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:467"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:536"
  },
  {
   "fr": "Inviter la table",
   "en": "Invite the table",
   "es": "Invitar a la mesa",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:573"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:644"
  },
  {
   "fr": "Ouverture de la table…",
   "en": "Opening the table…",
   "es": "Abriendo la mesa…",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:578"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:649"
  },
  {
   "fr": "Code {codeServeur} — ou faites scanner le QR",
   "en": "Code {codeServeur} — or let them scan the QR",
   "es": "Código {codeServeur}, o que escaneen el QR",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:580"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:651"
  },
  {
   "fr": "Hors ligne : ajoutez vos convives à la main ci-dessus",
   "en": "Offline: add your guests by hand above",
   "es": "Sin conexión: añade a tus comensales a mano, arriba",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:581"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:652"
  },
  {
   "fr": "CODE DE LA TABLE",
   "en": "TABLE CODE",
   "es": "CÓDIGO DE LA MESA",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:600"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:671"
  },
  {
   "fr": "À saisir dans Chatmelier, onglet Dégustation",
   "en": "Enter it in Chatmelier, Tasting tab",
   "es": "Para introducir en Chatmelier, pestaña Cata",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:618"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:689"
  },
  {
   "fr": "CONSENSUS DE TABLE CHATMELIER",
   "en": "CHATMELIER TABLE CONSENSUS",
   "es": "CONSENSO DE MESA CHATMELIER",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:628"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:699"
  },
  {
   "fr": "Table Chatmelier — code {codeServeur}",
   "en": "Chatmelier table — code {codeServeur}",
   "es": "Mesa Chatmelier — código {codeServeur}",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:637"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:708"
  },
  {
   "fr": "Table Chatmelier",
   "en": "Chatmelier table",
   "es": "Mesa Chatmelier",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:638"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:709"
  },
  {
   "fr": "Rejoins notre table sur Chatmelier pour choisir le vin ensemble ! ",
   "en": "Join our table on Chatmelier to choose the wine together! ",
   "es": "¡Únete a nuestra mesa en Chatmelier para elegir el vino juntos! ",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:653"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:724"
  },
  {
   "fr": "{appel}Code : {codeServeur} — ou clique ici : {lien}",
   "en": "{appel}Code: {codeServeur} — or tap here: {lien}",
   "es": "{appel}Código: {codeServeur}, o pulsa aquí: {lien}",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:655"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:726"
  },
  {
   "fr": "accord",
   "en": "match",
   "es": "afinidad",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:717"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:788"
+ },
+ {
+  "fr": "Choisie ce soir · annuler",
+  "en": "Chosen tonight · undo",
+  "es": "Elegida esta noche · anular",
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:878"
+ },
+ {
+  "fr": "Nous prenons celle-ci",
+  "en": "We're having this one",
+  "es": "Nos quedamos con esta",
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:887"
  },
  {
   "fr": "Comparateur Spider Radar",
@@ -16576,6 +16588,60 @@
   "en": "Red Axes: Tannins • Body • Acidity • Berries • Oak Aging • Minerality • Finish",
   "es": "Ejes de tintos: taninos • potencia • acidez • bayas • crianza • mineralidad • persistencia",
   "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:194"
+ },
+ {
+  "fr": "La note n'a pas pu être enregistrée : réessayez.",
+  "en": "The rating could not be saved: try again.",
+  "es": "No se pudo guardar la nota: inténtalo de nuevo.",
+  "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:72"
+ },
+ {
+  "fr": "Peut-être",
+  "en": "Maybe",
+  "es": "Quizás",
+  "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:81"
+ },
+ {
+  "fr": "Le {vin}, ce soir",
+  "en": "{vin}, tonight",
+  "es": "El {vin}, esta noche",
+  "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:104"
+ },
+ {
+  "fr": "Un geste suffit : votre palais en tiendra compte.",
+  "en": "One tap is enough: your palate will learn from it.",
+  "es": "Un gesto basta: tu paladar lo tendrá en cuenta.",
+  "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:109"
+ },
+ {
+  "fr": "{n} sur 10",
+  "en": "{n} out of 10",
+  "es": "{n} sobre 10",
+  "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:120"
+ },
+ {
+  "fr": "Vous en reprendriez ?",
+  "en": "Would you have it again?",
+  "es": "¿Repetirías?",
+  "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:141"
+ },
+ {
+  "fr": "Ce soir, la table a choisi",
+  "en": "Tonight, the table chose",
+  "es": "Esta noche, la mesa eligió",
+  "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:210"
+ },
+ {
+  "fr": "noté",
+  "en": "rated",
+  "es": "anotado",
+  "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:228"
+ },
+ {
+  "fr": "Le noter d'un geste",
+  "en": "Rate it in one tap",
+  "es": "Anotarlo con un gesto",
+  "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:236"
  },
  {
   "fr": "Aversion aux tanins durs",

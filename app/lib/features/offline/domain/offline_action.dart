@@ -19,6 +19,12 @@ enum OfflineActionStatus {
 }
 
 class OfflineAction {
+  /// Marque, dans les données d'une sortie de cave, que la bouteille a déjà été décomptée
+  /// en base : une nouvelle tentative ne doit pas la décompter une seconde fois. L'écran
+  /// qui a décompté en ligne avant que la dégustation n'échoue met l'action en file avec
+  /// cette marque ; la synchronisation la pose elle-même entre ses deux écritures.
+  static const bouteilleDecompteeKey = '_bouteille_decomptee';
+
   final String id;
   final OfflineActionType type;
   final String? cellarId;

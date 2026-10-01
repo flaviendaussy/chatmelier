@@ -35,10 +35,6 @@ class SyncService {
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
 
-  /// Marque, dans les données d'une action de sortie de cave, que la bouteille a déjà été
-  /// décomptée en base : une nouvelle tentative ne doit pas la décompter une seconde fois.
-  static const _bouteilleDecompteeKey = '_bouteille_decomptee';
-
   SyncService({
     required SupabaseClient supabase,
     required OfflineStorageService offlineStorage,
@@ -385,6 +381,14 @@ class SyncService {
     return null;
   }
 
+  /// Ce que le questionnaire guidé ajoute à une sortie de cave : la cave, le défaut de la
+  /// bouteille (qui l'exclut du modèle de goût) et la dégustation à l'aveugle.
+  Map<String, dynamic> _signauxDeDegustation(Map<String, dynamic> data) => {
+        if (_isValidUuid(data['cellar_id']?.toString())) 'cellar_id': data['cellar_id'],
+        if (data['fault'] != null) 'fault': data['fault'],
+        if (data['is_blind'] == true) 'is_blind': true,
+      };
+
   Future<void> _syncConsumeBottle(OfflineAction action) async {
     final user = _supabase.auth.currentUser;
     final userId = user?.id;
@@ -490,6 +494,7 @@ class SyncService {
           'co_tasters': coTasters,
           'location_name': locationName,
           'is_external': false,
+          ..._signauxDeDegustation(data),
           'consumed_at': action.createdAt.toIso8601String(),
         };
         final fallback = <String, dynamic>{
@@ -521,7 +526,7 @@ class SyncService {
       // Le décompte n'est pas idempotent : s'il a déjà eu lieu lors d'une tentative
       // précédente (dégustation refusée ensuite), on ne le refait pas. La marque est écrite
       // dans l'action AVANT l'insert de la dégustation, pour survivre à son échec.
-      if (data[_bouteilleDecompteeKey] != true) {
+      if (data[OfflineAction.bouteilleDecompteeKey] != true) {
         final currentQuantity = (bottleRes['quantity'] as num?)?.toInt() ?? 1;
         final consumeCount = (data['quantity'] as num?)?.toInt() ?? 1;
 
@@ -537,7 +542,7 @@ class SyncService {
           }).eq('id', bottleId);
         }
         await _offlineStorage.updateAction(action.copyWith(
-          data: {...data, _bouteilleDecompteeKey: true},
+          data: {...data, OfflineAction.bouteilleDecompteeKey: true},
         ));
       }
 
@@ -559,6 +564,7 @@ class SyncService {
             'bottle_owner_id': (data['bottle_owner_id'] ?? bottleRes['owner_id'])?.toString(),
           'bottle_owner_name': data['bottle_owner_name'],
           'is_external': false,
+          ..._signauxDeDegustation(data),
           'consumed_at': action.createdAt.toIso8601String(),
         };
         final fallback = <String, dynamic>{
@@ -596,6 +602,7 @@ class SyncService {
             'bottle_owner_id': data['bottle_owner_id'].toString(),
           'bottle_owner_name': data['bottle_owner_name'],
           'is_external': false,
+          ..._signauxDeDegustation(data),
           'consumed_at': action.createdAt.toIso8601String(),
         };
         final fallback = <String, dynamic>{

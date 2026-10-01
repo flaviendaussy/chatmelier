@@ -262,4 +262,37 @@ void main() {
     expect(base.degustations, hasLength(1));
     expect(stockage.getQueue(), isEmpty);
   });
+
+  test('une dégustation guidée faite hors ligne part avec sa bouteille, son défaut, et une seule fois', () async {
+    final vin = const Uuid().v4();
+    final bouteille = const Uuid().v4();
+    final cave = const Uuid().v4();
+    base.wines[vin] = {'id': vin, 'name': 'Chablis', 'wine_type': 'white'};
+    base.bouteilles[bouteille] = {'id': bouteille, 'wine_id': vin, 'quantity': 2};
+    // Décomptée en ligne, puis la dégustation a échoué : l'écran l'a mise en file marquée.
+    final action = OfflineAction(
+      id: const Uuid().v4(),
+      type: OfflineActionType.consumeBottle,
+      cellarId: cave,
+      data: {
+        OfflineAction.bouteilleDecompteeKey: true,
+        'bottle_id': bouteille,
+        'cellar_id': cave,
+        'wine_id': vin,
+        'quantity': 1,
+        'rating': 6.5,
+        'fault': 'cork',
+        'is_blind': true,
+      },
+    );
+    await stockage.queueAction(action);
+
+    final resultat = await synchroniser();
+
+    expect(resultat.failed, 0, reason: resultat.errors.join('\n'));
+    expect(base.decomptes, 0, reason: 'déjà décomptée en ligne');
+    expect(base.bouteilles[bouteille]!['quantity'], 2);
+    final ligne = base.degustations[action.id]!;
+    expect((ligne['fault'], ligne['is_blind'], ligne['cellar_id']), ('cork', true, cave));
+  });
 }

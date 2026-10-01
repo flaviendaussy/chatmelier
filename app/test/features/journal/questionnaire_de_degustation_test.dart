@@ -2,6 +2,7 @@ import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/friends/domain/friend.dart';
 import 'package:chatmelier/features/journal/domain/questionnaire_de_degustation.dart';
 import 'package:chatmelier/features/journal/domain/tasting_questionnaire_result.dart';
+import 'package:chatmelier/features/offline/domain/offline_action.dart';
 import 'package:chatmelier/shared/utils/langue.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -230,6 +231,37 @@ void main() {
       expect(p['p_notes'], 'Dégustation partagée. Arômes : 🍋 Agrumes');
       expect((p['p_questionnaire_data'] as Map)['profile_id'] ?? (p['p_questionnaire_data'] as Map)['profileId'], 'moi');
     });
+  });
+
+  test('hors ligne, la sortie de cave part en file sous l\'identité de la ligne', () {
+    final ligne = LigneDuQuestionnaire(
+      id: '2b6b1f8e-6f53-4c55-9d1e-3c1c2f3a4b5c',
+      wineId: '9f1d2c3b-4a5e-4f60-8a7b-1c2d3e4f5a6b',
+      userId: 'u1',
+      resultat: null,
+      defaut: 'cork',
+      aLAveugle: true,
+      quand: DateTime.utc(2026, 10, 2, 21),
+    );
+    final enFile = sortieDeCaveEnFile(
+      ligne: ligne,
+      bouteille: 'temp_42',
+      cave: 'cave-1',
+      nomDuVin: 'Chablis',
+      millesime: 2021,
+      bues: 2,
+      dejaDecomptee: true,
+    );
+    expect(enFile.id, ligne.id, reason: 'rejouée, elle retrouve la ligne affichée en attendant');
+    expect(enFile.type, OfflineActionType.consumeBottle);
+    expect(enFile.createdAt, ligne.quand);
+    expect(enFile.data['bottle_id'], 'temp_42', reason: 'une bouteille saisie hors ligne garde son identifiant local');
+    expect((enFile.data['quantity'], enFile.data['fault'], enFile.data['is_blind']), (2, 'cork', true));
+    expect(enFile.data[OfflineAction.bouteilleDecompteeKey], isTrue);
+
+    final aDecompter = sortieDeCaveEnFile(
+        ligne: ligne, bouteille: 'b', nomDuVin: 'Chablis', bues: 1, dejaDecomptee: false);
+    expect(aDecompter.data.containsKey(OfflineAction.bouteilleDecompteeKey), isFalse);
   });
 
   test('la bouteille : la quantité baisse, ou elle sort de la cave avec la dernière', () {

@@ -1,6 +1,7 @@
 import '../../../shared/utils/langue.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../friends/domain/friend.dart';
+import '../../offline/domain/offline_action.dart';
 import 'tasting_questionnaire_result.dart';
 
 // Ce que le questionnaire de dégustation décide, hors de l'écran (V2.3 · I4).
@@ -336,6 +337,37 @@ class LigneDuQuestionnaire {
         'rating': note == null ? null : (note! / 2.0).clamp(0.0, 5.0),
       };
 }
+
+/// La sortie de cave et sa dégustation, mises en file quand le réseau a manqué : la
+/// synchronisation (`OfflineActionType.consumeBottle`) décompte la bouteille — sauf si
+/// c'est déjà fait — puis écrit la dégustation. L'action porte l'identifiant de la ligne
+/// affichée en attendant, pour qu'elles ne fassent qu'une une fois parties.
+OfflineAction sortieDeCaveEnFile({
+  required LigneDuQuestionnaire ligne,
+  required String bouteille,
+  String? cave,
+  required String nomDuVin,
+  int? millesime,
+  String? region,
+  required int bues,
+  required bool dejaDecomptee,
+}) =>
+    OfflineAction(
+      id: ligne.id,
+      type: OfflineActionType.consumeBottle,
+      cellarId: cave,
+      createdAt: ligne.quand,
+      data: {
+        ...ligne.complete(),
+        'bottle_id': bouteille,
+        if (cave != null) 'cellar_id': cave,
+        'wine_name': nomDuVin,
+        'vintage': millesime,
+        'region': region,
+        'quantity': bues,
+        if (dejaDecomptee) OfflineAction.bouteilleDecompteeKey: true,
+      },
+    );
 
 /// Ce que devient la bouteille après la dégustation : la quantité baisse, ou elle sort de
 /// la cave avec la dernière.

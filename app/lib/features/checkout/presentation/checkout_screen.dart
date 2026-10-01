@@ -522,13 +522,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       }
 
       // Only queue offline sync action if remote bottle push failed or tasting push failed
+      // L'action porte l'identifiant de la dégustation : rejouée, elle retrouve la ligne déjà
+      // écrite (ou celle du cache) au lieu d'en créer une seconde. Et une bouteille déjà
+      // décomptée en ligne ne l'est pas une seconde fois.
       if (!bottleSavedOnline || !tastingSavedOnline) {
         await offlineStorage.queueAction(OfflineAction(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: tastingId,
           type: OfflineActionType.consumeBottle,
           cellarId: cellarId,
           status: OfflineActionStatus.pending,
           data: {
+            if (bottleSavedOnline) OfflineAction.bouteilleDecompteeKey: true,
             'bottle_id': bottleId,
             'cellar_id': cellarId,
             'wine_id': _selectedBottle!['wine_id'] as String? ?? '',
@@ -742,10 +746,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final deferredNotes = _notesController.text.trim().isNotEmpty
           ? _notesController.text.trim()
           : tr('Débouché • Dégustation à noter ultérieurement', 'Opened • Tasting notes to add later');
+      // Décidé ici, comme pour une sortie notée : la ligne distante, l'entrée du cache et
+      // l'action en file portent la même identité, et ne font qu'une une fois synchronisées.
+      final tastingId = const Uuid().v4();
 
       final localDeferredEntry = <String, dynamic>{
         OfflineStorageService.pendingSyncKey: true,
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'id': tastingId,
         'wine_id': wineId ?? '',
         if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
         'user_id': user?.id,
@@ -769,6 +776,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       // 1. Insert deferred placeholder tasting log
       if (user != null && wineId != null && wineId.isNotEmpty) {
         final payload = <String, dynamic>{
+          'id': tastingId,
           'wine_id': wineId,
           if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
           'user_id': user.id,
@@ -798,6 +806,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         } catch (insertErr) {
           debugPrint('Deferred tasting log insert notice ($insertErr), retrying with core schema...');
           final corePayload = <String, dynamic>{
+            'id': tastingId,
             'wine_id': wineId,
             if (_isValidUuid(bottleId)) 'bottle_id': bottleId,
             'user_id': user.id,
@@ -858,11 +867,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       if (!bottleSavedOnline || !tastingSavedOnline) {
         await offlineStorage.queueAction(OfflineAction(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: tastingId,
           type: OfflineActionType.consumeBottle,
           cellarId: cellarId,
           status: OfflineActionStatus.pending,
           data: {
+            if (bottleSavedOnline) OfflineAction.bouteilleDecompteeKey: true,
             'bottle_id': bottleId,
             'cellar_id': cellarId,
             'wine_id': _selectedBottle!['wine_id'] as String? ?? '',

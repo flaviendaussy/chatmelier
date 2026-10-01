@@ -345,15 +345,15 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   Future<void> _finalizeTastingAndCheckout() async {
     final supabase = ref.read(supabaseProvider);
     final user = supabase.auth.currentUser;
+    // Lu au besoin : sans bouteille ni session, rien ne touche au stockage local.
+    OfflineStorageService stockage() => ref.read(offlineStorageServiceProvider);
+    final bouteille = (widget.bottleId ?? '').isNotEmpty ? widget.bottleId : null;
 
-    // 1. Decrement bottle in cellar if bottleId is provided
-    if (widget.bottleId != null && widget.bottleId!.isNotEmpty) {
+    // 1. La bouteille sort de la cave.
+    var bouteilleDecomptee = false;
+    if (bouteille != null) {
       try {
-        final bRes = await supabase
-            .from('bottles')
-            .select('quantity, status')
-            .eq('id', widget.bottleId!)
-            .maybeSingle();
+        final bRes = await supabase.from('bottles').select('quantity, status').eq('id', bouteille).maybeSingle();
         await supabase
             .from('bottles')
             .update(bouteilleApresDegustation(
@@ -361,14 +361,18 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               bues: widget.quantityToConsume,
               quand: DateTime.now(),
             ))
-            .eq('id', widget.bottleId!);
-
-        final offlineStorage = ref.read(offlineStorageServiceProvider);
-        if (widget.cellarId != null) {
-          await offlineStorage.applyOfflineConsume(widget.cellarId!, widget.bottleId!);
-        }
+            .eq('id', bouteille);
+        bouteilleDecomptee = true;
       } catch (e) {
-        AppLogger.error('QUESTIONNAIRE', 'Error updating bottle status', e);
+        AppLogger.warning('QUESTIONNAIRE', 'Bouteille non décomptée en ligne, elle partira avec la file : $e');
+      }
+      // La cave affichée suit tout de suite, en ligne ou non, comme à la sortie de cave.
+      if (widget.cellarId != null) {
+        try {
+          await stockage().applyOfflineConsume(widget.cellarId!, bouteille);
+        } catch (e) {
+          AppLogger.warning('QUESTIONNAIRE', 'Cave locale non mise à jour : $e');
+        }
       }
     }
 
@@ -398,7 +402,6 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         defaut: _defaut,
         quand: DateTime.now(),
       );
-      final offlineStorage = ref.read(offlineStorageServiceProvider);
       final localPayload = <String, dynamic>{
         OfflineStorageService.pendingSyncKey: true,
         ...ligne.complete(),
@@ -422,10 +425,31 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               i < essais.length - 1 ? 'tasting_log refusé ($e), essai suivant' : 'tasting_log refusé, gardé en local : $e');
         }
       }
+      final enLigne = inseree != null;
       try {
-        await offlineStorage.addCachedTasting(inseree ?? localPayload);
+        await stockage().addCachedTasting(inseree ?? localPayload);
       } catch (e) {
         AppLogger.error('QUESTIONNAIRE', 'Error caching primary tasting log', e);
+      }
+
+      // Sans réseau, rien ne se perd : la file rejouera ce qui n'est pas parti — la
+      // dégustation, la bouteille, ou les deux. Avant, une dégustation guidée faite hors
+      // ligne restait sur le téléphone, et la bouteille dans la cave.
+      if (bouteille != null && (!enLigne || !bouteilleDecomptee)) {
+        try {
+          await stockage().queueAction(sortieDeCaveEnFile(
+            ligne: ligne,
+            bouteille: bouteille,
+            cave: widget.cellarId,
+            nomDuVin: widget.wineName,
+            millesime: widget.vintage,
+            region: widget.region,
+            bues: widget.quantityToConsume,
+            dejaDecomptee: bouteilleDecomptee,
+          ));
+        } catch (e) {
+          AppLogger.error('QUESTIONNAIRE', 'Sortie de cave non mise en file', e);
+        }
       }
     }
 

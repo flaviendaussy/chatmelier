@@ -26,6 +26,7 @@ import 'titre_du_classement.dart';
 import '../../auth/domain/evening_summary.dart';
 import '../../auth/presentation/keep_evening_sheet.dart';
 import '../../../shared/utils/langue.dart';
+import 'carte_deux_bouteilles.dart';
 
 class MenuTableConsensusGuestScreen extends ConsumerStatefulWidget {
   final String? initialSessionId;
@@ -73,11 +74,17 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   PalaisSaisi? _monPalais;
   bool _sansPreferences = false;
 
+  /// « Je ne bois pas ce soir » (E3).
+  bool _neBoitPas = false;
+
   /// Ses avis au matchmaker de table (clé du vin → avis).
   Map<String, AvisDeTable> _mesAvis = {};
   ScannedMenu? _menu;
   final List<GuestProfile> _guests = [];
   List<MenuTableMatchResult> _top3 = [];
+
+  /// Deux bouteilles, quand une seule laisse trop de convives de côté (E4).
+  PaireDeBouteilles? _paire;
   bool _hasJoined = false;
 
   // Tab 1: Carte des Vins
@@ -238,7 +245,10 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
   void _recalculateConsensus() {
     if (_menu == null || _menu!.wines.isEmpty || _guests.isEmpty) {
-      setState(() => _top3 = []);
+      setState(() {
+        _top3 = [];
+        _paire = null;
+      });
       return;
     }
 
@@ -248,8 +258,14 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       isFr: _isFr,
       idLecteur: _idDuLecteur,
     );
+    final paire = MenuTableMatcherEngine.meilleurePaire(
+      MenuTableMatcherEngine.classerLaCarte(menuWines: _menu!.wines, guests: _guests, isFr: _isFr),
+    );
 
-    setState(() => _top3 = top3);
+    setState(() {
+      _top3 = top3;
+      _paire = paire;
+    });
   }
 
   /// Qui lit cet écran, parmi les convives : notre entrée locale, ou celle que le serveur
@@ -304,12 +320,14 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   void _rejoindreAvec(PalaisSaisi palais) {
     _monPalais = palais;
     _sansPreferences = false;
+    _neBoitPas = false;
     _rejoindre((nom) => palais.versConvive(id: 'guest_me', nom: nom, fr: _isFr));
   }
 
   void _rejoindreAvecLeCompte(TasteProfile palais) {
     final base = GuestProfile.fromTasteProfile(palais);
     _sansPreferences = false;
+    _neBoitPas = false;
     _rejoindre((nom) => GuestProfile(
           id: 'guest_me',
           name: nom,
@@ -321,9 +339,24 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         ));
   }
 
+  /// « Je ne bois pas ce soir » (E3) : à table, sans vin à choisir. Il ne vote pas et ne
+  /// compte pas parmi les buveurs à satisfaire.
+  void _rejoindreSansBoire() {
+    _sansPreferences = true;
+    _neBoitPas = true;
+    _rejoindre((nom) => GuestProfile(
+          id: 'guest_me',
+          name: nom,
+          sansPreferences: true,
+          neBoitPas: true,
+          archetype: 'Ne boit pas ce soir',
+        ));
+  }
+
   /// « Juste mon prénom » : compté à table, sans peser sur le classement.
   void _rejoindreSansPreferences() {
     _sansPreferences = true;
+    _neBoitPas = false;
     _rejoindre((nom) => GuestProfile(
           id: 'guest_me',
           name: nom,
@@ -407,7 +440,14 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       return [
         champNom,
         const SizedBox(height: 10),
-        if (_sansPreferences)
+        if (_neBoitPas)
+          Text(
+            trSi(isFr, 'Vous êtes à table sans boire ce soir : les bouteilles se choisissent pour les autres. '
+                'Si vous changez d\'avis, décrivez vos goûts :', 'You\'re at the table without drinking tonight: the bottles are chosen for the others. '
+                'If you change your mind, describe your tastes:'),
+            style: note,
+          )
+        else if (_sansPreferences)
           Text(
             trSi(isFr, 'Vous êtes à table sans préférences : le classement ne tient pas compte de vos goûts. ' 'Décrivez-les quand vous voulez :', 'You joined without preferences: the ranking ignores your taste. Describe it whenever you like:'),
             style: note,
@@ -525,6 +565,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         libelleValider: trSi(isFr, 'Valider mes goûts pour la table', 'Confirm my tastes for the table'),
         onValider: _rejoindreAvec,
         onJusteMonPrenom: _rejoindreSansPreferences,
+        onJeNeBoisPas: _rejoindreSansBoire,
       ),
     ];
   }
@@ -934,6 +975,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
             final match = entry.value;
             return _buildTopMatchCard(rank, match);
           }),
+        if (_paire != null) CarteDeuxBouteilles(paire: _paire!, isFr: isFr),
 
         const SizedBox(height: 20),
 

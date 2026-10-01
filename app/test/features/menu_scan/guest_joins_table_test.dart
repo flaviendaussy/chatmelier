@@ -180,6 +180,21 @@ void main() {
     expect(find.textContaining('You joined without preferences'), findsOneWidget);
   });
 
+  testWidgets('« Je ne bois pas ce soir » : assis à table, sans voter (V2.3 · E3)', (tester) async {
+    final table = await ouvrir(tester);
+    await tester.enterText(find.byType(TextField).first, 'Léa');
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
+    final sansBoire = find.text('I\'m not drinking tonight');
+    await tester.ensureVisible(sansBoire);
+    await tester.tap(sansBoire);
+    await tester.pumpAndSettle();
+
+    expect(table.arrivees.single, ('KYZ3YZ', 'Léa'));
+    expect(table.profils.single!.neBoitPas, isTrue);
+    expect(find.textContaining('without drinking tonight'), findsOneWidget);
+  });
+
   testWidgets('« Oui, j\'ai un compte » : le palais Chatmelier de l\'appareil part à table', (tester) async {
     final table = await ouvrir(tester, palais: const TasteProfile(
       id: 'moi',

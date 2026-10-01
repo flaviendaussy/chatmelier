@@ -45,11 +45,13 @@ class MenuTableMatcherEngine {
   }) {
     if (menuWines.isEmpty || guests.isEmpty) return [];
 
+    // Qui ne boit pas ce soir est à table, sans vin à choisir : il ne vote pas (E3).
+    final buveurs = [for (final g in guests) if (!g.neBoitPas) g];
     // Ceux qui n'ont rien dit de leurs goûts ne votent pas : leur prêter un palais moyen
     // tirerait la table vers des vins tièdes. S'ils sont seuls, on classe quand même. Un
     // avis donné au matchmaker de table, lui, fait voter.
-    final votants = [for (final g in guests) if (!g.sansPreferences || g.avis.isNotEmpty) g];
-    final jury = votants.isEmpty ? guests : votants;
+    final votants = [for (final g in buveurs) if (!g.sansPreferences || g.avis.isNotEmpty) g];
+    final jury = votants.isNotEmpty ? votants : (buveurs.isNotEmpty ? buveurs : guests);
 
     final results = <MenuTableMatchResult>[];
 
@@ -120,6 +122,54 @@ class MenuTableMatcherEngine {
           aversionAlerts: finalistes[i].aversionAlerts,
         ),
     ];
+  }
+
+  /// Le score à partir duquel un vin plaît à un convive : « l'appréciera » dans les raisons
+  /// (65). À 60, un amateur de grands rouges comptait pour satisfait d'un Grüner Veltliner
+  /// qu'il ne ferait que supporter (« s'en accommodera »), et la table ne voyait jamais
+  /// qu'une seule bouteille la laissait à moitié contente (rejeu du 01/10).
+  static const double seuilDeCouverture = 65;
+
+  /// Combien de buveurs ce vin satisfait.
+  static int couverture(MenuTableMatchResult r) =>
+      r.guestScores.values.where((s) => s >= seuilDeCouverture).length;
+
+  /// Deux bouteilles quand une seule laisse trop de monde de côté (V2.3 · E4).
+  ///
+  /// Le meilleur vin seul doit satisfaire moins de 70 % des buveurs, et la paire au moins
+  /// deux buveurs de plus : sinon une bouteille suffit, et la paire est nulle. Parmi les
+  /// [candidats] premiers du classement, la paire qui satisfait le plus de buveurs, puis
+  /// la plus haute somme des meilleurs scores de chacun.
+  static PaireDeBouteilles? meilleurePaire(List<MenuTableMatchResult> classement, {int candidats = 12}) {
+    if (classement.length < 2) return null;
+    final premier = classement.first;
+    final buveurs = premier.guestScores.keys.toList();
+    final seul = couverture(premier);
+    if (buveurs.length < 3 || seul >= 0.7 * buveurs.length) return null;
+
+    final lot = classement.take(candidats).toList();
+    PaireDeBouteilles? meilleure;
+    var meilleureSomme = -1.0;
+    for (var i = 0; i < lot.length; i++) {
+      for (var j = i + 1; j < lot.length; j++) {
+        var couverts = 0;
+        var somme = 0.0;
+        for (final id in buveurs) {
+          final s = math.max(lot[i].guestScores[id] ?? 0, lot[j].guestScores[id] ?? 0);
+          somme += s;
+          if (s >= seuilDeCouverture) couverts++;
+        }
+        if (meilleure == null ||
+            couverts > meilleure.couverts ||
+            (couverts == meilleure.couverts && somme > meilleureSomme)) {
+          meilleure = PaireDeBouteilles(lot[i], lot[j],
+              couverts: couverts, couvertsParLePremier: seul, buveurs: buveurs.length);
+          meilleureSomme = somme;
+        }
+      }
+    }
+    if (meilleure == null || meilleure.couverts < seul + 2) return null;
+    return meilleure;
   }
 
   static double _calculateGuestWineHarmony(
@@ -199,6 +249,39 @@ class MenuTableMatcherEngine {
   }
 }
 
+/// Deux bouteilles pour la table, et ce qu'elles couvrent ensemble (V2.3 · E4).
+class PaireDeBouteilles {
+  final MenuTableMatchResult premiere;
+  final MenuTableMatchResult seconde;
+
+  /// Les buveurs à qui l'une des deux plaît.
+  final int couverts;
+
+  /// Ceux que le meilleur vin seul aurait satisfaits.
+  final int couvertsParLePremier;
+
+  final int buveurs;
+
+  const PaireDeBouteilles(
+    this.premiere,
+    this.seconde, {
+    required this.couverts,
+    required this.couvertsParLePremier,
+    required this.buveurs,
+  });
+
+  /// Un blanc (ou des bulles) et un rouge : l'un pour l'entrée, l'autre pour le plat.
+  bool get entreeEtPlat => (_clair(premiere.menuWine) && seconde.menuWine.isRed) ||
+      (_clair(seconde.menuWine) && premiere.menuWine.isRed);
+
+  /// Dans l'ordre du repas : le blanc ou les bulles d'abord.
+  (MenuWine, MenuWine) get dansLOrdre => _clair(seconde.menuWine) && premiere.menuWine.isRed
+      ? (seconde.menuWine, premiere.menuWine)
+      : (premiere.menuWine, seconde.menuWine);
+
+  static bool _clair(MenuWine w) => w.isSparkling || (w.isWhite && !w.isRed && !w.isRose);
+}
+
 /// Les raisons des finalistes, rédigées ensemble.
 ///
 /// Caro a lu trois fois « Option intéressante de la carte… » (26/09) : trois phrases
@@ -245,6 +328,25 @@ class RedactionDesRaisons {
   }
 
   static String _majuscule(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
+  /// « Le Sancerre pour l'entrée, le Morgon pour le plat : 6 convives sur 7 y trouvent leur
+  /// compte, contre 3 avec une seule bouteille. »
+  static String phraseDeLaPaire(PaireDeBouteilles p, {bool isFr = true}) {
+    String nom(MenuWine w) => '${w.name}${w.vintage != null ? ' ${w.vintage}' : ''}';
+    final (a, b) = p.dansLOrdre;
+    final valeurs = {
+      'v1': nom(a),
+      'v2': nom(b),
+      'n': p.couverts,
+      'm': p.buveurs,
+      'k': p.couvertsParLePremier,
+    };
+    return p.entreeEtPlat
+        ? trSi(isFr, '{v1} pour l\'entrée, {v2} pour le plat : {n} convives sur {m} y trouvent leur compte, contre {k} avec une seule bouteille.',
+            '{v1} with the starter, {v2} with the main: {n} of {m} guests are happy, against {k} with a single bottle.', valeurs)
+        : trSi(isFr, '{v1} et {v2} : {n} convives sur {m} y trouvent leur compte, contre {k} avec une seule bouteille.',
+            '{v1} and {v2}: {n} of {m} guests are happy, against {k} with a single bottle.', valeurs);
+  }
 
   static String _liste(List<String> noms, bool fr) {
     if (noms.length <= 1) return noms.join();

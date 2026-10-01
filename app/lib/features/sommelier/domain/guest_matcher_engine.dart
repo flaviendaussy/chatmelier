@@ -34,6 +34,10 @@ class GuestProfile {
   /// que ce que le moteur devine.
   final Map<String, String> avis;
 
+  /// « Je ne bois pas ce soir » (V2.3 · E3) : il est à table, mais sans vin à choisir. Il
+  /// ne vote pas et ne compte pas parmi les buveurs à satisfaire.
+  final bool neBoitPas;
+
   const GuestProfile({
     required this.id,
     required this.name,
@@ -46,10 +50,11 @@ class GuestProfile {
     this.radarDistant,
     this.sansPreferences = false,
     this.avis = const {},
+    this.neBoitPas = false,
   });
 
   /// Le même convive, sous un autre identifiant, un autre prénom ou avec d'autres avis.
-  GuestProfile copie({String? id, String? name, Map<String, String>? avis}) => GuestProfile(
+  GuestProfile copie({String? id, String? name, Map<String, String>? avis, bool? neBoitPas}) => GuestProfile(
         id: id ?? this.id,
         name: name ?? this.name,
         avatarUrl: avatarUrl,
@@ -61,6 +66,7 @@ class GuestProfile {
         radarDistant: radarDistant,
         sansPreferences: sansPreferences,
         avis: avis ?? this.avis,
+        neBoitPas: neBoitPas ?? this.neBoitPas,
       );
 
   /// Ce qu'un convive emporte avec lui en rejoignant une table.
@@ -75,6 +81,7 @@ class GuestProfile {
         'favorite_grapes': favoriteGrapes,
         'disliked': dislikedCharacteristics,
         if (sansPreferences) 'sans_preferences': true,
+        if (neBoitPas) 'ne_boit_pas': true,
         if (avis.isNotEmpty) 'avis': avis,
         'radar': {
           'tannin': radar.tannin,
@@ -104,6 +111,7 @@ class GuestProfile {
       favoriteGrapes: liste('favorite_grapes'),
       dislikedCharacteristics: liste('disliked'),
       sansPreferences: json['sans_preferences'] == true,
+      neBoitPas: json['ne_boit_pas'] == true,
       avis: json['avis'] is Map
           ? {for (final e in (json['avis'] as Map).entries) e.key.toString(): e.value.toString()}
           : const {},
@@ -157,6 +165,8 @@ class GuestProfile {
       'Blancs Minéraux & Frais': 'Crisp, mineral whites',
       'Rouges Fruits Croquants': 'Crunchy fruity reds',
       'Fruit Croquant': 'Crunchy fruit',
+      'Sans préférences déclarées': 'No stated preferences',
+      'Ne boit pas ce soir': 'Not drinking tonight',
     };
     // La clé française d'abord : un invité anglophone a pu l'enregistrer en anglais.
     var francais = archetype;

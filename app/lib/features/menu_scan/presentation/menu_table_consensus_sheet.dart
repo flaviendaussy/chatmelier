@@ -17,6 +17,7 @@ import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import 'titre_du_classement.dart';
 import '../../../shared/utils/langue.dart';
+import 'carte_deux_bouteilles.dart';
 
 class MenuTableConsensusSheet extends ConsumerStatefulWidget {
   final ScannedMenu menu;
@@ -41,6 +42,9 @@ class MenuTableConsensusSheet extends ConsumerStatefulWidget {
 class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusSheet> {
   final List<GuestProfile> _tableGuests = [];
   List<MenuTableMatchResult> _top3 = [];
+
+  /// Deux bouteilles, quand une seule laisse trop de convives de côté (E4).
+  PaireDeBouteilles? _paire;
   bool _showQrCode = false;
   late final String _tableSessionId;
 
@@ -244,18 +248,28 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
 
   void _calculateConsensus() {
     if (_tableGuests.isEmpty || widget.menu.wines.isEmpty) {
-      setState(() => _top3 = []);
+      setState(() {
+        _top3 = [];
+        _paire = null;
+      });
       return;
     }
 
+    final fr = Localizations.localeOf(context).languageCode == 'fr';
     final top3 = MenuTableMatcherEngine.rankTop3WinesForTable(
       menuWines: widget.menu.wines,
       guests: _tableGuests,
-      isFr: Localizations.localeOf(context).languageCode == 'fr',
+      isFr: fr,
       idLecteur: _idHote,
     );
+    final paire = MenuTableMatcherEngine.meilleurePaire(
+      MenuTableMatcherEngine.classerLaCarte(menuWines: widget.menu.wines, guests: _tableGuests, isFr: fr),
+    );
 
-    setState(() => _top3 = top3);
+    setState(() {
+      _top3 = top3;
+      _paire = paire;
+    });
   }
 
   void _addGuestDialog() {
@@ -535,6 +549,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                     final match = entry.value;
                     return _buildTopMatchCard(rank, match);
                   }),
+                if (_paire != null) CarteDeuxBouteilles(paire: _paire!, isFr: _isFr),
               ],
             ),
           ),

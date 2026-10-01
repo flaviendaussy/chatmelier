@@ -109,6 +109,9 @@ class PalaisExpress extends StatefulWidget {
   /// Le texte du refus (« Juste mon prénom… » à table, « Plus tard » ailleurs).
   final String? libelleRefus;
 
+  /// « Je ne bois pas ce soir » (E3), à table seulement.
+  final VoidCallback? onJeNeBoisPas;
+
   const PalaisExpress({
     super.key,
     required this.isFr,
@@ -116,6 +119,7 @@ class PalaisExpress extends StatefulWidget {
     required this.onValider,
     this.onJusteMonPrenom,
     this.libelleRefus,
+    this.onJeNeBoisPas,
     this.initial = const PalaisSaisi(),
   });
 
@@ -341,6 +345,17 @@ class _PalaisExpressState extends State<PalaisExpress> {
               child: Text(
                 widget.libelleRefus ??
                     (trSi(fr, 'Juste mon prénom — je préciserai plus tard', 'Just my name — I\'ll add my tastes later')),
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ),
+          ),
+        if (widget.onJeNeBoisPas != null)
+          Center(
+            child: TextButton.icon(
+              onPressed: widget.onJeNeBoisPas,
+              icon: const Icon(Icons.no_drinks_outlined, size: 16, color: Colors.white54),
+              label: Text(
+                trSi(fr, 'Je ne bois pas ce soir', 'I\'m not drinking tonight'),
                 style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ),

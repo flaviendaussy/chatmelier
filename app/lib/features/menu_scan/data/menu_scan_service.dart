@@ -13,6 +13,7 @@ import '../../../config/constants.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/services/fonctions_ia.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../../../shared/utils/langue.dart';
 import '../../auth/data/ai_cost_tracker_service.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../scan/data/label_image_optimizer.dart';
@@ -113,10 +114,16 @@ class MenuScanService {
 
     // Depuis la V2.3, seul le serveur lit la carte (scan-menu) : l'app n'a plus de clé.
     onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud...' : 'Analyse de la carte des vins via le Cloud Chatmelier...');
+    _coupureVue = false;
     parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn);
     usedModel = parsedJson?['modele'] as String?;
 
     if (parsedJson == null) {
+      if (_coupureVue) {
+        throw Exception(tr(
+            'La connexion s\'est interrompue pendant la lecture de la carte. Vos photos sont gardées : réessayez.',
+            'The connection dropped while the menu was being read. Your photos are kept: try again.'));
+      }
       throw Exception(isEn
           ? 'The wines on this menu could not be read. Check your photos and try again.'
           : 'Les vins de cette carte n\'ont pas pu être lus. Vérifiez vos photos et réessayez.');
@@ -449,6 +456,11 @@ class MenuScanService {
             'MENU_SCAN',
             'scan-menu silencieux après ${_relanceScanMenu.inSeconds} s '
                 '(${SchedulerBinding.instance.lifecycleState?.name}) : seconde tentative sur une connexion neuve'),
+        estUneCoupure: estUneCoupure,
+        siCoupure: (e) => AppLogger.warning(
+            'MENU_SCAN',
+            'scan-menu coupé (${SchedulerBinding.instance.lifecycleState?.name}) : $e — '
+                'seconde tentative sur une connexion neuve'),
       );
 
       if (data != null) {
@@ -471,10 +483,15 @@ class MenuScanService {
       // La limite du jour n'est pas une panne : l'écran doit la dire telle quelle.
       rethrow;
     } catch (e, stack) {
+      if (estUneCoupure(e)) _coupureVue = true;
       AppLogger.error('MENU_SCAN', 'Edge function scan-menu error: $e', e, stack);
     }
     return null;
   }
+
+  /// Une page au moins a échoué sur une coupure de connexion, pendant cette analyse : le
+  /// message d'échec doit le dire plutôt que d'accuser les photos (01/10).
+  bool _coupureVue = false;
 
   static const _delaiScanMenu = Duration(seconds: 150);
 
@@ -538,33 +555,70 @@ class MenuScanService {
   }
 
   /// Lance [appel] ; sans réponse après [relance], en lance un second, et rend la
-  /// première RÉPONSE des deux — une erreur ne l'emporte que si les deux échouent, et
-  /// une erreur rapide du premier (429, réseau coupé) remonte sans relance. Les deux
-  /// s'arrêtent au même instant, [total] après le départ : la relance ne rallonge jamais
-  /// l'attente, elle la raccourcit quand le premier appel s'est perdu.
+  /// première RÉPONSE des deux — une erreur ne l'emporte que si les deux échouent. Les
+  /// deux s'arrêtent au même instant, [total] après le départ : la relance ne rallonge
+  /// jamais l'attente, elle la raccourcit quand le premier appel s'est perdu.
+  ///
+  /// Une erreur rapide remonte sans relance (429, réponse d'erreur du serveur), SAUF une
+  /// coupure de transport ([estUneCoupure]) : la seconde tentative part alors après
+  /// [pauseApresCoupure], s'il reste au moins [tempsMinimal]. Le 01/10, une page est morte
+  /// ainsi vingt secondes après le départ, pendant la vidéo : sans elle, la personne avait
+  /// regardé la pub pour rien, et la relance manuelle aurait coûté le même second appel.
+  /// La pause laisse le téléphone finir de changer de réseau (Wi-Fi du restaurant → 4G) :
+  /// relancée cent millisecondes après la coupure, la seconde tentative trouvait le réseau
+  /// « injoignable » sur l'émulateur.
   @visibleForTesting
   static Future<T> appelerAvecRelance<T>(
     Future<T> Function(Duration delai) appel, {
     required Duration total,
     required Duration relance,
     void Function()? siRelance,
+    bool Function(Object erreur)? estUneCoupure,
+    void Function(Object erreur)? siCoupure,
+    Duration tempsMinimal = const Duration(seconds: 20),
+    Duration pauseApresCoupure = const Duration(seconds: 2),
   }) async {
     final issue = Completer<T>();
+    final depart = DateTime.now();
     var enCours = 0;
-    void suivre(Future<T> essai) {
+    var relancee = false;
+    Timer? minuteur;
+
+    late final void Function(Future<T>) suivre;
+    void relancer(Duration delai) {
+      relancee = true;
+      minuteur?.cancel();
+      suivre(appel(delai));
+    }
+
+    suivre = (essai) {
       enCours++;
       essai.then((v) {
         if (!issue.isCompleted) issue.complete(v);
       }, onError: (Object e, StackTrace pile) {
-        if (--enCours == 0 && !issue.isCompleted) issue.completeError(e, pile);
+        enCours--;
+        if (issue.isCompleted) return;
+        final reste = total - DateTime.now().difference(depart) - pauseApresCoupure;
+        if (!relancee && (estUneCoupure?.call(e) ?? false) && reste >= tempsMinimal) {
+          siCoupure?.call(e);
+          relancee = true;
+          minuteur?.cancel();
+          enCours++; // la seconde tentative compte dès maintenant : l'erreur ne remonte pas
+          Future<void>.delayed(pauseApresCoupure, () {
+            enCours--;
+            if (!issue.isCompleted) suivre(appel(reste));
+          });
+          return;
+        }
+        if (enCours == 0) issue.completeError(e, pile);
       });
-    }
+    };
 
     suivre(appel(total));
-    final minuteur = Timer(relance, () {
-      if (issue.isCompleted) return;
+    minuteur = Timer(relance, () {
+      if (issue.isCompleted || relancee) return;
       siRelance?.call();
-      suivre(appel(total - relance));
+      relancer(total - relance);
     });
     try {
       return await issue.future;
@@ -572,4 +626,9 @@ class MenuScanService {
       minuteur.cancel();
     }
   }
+
+  /// Une coupure de transport — connexion interrompue, poignée de main TLS ratée — et non
+  /// une réponse d'erreur du serveur (HTTP 4xx/5xx, limite du jour), qui ne se retente pas.
+  @visibleForTesting
+  static bool estUneCoupure(Object e) => e is http.ClientException && !e.message.startsWith('scan-menu HTTP');
 }

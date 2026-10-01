@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:chatmelier/features/menu_scan/data/menu_scan_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 /// Le scan de carte lancé pendant la pub (29/09).
 ///
@@ -51,21 +52,92 @@ void main() {
     expect(appels, 1, reason: 'pas de second appel facturé quand le premier a répondu');
   });
 
-  test('une erreur rapide (429, réseau coupé) remonte sans relance', () async {
+  test('une réponse d\'erreur du serveur (429, HTTP 5xx) remonte sans relance', () async {
     var appels = 0;
     await expectLater(
       MenuScanService.appelerAvecRelance<String>(
         (delai) {
           appels++;
-          return Future.error(Exception('HTTP 429'));
+          return Future.error(http.ClientException('scan-menu HTTP 502 : passerelle'));
         },
         total: total,
         relance: relance,
+        estUneCoupure: MenuScanService.estUneCoupure,
+        tempsMinimal: Duration.zero,
+        pauseApresCoupure: Duration.zero,
       ),
-      throwsA(isA<Exception>()),
+      throwsA(isA<http.ClientException>()),
     );
     await Future<void>.delayed(relance * 2);
     expect(appels, 1);
+  });
+
+  // 01/10 : une page morte vingt secondes après le départ, pendant la vidéo.
+  test('une coupure de connexion est retentée tout de suite, sur une connexion neuve', () async {
+    var appels = 0;
+    Object? coupure;
+    final debut = DateTime.now();
+    final r = await MenuScanService.appelerAvecRelance<String>(
+      (delai) {
+        appels++;
+        return appels == 1
+            ? Future.delayed(const Duration(milliseconds: 10),
+                () => throw http.ClientException('Software caused connection abort'))
+            : Future.delayed(const Duration(milliseconds: 10), () => 'carte');
+      },
+      total: total,
+      relance: relance,
+      estUneCoupure: MenuScanService.estUneCoupure,
+      siCoupure: (e) => coupure = e,
+      tempsMinimal: Duration.zero,
+      pauseApresCoupure: Duration.zero,
+    );
+    expect(r, 'carte');
+    expect(appels, 2);
+    expect(coupure, isA<http.ClientException>());
+    expect(DateTime.now().difference(debut), lessThan(relance),
+        reason: 'sans attendre le délai de relance');
+    await Future<void>.delayed(relance * 2);
+    expect(appels, 2, reason: 'une seule seconde tentative : le minuteur est annulé');
+  });
+
+  test('après une coupure, la seconde tentative attend que le réseau se rétablisse', () async {
+    final departs = <DateTime>[];
+    final r = await MenuScanService.appelerAvecRelance<String>(
+      (delai) {
+        departs.add(DateTime.now());
+        return departs.length == 1
+            ? Future.error(http.ClientException('Network is unreachable'))
+            : Future.value('carte');
+      },
+      total: const Duration(seconds: 2),
+      relance: const Duration(seconds: 1),
+      estUneCoupure: MenuScanService.estUneCoupure,
+      tempsMinimal: Duration.zero,
+      pauseApresCoupure: const Duration(milliseconds: 120),
+    );
+    expect(r, 'carte');
+    expect(departs[1].difference(departs[0]), greaterThanOrEqualTo(const Duration(milliseconds: 110)));
+  });
+
+  test('deux coupures : l\'erreur remonte, sans troisième appel', () async {
+    var appels = 0;
+    await expectLater(
+      MenuScanService.appelerAvecRelance<String>(
+        (delai) {
+          appels++;
+          return Future.error(http.ClientException('Connection reset by peer'));
+        },
+        total: total,
+        relance: relance,
+        estUneCoupure: MenuScanService.estUneCoupure,
+        tempsMinimal: Duration.zero,
+        pauseApresCoupure: Duration.zero,
+      ),
+      throwsA(isA<http.ClientException>()),
+    );
+    await Future<void>.delayed(relance * 2);
+    expect(appels, 2);
   });
 
   test('si les deux échouent, l\'erreur remonte au plus tard au délai total', () async {

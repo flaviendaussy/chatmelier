@@ -39,6 +39,10 @@ const TEXTES = {
     tableDe: 'Table {code} — {restaurant}',
     tableSeule: 'Table {code}',
     aTable: 'À table',
+    auComptoir: 'Au comptoir',
+    vosGoutsAideComptoir: 'Facultatif : vos goûts s\'affichent à côté de votre prénom.',
+    rejoindreComptoir: 'Rejoindre le comptoir avec mes goûts',
+    assisComptoir: 'Vous êtes au comptoir, {nom}.',
     personne: 'Personne n\'est encore assis.',
     nePasBoire: 'ne boit pas',
     prenom: 'Votre prénom',
@@ -105,6 +109,10 @@ const TEXTES = {
     tableDe: 'Table {code} — {restaurant}',
     tableSeule: 'Table {code}',
     aTable: 'At the table',
+    auComptoir: 'At the bar',
+    vosGoutsAideComptoir: 'Optional: your taste shows next to your name.',
+    rejoindreComptoir: 'Join the bar with my taste',
+    assisComptoir: 'You\'re at the bar, {nom}.',
     personne: 'Nobody has sat down yet.',
     nePasBoire: 'not drinking',
     prenom: 'Your first name',
@@ -171,6 +179,10 @@ const TEXTES = {
     tableDe: 'Mesa {code} — {restaurant}',
     tableSeule: 'Mesa {code}',
     aTable: 'En la mesa',
+    auComptoir: 'En la barra',
+    vosGoutsAideComptoir: 'Opcional: tus gustos aparecen junto a tu nombre.',
+    rejoindreComptoir: 'Unirme a la barra con mis gustos',
+    assisComptoir: 'Estás en la barra, {nom}.',
     personne: 'Todavía no se ha sentado nadie.',
     nePasBoire: 'no bebe',
     prenom: 'Tu nombre',
@@ -419,7 +431,7 @@ function ecranErreur() {
 function blocConvives() {
   const moi = lire(CLE_NOM(), '') || '';
   return el('section', { class: 'carte', id: 'convives' },
-    el('h2', {}, t('aTable')),
+    el('h2', {}, t(estUnComptoir() ? 'auComptoir' : 'aTable')),
     etat.convives.length === 0
       ? el('p', { class: 'discret' }, t('personne'))
       : el('div', { class: 'convives' }, etat.convives.map((c) => el('span', {
@@ -544,12 +556,12 @@ function blocProfil() {
       oninput: (e) => { etat.prenomSaisi = e.target.value; },
     }),
     el('h2', {}, t('vosGouts')),
-    el('p', { class: 'discret' }, t('vosGoutsAide')),
+    el('p', { class: 'discret' }, t(estUnComptoir() ? 'vosGoutsAideComptoir' : 'vosGoutsAide')),
     dessin,
     curseurs,
     el('label', {}, t('couleurs')), puces(etat.couleurs, T.couleursNoms),
     el('label', {}, t('aversions')), puces(etat.aversions, T.aversionsNoms),
-    el('button', { class: 'principal', onclick: () => rejoindre({}) }, t('rejoindre')),
+    el('button', { class: 'principal', onclick: () => rejoindre({}) }, t(estUnComptoir() ? 'rejoindreComptoir' : 'rejoindre')),
     assis ? null : el('button', { class: 'lien', onclick: () => rejoindre({ sansPreferences: true }) }, t('justeMonPrenom')),
     assis ? null : el('button', { class: 'lien', onclick: () => rejoindre({ sansPreferences: true, neBoitPas: true }) }, t('jeNeBoisPas')),
   );
@@ -831,7 +843,7 @@ function rendre() {
     entete,
     bandeau,
     el('section', { class: 'carte' },
-      el('p', {}, t('assis', { nom: assis })),
+      el('p', {}, t(estUnComptoir() ? 'assisComptoir' : 'assis', { nom: assis })),
       mode === 'sans_boire' ? el('p', { class: 'discret' }, t('assisSansBoire'))
         // Au comptoir, pas de classement : la phrase n'aurait pas de sens.
         : mode === 'sans_gouts' && !estUnComptoir() ? el('p', { class: 'discret' }, t('assisSansGouts')) : null,

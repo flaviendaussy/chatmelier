@@ -50,7 +50,8 @@ serve(async (req) => {
     // inventait un prix, enregistré comme la valeur de la bouteille. Désormais la recherche
     // Google est active, et une valeur sans page source n'est pas enregistrée.
     const base = Deno.env.get('GEMINI_BASE_URL') ?? 'https://generativelanguage.googleapis.com'
-    const geminiUrl = `${base}/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`
+    // La clé voyage dans l'en-tête, pas dans l'adresse : un message d'erreur réseau cite l'adresse.
+    const geminiUrl = `${base}/v1beta/models/gemini-3.8-flash:generateContent`
     const results = []
     const ignores = []
 
@@ -67,7 +68,7 @@ Return strictly a JSON object, and nothing else:
 
       const response = await fetch(geminiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           tools: [{ google_search: {} }],

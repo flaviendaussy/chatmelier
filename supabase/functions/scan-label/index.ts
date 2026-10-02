@@ -81,7 +81,8 @@ async function appelerGemini(
     // Avec le réglage de réflexion d'abord ; si Google le refuse (400), le même modèle sans.
     for (const avecReglage of [true, false]) {
       try {
-        const url = `${GEMINI_BASE}/v1beta/models/${model}:generateContent?key=${apiKey}`
+        // La clé voyage dans l'en-tête, pas dans l'adresse : un message d'erreur réseau cite l'adresse.
+        const url = `${GEMINI_BASE}/v1beta/models/${model}:generateContent`
         const generationConfig: Record<string, unknown> = {}
         // L'outil de recherche et la sortie JSON imposée ne se combinent pas : avec la
         // recherche, on lit le JSON dans le texte.
@@ -91,7 +92,7 @@ async function appelerGemini(
         if (avecRecherche) corps.tools = [{ google_search: {} }]
         const res = await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
           body: JSON.stringify(corps),
           signal: AbortSignal.timeout(avecRecherche ? DELAI_RECHERCHE_MS : DELAI_LECTURE_MS),
         })

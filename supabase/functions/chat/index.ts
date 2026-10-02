@@ -177,9 +177,10 @@ serve(async (req) => {
         try {
           const corps: Record<string, unknown> = { systemInstruction: { parts: [{ text: instruction }] }, contents }
           if (avecReglage) corps.generationConfig = { thinkingConfig: { thinkingLevel: niveau } }
-          const res = await fetch(`${GEMINI_BASE}/v1beta/models/${modele}:generateContent?key=${apiKey}`, {
+          // La clé voyage dans l'en-tête, pas dans l'adresse : un message d'erreur réseau cite l'adresse.
+          const res = await fetch(`${GEMINI_BASE}/v1beta/models/${modele}:generateContent`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
             body: JSON.stringify(corps),
             signal: AbortSignal.timeout(DELAI_PAR_MODELE_MS),
           })

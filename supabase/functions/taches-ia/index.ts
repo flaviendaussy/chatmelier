@@ -331,9 +331,10 @@ serve(async (req) => {
           if (avecReglage) generationConfig.thinkingConfig = { thinkingLevel: niveau }
           const envoi: Record<string, unknown> = { contents: [{ role: 'user', parts: c.parts }], generationConfig }
           if (c.recherche) envoi.tools = [{ google_search: {} }]
-          const res = await fetch(`${GEMINI_BASE}/v1beta/models/${modele}:generateContent?key=${apiKey}`, {
+          // La clé voyage dans l'en-tête, pas dans l'adresse : un message d'erreur réseau cite l'adresse.
+          const res = await fetch(`${GEMINI_BASE}/v1beta/models/${modele}:generateContent`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
             body: JSON.stringify(envoi),
             signal: AbortSignal.timeout(tache === 'import_cave' ? 60_000 : 30_000),
           })

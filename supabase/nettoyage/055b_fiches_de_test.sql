@@ -10,7 +10,9 @@
 -- catalogue sert à tous : ces fiches peuvent sortir en réponse au scan de quelqu'un d'autre.
 --
 -- Une fiche n'est supprimée que si AUCUNE bouteille, photo ou dégustation n'y renvoie.
--- Les autres restent, et l'étape 1 dit lesquelles et pourquoi.
+-- Les autres restent, et l'étape 1 dit lesquelles et pourquoi. Vérifié en production le
+-- 02/10 : ces trois tables sont les seules à pointer vers wines (clés en NO ACTION, aucune
+-- cascade), et aucun déclencheur ne s'exécute à la suppression.
 
 -- 1. Aperçu : ce qui partirait, et ce qui reste parce que quelqu'un s'en sert.
 WITH cibles(id) AS (VALUES
@@ -33,18 +35,16 @@ WITH cibles(id) AS (VALUES
   ('dd220c0e-47e5-4519-9cb0-ad1f88295548'), ('f4eccf15-a3fe-4aa2-81fd-94488942c1e5'),  -- condiment à la truffe
   ('c46ec8ef-3167-48a2-a771-c3ee5ded459d'), ('40040fc1-35e5-4059-bf62-7c5ac2dad80f')   -- huile d'olive
 )
-SELECT w.id, w.name, w.producer, w.vintage,
-       (SELECT count(*) FROM public.bottles b WHERE b.wine_id = w.id)       AS bouteilles,
-       (SELECT count(*) FROM public.bottle_photos p WHERE p.wine_id = w.id) AS photos,
-       (SELECT count(*) FROM public.tasting_log t WHERE t.wine_id = w.id)   AS degustations
-FROM public.wines w JOIN cibles c ON c.id = w.id
-ORDER BY bouteilles + degustations DESC, w.name;
+SELECT CASE WHEN bouteilles + photos + degustations = 0 THEN 'partira' ELSE 'reste (utilisée)' END AS sort,
+       id, name, producer, vintage, bouteilles, photos, degustations
+FROM (
+  SELECT w.id, w.name, w.producer, w.vintage,
+         (SELECT count(*) FROM public.bottles b WHERE b.wine_id = w.id)       AS bouteilles,
+         (SELECT count(*) FROM public.bottle_photos p WHERE p.wine_id = w.id) AS photos,
+         (SELECT count(*) FROM public.tasting_log t WHERE t.wine_id = w.id)   AS degustations
+  FROM public.wines w JOIN cibles c ON c.id = w.id
+) f
+ORDER BY sort, name;
 
--- 2. La suppression (décommenter après avoir lu l'aperçu).
--- WITH cibles(id) AS (VALUES … la même liste …)
--- DELETE FROM public.wines w
---  USING cibles c
---  WHERE w.id = c.id
---    AND NOT EXISTS (SELECT 1 FROM public.bottles b WHERE b.wine_id = w.id)
---    AND NOT EXISTS (SELECT 1 FROM public.bottle_photos p WHERE p.wine_id = w.id)
---    AND NOT EXISTS (SELECT 1 FROM public.tasting_log t WHERE t.wine_id = w.id);
+-- 2. La suppression : supabase/nettoyage/055b_suppression.sql, la même liste, à lancer
+--    seule, après avoir lu cet aperçu. Elle ne supprime que les lignes « partira ».

@@ -1,0 +1,34 @@
+-- 055b, étape 2 — Supprimer les fiches de test et les produits qui ne sont pas du vin
+--
+-- À LANCER SEULE, APRÈS avoir lu l'aperçu de 055b_fiches_de_test.sql (SQL Editor). Même
+-- liste de 29 fiches. Seules partent celles qu'aucune bouteille, photo ou dégustation ne
+-- référence (les lignes « partira » de l'aperçu) ; le résultat liste ce qui a été supprimé.
+-- Une seule instruction : tout part, ou rien.
+
+WITH cibles(id) AS (VALUES
+  ('c24da511-93df-49bb-813f-a97daa5866fc'::uuid), ('20fa1406-554f-42b6-9158-d0d604d37a7a'),  -- Château Grand Vin / Domaine Vigneron 2026
+  ('2cd7feac-c1cf-4c29-8b96-b1d909cb07c3'),  -- Chablis Grand Cru, rouge, Bordeaux
+  ('07571146-9b48-455b-89eb-744fa8a2d7c9'), ('c0f0a272-890e-41de-87cc-e867ff5cccc1'),  -- producteur « Saisie Vocale »
+  ('aa967c11-691a-4282-9242-3acb50a7790d'),  -- producteur « Appellation Chablis Grand Cru »
+  ('08d97ce8-01a3-4d5b-98cb-28b69bcde875'),  -- « BordeauxFranceMargaux »
+  ('57e1648c-79ce-43a5-9d11-5947f867ad61'),  -- Château Margaux 2015 vide (doublon)
+  ('0e45e2b7-2e1e-4dea-993b-fbb7824b6c49'),  -- Brut Chardonnay / « Domaine inconnu »
+  ('a5db63c5-3ca8-4f0c-a706-2bff072f8871'), ('68f22a4f-2d03-479b-a712-ccc3dafe7524'),
+  ('cc2ed41a-3fb2-412c-8ea6-db031b408fe9'), ('1b28c03d-8ccc-461c-8bb9-5306e3de6f77'),
+  ('d7534765-74b6-4aee-bfb5-f6fb53e65543'), ('b1b3a83f-134b-49e5-a3b2-5e8af32838e5'),
+  ('2283ce68-86a0-4e28-a22e-b9ad30ca6d6f'), ('bd1759a4-df4d-4128-a267-c7e3bb1aba62'),
+  ('02835995-8e5b-44bc-858c-7b156976975e'), ('e0c49364-bd00-4a10-aef3-0dec14929bfe'),
+  ('a3968bf4-daf3-4d45-8879-6d45ed8e6f21'), ('10080554-9dda-4150-9a17-6948b0bf38a7'),
+  ('7728de33-d6ca-4074-a738-3a05b9e1d313'), ('727e7626-b61a-4e6d-8d6a-b970ad24d77c'),
+  ('e90286f3-1690-47da-8d8d-a2aea053d26a'),  -- quinze « Domaine Inconnu », Bordeaux 2007-2012
+  ('6560778f-3958-4c04-9228-bfa277b4c094'),  -- « Lalande de pomerol » de « Lalande de pomerol »
+  ('dd220c0e-47e5-4519-9cb0-ad1f88295548'), ('f4eccf15-a3fe-4aa2-81fd-94488942c1e5'),  -- condiment à la truffe
+  ('c46ec8ef-3167-48a2-a771-c3ee5ded459d'), ('40040fc1-35e5-4059-bf62-7c5ac2dad80f')   -- huile d'olive
+)
+DELETE FROM public.wines w
+ USING cibles c
+ WHERE w.id = c.id
+   AND NOT EXISTS (SELECT 1 FROM public.bottles b WHERE b.wine_id = w.id)
+   AND NOT EXISTS (SELECT 1 FROM public.bottle_photos p WHERE p.wine_id = w.id)
+   AND NOT EXISTS (SELECT 1 FROM public.tasting_log t WHERE t.wine_id = w.id)
+RETURNING w.id, w.name, w.producer, w.vintage;

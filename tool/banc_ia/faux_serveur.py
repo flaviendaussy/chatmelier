@@ -36,6 +36,14 @@ PAUVRE = dict(RICHE, grapes=[], id="22222222-2222-2222-2222-222222222222")
 SERVEUR_PAUVRE = dict(PAUVRE, decrite_par_serveur=True, id="33333333-3333-3333-3333-333333333333")
 
 
+# Ce que Google publie (GET /v1beta/models), avec du bruit : préversions, voix, images.
+MODELES_PUBLIES = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite',
+                   'gemini-3.1-flash-lite', 'gemini-3.1-pro-preview', 'gemini-3.8-flash-tts', 'gemini-3.1-flash-live-preview',
+                   'gemini-3-pro-image-preview', 'gemini-flash-latest', 'gemini-flash-lite-latest']
+# Un modèle retiré : Google répond 404, comme le jour où un modèle réglé disparaîtra.
+MODELE_RETIRE = 'gemini-2.0-flash'
+
+
 def noter(**kw):
     journal.write(json.dumps(kw, ensure_ascii=False) + '\n')
     journal.flush()
@@ -59,6 +67,9 @@ class H(BaseHTTPRequestHandler):
 
     def do_GET(self):
         noter(methode='GET', chemin=self.path)
+        if self.path.startswith('/v1beta/models'):
+            return self.rep({"models": [{"name": f"models/{m}", "supportedGenerationMethods": ["generateContent", "countTokens"]}
+                                        for m in MODELES_PUBLIES]})
         if '/auth/v1/user' in self.path:
             if MODE in ('session', 'limite', 'banc'):
                 return self.rep({"id": "00000000-0000-0000-0000-00000000a11c", "aud": "authenticated", "role": "authenticated"})
@@ -78,8 +89,13 @@ class H(BaseHTTPRequestHandler):
             if MODE == 'banc':
                 return self.rep([{"cle": "modeles_ia", "valeur": json.loads(os.environ.get('FAUX_MODELES_IA', '{}'))},
                                  {"cle": "scan_etiquette_recherche", "valeur": False}])
+            modeles = {"scan_etiquette_lecture": {"modele": "gemini-3.1-flash-lite", "reflexion": "minimal"}}
+            modeles.update(json.loads(os.environ.get('FAUX_MODELES_IA', '{}')))
             lignes = [{"cle": "ia_session_obligatoire", "valeur": MODE == 'strict'},{"cle": "scan_etiquette_recherche", "valeur": MODE in ('inconnu', 'refuse_reflexion')},
-                      {"cle": "modeles_ia", "valeur": {"scan_etiquette_lecture": {"modele": "gemini-3.1-flash-lite", "reflexion": "minimal"}}}]
+                      {"cle": "modeles_ia", "valeur": modeles}]
+            # Une seule clé demandée (eq.modeles_ia) : la ligne, comme maybeSingle l'attend.
+            if 'cle=eq.modeles_ia' in self.path:
+                return self.rep({"valeur": modeles})
             return self.rep(lignes)
         self.rep([])
 
@@ -106,6 +122,15 @@ class H(BaseHTTPRequestHandler):
             return self.rep([], 201)
         if 'generateContent' in self.path:
             reglage = (c.get('generationConfig') or {}).get('thinkingConfig')
+            modele = self.path.split('/models/')[1].split(':')[0]
+            if modele == MODELE_RETIRE:
+                return self.rep({"error": {"code": 404, "status": "NOT_FOUND",
+                                           "message": f"models/{modele} is not found for API version v1beta"}}, 404)
+            # Comme Google : les Flash 3.7 et 3.8 refusent la réflexion « minimal ».
+            if reglage and reglage.get('thinkingLevel') == 'minimal' and any(v in modele for v in ('3.7-flash', '3.8-flash')) \
+                    and 'lite' not in modele:
+                return self.rep({"error": {"code": 400, "status": "INVALID_ARGUMENT", "message":
+                                           "Thinking level MINIMAL is not supported for this model. Please retry with other thinking level."}}, 400)
             if MODE == 'refuse_reflexion' and reglage:
                 return self.rep({"error": {"code": 400, "message": "Unknown name \"thinkingConfig\""}}, 400)
             if 'systemInstruction' in c:

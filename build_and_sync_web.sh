@@ -33,6 +33,10 @@ if [ ! -f build/web/table/index.html ]; then
 fi
 printf "window.CHATMELIER_CONFIG = { supabaseUrl: '%s', supabaseKey: '%s' };\n" \
   "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > build/web/table/config.js
+# GitHub Pages garde chaque fichier dix minutes en cache : sans version dans leur adresse,
+# une page neuve pouvait charger l'ancien table.js après une publication.
+sed -i -E "s#(href|src)=\"(table\.css|config\.js|table\.js)\"#\1=\"\2?v=${VERSION}-${BUILD_TIME}\"#g" build/web/table/index.html
+grep -q "table.js?v=" build/web/table/index.html || { echo "❌ version absente des adresses de la page invité." >&2; exit 1; }
 
 echo "📦 Syncing web build artifacts to repository root..."
 cp -r build/web/* "$DIR/"

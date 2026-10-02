@@ -103,7 +103,13 @@ class LabelImageOptimizer {
       }
 
       // 3. Encode to JPEG with optimal quality
-      final optimizedBytes = Uint8List.fromList(img.encodeJpg(processed, quality: targetQuality));
+      final reencode = Uint8List.fromList(img.encodeJpg(processed, quality: targetQuality));
+      // Une photo déjà en JPEG, ni recadrée ni réduite : la ré-encoder la grossissait
+      // parfois (une carte de 1200x1700 passait de 166 à 209 Ko, relevé le 02/10). On
+      // envoie alors l'original, tel quel.
+      final inchangee = processed.width == origW && processed.height == origH;
+      final dejaJpeg = rawBytes.length > 3 && rawBytes[0] == 0xFF && rawBytes[1] == 0xD8 && rawBytes[2] == 0xFF;
+      final optimizedBytes = inchangee && dejaJpeg && reencode.length >= originalSize ? rawBytes : reencode;
       final hash = sha256.convert(optimizedBytes).toString();
 
       final result = OptimizedLabelImage(

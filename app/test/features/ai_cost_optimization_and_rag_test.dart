@@ -35,6 +35,20 @@ void main() {
       expect(optimizedAgain.sha256Hash, equals(optimized.sha256Hash));
     });
 
+    test('une photo JPEG ni recadrée ni réduite ne grossit jamais (02/10)', () {
+      // Une carte déjà bien compressée : la ré-encoder en qualité 84 la grossissait.
+      final carte = img.Image(width: 900, height: 1200);
+      img.fill(carte, color: img.ColorRgb8(250, 247, 240));
+      for (var y = 40; y < 1160; y += 48) {
+        img.drawLine(carte, x1: 60, y1: y, x2: 840, y2: y, color: img.ColorRgb8(40, 30, 30), thickness: 3);
+      }
+      final legere = Uint8List.fromList(img.encodeJpg(carte, quality: 40));
+      final o = LabelImageOptimizer.optimize(legere, autoCrop: false, maxDimension: 2000);
+      expect(o.optimizedSizeBytes, lessThanOrEqualTo(legere.length));
+      expect(o.width, 900);
+      expect(o.height, 1200);
+    });
+
     test('Fallback gracefully handles invalid image bytes without crashing', () {
       final invalidBytes = Uint8List.fromList(utf8.encode('not-an-image-data-payload'));
       final optimized = LabelImageOptimizer.optimize(invalidBytes);

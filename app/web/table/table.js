@@ -252,6 +252,15 @@ function t(cle, valeurs = {}) {
 // langue du lecteur.
 const ARCHETYPES = {
   'Curieux & Éclectique': { en: 'Curious & eclectic', es: 'Curioso y ecléctico' },
+  // Les étiquettes de l'app : un hôte peut les porter, un invité doit les lire dans sa langue.
+  'Amateur de Grands Rouges Puissants': { en: 'Lover of big, powerful reds', es: 'Amante de los grandes tintos potentes' },
+  'Adepte de Minéralité & Fraîcheur Droite': { en: 'Mineral & crisp lover', es: 'Adepto de la mineralidad y el frescor recto' },
+  'Palais Friand & Fruit Croquant': { en: 'Crunchy-fruit lover', es: 'Paladar goloso y de fruta crujiente' },
+  'Amateur de Vins Épicés & Singuliers': { en: 'Spicy & singular wines lover', es: 'Amante de los vinos especiados y singulares' },
+  'Amateur de Rouges': { en: 'Red wine lover', es: 'Amante de los tintos' },
+  'Amateur de Blancs': { en: 'White wine lover', es: 'Amante de los blancos' },
+  'Amateur de Rosés': { en: 'Rosé lover', es: 'Amante de los rosados' },
+  'Amateur de Bulles': { en: 'Sparkling wine lover', es: 'Amante de los espumosos' },
   'Grands Rouges Puissants': { en: 'Big, powerful reds', es: 'Grandes tintos potentes' },
   'Blancs Minéraux & Tendus': { en: 'Taut, mineral whites', es: 'Blancos minerales y tensos' },
   'Rouges Fruits Croquants': { en: 'Crunchy fruity reds', es: 'Tintos de fruta crujiente' },

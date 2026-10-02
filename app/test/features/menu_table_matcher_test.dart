@@ -143,7 +143,8 @@ void main() {
       expect(top3.length, equals(3));
       // Chablis is the top mutual match for two white lovers
       expect(top3.first.menuWine.id, equals('mw_1'));
-      expect(top3.first.harmonyScore, greaterThan(80.0));
+      // Le bois et la minéralité comptent depuis K1 (02/10) : 79 au lieu de 82.
+      expect(top3.first.harmonyScore, greaterThan(75.0));
       expect(top3.first.guestScores['g1'], isNotNull);
       expect(top3.first.guestScores['g2'], isNotNull);
     });

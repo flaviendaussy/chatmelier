@@ -214,24 +214,30 @@ class MenuTableMatcherEngine {
       }
     }
 
-    // 3. Proximité des axes sensoriels
-    // Tannins (uniquement pour les rouges)
+    // 3. Proximité des axes sensoriels. Chaque écart pèse selon ce qu'on sait de l'axe :
+    // plein s'il est observé ou déclaré, un tiers s'il est deviné (V2.3 · K1).
+    double ecart(double vin, double convive, String axe, double facteur) =>
+        (vin - convive).abs() * facteur * guest.poidsDeLAxe(axe);
+
+    // Les tanins jugent les rouges ; la minéralité, les blancs, les rosés et les bulles.
     if (!wine.isWhite && radar.tannins > 0.0) {
-      final tanninDiff = (radar.tannins - guestRadar.tannin).abs();
-      score -= (tanninDiff * 1.5);
+      score -= ecart(radar.tannins, guestRadar.tannin, 'tannin', 1.5);
+    }
+    if (!wine.isRed) {
+      score -= ecart(radar.minerality, guestRadar.minerality, 'minerality', 1.0);
     }
 
     // Corps / Puissance
-    final bodyDiff = (radar.body - guestRadar.body).abs();
-    score -= (bodyDiff * 1.5);
+    score -= ecart(radar.body, guestRadar.body, 'body', 1.5);
 
     // Vivacité / Acidité
-    final acidDiff = (radar.acidity - guestRadar.acidity).abs();
-    score -= (acidDiff * 1.5);
+    score -= ecart(radar.acidity, guestRadar.acidity, 'acidity', 1.5);
 
     // Fruit
-    final fruitDiff = (radar.fruit - guestRadar.freshFruit).abs();
-    score -= (fruitDiff * 1.0);
+    score -= ecart(radar.fruit, guestRadar.freshFruit, 'freshFruit', 1.0);
+
+    // Bois : il se goûte dans toutes les couleurs.
+    score -= ecart(radar.oak, guestRadar.oak, 'oak', 1.0);
 
     // Bonus si le cépage est dans les favoris du convive
     if (wine.grapes.isNotEmpty && guest.favoriteGrapes.isNotEmpty) {

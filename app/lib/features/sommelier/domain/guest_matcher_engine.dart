@@ -44,6 +44,11 @@ class GuestProfile {
   /// donnée d'un geste à chaque verre. Elles voyagent avec le profil, comme les avis.
   final Map<String, double> verres;
 
+  /// À quel point chaque axe de son radar est connu, de 0 (deviné) à 1 (bien observé),
+  /// quand le radar vient d'un vrai palais (V2.3 · K1). Nul pour un radar déclaré (curseurs
+  /// de la page invité) ou déduit d'un archétype : il compte alors pleinement.
+  final Map<String, double>? confianceParAxe;
+
   const GuestProfile({
     required this.id,
     required this.name,
@@ -58,7 +63,17 @@ class GuestProfile {
     this.avis = const {},
     this.neBoitPas = false,
     this.verres = const {},
+    this.confianceParAxe,
   });
+
+  /// Le poids d'un axe dans les accords : un axe deviné pèse un tiers, un axe bien observé
+  /// pèse plein. Relevé le 02/10 : un palais connu à 6 % voyait trois rouges puissants
+  /// choisis sur des tanins seulement devinés.
+  double poidsDeLAxe(String axe) {
+    final c = confianceParAxe;
+    if (c == null) return 1.0;
+    return 0.35 + 0.65 * (c[axe] ?? 0.0).clamp(0.0, 1.0);
+  }
 
   /// Le même convive, sous un autre identifiant, un autre prénom ou avec d'autres avis.
   GuestProfile copie({String? id, String? name, Map<String, String>? avis, bool? neBoitPas, Map<String, double>? verres}) =>
@@ -76,11 +91,13 @@ class GuestProfile {
         avis: avis ?? this.avis,
         neBoitPas: neBoitPas ?? this.neBoitPas,
         verres: verres ?? this.verres,
+        confianceParAxe: confianceParAxe,
       );
 
   /// Ce qu'un convive emporte avec lui en rejoignant une table.
   ///
-  /// Volontairement maigre : un nom, des préférences déclarées et huit nombres. Pas
+  /// Volontairement maigre : un nom, des préférences déclarées, huit nombres et, pour un
+  /// vrai palais, à quel point chacun est connu (au dixième près). Pas
   /// l'historique de dégustations, pas la cave, pas l'identifiant de compte — rien de ce
   /// que les autres convives n'ont pas besoin de savoir pour choisir une bouteille.
   Map<String, dynamic> toJson() => {
@@ -103,6 +120,10 @@ class GuestProfile {
           'minerality': radar.minerality,
           'acidity': radar.acidity,
         },
+        if (confianceParAxe != null)
+          'confiance': {
+            for (final e in confianceParAxe!.entries) e.key: double.parse(e.value.toStringAsFixed(1)),
+          },
       };
 
   factory GuestProfile.fromJson(String id, Map<String, dynamic> json) {
@@ -131,6 +152,12 @@ class GuestProfile {
                 if (double.tryParse(e.value.toString()) case final note?) e.key.toString(): note,
             }
           : const {},
+      confianceParAxe: json['confiance'] is Map
+          ? {
+              for (final e in (json['confiance'] as Map).entries)
+                if (double.tryParse(e.value.toString()) case final c?) e.key.toString(): c.clamp(0.0, 1.0).toDouble(),
+            }
+          : null,
       radarDistant: r is Map
           ? WineTasteRadarMetrics(
               tannin: axe('tannin', 5.0),
@@ -158,6 +185,7 @@ class GuestProfile {
       favoriteGrapes: tp.favoriteGrapes,
       dislikedCharacteristics: tp.dislikedCharacteristics,
       archetype: _detectArchetype(tp),
+      confianceParAxe: {for (final k in TasteProfile.axisKeys) k: tp.axisConfidence(k)},
     );
   }
 
@@ -174,6 +202,10 @@ class GuestProfile {
       'Adepte de Minéralité & Fraîcheur Droite': 'Mineral & crisp lover',
       'Palais Friand & Fruit Croquant': 'Crunchy-fruit lover',
       'Amateur de Vins Épicés & Singuliers': 'Spicy & singular wines lover',
+      'Amateur de Rouges': 'Red wine lover',
+      'Amateur de Blancs': 'White wine lover',
+      'Amateur de Rosés': 'Rosé lover',
+      'Amateur de Bulles': 'Sparkling wine lover',
       'Aversion aux tanins durs': 'Dislikes firm tannins',
       'Aversion Tanins Durs': 'Dislikes firm tannins',
       'Grands Rouges Puissants': 'Big, powerful reds',
@@ -197,19 +229,43 @@ class GuestProfile {
     return trDonneeSi(fr, francais, versAnglais);
   }
 
+  /// L'étiquette d'un palais. Elle ne se tire du radar que sur des axes observés : un
+  /// palais encore deviné se résume par ce que la personne a déclaré (V2.3 · K1). Relevé le
+  /// 02/10 : « Adepte de Minéralité » pour un palais connu à 6 %, déclaré « Rouge », que
+  /// la table servait en Pauillac, Madiran et Crozes.
   static String _detectArchetype(TasteProfile tp) {
     final radar = tp.radarMetrics;
-    if (radar.tannin >= 7.0 && radar.body >= 7.0) {
+    bool observe(String axe) => tp.axisConfidence(axe) >= seuilAxeObserve;
+    if (radar.tannin >= 7.0 && radar.body >= 7.0 && (observe('tannin') || observe('body'))) {
       return 'Amateur de Grands Rouges Puissants';
-    } else if (radar.acidity >= 7.0 && radar.minerality >= 6.5) {
+    } else if (radar.acidity >= 7.0 && radar.minerality >= 6.5 && (observe('acidity') || observe('minerality'))) {
       return 'Adepte de Minéralité & Fraîcheur Droite';
-    } else if (radar.freshFruit >= 7.0) {
+    } else if (radar.freshFruit >= 7.0 && observe('freshFruit')) {
       return 'Palais Friand & Fruit Croquant';
-    } else if (radar.spice >= 7.0) {
+    } else if (radar.spice >= 7.0 && observe('spice')) {
       return 'Amateur de Vins Épicés & Singuliers';
+    }
+    final couleurs = {
+      for (final t in tp.favoriteTypes)
+        if (couleurDuQuestionnaire(t) case final c when c.isNotEmpty) c,
+    };
+    if (couleurs.length == 1) {
+      switch (couleurs.single) {
+        case 'red':
+          return 'Amateur de Rouges';
+        case 'white':
+          return 'Amateur de Blancs';
+        case 'rose':
+          return 'Amateur de Rosés';
+        case 'sparkling':
+          return 'Amateur de Bulles';
+      }
     }
     return 'Curieux & Éclectique';
   }
+
+  /// Une confiance de 0,35 : environ trois dégustations sur l'axe.
+  static const double seuilAxeObserve = 0.35;
 
   WineTasteRadarMetrics get radar {
     // Le radar transmis prime : il vient d'un vrai profil, mesuré sur l'appareil de son
@@ -392,16 +448,18 @@ class GuestMatcherEngine {
   static double _calculateCompatibility(Wine wine, WineTasteRadarMetrics wineRadar, GuestProfile guest) {
     final guestRadar = guest.radar;
 
-    // Distance euclidienne normalisée sur les 8 axes
+    // Distance euclidienne sur les 8 axes, chaque écart pesé selon ce qu'on sait de l'axe
+    // (V2.3 · K1) : un axe deviné compte un tiers, comme à la table du restaurant.
+    double ecart(double vin, double convive, String axe) => guest.poidsDeLAxe(axe) * math.pow(vin - convive, 2);
     final dist = math.sqrt(
-      math.pow(wineRadar.tannin - guestRadar.tannin, 2) +
-      math.pow(wineRadar.body - guestRadar.body, 2) +
-      math.pow(wineRadar.oak - guestRadar.oak, 2) +
-      math.pow(wineRadar.ripeFruit - guestRadar.ripeFruit, 2) +
-      math.pow(wineRadar.spice - guestRadar.spice, 2) +
-      math.pow(wineRadar.freshFruit - guestRadar.freshFruit, 2) +
-      math.pow(wineRadar.minerality - guestRadar.minerality, 2) +
-      math.pow(wineRadar.acidity - guestRadar.acidity, 2),
+      ecart(wineRadar.tannin, guestRadar.tannin, 'tannin') +
+      ecart(wineRadar.body, guestRadar.body, 'body') +
+      ecart(wineRadar.oak, guestRadar.oak, 'oak') +
+      ecart(wineRadar.ripeFruit, guestRadar.ripeFruit, 'ripeFruit') +
+      ecart(wineRadar.spice, guestRadar.spice, 'spice') +
+      ecart(wineRadar.freshFruit, guestRadar.freshFruit, 'freshFruit') +
+      ecart(wineRadar.minerality, guestRadar.minerality, 'minerality') +
+      ecart(wineRadar.acidity, guestRadar.acidity, 'acidity'),
     );
 
     // Max theoretical distance on 8 axes with scale 0-10 is sqrt(8 * 10^2) = 28.28

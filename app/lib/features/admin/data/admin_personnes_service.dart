@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/providers/supabase_provider.dart';
+import '../domain/admin_croissance.dart';
 import '../domain/admin_economie.dart';
 import '../domain/admin_personnes.dart';
 import 'admin_metrics_service.dart';
@@ -39,6 +40,12 @@ class AdminPersonnesService {
   Future<BilanEconomique> economie(int jours, {bool inclureTests = false}) async {
     final r = await _client.rpc('admin_economie', params: {'p_jours': jours, 'p_inclure_tests': inclureTests});
     return BilanEconomique.fromJson(r is Map ? Map<String, dynamic>.from(r) : const {});
+  }
+
+  /// Du web à l'app : invités, clics, installations par source, coût IA du web (053).
+  Future<BilanCroissance> croissance(int jours) async {
+    final r = await _client.rpc('admin_croissance', params: {'p_jours': jours});
+    return BilanCroissance.fromJson(r is Map ? Map<String, dynamic>.from(r) : const {});
   }
 
   static List<Map<String, dynamic>> _liste(dynamic r) => r is List
@@ -85,4 +92,8 @@ final adminEconomieProvider = FutureProvider<BilanEconomique>((ref) {
         ref.watch(adminPeriodeProvider),
         inclureTests: ref.watch(adminInclureTestsProvider),
       );
+});
+
+final adminCroissanceProvider = FutureProvider<BilanCroissance>((ref) {
+  return ref.read(adminPersonnesServiceProvider).croissance(ref.watch(adminPeriodeProvider));
 });

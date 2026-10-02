@@ -383,7 +383,10 @@ class OngletEconomie extends ConsumerWidget {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => MessageDEchec(erreur: '$e', migration: '047'),
           data: (b) => RefreshIndicator(
-            onRefresh: () async => ref.invalidate(adminEconomieProvider),
+            onRefresh: () async {
+              ref.invalidate(adminEconomieProvider);
+              ref.invalidate(adminCroissanceProvider);
+            },
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
               children: [
@@ -433,6 +436,8 @@ class OngletEconomie extends ConsumerWidget {
                     trailing: Text('coût ${euros(l.coutEur)} · pub ${euros(l.revenuEur)}'),
                   ),
                 const SizedBox(height: 16),
+                const _DuWebALApp(),
+                const SizedBox(height: 16),
                 const _Titre('Par personne', 'du plus coûteux au moins coûteux'),
                 if (b.parPersonne.isEmpty) _Vide(gris),
                 for (final l in b.parPersonne)
@@ -448,6 +453,52 @@ class OngletEconomie extends ConsumerWidget {
               ],
             ),
           ),
+        );
+  }
+}
+
+/// Du web à l'app (V2.3 · J6, K2) : ce que la page invité amène jusqu'à l'app installée,
+/// et ce que l'IA du web coûte par installation obtenue — le chiffre qui dira s'il faut
+/// garder le web ouvert.
+class _DuWebALApp extends ConsumerWidget {
+  const _DuWebALApp();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gris = Theme.of(context).colorScheme.onSurfaceVariant;
+    Widget ligne(String titre, String valeur, {String? detail}) => ListTile(
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          title: Text(titre),
+          subtitle: detail == null ? null : Text(detail, style: const TextStyle(fontSize: 12)),
+          trailing: Text(valeur, style: const TextStyle(fontWeight: FontWeight.bold)),
+        );
+    return ref.watch(adminCroissanceProvider).when(
+          loading: () => const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator())),
+          error: (e, _) => Text('Du web à l\'app : illisible ($e). Migration 053 appliquée ?',
+              style: TextStyle(fontSize: 12, color: gris)),
+          data: (c) {
+            final parInstallation = c.coutWebParInstallationEur;
+            final sources = c.installationsParSource.entries.map((e) => '${e.key} ${e.value}').join(' · ');
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _Titre('Du web à l\'app', 'ce que la page invité amène jusqu\'à l\'app installée'),
+                ligne('Invités arrivés sur le web', '${c.evenements('invite_web_arrivee')}'),
+                ligne('Notes de fin de soirée sur le web', '${c.evenements('invite_web_note')}'),
+                ligne('Clics « Installer l\'app »', '${c.evenements('clic_installer')}'),
+                ligne('Installations venues du web', '${c.installationsWeb}',
+                    detail: sources.isEmpty ? null : 'toutes les premières ouvertures : $sources'),
+                ligne('Coût de l\'IA sur le web', euros(c.coutIaWebEur)),
+                ligne('Coût web par installation obtenue', parInstallation == null ? '—' : euros(parInstallation)),
+                Text(
+                  'Une installation n\'a de source qu\'à partir de la 1.6.0+73 (Install Referrer). '
+                  '« google-play » : une recherche dans le Play Store, sans lien du web.',
+                  style: TextStyle(fontSize: 11.5, color: gris, fontStyle: FontStyle.italic),
+                ),
+              ],
+            );
+          },
         );
   }
 }

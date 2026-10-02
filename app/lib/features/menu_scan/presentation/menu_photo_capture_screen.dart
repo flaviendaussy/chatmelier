@@ -544,9 +544,11 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                             onPressed: _isAnalyzing ? null : _startAnalysis,
                             icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
                             label: Text(
-                              _capturedPages.length > 1
-                                  ? trSi(isFr, 'Analyser la carte ({n} pages)', 'Analyze wine list ({n} pages)', {'n': _capturedPages.length})
-                                  : trSi(isFr, 'Analyser la carte ({n} page)', 'Analyze wine list ({n} page)', {'n': _capturedPages.length}),
+                              widget.ardoise
+                                  ? tr('Analyser l\'ardoise', 'Analyze the board')
+                                  : _capturedPages.length > 1
+                                      ? trSi(isFr, 'Analyser la carte ({n} pages)', 'Analyze wine list ({n} pages)', {'n': _capturedPages.length})
+                                      : trSi(isFr, 'Analyser la carte ({n} page)', 'Analyze wine list ({n} page)', {'n': _capturedPages.length}),
                               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                             ),
                           ),

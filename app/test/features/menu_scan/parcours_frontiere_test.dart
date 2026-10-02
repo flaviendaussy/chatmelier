@@ -3,6 +3,7 @@ import 'package:chatmelier/features/menu_scan/domain/cellar_bridge.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_flight_engine.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
 import 'package:chatmelier/features/menu_scan/presentation/menu_flight_sheet.dart';
+import 'package:chatmelier/features/sommelier/domain/taste_frontier_engine.dart';
 import 'package:chatmelier/l10n/app_localizations.dart';
 import 'package:chatmelier/shared/utils/langue.dart';
 import 'package:flutter/material.dart';
@@ -115,5 +116,43 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: 'aucun débordement');
     expect(find.textContaining('Pour savoir ce que vous pensez'), findsWidgets);
+  });
+
+  test('sur une ardoise, « pour mieux vous connaître » reste au milieu des prix du verre, comme le parcours', () {
+    // Relevé le 02/10 en production : lue au prix de la bouteille, une ardoise (prix au
+    // verre seulement) n'avait aucun plafond. La carte proposait le verre le plus cher, un
+    // Madiran, pendant que le parcours en choisissait un autre.
+    const sansTaninsNiVivacite = TasteProfile(
+      id: 'moi',
+      name: 'Moi',
+      isPrimary: true,
+      axisObservations: {'body': 12, 'oak': 12, 'minerality': 12},
+    );
+    final bar = menuDe([
+      verre('muscadet', 'Muscadet', 'White', 84, const MenuWineRadarMetrics(tannins: 0, acidity: 8, body: 3.5, fruit: 5, oak: 1, minerality: 7.5), prix: 6),
+      verre('chablis', 'Chablis', 'White', 78, const MenuWineRadarMetrics(tannins: 0, acidity: 8.5, body: 4, fruit: 5, oak: 1, minerality: 9), prix: 9),
+      verre('saumur', 'Saumur-Champigny', 'Red', 80, const MenuWineRadarMetrics(tannins: 5, acidity: 5, body: 5, fruit: 7, oak: 2, minerality: 4), prix: 8),
+      verre('morgon', 'Morgon', 'Red', 76, const MenuWineRadarMetrics(tannins: 4, acidity: 5, body: 5, fruit: 8, oak: 2, minerality: 4), prix: 9),
+      verre('sancerre', 'Sancerre', 'White', 74, const MenuWineRadarMetrics(tannins: 0, acidity: 8, body: 4, fruit: 6, oak: 1, minerality: 8), prix: 10),
+      verre('madiran', 'Madiran', 'Red', 66, const MenuWineRadarMetrics(tannins: 9, acidity: 6, body: 8, fruit: 6, oak: 6, minerality: 4), prix: 11),
+    ]);
+    SuggestionDeFrontiere<MenuWine>? surLaCarte(double? Function(MenuWine) prix) => TasteFrontierEngine.choisir<MenuWine>(
+          TasteFrontierEngine.candidatsDeLaCarte(bar.wines),
+          sansTaninsNiVivacite,
+          profilDe: ProfilDeVin.depuisLaCarte,
+          plaisir: (w) => w.userMatchScore,
+          prix: prix,
+        );
+
+    expect(surLaCarte((w) => w.bottlePrice)?.vin.name, 'Madiran', reason: 'le défaut : sans prix de bouteille, aucun plafond');
+
+    final juste = surLaCarte(MenuFlightEngine.prixPourApprendre)!;
+    expect(juste.vin.name, isNot('Madiran'));
+    expect(MenuFlightEngine.prixPourApprendre(juste.vin), lessThanOrEqualTo(9), reason: 'au plus le prix médian du verre');
+
+    final parcours = MenuFlightEngine.buildFrontierFlight(menu: bar, palais: sansTaninsNiVivacite);
+    final instructif = parcours.steps.singleWhere((s) => s.sommelierRole.startsWith('Pour savoir ce que vous pensez '));
+    expect(instructif.sommelierRole, endsWith(TasteFrontierEngine.ceQueJugeLAxe(juste.axe)),
+        reason: 'la carte et le parcours apprennent la même chose');
   });
 }

@@ -2679,6 +2679,7 @@ const Map<String, String> catalogueEs = {
   'L\'ardoise du bar': 'La pizarra del bar',
   'Photographiez l\'ardoise, en plusieurs fois si elle est grande : les prix au verre passeront en premier.': 'Fotografía la pizarra, en varias tomas si es grande: los precios por copa aparecerán primero.',
   'Prenez l\'ardoise en photo, ou choisissez une photo dans la galerie.': 'Haz una foto de la pizarra o elige una de la galería.',
+  'Analyser l\'ardoise': 'Analizar la pizarra',
   'Chatmelier analyse le menu{suffixe}...': 'Chatmelier analiza la carta{suffixe}...',
   'Déchiffrage optique des cuvées, producteurs et millésimes...': 'Descifrando cuvées, productores y añadas...',
   'Chatmelier s\'informe sur les domaines et terroirs viticoles...': 'Chatmelier se informa sobre los productores y los terruños...',

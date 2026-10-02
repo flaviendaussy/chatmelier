@@ -15,6 +15,7 @@ import 'menu_photo_capture_screen.dart';
 import 'menu_wine_compare_sheet.dart';
 import 'menu_table_consensus_sheet.dart';
 import 'menu_flight_sheet.dart';
+import '../domain/menu_flight_engine.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../sommelier/domain/taste_frontier_engine.dart';
 import '../../../shared/utils/langue.dart';
@@ -126,7 +127,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
         principal,
         profilDe: ProfilDeVin.depuisLaCarte,
         plaisir: (w) => w.userMatchScore,
-        prix: (w) => w.bottlePrice,
+        prix: MenuFlightEngine.prixPourApprendre,
       );
       if (mounted) setState(() => _frontiere = s);
     } catch (_) {

@@ -151,7 +151,7 @@ class MenuFlightEngine {
             palais,
             profilDe: ProfilDeVin.depuisLaCarte,
             plaisir: (w) => w.userMatchScore,
-            prix: (w) => _prixDuVerre(w).$1 ?? w.bottlePrice,
+            prix: prixPourApprendre,
           );
       final nouveaux = libres.where((w) {
         final r = TasteFrontierEngine.evaluer(ProfilDeVin.depuisLaCarte(w), palais);
@@ -565,6 +565,12 @@ class MenuFlightEngine {
 
   /// Le prix du verre : celui de la carte, sinon une estimation (un cinquième de la
   /// bouteille), sinon aucun — plus de verre à 8 inventé pour un vin sans prix.
+  /// Le prix qui borne « pour mieux vous connaître », sur la carte comme dans le parcours :
+  /// celui du verre, ou son estimation depuis la bouteille. Une ardoise n'a que des prix au
+  /// verre : lue à la bouteille, elle n'avait aucun plafond, et la carte proposait le verre
+  /// le plus cher quand le parcours en choisissait un autre (relevé le 02/10).
+  static double? prixPourApprendre(MenuWine w) => _prixDuVerre(w).$1 ?? w.bottlePrice;
+
   static (double?, bool) _prixDuVerre(MenuWine w) {
     if (w.glassPrices.isNotEmpty && w.glassPrices.first.price > 0) {
       return (w.glassPrices.first.price, false);

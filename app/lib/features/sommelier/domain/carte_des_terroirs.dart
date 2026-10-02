@@ -1,4 +1,5 @@
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/sans_accents.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../cellar/domain/wine_world/wine_world.dart';
@@ -104,16 +105,23 @@ class CarteDesTerroirs {
 
   static String _cle(TerroirVu t) => t.regionId ?? t.libelle.toLowerCase();
 
+  /// Des mentions sans lieu : « Vin de France » dit une catégorie, pas un terroir.
+  static const _sansLieu = {
+    'autre', 'other', 'vin de france', 'vin de table', 'vino de espana', 'vino de mesa', 'table wine',
+  };
+
   /// Un terroir par région reconnue (le premier libellé rencontré), un par libellé sinon.
   static List<TerroirVu> _terroirs(Iterable<VinSitue> vins) {
     final vus = <String, TerroirVu>{};
     for (final v in vins) {
       final region = (v.region ?? '').trim();
-      final appellation = (v.appellation ?? '').trim().isNotEmpty
+      var appellation = (v.appellation ?? '').trim().isNotEmpty
           ? v.appellation!.trim()
           : (WineWorld.appellationDansLeNom(v.nom, pays: v.pays) ? v.nom!.trim() : '');
+      // Une mention sans lieu laisse parler la région, quand la fiche en donne une.
+      if (_sansLieu.contains(sansAccents(appellation))) appellation = '';
       final libelle = appellation.isNotEmpty ? appellation : region;
-      if (libelle.isEmpty || libelle.toLowerCase() == 'autre') continue;
+      if (libelle.isEmpty || _sansLieu.contains(sansAccents(libelle))) continue;
       final id = WineWorld.region(pays: v.pays, region: region, appellation: appellation)?.id;
       final t = TerroirVu(libelle, id);
       vus.putIfAbsent(_cle(t), () => t);

@@ -2235,115 +2235,115 @@
   "fr": "Cave Vierge",
   "en": "Empty cellar",
   "es": "Bodega vacía",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:63"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:64"
  },
  {
   "fr": "Votre cave est actuellement vide.",
   "en": "Your cellar is empty for now.",
   "es": "Tu bodega está vacía por ahora.",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:65"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:66"
  },
  {
   "fr": "Commencez par 3 piliers indispensables : un blanc minéral vif, un rouge soyeux de plaisir et un flacon de garde.",
   "en": "Start with 3 essentials: a crisp mineral white, a silky easy-drinking red and a bottle to age.",
   "es": "Empieza por 3 pilares imprescindibles: un blanco mineral y vivo, un tinto sedoso para disfrutar y una botella de guarda.",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:66"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:67"
  },
  {
   "fr": "Hégémonie des Rouges",
   "en": "Mostly reds",
   "es": "Casi todo tintos",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:124"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:123"
  },
  {
   "fr": "{v1}% de vos flacons sont des rouges.",
   "en": "{v1}% of your bottles are reds.",
   "es": "El {v1}% de tus botellas son tintos.",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:126"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:125"
  },
  {
   "fr": "Vous manquez d'options vives pour les apéritifs spontanés, poissons, volailles crémées ou fromages de chèvre.",
   "en": "You're short of fresh options for impromptu aperitifs, fish, creamy poultry or goat's cheese.",
   "es": "Te faltan opciones frescas para aperitivos improvisados, pescados, aves en salsa o quesos de cabra.",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:127"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:126"
  },
  {
   "fr": "Manque de Rouges Structurés",
   "en": "Short of structured reds",
   "es": "Faltan tintos estructurados",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:133"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:132"
  },
  {
   "fr": "{v1}% de blancs.",
   "en": "{v1}% whites.",
   "es": "{v1}% de blancos.",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:135"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:134"
  },
  {
   "fr": "Pour les viandes grillées ou plats mijotés d'hiver, vous manquerez de tannins patinés.",
   "en": "For grilled meat or winter stews, you'll be short of mellow tannins.",
   "es": "Para carnes a la brasa o guisos de invierno, te faltarán taninos pulidos.",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:136"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:135"
  },
  {
   "fr": "Zéro Effervescent",
   "en": "No sparkling wine",
   "es": "Ningún espumoso",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:144"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:143"
  },
  {
   "fr": "Aucune bouteille de bulles recensée en cave.",
   "en": "Not a single bottle of bubbles in the cellar.",
   "es": "No hay ni una botella de espumoso en la bodega.",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:146"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:145"
  },
  {
   "fr": "Un imprévu à fêter ? Avoir au moins 2 bouteilles de bulles prêtes évite l'achat d'urgence.",
   "en": "Something to celebrate at short notice? Keeping at least 2 bottles of bubbles ready saves a last-minute purchase.",
   "es": "¿Algo que celebrar sin avisar? Tener al menos 2 botellas de espumoso listas evita la compra de urgencia.",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:147"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:146"
  },
  {
   "fr": "Risque d'Infanticide Oenologique",
   "en": "Risk of opening wines too young",
   "es": "Riesgo de abrir vinos demasiado jóvenes",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:156"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:155"
  },
  {
   "fr": "Beaucoup de flacons en vieillissement mais très peu de bouteilles prêtes à boire ({readyCount} flacons).",
   "en": "Lots of bottles still ageing, but very few ready to drink ({readyCount} bottles).",
   "es": "Muchas botellas aún envejeciendo, pero muy pocas listas para beber ({readyCount} botellas).",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:158"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:157"
  },
  {
   "fr": "Vous risquez d'ouvrir prématurément de grands vins de garde. Rentrez quelques cuvées de plaisir immédiat.",
   "en": "You may end up opening great wines too early. Add a few bottles to enjoy now.",
   "es": "Podrías acabar abriendo grandes vinos de guarda antes de tiempo. Añade algunas botellas para disfrutar ya.",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:159"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:158"
  },
  {
   "fr": "Languedoc frais",
   "en": "Fresh Languedoc",
   "es": "Languedoc fresco",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:160"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:159"
  },
  {
   "fr": "Côtes-du-Rhône jeune & fruité",
   "en": "Young, fruity Côtes-du-Rhône",
   "es": "Côtes-du-Rhône joven y afrutado",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:162"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:161"
  },
  {
   "fr": "Flacons en Urgence de Dégustation",
   "en": "Bottles to drink now",
   "es": "Botellas que beber ya",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:167"
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:166"
  },
  {
-  "fr": "{pastCount} bouteilles ont dépassé leur fenêtre optimale d'apogée.",
-  "en": "{pastCount} bottles are past their peak window.",
-  "es": "{pastCount} botellas han pasado su ventana óptima de apogeo.",
-  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:169"
+  "fr": "{pastCount} bouteilles arrivent au bout de leur fenêtre, ou l'ont passée.",
+  "en": "{pastCount} bottles are at the end of their window, or past it.",
+  "es": "{pastCount} botellas llegan al final de su ventana, o ya la han pasado.",
+  "ou": "lib/features/cellar/domain/cellar_gap_engine.dart:168"
  },
  {
   "fr": "Ouvrez ces bouteilles lors de vos prochains repas pour ne pas perdre leur éclat aromatique.",
@@ -16050,6 +16050,24 @@
   "ou": "lib/features/menu_scan/presentation/menu_matchmaker_sheet.dart:346"
  },
  {
+  "fr": "L'ardoise du bar",
+  "en": "The bar's board",
+  "es": "La pizarra del bar",
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:307"
+ },
+ {
+  "fr": "Photographiez l'ardoise, en plusieurs fois si elle est grande : les prix au verre passeront en premier.",
+  "en": "Photograph the board, in several shots if it is large: glass prices will come first.",
+  "es": "Fotografía la pizarra, en varias tomas si es grande: los precios por copa aparecerán primero.",
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:314"
+ },
+ {
+  "fr": "Prenez l'ardoise en photo, ou choisissez une photo dans la galerie.",
+  "en": "Take a photo of the board, or pick one from the gallery.",
+  "es": "Haz una foto de la pizarra o elige una de la galería.",
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:351"
+ },
+ {
   "fr": "Chatmelier analyse le menu{suffixe}...",
   "en": "Chatmelier is analyzing the menu{suffixe}...",
   "es": "Chatmelier analiza la carta{suffixe}...",
@@ -16143,79 +16161,79 @@
   "fr": "Capture Multi-Pages",
   "en": "Multi-Page Capture",
   "es": "Captura de varias páginas",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:306"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:308"
  },
  {
   "fr": "Prenez toutes les pages de la carte (blancs, rouges, bulles...). Elles seront fusionnées et analysées en une seule fois par l'IA !",
   "en": "Capture all pages of the list (whites, reds, sparkling...). They will be merged and analyzed together by AI!",
   "es": "Fotografía todas las páginas de la carta (blancos, tintos, espumosos...). ¡La IA las unirá y las analizará de una vez!",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:311"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:316"
  },
  {
   "fr": "Aucune page capturée pour le moment",
   "en": "No pages captured yet",
   "es": "Todavía no hay ninguna página capturada",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:338"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:343"
  },
  {
   "fr": "Prenez la première page de la carte des vins avec l'appareil photo ou la galerie.",
   "en": "Capture the first page of the wine list using the camera or gallery.",
   "es": "Fotografía la primera página de la carta de vinos con la cámara o desde la galería.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:345"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:353"
  },
  {
   "fr": "Prendre photo",
   "en": "Take photo",
   "es": "Hacer foto",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:361"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:369"
  },
  {
   "fr": "Prendre une autre page en photo",
   "en": "Take another page photo",
   "es": "Fotografiar otra página",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:399"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:407"
  },
  {
   "fr": "Ajouter depuis la galerie",
   "en": "Add from gallery",
   "es": "Añadir desde la galería",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:407"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:415"
  },
  {
   "fr": "Ajouter une page",
   "en": "Add a page",
   "es": "Añadir una página",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:434"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:442"
  },
  {
   "fr": "Photo ou Galerie",
   "en": "Photo or Gallery",
   "es": "Foto o galería",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:438"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:446"
  },
  {
   "fr": "Analyser la carte ({n} pages)",
   "en": "Analyze wine list ({n} pages)",
   "es": "Analizar la carta ({n} páginas)",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:540"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:548"
  },
  {
   "fr": "Analyser la carte ({n} page)",
   "en": "Analyze wine list ({n} page)",
   "es": "Analizar la carta ({n} página)",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:541"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:549"
  },
  {
   "fr": "Analyse du menu par Chatmelier",
   "en": "Menu analysis by Chatmelier",
   "es": "Análisis de la carta por Chatmelier",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:623"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:631"
  },
  {
   "fr": "Extraction des cuvées, millésimes, prix au verre & bouteille, et profils sensoriels.",
   "en": "Extracting cuvées, vintages, by-the-glass & bottle pricing, and sensory profiles.",
   "es": "Extrayendo cuvées, añadas, precios por copa y por botella, y perfiles sensoriales.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:696"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:704"
  },
  {
   "fr": "Sans préférences déclarées",
@@ -18393,7 +18411,7 @@
   "fr": "Prochaine région à explorer : {region}. Ses vins vous diraient ce que vous pensez {quoi}.",
   "en": "Next region to explore: {region}. Its wines would tell you how you feel about {quoi}.",
   "es": "Próxima región por explorar: {region}. Sus vinos te dirían qué piensas {quoi}.",
-  "ou": "lib/features/sommelier/domain/carte_des_terroirs.dart:30"
+  "ou": "lib/features/sommelier/domain/carte_des_terroirs.dart:31"
  },
  {
   "fr": "Vous n'aimez pas les tanins fermes : celui-ci risque d'en avoir trop",

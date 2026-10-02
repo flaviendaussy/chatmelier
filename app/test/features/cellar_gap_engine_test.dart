@@ -60,6 +60,35 @@ void main() {
       expect(analysis.shoppingWishlist, contains('Champagne Blanc de Blancs'));
     });
 
+    test('la maturité se lit comme sur les fiches : un Bandol de l\'an dernier est en garde', () {
+      final annee = DateTime.now().year;
+      final bandol = Wine(
+        id: 'bandol',
+        name: 'Bandol rouge',
+        type: 'red',
+        region: 'Provence',
+        appellation: 'Bandol',
+        country: 'France',
+        vintage: annee - 1,
+        grapes: const [Grape(name: 'Mourvèdre')],
+      );
+      final analyse = CellarGapEngine.analyzeCellar([
+        Bottle(
+          id: 'b',
+          cellarId: 'cellar_1',
+          wineId: 'bandol',
+          ownerId: 'user_1',
+          addedBy: 'user_1',
+          createdAt: DateTime(2026, 1, 1),
+          quantity: 3,
+          wine: bandol,
+        ),
+      ]);
+      expect(bandol.windowStatus, anyOf(DrinkWindowStatus.tooYoung, DrinkWindowStatus.aging));
+      expect((analyse.inAgingCount, analyse.readyToDrinkCount), (3, 0),
+          reason: 'sans dates sur la fiche, il passait pour prêt à boire');
+    });
+
     test('Empty cellar returns virgin cellar guidance', () {
       final analysis = CellarGapEngine.analyzeCellar([]);
       expect(analysis.totalBottles, equals(0));

@@ -2,7 +2,10 @@ import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/menu_scan/domain/cellar_bridge.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_flight_engine.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
+import 'package:chatmelier/features/menu_scan/presentation/menu_flight_sheet.dart';
+import 'package:chatmelier/l10n/app_localizations.dart';
 import 'package:chatmelier/shared/utils/langue.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Le parcours qui vous apprend quelque chose (V2.3 · J4) : un verre aimé, les plus
@@ -97,5 +100,20 @@ void main() {
     final p = MenuFlightEngine.buildFrontierFlight(menu: menuDe(dejaGoute), palais: palais);
     final instructif = p.steps.singleWhere((s) => s.sommelierRole.startsWith('Pour savoir ce que vous pensez '));
     expect(instructif.wine.name, 'Muscadet', reason: 'le plus minéral qui reste à découvrir');
+  });
+
+  testWidgets('sur un téléphone, un rôle long passe à la ligne sans pousser le prix hors de l\'écran', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('fr'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: MenuFlightSheet(menu: carte, palais: palais)),
+    ));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull, reason: 'aucun débordement');
+    expect(find.textContaining('Pour savoir ce que vous pensez'), findsWidgets);
   });
 }

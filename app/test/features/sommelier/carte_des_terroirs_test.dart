@@ -25,6 +25,8 @@ void main() {
         vin('Chambolle-Musigny', region: 'Bourgogne'), // l'appellation est dans le nom
         vin('Gevrey-Chambertin', region: 'Bourgogne'), // même région que le Chambolle
         vin('Cuvée maison', region: 'Autre'), // rien à situer
+        vin('Le Rouge du Patron', appellation: 'Vin de France'), // une catégorie, pas un terroir
+        vin('Les Vignes d\'à Côté', appellation: 'Vin de France', region: 'Bourgogne'), // la région parle
       ],
       enCave: [
         vin('Cornas', appellation: 'Cornas', region: 'Vallée du Rhône'),
@@ -33,9 +35,9 @@ void main() {
       profil: palais,
     );
 
-    expect(carte.goutes.map((t) => t.libelle), ['Chablis', 'Chambolle-Musigny']);
+    expect(carte.goutes.map((t) => t.libelle), ['Chablis', 'Chambolle-Musigny', 'Bourgogne']);
     expect(carte.enCave.map((t) => t.libelle), ['Cornas']);
-    expect(carte.explorees, 3, reason: 'Chablis, Côte de Nuits, Rhône nord');
+    expect(carte.explorees, 4, reason: 'Chablis, Côte de Nuits, Bourgogne régional, Rhône nord');
     expect(carte.total, greaterThan(90));
   });
 

@@ -374,26 +374,36 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
             child: SafeArea(
               child: Row(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        trSi(isFr, 'Prix estimé du flight', 'Estimated flight total'),
-                        style: const TextStyle(color: Colors.white60, fontSize: 11),
-                      ),
-                      Text(
-                        '~${widget.menu.formaterPrix(_proposal.totalEstimatedPrice.roundToDouble())} '
-                        '(${_proposal.steps.length} ${trSi(isFr, 'verres', 'glasses')})',
-                        style: const TextStyle(
-                          color: Color(0xFFD4AF37),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                  // Le total cède la place au bouton sur un petit écran (le français est
+                  // plus long que l'anglais), plutôt que de déborder.
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          trSi(isFr, 'Prix estimé du flight', 'Estimated flight total'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white60, fontSize: 11),
                         ),
-                      ),
-                    ],
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            '~${widget.menu.formaterPrix(_proposal.totalEstimatedPrice.roundToDouble())} '
+                            '(${_proposal.steps.length} ${trSi(isFr, 'verres', 'glasses')})',
+                            style: const TextStyle(
+                              color: Color(0xFFD4AF37),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 12),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF8B1E3F),
@@ -455,16 +465,24 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  '•  ${step.sommelierRole}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                // Le rôle peut être long (« Pour savoir ce que vous pensez de la
+                // vivacité ») : il passe à la ligne plutôt que de pousser le prix hors
+                // de l'écran (débordement de 114 px sur l'émulateur, 02/10).
+                Expanded(
+                  child: Text(
+                    '•  ${step.sommelierRole}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
                 ),
-                const Spacer(),
-                if (priceStr.isNotEmpty)
+                if (priceStr.isNotEmpty) ...[
+                  const SizedBox(width: 8),
                   Text(
                     priceStr,
                     style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 12, fontWeight: FontWeight.bold),
                   ),
+                ],
               ],
             ),
             const SizedBox(height: 10),

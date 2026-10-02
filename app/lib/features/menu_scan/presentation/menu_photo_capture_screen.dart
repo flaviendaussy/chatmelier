@@ -303,12 +303,17 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              trSi(isFr, 'Capture Multi-Pages', 'Multi-Page Capture'),
+                              widget.ardoise
+                                  ? tr('L\'ardoise du bar', 'The bar\'s board')
+                                  : trSi(isFr, 'Capture Multi-Pages', 'Multi-Page Capture'),
                               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              trSi(isFr, 'Prenez toutes les pages de la carte (blancs, rouges, bulles...). Elles seront fusionnées et analysées en une seule fois par l\'IA !', 'Capture all pages of the list (whites, reds, sparkling...). They will be merged and analyzed together by AI!'),
+                              widget.ardoise
+                                  ? tr('Photographiez l\'ardoise, en plusieurs fois si elle est grande : les prix au verre passeront en premier.',
+                                      'Photograph the board, in several shots if it is large: glass prices will come first.')
+                                  : trSi(isFr, 'Prenez toutes les pages de la carte (blancs, rouges, bulles...). Elles seront fusionnées et analysées en une seule fois par l\'IA !', 'Capture all pages of the list (whites, reds, sparkling...). They will be merged and analyzed together by AI!'),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.white70 : Colors.black87,
@@ -342,7 +347,10 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 36.0),
                                 child: Text(
-                                  trSi(isFr, 'Prenez la première page de la carte des vins avec l\'appareil photo ou la galerie.', 'Capture the first page of the wine list using the camera or gallery.'),
+                                  widget.ardoise
+                                      ? tr('Prenez l\'ardoise en photo, ou choisissez une photo dans la galerie.',
+                                          'Take a photo of the board, or pick one from the gallery.')
+                                      : trSi(isFr, 'Prenez la première page de la carte des vins avec l\'appareil photo ou la galerie.', 'Capture the first page of the wine list using the camera or gallery.'),
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(fontSize: 13, color: Colors.grey),
                                 ),

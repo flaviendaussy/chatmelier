@@ -1,4 +1,5 @@
 import '../domain/bottle.dart';
+import '../domain/wine.dart';
 import '../../../shared/utils/langue.dart';
 
 class CellarGapCategory {
@@ -79,8 +80,6 @@ class CellarGapEngine {
     int agingCount = 0;
     int pastCount = 0;
 
-    final currentYear = DateTime.now().year;
-
     for (final b in available) {
       final w = b.wine;
       if (w == null) continue;
@@ -97,16 +96,16 @@ class CellarGapEngine {
         redCount += qty;
       }
 
-      // Analyse de maturité
-      final endYear = w.drinkEnd;
-      final startYear = w.drinkStart;
-
-      if (endYear != null && endYear < currentYear) {
-        pastCount += qty;
-      } else if (startYear != null && startYear > currentYear) {
-        agingCount += qty;
-      } else {
-        readyCount += qty;
+      // La maturité de [Wine.windowStatus], le seul calcul de fenêtre de l'app : lue sur
+      // les dates brutes de la fiche (souvent absentes, ou corrigées depuis), l'analyse
+      // annonçait 25 bouteilles prêtes quand les fiches en montraient plusieurs en garde.
+      switch (w.windowStatus) {
+        case DrinkWindowStatus.tooYoung || DrinkWindowStatus.aging:
+          agingCount += qty;
+        case DrinkWindowStatus.inPeak:
+          readyCount += qty;
+        case DrinkWindowStatus.drinkSoon || DrinkWindowStatus.pastPeak:
+          pastCount += qty;
       }
     }
 
@@ -166,7 +165,8 @@ class CellarGapEngine {
       gaps.add(CellarGapCategory(
         title: tr('Flacons en Urgence de Dégustation', 'Bottles to drink now'),
         status: 'critical',
-        diagnosis: tr('{pastCount} bouteilles ont dépassé leur fenêtre optimale d\'apogée.', '{pastCount} bottles are past their peak window.', {'pastCount': pastCount}),
+        diagnosis: tr('{pastCount} bouteilles arrivent au bout de leur fenêtre, ou l\'ont passée.',
+            '{pastCount} bottles are at the end of their window, or past it.', {'pastCount': pastCount}),
         sommelierAdvice: tr('Ouvrez ces bouteilles lors de vos prochains repas pour ne pas perdre leur éclat aromatique.', 'Open them at your next meals before they lose their aromas.'),
         recommendedAppellations: [],
       ));

@@ -868,7 +868,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
           child: Icon(iconData, color: iconColor, size: 20),
         ),
         title: Text(
-          notif.title,
+          notif.titreLu,
           style: TextStyle(
             fontWeight: notif.isRead ? FontWeight.w500 : FontWeight.bold,
             fontSize: 13.5,
@@ -879,7 +879,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
           children: [
             const SizedBox(height: 2),
             Text(
-              notif.body,
+              notif.corpsLu,
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 4),

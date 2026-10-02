@@ -718,9 +718,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(notif.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(notif.titreLu, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 2),
-                Text(notif.body, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(notif.corpsLu, style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
           ),

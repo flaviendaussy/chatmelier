@@ -1,3 +1,5 @@
+import '../../../shared/utils/langue.dart';
+
 /// Represents an in-app social / cellar notification.
 class UserNotification {
   final String id;
@@ -45,6 +47,67 @@ class UserNotification {
       isRead: json['is_read'] as bool? ?? false,
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now() : DateTime.now(),
     );
+  }
+
+  /// Le titre, dans la langue de celui qui lit (V2.3 · J8).
+  ///
+  /// La ligne garde un titre et un texte rédigés en français à l'envoi : c'est ce
+  /// qu'affichent les versions précédentes de l'app. Celle-ci les rédige à l'affichage,
+  /// d'après le type et les données ; un type inconnu garde le texte rangé.
+  String get titreLu => _redaction().titre;
+
+  /// Le texte, dans la langue de celui qui lit — voir [titreLu].
+  String get corpsLu => _redaction().corps;
+
+  ({String titre, String corps}) _redaction() {
+    final nom = [actorName, data['requester_name']?.toString()]
+            .whereType<String>()
+            .map((n) => n.trim())
+            .firstWhere((n) => n.isNotEmpty, orElse: () => '');
+    final qui = nom.isNotEmpty ? nom : tr('Un ami', 'A friend');
+    final pseudo = (data['requester_username']?.toString() ?? actorUsername ?? '').replaceAll('@', '').trim();
+    final editeur = (data['requested_role'] ?? data['role'])?.toString() == 'editor';
+    final cave = data['cellar_name']?.toString().trim() ?? '';
+    return switch (type) {
+      'friend_request' => (
+          titre: tr('Nouvelle demande d\'ami 🍷', 'New friend request 🍷'),
+          corps: tr('{qui} vous a envoyé une demande d\'ami pour partager vos goûts et vos caves.',
+              '{qui} sent you a friend request to share your taste and your cellars.',
+              {'qui': pseudo.isEmpty ? qui : '$qui (@$pseudo)'}),
+        ),
+      'friend_accepted' => (
+          titre: tr('Demande d\'ami acceptée ! 🎉', 'Friend request accepted! 🎉'),
+          corps: tr(
+              '{qui} a accepté votre demande d\'ami. Vous voyez désormais sa carte des goûts, et pouvez demander l\'accès à sa cave.',
+              '{qui} accepted your friend request. You can now see their taste map and ask for access to their cellar.',
+              {'qui': qui}),
+        ),
+      'cellar_request' => (
+          titre: tr('Demande d\'accès à votre cave 🍷', 'Request to access your cellar 🍷'),
+          corps: tr('{qui} souhaite accéder à votre cave : {droits}.', '{qui} would like to access your cellar: {droits}.', {
+            'qui': qui,
+            'droits': editeur
+                ? tr('ajouter et retirer des bouteilles', 'adding and removing bottles')
+                : tr('consultation seule', 'view only'),
+          }),
+        ),
+      'cellar_granted' => (
+          titre: tr('Accès à la cave accordé ! 🍾', 'Cellar access granted! 🍾'),
+          corps: tr('{qui} vous a ouvert sa cave{cave} : {droits}.', '{qui} gave you access to their cellar{cave}: {droits}.', {
+            'qui': qui,
+            'cave': cave.isEmpty ? '' : tr(' « {nom} »', ' "{nom}"', {'nom': cave}),
+            'droits': editeur
+                ? tr('vous pouvez ajouter et retirer des bouteilles', 'you can add and remove bottles')
+                : tr('en consultation', 'view only'),
+          }),
+        ),
+      'cellar_rejected' => (
+          titre: tr('Demande d\'accès à la cave refusée', 'Cellar access request declined'),
+          corps: tr('{qui} a décliné votre demande d\'accès à sa cave.', '{qui} declined your request to access their cellar.',
+              {'qui': qui}),
+        ),
+      _ => (titre: title, corps: body),
+    };
   }
 
   Map<String, dynamic> toJson() => {

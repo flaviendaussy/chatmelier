@@ -11097,13 +11097,103 @@
   "fr": "Vous êtes déjà propriétaire de cette cave.",
   "en": "You already own this cellar.",
   "es": "Ya eres el propietario de esta bodega.",
-  "ou": "lib/features/friends/data/friends_repository.dart:497"
+  "ou": "lib/features/friends/data/friends_repository.dart:498"
  },
  {
   "fr": "Impossible de déterminer la cave à partager.",
   "en": "Couldn't tell which cellar to share.",
   "es": "No se pudo determinar qué bodega compartir.",
-  "ou": "lib/features/friends/data/friends_repository.dart:798"
+  "ou": "lib/features/friends/data/friends_repository.dart:800"
+ },
+ {
+  "fr": "Nouvelle demande d'ami 🍷",
+  "en": "New friend request 🍷",
+  "es": "Nueva solicitud de amistad 🍷",
+  "ou": "lib/features/friends/domain/user_notification.dart:73"
+ },
+ {
+  "fr": "{qui} vous a envoyé une demande d'ami pour partager vos goûts et vos caves.",
+  "en": "{qui} sent you a friend request to share your taste and your cellars.",
+  "es": "{qui} te ha enviado una solicitud de amistad para compartir vuestros gustos y vuestras bodegas.",
+  "ou": "lib/features/friends/domain/user_notification.dart:74"
+ },
+ {
+  "fr": "Demande d'ami acceptée ! 🎉",
+  "en": "Friend request accepted! 🎉",
+  "es": "¡Solicitud de amistad aceptada! 🎉",
+  "ou": "lib/features/friends/domain/user_notification.dart:79"
+ },
+ {
+  "fr": "{qui} a accepté votre demande d'ami. Vous voyez désormais sa carte des goûts, et pouvez demander l'accès à sa cave.",
+  "en": "{qui} accepted your friend request. You can now see their taste map and ask for access to their cellar.",
+  "es": "{qui} ha aceptado tu solicitud de amistad. Ya puedes ver su mapa de gustos y pedir acceso a su bodega.",
+  "ou": "lib/features/friends/domain/user_notification.dart:80"
+ },
+ {
+  "fr": "Demande d'accès à votre cave 🍷",
+  "en": "Request to access your cellar 🍷",
+  "es": "Solicitud de acceso a tu bodega 🍷",
+  "ou": "lib/features/friends/domain/user_notification.dart:86"
+ },
+ {
+  "fr": "{qui} souhaite accéder à votre cave : {droits}.",
+  "en": "{qui} would like to access your cellar: {droits}.",
+  "es": "{qui} quiere acceder a tu bodega: {droits}.",
+  "ou": "lib/features/friends/domain/user_notification.dart:87"
+ },
+ {
+  "fr": "ajouter et retirer des bouteilles",
+  "en": "adding and removing bottles",
+  "es": "añadir y retirar botellas",
+  "ou": "lib/features/friends/domain/user_notification.dart:90"
+ },
+ {
+  "fr": "consultation seule",
+  "en": "view only",
+  "es": "solo consulta",
+  "ou": "lib/features/friends/domain/user_notification.dart:91"
+ },
+ {
+  "fr": "Accès à la cave accordé ! 🍾",
+  "en": "Cellar access granted! 🍾",
+  "es": "¡Acceso a la bodega concedido! 🍾",
+  "ou": "lib/features/friends/domain/user_notification.dart:95"
+ },
+ {
+  "fr": "{qui} vous a ouvert sa cave{cave} : {droits}.",
+  "en": "{qui} gave you access to their cellar{cave}: {droits}.",
+  "es": "{qui} te ha abierto su bodega{cave}: {droits}.",
+  "ou": "lib/features/friends/domain/user_notification.dart:96"
+ },
+ {
+  "fr": " « {nom} »",
+  "en": " \"{nom}\"",
+  "es": " «{nom}»",
+  "ou": "lib/features/friends/domain/user_notification.dart:98"
+ },
+ {
+  "fr": "vous pouvez ajouter et retirer des bouteilles",
+  "en": "you can add and remove bottles",
+  "es": "puedes añadir y retirar botellas",
+  "ou": "lib/features/friends/domain/user_notification.dart:100"
+ },
+ {
+  "fr": "en consultation",
+  "en": "view only",
+  "es": "solo consulta",
+  "ou": "lib/features/friends/domain/user_notification.dart:101"
+ },
+ {
+  "fr": "Demande d'accès à la cave refusée",
+  "en": "Cellar access request declined",
+  "es": "Solicitud de acceso a la bodega rechazada",
+  "ou": "lib/features/friends/domain/user_notification.dart:105"
+ },
+ {
+  "fr": "{qui} a décliné votre demande d'accès à sa cave.",
+  "en": "{qui} declined your request to access their cellar.",
+  "es": "{qui} ha rechazado tu solicitud de acceso a su bodega.",
+  "ou": "lib/features/friends/domain/user_notification.dart:106"
  },
  {
   "fr": "Salut {prenom} ! ",
@@ -18063,109 +18153,133 @@
   "fr": "Vous n'aimez pas les tanins fermes : celui-ci risque d'en avoir trop",
   "en": "You dislike firm tannins: this one may have too much",
   "es": "No te gustan los taninos firmes: este puede tener demasiados",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:291"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:297"
  },
  {
   "fr": "{guest_name} n'aime pas les tanins fermes : celui-ci risque d'en avoir trop",
   "en": "{guest_name} dislikes firm tannins: this one may have too much",
   "es": "A {guest_name} no le gustan los taninos firmes: este puede tener demasiados",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:292"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:298"
  },
  {
   "fr": "Vous n'aimez pas les vins très vifs : celui-ci risque de l'être trop",
   "en": "You dislike very crisp wines: this one may be too sharp",
   "es": "No te gustan los vinos muy vivos: este puede serlo demasiado",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:296"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:302"
  },
  {
   "fr": "{guest_name} n'aime pas les vins très vifs : celui-ci risque de l'être trop",
   "en": "{guest_name} dislikes very crisp wines: this one may be too sharp",
   "es": "A {guest_name} no le gustan los vinos muy vivos: este puede serlo demasiado",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:297"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:303"
  },
  {
   "fr": "Vous n'aimez pas le boisé : celui-ci risque d'en avoir trop",
   "en": "You dislike oak: this one may have too much",
   "es": "No te gusta la madera: este puede tener demasiada",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:301"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:307"
  },
  {
   "fr": "{guest_name} n'aime pas le boisé : celui-ci risque d'en avoir trop",
   "en": "{guest_name} dislikes oak: this one may have too much",
   "es": "A {guest_name} no le gusta la madera: este puede tener demasiada",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:302"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:308"
+ },
+ {
+  "fr": "À son apogée.",
+  "en": "At its peak.",
+  "es": "En su punto óptimo.",
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:369"
+ },
+ {
+  "fr": "À boire sans trop attendre.",
+  "en": "Best drunk soon.",
+  "es": "Para beber sin esperar demasiado.",
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:370"
+ },
+ {
+  "fr": "Encore jeune : il gagnerait à attendre {annee}.",
+  "en": "Still young: worth waiting until {annee}.",
+  "es": "Todavía joven: ganaría esperando hasta {annee}.",
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:371"
+ },
+ {
+  "fr": "Passé son apogée : à ouvrir sans trop en attendre.",
+  "en": "Past its peak: open it without expecting too much.",
+  "es": "Pasado su punto óptimo: para abrir sin esperar demasiado de él.",
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:373"
  },
  {
   "fr": "Une bouteille pour la table",
   "en": "A bottle for the table",
   "es": "Una botella para la mesa",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:458"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:430"
  },
  {
   "fr": "Taillé pour les goûts de {g_name}",
   "en": "Made for {g_name}'s taste",
   "es": "Hecho para los gustos de {g_name}",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:465"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:437"
  },
  {
   "fr": "Dans les goûts de {g_name}",
   "en": "Close to {g_name}'s taste",
   "es": "En la línea de los gustos de {g_name}",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:467"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:439"
  },
  {
   "fr": "Un pas de côté pour {g_name}",
   "en": "A step away from {g_name}'s usual taste",
   "es": "Un paso al lado para {g_name}",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:470"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:442"
  },
  {
   "fr": "Amateur de Grands Rouges Puissants",
   "en": "Lover of big, powerful reds",
   "es": "Amante de los grandes tintos potentes",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:157"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:159"
  },
  {
   "fr": "Adepte de Minéralité & Fraîcheur Droite",
   "en": "Mineral & crisp lover",
   "es": "Adepto de la mineralidad y el frescor recto",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:158"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:160"
  },
  {
   "fr": "Palais Friand & Fruit Croquant",
   "en": "Crunchy-fruit lover",
   "es": "Paladar goloso y de fruta crujiente",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:159"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:161"
  },
  {
   "fr": "Amateur de Vins Épicés & Singuliers",
   "en": "Spicy & singular wines lover",
   "es": "Amante de los vinos especiados y singulares",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:160"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:162"
  },
  {
   "fr": "Aversion Tanins Durs",
   "en": "Dislikes firm tannins",
   "es": "Aversión a los taninos duros",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:162"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:164"
  },
  {
   "fr": "Blancs Minéraux & Frais",
   "en": "Crisp, mineral whites",
   "es": "Blancos minerales y frescos",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:165"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:167"
  },
  {
   "fr": "Fruit Croquant",
   "en": "Crunchy fruit",
   "es": "Fruta crujiente",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:167"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:169"
  },
  {
   "fr": "Ne boit pas ce soir",
   "en": "Not drinking tonight",
   "es": "No bebe esta noche",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:169"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:171"
  },
  {
   "fr": ", millésime {vintage}",

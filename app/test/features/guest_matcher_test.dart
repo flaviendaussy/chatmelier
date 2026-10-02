@@ -3,6 +3,7 @@ import 'package:chatmelier/features/sommelier/domain/guest_matcher_engine.dart';
 import 'package:chatmelier/features/cellar/domain/bottle.dart';
 import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
+import 'package:chatmelier/features/sommelier/domain/profil_du_vin_de_cave.dart';
 
 void main() {
   group('👫 Guest Matcher Consensus & Aversion Tests', () {
@@ -145,6 +146,79 @@ void main() {
       final cornas = ranked.firstWhere((r) => r.bottle.wineId == 'wine_cornas');
       expect(cornas.sommelierRationale, contains('Caro n\'aime pas les tanins fermes'));
       expect(cornas.sommelierRationale, startsWith('Vous allez l\'adorer'));
+    });
+  });
+
+  group('🍷 À la maison, les fiches départagent (V2.3 · J8)', () {
+    final annee = DateTime.now().year;
+    Bottle bouteille(Wine w) => Bottle(
+        id: 'b_${w.id}', cellarId: 'cave', wineId: w.id, addedBy: 'moi', ownerId: 'moi', createdAt: DateTime.now(), wine: w);
+    Wine bourgogne(String id, String nom, int millesime, {double? degre, String? notes, String? elevage, int? mois}) => Wine(
+          id: id,
+          name: nom,
+          type: 'red',
+          region: 'Bourgogne',
+          country: 'France',
+          grapes: const [Grape(name: 'Pinot Noir')],
+          vintage: millesime,
+          alcoholPct: degre,
+          tastingNotes: notes,
+          elevageType: elevage,
+          elevageMois: mois,
+        );
+
+    final convives = [
+      GuestProfile.fromTasteProfile(const TasteProfile(
+          id: 'p', name: 'Paul', favoriteTypes: ['Rouge'], avgTanninPreference: 0.7, avgBodyPreference: 0.7)),
+      GuestProfile.fromTasteProfile(const TasteProfile(
+          id: 'c', name: 'Caro', avgAcidityPreference: 0.8, avgFreshFruitPreference: 0.8, avgTanninPreference: 0.3)),
+    ];
+
+    test('trois Bourgognes ne sont plus ex æquo : la fiche dit ce qui les distingue', () {
+      final vins = [
+        bourgogne('chambolle', 'Chambolle-Musigny', annee - 9, degre: 13.0, notes: 'Soyeux, fruits rouges, cerise.'),
+        bourgogne('pommard', 'Pommard 1er Cru', annee - 5,
+            degre: 13.5, notes: 'Tanins fermes, fruits noirs.', elevage: 'barrique', mois: 20),
+        bourgogne('bourgogne', 'Bourgogne Pinot Noir', annee - 3, degre: 12.5),
+      ];
+      final classement = GuestMatcherEngine.rankBottlesForGuests(
+          bottles: [for (final w in vins) bouteille(w)], guests: convives);
+      expect(classement.map((r) => r.consensusScore).toSet(), hasLength(3),
+          reason: classement.map((r) => '${r.bottle.wine!.name} ${r.consensusScore}').join(' · '));
+
+      final pommard = ProfilDuVinDeCave.estimer(vins[1], annee: annee);
+      final chambolle = ProfilDuVinDeCave.estimer(vins[0], annee: annee);
+      expect(pommard.tannin, greaterThan(chambolle.tannin), reason: 'tanins fermes, jeune, élevé en barrique');
+      expect(pommard.oak, greaterThan(chambolle.oak));
+    });
+
+    test('la couleur aimée compte : « Rouge » au profil, « red » sur la fiche', () {
+      final rouge = Wine(id: 'r', name: 'Cuvée', type: 'red', region: 'Languedoc', country: 'France', vintage: annee - 4);
+      // Deux palais identiques ; seule la couleur aimée diffère.
+      const amateur = GuestProfile(id: 'a', name: 'Aude', favoriteTypes: ['Rouge']);
+      const neutre = GuestProfile(id: 'n', name: 'Noé');
+      final r = GuestMatcherEngine.rankBottlesForGuests(bottles: [bouteille(rouge)], guests: [amateur, neutre]).single;
+      expect(r.guestScores['a']! - r.guestScores['n']!, closeTo(8.0, 0.01));
+    });
+
+    test('ce soir, la bouteille à son apogée passe devant la plus jeune, et la phrase le dit', () {
+      Wine cornas(String id, int millesime) => Wine(
+            id: id,
+            name: 'Cornas',
+            type: 'red',
+            region: 'Vallée du Rhône',
+            appellation: 'Cornas',
+            country: 'France',
+            grapes: const [Grape(name: 'Syrah')],
+            vintage: millesime,
+          );
+      final jeune = cornas('jeune', annee - 1);
+      final mur = cornas('mur', annee - 14);
+      expect(jeune.windowStatus, DrinkWindowStatus.tooYoung);
+      final classement = GuestMatcherEngine.rankBottlesForGuests(
+          bottles: [bouteille(jeune), bouteille(mur)], guests: convives);
+      expect(classement.first.bottle.wine!.id, 'mur');
+      expect(classement.last.sommelierRationale, contains('Encore jeune'));
     });
   });
 }

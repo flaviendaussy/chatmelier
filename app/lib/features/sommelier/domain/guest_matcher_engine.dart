@@ -3,7 +3,9 @@ import '../../cellar/domain/bottle.dart';
 import '../../cellar/domain/wine.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../auth/domain/wine_taste_radar.dart';
+import '../../journal/domain/questionnaire_de_degustation.dart';
 import '../../../shared/utils/langue.dart';
+import 'profil_du_vin_de_cave.dart';
 
 /// Représente un convive pour la recherche d'accord partagé.
 class GuestProfile {
@@ -248,12 +250,16 @@ class GuestMatchResult {
   final List<String> aversionAlerts; // Liste des alertes d'aversions détectées
   final String sommelierRationale;
 
+  /// Où en est la bouteille ce soir : elle départage deux accords voisins.
+  final DrinkWindowStatus? maturite;
+
   const GuestMatchResult({
     required this.bottle,
     required this.consensusScore,
     required this.guestScores,
     required this.aversionAlerts,
     required this.sommelierRationale,
+    this.maturite,
   });
 }
 
@@ -273,7 +279,7 @@ class GuestMatcherEngine {
       final wine = bottle.wine;
       if (wine == null) continue;
 
-      final wineRadar = _estimateWineRadar(wine);
+      final wineRadar = ProfilDuVinDeCave.estimer(wine);
       final guestScores = <String, double>{};
       final aversionAlerts = <String>[];
 
@@ -317,19 +323,56 @@ class GuestMatcherEngine {
       // Pénalité proportionnelle à l'hétérogénéité des avis
       final consensusScore = (mean - (stdDev * 0.45)).clamp(5.0, 99.0);
 
+      final maturite = wine.windowStatus;
       final rationale = _generateSommelierRationale(guests, guestScores, aversionAlerts, idLecteur);
+      final quand = _phraseDeMaturite(wine, maturite);
 
       results.add(GuestMatchResult(
         bottle: bottle,
         consensusScore: double.parse(consensusScore.toStringAsFixed(1)),
         guestScores: guestScores,
         aversionAlerts: aversionAlerts.toSet().toList(),
-        sommelierRationale: rationale,
+        sommelierRationale: quand == null ? rationale : '$rationale $quand',
+        maturite: maturite,
       ));
     }
 
-    results.sort((a, b) => b.consensusScore.compareTo(a.consensusScore));
+    // Ce soir, une bouteille à son apogée passe devant une bouteille trop jeune au même
+    // accord : la maturité départage, sans changer le pourcentage affiché, qui ne parle
+    // que des goûts. À égalité parfaite, le moins d'alertes, puis le nom, pour un ordre
+    // stable d'une fois sur l'autre.
+    results.sort((a, b) {
+      final c = (b.consensusScore + _bonusDeMaturite(b.maturite)).compareTo(a.consensusScore + _bonusDeMaturite(a.maturite));
+      if (c != 0) return c;
+      final d = b.consensusScore.compareTo(a.consensusScore);
+      if (d != 0) return d;
+      final e = a.aversionAlerts.length.compareTo(b.aversionAlerts.length);
+      if (e != 0) return e;
+      return (a.bottle.wine?.name ?? '').compareTo(b.bottle.wine?.name ?? '');
+    });
     return results.take(maxResults).toList();
+  }
+
+  /// Ce que la maturité pèse dans l'ordre de la soirée (pas dans l'accord affiché).
+  static double _bonusDeMaturite(DrinkWindowStatus? m) => switch (m) {
+        DrinkWindowStatus.inPeak => 3.0,
+        DrinkWindowStatus.drinkSoon => 2.0,
+        DrinkWindowStatus.aging || null => 0.0,
+        DrinkWindowStatus.pastPeak => -5.0,
+        DrinkWindowStatus.tooYoung => -6.0,
+      };
+
+  /// La phrase qui dit pourquoi elle passe devant, ou derrière, ce soir.
+  static String? _phraseDeMaturite(Wine wine, DrinkWindowStatus m) {
+    if (wine.tracksFillLevel) return null;
+    return switch (m) {
+      DrinkWindowStatus.inPeak => tr('À son apogée.', 'At its peak.'),
+      DrinkWindowStatus.drinkSoon => tr('À boire sans trop attendre.', 'Best drunk soon.'),
+      DrinkWindowStatus.tooYoung => tr('Encore jeune : il gagnerait à attendre {annee}.', 'Still young: worth waiting until {annee}.',
+          {'annee': wine.fenetreEffective.drinkStart}),
+      DrinkWindowStatus.pastPeak => tr('Passé son apogée : à ouvrir sans trop en attendre.', 'Past its peak: open it without expecting too much.'),
+      DrinkWindowStatus.aging => null,
+    };
   }
 
   static double _calculateCompatibility(Wine wine, WineTasteRadarMetrics wineRadar, GuestProfile guest) {
@@ -357,87 +400,16 @@ class GuestMatcherEngine {
       if (hasFavGrape) baseScore += 12.0;
     }
 
-    // Bonus de type favori (ex: Rouge, Blanc sec, Champagne)
+    // Bonus de type favori (ex: Rouge, Blanc sec, Champagne). Les deux côtés passent par
+    // la même lecture de la couleur : le profil range « Rouge », la fiche `red`, et la
+    // comparaison des textes ne les rapprochait jamais.
     if (guest.favoriteTypes.isNotEmpty) {
-      final matchesType = guest.favoriteTypes.any((t) =>
-          t.toLowerCase().contains(wine.type.toLowerCase()) || wine.type.toLowerCase().contains(t.toLowerCase()));
+      final couleur = couleurDuQuestionnaire(wine.type);
+      final matchesType = couleur.isNotEmpty && guest.favoriteTypes.any((t) => couleurDuQuestionnaire(t) == couleur);
       if (matchesType) baseScore += 8.0;
     }
 
     return baseScore.clamp(15.0, 100.0);
-  }
-
-  /// Estime le profil 8 axes du vin à partir de ses cépages, de son type et de sa région.
-  static WineTasteRadarMetrics _estimateWineRadar(Wine wine) {
-    double tannin = 3.0;
-    double body = 5.0;
-    double oak = 3.0;
-    double ripeFruit = 5.0;
-    double spice = 3.0;
-    double freshFruit = 6.0;
-    double minerality = 5.0;
-    double acidity = 5.5;
-
-    final typeLower = wine.type.toLowerCase();
-    final regionLower = wine.region.toLowerCase();
-    final grapesLower = wine.grapes.map((g) => g.name.toLowerCase()).join(' ');
-
-    if (typeLower.contains('rouge') || typeLower.contains('red')) {
-      tannin = 6.0;
-      body = 6.5;
-      freshFruit = 5.0;
-      ripeFruit = 6.5;
-
-      if (grapesLower.contains('syrah') || regionLower.contains('rhône')) {
-        spice = 8.2;
-        body = 7.5;
-        tannin = 7.2;
-        ripeFruit = 7.0;
-      } else if (grapesLower.contains('pinot') || regionLower.contains('bourgogne')) {
-        tannin = 4.5;
-        freshFruit = 7.8;
-        acidity = 6.8;
-        minerality = 6.5;
-      } else if (grapesLower.contains('cabernet') || regionLower.contains('bordeaux')) {
-        tannin = 7.8;
-        body = 7.8;
-        oak = 6.0;
-        ripeFruit = 7.0;
-      }
-    } else if (typeLower.contains('blanc') || typeLower.contains('white')) {
-      tannin = 0.5;
-      freshFruit = 7.0;
-      acidity = 7.0;
-      body = 4.5;
-
-      if (regionLower.contains('chablis') || grapesLower.contains('sauvignon')) {
-        acidity = 8.5;
-        minerality = 8.5;
-        freshFruit = 7.5;
-      } else if (grapesLower.contains('chardonnay') && (regionLower.contains('beaune') || regionLower.contains('meursault'))) {
-        body = 6.8;
-        oak = 5.8;
-        ripeFruit = 6.0;
-        minerality = 7.2;
-      }
-    } else if (typeLower.contains('champagne') || typeLower.contains('effervescent') || typeLower.contains('sparkling')) {
-      tannin = 0.5;
-      acidity = 8.5;
-      minerality = 8.0;
-      freshFruit = 7.2;
-      body = 4.0;
-    }
-
-    return WineTasteRadarMetrics(
-      tannin: tannin,
-      body: body,
-      oak: oak,
-      ripeFruit: ripeFruit,
-      spice: spice,
-      freshFruit: freshFruit,
-      minerality: minerality,
-      acidity: acidity,
-    );
   }
 
   /// Le « pourquoi » d'une bouteille : qui l'aimera, qui risque de moins l'aimer, tiré des

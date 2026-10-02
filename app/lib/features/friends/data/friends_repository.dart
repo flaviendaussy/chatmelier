@@ -416,6 +416,7 @@ class FriendsRepository {
           'friendship_id': friendshipId,
           'requester_id': user.id,
           'requester_name': myDisplayName,
+          if (user.userMetadata?['username'] != null) 'requester_username': user.userMetadata!['username'],
         },
       });
     } catch (e) {
@@ -678,6 +679,7 @@ class FriendsRepository {
           'data': {
             'cellar_id': targetCellarId,
             'role': role,
+            if (cellarName != null) 'cellar_name': cellarName,
           },
         });
       } catch (e) {

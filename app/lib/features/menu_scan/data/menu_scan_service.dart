@@ -67,6 +67,8 @@ class MenuScanService {
     TasteProfile? userTasteProfile,
     String languageCode = 'fr',
     void Function(String step)? onStepUpdate,
+    // L'ardoise d'un bar (V2.3 · J4) : le serveur lit les prix au verre en priorité.
+    bool ardoise = false,
   }) async {
     final startTime = DateTime.now();
     AppLogger.info('MENU_SCAN', 'Starting multi-page restaurant menu analysis (${imagePaths.length} pages, lang=$languageCode)');
@@ -115,7 +117,7 @@ class MenuScanService {
     // Depuis la V2.3, seul le serveur lit la carte (scan-menu) : l'app n'a plus de clé.
     onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud...' : 'Analyse de la carte des vins via le Cloud Chatmelier...');
     _coupureVue = false;
-    parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn);
+    parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn, ardoise: ardoise);
     usedModel = parsedJson?['modele'] as String?;
 
     if (parsedJson == null) {
@@ -236,6 +238,7 @@ class MenuScanService {
       wines: flaggedWines,
       currency: devise,
       pagesNonLues: pagesNonLues,
+      ardoise: ardoise,
     );
   }
 
@@ -252,16 +255,17 @@ class MenuScanService {
     String languageCode,
     String? restaurantNameHint,
     void Function(String step)? onStepUpdate,
-    bool isEn,
-  ) async {
+    bool isEn, {
+    bool ardoise = false,
+  }) async {
     final pages = parts.where((p) => p['inlineData'] != null).toList();
     if (pages.length <= 1) {
-      return _invokeEdgeFunction(pages, languageCode, restaurantNameHint);
+      return _invokeEdgeFunction(pages, languageCode, restaurantNameHint, ardoise: ardoise);
     }
 
     var lues = 0;
     final resultats = await Future.wait(pages.map((page) async {
-      final r = await _invokeEdgeFunction([page], languageCode, restaurantNameHint);
+      final r = await _invokeEdgeFunction([page], languageCode, restaurantNameHint, ardoise: ardoise);
       lues++;
       onStepUpdate?.call(isEn
           ? 'Page $lues of ${pages.length} read…'
@@ -433,8 +437,9 @@ class MenuScanService {
   Future<Map<String, dynamic>?> _invokeEdgeFunction(
     List<Map<String, dynamic>> parts,
     String languageCode,
-    String? restaurantNameHint,
-  ) async {
+    String? restaurantNameHint, {
+    bool ardoise = false,
+  }) async {
     final client = _supabaseClient ?? (Supabase.instance.isInitialized ? Supabase.instance.client : null);
     if (client == null) {
       AppLogger.warning('MENU_SCAN', 'Supabase client not available for scan-menu fallback');
@@ -461,6 +466,7 @@ class MenuScanService {
         'imagesBase64': imagesBase64,
         'languageCode': languageCode,
         'restaurantNameHint': restaurantNameHint,
+        if (ardoise) 'mode': 'ardoise',
       };
       // 150 s : la limite de durée d'une fonction edge. Abandonner avant ne fait rien
       // gagner — le serveur va au bout et facture l'appel quand même (18/09, 25/09).

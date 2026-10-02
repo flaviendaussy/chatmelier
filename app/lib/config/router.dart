@@ -154,7 +154,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Public Restaurant Menu Scan routes (no account required)
       GoRoute(
         path: '/scan/menu',
-        builder: (context, state) => const MenuPhotoCaptureScreen(),
+        builder: (context, state) => MenuPhotoCaptureScreen(ardoise: state.uri.queryParameters['mode'] == 'ardoise'),
       ),
       GoRoute(
         path: '/scan/menu/result',

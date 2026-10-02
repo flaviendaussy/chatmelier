@@ -1102,6 +1102,8 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
   ) {
     final effectiveBottlePrice = wine.bottlePrice;
     final effectiveGlassPrice = wine.glassPrices.isNotEmpty ? wine.glassPrices.first : null;
+    // Sur une ardoise (V2.3 · J4), on commande au verre : son prix passe devant.
+    final verreDabord = _menu.ardoise && effectiveGlassPrice != null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
@@ -1221,7 +1223,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  if (effectiveBottlePrice != null)
+                  if (effectiveBottlePrice != null && !verreDabord)
                     Text(
                       _prix(effectiveBottlePrice),
                       style: const TextStyle(
@@ -1307,7 +1309,9 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     if (effectiveBottlePrice != null && effectiveGlassPrice != null) ...[
                       const SizedBox(width: 6),
                       Text(
-                        '${_prix(effectiveGlassPrice.price)}/${trSi(_estFr, 'v', 'glass')}',
+                        verreDabord
+                            ? '${_prix(effectiveBottlePrice)}/${tr('bt', 'btl')}'
+                            : '${_prix(effectiveGlassPrice.price)}/${trSi(_estFr, 'v', 'glass')}',
                         style: TextStyle(fontSize: 10.5, color: isDark ? Colors.white54 : Colors.grey.shade600),
                       ),
                     ],
@@ -1532,22 +1536,33 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      if (wine.bottlePrice != null)
+                      // Sur une ardoise, le prix au verre en grand, la bouteille en petit.
+                      if (_menu.ardoise && wine.glassPrices.isNotEmpty) ...[
                         Text(
-                          _prix(wine.bottlePrice!),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Color(0xFF8B1E3F),
+                          wine.glassPrices.map((g) => '${_prix(g.price)}/${g.format}').join(' • '),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF8B1E3F)),
+                        ),
+                        if (wine.bottlePrice != null)
+                          Text('${_prix(wine.bottlePrice!)}/${tr('bt', 'btl')}',
+                              style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      ] else ...[
+                        if (wine.bottlePrice != null)
+                          Text(
+                            _prix(wine.bottlePrice!),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color(0xFF8B1E3F),
+                            ),
                           ),
-                        ),
-                      if (wine.glassPrices.isNotEmpty)
-                        Text(
-                          wine.glassPrices
-                              .map((g) => '${_prix(g.price)}/${g.format}')
-                              .join(' • '),
-                          style: const TextStyle(fontSize: 11, color: Colors.grey),
-                        ),
+                        if (wine.glassPrices.isNotEmpty)
+                          Text(
+                            wine.glassPrices
+                                .map((g) => '${_prix(g.price)}/${g.format}')
+                                .join(' • '),
+                            style: const TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                      ],
                     ],
                   ),
                 ],

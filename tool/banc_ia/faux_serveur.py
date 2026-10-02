@@ -113,6 +113,18 @@ class H(BaseHTTPRequestHandler):
                                  "usageMetadata": {"promptTokenCount": 2100, "candidatesTokenCount": 180}})
             outils = 'tools' in c
             txt = c['contents'][0]['parts'][-1]['text']
+            if txt.startswith('You are Chatmelier, a sommelier reading the by-the-glass board'):
+                # L'ardoise d'un bar (V2.3 · J4) : des prix au verre, pas de bouteille.
+                res = {"r": "Le Bar à Vins", "c": "EUR", "v": [
+                    {"n": "Morgon Côte du Py", "p": "Jean Foillard", "y": 2022, "t": "r", "a": "Morgon", "rg": "Beaujolais",
+                     "co": "France", "g": ["Gamay"], "b": None, "gl": [["verre", 9]], "m": [4, 6, 5, 8, 2, 4, 0, 1],
+                     "tg": ["fruity"], "sc": "Croquant, à boire frais.", "fp": ["Charcuterie"], "ge": 0, "gr": "", "de": 0, "dr": ""},
+                    {"n": "Muscadet sur lie", "p": "Domaine de l'Écu", "y": 2023, "t": "w", "a": "Muscadet Sèvre et Maine",
+                     "rg": "Loire", "co": "France", "g": ["Melon de Bourgogne"], "b": None, "gl": [["12cl", 7]],
+                     "m": [0, 8, 3, 5, 1, 8, 0, 1], "tg": ["mineral", "fresh"], "sc": "Salin et vif.", "fp": ["Huîtres"],
+                     "ge": 0, "gr": "", "de": 0, "dr": ""}]}
+                return self.rep({"candidates": [{"content": {"parts": [{"text": json.dumps(res)}]}}],
+                                 "usageMetadata": {"promptTokenCount": 1800, "candidatesTokenCount": 400, "thoughtsTokenCount": 0}})
             if txt.startswith('You are Chatmelier, a sommelier reading a restaurant wine list'):
                 res = {"r": "Le Bistrot du Port", "c": "EUR", "v": [
                     {"n": "Bandol Rouge", "p": "Domaine de Terrebrune", "y": 2019, "t": "r", "a": "Bandol", "rg": "Provence",

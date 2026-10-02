@@ -16,7 +16,10 @@ import '../domain/menu_wine.dart';
 import '../../../shared/utils/langue.dart';
 
 class MenuPhotoCaptureScreen extends ConsumerStatefulWidget {
-  const MenuPhotoCaptureScreen({super.key});
+  /// L'ardoise d'un bar (V2.3 · J4) plutôt qu'une carte : les prix au verre d'abord.
+  final bool ardoise;
+
+  const MenuPhotoCaptureScreen({super.key, this.ardoise = false});
 
   @override
   ConsumerState<MenuPhotoCaptureScreen> createState() => _MenuPhotoCaptureScreenState();
@@ -227,6 +230,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
         restaurantNameHint: restName,
         userTasteProfile: activeProfile,
         languageCode: currentLang,
+        ardoise: widget.ardoise,
         onStepUpdate: (step) {
           if (mounted) {
             setState(() => _currentStatusStep = step);
@@ -250,7 +254,9 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(trSi(isFr, 'Scanner la Carte des Vins', 'Scan Wine List')),
+        title: Text(widget.ardoise
+            ? tr('Scanner l\'ardoise', 'Scan the board')
+            : trSi(isFr, 'Scanner la Carte des Vins', 'Scan Wine List')),
         elevation: 0,
         actions: [
           if (_capturedPages.isNotEmpty && !_isAnalyzing)

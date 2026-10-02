@@ -561,6 +561,10 @@ class ScannedMenu {
   /// plutôt que de présenter une carte amputée comme complète.
   final int pagesNonLues;
 
+  /// L'ardoise d'un bar à vins (V2.3 · J4) : des vins au verre, dont le prix au verre
+  /// passe devant celui de la bouteille.
+  final bool ardoise;
+
   const ScannedMenu({
     required this.id,
     required this.restaurantName,
@@ -569,6 +573,7 @@ class ScannedMenu {
     required this.wines,
     this.currency,
     this.pagesNonLues = 0,
+    this.ardoise = false,
   });
 
   static const _symboles = {'€': 'EUR', '£': 'GBP', r'$': 'USD', 'CHF': 'CHF', '¥': 'JPY'};
@@ -584,13 +589,13 @@ class ScannedMenu {
     return RegExp(r'^[A-Z]{3}$').hasMatch(code) ? code : null;
   }
 
-  /// La même carte, autrement nommée ou avec d'autres vins (annotés par la cave) : la
-  /// devise et les pages non lues suivent. Reconstruire la carte champ par champ les
-  /// perdait, et une carte d'Édimbourg repassait en euros (29/09).
   /// Une carte qui n'affiche aucun prix : salon d'aéroport, avion, formule tout compris.
   /// On y choisit au goût, et ni l'écran ni le sommelier ne parlent de prix.
   bool get sansPrix => wines.isNotEmpty && !wines.any((w) => w.aUnPrix);
 
+  /// La même carte, autrement nommée ou avec d'autres vins (annotés par la cave) : la
+  /// devise, les pages non lues et l'ardoise suivent. Reconstruire la carte champ par
+  /// champ les perdait, et une carte d'Édimbourg repassait en euros (29/09).
   ScannedMenu copie({String? restaurantName, List<MenuWine>? wines}) => ScannedMenu(
         id: id,
         restaurantName: restaurantName ?? this.restaurantName,
@@ -599,6 +604,7 @@ class ScannedMenu {
         wines: wines ?? this.wines,
         currency: currency,
         pagesNonLues: pagesNonLues,
+        ardoise: ardoise,
       );
 
   /// Un prix de cette carte, dans sa devise (voir [MenuWine.formaterPrix]).
@@ -618,6 +624,7 @@ class ScannedMenu {
         'wines': wines.map((w) => w.toJson()).toList(),
         if (currency != null) 'currency': currency,
         if (pagesNonLues > 0) 'pages_non_lues': pagesNonLues,
+        if (ardoise) 'ardoise': true,
       };
 
   factory ScannedMenu.fromJson(Map<String, dynamic> json) {
@@ -636,6 +643,7 @@ class ScannedMenu {
           [],
       currency: devise,
       pagesNonLues: (json['pages_non_lues'] as num?)?.toInt() ?? 0,
+      ardoise: json['ardoise'] == true,
     );
   }
 }

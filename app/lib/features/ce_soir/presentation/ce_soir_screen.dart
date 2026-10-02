@@ -88,6 +88,18 @@ class CeSoirScreen extends ConsumerWidget {
           ),
 
           const SizedBox(height: 22),
+          _Titre(tr('Au bar', 'At the bar')),
+          _Ligne(
+            icone: Icons.local_bar_outlined,
+            couleur: const Color(0xFF6A4C93),
+            titre: tr('Scanner l\'ardoise', 'Scan the board'),
+            sousTitre: tr('Les vins au verre, et un parcours qui vous apprend quelque chose',
+                'Wines by the glass, and a flight that teaches you something'),
+            fond: isDark ? const Color(0xFF241D30) : const Color(0xFFF0EAF7),
+            onTap: () => context.push('/scan/menu?mode=ardoise'),
+          ),
+
+          const SizedBox(height: 22),
           _Titre(tr('À la maison', 'At home')),
           Row(
             children: [

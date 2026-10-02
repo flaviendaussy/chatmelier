@@ -82,4 +82,48 @@ void main() {
     await tester.pumpAndSettle();
     expect(ouvert, '/scan/menu');
   });
+
+  testWidgets('au bar : scanner l\'ardoise ouvre la capture en mode ardoise', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({});
+
+    String? mode;
+    final routeur = GoRouter(routes: [
+      GoRoute(path: '/', builder: (_, __) => const CeSoirScreen()),
+      GoRoute(path: '/scan/menu', builder: (_, state) {
+        mode = state.uri.queryParameters['mode'];
+        return const Scaffold(body: Text('Scanner'));
+      }),
+    ]);
+    await tester.pumpWidget(ProviderScope(
+      child: MaterialApp.router(
+        locale: const Locale('fr'),
+        localizationsDelegates: kAppLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: routeur,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Scanner l\'ardoise'));
+    await tester.tap(find.text('Scanner l\'ardoise'));
+    await tester.pumpAndSettle();
+    expect(mode, 'ardoise');
+  });
+
+  test('une ardoise reste une ardoise une fois rangée parmi les cartes récentes', () {
+    final ardoise = ScannedMenu(
+      id: 'a',
+      restaurantName: 'Le Bar à Vins',
+      scannedAt: DateTime(2026, 10, 2),
+      pagePhotoPaths: const [],
+      wines: const [MenuWine(id: '1', name: 'Morgon', producer: 'Foillard', wineType: 'red')],
+      ardoise: true,
+    );
+    expect(ScannedMenu.fromJson(ardoise.toJson()).ardoise, isTrue);
+    expect(ardoise.copie(restaurantName: 'Chez Paul').ardoise, isTrue);
+    expect(ScannedMenu.fromJson(ardoise.copie().toJson()..remove('ardoise')).ardoise, isFalse);
+  });
 }

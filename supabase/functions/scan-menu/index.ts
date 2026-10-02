@@ -165,11 +165,28 @@ function langueDe(code: unknown): Langue {
   return 'en'
 }
 
-function consigne(langue: Langue): string {
-  const l = NOMS_DE_LANGUE[langue]
-  return `You are Chatmelier, a sommelier reading a restaurant wine list.
-You are given one or several photos of the pages of the wine list. Extract EVERY wine listed across all pages.
+// L'ardoise d'un bar à vins (V2.3 · J4) : même lecture que la carte, mais les prix d'une
+// ardoise sont le plus souvent au verre, et l'écriture à la main.
+type Mode = 'carte' | 'ardoise'
 
+function modeDe(v: unknown): Mode {
+  return String(v ?? '').toLowerCase() === 'ardoise' ? 'ardoise' : 'carte'
+}
+
+function consigne(langue: Langue, mode: Mode = 'carte'): string {
+  const l = NOMS_DE_LANGUE[langue]
+  // Le mot qui suit le prix à l'écran (« 7 €/verre ») : dans la langue de la personne.
+  const verre = langue === 'fr' ? 'verre' : langue === 'es' ? 'copa' : 'glass'
+  const ouverture = mode === 'ardoise'
+    ? `You are Chatmelier, a sommelier reading the by-the-glass board of a wine bar (a chalkboard, a slate or a short printed list).
+You are given one or several photos of the board. Extract EVERY wine written on it.
+On such a board, a single price next to a wine is a GLASS price unless the board clearly says it is for the bottle: put it in "gl" (with the format if written, e.g. ["12cl", 7], else ["${verre}", 7]) and leave "b" null. Use "b" only for prices marked as bottle prices.
+The writing may be by hand: keep what you can read, and never invent a wine or a price.
+`
+    : `You are Chatmelier, a sommelier reading a restaurant wine list.
+You are given one or several photos of the pages of the wine list. Extract EVERY wine listed across all pages.
+`
+  return `${ouverture}
 Return STRICTLY one JSON object, with these short keys:
 {"r": restaurant name if printed on the pages, else null,
  "c": ISO 4217 code of the prices ("EUR", "GBP", "USD", "CHF"...) from the symbols on the list, or from its country and language; null only if no price is shown,
@@ -268,6 +285,7 @@ serve(async (req) => {
 
     const body = await req.json()
     const { imageBase64, imagesBase64, mimeType = 'image/jpeg', languageCode = 'fr' } = body
+    const mode = modeDe(body.mode)
 
     const imageParts: any[] = []
     if (Array.isArray(imagesBase64) && imagesBase64.length > 0) {
@@ -289,12 +307,13 @@ serve(async (req) => {
 
     const langue = langueDe(languageCode)
     const { resultat, modele, usage, reflexion } = await appelerGemini(apiKey,
-      [{ role: 'user', parts: [...imageParts, { text: consigne(langue) }] }], reglage)
+      [{ role: 'user', parts: [...imageParts, { text: consigne(langue, mode) }] }], reglage)
 
     // `modele`, `usageMetadata` et `couts` : le client journalise quel modèle a lu la carte et
     // comptabilise le coût réel de l'appel.
     return reponse({
       ...deplier(resultat, langue),
+      mode,
       modele,
       usageMetadata: usage,
       couts: [{ fonction: 'menu_scan_vision', modele, usageMetadata: usage, recherche: false, reflexion }],

@@ -55,5 +55,6 @@ END $$;
 -- Vérification après application :
 --   SELECT policyname, cmd FROM pg_policies
 --    WHERE tablename IN ('ai_cost_events', 'ad_impressions') ORDER BY 1;
---   → quatre lignes, dont *_relecture (SELECT).
+--   → six lignes : *_analyse et *_relecture (SELECT), *_insertion (INSERT), pour chacune
+--     des deux tables (relevé en production le 02/10 : les quatre de 047 y sont déjà).
 --   Puis, le lendemain : SELECT count(*) FROM public.ai_cost_events;  → plus de zéro.

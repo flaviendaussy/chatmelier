@@ -2,7 +2,9 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
-## [v1.6.0+72] — 2026-10-02
+## [v1.6.0+73] — 2026-10-02
+
+> La 73 reprend tout ce que contenait la 72, construite le même jour, avec en plus une note de table plus honnête, la source des installations et deux petits correctifs.
 
 ### 🍷 Ce qui change pour vous
 - **L'onglet « Ce soir »** : le restaurant et le bar passent en tête de l'app. On y scanne une carte ou l'ardoise des vins au verre, on ouvre ou rejoint une table, on rouvre la dernière carte.
@@ -13,6 +15,7 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - **En espagnol** : l'app en français, anglais et espagnol, et chacun lit ses notifications dans sa langue.
 - **Rien d'affirmé sans preuve** : plus de valeur de marché sans source, plus de badge « vérifié », plus d'histoire de terroir inventée ; des apogées plausibles.
 - **Moins de publicité** : plus de publicité au lancement, ni pendant vos premiers scans d'étiquette.
+- **Une table qui sait ce qu'elle ignore** : vos goûts encore devinés comptent moins que ceux que vos dégustations ont montrés, la minéralité et le bois entrent dans l'accord, et votre étiquette à table reprend le style que vous avez déclaré tant que votre palais se dessine.
 - **Correctifs** : l'import Excel, les notes de dégustation dictées et le récit d'un vin fonctionnent à nouveau ; la carte rouverte est bien la dernière ; le scan de carte survit à une coupure pendant la vidéo ; une sortie de cave hors ligne n'est plus perdue ni comptée deux fois ; une carte sans prix (salon, avion) ne montre plus « 0 € ».
 
 ### 🛠️ Notes Techniques (Développeurs)
@@ -23,7 +26,10 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - *Table et bar* : onglet « Ce soir » (`adaptive_app_shell.dart`, `ce_soir_screen.dart`) ; `GuestProfile.neBoitPas`, `MenuTableMatcherEngine.meilleuresPaires`, `fin_de_soiree.dart`, `degustation_rapide.dart` ; page invité `app/web/table/` (HTML et JS, `config.js` écrit au build) ; `ScannedMenu.ardoise`, `MenuFlightEngine.buildFrontierFlight`, `comptoir.dart` et `comptoir_screen.dart`.
 - *Palais* : `angle_mort_de_la_cave.dart`, `carte_des_terroirs.dart`, `taste_frontier_engine.dart` ; logique du questionnaire dans `questionnaire_de_degustation.dart`, minéralité apprise ; départage des accords à la maison par les fiches.
 - *Fiabilité* : sondage des convives espacé (`SondageEspace`), rappels d'apogée locaux hebdomadaires, journaux dédoublonnés et sans contenu personnel, AdMob en debug ; `PolitiquePub` ; Blind Battle masqué ; fichiers morts supprimés.
-- *Build* : le web reçoit `CHATMELIER_VERSION` comme l'app.
+- *Build* : le web reçoit `CHATMELIER_VERSION` comme l'app ; les scripts de la page invité portent la version dans leur adresse (fin du cache de dix minutes après publication).
+- *Note de table (K1)* : `GuestProfile.confianceParAxe` et `poidsDeLAxe` (0,35 à 1), envoyés avec le profil ; minéralité pour les blancs, rosés et bulles, bois pour tous (`MenuTableMatcherEngine`) ; même pesée à la maison (`GuestMatcherEngine`) ; étiquettes « Amateur de Rouges / Blancs / Rosés / Bulles » pour un palais deviné.
+- *Install Referrer (K2)* : `play_install_referrer` 0.5.0 ; `Croissance.lireLeReferrer` à la première ouverture Android ; console, onglet Économie : « Du web à l'app » et coût du web par installation obtenue.
+- *Image (K4)* : une photo JPEG ni recadrée ni réduite part telle quelle quand le ré-encodage la grossirait.
 - *Relevé sur l'émulateur, en production, avant envoi* : sur une ardoise, la frontière se borne au prix du verre (`MenuFlightEngine.prixPourApprendre`), comme le parcours ; un vin sans bois n'apprend plus rien du boisé, ni un vin peu minéral de la minéralité (`TasteFrontierEngine.nettete`) ; la page invité d'un comptoir parle du comptoir.
 
 ---

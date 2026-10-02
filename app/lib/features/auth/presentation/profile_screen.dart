@@ -40,6 +40,7 @@ import 'partage_empreinte_sheet.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/widgets/onglets.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
+import 'widgets/carte_des_terroirs_card.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -1180,6 +1181,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
         ),
+
+        // 🗺️ LES TERROIRS GOÛTÉS, EN CAVE, À EXPLORER (V2.3 · J3)
+        CarteDesTerroirsCard(profil: currentProfile),
 
         // 📊 STATISTIQUES DE CAVE & ANALYSES
         Card(

@@ -59,6 +59,8 @@ const Map<String, String> valeursRangeesEn = {
   'Mendoza (Argentine)': 'Mendoza (Argentina)',
   'Toscane': 'Tuscany',
   'Piémont': 'Piedmont',
+  'Moselle': 'Mosel',
+  'Santorin': 'Santorini',
 
   // Pays, tels que les fiches les rangent.
   'France': 'France',

@@ -31,10 +31,7 @@ class AngleMortDeLaCave {
   /// Un axe déjà observé (confiance ≥ [TasteFrontierEngine.seuilObserve]) ne motive rien ;
   /// une aversion déclarée non plus : on ne conseille pas d'acheter du bois à qui l'a fui.
   static AngleMortDeLaCave? trouver(TasteProfile profil, List<Bottle> bouteilles, {int? annee}) {
-    final candidats = [
-      for (final a in axesJugeables)
-        if (profil.axisConfidence(a) < TasteFrontierEngine.seuilObserve && !_fuit(profil, a)) a,
-    ]..sort((x, y) => profil.axisConfidence(x).compareTo(profil.axisConfidence(y)));
+    final candidats = axesAApprendre(profil);
     if (candidats.isEmpty) return null;
 
     final profils = [
@@ -54,6 +51,17 @@ class AngleMortDeLaCave {
     }
     return null;
   }
+
+  /// Les axes qu'une bouteille apprendrait encore, du moins connu au mieux connu : ni
+  /// observés, ni fuis.
+  /// À confiance égale, l'ordre de [axesJugeables] : le tri de Dart n'est pas stable.
+  static List<String> axesAApprendre(TasteProfile profil) => [
+        for (final a in axesJugeables)
+          if (profil.axisConfidence(a) < TasteFrontierEngine.seuilObserve && !_fuit(profil, a)) a,
+      ]..sort((x, y) {
+          final c = profil.axisConfidence(x).compareTo(profil.axisConfidence(y));
+          return c != 0 ? c : axesJugeables.indexOf(x).compareTo(axesJugeables.indexOf(y));
+        });
 
   static bool _fuit(TasteProfile profil, String axe) {
     final mots = switch (axe) {

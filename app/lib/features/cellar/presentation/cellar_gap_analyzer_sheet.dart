@@ -4,6 +4,9 @@ import '../../../shared/providers/cellar_provider.dart';
 import '../domain/bottle.dart';
 import '../domain/cellar_gap_engine.dart';
 import '../../../shared/utils/langue.dart';
+import '../../auth/data/taste_profile_service.dart';
+import '../../auth/domain/taste_profile.dart';
+import '../../sommelier/domain/angle_mort_de_la_cave.dart';
 
 class CellarGapAnalyzerSheet extends ConsumerWidget {
   final List<Bottle>? preloadedBottles;
@@ -24,7 +27,16 @@ class CellarGapAnalyzerSheet extends ConsumerWidget {
     final currentCellarId = ref.watch(currentCellarIdProvider);
     final bottlesAsync = ref.watch(bottlesProvider(currentCellarId));
     final bottles = preloadedBottles ?? bottlesAsync.value ?? [];
-    final analysis = CellarGapEngine.analyzeCellar(bottles);
+    // Le palais du maître de cave : ce qu'il ignore encore de lui-même devient une lacune
+    // de la cave quand aucune bouteille ne le lui apprendrait (V2.3 · J2).
+    final principal = (ref.watch(tasteProfilesListProvider).value ?? const <TasteProfile>[])
+        .where((p) => p.isPrimary)
+        .firstOrNull;
+    final analysis = AngleMortDeLaCave.completer(
+      CellarGapEngine.analyzeCellar(bottles),
+      profil: principal,
+      bouteilles: bottles,
+    );
 
     return Container(
       constraints: BoxConstraints(

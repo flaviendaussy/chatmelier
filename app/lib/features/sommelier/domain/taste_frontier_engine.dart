@@ -150,6 +150,10 @@ class TasteFrontierEngine {
     return trSi(fr, 'Pour mieux vous connaître : ouvrez votre {nomDuVin} ({comment}, prêt à boire) — il me dirait ce que vous pensez {quoi}.', 'To get to know you better: open your {nomDuVin} ({comment}, ready to drink) — it would tell me how you feel about {quoi}.', {'nomDuVin': nomDuVin, 'comment': comment, 'quoi': quoi});
   }
 
+  /// « du boisé », « des tanins »… : ce qu'un axe permet de juger, dans la langue de
+  /// l'écran (« Je ne sais pas encore ce que vous pensez du boisé »).
+  static String ceQueJugeLAxe(String axe) => _quoi(axe, Langue.estFr);
+
   static String _quoi(String axe, bool fr) => switch (axe) {
         'tannin' => trSi(fr, 'des tanins', 'tannins'),
         'body' => trSi(fr, 'des vins amples', 'full-bodied wines'),

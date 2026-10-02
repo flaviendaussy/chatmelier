@@ -2,7 +2,6 @@ import '../../../shared/utils/sans_accents.dart';
 import '../../auth/domain/wine_taste_radar.dart';
 import '../../cellar/domain/wine.dart';
 import '../../cellar/domain/wine_world/wine_world.dart';
-import '../../cellar/domain/wine_world/wine_world_model.dart';
 import '../../journal/domain/questionnaire_de_degustation.dart';
 
 /// Le profil sur huit axes (0–10) d'un vin de cave, estimé d'après sa fiche (V2.3 · J8).
@@ -196,11 +195,16 @@ class ProfilDuVinDeCave {
     'gruner': {'acidity': 1.0, 'spice': 1.5, 'minerality': 1.0},
     'pinot gris': {'body': 1.0, 'ripeFruit': 1.0, 'acidity': -0.5},
     'savagnin': {'acidity': 1.0, 'minerality': 1.0, 'spice': 0.5},
+    'assyrtiko': {'acidity': 2.0, 'minerality': 2.5},
   };
 
   /// Les lieux qui disent plus que leur cépage.
   static const Map<String, Map<String, double>> _parLieu = {
-    'chablis': {'minerality': 2.0, 'acidity': 1.0, 'body': -0.5},
+    // Le kimméridgien : le blanc minéral par excellence.
+    'chablis': {'minerality': 3.0, 'acidity': 1.0, 'body': -0.5},
+    'muscadet': {'minerality': 1.0},
+    'mosel': {'minerality': 1.0, 'acidity': 0.5},
+    'santorin': {'minerality': 1.5},
     'meursault': {'body': 1.5, 'ripeFruit': 0.5},
     'sancerre': {'minerality': 1.0},
     'pouilly fume': {'minerality': 1.0},

@@ -7977,67 +7977,67 @@
   "fr": "Analyse des déséquilibres & Opportunités ({totalBottles} bouteilles)",
   "en": "Imbalances & opportunities ({totalBottles} bottles)",
   "es": "Desequilibrios y oportunidades ({totalBottles} botellas)",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:77"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:89"
  },
  {
   "fr": "Répartition des Styles en Cave",
   "en": "Styles in the cellar",
   "es": "Estilos en la bodega",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:97"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:109"
  },
  {
   "fr": "Maturité & Horizons de Garde",
   "en": "Maturity & ageing horizons",
   "es": "Madurez y horizontes de guarda",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:103"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:115"
  },
  {
   "fr": "Diagnostics Sommelier",
   "en": "Sommelier's diagnosis",
   "es": "Diagnóstico del sumiller",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:109"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:121"
  },
  {
   "fr": "Wishlist d'Achats Idéale pour Rééquilibrer",
   "en": "Ideal shopping list to rebalance",
   "es": "Lista de compras ideal para reequilibrar",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:116"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:128"
  },
  {
   "fr": "Rouges",
   "en": "Reds",
   "es": "Tintos",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:191"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:203"
  },
  {
   "fr": "Blancs",
   "en": "Whites",
   "es": "Blancos",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:192"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:204"
  },
  {
   "fr": "Bulles",
   "en": "Sparkling",
   "es": "Espumosos",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:193"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:205"
  },
  {
   "fr": "Rosés",
   "en": "Rosés",
   "es": "Rosados",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:194"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:206"
  },
  {
   "fr": "Prêts à boire 🍷",
   "en": "Ready to drink 🍷",
   "es": "Listos para beber 🍷",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:223"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:235"
  },
  {
   "fr": "À boire vite ⚠️",
   "en": "Drink soon ⚠️",
   "es": "Beber pronto ⚠️",
-  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:227"
+  "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:239"
  },
  {
   "fr": "Non classé",
@@ -18150,6 +18150,84 @@
   "ou": "lib/features/scan/presentation/scan_screen.dart:611"
  },
  {
+  "fr": "un blanc boisé",
+  "en": "an oaked white",
+  "es": "un blanco con crianza en madera",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:71"
+ },
+ {
+  "fr": "Un Meursault ou un Rioja blanc de garde",
+  "en": "A Meursault or an aged white Rioja",
+  "es": "Un Meursault o un Rioja blanco de guarda",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:72"
+ },
+ {
+  "fr": "un blanc minéral",
+  "en": "a mineral white",
+  "es": "un blanco mineral",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:76"
+ },
+ {
+  "fr": "Un Chablis ou un Sancerre",
+  "en": "A Chablis or a Sancerre",
+  "es": "Un Chablis o un Sancerre",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:77"
+ },
+ {
+  "fr": "un rouge très charpenté",
+  "en": "a firmly structured red",
+  "es": "un tinto muy estructurado",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:81"
+ },
+ {
+  "fr": "Un Madiran ou un Barolo",
+  "en": "A Madiran or a Barolo",
+  "es": "Un Madiran o un Barolo",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:82"
+ },
+ {
+  "fr": "un blanc très vif",
+  "en": "a very crisp white",
+  "es": "un blanco muy fresco y vivo",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:86"
+ },
+ {
+  "fr": "Un riesling de Moselle ou un Muscadet",
+  "en": "A Mosel Riesling or a Muscadet",
+  "es": "Un riesling del Mosela o un Muscadet",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:87"
+ },
+ {
+  "fr": "un vin ample",
+  "en": "a full-bodied wine",
+  "es": "un vino amplio",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:91"
+ },
+ {
+  "fr": "Un Châteauneuf-du-Pape ou un Amarone",
+  "en": "A Châteauneuf-du-Pape or an Amarone",
+  "es": "Un Châteauneuf-du-Pape o un Amarone",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:92"
+ },
+ {
+  "fr": "Pour mieux vous connaître",
+  "en": "To get to know you better",
+  "es": "Para conocerte mejor",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:128"
+ },
+ {
+  "fr": "Je ne sais pas encore ce que vous pensez {quoi}, et aucune bouteille de votre cave ne me le dirait.",
+  "en": "I don't know yet how you feel about {quoi}, and no bottle in your cellar would tell me.",
+  "es": "Todavía no sé qué piensas {quoi}, y ninguna botella de tu bodega me lo diría.",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:130"
+ },
+ {
+  "fr": "Ce qui vous manque pour mieux vous connaître : {style}. {exemples} vous le dirait.",
+  "en": "What your cellar lacks to know you better: {style}. {exemples} would tell you.",
+  "es": "Lo que le falta a tu bodega para conocerte mejor: {style}. {exemples} te lo diría.",
+  "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:133"
+ },
+ {
   "fr": "Vous n'aimez pas les tanins fermes : celui-ci risque d'en avoir trop",
   "en": "You dislike firm tannins: this one may have too much",
   "es": "No te gustan los taninos firmes: este puede tener demasiados",
@@ -18489,109 +18567,109 @@
   "fr": "des tanins",
   "en": "tannins",
   "es": "de los taninos",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:154"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:158"
  },
  {
   "fr": "des vins amples",
   "en": "full-bodied wines",
   "es": "de los vinos con cuerpo",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:155"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:159"
  },
  {
   "fr": "du boisé",
   "en": "oak",
   "es": "de la madera",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:156"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:160"
  },
  {
   "fr": "de la vivacité",
   "en": "crisp acidity",
   "es": "de la viveza",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:157"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:161"
  },
  {
   "fr": "de la minéralité",
   "en": "minerality",
   "es": "de la mineralidad",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:158"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:162"
  },
  {
   "fr": "de ce style",
   "en": "this style",
   "es": "de este estilo",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:159"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:163"
  },
  {
   "fr": ", et il a de bonnes chances de vous plaire ({v1} %)",
   "en": ", and there is a good chance you will enjoy it ({v1}%)",
   "es": ", y tiene muchas posibilidades de gustarte ({v1} %)",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:175"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:179"
  },
  {
   "fr": "Je ne sais pas encore ce que vous pensez {quoi}. {nomDuVin}, {comment}, me le dirait{risque}.",
   "en": "I don't know yet how you feel about {quoi}. {nomDuVin}, {comment}, would tell me{risque}.",
   "es": "Todavía no sé lo que piensas {quoi}. {nomDuVin}, {comment}, me lo diría{risque}.",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:176"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:180"
  },
  {
   "fr": "très charpenté",
   "en": "firmly structured",
   "es": "muy estructurado",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:182"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:186"
  },
  {
   "fr": "tout en souplesse",
   "en": "silky",
   "es": "todo suavidad",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:182"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:186"
  },
  {
   "fr": "ample",
   "en": "full-bodied",
   "es": "con cuerpo",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:183"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:187"
  },
  {
   "fr": "léger",
   "en": "light",
   "es": "ligero",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:183"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:187"
  },
  {
   "fr": "nettement boisé",
   "en": "clearly oaked",
   "es": "claramente amaderado",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:184"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:188"
  },
  {
   "fr": "sans bois",
   "en": "unoaked",
   "es": "sin madera",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:184"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:188"
  },
  {
   "fr": "très vif",
   "en": "very crisp",
   "es": "muy vivo",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:185"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:189"
  },
  {
   "fr": "tout en rondeur",
   "en": "soft and round",
   "es": "todo redondez",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:185"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:189"
  },
  {
   "fr": "très minéral",
   "en": "very mineral",
   "es": "muy mineral",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:186"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:190"
  },
  {
   "fr": "plus sur le fruit",
   "en": "more fruit-driven",
   "es": "más frutal",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:186"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:190"
  },
  {
   "fr": "Température parfaite !",

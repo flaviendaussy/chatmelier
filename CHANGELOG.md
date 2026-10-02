@@ -24,6 +24,7 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - *Palais* : `angle_mort_de_la_cave.dart`, `carte_des_terroirs.dart`, `taste_frontier_engine.dart` ; logique du questionnaire dans `questionnaire_de_degustation.dart`, minéralité apprise ; départage des accords à la maison par les fiches.
 - *Fiabilité* : sondage des convives espacé (`SondageEspace`), rappels d'apogée locaux hebdomadaires, journaux dédoublonnés et sans contenu personnel, AdMob en debug ; `PolitiquePub` ; Blind Battle masqué ; fichiers morts supprimés.
 - *Build* : le web reçoit `CHATMELIER_VERSION` comme l'app.
+- *Relevé sur l'émulateur, en production, avant envoi* : sur une ardoise, la frontière se borne au prix du verre (`MenuFlightEngine.prixPourApprendre`), comme le parcours ; un vin sans bois n'apprend plus rien du boisé, ni un vin peu minéral de la minéralité (`TasteFrontierEngine.nettete`) ; la page invité d'un comptoir parle du comptoir.
 
 ---
 

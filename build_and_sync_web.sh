@@ -17,7 +17,8 @@ echo "🌐 Building Chatmelier Web (v$VERSION)..."
 rm -rf build/web
 flutter build web --release \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-  --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+  --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+  --dart-define=CHATMELIER_VERSION="$VERSION"
 
 echo "⚡ Applying cache-busting to flutter_bootstrap.js..."
 sed -i "s|\"mainJsPath\":\"main.dart.js\"|\"mainJsPath\":\"main.dart.js?v=${VERSION}-${BUILD_TIME}\"|g" build/web/flutter_bootstrap.js

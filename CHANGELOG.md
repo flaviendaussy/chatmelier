@@ -2,6 +2,31 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.6.0+72] — 2026-10-02
+
+### 🍷 Ce qui change pour vous
+- **L'onglet « Ce soir »** : le restaurant et le bar passent en tête de l'app. On y scanne une carte ou l'ardoise des vins au verre, on ouvre ou rejoint une table, on rouvre la dernière carte.
+- **La table jusqu'au bout** : « Je ne bois pas ce soir », la carte « À deux bouteilles » quand un seul vin ne réunit pas la table, et en fin de soirée chacun note la bouteille choisie d'un geste.
+- **Des invités sans application** : le QR ouvre une page légère où l'on rejoint la table, voit le choix et note le vin. Le QR ne porte plus que le code de la table : il s'affiche même pour une longue carte.
+- **Le comptoir** : autour d'une ardoise, chacun note chaque verre sur son téléphone, et le comptoir dit qui a aimé quoi. Le parcours de dégustation peut choisir les verres qui vous apprennent quelque chose.
+- **Votre palais, mieux connu** : les terroirs goûtés, ceux qui attendent en cave, le prochain à explorer, et ce qui manque à votre cave pour mieux vous connaître. Le sommelier du chat connaît votre palais.
+- **En espagnol** : l'app en français, anglais et espagnol, et chacun lit ses notifications dans sa langue.
+- **Rien d'affirmé sans preuve** : plus de valeur de marché sans source, plus de badge « vérifié », plus d'histoire de terroir inventée ; des apogées plausibles.
+- **Moins de publicité** : plus de publicité au lancement, ni pendant vos premiers scans d'étiquette.
+- **Correctifs** : l'import Excel, les notes de dégustation dictées et le récit d'un vin fonctionnent à nouveau ; la carte rouverte est bien la dernière ; le scan de carte survit à une coupure pendant la vidéo ; une sortie de cave hors ligne n'est plus perdue ni comptée deux fois ; une carte sans prix (salon, avion) ne montre plus « 0 € ».
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Base (migrations 051 à 057)* : `tarifs_ia` et `cout_ia_usd`, `admin_economie` recalculé depuis les jetons (051) ; catalogue `wines` modifiable par les siens seulement, `decrite_par_serveur`, `quotas_ia` et `consommer_quota_ia`, valeurs de marché sans source effacées (052) ; `pg_cron` : purge des anonymes (épargne les codes de reprise valides), tables expirées, ménage quotidien, et `evenements_croissance` (053) ; `lire_carte_de_table`, relecture de `ai_cost_events` et `ad_impressions` (054) ; catalogue corrigé (055, nettoyage `supabase/nettoyage/055b_*`) ; `instant_du_journal` (056) ; `table_sessions.choix/resultat`, `choisir_vins_de_table`, `publier_resultat_table`, `lire_etat_table` (057).
+- *Fonctions edge* : `scan-label`, `scan-menu` (mode `ardoise`, sortie compacte reconstruite côté serveur), `menu-chat`, `chat` (contexte du palais borné), `update-wine-values` (recherche et source obligatoires) ; nouvelle `taches-ia` (notes de dégustation, récit, synthèse de table, meuble, import de cave, fiches) ; `drinking-window-alerts` supprimée. Réflexion réglée (`thinkingConfig`), modèles lus dans `app_config.modeles_ia`, `couts` renvoyés, session et quotas (`garder`), mode strict par `app_config.ia_session_obligatoire`.
+- *IA côté client* : plus aucun appel direct à Google (`fonctions_ia.dart`) ; `ai_cost_event.dart` aux tarifs réels datés.
+- *Langues* : `shared/utils/langue.dart` (`Langue.code`, `tr`, `trSi`, `trDonnee`, `dansLaLangue`), catalogues `lib/l10n/catalogues/<langue>.json` générés par `tool/langues/` ; valeurs stockées affichées traduites (`valeurs_rangees.dart`) ; `supportedLocales` fr, en, es (les dix autres `.arb` dans `lib/l10n/plus_tard/`).
+- *Table et bar* : onglet « Ce soir » (`adaptive_app_shell.dart`, `ce_soir_screen.dart`) ; `GuestProfile.neBoitPas`, `MenuTableMatcherEngine.meilleuresPaires`, `fin_de_soiree.dart`, `degustation_rapide.dart` ; page invité `app/web/table/` (HTML et JS, `config.js` écrit au build) ; `ScannedMenu.ardoise`, `MenuFlightEngine.buildFrontierFlight`, `comptoir.dart` et `comptoir_screen.dart`.
+- *Palais* : `angle_mort_de_la_cave.dart`, `carte_des_terroirs.dart`, `taste_frontier_engine.dart` ; logique du questionnaire dans `questionnaire_de_degustation.dart`, minéralité apprise ; départage des accords à la maison par les fiches.
+- *Fiabilité* : sondage des convives espacé (`SondageEspace`), rappels d'apogée locaux hebdomadaires, journaux dédoublonnés et sans contenu personnel, AdMob en debug ; `PolitiquePub` ; Blind Battle masqué ; fichiers morts supprimés.
+- *Build* : le web reçoit `CHATMELIER_VERSION` comme l'app.
+
+---
+
 ## [v1.3.2+65] — 2026-09-13
 
 ### 🍷 Ce qui change pour vous / What's New for You

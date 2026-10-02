@@ -14199,403 +14199,433 @@
   "fr": "Flight Express (3 verres)",
   "en": "Express Flight (3 glasses)",
   "es": "Recorrido exprés (3 copas)",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:5"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:7"
  },
  {
   "fr": "3 verres progressifs pour une dégustation équilibrée",
   "en": "3 progressive glasses for a balanced tasting",
   "es": "3 copas en progresión para una cata equilibrada",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:6"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:8"
  },
  {
   "fr": "Grand Flight Sommelier (5 verres)",
   "en": "Grand Sommelier Flight (5 glasses)",
   "es": "Gran recorrido del sumiller (5 copas)",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:7"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:9"
  },
  {
   "fr": "Un parcours complet en cinq verres",
   "en": "A complete journey in five glasses",
   "es": "Un recorrido completo en cinco copas",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:8"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:10"
  },
  {
   "fr": "Mix (Harmonie)",
   "en": "Mix (Harmony)",
   "es": "Mezcla (armonía)",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:21"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:23"
  },
  {
   "fr": "Blanc, rosé et rouge, du plus vif au plus intense",
   "en": "White, rosé and red, from the crispest to the most intense",
   "es": "Blanco, rosado y tinto, del más vivo al más intenso",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:22"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:24"
  },
  {
   "fr": "100% Blanc",
   "en": "100% White",
   "es": "100 % blanco",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:23"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:25"
  },
  {
   "fr": "Du plus vif au plus ample",
   "en": "From the crispest to the fullest",
   "es": "Del más vivo al más amplio",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:23"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:25"
  },
  {
   "fr": "100% Rosé",
   "en": "100% Rosé",
   "es": "100 % rosado",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:24"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:26"
  },
  {
   "fr": "Du plus aérien au plus vineux",
   "en": "From the most delicate to the most vinous",
   "es": "Del más etéreo al más vinoso",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:24"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:26"
  },
  {
   "fr": "100% Rouge",
   "en": "100% Red",
   "es": "100 % tinto",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:25"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:27"
  },
  {
   "fr": "Du plus souple au plus structuré",
   "en": "From the silkiest to the most structured",
   "es": "Del más suave al más estructurado",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:25"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:27"
  },
  {
   "fr": "Progressif & Équilibré",
   "en": "Progressive & Balanced",
   "es": "Progresivo y equilibrado",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:38"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:40"
  },
  {
   "fr": "De la fraîcheur à la puissance",
   "en": "From freshness to power",
   "es": "Del frescor a la potencia",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:38"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:40"
  },
  {
   "fr": "Focus Terroirs & Pépites",
   "en": "Terroirs & Gems",
   "es": "Terruños y joyas",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:39"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:41"
  },
  {
   "fr": "Les plus beaux terroirs de la carte",
   "en": "The finest terroirs on the list",
   "es": "Los mejores terruños de la carta",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:39"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:41"
  },
  {
   "fr": "Grands Rouges d'Auteur",
   "en": "Signature Reds",
   "es": "Grandes tintos de autor",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:40"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:42"
  },
  {
   "fr": "Évolution et texture des rouges",
   "en": "How reds evolve in texture",
   "es": "Evolución y textura de los tintos",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:40"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:42"
  },
  {
   "fr": "Blancs & Minéralité",
   "en": "Whites & Minerality",
   "es": "Blancos y mineralidad",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:41"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:43"
  },
  {
   "fr": "Des bulles aux blancs les plus amples",
   "en": "From bubbles to the fullest whites",
   "es": "De las burbujas a los blancos más amplios",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:41"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:43"
  },
  {
   "fr": "1. L'Ouverture",
   "en": "1. The Opening",
   "es": "1. La apertura",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:323"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:445"
  },
  {
   "fr": "2. Le Cœur",
   "en": "2. The Heart",
   "es": "2. El corazón",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:324"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:446"
  },
  {
   "fr": "3. Le Final",
   "en": "3. The Finale",
   "es": "3. El final",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:325"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:447"
  },
  {
   "fr": "1. L'Éveil",
   "en": "1. The Awakening",
   "es": "1. El despertar",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:329"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:451"
  },
  {
   "fr": "2. La Montée",
   "en": "2. The Build-up",
   "es": "2. El ascenso",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:330"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:452"
  },
  {
   "fr": "3. Le Cœur",
   "en": "3. The Heart",
   "es": "3. El corazón",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:331"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:453"
  },
  {
   "fr": "4. L'Apogée",
   "en": "4. The Peak",
   "es": "4. El apogeo",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:332"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:454"
  },
  {
   "fr": "5. Le Final",
   "en": "5. The Finale",
   "es": "5. El final",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:333"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:455"
  },
  {
   "fr": "Douceur",
   "en": "Sweetness",
   "es": "Dulzor",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:349"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:471"
  },
  {
   "fr": "Vivacité",
   "en": "Crispness",
   "es": "Viveza",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:350"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:472"
  },
  {
   "fr": "Minéralité",
   "en": "Minerality",
   "es": "Mineralidad",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:351"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:473"
  },
  {
   "fr": "Charpente",
   "en": "Structure",
   "es": "Estructura",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:352"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:474"
  },
  {
   "fr": "Souplesse",
   "en": "Silkiness",
   "es": "Suavidad",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:353"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:475"
  },
  {
   "fr": "Ampleur",
   "en": "Fullness",
   "es": "Amplitud",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:354"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:476"
  },
  {
   "fr": "Légèreté",
   "en": "Lightness",
   "es": "Ligereza",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:355"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:477"
  },
  {
   "fr": "Boisé",
   "en": "Oak",
   "es": "Madera",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:356"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:478"
  },
  {
   "fr": "Gras",
   "en": "Creaminess",
   "es": "Untuosidad",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:357"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:479"
  },
  {
   "fr": "Fruit",
   "en": "Fruit",
   "es": "Fruta",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:358"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:480"
+ },
+ {
+  "fr": "Pour savoir ce que vous pensez {quoi}",
+  "en": "To find out how you feel about {quoi}",
+  "es": "Para saber qué piensas {quoi}",
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:171"
+ },
+ {
+  "fr": "Un style que vous aimez",
+  "en": "A style you enjoy",
+  "es": "Un estilo que te gusta",
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:181"
+ },
+ {
+  "fr": "Une valeur sûre",
+  "en": "A safe bet",
+  "es": "Una apuesta segura",
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:183"
+ },
+ {
+  "fr": "Pour mieux vous connaître ({verres})",
+  "en": "To know you better ({verres})",
+  "es": "Para conocerte mejor ({verres})",
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:206"
  },
  {
   "fr": "Aucun vin détecté sur cette carte.",
   "en": "No wine found on this list.",
   "es": "No se ha detectado ningún vino en esta carta.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:110"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:208"
+ },
+ {
+  "fr": "Un verre que vous aimerez, ceux qui m'apprendront le plus sur votre palais, et une valeur sûre — servis du plus léger au plus intense.",
+  "en": "A glass you will enjoy, the ones that will teach me most about your palate, and a safe bet — served from the lightest to the most intense.",
+  "es": "Una copa que te gustará, las que más me enseñarán sobre tu paladar y una apuesta segura, servidas de la más ligera a la más intensa.",
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:209"
  },
  {
   "fr": "ce restaurant",
   "en": "this restaurant",
   "es": "este restaurante",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:164"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:286"
  },
  {
   "fr": "Grand Flight 100% Blancs ({verres})",
   "en": "Grand 100% White Flight ({verres})",
   "es": "Gran recorrido 100 % blancos ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:171"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:293"
  },
  {
   "fr": "Flight 100% Blancs ({verres})",
   "en": "100% White Flight ({verres})",
   "es": "Recorrido 100 % blancos ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:172"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:294"
  },
  {
   "fr": "Les blancs de {restName}, du plus vif et minéral au plus ample.",
   "en": "The whites of {restName}, from the crispest and most mineral to the fullest.",
   "es": "Los blancos de {restName}, del más vivo y mineral al más amplio.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:173"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:295"
  },
  {
   "fr": "Grand Flight 100% Rosés ({verres})",
   "en": "Grand 100% Rosé Flight ({verres})",
   "es": "Gran recorrido 100 % rosados ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:192"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:314"
  },
  {
   "fr": "Flight 100% Rosés ({verres})",
   "en": "100% Rosé Flight ({verres})",
   "es": "Recorrido 100 % rosados ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:193"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:315"
  },
  {
   "fr": "Les rosés de {restName}, du plus aérien au plus vineux.",
   "en": "The rosés of {restName}, from the most delicate to the most vinous.",
   "es": "Los rosados de {restName}, del más etéreo al más vinoso.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:194"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:316"
  },
  {
   "fr": "Grand Flight 100% Rouges ({verres})",
   "en": "Grand 100% Red Flight ({verres})",
   "es": "Gran recorrido 100 % tintos ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:214"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:336"
  },
  {
   "fr": "Flight 100% Rouges ({verres})",
   "en": "100% Red Flight ({verres})",
   "es": "Recorrido 100 % tintos ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:215"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:337"
  },
  {
   "fr": "Les rouges de {restName}, du plus souple au plus structuré.",
   "en": "The reds of {restName}, from the silkiest to the most structured.",
   "es": "Los tintos de {restName}, del más suave al más estructurado.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:218"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:340"
  },
  {
   "fr": "Grand Flight de la Carte ({verres})",
   "en": "Grand Flight of the List ({verres})",
   "es": "Gran recorrido por la carta ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:237"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:359"
  },
  {
   "fr": "Flight Découverte ({verres})",
   "en": "Discovery Flight ({verres})",
   "es": "Recorrido descubrimiento ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:238"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:360"
  },
  {
   "fr": "Cinq temps sur la carte de {restName}, du plus vif au plus intense.",
   "en": "Five movements across the list at {restName}, from the crispest to the most intense.",
   "es": "Cinco tiempos por la carta de {restName}, del más vivo al más intenso.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:240"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:362"
  },
  {
   "fr": "Trois verres de la carte de {restName}, en montant en intensité.",
   "en": "Three glasses from the list at {restName}, rising in intensity.",
   "es": "Tres copas de la carta de {restName}, subiendo en intensidad.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:242"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:364"
  },
  {
   "fr": "blancs",
   "en": "whites",
   "es": "blancos",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:273"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:395"
  },
  {
   "fr": "blanc",
   "en": "white",
   "es": "blanco",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:273"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:395"
  },
  {
   "fr": "rosés",
   "en": "rosés",
   "es": "rosados",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:274"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:396"
  },
  {
   "fr": "rosé",
   "en": "rosé",
   "es": "rosado",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:274"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:396"
  },
  {
   "fr": "rouges",
   "en": "reds",
   "es": "tintos",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:275"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:397"
  },
  {
   "fr": "rouge",
   "en": "red",
   "es": "tinto",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:275"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:397"
  },
  {
   "fr": "Cette carte ne propose aucun {couleur}.",
   "en": "This list has no {couleur}.",
   "es": "Esta carta no ofrece ningún {couleur}.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:300"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:422"
  },
  {
   "fr": "{recit} La carte ne propose qu'un seul {couleur} : pas de quoi composer un vrai flight.",
   "en": "{recit} The list has only one {couleur}: not enough for a real flight.",
   "es": "{recit} La carta solo ofrece un {couleur}: no basta para un verdadero recorrido.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:301"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:423"
  },
  {
   "fr": "{recit} La carte ne propose que {verres} {couleur} : le flight en compte {verres}.",
   "en": "{recit} The list has only {verres} {couleur}: the flight has {verres}.",
   "es": "{recit} La carta solo ofrece {verres} {couleur}: el recorrido tiene {verres}.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:303"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:425"
  },
  {
   "fr": "1 Verre",
   "en": "1 Glass",
   "es": "1 copa",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:338"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:460"
  },
  {
   "fr": "{n} Verres",
   "en": "{n} Glasses",
   "es": "{n} copas",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:338"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:460"
  },
  {
   "fr": "Équilibre",
   "en": "Balance",
   "es": "Equilibrio",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:360"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:482"
  },
  {
   "fr": "Corps",
   "en": "Body",
   "es": "Cuerpo",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:379"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:501"
  },
  {
   "fr": "Bois",
   "en": "Oak",
   "es": "Madera",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:381"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:503"
  },
  {
   "fr": "le plus charpenté",
@@ -15063,283 +15093,283 @@
   "fr": "Carte sans prix : on choisit au goût.",
   "en": "No prices on this list: choose by taste.",
   "es": "Carta sin precios: se elige por el gusto.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:454"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:459"
  },
  {
   "fr": "{n} Blanc",
   "en": "{n} White",
   "es": "{n} blanco",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:377"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:382"
  },
  {
   "fr": "{n} Blancs",
   "en": "{n} Whites",
   "es": "{n} blancos",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:377"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:382"
  },
  {
   "fr": "{n} Rouge",
   "en": "{n} Red",
   "es": "{n} tinto",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:378"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:383"
  },
  {
   "fr": "{n} Rouges",
   "en": "{n} Reds",
   "es": "{n} tintos",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:378"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:383"
  },
  {
   "fr": "{n} Rosé",
   "en": "{n} Rosé",
   "es": "{n} rosado",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:379"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:384"
  },
  {
   "fr": "{n} Rosés",
   "en": "{n} Rosés",
   "es": "{n} rosados",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:379"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:384"
  },
  {
   "fr": "{n} Effervescent",
   "en": "{n} Sparkling",
   "es": "{n} espumoso",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:380"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:385"
  },
  {
   "fr": "{n} Effervescents",
   "en": "{n} Sparkling",
   "es": "{n} espumosos",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:380"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:385"
  },
  {
   "fr": "🧭 Pour mieux vous connaître",
   "en": "🧭 To get to know you better",
   "es": "🧭 Para conocerte mejor",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:150"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:155"
  },
  {
   "fr": "Ce {nom}",
   "en": "This {nom}",
   "es": "Este {nom}",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:154"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:159"
  },
  {
   "fr": "Vous connaissez ({n})",
   "en": "You know ({n})",
   "es": "Conoces ({n})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:241"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:246"
  },
  {
   "fr": "Nom de l'établissement",
   "en": "Venue Name",
   "es": "Nombre del establecimiento",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:336"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:341"
  },
  {
   "fr": "Restaurant / Bar",
   "en": "Restaurant / Bar",
   "es": "Restaurante / bar",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:340"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:345"
  },
  {
   "fr": "Valider",
   "en": "Save",
   "es": "Validar",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:354"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:359"
  },
  {
   "fr": "Une page n'a pas pu être lue : la carte ci-dessous est incomplète. Reprenez-la en photo pour l'ajouter.",
   "en": "One page could not be read: this list is incomplete. Take the photo again to add it.",
   "es": "No se pudo leer una página: la carta de abajo está incompleta. Vuelve a fotografiarla para añadirla.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:416"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:421"
  },
  {
   "fr": "{n} pages n'ont pas pu être lues : la carte ci-dessous est incomplète. Reprenez-les en photo pour les ajouter.",
   "en": "{n} pages could not be read: this list is incomplete. Take the photos again to add them.",
   "es": "No se pudieron leer {n} páginas: la carta de abajo está incompleta. Vuelve a fotografiarlas para añadirlas.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:418"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:423"
  },
  {
   "fr": "Reprendre",
   "en": "Retake",
   "es": "Repetir",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:425"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:430"
  },
  {
   "fr": "{wines_length} références détectées",
   "en": "{wines_length} references detected",
   "es": "{wines_length} referencias detectadas",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:443"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:448"
  },
  {
   "fr": "Compact",
   "en": "Compact",
   "es": "Compacta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:482"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:487"
  },
  {
   "fr": "Détaillé",
   "en": "Detailed",
   "es": "Detallada",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:482"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:487"
  },
  {
   "fr": "Discuter avec la Carte",
   "en": "Chat with the Wine List",
   "es": "Hablar con la carta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:551"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:556"
  },
  {
   "fr": "IA SOMMELIER",
   "en": "AI SOMMELIER",
   "es": "SUMILLER IA",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:567"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:572"
  },
  {
   "fr": "Posez vos questions : accords mets & vins, conseils en direct...",
   "en": "Ask questions: food & wine pairings, live sommelier advice...",
   "es": "Haz tus preguntas: maridajes, consejos en directo...",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:579"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:584"
  },
  {
   "fr": "Choisir en groupe 👥",
   "en": "Choose as a group 👥",
   "es": "Elegir en grupo 👥",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:653"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:658"
  },
  {
   "fr": "Consensus multi-palais",
   "en": "Multi-palate consensus",
   "es": "Consenso de varios paladares",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:663"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:668"
  },
  {
   "fr": "Flight Sommelier 🍷",
   "en": "Wine Flight 🍷",
   "es": "Recorrido del sumiller 🍷",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:721"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:726"
  },
  {
   "fr": "3 ou 5 verres en ordre",
   "en": "3 or 5 glasses in order",
   "es": "3 o 5 copas en orden",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:731"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:736"
  },
  {
   "fr": "Rechercher un vin, domaine, cépage, appellation...",
   "en": "Search wine, estate, grape, appellation...",
   "es": "Buscar un vino, productor, variedad, denominación...",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:756"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:761"
  },
  {
   "fr": "Bons plans",
   "en": "Deals",
   "es": "Ofertas",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:788"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:793"
  },
  {
   "fr": "Pépites",
   "en": "Gems",
   "es": "Joyas",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:790"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:795"
  },
  {
   "fr": "Pour vous",
   "en": "For you",
   "es": "Para ti",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:792"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:797"
  },
  {
   "fr": "Rouges ({redCount})",
   "en": "Reds ({redCount})",
   "es": "Tintos ({redCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:830"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:835"
  },
  {
   "fr": "Blancs ({whiteCount})",
   "en": "Whites ({whiteCount})",
   "es": "Blancos ({whiteCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:844"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:849"
  },
  {
   "fr": "Bulles ({sparklingCount})",
   "en": "Sparkling ({sparklingCount})",
   "es": "Espumosos ({sparklingCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:865"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:870"
  },
  {
   "fr": "Profil : ",
   "en": "Profile: ",
   "es": "Perfil: ",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:886"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:891"
  },
  {
   "fr": "Minéral",
   "en": "Mineral",
   "es": "Mineral",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:896"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:901"
  },
  {
   "fr": "Beurré",
   "en": "Buttery",
   "es": "Mantecoso",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:897"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:902"
  },
  {
   "fr": "Tannique",
   "en": "Tannic",
   "es": "Tánico",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:898"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:903"
  },
  {
   "fr": "Fruité",
   "en": "Fruity",
   "es": "Afrutado",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:899"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:904"
  },
  {
   "fr": "Léger",
   "en": "Light",
   "es": "Ligero",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:900"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:905"
  },
  {
   "fr": "Puissant",
   "en": "Bold",
   "es": "Potente",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:901"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:906"
  },
  {
   "fr": "Aucun vin ne correspond à vos filtres",
   "en": "No wines match your filters",
   "es": "Ningún vino coincide con tus filtros",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:940"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:945"
  },
  {
   "fr": "Chat Menu",
   "en": "Chat Menu",
   "es": "Chat de la carta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1016"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1021"
  },
  {
   "fr": "Comparer ({selectedWineIds_length})",
   "en": "Compare ({selectedWineIds_length})",
   "es": "Comparar ({selectedWineIds_length})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1044"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1049"
  },
  {
   "fr": "Comparer",
   "en": "Compare",
   "es": "Comparar",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1045"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1050"
  },
  {
   "fr": "v",
   "en": "glass",
   "es": "copa",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1230"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1235"
  },
  {
   "fr": "Invité",
@@ -15456,76 +15486,82 @@
   "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:310"
  },
  {
+  "fr": "📈 En montant en intensité",
+  "en": "📈 Rising in intensity",
+  "es": "📈 De menos a más intensidad",
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:181"
+ },
+ {
   "fr": "Carte des vins",
   "en": "Wine list",
   "es": "Carta de vinos",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:66"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:82"
  },
  {
   "fr": "Thème : {v1} ({glassCount} verres)",
   "en": "Theme: {v1} ({glassCount} glasses)",
   "es": "Tema: {v1} ({glassCount} copas)",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:68"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:84"
  },
  {
   "fr": "Composé par Chatmelier AI Sommelier",
   "en": "Put together by Chatmelier AI Sommelier",
   "es": "Preparado por el sumiller IA de Chatmelier",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:79"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:95"
  },
  {
   "fr": "Flight Sommelier Dégustation",
   "en": "Tasting Wine Flight",
   "es": "Recorrido de cata del sumiller",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:131"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:147"
  },
  {
   "fr": "verres",
   "en": "glasses",
   "es": "copas",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:135"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:151"
  },
  {
   "fr": "Partager le flight",
   "en": "Share flight",
   "es": "Compartir el recorrido",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:143"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:159"
  },
  {
   "fr": "✨ 3 Verres Express",
   "en": "✨ 3-Glass Express",
   "es": "✨ 3 copas exprés",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:164"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:217"
  },
  {
   "fr": "👑 5 Verres Grand Parcours",
   "en": "👑 5-Glass Grand Journey",
   "es": "👑 Gran recorrido de 5 copas",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:191"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:244"
  },
  {
   "fr": "Prix estimé du flight",
   "en": "Estimated flight total",
   "es": "Precio estimado del recorrido",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:329"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:382"
  },
  {
   "fr": "Prêt à déguster 🍷",
   "en": "Ready to taste 🍷",
   "es": "Listo para catar 🍷",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:353"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:406"
  },
  {
   "fr": "verre",
   "en": "glass",
   "es": "copa",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:370"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:423"
  },
  {
   "fr": " (estimé)",
   "en": " (est.)",
   "es": " (estimado)",
-  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:371"
+  "ou": "lib/features/menu_scan/presentation/menu_flight_sheet.dart:424"
  },
  {
   "fr": "vous vouliez du rouge",
@@ -18591,115 +18627,115 @@
   "fr": "Pour mieux vous connaître : ouvrez votre {nomDuVin} ({comment}, prêt à boire) — il me dirait ce que vous pensez {quoi}.",
   "en": "To get to know you better: open your {nomDuVin} ({comment}, ready to drink) — it would tell me how you feel about {quoi}.",
   "es": "Para conocerte mejor: abre tu {nomDuVin} ({comment}, listo para beber); me diría lo que piensas {quoi}.",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:150"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:152"
  },
  {
   "fr": "des tanins",
   "en": "tannins",
   "es": "de los taninos",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:158"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:160"
  },
  {
   "fr": "des vins amples",
   "en": "full-bodied wines",
   "es": "de los vinos con cuerpo",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:159"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:161"
  },
  {
   "fr": "du boisé",
   "en": "oak",
   "es": "de la madera",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:160"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:162"
  },
  {
   "fr": "de la vivacité",
   "en": "crisp acidity",
   "es": "de la viveza",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:161"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:163"
  },
  {
   "fr": "de la minéralité",
   "en": "minerality",
   "es": "de la mineralidad",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:162"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:164"
  },
  {
   "fr": "de ce style",
   "en": "this style",
   "es": "de este estilo",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:163"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:165"
  },
  {
   "fr": ", et il a de bonnes chances de vous plaire ({v1} %)",
   "en": ", and there is a good chance you will enjoy it ({v1}%)",
   "es": ", y tiene muchas posibilidades de gustarte ({v1} %)",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:179"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:181"
  },
  {
   "fr": "Je ne sais pas encore ce que vous pensez {quoi}. {nomDuVin}, {comment}, me le dirait{risque}.",
   "en": "I don't know yet how you feel about {quoi}. {nomDuVin}, {comment}, would tell me{risque}.",
   "es": "Todavía no sé lo que piensas {quoi}. {nomDuVin}, {comment}, me lo diría{risque}.",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:180"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:182"
  },
  {
   "fr": "très charpenté",
   "en": "firmly structured",
   "es": "muy estructurado",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:186"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:188"
  },
  {
   "fr": "tout en souplesse",
   "en": "silky",
   "es": "todo suavidad",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:186"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:188"
  },
  {
   "fr": "ample",
   "en": "full-bodied",
   "es": "con cuerpo",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:187"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:189"
  },
  {
   "fr": "léger",
   "en": "light",
   "es": "ligero",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:187"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:189"
  },
  {
   "fr": "nettement boisé",
   "en": "clearly oaked",
   "es": "claramente amaderado",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:188"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:190"
  },
  {
   "fr": "sans bois",
   "en": "unoaked",
   "es": "sin madera",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:188"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:190"
  },
  {
   "fr": "très vif",
   "en": "very crisp",
   "es": "muy vivo",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:189"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:191"
  },
  {
   "fr": "tout en rondeur",
   "en": "soft and round",
   "es": "todo redondez",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:189"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:191"
  },
  {
   "fr": "très minéral",
   "en": "very mineral",
   "es": "muy mineral",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:190"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:192"
  },
  {
   "fr": "plus sur le fruit",
   "en": "more fruit-driven",
   "es": "más frutal",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:190"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:192"
  },
  {
   "fr": "Température parfaite !",

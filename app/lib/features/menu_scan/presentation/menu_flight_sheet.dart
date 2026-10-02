@@ -4,20 +4,25 @@ import '../domain/menu_wine.dart';
 import '../domain/menu_flight_engine.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
+import '../../auth/domain/taste_profile.dart';
 
 class MenuFlightSheet extends StatefulWidget {
   final ScannedMenu menu;
 
-  const MenuFlightSheet({super.key, required this.menu});
+  /// Le palais de la personne : avec lui, le parcours peut vous apprendre quelque chose
+  /// (ordre « frontière », V2.3 · J4) plutôt que seulement monter en intensité.
+  final TasteProfile? palais;
 
-  static Future<void> show(BuildContext context, {required ScannedMenu menu}) {
+  const MenuFlightSheet({super.key, required this.menu, this.palais});
+
+  static Future<void> show(BuildContext context, {required ScannedMenu menu, TasteProfile? palais}) {
     // Trace d'usage : la console d'administration compte ce qui ne laisse rien en base.
     AppLogger.info('USAGE', 'flights');
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => MenuFlightSheet(menu: menu),
+      builder: (ctx) => MenuFlightSheet(menu: menu, palais: palais),
     );
   }
 
@@ -30,6 +35,9 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
   FlightWineColor _color = FlightWineColor.mix;
   final FlightTheme _theme = FlightTheme.progressive;
   late TastingFlightProposal _proposal;
+
+  /// Le parcours qui apprend : par défaut quand on connaît le palais.
+  late bool _pourMieuxVousConnaitre = widget.palais != null;
 
   /// Langue du parcours. Lue dans `didChangeDependencies` : `initState` ne peut pas
   /// consulter `Localizations`.
@@ -47,13 +55,21 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
     }
   }
 
-  TastingFlightProposal _composer() => MenuFlightEngine.buildFlight(
-        menu: widget.menu,
-        format: _format,
-        color: _color,
-        theme: _theme,
-        isFr: _isFr,
-      );
+  TastingFlightProposal _composer() => _pourMieuxVousConnaitre && widget.palais != null
+      ? MenuFlightEngine.buildFrontierFlight(
+          menu: widget.menu,
+          palais: widget.palais!,
+          format: _format,
+          color: _color,
+          isFr: _isFr,
+        )
+      : MenuFlightEngine.buildFlight(
+          menu: widget.menu,
+          format: _format,
+          color: _color,
+          theme: _theme,
+          isFr: _isFr,
+        );
 
   void _recalculateFlight() {
     setState(() => _proposal = _composer());
@@ -151,6 +167,43 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
             ),
           ),
           const Divider(color: Colors.white10, height: 1),
+
+          // L'ordre du parcours : monter en intensité, ou vous apprendre quelque chose.
+          if (widget.palais != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  for (final (apprendre, libelle) in [
+                    (true, tr('🧭 Pour mieux vous connaître', '🧭 To know you better')),
+                    (false, tr('📈 En montant en intensité', '📈 Rising in intensity')),
+                  ])
+                    ChoiceChip(
+                      label: Text(
+                        libelle,
+                        style: TextStyle(
+                          color: _pourMieuxVousConnaitre == apprendre ? Colors.black : Colors.white70,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12.5,
+                        ),
+                      ),
+                      selected: _pourMieuxVousConnaitre == apprendre,
+                      selectedColor: const Color(0xFFD4AF37),
+                      backgroundColor: const Color(0xFF22162A),
+                      side: BorderSide(
+                        color: _pourMieuxVousConnaitre == apprendre ? const Color(0xFFD4AF37) : Colors.white24,
+                      ),
+                      onSelected: (selected) {
+                        if (!selected) return;
+                        _pourMieuxVousConnaitre = apprendre;
+                        _recalculateFlight();
+                      },
+                    ),
+                ],
+              ),
+            ),
 
           // Format selector (3 verres vs 5 verres)
           Padding(

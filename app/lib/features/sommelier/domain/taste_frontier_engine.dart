@@ -132,6 +132,8 @@ class TasteFrontierEngine {
   }
 
   /// On ne propose pas un vin très marqué sur ce que la personne a dit ne pas aimer.
+  static bool heurteUneAversion(ProfilDeVin vin, TasteProfile profil) => _heurteUneAversion(vin, profil);
+
   static bool _heurteUneAversion(ProfilDeVin vin, TasteProfile profil) {
     for (final a in profil.dislikedCharacteristics) {
       final d = a.toLowerCase();

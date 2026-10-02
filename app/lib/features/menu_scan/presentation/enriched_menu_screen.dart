@@ -18,6 +18,7 @@ import 'menu_flight_sheet.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../sommelier/domain/taste_frontier_engine.dart';
 import '../../../shared/utils/langue.dart';
+import '../../auth/domain/taste_profile.dart';
 
 /// L'écran de résultat ouvert sans carte (lien direct, historique du navigateur, app
 /// restaurée sans son état) : on rouvre la dernière carte scannée, ou on propose d'en
@@ -110,11 +111,15 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
   /// S4) — parmi ceux qui ont des chances de vous plaire. Rien sans profil.
   SuggestionDeFrontiere<MenuWine>? _frontiere;
 
+  /// Le palais principal, gardé pour le parcours qui apprend (V2.3 · J4).
+  TasteProfile? _palais;
+
   Future<void> _chercherLaFrontiere() async {
     try {
       final profils = await ref.read(tasteProfilesListProvider.future);
       if (profils.isEmpty || !mounted) return;
       final principal = profils.firstWhere((p) => p.isPrimary, orElse: () => profils.first);
+      _palais = principal;
       final s = TasteFrontierEngine.choisir<MenuWine>(
         TasteFrontierEngine.candidatsDeLaCarte(_menu.wines),
         principal,
@@ -682,7 +687,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(14),
-                      onTap: () => MenuFlightSheet.show(context, menu: _menu),
+                      onTap: () => MenuFlightSheet.show(context, menu: _menu, palais: _palais),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         decoration: BoxDecoration(

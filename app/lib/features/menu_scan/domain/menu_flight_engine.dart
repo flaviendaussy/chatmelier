@@ -1,5 +1,7 @@
-import 'menu_wine.dart';
 import '../../../shared/utils/langue.dart';
+import '../../auth/domain/taste_profile.dart';
+import '../../sommelier/domain/taste_frontier_engine.dart';
+import 'menu_wine.dart';
 
 enum FlightFormat {
   threeGlasses(3, Phrase('Flight Express (3 verres)', 'Express Flight (3 glasses)'),
@@ -94,6 +96,126 @@ class TastingFlightProposal {
 }
 
 class MenuFlightEngine {
+  /// Le parcours qui vous apprend quelque chose (V2.3 · J4) : un verre dans un style que
+  /// vous aimez, ceux qui en apprendraient le plus sur votre palais — un axe différent
+  /// chacun quand la carte le permet —, et une valeur sûre.
+  ///
+  /// Le plaisir prédit (`userMatchScore`) désigne le verre aimé et la valeur sûre ; le
+  /// moteur de frontière choisit les autres, parmi les vins qu'on n'a ni goûtés ni en
+  /// cave, sans heurter une aversion déclarée. Au verre d'abord, comme tout flight.
+  ///
+  /// Les verres se servent ensuite du plus léger au plus intense, chacun avec son rôle :
+  /// un Chablis bu juste après un rouge tannique dirait mal sa minéralité — précisément
+  /// ce qu'on voulait apprendre. À intensité égale, l'ordre des rôles est gardé.
+  static TastingFlightProposal buildFrontierFlight({
+    required ScannedMenu menu,
+    required TasteProfile palais,
+    FlightFormat format = FlightFormat.threeGlasses,
+    FlightWineColor color = FlightWineColor.mix,
+    bool isFr = true,
+  }) {
+    final fr = isFr;
+    final n = format.glassCount;
+    bool deLaCouleur(MenuWine w) => switch (color) {
+          FlightWineColor.white => _isWhite(w) || (_isSparkling(w) && !_isRose(w)),
+          FlightWineColor.rose => _isRose(w),
+          FlightWineColor.red => _isRed(w),
+          FlightWineColor.mix => true,
+        };
+    final deCouleur = menu.wines.where(deLaCouleur).toList();
+    final auVerre = deCouleur.where((w) => w.hasGlassPrice).toList();
+    final pool = auVerre.length >= n ? auVerre : deCouleur;
+    final pris = <MenuWine>{};
+
+    double plaisir(MenuWine w) => w.userMatchScore ?? 0;
+    MenuWine? leMieuxAime() {
+      final libres = pool.where((w) => !pris.contains(w)).toList()
+        ..sort((a, b) {
+          final c = plaisir(b).compareTo(plaisir(a));
+          if (c != 0) return c;
+          return (_prixDuVerre(a).$1 ?? double.infinity).compareTo(_prixDuVerre(b).$1 ?? double.infinity);
+        });
+      return libres.firstOrNull;
+    }
+
+    final premier = leMieuxAime();
+    if (premier != null) pris.add(premier);
+
+    // Les verres du milieu : les plus instructifs, un axe chacun tant que possible.
+    final instructifs = <(MenuWine, String)>[];
+    final axesVus = <String>{};
+    while (instructifs.length < n - 2) {
+      final libres = TasteFrontierEngine.candidatsDeLaCarte(pool).where((w) => !pris.contains(w)).toList();
+      SuggestionDeFrontiere<MenuWine>? choix(List<MenuWine> parmi) => TasteFrontierEngine.choisir<MenuWine>(
+            parmi,
+            palais,
+            profilDe: ProfilDeVin.depuisLaCarte,
+            plaisir: (w) => w.userMatchScore,
+            prix: (w) => _prixDuVerre(w).$1 ?? w.bottlePrice,
+          );
+      final nouveaux = libres.where((w) {
+        final r = TasteFrontierEngine.evaluer(ProfilDeVin.depuisLaCarte(w), palais);
+        return r != null && !axesVus.contains(r.$2);
+      }).toList();
+      final s = choix(nouveaux) ?? choix(libres);
+      if (s == null) break;
+      instructifs.add((s.vin, s.axe));
+      axesVus.add(s.axe);
+      pris.add(s.vin);
+    }
+
+    final dernier = leMieuxAime();
+    if (dernier != null) pris.add(dernier);
+    // Une carte trop courte pour apprendre : le milieu se remplit de vins aimés.
+    final milieu = [
+      for (final (w, axe) in instructifs) (w, trSi(fr, 'Pour savoir ce que vous pensez {quoi}', 'To find out how you feel about {quoi}', {'quoi': TasteFrontierEngine.ceQueJugeLAxe(axe)})),
+    ];
+    while (milieu.length < n - 2) {
+      final w = leMieuxAime();
+      if (w == null) break;
+      pris.add(w);
+      milieu.add((w, caractere(w, fr)));
+    }
+
+    final roles = [
+      if (premier != null) (premier, trSi(fr, 'Un style que vous aimez', 'A style you enjoy')),
+      ...milieu,
+      if (dernier != null) (dernier, trSi(fr, 'Une valeur sûre', 'A safe bet')),
+    ];
+    final verres = [
+      for (final (i, v) in roles.indexed) (i, v),
+    ]..sort((a, b) {
+        final c = _rangDeService(a.$2.$1).compareTo(_rangDeService(b.$2.$1));
+        return c != 0 ? c : a.$1.compareTo(b.$1);
+      });
+    final titres = _titresDesVerres(n, fr);
+    final steps = <FlightGlassStep>[
+      for (var i = 0; i < verres.length && i < n; i++)
+        FlightGlassStep(
+          stepIndex: i + 1,
+          stepTitle: titres[i],
+          wine: verres[i].$2.$1,
+          sommelierRole: verres[i].$2.$2,
+          tastingNotesSummary: _note(verres[i].$2.$1, fr),
+          glassPrice: _prixDuVerre(verres[i].$2.$1).$1,
+          prixEstime: _prixDuVerre(verres[i].$2.$1).$2,
+        ),
+    ];
+    final total = steps.fold<double>(0.0, (sum, s) => sum + (s.glassPrice ?? 0.0));
+    return TastingFlightProposal(
+      title: trSi(fr, 'Pour mieux vous connaître ({verres})', 'To know you better ({verres})', {'verres': _verres(steps.length, fr)}),
+      storyline: steps.isEmpty
+          ? trSi(fr, 'Aucun vin détecté sur cette carte.', 'No wine found on this list.')
+          : trSi(fr, 'Un verre que vous aimerez, ceux qui m\'apprendront le plus sur votre palais, et une valeur sûre — servis du plus léger au plus intense.',
+              'A glass you will enjoy, the ones that will teach me most about your palate, and a safe bet — served from the lightest to the most intense.'),
+      format: format,
+      color: color,
+      theme: FlightTheme.progressive,
+      steps: steps,
+      totalEstimatedPrice: double.parse(total.toStringAsFixed(1)),
+    );
+  }
+
   /// Compose un flight cohérent de 3 ou 5 verres à partir des vins scannés sur la carte.
   static TastingFlightProposal buildFlight({
     required ScannedMenu menu,
@@ -413,6 +535,17 @@ class MenuFlightEngine {
   static bool _isSweetOrSpirit(MenuWine w) {
     final t = '${w.wineType} ${w.name}'.toLowerCase();
     return t.contains('dessert') || t.contains('fortified') || t.contains('porto') || t.contains('sauternes') || t.contains('moelleux') || t.contains('liqueur') || t.contains('whisky') || t.contains('cognac') || t.contains('rhum') || t.contains('digestif');
+  }
+
+  /// L'ordre de service : bulles, blancs du plus vif au plus ample, rosés, rouges du plus
+  /// souple au plus puissant, vins doux en dernier.
+  static double _rangDeService(MenuWine w) {
+    if (_isSweetOrSpirit(w)) return 5000;
+    if (_isSparkling(w)) return 0;
+    if (_isRose(w)) return 2000;
+    if (_isWhite(w)) return 1000 + (200 - _mineralRank(w)).clamp(0, 999);
+    if (_isRed(w)) return 3000 + _powerRank(w);
+    return 2500;
   }
 
   static double _freshnessRank(MenuWine w) {

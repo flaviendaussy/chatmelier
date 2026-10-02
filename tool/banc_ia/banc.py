@@ -26,6 +26,7 @@ import subprocess
 import sys
 import time
 import unicodedata
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -93,17 +94,40 @@ def lancer(fonction, reglages_par_tache):
     return faux
 
 
-def arreter(faux):
+def masquer(texte):
+    """Jamais la clé dans ce qui s'affiche ou s'écrit : ni sa valeur, ni un « key=… »."""
+    texte = str(texte)
+    cle = os.environ.get('GEMINI_API_KEY', '')
+    if len(cle) >= 8:
+        texte = texte.replace(cle, '[CLÉ MASQUÉE]')
+    texte = re.sub(r'(key=)[^&\s"\']+', r'\1[MASQUÉE]', texte)
+    return re.sub(r'AIza[0-9A-Za-z_\-]{20,}', '[CLÉ MASQUÉE]', texte)
+
+
+def arreter(faux, journal=None, entete=''):
+    # Le journal de la fonction dit ce que Google a répondu : on le garde, clé masquée,
+    # avant de supprimer le conteneur (le 02/10, il disparaissait avec lui).
+    if journal is not None:
+        logs = subprocess.run(['docker', 'logs', 'edge-banc'], capture_output=True, text=True)
+        with open(journal, 'a') as f:
+            f.write(f'=== {entete} ===\n{masquer(logs.stdout + logs.stderr)}\n')
     subprocess.run(['docker', 'rm', '-f', 'edge-banc'], capture_output=True)
     faux.terminate()
 
 
 def appeler(corps):
+    """La réponse de la fonction, sa durée, et l'erreur (masquée) si elle a échoué."""
     req = urllib.request.Request(f'http://127.0.0.1:{PORT_FONCTION}/', data=json.dumps(corps).encode(),
                                  headers={'Content-Type': 'application/json', 'Authorization': 'Bearer banc'})
     debut = time.time()
-    with urllib.request.urlopen(req, timeout=200) as r:
-        return json.loads(r.read()), time.time() - debut
+    try:
+        with urllib.request.urlopen(req, timeout=200) as r:
+            return json.loads(r.read()), time.time() - debut, None
+    except urllib.error.HTTPError as e:
+        corps_erreur = e.read().decode('utf-8', 'replace')
+        return {}, time.time() - debut, masquer(f'HTTP {e.code} : {corps_erreur[:400]}')
+    except Exception as e:  # délai dépassé, fonction tombée : la carte suivante continue
+        return {}, time.time() - debut, masquer(f'{type(e).__name__} : {e}')
 
 
 def b64(chemin):
@@ -159,6 +183,8 @@ def main():
     cartes = sorted(p for p in (dossier / 'cartes').glob('*') if (p / 'reference.json').exists())
     etiquettes = sorted(p for p in (dossier / 'etiquettes').glob('*.jpg') if p.with_suffix('.json').exists())
     resultats = []
+    journal = dossier / 'journal_fonctions.txt'
+    journal.write_text('')
     for nom, reglage in VARIANTES:
         if cartes:
             faux = lancer('scan-menu', {'scan_carte': reglage})
@@ -166,8 +192,14 @@ def main():
                 for c in cartes:
                     pages = sorted(c.glob('page*.jpg'))
                     reference = json.loads((c / 'reference.json').read_text())
-                    rep, duree = appeler({'imagesBase64': [b64(p) for p in pages], 'languageCode': 'fr',
-                                          'mode': reference.get('mode', 'carte')})
+                    rep, duree, erreur = appeler({'imagesBase64': [b64(p) for p in pages], 'languageCode': 'fr',
+                                                  'mode': reference.get('mode', 'carte')})
+                    if erreur:
+                        print(f'{nom} · carte {c.name} : ÉCHEC — {erreur}', flush=True)
+                        resultats.append({'variante': nom, 'type': 'carte', 'element': c.name, 'erreur': erreur,
+                                          'duree_s': round(duree, 1), 'cout_eur': 0, 'reflexion_jetons': 0,
+                                          'vins_trouves': 0, 'producteur': 0, 'millesime': 0, 'prix': 0})
+                        continue
                     jugement = juger_carte(rep, reference)
                     usage = rep.get('usageMetadata') or {}
                     resultats.append({'variante': nom, 'type': 'carte', 'element': c.name, 'modele': rep.get('modele'),
@@ -175,12 +207,18 @@ def main():
                                       'reflexion_jetons': usage.get('thoughtsTokenCount', 0), **jugement})
                     print(f'{nom} · carte {c.name} : {jugement}', flush=True)
             finally:
-                arreter(faux)
+                arreter(faux, journal, f'{nom} · scan-menu')
         if etiquettes:
             faux = lancer('scan-label', {'scan_etiquette_lecture': reglage})
             try:
                 for e in etiquettes:
-                    rep, duree = appeler({'imageBase64': b64(e), 'forceRefresh': True})
+                    rep, duree, erreur = appeler({'imageBase64': b64(e), 'forceRefresh': True})
+                    if erreur:
+                        print(f'{nom} · étiquette {e.stem} : ÉCHEC — {erreur}', flush=True)
+                        resultats.append({'variante': nom, 'type': 'etiquette', 'element': e.stem, 'erreur': erreur,
+                                          'duree_s': round(duree, 1), 'cout_eur': 0, 'reflexion_jetons': 0,
+                                          'producteur': 0, 'nom': 0, 'millesime': 0, 'appellation': 0})
+                        continue
                     jugement = juger_etiquette(rep, json.loads(e.with_suffix('.json').read_text()))
                     lecture = next((x for x in rep.get('couts', []) if x.get('fonction') == 'scan_vision'), {})
                     resultats.append({'variante': nom, 'type': 'etiquette', 'element': e.stem, 'modele': lecture.get('modele'),
@@ -188,19 +226,20 @@ def main():
                                       'reflexion_jetons': (lecture.get('usageMetadata') or {}).get('thoughtsTokenCount', 0), **jugement})
                     print(f'{nom} · étiquette {e.stem} : {jugement}', flush=True)
             finally:
-                arreter(faux)
+                arreter(faux, journal, f'{nom} · scan-label')
 
     (dossier / 'rapport.json').write_text(json.dumps(resultats, ensure_ascii=False, indent=1))
     lignes = ['# Banc d\'essai des modèles de lecture', '',
-              '| Variante | Type | Exactitude moyenne | Coût moyen | Jetons de réflexion | Durée moyenne |',
-              '|---|---|---|---|---|---|']
+              '| Variante | Type | Exactitude moyenne | Échecs | Coût moyen | Jetons de réflexion | Durée moyenne |',
+              '|---|---|---|---|---|---|---|']
     for nom, _ in VARIANTES:
         for t in ('carte', 'etiquette'):
             rs = [r for r in resultats if r['variante'] == nom and r['type'] == t]
             if not rs:
                 continue
             notes = [v for r in rs for k, v in r.items() if k in ('vins_trouves', 'producteur', 'millesime', 'prix', 'nom', 'appellation')]
-            lignes.append(f'| {nom} | {t} | {100 * sum(notes) / max(len(notes), 1):.1f} % | '
+            echecs = sum(1 for r in rs if r.get('erreur'))
+            lignes.append(f'| {nom} | {t} | {100 * sum(notes) / max(len(notes), 1):.1f} % | {echecs}/{len(rs)} | '
                           f'{100 * sum(r["cout_eur"] for r in rs) / len(rs):.2f} c€ | '
                           f'{sum(r["reflexion_jetons"] for r in rs) / len(rs):.0f} | {sum(r["duree_s"] for r in rs) / len(rs):.1f} s |')
     (dossier / 'rapport.md').write_text('\n'.join(lignes) + '\n')

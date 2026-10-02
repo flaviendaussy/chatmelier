@@ -40,6 +40,10 @@ class GuestProfile {
   /// ne vote pas et ne compte pas parmi les buveurs à satisfaire.
   final bool neBoitPas;
 
+  /// Ses notes au comptoir (V2.3 · J4) : clé du vin (`MenuWine.cacheKey`) → note sur 10,
+  /// donnée d'un geste à chaque verre. Elles voyagent avec le profil, comme les avis.
+  final Map<String, double> verres;
+
   const GuestProfile({
     required this.id,
     required this.name,
@@ -53,10 +57,12 @@ class GuestProfile {
     this.sansPreferences = false,
     this.avis = const {},
     this.neBoitPas = false,
+    this.verres = const {},
   });
 
   /// Le même convive, sous un autre identifiant, un autre prénom ou avec d'autres avis.
-  GuestProfile copie({String? id, String? name, Map<String, String>? avis, bool? neBoitPas}) => GuestProfile(
+  GuestProfile copie({String? id, String? name, Map<String, String>? avis, bool? neBoitPas, Map<String, double>? verres}) =>
+      GuestProfile(
         id: id ?? this.id,
         name: name ?? this.name,
         avatarUrl: avatarUrl,
@@ -69,6 +75,7 @@ class GuestProfile {
         sansPreferences: sansPreferences,
         avis: avis ?? this.avis,
         neBoitPas: neBoitPas ?? this.neBoitPas,
+        verres: verres ?? this.verres,
       );
 
   /// Ce qu'un convive emporte avec lui en rejoignant une table.
@@ -85,6 +92,7 @@ class GuestProfile {
         if (sansPreferences) 'sans_preferences': true,
         if (neBoitPas) 'ne_boit_pas': true,
         if (avis.isNotEmpty) 'avis': avis,
+        if (verres.isNotEmpty) 'verres': verres,
         'radar': {
           'tannin': radar.tannin,
           'body': radar.body,
@@ -116,6 +124,12 @@ class GuestProfile {
       neBoitPas: json['ne_boit_pas'] == true,
       avis: json['avis'] is Map
           ? {for (final e in (json['avis'] as Map).entries) e.key.toString(): e.value.toString()}
+          : const {},
+      verres: json['verres'] is Map
+          ? {
+              for (final e in (json['verres'] as Map).entries)
+                if (double.tryParse(e.value.toString()) case final note?) e.key.toString(): note,
+            }
           : const {},
       radarDistant: r is Map
           ? WineTasteRadarMetrics(

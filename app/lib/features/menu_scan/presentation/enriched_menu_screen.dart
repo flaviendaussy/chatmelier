@@ -19,6 +19,7 @@ import '../../auth/data/taste_profile_service.dart';
 import '../../sommelier/domain/taste_frontier_engine.dart';
 import '../../../shared/utils/langue.dart';
 import '../../auth/domain/taste_profile.dart';
+import 'comptoir_screen.dart';
 
 /// L'écran de résultat ouvert sans carte (lien direct, historique du navigateur, app
 /// restaurée sans son état) : on rouvre la dernière carte scannée, ou on propose d'en
@@ -619,7 +620,11 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(14),
-                      onTap: () => MenuTableConsensusSheet.show(context, menu: _menu),
+                      // Au bar, on partage des verres plutôt qu'on ne choisit une bouteille :
+                      // le comptoir à plusieurs (V2.3 · J4).
+                      onTap: () => _menu.ardoise
+                          ? Navigator.of(context).push(MaterialPageRoute(builder: (_) => ComptoirScreen(ardoise: _menu)))
+                          : MenuTableConsensusSheet.show(context, menu: _menu),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         decoration: BoxDecoration(
@@ -646,7 +651,8 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                                 color: Color(0xFFD4AF37),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.groups_rounded, color: Color(0xFF33163A), size: 16),
+                              child: Icon(_menu.ardoise ? Icons.local_bar_rounded : Icons.groups_rounded,
+                                  color: const Color(0xFF33163A), size: 16),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -655,7 +661,9 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    trSi(isFr, 'Choisir en groupe 👥', 'Choose as a group 👥'),
+                                    _menu.ardoise
+                                        ? tr('Le comptoir à plusieurs 🥂', 'Bar with friends 🥂')
+                                        : trSi(isFr, 'Choisir en groupe 👥', 'Choose as a group 👥'),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -665,7 +673,9 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    trSi(isFr, 'Consensus multi-palais', 'Multi-palate consensus'),
+                                    _menu.ardoise
+                                        ? tr('Chacun note chaque verre', 'Everyone rates each glass')
+                                        : trSi(isFr, 'Consensus multi-palais', 'Multi-palate consensus'),
                                     style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 10),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,

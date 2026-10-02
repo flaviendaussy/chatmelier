@@ -75,6 +75,13 @@ const TEXTES = {
     iphone: 'L\'app arrive bientôt sur iPhone. D\'ici là, gardez votre soirée avec le code de reprise.',
     connexionPerdue: 'Connexion perdue avec la table.',
     versionComplete: 'Vous avez un compte Chatmelier ? Ouvrir la version complète',
+    comptoirTitre: 'Les verres de l\'ardoise',
+    comptoirAide: 'Notez chaque verre d\'un geste : à la fin, on saura qui a aimé quoi.',
+    quiAimeQuoi: 'Qui a aimé quoi',
+    prefere: 'Le préféré du comptoir : {vin} ({visages}).',
+    divise: 'Celui qui divise : {vin} ({visages}).',
+    chacun: 'Le préféré de chacun : {liste}.',
+    changer: 'changer',
     exemples: {
       tanins: 'Ce qui assèche la bouche, comme un thé trop infusé. Marqués dans un Madiran, discrets dans un Beaujolais.',
       corps: 'Le poids du vin en bouche : léger comme du lait écrémé, ou ample comme de la crème.',
@@ -134,6 +141,13 @@ const TEXTES = {
     iphone: 'The iPhone app is coming soon. Until then, keep your evening with the recovery code.',
     connexionPerdue: 'Lost the connection to the table.',
     versionComplete: 'Have a Chatmelier account? Open the full version',
+    comptoirTitre: 'The glasses on the board',
+    comptoirAide: 'Rate each glass in one tap: at the end, we\'ll know who liked what.',
+    quiAimeQuoi: 'Who liked what',
+    prefere: 'The bar\'s favourite: {vin} ({visages}).',
+    divise: 'The one that divides: {vin} ({visages}).',
+    chacun: 'Everyone\'s favourite: {liste}.',
+    changer: 'change',
     exemples: {
       tanins: 'What dries your mouth, like over-brewed tea. Firm in a Madiran, soft in a Beaujolais.',
       corps: 'The weight in your mouth: skimmed milk, or cream.',
@@ -193,6 +207,13 @@ const TEXTES = {
     iphone: 'La app llegará pronto al iPhone. Mientras tanto, guarda tu velada con el código de recuperación.',
     connexionPerdue: 'Se perdió la conexión con la mesa.',
     versionComplete: '¿Tienes una cuenta de Chatmelier? Abrir la versión completa',
+    comptoirTitre: 'Las copas de la pizarra',
+    comptoirAide: 'Puntúa cada copa con un gesto: al final sabremos a quién le gustó qué.',
+    quiAimeQuoi: 'A quién le gustó qué',
+    prefere: 'El favorito de la barra: {vin} ({visages}).',
+    divise: 'El que divide: {vin} ({visages}).',
+    chacun: 'El favorito de cada uno: {liste}.',
+    changer: 'cambiar',
     exemples: {
       tanins: 'Lo que seca la boca, como un té demasiado infusionado. Marcados en un Madiran, discretos en un Beaujolais.',
       corps: 'El peso del vino en boca: ligero como leche desnatada, o amplio como la nata.',
@@ -334,6 +355,7 @@ const etat = {
   codeReprise: null,
   connexionPerdue: false,
   sansCarte: false,
+  menu: null,
   prenomSaisi: '',
   empreinte: null,
 };
@@ -341,6 +363,7 @@ const etat = {
 const CLE_NOM = () => `chatmelier.table.${etat.code}.nom`;
 const CLE_MODE = () => `chatmelier.table.${etat.code}.mode`;
 const CLE_NOTES = () => `chatmelier.table.${etat.code}.notes`;
+const CLE_PROFIL = () => `chatmelier.table.${etat.code}.profil`;
 const lire = (cle, defaut) => { try { return JSON.parse(localStorage.getItem(cle)) ?? defaut; } catch { return defaut; } };
 const ecrire = (cle, v) => { try { localStorage.setItem(cle, JSON.stringify(v)); } catch { /* rien */ } };
 
@@ -479,9 +502,12 @@ async function rejoindre(options) {
   const saisi = (champ?.value || etat.prenomSaisi || assis || '').trim() || (LANGUE === 'fr' ? 'Invité' : LANGUE === 'es' ? 'Invitado' : 'Guest');
   const nom = assis || nomLibre(saisi);
   try {
-    const r = await rpc('join_table_session', { p_code: etat.code, p_guest_name: nom, p_profile: profil(nom, options) }, { connecte: true });
+    const envoye = { ...profil(nom, options), verres: lire(CLE_PROFIL(), {})?.verres || {} };
+    const r = await rpc('join_table_session', { p_code: etat.code, p_guest_name: nom, p_profile: envoye }, { connecte: true });
     const ligne = Array.isArray(r) ? r[0] : r;
     if (ligne?.restaurant_name) etat.restaurant = ligne.restaurant_name;
+    if (ligne?.menu) etat.menu = ligne.menu;
+    ecrire(CLE_PROFIL(), envoye);
     if (!assis) noterEvenement('invite_web_arrivee');
     ecrire(CLE_NOM(), nom);
     ecrire(CLE_MODE(), options?.neBoitPas ? 'sans_boire' : options?.sansPreferences ? 'sans_gouts' : 'gouts');
@@ -597,22 +623,26 @@ function blocChoix() {
  * « Vous en reprendriez ? » n'a pas de colonne : la réponse devient la note de dégustation,
  * que l'invité relira dans son journal s'il garde sa soirée.
  */
+async function enregistrerAuJournal(vin, note, racheter) {
+  const s = await session();
+  const wineId = crypto.randomUUID();
+  await inserer('wines', {
+    id: wineId, name: vin.nom, producer: vin.producteur || null, vintage: vin.millesime || null,
+    wine_type: vin.couleur || 'red', region: 'Autre',
+  });
+  const moi = lire(CLE_NOM(), '');
+  await inserer('tasting_log', {
+    id: crypto.randomUUID(), wine_id: wineId, user_id: s.user_id, rating: note,
+    occasion: etat.restaurant || 'Restaurant', location_name: etat.restaurant || null,
+    co_tasters: etat.convives.map((c) => c.nom).filter((n) => n !== moi),
+    tasting_notes: racheter ? T.racheter[racheter] : null,
+    is_external: true, rating_scale: 10, consumed_at: new Date().toISOString(),
+  });
+}
+
 async function enregistrerLaNote(vin, note, racheter) {
   try {
-    const s = await session();
-    const wineId = crypto.randomUUID();
-    await inserer('wines', {
-      id: wineId, name: vin.nom, producer: vin.producteur || null, vintage: vin.millesime || null,
-      wine_type: vin.couleur || 'red', region: 'Autre',
-    });
-    const moi = lire(CLE_NOM(), '');
-    await inserer('tasting_log', {
-      id: crypto.randomUUID(), wine_id: wineId, user_id: s.user_id, rating: note,
-      occasion: etat.restaurant || 'Restaurant', location_name: etat.restaurant || null,
-      co_tasters: etat.convives.map((c) => c.nom).filter((n) => n !== moi),
-      tasting_notes: racheter ? T.racheter[racheter] : null,
-      is_external: true, rating_scale: 10, consumed_at: new Date().toISOString(),
-    });
+    await enregistrerAuJournal(vin, note, racheter);
     const notes = lire(CLE_NOTES(), {});
     notes[vin.cle] = note;
     ecrire(CLE_NOTES(), notes);
@@ -662,6 +692,118 @@ async function obtenirUnCode() {
   rendre();
 }
 
+// ---------------------------------------------------------------------------
+// Le comptoir à plusieurs (V2.3 · J4) : autour d'une ardoise, chacun note chaque verre.
+// ---------------------------------------------------------------------------
+const estUnComptoir = () => etat.menu?.ardoise === true;
+const VISAGES = ['😖', '😕', '😐', '😊', '😍'];
+const NOTES_DES_VISAGES = [2.5, 4.5, 6.5, 8, 9.5];
+// Les seuils de `TastingQuestionnaireResult.emojiIndexForRating`.
+const visageDe = (n) => VISAGES[n >= 9 ? 4 : n >= 7.5 ? 3 : n >= 5.5 ? 2 : n >= 3.5 ? 1 : 0];
+// La clé de `MenuWine.cacheKey` : la même chez l'hôte et chez chaque invité.
+const cleDuVin = (w) => `${String(w.name || '').trim().toLowerCase()}__${String(w.producer || '').trim().toLowerCase()}__${w.vintage ?? 0}__${String(w.wine_type || '').trim().toLowerCase()}`;
+const nomDuVin = (w) => `${w.name}${w.vintage ? ` ${w.vintage}` : ''}`;
+
+function prixDuVerre(w) {
+  const g = Array.isArray(w.glass_prices) ? w.glass_prices[0] : null;
+  const devise = etat.menu?.currency;
+  const f = (p) => (devise ? new Intl.NumberFormat(LANGUE, { style: 'currency', currency: devise, maximumFractionDigits: p % 1 ? 2 : 0 }).format(p) : String(p));
+  if (g && g.price > 0) return `${f(g.price)}/${g.format}`;
+  return w.bottle_price > 0 ? f(w.bottle_price) : '';
+}
+
+/** Prénom → note, pour chaque verre ; mes notes viennent d'ici, celles des autres du serveur. */
+function notesDuComptoir() {
+  const moi = lire(CLE_NOM(), '');
+  const mesVerres = lire(CLE_PROFIL(), {})?.verres || {};
+  const parVin = {};
+  for (const w of etat.menu?.wines || []) {
+    const cle = cleDuVin(w);
+    const notes = {};
+    for (const c of etat.convives) {
+      if (c.neBoitPas || c.nom === moi) continue;
+      const n = Number(c.verres?.[cle]);
+      if (Number.isFinite(n)) notes[c.nom] = n;
+    }
+    if (moi && Number.isFinite(Number(mesVerres[cle]))) notes[moi] = Number(mesVerres[cle]);
+    parVin[cle] = notes;
+  }
+  return parVin;
+}
+
+/** Le bilan, comme `BilanDuComptoir.phrases` dans l'app. */
+function bilanDuComptoir(parVin) {
+  const vins = (etat.menu?.wines || []).map((w) => ({ w, notes: parVin[cleDuVin(w)] || {} }))
+    .filter((v) => Object.keys(v.notes).length > 0);
+  const moyenne = (v) => { const n = Object.values(v.notes); return n.reduce((a, b) => a + b, 0) / n.length; };
+  const ecart = (v) => { const n = Object.values(v.notes); return n.length < 2 ? 0 : Math.max(...n) - Math.min(...n); };
+  const visages = (v) => Object.entries(v.notes).sort((a, b) => b[1] - a[1]).map(([nom, n]) => `${visageDe(n)} ${nom}`).join(', ');
+  let prefere = null;
+  for (const v of vins) {
+    if (Object.keys(v.notes).length < 2) continue;
+    if (!prefere || moyenne(v) > moyenne(prefere) || (moyenne(v) === moyenne(prefere) && Object.keys(v.notes).length > Object.keys(prefere.notes).length)) prefere = v;
+  }
+  let divise = null;
+  for (const v of vins) if (ecart(v) >= 4 && (!divise || ecart(v) > ecart(divise))) divise = v;
+  const chacun = {};
+  for (const v of vins) for (const [nom, n] of Object.entries(v.notes)) if (!chacun[nom] || n > chacun[nom].n) chacun[nom] = { v, n };
+  return [
+    prefere ? t('prefere', { vin: nomDuVin(prefere.w), visages: visages(prefere) }) : null,
+    divise && divise !== prefere ? t('divise', { vin: nomDuVin(divise.w), visages: visages(divise) }) : null,
+    Object.keys(chacun).length >= 2
+      ? t('chacun', { liste: Object.entries(chacun).map(([nom, { v }]) => `${nom}, ${nomDuVin(v.w)}`).join(' · ') })
+      : null,
+  ].filter(Boolean);
+}
+
+function blocComptoir() {
+  const parVin = notesDuComptoir();
+  const moi = lire(CLE_NOM(), '');
+  const bilan = bilanDuComptoir(parVin);
+  return [
+    bilan.length ? el('section', { class: 'carte or' }, el('h2', {}, t('quiAimeQuoi')), bilan.map((p) => el('p', {}, p))) : null,
+    el('section', { class: 'carte' },
+      el('h2', {}, t('comptoirTitre')),
+      el('p', { class: 'discret' }, t('comptoirAide')),
+      (etat.menu?.wines || []).map((w) => {
+        const cle = cleDuVin(w);
+        const notes = parVin[cle] || {};
+        const miens = notes[moi];
+        const autres = Object.entries(notes).filter(([nom]) => nom !== moi);
+        const enCours = etat.verreEnCours === cle;
+        return el('article', { class: 'vin' },
+          el('div', { class: 'titre' }, el('span', { class: 'nom' }, nomDuVin(w)), el('span', { class: 'prix' }, prixDuVerre(w))),
+          w.producer ? el('span', { class: 'discret' }, w.producer) : null,
+          autres.length ? el('div', { class: 'scores' }, autres.map(([nom, n]) => el('span', { class: 'score' }, `${visageDe(n)} ${nom}`))) : null,
+          miens !== undefined && !enCours
+            ? el('button', { class: 'lien', onclick: () => { etat.verreEnCours = cle; rendre(); } }, `${visageDe(miens)} ${t('note')} · ${t('changer')}`)
+            : el('div', { class: 'visages' }, VISAGES.map((f, i) => el('button', {
+                class: 'visage', 'aria-label': `${NOTES_DES_VISAGES[i]} / 10`,
+                onclick: () => noterUnVerre(w, NOTES_DES_VISAGES[i]),
+              }, f))),
+        );
+      }),
+    ),
+  ];
+}
+
+/** Un verre noté : au journal de l'invité, et dans son profil à table pour les autres. */
+async function noterUnVerre(w, note) {
+  try {
+    await enregistrerAuJournal({ nom: w.name, producteur: w.producer, millesime: w.vintage, couleur: w.wine_type || 'red' }, note, null);
+    const profilEnvoye = lire(CLE_PROFIL(), null) || profil(lire(CLE_NOM(), '') || 'Invité', { sansPreferences: true });
+    const avecLaNote = { ...profilEnvoye, verres: { ...(profilEnvoye.verres || {}), [cleDuVin(w)]: note } };
+    await rpc('join_table_session', { p_code: etat.code, p_guest_name: lire(CLE_NOM(), ''), p_profile: avecLaNote }, { connecte: true });
+    ecrire(CLE_PROFIL(), avecLaNote);
+    etat.verreEnCours = null;
+    noterEvenement('invite_web_note');
+    rendre();
+    await rafraichir().catch(() => {});
+  } catch {
+    alert(t('noteEchec'));
+  }
+}
+
 /**
  * La version complète (l'app Flutter sur le web) : pour se connecter à son compte, ou
  * départager la table au matchmaker. Elle reste en secours de cette page.
@@ -682,7 +824,8 @@ function rendre() {
   const bandeau = etat.connexionPerdue ? el('div', { class: 'bandeau' }, t('connexionPerdue'),
     el('button', { class: 'lien', onclick: () => { sondage.reprendre(); } }, t('reessayer'))) : null;
   if (!assis || etat.modeProfil) {
-    return afficher(entete, bandeau, blocConvives(), blocProfil(), assis ? null : blocPodium(), assis ? null : lienVersionComplete());
+    return afficher(entete, bandeau, blocConvives(), blocProfil(),
+      assis || estUnComptoir() ? null : blocPodium(), assis ? null : lienVersionComplete());
   }
   afficher(
     entete,
@@ -690,10 +833,10 @@ function rendre() {
     el('section', { class: 'carte' },
       el('p', {}, t('assis', { nom: assis })),
       mode === 'sans_boire' ? el('p', { class: 'discret' }, t('assisSansBoire'))
-        : mode === 'sans_gouts' ? el('p', { class: 'discret' }, t('assisSansGouts')) : null,
+        // Au comptoir, pas de classement : la phrase n'aurait pas de sens.
+        : mode === 'sans_gouts' && !estUnComptoir() ? el('p', { class: 'discret' }, t('assisSansGouts')) : null,
       el('button', { class: 'lien', onclick: () => { etat.modeProfil = true; rendre(); } }, t('modifier'))),
-    blocChoix(),
-    blocPodium(),
+    estUnComptoir() ? blocComptoir() : [blocChoix(), blocPodium()],
     blocConvives(),
     blocGarder(),
     lienVersionComplete(),
@@ -719,21 +862,24 @@ async function rafraichir() {
     const ligne = Array.isArray(carte) ? carte[0] : carte;
     if (!ligne) throw new ErreurServeur(404, 'table_introuvable');
     etat.restaurant = ligne.restaurant_name || ligne.menu?.restaurant_name || 'Restaurant';
+    if (ligne.menu) etat.menu = ligne.menu;
   }
   etat.convives = (convives || []).map((g) => ({
     nom: g.guest_name,
     archetype: g.profile?.archetype || '',
     neBoitPas: g.profile?.ne_boit_pas === true,
+    verres: g.profile?.verres && typeof g.profile.verres === 'object' ? g.profile.verres : {},
   }));
   const e = Array.isArray(etatTable) ? etatTable[0] : etatTable;
   etat.resultat = e?.resultat || null;
   etat.choix = Array.isArray(e?.choix) ? e.choix : [];
 
-  const empreinte = JSON.stringify([etat.restaurant, etat.convives, etat.resultat, etat.choix]);
+  const empreinte = JSON.stringify([etat.restaurant, etat.convives, etat.resultat, etat.choix, Boolean(etat.menu)]);
   if (empreinte === etat.empreinte) return;
   etat.empreinte = empreinte;
   if (!lire(CLE_NOM(), '') || etat.modeProfil) {
     // Le formulaire ne bouge pas sous les doigts de l'invité : seuls la table et le podium.
+    if (estUnComptoir()) return remplacer('convives', blocConvives());
     remplacer('convives', blocConvives());
     remplacer('podium', blocPodium());
   } else {

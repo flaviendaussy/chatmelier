@@ -14136,6 +14136,24 @@
   "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:273"
  },
  {
+  "fr": "Le préféré du comptoir : {vin} ({visages}).",
+  "en": "The bar's favourite: {vin} ({visages}).",
+  "es": "El favorito de la barra: {vin} ({visages}).",
+  "ou": "lib/features/menu_scan/domain/comptoir.dart:100"
+ },
+ {
+  "fr": "Celui qui divise : {vin} ({visages}).",
+  "en": "The one that divides: {vin} ({visages}).",
+  "es": "El que divide: {vin} ({visages}).",
+  "ou": "lib/features/menu_scan/domain/comptoir.dart:103"
+ },
+ {
+  "fr": "Le préféré de chacun : {liste}.",
+  "en": "Everyone's favourite: {liste}.",
+  "es": "El favorito de cada uno: {liste}.",
+  "ou": "lib/features/menu_scan/domain/comptoir.dart:106"
+ },
+ {
   "fr": "Tanins {v1} et corps {v2} : de quoi tenir tête aux sucs d'une viande rouge.",
   "en": "Tannins {v1} and body {v2}: enough grip to stand up to red meat.",
   "es": "Taninos {v1} y cuerpo {v2}: lo suficiente para plantar cara a los jugos de una carne roja.",
@@ -15108,286 +15126,364 @@
   "ou": "lib/features/menu_scan/presentation/carte_deux_bouteilles.dart:36"
  },
  {
+  "fr": "Le comptoir · {bar}",
+  "en": "The bar · {bar}",
+  "es": "La barra · {bar}",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:147"
+ },
+ {
+  "fr": "Connexion perdue avec le comptoir.",
+  "en": "Lost the connection to the bar.",
+  "es": "Se perdió la conexión con la barra.",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:158"
+ },
+ {
+  "fr": "Réessayer",
+  "en": "Try again",
+  "es": "Reintentar",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:161"
+ },
+ {
+  "fr": "Le comptoir n'a pas pu s'ouvrir : vérifiez la connexion et réessayez.",
+  "en": "The bar could not be opened: check your connection and try again.",
+  "es": "No se pudo abrir la barra: comprueba la conexión e inténtalo de nuevo.",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:169"
+ },
+ {
+  "fr": "LE COMPTOIR CHATMELIER",
+  "en": "CHATMELIER BAR",
+  "es": "LA BARRA CHATMELIER",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:177"
+ },
+ {
+  "fr": "Rejoins le comptoir sur Chatmelier pour noter les verres avec nous ! Code : {code} — {lien}",
+  "en": "Join the bar on Chatmelier and rate the glasses with us! Code: {code} — {lien}",
+  "es": "¡Únete a la barra en Chatmelier para puntuar las copas con nosotros! Código: {code} — {lien}",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:180"
+ },
+ {
+  "fr": "Comptoir Chatmelier — code {code}",
+  "en": "Chatmelier bar — code {code}",
+  "es": "Barra Chatmelier — código {code}",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:185"
+ },
+ {
+  "fr": "Chacun scanne le code, et note chaque verre d'un geste.",
+  "en": "Everyone scans the code and rates each glass in one tap.",
+  "es": "Cada uno escanea el código y puntúa cada copa con un gesto.",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:191"
+ },
+ {
+  "fr": "Qui a aimé quoi",
+  "en": "Who liked what",
+  "es": "A quién le gustó qué",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:209"
+ },
+ {
+  "fr": "{visage} noté · changer",
+  "en": "{visage} rated · change",
+  "es": "{visage} puntuado · cambiar",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:282"
+ },
+ {
+  "fr": "Le noter d'un geste",
+  "en": "Rate it in one tap",
+  "es": "Anotarlo con un gesto",
+  "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:291"
+ },
+ {
   "fr": "Carte sans prix : on choisit au goût.",
   "en": "No prices on this list: choose by taste.",
   "es": "Carta sin precios: se elige por el gusto.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:459"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:460"
+ },
+ {
+  "fr": "Le comptoir à plusieurs 🥂",
+  "en": "Bar with friends 🥂",
+  "es": "La barra entre amigos 🥂",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:665"
+ },
+ {
+  "fr": "Chacun note chaque verre",
+  "en": "Everyone rates each glass",
+  "es": "Cada uno puntúa cada copa",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:677"
  },
  {
   "fr": "{n} Blanc",
   "en": "{n} White",
   "es": "{n} blanco",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:382"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:383"
  },
  {
   "fr": "{n} Blancs",
   "en": "{n} Whites",
   "es": "{n} blancos",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:382"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:383"
  },
  {
   "fr": "{n} Rouge",
   "en": "{n} Red",
   "es": "{n} tinto",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:383"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:384"
  },
  {
   "fr": "{n} Rouges",
   "en": "{n} Reds",
   "es": "{n} tintos",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:383"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:384"
  },
  {
   "fr": "{n} Rosé",
   "en": "{n} Rosé",
   "es": "{n} rosado",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:384"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:385"
  },
  {
   "fr": "{n} Rosés",
   "en": "{n} Rosés",
   "es": "{n} rosados",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:384"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:385"
  },
  {
   "fr": "{n} Effervescent",
   "en": "{n} Sparkling",
   "es": "{n} espumoso",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:385"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:386"
  },
  {
   "fr": "{n} Effervescents",
   "en": "{n} Sparkling",
   "es": "{n} espumosos",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:385"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:386"
  },
  {
   "fr": "🧭 Pour mieux vous connaître",
   "en": "🧭 To get to know you better",
   "es": "🧭 Para conocerte mejor",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:155"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:156"
  },
  {
   "fr": "Ce {nom}",
   "en": "This {nom}",
   "es": "Este {nom}",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:159"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:160"
  },
  {
   "fr": "Vous connaissez ({n})",
   "en": "You know ({n})",
   "es": "Conoces ({n})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:246"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:247"
  },
  {
   "fr": "Nom de l'établissement",
   "en": "Venue Name",
   "es": "Nombre del establecimiento",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:341"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:342"
  },
  {
   "fr": "Restaurant / Bar",
   "en": "Restaurant / Bar",
   "es": "Restaurante / bar",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:345"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:346"
  },
  {
   "fr": "Valider",
   "en": "Save",
   "es": "Validar",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:359"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:360"
  },
  {
   "fr": "Une page n'a pas pu être lue : la carte ci-dessous est incomplète. Reprenez-la en photo pour l'ajouter.",
   "en": "One page could not be read: this list is incomplete. Take the photo again to add it.",
   "es": "No se pudo leer una página: la carta de abajo está incompleta. Vuelve a fotografiarla para añadirla.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:421"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:422"
  },
  {
   "fr": "{n} pages n'ont pas pu être lues : la carte ci-dessous est incomplète. Reprenez-les en photo pour les ajouter.",
   "en": "{n} pages could not be read: this list is incomplete. Take the photos again to add them.",
   "es": "No se pudieron leer {n} páginas: la carta de abajo está incompleta. Vuelve a fotografiarlas para añadirlas.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:423"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:424"
  },
  {
   "fr": "Reprendre",
   "en": "Retake",
   "es": "Repetir",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:430"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:431"
  },
  {
   "fr": "{wines_length} références détectées",
   "en": "{wines_length} references detected",
   "es": "{wines_length} referencias detectadas",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:448"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:449"
  },
  {
   "fr": "Compact",
   "en": "Compact",
   "es": "Compacta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:487"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:488"
  },
  {
   "fr": "Détaillé",
   "en": "Detailed",
   "es": "Detallada",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:487"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:488"
  },
  {
   "fr": "Discuter avec la Carte",
   "en": "Chat with the Wine List",
   "es": "Hablar con la carta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:556"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:557"
  },
  {
   "fr": "IA SOMMELIER",
   "en": "AI SOMMELIER",
   "es": "SUMILLER IA",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:572"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:573"
  },
  {
   "fr": "Posez vos questions : accords mets & vins, conseils en direct...",
   "en": "Ask questions: food & wine pairings, live sommelier advice...",
   "es": "Haz tus preguntas: maridajes, consejos en directo...",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:584"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:585"
  },
  {
   "fr": "Choisir en groupe 👥",
   "en": "Choose as a group 👥",
   "es": "Elegir en grupo 👥",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:658"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:666"
  },
  {
   "fr": "Consensus multi-palais",
   "en": "Multi-palate consensus",
   "es": "Consenso de varios paladares",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:668"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:678"
  },
  {
   "fr": "Flight Sommelier 🍷",
   "en": "Wine Flight 🍷",
   "es": "Recorrido del sumiller 🍷",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:726"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:736"
  },
  {
   "fr": "3 ou 5 verres en ordre",
   "en": "3 or 5 glasses in order",
   "es": "3 o 5 copas en orden",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:736"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:746"
  },
  {
   "fr": "Rechercher un vin, domaine, cépage, appellation...",
   "en": "Search wine, estate, grape, appellation...",
   "es": "Buscar un vino, productor, variedad, denominación...",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:761"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:771"
  },
  {
   "fr": "Bons plans",
   "en": "Deals",
   "es": "Ofertas",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:793"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:803"
  },
  {
   "fr": "Pépites",
   "en": "Gems",
   "es": "Joyas",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:795"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:805"
  },
  {
   "fr": "Pour vous",
   "en": "For you",
   "es": "Para ti",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:797"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:807"
  },
  {
   "fr": "Rouges ({redCount})",
   "en": "Reds ({redCount})",
   "es": "Tintos ({redCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:835"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:845"
  },
  {
   "fr": "Blancs ({whiteCount})",
   "en": "Whites ({whiteCount})",
   "es": "Blancos ({whiteCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:849"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:859"
  },
  {
   "fr": "Bulles ({sparklingCount})",
   "en": "Sparkling ({sparklingCount})",
   "es": "Espumosos ({sparklingCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:870"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:880"
  },
  {
   "fr": "Profil : ",
   "en": "Profile: ",
   "es": "Perfil: ",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:891"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:901"
  },
  {
   "fr": "Minéral",
   "en": "Mineral",
   "es": "Mineral",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:901"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:911"
  },
  {
   "fr": "Beurré",
   "en": "Buttery",
   "es": "Mantecoso",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:902"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:912"
  },
  {
   "fr": "Tannique",
   "en": "Tannic",
   "es": "Tánico",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:903"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:913"
  },
  {
   "fr": "Fruité",
   "en": "Fruity",
   "es": "Afrutado",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:904"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:914"
  },
  {
   "fr": "Léger",
   "en": "Light",
   "es": "Ligero",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:905"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:915"
  },
  {
   "fr": "Puissant",
   "en": "Bold",
   "es": "Potente",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:906"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:916"
  },
  {
   "fr": "Aucun vin ne correspond à vos filtres",
   "en": "No wines match your filters",
   "es": "Ningún vino coincide con tus filtros",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:945"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:955"
  },
  {
   "fr": "Chat Menu",
   "en": "Chat Menu",
   "es": "Chat de la carta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1021"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1031"
  },
  {
   "fr": "Comparer ({selectedWineIds_length})",
   "en": "Compare ({selectedWineIds_length})",
   "es": "Comparar ({selectedWineIds_length})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1049"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1059"
  },
  {
   "fr": "Comparer",
   "en": "Compare",
   "es": "Comparar",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1050"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1060"
  },
  {
   "fr": "v",
   "en": "glass",
   "es": "copa",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1237"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1247"
  },
  {
   "fr": "Invité",
@@ -16218,12 +16314,6 @@
   "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:619"
  },
  {
-  "fr": "Réessayer",
-  "en": "Retry",
-  "es": "Reintentar",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:622"
- },
- {
   "fr": "Table {code}",
   "en": "Table {code}",
   "es": "Mesa {code}",
@@ -16798,12 +16888,6 @@
   "en": "rated",
   "es": "anotado",
   "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:228"
- },
- {
-  "fr": "Le noter d'un geste",
-  "en": "Rate it in one tap",
-  "es": "Anotarlo con un gesto",
-  "ou": "lib/features/menu_scan/presentation/note_d_un_geste_sheet.dart:236"
  },
  {
   "fr": "Aversion aux tanins durs",
@@ -18315,133 +18399,133 @@
   "fr": "Vous n'aimez pas les tanins fermes : celui-ci risque d'en avoir trop",
   "en": "You dislike firm tannins: this one may have too much",
   "es": "No te gustan los taninos firmes: este puede tener demasiados",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:297"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:311"
  },
  {
   "fr": "{guest_name} n'aime pas les tanins fermes : celui-ci risque d'en avoir trop",
   "en": "{guest_name} dislikes firm tannins: this one may have too much",
   "es": "A {guest_name} no le gustan los taninos firmes: este puede tener demasiados",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:298"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:312"
  },
  {
   "fr": "Vous n'aimez pas les vins très vifs : celui-ci risque de l'être trop",
   "en": "You dislike very crisp wines: this one may be too sharp",
   "es": "No te gustan los vinos muy vivos: este puede serlo demasiado",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:302"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:316"
  },
  {
   "fr": "{guest_name} n'aime pas les vins très vifs : celui-ci risque de l'être trop",
   "en": "{guest_name} dislikes very crisp wines: this one may be too sharp",
   "es": "A {guest_name} no le gustan los vinos muy vivos: este puede serlo demasiado",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:303"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:317"
  },
  {
   "fr": "Vous n'aimez pas le boisé : celui-ci risque d'en avoir trop",
   "en": "You dislike oak: this one may have too much",
   "es": "No te gusta la madera: este puede tener demasiada",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:307"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:321"
  },
  {
   "fr": "{guest_name} n'aime pas le boisé : celui-ci risque d'en avoir trop",
   "en": "{guest_name} dislikes oak: this one may have too much",
   "es": "A {guest_name} no le gusta la madera: este puede tener demasiada",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:308"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:322"
  },
  {
   "fr": "À son apogée.",
   "en": "At its peak.",
   "es": "En su punto óptimo.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:369"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:383"
  },
  {
   "fr": "À boire sans trop attendre.",
   "en": "Best drunk soon.",
   "es": "Para beber sin esperar demasiado.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:370"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:384"
  },
  {
   "fr": "Encore jeune : il gagnerait à attendre {annee}.",
   "en": "Still young: worth waiting until {annee}.",
   "es": "Todavía joven: ganaría esperando hasta {annee}.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:371"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:385"
  },
  {
   "fr": "Passé son apogée : à ouvrir sans trop en attendre.",
   "en": "Past its peak: open it without expecting too much.",
   "es": "Pasado su punto óptimo: para abrir sin esperar demasiado de él.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:373"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:387"
  },
  {
   "fr": "Une bouteille pour la table",
   "en": "A bottle for the table",
   "es": "Una botella para la mesa",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:430"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:444"
  },
  {
   "fr": "Taillé pour les goûts de {g_name}",
   "en": "Made for {g_name}'s taste",
   "es": "Hecho para los gustos de {g_name}",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:437"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:451"
  },
  {
   "fr": "Dans les goûts de {g_name}",
   "en": "Close to {g_name}'s taste",
   "es": "En la línea de los gustos de {g_name}",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:439"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:453"
  },
  {
   "fr": "Un pas de côté pour {g_name}",
   "en": "A step away from {g_name}'s usual taste",
   "es": "Un paso al lado para {g_name}",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:442"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:456"
  },
  {
   "fr": "Amateur de Grands Rouges Puissants",
   "en": "Lover of big, powerful reds",
   "es": "Amante de los grandes tintos potentes",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:159"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:173"
  },
  {
   "fr": "Adepte de Minéralité & Fraîcheur Droite",
   "en": "Mineral & crisp lover",
   "es": "Adepto de la mineralidad y el frescor recto",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:160"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:174"
  },
  {
   "fr": "Palais Friand & Fruit Croquant",
   "en": "Crunchy-fruit lover",
   "es": "Paladar goloso y de fruta crujiente",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:161"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:175"
  },
  {
   "fr": "Amateur de Vins Épicés & Singuliers",
   "en": "Spicy & singular wines lover",
   "es": "Amante de los vinos especiados y singulares",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:162"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:176"
  },
  {
   "fr": "Aversion Tanins Durs",
   "en": "Dislikes firm tannins",
   "es": "Aversión a los taninos duros",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:164"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:178"
  },
  {
   "fr": "Blancs Minéraux & Frais",
   "en": "Crisp, mineral whites",
   "es": "Blancos minerales y frescos",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:167"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:181"
  },
  {
   "fr": "Fruit Croquant",
   "en": "Crunchy fruit",
   "es": "Fruta crujiente",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:169"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:183"
  },
  {
   "fr": "Ne boit pas ce soir",
   "en": "Not drinking tonight",
   "es": "No bebe esta noche",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:171"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:185"
  },
  {
   "fr": ", millésime {vintage}",

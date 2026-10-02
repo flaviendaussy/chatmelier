@@ -29,11 +29,17 @@ class TasteFrontierEngine {
   /// En dessous, le vin n'apprendrait rien qui vaille une bouteille.
   static const double gainMinimal = 0.35;
 
-  /// La présence d'un trait renseigne plus que son absence : aimer un vin sans bois ne
-  /// dit pas qu'on fuit le bois, aimer un vin très boisé dit qu'on le supporte. Le côté
-  /// bas compte donc pour moitié.
-  static double nettete(double v) =>
-      (v >= 5 ? (v - 5) / 5 : 0.5 * (5 - v) / 5).clamp(0.0, 1.0);
+  /// La présence d'un trait renseigne plus que son absence. Sur les axes qui vont d'un
+  /// pôle à l'autre (tanins, corps, vivacité), le côté bas compte pour moitié : un vin
+  /// léger dit si l'on aime la légèreté. Le bois et la minéralité, eux, sont là ou pas :
+  /// aimer un vin sans bois ne dit rien de ce qu'on pense du bois. Leur côté bas ne compte
+  /// pas — sans quoi la carte proposait « ce Muscadet, sans bois, me dirait ce que vous
+  /// pensez du boisé » (relevé le 02/10).
+  static double nettete(double v, {String? axe}) {
+    if (v >= 5) return ((v - 5) / 5).clamp(0.0, 1.0);
+    if (axe == 'oak' || axe == 'minerality') return 0;
+    return (0.5 * (5 - v) / 5).clamp(0.0, 1.0);
+  }
 
   /// Le gain d'un vin pour un profil, et l'axe qui y pèse le plus.
   static (double, String)? evaluer(ProfilDeVin vin, TasteProfile profil) {
@@ -42,7 +48,7 @@ class TasteFrontierEngine {
     var meilleur = 0.0;
     for (final e in vin.axes.entries) {
       final confiance = profil.axisConfidence(e.key);
-      final part = (1 - confiance) * nettete(e.value);
+      final part = (1 - confiance) * nettete(e.value, axe: e.key);
       total += part;
       if (part > meilleur) {
         meilleur = part;

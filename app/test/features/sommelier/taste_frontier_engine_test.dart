@@ -42,6 +42,22 @@ void main() {
     expect(s?.vin.name, 'Boisé');
   });
 
+  test('un vin sans bois n\'apprend rien du boisé, un vin peu minéral rien de la minéralité', () {
+    // Relevé le 02/10 en production : le seul vin boisé abordable manquait, et la carte
+    // proposait « ce Muscadet, sans bois, me dirait ce que vous pensez du boisé ».
+    expect(TasteFrontierEngine.nettete(1, axe: 'oak'), 0);
+    expect(TasteFrontierEngine.nettete(2, axe: 'minerality'), 0);
+    expect(TasteFrontierEngine.nettete(9, axe: 'oak'), greaterThan(0.7));
+    // Les axes d'un pôle à l'autre gardent leur côté bas : un vin léger dit si l'on aime
+    // la légèreté.
+    expect(TasteFrontierEngine.nettete(1, axe: 'body'), greaterThan(0));
+    expect(TasteFrontierEngine.nettete(1, axe: 'tannin'), greaterThan(0));
+
+    final neConnaitQueLeReste = profil(observations: {'tannin': 20, 'body': 20, 'acidity': 20, 'minerality': 20});
+    final s = choisir([vin('Muscadet', 'white', bois: 1, acidite: 8, mineral: 7.5)], neConnaitQueLeReste);
+    expect(s, isNull, reason: 'rien à apprendre du boisé avec un vin qui n\'en a pas');
+  });
+
   test('plausibilité : jamais la minéralité d\'un rouge, jamais les tanins d\'un blanc', () {
     expect(ProfilDeVin.depuisLaCarte(vin('R', 'red', mineral: 9)).axes.containsKey('minerality'), isFalse);
     expect(ProfilDeVin.depuisLaCarte(vin('B', 'white', tanins: 9)).axes.containsKey('tannin'), isFalse);

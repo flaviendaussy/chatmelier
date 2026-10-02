@@ -1,24 +1,35 @@
 #!/usr/bin/env python3
-"""Banc d'essai des modèles de lecture (V2.3 · A4).
+"""Banc d'essai des modèles de lecture (V2.3 · A4, K3, K8).
 
 Lance scan-menu et scan-label dans l'edge runtime local, contre le VRAI Gemini (la clé est
 lue dans l'environnement de la personne qui lance le banc, jamais affichée ni écrite), avec
-un faux Supabase qui impose la variante de modèle et de réflexion. Compare chaque lecture à
-une référence écrite à la main et chiffre le coût réel de chaque variante.
+un faux Supabase qui impose le modèle et la réflexion de chaque variante. Juge chaque
+réponse sur deux plans : la LECTURE (vins trouvés, producteurs, millésimes, prix, sans prix
+inventé) et le SOMMELIER (couleur et profil des vins dont le profil ne fait pas débat :
+Madiran tannique, Muscadet vif, Sauternes doux…). Chiffre le coût réel de chaque variante.
 
-    GEMINI_API_KEY=… python3 tool/banc_ia/banc.py ~/chatmelier-banc
+Aucune version de Gemini n'est écrite ici. Par défaut, le banc demande à Google la liste des
+modèles et essaie les deux plus récents modèles stables de chaque famille (Flash,
+Flash-Lite), à leur réflexion la plus basse : Gemini 3.9 ou 4.0 y entrera de lui-même. Le
+rapport se termine par la ligne SQL qui adopte la variante la moins chère parmi celles qui
+lisent presque aussi bien que la meilleure (97 %) et jugent presque aussi bien (95 %).
+
+    python3 tool/banc_ia/banc.py ~/chatmelier-banc
+    python3 tool/banc_ia/banc.py ~/chatmelier-banc --variantes gemini-3.8-flash:low,gemini-3.1-flash-lite:minimal
 
 Dossier attendu (les cartes se fabriquent avec tool/banc_ia/fabriquer_cartes.py) :
     cartes/<nom>/page1.jpg, page2.jpg…   + cartes/<nom>/reference.json
     etiquettes/<nom>.jpg                 + etiquettes/<nom>.json
-Référence d'une carte : {"mode": "carte" | "ardoise", "vins": [{"nom": …, "producteur": …,
-"millesime": 2019, "prix": 68, "prix_verre": 9}]} — un prix nul veut dire « pas imprimé ».
+Référence d'une carte : {"mode": "carte" | "ardoise", "vins": [{"nom", "producteur",
+"millesime", "prix", "prix_verre", "attendu": {"type": "red", "tannins": [7.5, 10]…}}]} — un
+prix nul veut dire « pas imprimé » ; « attendu » est facultatif.
 Référence d'une étiquette : {"producteur": …, "nom": …, "millesime": 2019, "appellation": …}
 
-Sortie : <dossier>/rapport.md et <dossier>/rapport.json. Coût d'un passage complet : de
-l'ordre d'un euro pour 10 cartes et 10 étiquettes sur 4 variantes.
+Sortie : <dossier>/rapport.md, rapport.json, les réponses entières dans reponses/, et le
+journal des fonctions (journal_fonctions.txt), la clé toujours masquée.
 """
 import base64
+import datetime
 import json
 import os
 import re
@@ -28,33 +39,93 @@ import time
 import unicodedata
 import urllib.error
 import urllib.request
+from collections import Counter
 from pathlib import Path
 
 ICI = Path(__file__).resolve().parent
 DEPOT = ICI.parent.parent
 PORT_FONCTION = 9123
+GEMINI_BASE = os.environ.get('GEMINI_BASE_URL') or 'https://generativelanguage.googleapis.com'
+SEUIL_LECTURE = 0.97
+SEUIL_SOMMELIER = 0.95
 
-# (nom, réglage) — la première est le comportement d'avant la V2.3 (réflexion par défaut,
-# « medium » pour 3.8-flash selon la doc du 30/09).
-VARIANTES = [
-    ('3.8-flash, réflexion par défaut', {'modele': 'gemini-3.8-flash', 'reflexion': 'medium'}),
-    ('3.8-flash, réflexion basse', {'modele': 'gemini-3.8-flash', 'reflexion': 'low'}),
-    ('3.6-flash, réflexion minimale', {'modele': 'gemini-3.6-flash', 'reflexion': 'minimal'}),
-    ('3.1-flash-lite, réflexion minimale', {'modele': 'gemini-3.1-flash-lite', 'reflexion': 'minimal'}),
-]
 
-# Tarifs du 30/09/2026, en dollars par million de jetons (entrée, sortie réflexion comprise).
-TARIFS = [('3.1-flash-lite', 0.25, 1.50), ('lite', 0.30, 2.50), ('3.5-flash', 1.50, 9.00), ('flash', 0.75, 3.75)]
+# ─── Les modèles : découverts, jamais écrits en dur ─────────────────────────────────────
+def version(nom):
+    m = re.match(r'gemini-(\d+(?:\.\d+)*)-', nom)
+    return tuple(int(x) for x in m.group(1).split('.')) if m else ()
+
+
+def famille(nom):
+    return 'flash-lite' if '-flash-lite' in nom else ('flash' if '-flash' in nom else 'pro')
+
+
+def modeles_stables():
+    """Les modèles stables que Google publie pour cette clé, du plus récent au plus ancien."""
+    req = urllib.request.Request(f'{GEMINI_BASE}/v1beta/models?pageSize=1000',
+                                 headers={'x-goog-api-key': os.environ['GEMINI_API_KEY']})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        data = json.loads(r.read())
+    noms = [str(m.get('name', '')).split('/', 1)[-1] for m in data.get('models', [])
+            if 'generateContent' in (m.get('supportedGenerationMethods') or [])]
+    stables = [n for n in noms if re.fullmatch(r'gemini-\d+(?:\.\d+)*-(flash-lite|flash|pro)', n)]
+    return sorted(set(stables), key=version, reverse=True)
+
+
+NIVEAUX = {'minimal': 'minimale', 'low': 'basse', 'medium': 'moyenne', 'high': 'haute'}
+
+
+def variante(modele, niveau):
+    return (f'{modele}, réflexion {NIVEAUX.get(niveau, niveau)}', {'modele': modele, 'reflexion': niveau})
+
+
+def variantes_par_defaut(par_famille=2):
+    stables = modeles_stables()
+    choix = [m for f in ('flash', 'flash-lite') for m in [x for x in stables if famille(x) == f][:par_famille]]
+    # « minimal » : le plus bas ; la fonction monte d'un cran si le modèle le refuse.
+    return [variante(m, 'minimal') for m in choix]
+
+
+def variantes_demandees(texte):
+    variantes = []
+    for morceau in texte.split(','):
+        modele, _, niveau = morceau.strip().partition(':')
+        if modele:
+            variantes.append(variante(modele, niveau or 'minimal'))
+    return variantes
+
+
+# ─── Les tarifs : ceux de la base (migration 051), même règle que cout_ia_usd ───────────
+def charger_tarifs():
+    sql = (DEPOT / 'supabase' / 'migrations' / '051_tarifs_ia.sql').read_text()
+    lignes = re.findall(r"\('([^']+)',\s*(\d+),\s*([\d.]+),\s*([\d.]+),\s*DATE '([\d-]+)',\s*(?:NULL|DATE '([\d-]+)')", sql)
+    return sorted([(motif, int(p), float(e), float(s), du, au or None) for motif, p, e, s, du, au in lignes],
+                  key=lambda t: t[1])
+
+
+TARIFS = charger_tarifs()
+
+
+def comme(texte, motif):
+    """Le LIKE de PostgreSQL : % pour n'importe quelle suite, _ pour un caractère."""
+    return re.fullmatch(re.escape(motif).replace('%', '.*').replace('_', '.'), texte) is not None
 
 
 def cout_eur(modele, usage):
     usage = usage or {}
     entree = usage.get('promptTokenCount', 0)
     sortie = usage.get('candidatesTokenCount', 0) + usage.get('thoughtsTokenCount', 0)
-    for motif, e, s in TARIFS:
-        if motif in modele:
-            return (entree * e + sortie * s) / 1e6 * 0.92
-    return (entree * 0.75 + sortie * 3.75) / 1e6 * 0.92
+    jour = datetime.date.today().isoformat()
+    e, s = 0.75, 3.75  # inconnu : au tarif Flash, comme la base
+    for motif, _, te, ts, du, au in TARIFS:
+        if comme((modele or '').lower(), motif) and du <= jour and (au is None or jour < au):
+            e, s = te, ts
+            break
+    return (entree * e + sortie * s) / 1e6 * 0.92
+
+
+# ─── Les comparaisons ───────────────────────────────────────────────────────────────────
+MOTS_VIDES = {'de', 'du', 'des', 'la', 'le', 'les', 'del', 'di', 'della', 'y', 'et', 'and', 'the', 'l', 'd'}
 
 
 def norme(t):
@@ -62,11 +133,89 @@ def norme(t):
     return re.sub(r'[^a-z0-9]+', ' ', t).strip()
 
 
+def ressemblance(a, b):
+    """La part des mots du plus court que l'autre contient : l'ordre ne compte pas
+    (« Pétalos del Bierzo » et « Bierzo Pétalos » se reconnaissent)."""
+    mots_a = {w for w in norme(a).split() if w not in MOTS_VIDES}
+    mots_b = {w for w in norme(b).split() if w not in MOTS_VIDES}
+    if not mots_a or not mots_b:
+        return 0.0
+    return len(mots_a & mots_b) / min(len(mots_a), len(mots_b))
+
+
 def proche(a, b):
-    a, b = norme(a), norme(b)
-    return bool(a) and bool(b) and (a == b or a in b or b in a)
+    return ressemblance(a, b) >= 0.75
 
 
+def prix_juste(lu, attendu):
+    """Un prix lu contre le prix imprimé ; sans prix imprimé, un prix lu est inventé."""
+    if attendu is None:
+        return lu in (None, 0, 0.0)
+    return lu is not None and abs(float(lu) - attendu) < 0.01
+
+
+def juger_sommelier(v, attendu):
+    """Les attentes tenues sur un vin : sa couleur, et chaque mesure dans sa fourchette."""
+    ok = total = 0
+    for cle, cible in (attendu or {}).items():
+        total += 1
+        if cle == 'type':
+            ok += v.get('wine_type') == cible
+        else:
+            val = (v.get('metrics') or {}).get(cle)
+            ok += val is not None and cible[0] <= float(val) <= cible[1]
+    return ok, total
+
+
+def juger_carte(reponse, reference):
+    vins = reponse.get('wines', [])
+    attendus = reference.get('vins', [])
+    pris = set()
+    trouves = prod = mill = prix = 0
+    ok_s = tot_s = 0
+    for a in attendus:
+        candidats = [(ressemblance(w.get('name'), a.get('nom')), i) for i, w in enumerate(vins)
+                     if i not in pris and (a.get('millesime') is None or w.get('vintage') == a.get('millesime'))]
+        candidats = [c for c in candidats if c[0] >= 0.75]
+        if not candidats:
+            continue
+        _, i = max(candidats)
+        pris.add(i)
+        v = vins[i]
+        trouves += 1
+        prod += a.get('producteur') is None or proche(v.get('producer'), a.get('producteur'))
+        mill += v.get('vintage') == a.get('millesime')
+        verres = [g.get('price') for g in (v.get('glass_prices') or []) if isinstance(g, dict)]
+        ok = prix_juste(v.get('bottle_price'), a.get('prix'))
+        if 'prix_verre' in a:
+            ok = ok and (any(prix_juste(g, a['prix_verre']) for g in verres) if a['prix_verre'] is not None
+                         else not any(g not in (None, 0, 0.0) for g in verres))
+        prix += ok
+        s_ok, s_tot = juger_sommelier(v, a.get('attendu'))
+        ok_s += s_ok
+        tot_s += s_tot
+    n = max(len(attendus), 1)
+    return {'vins_trouves': trouves / n, 'producteur': prod / n, 'millesime': mill / n, 'prix': prix / n,
+            'sommelier': ok_s / tot_s if tot_s else None, 'vins_en_trop': max(0, len(vins) - trouves)}
+
+
+def juger_etiquette(reponse, reference):
+    """Les champs que la photo montre. Une liste accepte plusieurs écritures (« Port »,
+    « Porto ») ; un millésime nul attend qu'aucun ne soit inventé (tawny, champagne sans année)."""
+    champs = {'producteur': 'producer', 'nom': 'name', 'millesime': 'vintage', 'appellation': 'appellation'}
+    ok = {}
+    for fr, en in champs.items():
+        if fr not in reference:
+            continue
+        attendu = reference[fr]
+        if fr == 'millesime':
+            ok[fr] = reponse.get(en) == attendu
+        else:
+            ok[fr] = any(proche(reponse.get(en), x) for x in (attendu if isinstance(attendu, list) else [attendu]))
+    return {k: 1.0 if v else 0.0 for k, v in ok.items()}
+
+
+# ─── L'edge runtime local ───────────────────────────────────────────────────────────────
 def lancer(fonction, reglages_par_tache):
     """Démarre le faux Supabase et l'edge runtime pour cette fonction et cette variante."""
     env = dict(os.environ, FAUX_MODELES_IA=json.dumps(reglages_par_tache))
@@ -134,58 +283,97 @@ def b64(chemin):
     return base64.b64encode(Path(chemin).read_bytes()).decode()
 
 
-def prix_juste(lu, attendu):
-    """Un prix lu contre le prix imprimé ; sans prix imprimé, un prix lu est inventé."""
-    if attendu is None:
-        return lu in (None, 0, 0.0)
-    return lu is not None and abs(float(lu) - attendu) < 0.01
+def garder(dossier, variante, element, reponse):
+    """La réponse entière, pour relire ce que le modèle a vraiment dit."""
+    nom = norme(variante).replace(' ', '_')
+    chemin = dossier / 'reponses' / nom / f'{element}.json'
+    chemin.parent.mkdir(parents=True, exist_ok=True)
+    chemin.write_text(masquer(json.dumps(reponse, ensure_ascii=False, indent=1)))
 
 
-def juger_carte(reponse, reference):
-    vins = reponse.get('wines', [])
-    attendus = reference.get('vins', [])
-    trouves = prod = mill = prix = 0
-    for a in attendus:
-        v = next((w for w in vins if proche(w.get('name'), a.get('nom'))
-                  and (a.get('millesime') is None or w.get('vintage') == a.get('millesime'))), None)
-        if not v:
+# ─── Le rapport et la recommandation ────────────────────────────────────────────────────
+def moyenne(valeurs):
+    valeurs = [v for v in valeurs if v is not None]
+    return sum(valeurs) / len(valeurs) if valeurs else None
+
+
+def le_plus_frequent(valeurs):
+    valeurs = [v for v in valeurs if v]
+    return Counter(valeurs).most_common(1)[0][0] if valeurs else None
+
+
+def bilan(resultats, nom, t):
+    rs = [r for r in resultats if r['variante'] == nom and r['type'] == t]
+    if not rs:
+        return None
+    criteres = ('vins_trouves', 'producteur', 'millesime', 'prix', 'nom', 'appellation')
+    return {
+        'lecture': moyenne([v for r in rs for k, v in r.items() if k in criteres]) or 0.0,
+        'sommelier': moyenne([r.get('sommelier') for r in rs]),
+        'echecs': sum(1 for r in rs if r.get('erreur')),
+        'n': len(rs),
+        'cout': sum(r['cout_eur'] for r in rs) / len(rs),
+        'reflexion_jetons': sum(r['reflexion_jetons'] for r in rs) / len(rs),
+        'duree': sum(r['duree_s'] for r in rs) / len(rs),
+        'niveau': le_plus_frequent([r.get('niveau') for r in rs]),
+    }
+
+
+def pourcent(x):
+    return '—' if x is None else f'{100 * x:.1f} %'
+
+
+def recommandation(resultats, variantes):
+    lignes = []
+    for t, tache in (('carte', 'scan_carte'), ('etiquette', 'scan_etiquette_lecture')):
+        stats = [(nom, reglage, bilan(resultats, nom, t)) for nom, reglage in variantes]
+        stats = [(nom, reglage, b) for nom, reglage, b in stats if b and b['echecs'] < b['n']]
+        if not stats:
             continue
-        trouves += 1
-        prod += a.get('producteur') is None or proche(v.get('producer'), a.get('producteur'))
-        mill += v.get('vintage') == a.get('millesime')
-        # La bouteille, et le verre quand la référence le dit (« prix_verre ») : sur une
-        # ardoise ou une carte sans prix, un prix inventé est une faute.
-        verres = [g.get('price') for g in (v.get('glass_prices') or []) if isinstance(g, dict)]
-        ok = prix_juste(v.get('bottle_price'), a.get('prix'))
-        if 'prix_verre' in a:
-            ok = ok and (any(prix_juste(g, a['prix_verre']) for g in verres) if a['prix_verre'] is not None
-                         else not any(g not in (None, 0, 0.0) for g in verres))
-        prix += ok
-    n = max(len(attendus), 1)
-    return {'vins_trouves': trouves / n, 'producteur': prod / n, 'millesime': mill / n, 'prix': prix / n,
-            'vins_en_trop': max(0, len(vins) - trouves)}
-
-
-def juger_etiquette(reponse, reference):
-    champs = {'producteur': 'producer', 'nom': 'name', 'millesime': 'vintage', 'appellation': 'appellation'}
-    ok = {}
-    for fr, en in champs.items():
-        if fr not in reference:
+        meilleure_lecture = max(b['lecture'] for _, _, b in stats)
+        sommeliers = [b['sommelier'] for _, _, b in stats if b['sommelier'] is not None]
+        meilleur_sommelier = max(sommeliers) if sommeliers else None
+        eligibles = [(nom, reglage, b) for nom, reglage, b in stats
+                     if b['echecs'] == 0 and b['lecture'] >= SEUIL_LECTURE * meilleure_lecture
+                     and (meilleur_sommelier is None or b['sommelier'] is None
+                          or b['sommelier'] >= SEUIL_SOMMELIER * meilleur_sommelier)]
+        if not eligibles:
+            lignes.append(f'\n**{t}** : aucune variante sans échec ne tient les seuils ; rien à changer.')
             continue
-        ok[fr] = (reponse.get(en) == reference[fr]) if fr == 'millesime' else proche(reponse.get(en), reference[fr])
-    return {k: 1.0 if v else 0.0 for k, v in ok.items()}
+        nom, reglage, b = min(eligibles, key=lambda x: x[2]['cout'])
+        valeur = {tache: {'modele': reglage['modele'], 'reflexion': b['niveau'] or reglage['reflexion']}}
+        lignes += [
+            f'\n**{t}** : {nom} — lecture {pourcent(b["lecture"])}, sommelier {pourcent(b["sommelier"])}, '
+            f'{100 * b["cout"]:.2f} c€ par appel.',
+            '', 'Pour l\'adopter (SQL Editor) :', '', '```sql',
+            "INSERT INTO public.app_config (cle, valeur)",
+            f"VALUES ('modeles_ia', '{json.dumps(valeur, ensure_ascii=False)}'::jsonb)",
+            "ON CONFLICT (cle) DO UPDATE SET valeur = public.app_config.valeur || EXCLUDED.valeur, maj_le = now();",
+            '```',
+        ]
+    return lignes
 
 
 def main():
     if not os.environ.get('GEMINI_API_KEY'):
         sys.exit('GEMINI_API_KEY absente de l\'environnement : le banc appelle le vrai Gemini.')
-    dossier = Path(sys.argv[1]).expanduser()
+    args = sys.argv[1:]
+    dossier = Path(args[0]).expanduser()
+    demandees = args[args.index('--variantes') + 1] if '--variantes' in args else ''
+    try:
+        variantes = variantes_demandees(demandees) if demandees else variantes_par_defaut()
+    except Exception as e:
+        sys.exit(masquer(f'Liste des modèles indisponible ({e}) : vérifier la connexion, ou nommer les variantes '
+                         'avec --variantes modele:reflexion,…'))
+    if not variantes:
+        sys.exit('Aucun modèle stable trouvé : nommer les variantes avec --variantes modele:reflexion,…')
+    print('Variantes :', ' · '.join(nom for nom, _ in variantes), flush=True)
     cartes = sorted(p for p in (dossier / 'cartes').glob('*') if (p / 'reference.json').exists())
     etiquettes = sorted(p for p in (dossier / 'etiquettes').glob('*.jpg') if p.with_suffix('.json').exists())
     resultats = []
     journal = dossier / 'journal_fonctions.txt'
     journal.write_text('')
-    for nom, reglage in VARIANTES:
+    for nom, reglage in variantes:
         if cartes:
             faux = lancer('scan-menu', {'scan_carte': reglage})
             try:
@@ -200,9 +388,12 @@ def main():
                                           'duree_s': round(duree, 1), 'cout_eur': 0, 'reflexion_jetons': 0,
                                           'vins_trouves': 0, 'producteur': 0, 'millesime': 0, 'prix': 0})
                         continue
+                    garder(dossier, nom, c.name, rep)
                     jugement = juger_carte(rep, reference)
                     usage = rep.get('usageMetadata') or {}
+                    cout = (rep.get('couts') or [{}])[0]
                     resultats.append({'variante': nom, 'type': 'carte', 'element': c.name, 'modele': rep.get('modele'),
+                                      'niveau': cout.get('reflexion'),
                                       'duree_s': round(duree, 1), 'cout_eur': cout_eur(rep.get('modele', ''), usage),
                                       'reflexion_jetons': usage.get('thoughtsTokenCount', 0), **jugement})
                     print(f'{nom} · carte {c.name} : {jugement}', flush=True)
@@ -219,29 +410,34 @@ def main():
                                           'duree_s': round(duree, 1), 'cout_eur': 0, 'reflexion_jetons': 0,
                                           'producteur': 0, 'nom': 0, 'millesime': 0, 'appellation': 0})
                         continue
+                    garder(dossier, nom, e.stem, rep)
                     jugement = juger_etiquette(rep, json.loads(e.with_suffix('.json').read_text()))
                     lecture = next((x for x in rep.get('couts', []) if x.get('fonction') == 'scan_vision'), {})
                     resultats.append({'variante': nom, 'type': 'etiquette', 'element': e.stem, 'modele': lecture.get('modele'),
-                                      'duree_s': round(duree, 1), 'cout_eur': cout_eur(lecture.get('modele', ''), lecture.get('usageMetadata')),
-                                      'reflexion_jetons': (lecture.get('usageMetadata') or {}).get('thoughtsTokenCount', 0), **jugement})
+                                      'niveau': lecture.get('reflexion'),
+                                      'duree_s': round(duree, 1),
+                                      'cout_eur': cout_eur(lecture.get('modele', ''), lecture.get('usageMetadata')),
+                                      'reflexion_jetons': (lecture.get('usageMetadata') or {}).get('thoughtsTokenCount', 0),
+                                      **jugement})
                     print(f'{nom} · étiquette {e.stem} : {jugement}', flush=True)
             finally:
                 arreter(faux, journal, f'{nom} · scan-label')
 
     (dossier / 'rapport.json').write_text(json.dumps(resultats, ensure_ascii=False, indent=1))
     lignes = ['# Banc d\'essai des modèles de lecture', '',
-              '| Variante | Type | Exactitude moyenne | Échecs | Coût moyen | Jetons de réflexion | Durée moyenne |',
-              '|---|---|---|---|---|---|---|']
-    for nom, _ in VARIANTES:
+              f'Le {datetime.date.today().isoformat()}. Lecture : vins trouvés, producteurs, millésimes, prix '
+              '(sans prix inventé). Sommelier : couleur et profil des vins dont le profil ne fait pas débat.', '',
+              '| Variante | Type | Lecture | Sommelier | Échecs | Coût moyen | Jetons de réflexion | Durée moyenne |',
+              '|---|---|---|---|---|---|---|---|']
+    for nom, _ in variantes:
         for t in ('carte', 'etiquette'):
-            rs = [r for r in resultats if r['variante'] == nom and r['type'] == t]
-            if not rs:
+            b = bilan(resultats, nom, t)
+            if not b:
                 continue
-            notes = [v for r in rs for k, v in r.items() if k in ('vins_trouves', 'producteur', 'millesime', 'prix', 'nom', 'appellation')]
-            echecs = sum(1 for r in rs if r.get('erreur'))
-            lignes.append(f'| {nom} | {t} | {100 * sum(notes) / max(len(notes), 1):.1f} % | {echecs}/{len(rs)} | '
-                          f'{100 * sum(r["cout_eur"] for r in rs) / len(rs):.2f} c€ | '
-                          f'{sum(r["reflexion_jetons"] for r in rs) / len(rs):.0f} | {sum(r["duree_s"] for r in rs) / len(rs):.1f} s |')
+            lignes.append(f'| {nom} | {t} | {pourcent(b["lecture"])} | {pourcent(b["sommelier"])} | '
+                          f'{b["echecs"]}/{b["n"]} | {100 * b["cout"]:.2f} c€ | {b["reflexion_jetons"]:.0f} | '
+                          f'{b["duree"]:.1f} s |')
+    lignes += ['', '## Recommandation'] + recommandation(resultats, variantes)
     (dossier / 'rapport.md').write_text('\n'.join(lignes) + '\n')
     print('\n'.join(lignes))
 

@@ -8,10 +8,11 @@ une référence écrite à la main et chiffre le coût réel de chaque variante.
 
     GEMINI_API_KEY=… python3 tool/banc_ia/banc.py ~/chatmelier-banc
 
-Dossier attendu :
+Dossier attendu (les cartes se fabriquent avec tool/banc_ia/fabriquer_cartes.py) :
     cartes/<nom>/page1.jpg, page2.jpg…   + cartes/<nom>/reference.json
     etiquettes/<nom>.jpg                 + etiquettes/<nom>.json
-Référence d'une carte : {"vins": [{"nom": …, "producteur": …, "millesime": 2019, "prix": 68}]}
+Référence d'une carte : {"mode": "carte" | "ardoise", "vins": [{"nom": …, "producteur": …,
+"millesime": 2019, "prix": 68, "prix_verre": 9}]} — un prix nul veut dire « pas imprimé ».
 Référence d'une étiquette : {"producteur": …, "nom": …, "millesime": 2019, "appellation": …}
 
 Sortie : <dossier>/rapport.md et <dossier>/rapport.json. Coût d'un passage complet : de
@@ -109,6 +110,13 @@ def b64(chemin):
     return base64.b64encode(Path(chemin).read_bytes()).decode()
 
 
+def prix_juste(lu, attendu):
+    """Un prix lu contre le prix imprimé ; sans prix imprimé, un prix lu est inventé."""
+    if attendu is None:
+        return lu in (None, 0, 0.0)
+    return lu is not None and abs(float(lu) - attendu) < 0.01
+
+
 def juger_carte(reponse, reference):
     vins = reponse.get('wines', [])
     attendus = reference.get('vins', [])
@@ -121,7 +129,14 @@ def juger_carte(reponse, reference):
         trouves += 1
         prod += a.get('producteur') is None or proche(v.get('producer'), a.get('producteur'))
         mill += v.get('vintage') == a.get('millesime')
-        prix += a.get('prix') is None or (v.get('bottle_price') is not None and abs(float(v['bottle_price']) - a['prix']) < 0.01)
+        # La bouteille, et le verre quand la référence le dit (« prix_verre ») : sur une
+        # ardoise ou une carte sans prix, un prix inventé est une faute.
+        verres = [g.get('price') for g in (v.get('glass_prices') or []) if isinstance(g, dict)]
+        ok = prix_juste(v.get('bottle_price'), a.get('prix'))
+        if 'prix_verre' in a:
+            ok = ok and (any(prix_juste(g, a['prix_verre']) for g in verres) if a['prix_verre'] is not None
+                         else not any(g not in (None, 0, 0.0) for g in verres))
+        prix += ok
     n = max(len(attendus), 1)
     return {'vins_trouves': trouves / n, 'producteur': prod / n, 'millesime': mill / n, 'prix': prix / n,
             'vins_en_trop': max(0, len(vins) - trouves)}
@@ -150,8 +165,10 @@ def main():
             try:
                 for c in cartes:
                     pages = sorted(c.glob('page*.jpg'))
-                    rep, duree = appeler({'imagesBase64': [b64(p) for p in pages], 'languageCode': 'fr'})
-                    jugement = juger_carte(rep, json.loads((c / 'reference.json').read_text()))
+                    reference = json.loads((c / 'reference.json').read_text())
+                    rep, duree = appeler({'imagesBase64': [b64(p) for p in pages], 'languageCode': 'fr',
+                                          'mode': reference.get('mode', 'carte')})
+                    jugement = juger_carte(rep, reference)
                     usage = rep.get('usageMetadata') or {}
                     resultats.append({'variante': nom, 'type': 'carte', 'element': c.name, 'modele': rep.get('modele'),
                                       'duree_s': round(duree, 1), 'cout_eur': cout_eur(rep.get('modele', ''), usage),

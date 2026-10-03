@@ -16,6 +16,8 @@ void main() {
     test('$nom porte la copie à jour du bloc des modèles', () {
       expect(code.contains(source), isTrue,
           reason: 'lancer : python3 tool/fonctions/synchroniser.py');
+      // Le bloc signale un modèle introuvable avec le client de la fonction.
+      expect(code.contains("import { createClient } from 'https://esm.sh/@supabase/supabase-js@"), isTrue);
     });
 
     test('$nom ne nomme aucune version de Gemini dans son code', () {

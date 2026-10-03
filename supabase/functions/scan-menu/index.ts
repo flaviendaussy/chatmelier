@@ -88,6 +88,10 @@ const DELAI_PAR_MODELE_MS = 75_000
 // modèles au plus. Un niveau de réflexion refusé par un modèle monte d'un cran. Gemini 3.9,
 // 4.0… arrivent sans toucher au code : le banc les essaie d'office, et une ligne de
 // app_config les adopte.
+//
+// Un modèle que Google ne connaît plus (404 : retiré, ou nom mal écrit dans app_config) est
+// écarté six heures sans être rappelé à chaque requête, et signalé au journal des erreurs de
+// la console (« IA_MODELE ») : le relais sert, mais le réglage est à changer.
 
 type Reglage = { modele: string; reflexion: string | null }
 type AppelReussi = { data: any; modele: string; reflexion: string | null }
@@ -95,8 +99,15 @@ type AppelReussi = { data: any; modele: string; reflexion: string | null }
 const FAMILLES_GEMINI = ['flash-lite', 'flash', 'pro']
 const NIVEAUX_DE_REFLEXION = ['minimal', 'low', 'medium', 'high']
 const MODELES_ESSAYES_AU_PLUS = 3
+const SIX_HEURES = 6 * 3600_000
 let catalogueDesModeles: { quand: number; modeles: string[] } | null = null
 const niveauxRetenus = new Map<string, string | null>()
+const modelesIntrouvables = new Map<string, number>()
+
+function estIntrouvable(modele: string): boolean {
+  const quand = modelesIntrouvables.get(modele)
+  return quand !== undefined && Date.now() - quand < SIX_HEURES
+}
 
 function familleDe(nom: string): string {
   return FAMILLES_GEMINI.find((f) => nom === f || nom.includes(`-${f}`)) ?? 'flash'
@@ -128,7 +139,7 @@ function estUneFamille(reglage: string): boolean {
 }
 
 async function modelesStables(apiKey: string): Promise<string[]> {
-  if (catalogueDesModeles && Date.now() - catalogueDesModeles.quand < 6 * 3600_000) return catalogueDesModeles.modeles
+  if (catalogueDesModeles && Date.now() - catalogueDesModeles.quand < SIX_HEURES) return catalogueDesModeles.modeles
   try {
     const res = await fetch(`${GEMINI_BASE}/v1beta/models?pageSize=1000`, {
       headers: { 'x-goog-api-key': apiKey },
@@ -155,10 +166,11 @@ async function modelesDeRelais(apiKey: string, reglage: string, dejaEssayes: Set
   const famille = familleDe(reglage)
   const autre = famille === 'flash-lite' ? 'flash' : 'flash-lite'
   const stables = await modelesStables(apiKey)
-  const premier = (f: string) => stables.find((m) => familleDe(m) === f && !dejaEssayes.has(m))
+  const libre = (m: string) => !dejaEssayes.has(m) && !estIntrouvable(m)
+  const premier = (f: string) => stables.find((m) => familleDe(m) === f && libre(m))
   const relais = [premier(famille), premier(autre)].filter((m): m is string => !!m)
   if (relais.length > 0) return relais
-  return [`gemini-${famille}-latest`].filter((m) => !dejaEssayes.has(m))
+  return [`gemini-${famille}-latest`].filter(libre)
 }
 
 // Le cran de réflexion au-dessus ; après « high », sans réglage ; sans réglage, plus rien.
@@ -180,13 +192,24 @@ async function appelerGemini(
   utilisable?: (data: any) => boolean,
 ): Promise<AppelReussi> {
   const essayes = new Set<string>()
+  const introuvables: string[] = []
+  let appels = 0
   let derniereErreur: unknown = null
   const famille = estUneFamille(reglage.modele)
-  let candidats = famille ? await modelesDeRelais(apiKey, reglage.modele, essayes) : [reglage.modele]
+  const candidats = famille ? await modelesDeRelais(apiKey, reglage.modele, essayes) : [reglage.modele]
   let relaisAjoutes = famille
-  for (let i = 0; i < candidats.length && essayes.size < MODELES_ESSAYES_AU_PLUS; i++) {
+  for (let i = 0; appels < MODELES_ESSAYES_AU_PLUS; i++) {
+    if (i === candidats.length) {
+      if (relaisAjoutes) break
+      relaisAjoutes = true
+      candidats.push(...(await modelesDeRelais(apiKey, reglage.modele, essayes)))
+      if (i === candidats.length) break
+    }
     const modele = candidats[i]
     essayes.add(modele)
+    // Déjà introuvable dans cette instance : le relais, sans rappeler Google.
+    if (estIntrouvable(modele)) continue
+    appels++
     let niveau: string | null | undefined = niveauxRetenus.has(modele) ? niveauxRetenus.get(modele)! : reglage.reflexion
     while (niveau !== undefined) {
       try {
@@ -209,11 +232,16 @@ async function appelerGemini(
           const servi = typeof data.modelVersion === 'string' && data.modelVersion
             ? data.modelVersion.replace(/^models\//, '')
             : modele
+          await signalerDesModelesIntrouvables(introuvables, servi)
           return { data, modele: servi, reflexion: niveau }
         }
         const texte = await res.text()
         console.warn(`Model ${modele} (réflexion ${niveau ?? 'par défaut'}) returned ${res.status}: ${texte.slice(0, 300)}`)
         derniereErreur = new Error(`Model ${modele} error (${res.status})`)
+        if (res.status === 404) {
+          modelesIntrouvables.set(modele, Date.now())
+          introuvables.push(modele)
+        }
         // Un niveau de réflexion refusé : le cran au-dessus, puis sans réglage.
         niveau = res.status === 400 && niveau !== null && /thinking/i.test(texte) ? niveauAuDessus(niveau) : undefined
       } catch (e) {
@@ -222,12 +250,30 @@ async function appelerGemini(
         niveau = undefined
       }
     }
-    if (!relaisAjoutes && i === candidats.length - 1) {
-      relaisAjoutes = true
-      candidats = [...candidats, ...(await modelesDeRelais(apiKey, reglage.modele, essayes))]
-    }
   }
+  await signalerDesModelesIntrouvables(introuvables, null)
   throw derniereErreur || new Error('All Gemini models failed')
+}
+
+// Une ligne au journal des erreurs de la console (admin_erreurs, tag IA_MODELE) : une fois
+// par modèle et par instance, puisqu'il est ensuite écarté. Rien de personnel n'y figure.
+async function signalerDesModelesIntrouvables(introuvables: string[], servi: string | null): Promise<void> {
+  const url = Deno.env.get('SUPABASE_URL')
+  const cle = Deno.env.get('SUPABASE_ANON_KEY')
+  if (introuvables.length === 0 || !url || !cle) return
+  const message = `Modèle réglé introuvable chez Google (retiré, ou mal écrit dans app_config.modeles_ia) : ${introuvables.join(', ')}. ` +
+    (servi ? `Le relais ${servi} a répondu. ` : 'Aucun relais n\'a répondu. ') +
+    'Relancer le banc d\'essai et appliquer sa ligne SQL.'
+  try {
+    const { error } = await createClient(url, cle, { auth: { persistSession: false } })
+      .from('app_diagnostic_logs')
+      .insert({ tag: 'IA_MODELE', level: servi ? 'warning' : 'error', message, platform: 'serveur',
+                metadata: { introuvables, servi } })
+      .abortSignal(AbortSignal.timeout(3_000))
+    if (error) console.warn('Signalement non écrit :', error.message)
+  } catch (e) {
+    console.warn('Signalement non écrit :', e instanceof Error ? e.message : e)
+  }
 }
 
 // Le texte d'une réponse, sans les pensées du modèle.

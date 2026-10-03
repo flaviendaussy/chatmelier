@@ -104,7 +104,7 @@
 	</array>
 	<!-- Google Mobile Ads (AdMob) iOS App ID (Official test safeguard, replace with your production iOS App ID from AdMob console) -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-6095914862192850~4889630448</string>
 	<!-- Les réseaux publicitaires que Google recommande de déclarer sur iPhone (50, relevés le
 	     03/10/2026 sur developers.google.com/admob/ios/3p-skadnetworks) : sans eux, les
 	     annonceurs de ces réseaux n'achètent pas d'espace sur l'app, et l'iPhone reçoit moins

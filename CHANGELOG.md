@@ -2,6 +2,14 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.6.0+75] — 2026-10-03
+
+> iPhone seulement (Android reste en 74) : la première version iPhone pour les testeurs, avec AdMob.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *AdMob iPhone* : identifiant d'application et bloc « Avec récompense » réels ; les 50 réseaux SKAdNetwork recommandés par Google.
+- *Info.plist* : `NSLocationAlwaysAndWhenInUseUsageDescription`, exigée par Apple (ITMS-90683) ; sans effet pour l'utilisateur.
+
 ## [v1.6.0+74] — 2026-10-03
 
 > La 74 reprend la 73, jamais envoyée, et c'est la première version pour iPhone. Les testeurs Android passent directement de la 71 à la 74 : tout ce que décrit la 73 les concerne aussi.

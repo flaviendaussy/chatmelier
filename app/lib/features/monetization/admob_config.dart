@@ -25,7 +25,7 @@ class AdMobConfig {
   static String? productionAndroidRewardedUnitId =
       'ca-app-pub-6095914862192850/1740903138';
   /// Set this once you create the iOS app and rewarded ad unit in the AdMob console
-  static String? productionIosRewardedUnitId;
+  static String? productionIosRewardedUnitId = 'ca-app-pub-6095914862192850/7899946327';
 
   /// Test device identifiers to prevent "Invalid Traffic" penalties on your personal phone.
   /// Add your test device ID here (displayed in logcat/console on launch).

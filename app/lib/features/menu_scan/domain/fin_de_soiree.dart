@@ -116,6 +116,9 @@ class ResultatDeTable {
           {
             'nom': g.name,
             if (g.neBoitPas) 'ne_boit_pas': true,
+            // Un palais encore deviné (V2.3 · K5) : la page invité affiche « ≈ » devant ses accords.
+            if (g.palaisDevine) 'devine': true,
+            if (g.palaisDevine) 'connu': ((g.connaissance ?? 0) * 100).round(),
           },
       ],
       'podium': [

@@ -336,6 +336,13 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
             error: (_, __) => const SizedBox.shrink(),
           ),
 
+          // Un palais encore deviné le dit (V2.3 · K5).
+          if (PalaisDevine.legende(_selectedGuests, fr: Langue.estFr, idLecteur: _idHote) case final legende?)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+              child: Text(legende, style: const TextStyle(color: Colors.white54, fontSize: 11, fontStyle: FontStyle.italic, height: 1.3)),
+            ),
+
           // Results Section
           Expanded(
             child: _isCalculating
@@ -459,7 +466,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                                           borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Text(
-                                          '${g.name}: ${score.toStringAsFixed(0)}%',
+                                          '${g.name}: ${PalaisDevine.pourcentage(g, score)}',
                                           style: const TextStyle(color: Colors.white70, fontSize: 11),
                                         ),
                                       );

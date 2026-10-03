@@ -596,6 +596,10 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                     );
                   }).toList(),
                 ),
+                if (PalaisDevine.legende(_tableGuests, fr: _isFr, idLecteur: _idHote, nom: _nomAffiche) case final legende?) ...[
+                  const SizedBox(height: 8),
+                  Text(legende, style: const TextStyle(color: Colors.white54, fontSize: 11, fontStyle: FontStyle.italic, height: 1.3)),
+                ],
                 const SizedBox(height: 24),
 
                 SizedBox(
@@ -848,9 +852,12 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                     Text(_nomAffiche(guest), style: const TextStyle(color: Colors.white70, fontSize: 11)),
                     const SizedBox(width: 4),
                     Text(
-                      '${e.value.toStringAsFixed(0)}%',
+                      PalaisDevine.pourcentage(guest, e.value),
                       style: TextStyle(
-                        color: e.value >= 80 ? Colors.greenAccent : (e.value >= 60 ? Colors.orangeAccent : Colors.redAccent),
+                        // Deviné : une estimation, sans le vert ni le rouge d'une certitude (K5).
+                        color: guest.palaisDevine
+                            ? Colors.white60
+                            : (e.value >= 80 ? Colors.greenAccent : (e.value >= 60 ? Colors.orangeAccent : Colors.redAccent)),
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),

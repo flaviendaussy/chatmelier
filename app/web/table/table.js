@@ -60,6 +60,9 @@ const TEXTES = {
     podiumTitre: 'Les trois bouteilles qui vont le mieux à la table',
     podiumAttente: 'L\'hôte prépare le classement : il apparaîtra ici dès qu\'il l\'aura publié.',
     accord: '{n} % d\'accord',
+    devineUn: '≈ : palais encore deviné, {liste}. Ses accords restent prudents et se précisent à chaque vin noté.',
+    devinePlusieurs: '≈ : palais encore devinés, {liste}. Leurs accords restent prudents et se précisent à chaque vin noté.',
+    connuA: '{nom} (connu à {pct} %)',
     deuxBouteilles: 'À deux bouteilles',
     choixTitre: 'Ce soir, la table a choisi',
     noter: 'Le noter d\'un geste',
@@ -130,6 +133,9 @@ const TEXTES = {
     podiumTitre: 'The three bottles that suit the table best',
     podiumAttente: 'The host is preparing the ranking: it will show up here once published.',
     accord: '{n}% match',
+    devineUn: '≈: palate still guessed, {liste}. Its matches stay cautious and sharpen with every wine rated.',
+    devinePlusieurs: '≈: palates still guessed, {liste}. Their matches stay cautious and sharpen with every wine rated.',
+    connuA: '{nom} ({pct}% known)',
     deuxBouteilles: 'With two bottles',
     choixTitre: 'Tonight, the table chose',
     noter: 'Rate it in one tap',
@@ -200,6 +206,9 @@ const TEXTES = {
     podiumTitre: 'Las tres botellas que mejor van a la mesa',
     podiumAttente: 'El anfitrión prepara la clasificación: aparecerá aquí en cuanto la publique.',
     accord: '{n} % de acuerdo',
+    devineUn: '≈: paladar aún estimado, {liste}. Sus afinidades siguen siendo prudentes y se afinan con cada vino valorado.',
+    devinePlusieurs: '≈: paladares aún estimados, {liste}. Sus afinidades siguen siendo prudentes y se afinan con cada vino valorado.',
+    connuA: '{nom} (conocido al {pct} %)',
     deuxBouteilles: 'Con dos botellas',
     choixTitre: 'Esta noche, la mesa eligió',
     noter: 'Anotarlo con un gesto',
@@ -586,6 +595,9 @@ function blocPodium() {
       el('section', { class: 'carte' }, el('h2', {}, t('podiumTitre')), el('p', { class: 'discret' }, t('podiumAttente'))));
   }
   const medailles = ['🥇', '🥈', '🥉'];
+  // Un palais encore deviné (V2.3 · K5) : « ≈ » devant ses accords, et une ligne qui le dit.
+  const devines = new Map((etat.resultat.convives || []).filter((c) => c.devine).map((c) => [c.nom, c.connu ?? 0]));
+  const liste = [...devines].map(([nom, pct]) => t('connuA', { nom, pct })).join(', ');
   return el('div', { id: 'podium', class: 'pile' },
     el('section', { class: 'carte' },
       el('h2', {}, t('podiumTitre')),
@@ -597,9 +609,10 @@ function blocPodium() {
         el('span', { class: 'accord' }, t('accord', { n: v.accord })),
         el('p', {}, v.raisons?.[LANGUE] || v.raison || ''),
         el('div', { class: 'scores' }, Object.entries(v.scores || {}).map(([nom, s]) => el('span', {
-          class: `score ${classeScore(s)}${nom === moi ? ' moi' : ''}`,
-        }, `${nom} `, el('b', {}, `${s}%`)))),
-      ))),
+          class: `score ${devines.has(nom) ? 'devine' : classeScore(s)}${nom === moi ? ' moi' : ''}`,
+        }, `${nom} `, el('b', {}, `${devines.has(nom) ? '≈' : ''}${s}%`)))),
+      )),
+      devines.size ? el('p', { class: 'discret' }, t(devines.size === 1 ? 'devineUn' : 'devinePlusieurs', { liste })) : null),
     etat.resultat.paire ? el('section', { class: 'carte or' },
       el('h2', {}, `🍷🍷 ${t('deuxBouteilles')}`), el('p', {}, etat.resultat.paire.phrases?.[LANGUE] || etat.resultat.paire.phrase)) : null,
   );

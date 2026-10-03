@@ -75,6 +75,40 @@ class GuestProfile {
     return 0.35 + 0.65 * (c[axe] ?? 0.0).clamp(0.0, 1.0);
   }
 
+  /// L'écart qu'on attend, sur un axe, entre un vin et quelqu'un dont on ignore le goût :
+  /// deux points sur dix (V2.3 · K5).
+  static const double ecartDIgnorance = 2.0;
+
+  /// L'écart d'un vin à ce palais sur un axe, selon ce qu'on sait de l'axe (V2.3 · K1, K5).
+  /// Observé ou déclaré : l'écart lui-même. Deviné : un tiers de l'écart au palais deviné et,
+  /// pour le reste, celui qu'on attend de quelqu'un dont on ignore le goût. Ne rien savoir
+  /// ne rapproche plus un vin : relevé le 02/10, un palais connu à 6 % lisait 82 % d'accord,
+  /// plus que le même palais bien connu (79 %).
+  double ecartSurLAxe(String axe, double ecart) {
+    final p = poidsDeLAxe(axe);
+    return p * ecart.abs() + (1 - p) * ecartDIgnorance;
+  }
+
+  /// Le même écart, au carré, pour la distance euclidienne de la cave.
+  double ecartCarreSurLAxe(String axe, double ecart) {
+    final p = poidsDeLAxe(axe);
+    return p * ecart * ecart + (1 - p) * ecartDIgnorance * ecartDIgnorance;
+  }
+
+  /// À quel point son palais est connu, de 0 à 1 : la moyenne de ses huit axes, le « palais
+  /// connu à … % » de son profil. Nul pour un palais déclaré (curseurs de la page invité)
+  /// ou tiré d'un archétype : il compte pour connu.
+  double? get connaissance {
+    final c = confianceParAxe;
+    if (c == null) return null;
+    const axes = TasteProfile.axisKeys;
+    return axes.fold<double>(0, (somme, k) => somme + (c[k] ?? 0.0).clamp(0.0, 1.0)) / axes.length;
+  }
+
+  /// Un palais encore deviné (V2.3 · K5) : ses pourcentages s'affichent « ≈ 73 % ». Même
+  /// seuil qu'un axe observé : environ trois dégustations par axe, en moyenne.
+  bool get palaisDevine => (connaissance ?? 1.0) < seuilAxeObserve;
+
   /// Le même convive, sous un autre identifiant, un autre prénom ou avec d'autres avis.
   GuestProfile copie({String? id, String? name, Map<String, String>? avis, bool? neBoitPas, Map<String, double>? verres}) =>
       GuestProfile(
@@ -449,8 +483,8 @@ class GuestMatcherEngine {
     final guestRadar = guest.radar;
 
     // Distance euclidienne sur les 8 axes, chaque écart pesé selon ce qu'on sait de l'axe
-    // (V2.3 · K1) : un axe deviné compte un tiers, comme à la table du restaurant.
-    double ecart(double vin, double convive, String axe) => guest.poidsDeLAxe(axe) * math.pow(vin - convive, 2);
+    // (V2.3 · K1, K5), comme à la table du restaurant.
+    double ecart(double vin, double convive, String axe) => guest.ecartCarreSurLAxe(axe, vin - convive);
     final dist = math.sqrt(
       ecart(wineRadar.tannin, guestRadar.tannin, 'tannin') +
       ecart(wineRadar.body, guestRadar.body, 'body') +
@@ -571,4 +605,37 @@ class FormesDuVerbe {
   static const moinsAimer = FormesDuVerbe('risquez de moins l\'aimer', 'risque de moins l\'aimer',
       'risquent de moins l\'aimer', 'may like it less', 'quizá lo disfrutes menos', 'quizá lo disfrute menos',
       'quizá lo disfruten menos');
+}
+
+/// Ce que l'écran dit d'un palais encore deviné (V2.3 · K5) : un accord calculé sur un
+/// palais connu à 6 % ne se lit pas comme une certitude.
+class PalaisDevine {
+  /// « ≈73% » pour un palais encore deviné, « 73% » sinon.
+  static String pourcentage(GuestProfile g, double score) => '${g.palaisDevine ? '≈' : ''}${score.round()}%';
+
+  /// La ligne qui l'explique sous les convives, ou nul si aucun palais n'est deviné.
+  /// [idLecteur] : à lui, on dit « votre palais ». [nom] : le prénom à l'écran.
+  static String? legende(
+    List<GuestProfile> convives, {
+    required bool fr,
+    String? idLecteur,
+    String Function(GuestProfile)? nom,
+  }) {
+    final devines = [for (final g in convives) if (g.palaisDevine && !g.neBoitPas) g];
+    if (devines.isEmpty) return null;
+    int pct(GuestProfile g) => ((g.connaissance ?? 0) * 100).round();
+    if (devines.length == 1 && devines.single.id == idLecteur) {
+      return trSi(fr, '≈ : votre palais est encore deviné (connu à {pct} %). Vos accords restent prudents et se précisent à chaque vin noté.',
+          '≈: your palate is still guessed ({pct}% known). Your matches stay cautious and sharpen with every wine you rate.',
+          {'pct': pct(devines.single)});
+    }
+    final liste = devines
+        .map((g) => trSi(fr, '{nom} (connu à {pct} %)', '{nom} ({pct}% known)', {'nom': nom?.call(g) ?? g.name, 'pct': pct(g)}))
+        .join(', ');
+    return devines.length == 1
+        ? trSi(fr, '≈ : palais encore deviné, {liste}. Ses accords restent prudents et se précisent à chaque vin noté.',
+            '≈: palate still guessed, {liste}. Its matches stay cautious and sharpen with every wine rated.', {'liste': liste})
+        : trSi(fr, '≈ : palais encore devinés, {liste}. Leurs accords restent prudents et se précisent à chaque vin noté.',
+            '≈: palates still guessed, {liste}. Their matches stay cautious and sharpen with every wine rated.', {'liste': liste});
+  }
 }

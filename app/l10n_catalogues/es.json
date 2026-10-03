@@ -16737,85 +16737,85 @@
   "fr": "Inviter la table",
   "en": "Invite the table",
   "es": "Invitar a la mesa",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:663"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:667"
  },
  {
   "fr": "Ouverture de la table…",
   "en": "Opening the table…",
   "es": "Abriendo la mesa…",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:668"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:672"
  },
  {
   "fr": "Code {codeServeur} — ou faites scanner le QR",
   "en": "Code {codeServeur} — or let them scan the QR",
   "es": "Código {codeServeur}, o que escaneen el QR",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:670"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:674"
  },
  {
   "fr": "Hors ligne : ajoutez vos convives à la main ci-dessus",
   "en": "Offline: add your guests by hand above",
   "es": "Sin conexión: añade a tus comensales a mano, arriba",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:671"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:675"
  },
  {
   "fr": "CODE DE LA TABLE",
   "en": "TABLE CODE",
   "es": "CÓDIGO DE LA MESA",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:690"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:694"
  },
  {
   "fr": "À saisir dans Chatmelier, onglet Dégustation",
   "en": "Enter it in Chatmelier, Tasting tab",
   "es": "Para introducir en Chatmelier, pestaña Cata",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:708"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:712"
  },
  {
   "fr": "CONSENSUS DE TABLE CHATMELIER",
   "en": "CHATMELIER TABLE CONSENSUS",
   "es": "CONSENSO DE MESA CHATMELIER",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:718"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:722"
  },
  {
   "fr": "Table Chatmelier — code {codeServeur}",
   "en": "Chatmelier table — code {codeServeur}",
   "es": "Mesa Chatmelier — código {codeServeur}",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:727"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:731"
  },
  {
   "fr": "Table Chatmelier",
   "en": "Chatmelier table",
   "es": "Mesa Chatmelier",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:728"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:732"
  },
  {
   "fr": "Rejoins notre table sur Chatmelier pour choisir le vin ensemble ! ",
   "en": "Join our table on Chatmelier to choose the wine together! ",
   "es": "¡Únete a nuestra mesa en Chatmelier para elegir el vino juntos! ",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:743"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:747"
  },
  {
   "fr": "{appel}Code : {codeServeur} — ou clique ici : {lien}",
   "en": "{appel}Code: {codeServeur} — or tap here: {lien}",
   "es": "{appel}Código: {codeServeur}, o pulsa aquí: {lien}",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:745"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:749"
  },
  {
   "fr": "accord",
   "en": "match",
   "es": "afinidad",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:807"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:811"
  },
  {
   "fr": "Choisie ce soir · annuler",
   "en": "Chosen tonight · undo",
   "es": "Elegida esta noche · anular",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:897"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:904"
  },
  {
   "fr": "Nous prenons celle-ci",
   "en": "We're having this one",
   "es": "Nos quedamos con esta",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:906"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_sheet.dart:913"
  },
  {
   "fr": "Comparateur Spider Radar",
@@ -18423,157 +18423,181 @@
   "fr": "Vous n'aimez pas les tanins fermes : celui-ci risque d'en avoir trop",
   "en": "You dislike firm tannins: this one may have too much",
   "es": "No te gustan los taninos firmes: este puede tener demasiados",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:367"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:401"
  },
  {
   "fr": "{guest_name} n'aime pas les tanins fermes : celui-ci risque d'en avoir trop",
   "en": "{guest_name} dislikes firm tannins: this one may have too much",
   "es": "A {guest_name} no le gustan los taninos firmes: este puede tener demasiados",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:368"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:402"
  },
  {
   "fr": "Vous n'aimez pas les vins très vifs : celui-ci risque de l'être trop",
   "en": "You dislike very crisp wines: this one may be too sharp",
   "es": "No te gustan los vinos muy vivos: este puede serlo demasiado",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:372"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:406"
  },
  {
   "fr": "{guest_name} n'aime pas les vins très vifs : celui-ci risque de l'être trop",
   "en": "{guest_name} dislikes very crisp wines: this one may be too sharp",
   "es": "A {guest_name} no le gustan los vinos muy vivos: este puede serlo demasiado",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:373"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:407"
  },
  {
   "fr": "Vous n'aimez pas le boisé : celui-ci risque d'en avoir trop",
   "en": "You dislike oak: this one may have too much",
   "es": "No te gusta la madera: este puede tener demasiada",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:377"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:411"
  },
  {
   "fr": "{guest_name} n'aime pas le boisé : celui-ci risque d'en avoir trop",
   "en": "{guest_name} dislikes oak: this one may have too much",
   "es": "A {guest_name} no le gusta la madera: este puede tener demasiada",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:378"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:412"
  },
  {
   "fr": "À son apogée.",
   "en": "At its peak.",
   "es": "En su punto óptimo.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:439"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:473"
  },
  {
   "fr": "À boire sans trop attendre.",
   "en": "Best drunk soon.",
   "es": "Para beber sin esperar demasiado.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:440"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:474"
  },
  {
   "fr": "Encore jeune : il gagnerait à attendre {annee}.",
   "en": "Still young: worth waiting until {annee}.",
   "es": "Todavía joven: ganaría esperando hasta {annee}.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:441"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:475"
  },
  {
   "fr": "Passé son apogée : à ouvrir sans trop en attendre.",
   "en": "Past its peak: open it without expecting too much.",
   "es": "Pasado su punto óptimo: para abrir sin esperar demasiado de él.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:443"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:477"
  },
  {
   "fr": "Une bouteille pour la table",
   "en": "A bottle for the table",
   "es": "Una botella para la mesa",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:500"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:536"
  },
  {
   "fr": "Taillé pour les goûts de {g_name}",
   "en": "Made for {g_name}'s taste",
   "es": "Hecho para los gustos de {g_name}",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:507"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:543"
  },
  {
   "fr": "Dans les goûts de {g_name}",
   "en": "Close to {g_name}'s taste",
   "es": "En la línea de los gustos de {g_name}",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:509"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:545"
  },
  {
   "fr": "Un pas de côté pour {g_name}",
   "en": "A step away from {g_name}'s usual taste",
   "es": "Un paso al lado para {g_name}",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:512"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:548"
+ },
+ {
+  "fr": "≈ : votre palais est encore deviné (connu à {pct} %). Vos accords restent prudents et se précisent à chaque vin noté.",
+  "en": "≈: your palate is still guessed ({pct}% known). Your matches stay cautious and sharpen with every wine you rate.",
+  "es": "≈: su paladar aún es estimado (conocido al {pct} %). Sus afinidades siguen siendo prudentes y se afinan con cada vino que valore.",
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:628"
+ },
+ {
+  "fr": "{nom} (connu à {pct} %)",
+  "en": "{nom} ({pct}% known)",
+  "es": "{nom} (conocido al {pct} %)",
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:633"
+ },
+ {
+  "fr": "≈ : palais encore deviné, {liste}. Ses accords restent prudents et se précisent à chaque vin noté.",
+  "en": "≈: palate still guessed, {liste}. Its matches stay cautious and sharpen with every wine rated.",
+  "es": "≈: paladar aún estimado, {liste}. Sus afinidades siguen siendo prudentes y se afinan con cada vino valorado.",
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:636"
+ },
+ {
+  "fr": "≈ : palais encore devinés, {liste}. Leurs accords restent prudents et se précisent à chaque vin noté.",
+  "en": "≈: palates still guessed, {liste}. Their matches stay cautious and sharpen with every wine rated.",
+  "es": "≈: paladares aún estimados, {liste}. Sus afinidades siguen siendo prudentes y se afinan con cada vino valorado.",
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:638"
  },
  {
   "fr": "Amateur de Grands Rouges Puissants",
   "en": "Lover of big, powerful reds",
   "es": "Amante de los grandes tintos potentes",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:201"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:235"
  },
  {
   "fr": "Adepte de Minéralité & Fraîcheur Droite",
   "en": "Mineral & crisp lover",
   "es": "Adepto de la mineralidad y el frescor recto",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:202"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:236"
  },
  {
   "fr": "Palais Friand & Fruit Croquant",
   "en": "Crunchy-fruit lover",
   "es": "Paladar goloso y de fruta crujiente",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:203"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:237"
  },
  {
   "fr": "Amateur de Vins Épicés & Singuliers",
   "en": "Spicy & singular wines lover",
   "es": "Amante de los vinos especiados y singulares",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:204"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:238"
  },
  {
   "fr": "Amateur de Rouges",
   "en": "Red wine lover",
   "es": "Amante de los tintos",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:205"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:239"
  },
  {
   "fr": "Amateur de Blancs",
   "en": "White wine lover",
   "es": "Amante de los blancos",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:206"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:240"
  },
  {
   "fr": "Amateur de Rosés",
   "en": "Rosé lover",
   "es": "Amante de los rosados",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:207"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:241"
  },
  {
   "fr": "Amateur de Bulles",
   "en": "Sparkling wine lover",
   "es": "Amante de los espumosos",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:208"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:242"
  },
  {
   "fr": "Aversion Tanins Durs",
   "en": "Dislikes firm tannins",
   "es": "Aversión a los taninos duros",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:210"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:244"
  },
  {
   "fr": "Blancs Minéraux & Frais",
   "en": "Crisp, mineral whites",
   "es": "Blancos minerales y frescos",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:213"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:247"
  },
  {
   "fr": "Fruit Croquant",
   "en": "Crunchy fruit",
   "es": "Fruta crujiente",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:215"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:249"
  },
  {
   "fr": "Ne boit pas ce soir",
   "en": "Not drinking tonight",
   "es": "No bebe esta noche",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:217"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:251"
  },
  {
   "fr": ", millésime {vintage}",
@@ -19077,25 +19101,25 @@
   "fr": "Ajoutez au moins un convive pour calculer l'accord parfait.",
   "en": "Add at least one guest to find the right bottle.",
   "es": "Añade al menos un comensal para calcular el maridaje perfecto.",
-  "ou": "lib/features/sommelier/presentation/guest_matcher_sheet.dart:354"
+  "ou": "lib/features/sommelier/presentation/guest_matcher_sheet.dart:361"
  },
  {
   "fr": "Aucune bouteille disponible dans votre cave ne correspond aux critères.",
   "en": "No bottle in your cellar fits.",
   "es": "Ninguna botella disponible en tu bodega cumple los criterios.",
-  "ou": "lib/features/sommelier/presentation/guest_matcher_sheet.dart:355"
+  "ou": "lib/features/sommelier/presentation/guest_matcher_sheet.dart:362"
  },
  {
   "fr": "{v1}% Harmonie",
   "en": "{v1}% match",
   "es": "{v1} % de afinidad",
-  "ou": "lib/features/sommelier/presentation/guest_matcher_sheet.dart:425"
+  "ou": "lib/features/sommelier/presentation/guest_matcher_sheet.dart:432"
  },
  {
   "fr": "Voir le flacon & Déboucher",
   "en": "See the bottle & open it",
   "es": "Ver la botella y descorcharla",
-  "ou": "lib/features/sommelier/presentation/guest_matcher_sheet.dart:479"
+  "ou": "lib/features/sommelier/presentation/guest_matcher_sheet.dart:486"
  },
  {
   "fr": "fr-FR",

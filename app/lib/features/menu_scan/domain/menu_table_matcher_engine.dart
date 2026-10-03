@@ -215,9 +215,9 @@ class MenuTableMatcherEngine {
     }
 
     // 3. Proximité des axes sensoriels. Chaque écart pèse selon ce qu'on sait de l'axe :
-    // plein s'il est observé ou déclaré, un tiers s'il est deviné (V2.3 · K1).
+    // plein s'il est observé ou déclaré ; deviné, il tranche moins sans flatter (V2.3 · K1, K5).
     double ecart(double vin, double convive, String axe, double facteur) =>
-        (vin - convive).abs() * facteur * guest.poidsDeLAxe(axe);
+        facteur * guest.ecartSurLAxe(axe, vin - convive);
 
     // Les tanins jugent les rouges ; la minéralité, les blancs, les rosés et les bulles.
     if (!wine.isWhite && radar.tannins > 0.0) {

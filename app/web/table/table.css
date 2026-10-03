@@ -142,6 +142,7 @@ input[type="range"] { width: 100%; accent-color: var(--or); }
 .score.bon b { color: var(--bon); }
 .score.moyen b { color: var(--moyen); }
 .score.faible b { color: var(--faible); }
+.score.devine b { color: var(--discret); }
 .score.moi { outline: 1px solid var(--or); }
 
 .visages { display: flex; justify-content: space-between; gap: 6px; }

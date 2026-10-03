@@ -44,6 +44,11 @@
 	<string>Chatmelier photographie étiquettes et cartes des vins, sans jamais enregistrer de son.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Chatmelier utilise votre position pour proposer les restaurants et bars proches de vos dégustations, et reconnaître votre cave.</string>
+	<!-- Exigée par Apple (ITMS-90683, build 74) parce que geolocator contient le code de la
+	     demande « toujours ». Elle ne change rien : geolocator demande « pendant l'utilisation »
+	     dès que la clé ci-dessus existe, et l'app ne suit jamais la position en arrière-plan. -->
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Chatmelier n'utilise votre position que lorsque l'app est ouverte, pour proposer les restaurants et bars proches de vos dégustations, et reconnaître votre cave. Elle ne la suit jamais en arrière-plan.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

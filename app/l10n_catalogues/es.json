@@ -14667,79 +14667,79 @@
   "fr": "le plus charpenté",
   "en": "the most structured",
   "es": "el más estructurado",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:464"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:471"
  },
  {
   "fr": "le plus souple",
   "en": "the silkiest",
   "es": "el más suave",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:465"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:472"
  },
  {
   "fr": "le plus frais",
   "en": "the freshest",
   "es": "el más fresco",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:469"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:476"
  },
  {
   "fr": "le plus rond",
   "en": "the roundest",
   "es": "el más redondo",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:470"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:477"
  },
  {
   "fr": "le plus ample",
   "en": "the fullest",
   "es": "el más amplio",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:474"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:481"
  },
  {
   "fr": "le plus léger",
   "en": "the lightest",
   "es": "el más ligero",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:475"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:482"
  },
  {
   "fr": "le plus fruité",
   "en": "the fruitiest",
   "es": "el más afrutado",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:478"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:485"
  },
  {
   "fr": "le plus boisé",
   "en": "the oakiest",
   "es": "el más amaderado",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:480"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:487"
  },
  {
   "fr": "le moins boisé",
   "en": "the least oaky",
   "es": "el menos amaderado",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:481"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:488"
  },
  {
   "fr": "le plus minéral",
   "en": "the most mineral",
   "es": "el más mineral",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:486"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:493"
  },
  {
   "fr": "le plus doux",
   "en": "the sweetest",
   "es": "el más dulce",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:490"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:497"
  },
  {
   "fr": "le seul sec",
   "en": "the only dry one",
   "es": "el único seco",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:491"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:498"
  },
  {
   "fr": "le seul sans bois",
   "en": "the only unoaked one",
   "es": "el único sin madera",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:510"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:517"
  },
  {
   "fr": "{guest_name} a une aversion pour les tanins durs : ce vin est très charpenté ({v1}/10).",
@@ -14790,148 +14790,166 @@
   "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:364"
  },
  {
+  "fr": "Sans doute taillé pour vos goûts",
+  "en": "Probably made for your taste",
+  "es": "Probablemente hecho para tus gustos",
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:381"
+ },
+ {
+  "fr": "Sans doute dans vos goûts",
+  "en": "Probably close to your taste",
+  "es": "Probablemente cerca de tus gustos",
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:382"
+ },
+ {
+  "fr": "Peut-être un pas de côté par rapport à vos goûts",
+  "en": "Perhaps a step away from your usual taste",
+  "es": "Quizá un paso al lado de tus gustos",
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:383"
+ },
+ {
   "fr": "Taillé pour vos goûts",
   "en": "Made for your taste",
   "es": "Hecho para tus gustos",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:378"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:385"
  },
  {
   "fr": "Dans vos goûts",
   "en": "Close to your taste",
   "es": "Cerca de tus gustos",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:379"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:386"
  },
  {
   "fr": "Un pas de côté par rapport à vos goûts",
   "en": "A step away from your usual taste",
   "es": "Un paso al lado de tus gustos",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:380"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:387"
  },
  {
   "fr": "vous",
   "en": "you",
   "es": "tú",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:390"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:397"
  },
  {
   "fr": "vous le trouverez {v1}",
   "en": "you may find it {v1}",
   "es": "te parecerá {v1}",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:405"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:412"
  },
  {
   "fr": "{g_name} le trouvera {v1}",
   "en": "{g_name} may find it {v1}",
   "es": "a {g_name} le parecerá {v1}",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:406"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:413"
  },
  {
   "fr": "Un compromis pour toute la table",
   "en": "A compromise for the whole table",
   "es": "Un compromiso para toda la mesa",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:408"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:415"
  },
  {
   "fr": " ; ",
   "en": "; ",
   "es": "; ",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:409"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:416"
  },
  {
   "fr": "un peu tannique",
   "en": "a little tannic",
   "es": "un poco tánico",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:418"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:425"
  },
  {
   "fr": "trop souple",
   "en": "too soft",
   "es": "demasiado suave",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:418"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:425"
  },
  {
   "fr": "un peu puissant",
   "en": "a little powerful",
   "es": "un poco potente",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:419"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:426"
  },
  {
   "fr": "un peu léger",
   "en": "a little light",
   "es": "un poco ligero",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:419"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:426"
  },
  {
   "fr": "un peu vif",
   "en": "a little sharp",
   "es": "un poco ácido",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:420"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:427"
  },
  {
   "fr": "un peu mou",
   "en": "a little flat",
   "es": "un poco plano",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:420"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:427"
  },
  {
   "fr": "un peu boisé",
   "en": "a little oaky",
   "es": "un poco amaderado",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:421"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:428"
  },
  {
   "fr": "un peu simple",
   "en": "a little plain",
   "es": "un poco simple",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:421"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:428"
  },
  {
   "fr": "des deux",
   "en": "of the two",
   "es": "de los dos",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:433"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:440"
  },
  {
   "fr": "des trois",
   "en": "of the three",
   "es": "de los tres",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:433"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:440"
  },
  {
   "fr": "effervescent",
   "en": "sparkling wine",
   "es": "espumoso",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:436"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:443"
  },
  {
   "fr": "le seul {c} {lot}",
   "en": "the only {c} {lot}",
   "es": "el único {c} {lot}",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:446"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:453"
  },
  {
   "fr": "le seul",
   "en": "the only",
   "es": "el único",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:519"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:526"
  },
  {
   "fr": "le moins cher ({affiche})",
   "en": "the cheapest ({affiche})",
   "es": "el más barato ({affiche})",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:531"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:538"
  },
  {
   "fr": "le plus cher ({affiche})",
   "en": "the priciest ({affiche})",
   "es": "el más caro ({affiche})",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:532"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:539"
  },
  {
   "fr": "à {affiche}",
   "en": "at {affiche}",
   "es": "a {affiche}",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:534"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:541"
  },
  {
   "fr": "Excellent rapport prix/plaisir sur la carte",
@@ -18506,26 +18524,26 @@
  {
   "fr": "≈ : votre palais est encore deviné (connu à {pct} %). Vos accords restent prudents et se précisent à chaque vin noté.",
   "en": "≈: your palate is still guessed ({pct}% known). Your matches stay cautious and sharpen with every wine you rate.",
-  "es": "≈: su paladar aún es estimado (conocido al {pct} %). Sus afinidades siguen siendo prudentes y se afinan con cada vino que valore.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:628"
+  "es": "≈: tu paladar aún es estimado (conocido al {pct} %). Tus afinidades siguen siendo prudentes y se afinan con cada vino que valores.",
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:632"
  },
  {
   "fr": "{nom} (connu à {pct} %)",
   "en": "{nom} ({pct}% known)",
   "es": "{nom} (conocido al {pct} %)",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:633"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:637"
  },
  {
   "fr": "≈ : palais encore deviné, {liste}. Ses accords restent prudents et se précisent à chaque vin noté.",
   "en": "≈: palate still guessed, {liste}. Its matches stay cautious and sharpen with every wine rated.",
   "es": "≈: paladar aún estimado, {liste}. Sus afinidades siguen siendo prudentes y se afinan con cada vino valorado.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:636"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:640"
  },
  {
   "fr": "≈ : palais encore devinés, {liste}. Leurs accords restent prudents et se précisent à chaque vin noté.",
   "en": "≈: palates still guessed, {liste}. Their matches stay cautious and sharpen with every wine rated.",
   "es": "≈: paladares aún estimados, {liste}. Sus afinidades siguen siendo prudentes y se afinan con cada vino valorado.",
-  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:638"
+  "ou": "lib/features/sommelier/domain/guest_matcher_engine.dart:642"
  },
  {
   "fr": "Amateur de Grands Rouges Puissants",

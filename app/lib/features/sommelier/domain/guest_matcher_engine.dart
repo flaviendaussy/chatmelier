@@ -613,6 +613,10 @@ class PalaisDevine {
   /// « ≈73% » pour un palais encore deviné, « 73% » sinon.
   static String pourcentage(GuestProfile g, double score) => '${g.palaisDevine ? '≈' : ''}${score.round()}%';
 
+  /// « ≈ » devant l'accord de toute la table quand un palais deviné y vote.
+  static String prefixe(Iterable<GuestProfile> convives) =>
+      convives.any((g) => g.palaisDevine && !g.neBoitPas) ? '≈' : '';
+
   /// La ligne qui l'explique sous les convives, ou nul si aucun palais n'est deviné.
   /// [idLecteur] : à lui, on dit « votre palais ». [nom] : le prénom à l'écran.
   static String? legende(

@@ -808,7 +808,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                       border: Border.all(color: rankColor),
                     ),
                     child: Text(
-                      '${match.harmonyScore.toStringAsFixed(0)}% ${trSi(_isFr, 'accord', 'match')}',
+                      '${PalaisDevine.prefixe(_tableGuests)}${match.harmonyScore.toStringAsFixed(0)}% ${trSi(_isFr, 'accord', 'match')}',
                       style: TextStyle(color: rankColor, fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                   ),

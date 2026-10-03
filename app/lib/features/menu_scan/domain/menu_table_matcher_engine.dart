@@ -375,6 +375,13 @@ class RedactionDesRaisons {
     // Sinon, la phrase nominative ci-dessous : « Flavien l'appréciera ».
     if (convives.length == 1 && (idLecteur == null || convives.single.id == idLecteur)) {
       final s = notes.first.$2;
+      // Un palais encore deviné ne s'entend pas dire « dans vos goûts » comme une
+      // certitude (V2.3 · K5).
+      if (convives.single.palaisDevine) {
+        if (s >= 85) return trSi(fr, 'Sans doute taillé pour vos goûts', 'Probably made for your taste');
+        if (s >= 65) return trSi(fr, 'Sans doute dans vos goûts', 'Probably close to your taste');
+        return trSi(fr, 'Peut-être un pas de côté par rapport à vos goûts', 'Perhaps a step away from your usual taste');
+      }
       if (s >= 85) return trSi(fr, 'Taillé pour vos goûts', 'Made for your taste');
       if (s >= 65) return trSi(fr, 'Dans vos goûts', 'Close to your taste');
       return trSi(fr, 'Un pas de côté par rapport à vos goûts', 'A step away from your usual taste');

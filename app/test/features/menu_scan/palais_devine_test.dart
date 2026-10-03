@@ -89,6 +89,9 @@ void main() {
       const declare = GuestProfile(id: 'web', name: 'Paul');
       expect(PalaisDevine.pourcentage(devine, 73.4), '≈73%');
       expect(PalaisDevine.pourcentage(declare, 73.4), '73%');
+      expect(PalaisDevine.prefixe([devine, declare]), '≈', reason: 'l\'accord de la table repose en partie sur un palais deviné');
+      expect(PalaisDevine.prefixe([declare]), '');
+      expect(PalaisDevine.prefixe([devine.copie(neBoitPas: true), declare]), '');
     });
 
     test('la ligne qui l\'explique parle au lecteur, nomme les autres, et se tait sinon', () {
@@ -105,6 +108,15 @@ void main() {
       expect(PalaisDevine.legende([paul], fr: true), isNull);
       expect(PalaisDevine.legende([moi.copie(neBoitPas: true), paul], fr: true), isNull,
           reason: 'qui ne boit pas ce soir n\'a pas d\'accord à nuancer');
+    });
+
+    test('seul à table, un palais deviné lit « sans doute », un palais connu non', () {
+      final devine = GuestProfile.fromTasteProfile(palais());
+      final connu = GuestProfile.fromTasteProfile(palais(observations: bienConnu));
+      final raisonDevine = MenuTableMatcherEngine.rankTop3WinesForTable(menuWines: [crozes], guests: [devine]).single.consensusRationale;
+      final raisonConnu = MenuTableMatcherEngine.rankTop3WinesForTable(menuWines: [crozes], guests: [connu]).single.consensusRationale;
+      expect(raisonDevine, startsWith('Sans doute'));
+      expect(raisonConnu, isNot(contains('Sans doute')));
     });
 
     test('la page invité reçoit les palais devinés avec ce qu\'on en sait', () {

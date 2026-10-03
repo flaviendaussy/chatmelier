@@ -429,7 +429,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                                           ),
                                         ),
                                         child: Text(
-                                          tr('{v1}% Harmonie', '{v1}% match', {'v1': match.consensusScore.toStringAsFixed(0)}),
+                                          tr('{v1}% Harmonie', '{v1}% match', {'v1': '${PalaisDevine.prefixe(_selectedGuests)}${match.consensusScore.toStringAsFixed(0)}'}),
                                           style: TextStyle(
                                             color: isGoldMedal ? const Color(0xFFD4AF37) : Colors.white,
                                             fontWeight: FontWeight.bold,

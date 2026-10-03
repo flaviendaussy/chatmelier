@@ -1911,7 +1911,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
                       border: Border.all(color: const Color(0xFFD4AF37), width: 0.8),
                     ),
                     child: Text(
-                      '${match.harmonyScore.toStringAsFixed(0)}% ${trSi(_isFr, 'Harmonie', 'match')}',
+                      '${PalaisDevine.prefixe(_guests)}${match.harmonyScore.toStringAsFixed(0)}% ${trSi(_isFr, 'Harmonie', 'match')}',
                       style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),

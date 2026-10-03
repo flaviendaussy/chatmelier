@@ -606,7 +606,7 @@ function blocPodium() {
           el('span', { class: 'nom' }, `${medailles[i] || ''} ${v.nom}${v.millesime ? ` ${v.millesime}` : ''}`),
           v.prix ? el('span', { class: 'prix' }, v.prix) : null),
         v.producteur ? el('span', { class: 'discret' }, v.producteur) : null,
-        el('span', { class: 'accord' }, t('accord', { n: v.accord })),
+        el('span', { class: 'accord' }, t('accord', { n: `${devines.size ? '≈' : ''}${v.accord}` })),
         el('p', {}, v.raisons?.[LANGUE] || v.raison || ''),
         el('div', { class: 'scores' }, Object.entries(v.scores || {}).map(([nom, s]) => el('span', {
           class: `score ${devines.has(nom) ? 'devine' : classeScore(s)}${nom === moi ? ' moi' : ''}`,

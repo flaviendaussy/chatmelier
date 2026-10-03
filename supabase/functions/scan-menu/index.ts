@@ -355,6 +355,7 @@ You are given one or several photos of the pages of the wine list. Extract EVERY
 Return STRICTLY one JSON object, with these short keys:
 {"r": restaurant name if printed on the pages, else null,
  "c": ISO 4217 code of the prices ("EUR", "GBP", "USD", "CHF"...) from the symbols on the list, or from its country and language; null only if no price is shown,
+ "ex": 1 if the list itself is exceptional (deep in cult, rare or mature bottles), else 0,
  "v": [one object per wine]}
 
 Each wine object:
@@ -372,10 +373,13 @@ Each wine object:
 "tg": up to 3 codes among mineral, buttery, tannic, fruity, light, bold, oaky, floral, spicy, fresh, round, savory
 "sc": one short sentence in ${l} (at most 14 words) on the style and when to drink it
 "fp": 3 restaurant dishes in ${l}, at most 4 words each
-"ge": 1 if a genuine gem (acclaimed artisan, cult or biodynamic star, rare find), else 0
-"gr": if ge is 1, why, in ${l}, at most 8 words; else ""
-"de": 1 if outstanding value for this list, else 0
-"dr": if de is 1, why, in ${l}, at most 8 words; else ""
+"ge": gem: 0 for almost every wine, 1 for a true find of this list, 2 for an exceptional one (see Gems)
+"gr": if ge is above 0, why, in ${l}, at most 8 words; else ""
+"de": bargain: 0 for almost every wine, 1 for a clear bargain on this list, 2 for an exceptional one (see Bargains)
+"dr": if de is above 0, why, in ${l}, at most 8 words; else ""
+
+Gems are rare. A gem is the bottle a sommelier would point at on THIS list: a cult or hard-to-find cuvée, a producer far above the level of the rest of the list, a mature vintage rarely offered. A famous appellation, a well-known house or a good producer is not enough. Most lists have no gem: mark at most two, unless the list itself is exceptional ("ex": 1), and even then about one wine in ten. When in doubt, 0.
+Bargains are rare too: a bottle priced clearly below what it usually costs on a restaurant list. Never without a printed price. Most lists have none or one: mark at most three.
 
 Do not add any other key. Do not invent wines that are not on the pages.`
 }
@@ -385,21 +389,56 @@ function nombre(v: unknown): number | null {
   return Number.isFinite(n) ? n : null
 }
 
+// Une pépite ou un bon plan ne veut rien dire s'il est partout (V2.3 · K9 : le banc du 02/10
+// en comptait jusqu'à 26 sur 28 vins). Le modèle note chaque vin (0, 1 ou 2) ; on garde les
+// mieux notés, à rang égal dans l'ordre de la carte, et jamais sans raison écrite.
+function niveauDe(note: unknown, raison: unknown): number {
+  if (typeof raison !== 'string' || !raison.trim()) return 0
+  const n = note === true ? 1 : nombre(note) ?? 0
+  return Math.max(0, Math.min(2, Math.round(n)))
+}
+
+function lesMieuxNotes(niveaux: number[], plafond: number): Set<number> {
+  return new Set(niveaux
+    .map((niveau, i) => ({ niveau, i }))
+    .filter((x) => x.niveau > 0)
+    .sort((a, b) => b.niveau - a.niveau || a.i - b.i)
+    .slice(0, plafond)
+    .map((x) => x.i))
+}
+
+// Deux pépites au plus ; sur une carte exceptionnelle, environ un vin sur dix, cinq au plus.
+// Deux bons plans au plus sur une courte carte, trois sur une longue ; jamais sans prix.
+function plafondDesPepites(nombreDeVins: number, exceptionnelle: boolean): number {
+  return exceptionnelle ? Math.min(5, Math.max(2, Math.round(nombreDeVins / 10))) : 2
+}
+
+function plafondDesBonsPlans(nombreDeVins: number): number {
+  return nombreDeVins < 12 ? 2 : 3
+}
+
 function deplier(court: any, langue: Langue): any {
   // Le modèle a répondu dans l'ancien format : on le rend tel quel.
   if (court && Array.isArray(court.wines)) return court
-  const vins = Array.isArray(court?.v) ? court.v : []
+  const vins = (Array.isArray(court?.v) ? court.v : []).filter((w: any) => w && typeof w.n === 'string' && w.n.trim())
+  const aUnPrix = (w: any) => nombre(w.b) !== null || (Array.isArray(w.gl) && w.gl.some((x: any) => Array.isArray(x) && nombre(x[1]) !== null))
+  const pepites = lesMieuxNotes(vins.map((w: any) => niveauDe(w.ge, w.gr)),
+    plafondDesPepites(vins.length, court?.ex === 1 || court?.ex === true))
+  const bonsPlans = lesMieuxNotes(vins.map((w: any) => (aUnPrix(w) ? niveauDe(w.de, w.dr) : 0)),
+    plafondDesBonsPlans(vins.length))
   return {
     restaurant_name: typeof court?.r === 'string' && court.r.trim() ? court.r.trim() : null,
     currency: typeof court?.c === 'string' && /^[A-Z]{3}$/.test(court.c) ? court.c : null,
-    wines: vins.filter((w: any) => w && typeof w.n === 'string' && w.n.trim()).map((w: any) => {
+    wines: vins.map((w: any, i: number) => {
       const m = Array.isArray(w.m) ? w.m.map((x: unknown) => Math.max(0, Math.min(10, nombre(x) ?? 5))) : []
       const type = TYPES[String(w.t ?? '').toLowerCase()] ?? 'red'
       const blancOuBulles = type !== 'red'
+      const millesime = Number.isInteger(w.y) ? w.y : null
       return {
-        name: w.n.trim(),
+        // Le millésime recopié à la fin du nom (« Camins del Priorat 2021 ») s'afficherait deux fois.
+        name: millesime ? w.n.trim().replace(new RegExp(`[\\s,–—-]+${millesime}$`), '') || w.n.trim() : w.n.trim(),
         producer: w.p ?? null,
-        vintage: Number.isInteger(w.y) ? w.y : null,
+        vintage: millesime,
         wine_type: type,
         appellation: w.a ?? null,
         region: w.rg ?? null,
@@ -425,10 +464,10 @@ function deplier(court: any, langue: Langue): any {
           .filter((t: unknown) => !!t),
         sommelier_comment: typeof w.sc === 'string' ? w.sc : '',
         food_pairings: Array.isArray(w.fp) ? w.fp.filter((x: unknown) => typeof x === 'string').slice(0, 3) : [],
-        is_gem: w.ge === 1 || w.ge === true,
-        gem_reason: (w.ge === 1 || w.ge === true) && typeof w.gr === 'string' && w.gr.trim() ? w.gr.trim() : null,
-        is_deal: w.de === 1 || w.de === true,
-        deal_reason: (w.de === 1 || w.de === true) && typeof w.dr === 'string' && w.dr.trim() ? w.dr.trim() : null,
+        is_gem: pepites.has(i),
+        gem_reason: pepites.has(i) ? w.gr.trim() : null,
+        is_deal: bonsPlans.has(i),
+        deal_reason: bonsPlans.has(i) ? w.dr.trim() : null,
         estimated_retail_price: null,
       }
     }),

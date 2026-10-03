@@ -150,6 +150,18 @@ class H(BaseHTTPRequestHandler):
                      "ge": 0, "gr": "", "de": 0, "dr": ""}]}
                 return self.rep({"candidates": [{"content": {"parts": [{"text": json.dumps(res)}]}}],
                                  "usageMetadata": {"promptTokenCount": 1800, "candidatesTokenCount": 400, "thoughtsTokenCount": 0}})
+            if txt.startswith('You are Chatmelier, a sommelier reading a restaurant wine list') and os.environ.get('FAUX_PEPITES'):
+                # Un modèle qui distribue pépites et bons plans à tout va (V2.3 · K9) : la fonction
+                # n'en garde que les mieux notés, jamais sans raison, ni de bon plan sans prix.
+                notes = [(1, 'a', 0, '', 40), (2, '', 0, '', 40), (1, 'b', 0, '', 40), (2, 'c', 0, '', 40), (1, 'd', 0, '', 40),
+                         (0, '', 2, 'x', None), (0, '', 1, 'y', 40), (0, '', 1, 'z', 35), (0, '', 2, 'w', 50), (0, '', 1, 'v', 30),
+                         (0, '', 1, '', 30), (0, '', 0, '', 30)]
+                res = {"r": "La Grande Carte", "c": "EUR", "ex": 0, "v": [
+                    {"n": f"Vin {i}", "p": f"Domaine {i}", "y": 2020, "t": "r", "a": None, "rg": "Bourgogne", "co": "France",
+                     "g": ["Pinot Noir"], "b": b, "gl": [], "m": [5, 6, 5, 6, 3, 5, 0, 1], "tg": [], "sc": "", "fp": [],
+                     "ge": ge, "gr": gr, "de": de, "dr": dr} for i, (ge, gr, de, dr, b) in enumerate(notes)]}
+                return self.rep({"candidates": [{"content": {"parts": [{"text": json.dumps(res)}]}}],
+                                 "usageMetadata": {"promptTokenCount": 3251, "candidatesTokenCount": 900, "thoughtsTokenCount": 0}})
             if txt.startswith('You are Chatmelier, a sommelier reading a restaurant wine list'):
                 res = {"r": "Le Bistrot du Port", "c": "EUR", "v": [
                     {"n": "Bandol Rouge", "p": "Domaine de Terrebrune", "y": 2019, "t": "r", "a": "Bandol", "rg": "Provence",

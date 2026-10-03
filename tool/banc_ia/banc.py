@@ -16,13 +16,16 @@ lisent presque aussi bien que la meilleure (97 %) et jugent presque aussi bien (
 
     python3 tool/banc_ia/banc.py ~/chatmelier-banc
     python3 tool/banc_ia/banc.py ~/chatmelier-banc --variantes gemini-3.8-flash:low,gemini-3.1-flash-lite:minimal
+    python3 tool/banc_ia/banc.py ~/chatmelier-banc --rejuger    # après une correction des références :
+                                                                # rejuge les réponses gardées, sans clé ni appel
 
 Dossier attendu (les cartes se fabriquent avec tool/banc_ia/fabriquer_cartes.py) :
     cartes/<nom>/page1.jpg, page2.jpg…   + cartes/<nom>/reference.json
     etiquettes/<nom>.jpg                 + etiquettes/<nom>.json
-Référence d'une carte : {"mode": "carte" | "ardoise", "vins": [{"nom", "producteur",
-"millesime", "prix", "prix_verre", "attendu": {"type": "red", "tannins": [7.5, 10]…}}]} — un
-prix nul veut dire « pas imprimé » ; « attendu » est facultatif.
+Référence d'une carte : {"mode": "carte" | "ardoise", "pepites_au_plus": 2, "vins": [{"nom",
+"producteur", "millesime", "prix", "prix_verre", "attendu": {"type": "red", "tannins": [7.5, 10]…},
+"pepite_possible": true}]} — un prix nul veut dire « pas imprimé » ; « attendu »,
+« pepites_au_plus » et « pepite_possible » sont facultatifs.
 Référence d'une étiquette : {"producteur": …, "nom": …, "millesime": 2019, "appellation": …}
 
 Sortie : <dossier>/rapport.md, rapport.json, les réponses entières dans reponses/, et le
@@ -136,8 +139,9 @@ def norme(t):
 def ressemblance(a, b):
     """La part des mots du plus court que l'autre contient : l'ordre ne compte pas
     (« Pétalos del Bierzo » et « Bierzo Pétalos » se reconnaissent)."""
-    mots_a = {w for w in norme(a).split() if w not in MOTS_VIDES}
-    mots_b = {w for w in norme(b).split() if w not in MOTS_VIDES}
+    # Un millésime recopié dans le nom (« Valdeorras Godello 2021 ») ne fait pas un autre vin.
+    mots_a = {w for w in norme(a).split() if w not in MOTS_VIDES and not re.fullmatch(r'(19|20)\d\d', w)}
+    mots_b = {w for w in norme(b).split() if w not in MOTS_VIDES and not re.fullmatch(r'(19|20)\d\d', w)}
     if not mots_a or not mots_b:
         return 0.0
     return len(mots_a & mots_b) / min(len(mots_a), len(mots_b))
@@ -171,6 +175,7 @@ def juger_carte(reponse, reference):
     vins = reponse.get('wines', [])
     attendus = reference.get('vins', [])
     pris = set()
+    reference_de = {}
     trouves = prod = mill = prix = 0
     ok_s = tot_s = 0
     for a in attendus:
@@ -181,6 +186,7 @@ def juger_carte(reponse, reference):
             continue
         _, i = max(candidats)
         pris.add(i)
+        reference_de[i] = a
         v = vins[i]
         trouves += 1
         prod += a.get('producteur') is None or proche(v.get('producer'), a.get('producteur'))
@@ -195,8 +201,16 @@ def juger_carte(reponse, reference):
         ok_s += s_ok
         tot_s += s_tot
     n = max(len(attendus), 1)
-    return {'vins_trouves': trouves / n, 'producteur': prod / n, 'millesime': mill / n, 'prix': prix / n,
-            'sommelier': ok_s / tot_s if tot_s else None, 'vins_en_trop': max(0, len(vins) - trouves)}
+    # Les pépites (V2.3 · K9) : combien, si la carte en supporte autant, et si un sommelier
+    # les défendrait (vin marqué « pepite_possible » dans la référence).
+    pepites = [i for i, w in enumerate(vins) if w.get('is_gem')]
+    jugement = {'vins_trouves': trouves / n, 'producteur': prod / n, 'millesime': mill / n, 'prix': prix / n,
+                'sommelier': ok_s / tot_s if tot_s else None, 'vins_en_trop': max(0, len(vins) - trouves),
+                'pepites': len(pepites), 'bons_plans': sum(1 for w in vins if w.get('is_deal')),
+                'pepites_defendables': sum(1 for i in pepites if (reference_de.get(i) or {}).get('pepite_possible'))}
+    if 'pepites_au_plus' in reference:
+        jugement['pepites_dans_la_borne'] = 1.0 if len(pepites) <= reference['pepites_au_plus'] else 0.0
+    return jugement
 
 
 def juger_etiquette(reponse, reference):
@@ -316,6 +330,11 @@ def bilan(resultats, nom, t):
         'reflexion_jetons': sum(r['reflexion_jetons'] for r in rs) / len(rs),
         'duree': sum(r['duree_s'] for r in rs) / len(rs),
         'niveau': le_plus_frequent([r.get('niveau') for r in rs]),
+        'pepites': moyenne([r.get('pepites') for r in rs]),
+        'bons_plans': moyenne([r.get('bons_plans') for r in rs]),
+        'borne': moyenne([r.get('pepites_dans_la_borne') for r in rs]),
+        'defendables': (sum(r.get('pepites_defendables', 0) for r in rs) / sum(r.get('pepites', 0) for r in rs)
+                        if sum(r.get('pepites', 0) for r in rs) else None),
     }
 
 
@@ -355,10 +374,12 @@ def recommandation(resultats, variantes):
 
 
 def main():
-    if not os.environ.get('GEMINI_API_KEY'):
-        sys.exit('GEMINI_API_KEY absente de l\'environnement : le banc appelle le vrai Gemini.')
     args = sys.argv[1:]
     dossier = Path(args[0]).expanduser()
+    if '--rejuger' in args:
+        return rejuger(dossier)
+    if not os.environ.get('GEMINI_API_KEY'):
+        sys.exit('GEMINI_API_KEY absente de l\'environnement : le banc appelle le vrai Gemini.')
     demandees = args[args.index('--variantes') + 1] if '--variantes' in args else ''
     try:
         variantes = variantes_demandees(demandees) if demandees else variantes_par_defaut()
@@ -423,9 +444,14 @@ def main():
             finally:
                 arreter(faux, journal, f'{nom} · scan-label')
 
-    (dossier / 'rapport.json').write_text(json.dumps(resultats, ensure_ascii=False, indent=1))
+    ecrire_rapport(dossier, resultats, variantes)
+
+
+def ecrire_rapport(dossier, resultats, variantes, quand=None):
+    if quand is None:  # un vrai passage ; un rejugement laisse ses résultats d'origine
+        (dossier / 'rapport.json').write_text(json.dumps(resultats, ensure_ascii=False, indent=1))
     lignes = ['# Banc d\'essai des modèles de lecture', '',
-              f'Le {datetime.date.today().isoformat()}. Lecture : vins trouvés, producteurs, millésimes, prix '
+              f'{quand or "Le " + datetime.date.today().isoformat()}. Lecture : vins trouvés, producteurs, millésimes, prix '
               '(sans prix inventé). Sommelier : couleur et profil des vins dont le profil ne fait pas débat.', '',
               '| Variante | Type | Lecture | Sommelier | Échecs | Coût moyen | Jetons de réflexion | Durée moyenne |',
               '|---|---|---|---|---|---|---|---|']
@@ -437,10 +463,48 @@ def main():
             lignes.append(f'| {nom} | {t} | {pourcent(b["lecture"])} | {pourcent(b["sommelier"])} | '
                           f'{b["echecs"]}/{b["n"]} | {100 * b["cout"]:.2f} c€ | {b["reflexion_jetons"]:.0f} | '
                           f'{b["duree"]:.1f} s |')
+    lignes += ['', '## Pépites et bons plans', '',
+               'Une pépite ne veut dire quelque chose que si elle est rare : aucune sur une carte banale, une ou '
+               'deux au plus, davantage seulement sur une carte exceptionnelle (borne écrite carte par carte). '
+               'Défendable : un vin qu\'un sommelier désignerait sur cette carte.', '',
+               '| Variante | Pépites par carte | Borne tenue | Pépites défendables | Bons plans par carte |',
+               '|---|---|---|---|---|']
+    for nom, _ in variantes:
+        b = bilan(resultats, nom, 'carte')
+        if b and b['pepites'] is not None:
+            lignes.append(f'| {nom} | {b["pepites"]:.1f} | {pourcent(b["borne"])} | {pourcent(b["defendables"])} | '
+                          f'{b["bons_plans"]:.1f} |')
     lignes += ['', '## Recommandation'] + recommandation(resultats, variantes)
     (dossier / 'rapport.md').write_text('\n'.join(lignes) + '\n')
     print('\n'.join(lignes))
 
+
+
+def rejuger(dossier):
+    """Le dernier passage rejugé avec les références d'aujourd'hui : mêmes réponses, mêmes
+    coûts, aucun appel à Gemini."""
+    anciens = json.loads((dossier / 'rapport.json').read_text())
+    niveaux = {v: k for k, v in NIVEAUX.items()}
+    variantes = []
+    for nom in dict.fromkeys(r['variante'] for r in anciens):
+        modele, _, niveau = nom.partition(', réflexion ')
+        variantes.append(variante(modele, niveaux.get(niveau, niveau)))
+    resultats = []
+    for r in anciens:
+        reponse = dossier / 'reponses' / norme(r['variante']).replace(' ', '_') / f"{r['element']}.json"
+        if r.get('erreur') or not reponse.exists():
+            resultats.append(r)
+            continue
+        rep = json.loads(reponse.read_text())
+        if r['type'] == 'carte':
+            jugement = juger_carte(rep, json.loads((dossier / 'cartes' / r['element'] / 'reference.json').read_text()))
+        else:
+            jugement = juger_etiquette(rep, json.loads((dossier / 'etiquettes' / f"{r['element']}.json").read_text()))
+        garde = ('variante', 'type', 'element', 'modele', 'niveau', 'duree_s', 'cout_eur', 'reflexion_jetons')
+        resultats.append({**{k: r[k] for k in garde if k in r}, **jugement})
+    passage = datetime.date.fromtimestamp((dossier / 'rapport.json').stat().st_mtime).isoformat()
+    ecrire_rapport(dossier, resultats, variantes,
+                   quand=f'Passage du {passage}, rejugé le {datetime.date.today().isoformat()} avec les références du jour')
 
 if __name__ == '__main__':
     main()

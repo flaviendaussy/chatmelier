@@ -9,9 +9,9 @@ compression. Les vins sont réels, les prix plausibles.
     python3 tool/banc_ia/fabriquer_cartes.py ~/chatmelier-banc
 
 Écrit <dossier>/cartes/<nom>/page1.jpg (page2.jpg…) et reference.json, au format attendu
-par banc.py : {"mode": "carte" | "ardoise", "vins": [{"nom", "producteur", "millesime",
-"prix", "prix_verre"}]}. Une carte sans prix a des prix nuls. Rejouable : même graine,
-mêmes images.
+par banc.py : {"mode": "carte" | "ardoise", "pepites_au_plus", "vins": [{"nom", "producteur",
+"millesime", "prix", "prix_verre", "pepite_possible"}]}. Une carte sans prix a des prix nuls.
+Rejouable : même graine, mêmes images.
 """
 import json
 import random
@@ -32,10 +32,14 @@ POLICES = {
 }
 
 
-def v(nom, prod, mill, prix=None, verre=None, a=None):
+def v(nom, prod, mill, prix=None, verre=None, a=None, pe=False):
     vin = {'nom': nom, 'producteur': prod, 'millesime': mill, 'prix': prix, 'prix_verre': verre}
     if a:
         vin['attendu'] = a
+    if pe:
+        # Une pépite défendable sur cette carte (V2.3 · K9) : le banc vérifie que celles
+        # que le modèle désigne en font partie.
+        vin['pepite_possible'] = True
     return vin
 
 
@@ -69,14 +73,14 @@ COULEUR_DE_RUBRIQUE = {
 # Les cartes : des lieux, des langues, des devises et des mises en page différentes.
 CARTES = [
     {
-        'nom': 'bistrot_paris', 'titre': 'Le Petit Zinc', 'sous_titre': 'Notre cave', 'devise': '€',
+        'nom': 'bistrot_paris', 'pepites_au_plus': 2, 'titre': 'Le Petit Zinc', 'sous_titre': 'Notre cave', 'devise': '€',
         'police': 'serif', 'format': 'fr', 'colonne_verre': True, 'pages': [[
             ('Blancs', [v('Muscadet Sèvre et Maine sur lie', 'Domaine de la Pépière', 2023, 29, 6, a=p(VIF, SANS_BOIS, {'body': [0, 5]})),
                         v('Sancerre', 'Domaine Vacheron', 2023, 48, 10, a=p(VIF, SANS_BOIS)),
                         v('Chablis 1er Cru Vaillons', 'Domaine Christian Moreau', 2022, 62, a=p(VIF, MINERAL)),
-                        v('Meursault', 'Domaine Roulot', 2020, 145, a=p({'body': [5.5, 10], 'oak': [4, 10]}))]),
-            ('Rouges', [v('Fleurie', 'Domaine Jules Desjourneys', 2022, 52, a=SOUPLE),
-                        v('Morgon Côte du Py', 'Jean Foillard', 2022, 45, 9, a=SOUPLE),
+                        v('Meursault', 'Domaine Roulot', 2020, 145, pe=True, a=p({'body': [5.5, 10], 'oak': [4, 10]}))]),
+            ('Rouges', [v('Fleurie', 'Domaine Jules Desjourneys', 2022, 52, a=SOUPLE, pe=True),
+                        v('Morgon Côte du Py', 'Jean Foillard', 2022, 45, 9, a=SOUPLE, pe=True),
                         v('Saumur-Champigny', 'Domaine des Roches Neuves', 2022, 38, 8),
                         v('Crozes-Hermitage', 'Alain Graillot', 2021, 49),
                         v('Madiran', 'Château Montus', 2018, 55, a=p(TANNIQUE, AMPLE)),
@@ -85,44 +89,44 @@ CARTES = [
         ]],
     },
     {
-        'nom': 'brasserie_longue', 'titre': 'Brasserie Lutetia', 'sous_titre': 'La carte des vins', 'devise': '€',
+        'nom': 'brasserie_longue', 'pepites_au_plus': 3, 'titre': 'Brasserie Lutetia', 'sous_titre': 'La carte des vins', 'devise': '€',
         'police': 'liberation_serif', 'format': 'fr', 'colonne_verre': False, 'pages': [
             [('Champagnes', [v('Brut Réserve', 'Charles Heidsieck', None, 95),
-                             v('Grande Cuvée', 'Krug', None, 390),
+                             v('Grande Cuvée', 'Krug', None, 390, pe=True),
                              v('Blanc de Blancs', 'Ruinart', None, 140)]),
              ('Loire', [v('Vouvray Le Haut-Lieu Sec', 'Domaine Huet', 2021, 58, a=p({'type': 'white'}, VIF)),
                         v('Savennières Clos du Papillon', 'Domaine du Closel', 2020, 64, a=p({'type': 'white'}, VIF)),
                         v('Chinon Les Varennes du Grand Clos', 'Charles Joguet', 2019, 59, a={'type': 'red'}),
-                        v('Pouilly-Fumé Pur Sang', 'Didier Dagueneau', 2020, 135, a=p({'type': 'white'}, VIF))]),
+                        v('Pouilly-Fumé Pur Sang', 'Didier Dagueneau', 2020, 135, pe=True, a=p({'type': 'white'}, VIF))]),
              ('Bourgogne blanc', [v('Puligny-Montrachet', 'Domaine Leflaive', 2020, 210, a={'type': 'white'}),
-                                  v('Saint-Aubin 1er Cru En Remilly', 'Domaine Hubert Lamy', 2021, 98, a={'type': 'white'}),
-                                  v('Mâcon-Pierreclos', 'Domaine Guffens-Heynen', 2022, 54, a={'type': 'white'}),
+                                  v('Saint-Aubin 1er Cru En Remilly', 'Domaine Hubert Lamy', 2021, 98, pe=True, a={'type': 'white'}),
+                                  v('Mâcon-Pierreclos', 'Domaine Guffens-Heynen', 2022, 54, pe=True, a={'type': 'white'}),
                                   v('Chablis Grand Cru Les Clos', 'Domaine William Fèvre', 2019, 180, a=p({'type': 'white'}, MINERAL))]),
              ('Alsace', [v('Riesling Grand Cru Schlossberg', 'Domaine Weinbach', 2020, 89, a=VIF),
                          v('Gewurztraminer', 'Domaine Zind-Humbrecht', 2021, 66, a={'acidity': [0, 6.5]})])],
             [('Bourgogne rouge', [v('Gevrey-Chambertin Les Platières', 'Philippe Leclerc', 2021, 115, a={'type': 'red'}),
-                                  v('Chambolle-Musigny', 'Domaine Ghislaine Barthod', 2020, 160, a=p({'type': 'red'}, SOUPLE)),
+                                  v('Chambolle-Musigny', 'Domaine Ghislaine Barthod', 2020, 160, pe=True, a=p({'type': 'red'}, SOUPLE)),
                                   v('Pommard 1er Cru Les Rugiens', 'Domaine de Courcel', 2019, 175, a={'type': 'red'}),
-                                  v('Bourgogne Hautes-Côtes de Nuits', 'Domaine Jayer-Gilles', 2021, 72, a={'type': 'red'})]),
-             ('Rhône', [v('Côte-Rôtie La Landonne', 'E. Guigal', 2017, 690, a=p({'type': 'red'}, AMPLE)),
-                        v('Hermitage', 'Jean-Louis Chave', 2018, 650, a=p({'type': 'red'}, TANNIQUE, AMPLE)),
+                                  v('Bourgogne Hautes-Côtes de Nuits', 'Domaine Jayer-Gilles', 2021, 72, pe=True, a={'type': 'red'})]),
+             ('Rhône', [v('Côte-Rôtie La Landonne', 'E. Guigal', 2017, 690, pe=True, a=p({'type': 'red'}, AMPLE)),
+                        v('Hermitage', 'Jean-Louis Chave', 2018, 650, pe=True, a=p({'type': 'red'}, TANNIQUE, AMPLE)),
                         v('Châteauneuf-du-Pape', 'Château de Beaucastel', 2019, 120, a=p({'type': 'red'}, AMPLE)),
-                        v('Cornas', 'Auguste Clape', 2019, 135, a=p({'type': 'red'}, TANNIQUE))]),
+                        v('Cornas', 'Auguste Clape', 2019, 135, pe=True, a=p({'type': 'red'}, TANNIQUE))]),
              ('Bordeaux', [v('Saint-Julien', 'Château Léoville Las Cases', 2012, 420, a=p({'type': 'red'}, TANNIQUE)),
                            v('Pessac-Léognan', 'Domaine de Chevalier', 2016, 145, a={'type': 'red'}),
                            v('Pomerol', 'Château La Conseillante', 2015, 260, a={'type': 'red'}),
                            v('Margaux', 'Château Palmer', 2014, 480, a={'type': 'red'})]),
              ('Sud', [v('Bandol', 'Domaine Tempier', 2019, 78, a=p({'type': 'red'}, TANNIQUE)),
                       v('Minervois La Livinière', 'Château Maris', 2020, 48, a={'type': 'red'}),
-                      v('Faugères', 'Domaine Léon Barral', 2019, 69, a={'type': 'red'})])],
+                      v('Faugères', 'Domaine Léon Barral', 2019, 69, pe=True, a={'type': 'red'})])],
         ],
     },
     {
-        'nom': 'ecosse_kitchin', 'titre': 'THE KITCHIN', 'sous_titre': 'Wine List', 'devise': '£',
+        'nom': 'ecosse_kitchin', 'pepites_au_plus': 1, 'titre': 'THE KITCHIN', 'sous_titre': 'Wine List', 'devise': '£',
         'police': 'gothic', 'format': 'en', 'colonne_verre': False, 'pages': [[
-            ('Red Wines', [v('Barolo', 'Vietti', 2019, 95, a=p(TANNIQUE, {'acidity': [6.5, 10]})),
+            ('Red Wines', [v('Barolo', 'Vietti', 2019, 95, pe=True, a=p(TANNIQUE, {'acidity': [6.5, 10]})),
                            v('Rioja Reserva', 'La Rioja Alta', 2016, 60, a={'oak': [5, 10]}),
-                           v('Pinot Noir', 'Felton Road', 2021, 72, a=SOUPLE),
+                           v('Pinot Noir', 'Felton Road', 2021, 72, a=SOUPLE, pe=True),
                            v('Bin 28 Kalimna Shiraz', 'Penfolds', 2019, 58, a=AMPLE),
                            v('Malbec', 'Catena Zapata', 2020, 44, a=AMPLE)]),
             ('White Wines', [v('Sancerre', 'Vacheron', 2022, 42, a=p(VIF, SANS_BOIS)),
@@ -133,36 +137,36 @@ CARTES = [
         ]],
     },
     {
-        'nom': 'tapas_madrid', 'titre': 'Taberna La Bodeguilla', 'sous_titre': 'Vinos', 'devise': '€',
+        'nom': 'tapas_madrid', 'pepites_au_plus': 2, 'titre': 'Taberna La Bodeguilla', 'sous_titre': 'Vinos', 'devise': '€',
         'police': 'bookman', 'format': 'es', 'colonne_verre': True, 'pages': [[
-            ('Tintos', [v('Rioja Gran Reserva 904', 'La Rioja Alta', 2015, 85, a={'oak': [5.5, 10]}),
+            ('Tintos', [v('Rioja Gran Reserva 904', 'La Rioja Alta', 2015, 85, pe=True, a={'oak': [5.5, 10]}),
                         v('Ribera del Duero Crianza', 'Pesquera', 2019, 45, 7),
                         v('Priorat Camins del Priorat', 'Álvaro Palacios', 2021, 39, 6),
                         v('Pétalos del Bierzo', 'Descendientes de J. Palacios', 2021, 34, 5.5),
                         v('Románico', 'Teso La Monja', 2020, 29, a=AMPLE)]),
             ('Blancos', [v('Rías Baixas Albariño', 'Pazo de Señorans', 2023, 32, 5, a=p(VIF, SANS_BOIS)),
                          v('Rueda Verdejo', 'José Pariente', 2023, 24, 4),
-                         v('Valdeorras Godello', 'Rafael Palacios As Sortes', 2021, 68)]),
-            ('Rosados y espumosos', [v('Navarra Rosado', 'Chivite Las Fincas', 2023, 26, 4.5, a={'type': 'rose'}),
+                         v('Valdeorras Godello As Sortes', 'Rafael Palacios', 2021, 68, pe=True)]),
+            ('Rosados y espumosos', [v('Navarra Rosado Las Fincas', 'Chivite', 2023, 26, 4.5, a={'type': 'rose'}),
                                      v('Cava Reserva de la Familia', 'Juvé & Camps', 2019, 38, a={'type': 'sparkling'})]),
         ]],
     },
     {
-        'nom': 'enoteca_roma', 'titre': 'Enoteca Il Goccetto', 'sous_titre': 'Carta dei vini', 'devise': '€',
+        'nom': 'enoteca_roma', 'pepites_au_plus': 2, 'titre': 'Enoteca Il Goccetto', 'sous_titre': 'Carta dei vini', 'devise': '€',
         'police': 'palatino_it', 'format': 'it', 'colonne_verre': False, 'pages': [[
             ('Rossi', [v('Barolo Cannubi', 'Brezza', 2018, 92, a=TANNIQUE),
-                       v('Brunello di Montalcino', 'Biondi-Santi', 2016, 240, a=p(TANNIQUE, {'acidity': [6.5, 10]})),
+                       v('Brunello di Montalcino', 'Biondi-Santi', 2016, 240, pe=True, a=p(TANNIQUE, {'acidity': [6.5, 10]})),
                        v('Chianti Classico Riserva', 'Fèlsina Rancia', 2019, 58, a={'acidity': [6.5, 10]}),
                        v('Etna Rosso', 'Tenuta delle Terre Nere', 2021, 39, a={'acidity': [6, 10]}),
-                       v('Montepulciano d\'Abruzzo', 'Valentini', 2017, 160)]),
+                       v('Montepulciano d\'Abruzzo', 'Valentini', 2017, 160, pe=True)]),
             ('Bianchi', [v('Soave Classico', 'Pieropan', 2022, 32, a=SANS_BOIS),
-                         v('Fiano di Avellino', 'Ciro Picariello', 2021, 36),
-                         v('Verdicchio dei Castelli di Jesi', 'Bucci Villa Bucci', 2020, 48, a=VIF)]),
+                         v('Fiano di Avellino', 'Ciro Picariello', 2021, 36, pe=True),
+                         v('Verdicchio dei Castelli di Jesi', 'Bucci Villa Bucci', 2020, 48, a=VIF, pe=True)]),
             ('Bollicine', [v('Franciacorta Brut', 'Ca\' del Bosco', None, 64)]),
         ]],
     },
     {
-        'nom': 'salon_sans_prix', 'titre': 'Salon Premium', 'sous_titre': 'Sélection de vins offerte', 'devise': '',
+        'nom': 'salon_sans_prix', 'pepites_au_plus': 0, 'titre': 'Salon Premium', 'sous_titre': 'Sélection de vins offerte', 'devise': '',
         'police': 'lato', 'format': 'fr', 'colonne_verre': False, 'pages': [[
             ('Blancs', [v('Chablis', 'Domaine Laroche', 2022, a=p(VIF, SANS_BOIS)),
                         v('Côtes de Gascogne', 'Domaine Tariquet', 2023)]),
@@ -172,37 +176,37 @@ CARTES = [
         ]],
     },
     {
-        'nom': 'ardoise_craie', 'titre': 'LE COMPTOIR DU CANAL', 'sous_titre': 'Les vins au verre (12 cl)',
+        'nom': 'ardoise_craie', 'pepites_au_plus': 1, 'titre': 'LE COMPTOIR DU CANAL', 'sous_titre': 'Les vins au verre (12 cl)',
         'devise': '€', 'police': 'lato', 'format': 'fr', 'mode': 'ardoise', 'colonne_verre': False, 'pages': [[
             ('Bulles', [v('Champagne Brut 1er Cru', 'Pierre Gimonnet', None, verre=13)]),
-            ('Blancs', [v('Muscadet Sèvre et Maine sur lie', 'Domaine de l\'Écu', 2023, verre=6, a=p(VIF, SANS_BOIS)),
+            ('Blancs', [v('Muscadet Sèvre et Maine sur lie', 'Domaine de l\'Écu', 2023, verre=6, pe=True, a=p(VIF, SANS_BOIS)),
                         v('Chablis', 'William Fèvre', 2022, verre=9),
                         v('Sancerre', 'Domaine Vacheron', 2023, verre=10)]),
             ('Rosé', [v('Bandol rosé', 'Domaine Tempier', 2023, verre=9)]),
             ('Rouges', [v('Saumur-Champigny', 'Roches Neuves', 2022, verre=8),
-                        v('Morgon Côte du Py', 'Jean Foillard', 2022, verre=9, a=SOUPLE),
-                        v('Côtes du Rhône', 'Gramenon', 2021, verre=8),
+                        v('Morgon Côte du Py', 'Jean Foillard', 2022, verre=9, a=SOUPLE, pe=True),
+                        v('Côtes du Rhône', 'Gramenon', 2021, verre=8, pe=True),
                         v('Madiran', 'Château Montus', 2018, verre=11, a=TANNIQUE)]),
         ]],
     },
     {
-        'nom': 'ardoise_italique', 'titre': 'Cave à manger Le Vercingétorix', 'sous_titre': 'Ardoise du jour, au verre',
+        'nom': 'ardoise_italique', 'pepites_au_plus': 1, 'titre': 'Cave à manger Le Vercingétorix', 'sous_titre': 'Ardoise du jour, au verre',
         'devise': '€', 'police': 'palatino_it', 'format': 'fr', 'mode': 'ardoise', 'colonne_verre': False, 'pages': [[
-            ('Les blancs', [v('L\'Étoile Chardonnay', 'Domaine de Montbourgeau', 2020, verre=8),
+            ('Les blancs', [v('L\'Étoile Chardonnay', 'Domaine de Montbourgeau', 2020, verre=8, pe=True),
                             v('Alsace Riesling', 'Domaine Ostertag', 2022, verre=7.5, a=VIF),
                             v('Saint-Véran', 'Domaine des Deux Roches', 2022, verre=7)]),
             ('Les rouges', [v('Beaujolais-Villages', 'Domaine Dupeuble', 2023, verre=5.5, a=SOUPLE),
                             v('Cahors', 'Clos Triguedina', 2019, verre=7, a=TANNIQUE),
-                            v('Corbières', 'Domaine Ledogar', 2021, verre=6.5),
+                            v('Corbières', 'Domaine Ledogar', 2021, verre=6.5, pe=True),
                             v('Saint-Joseph', 'Domaine Coursodon', 2021, verre=9.5)]),
         ]],
     },
     {
-        'nom': 'deux_colonnes_dense', 'titre': 'Restaurant Le Grand Véfour', 'sous_titre': 'Sélection du sommelier',
+        'nom': 'deux_colonnes_dense', 'pepites_au_plus': 2, 'titre': 'Restaurant Le Grand Véfour', 'sous_titre': 'Sélection du sommelier',
         'devise': '€', 'police': 'etroite', 'format': 'fr', 'colonnes': 2, 'colonne_verre': False, 'pages': [[
-            ('Bourgogne', [v('Corton-Charlemagne Grand Cru', 'Bonneau du Martray', 2018, 310, a={'type': 'white'}),
+            ('Bourgogne', [v('Corton-Charlemagne Grand Cru', 'Bonneau du Martray', 2018, 310, pe=True, a={'type': 'white'}),
                            v('Vosne-Romanée', 'Domaine Méo-Camuzet', 2019, 240, a={'type': 'red'}),
-                           v('Volnay 1er Cru Clos des Chênes', 'Domaine Lafarge', 2017, 190, a=p({'type': 'red'}, SOUPLE)),
+                           v('Volnay 1er Cru Clos des Chênes', 'Domaine Lafarge', 2017, 190, pe=True, a=p({'type': 'red'}, SOUPLE)),
                            v('Marsannay', 'Domaine Bruno Clair', 2020, 75),
                            v('Rully 1er Cru', 'Domaine Vincent Dureuil-Janthial', 2021, 82),
                            v('Givry', 'Domaine Joblot', 2020, 68)]),
@@ -212,27 +216,27 @@ CARTES = [
                           v('Sauternes', 'Château Suduiraut', 2015, 95, a=LIQUOREUX)]),
             ('Loire & Jura', [v('Savennières Roche aux Moines', 'Domaine aux Moines', 2019, 88, a=p({'type': 'white'}, VIF)),
                               v('Bourgueil', 'Domaine de la Butte', 2020, 46),
-                              v('Arbois Vin Jaune', 'Domaine Tissot', 2015, 120, a={'type': 'white'}),
-                              v('Côtes du Jura Chardonnay', 'Domaine Labet', 2020, 72)]),
-            ('Rhône & Provence', [v('Condrieu', 'Domaine Georges Vernay Coteau de Vernon', 2021, 160, a=p({'type': 'white'}, {'acidity': [0, 7]})),
+                              v('Arbois Vin Jaune', 'Domaine Tissot', 2015, 120, pe=True, a={'type': 'white'}),
+                              v('Côtes du Jura Chardonnay', 'Domaine Labet', 2020, 72, pe=True)]),
+            ('Rhône & Provence', [v('Condrieu', 'Domaine Georges Vernay Coteau de Vernon', 2021, 160, pe=True, a=p({'type': 'white'}, {'acidity': [0, 7]})),
                                   v('Saint-Péray', 'Domaine Alain Voge', 2021, 58),
                                   v('Gigondas', 'Domaine Santa Duc', 2019, 66, a=p({'type': 'red'}, AMPLE)),
-                                  v('Palette', 'Château Simone', 2019, 98),
-                                  v('Bellet', 'Clos Saint-Vincent', 2021, 74),
+                                  v('Palette', 'Château Simone', 2019, 98, pe=True),
+                                  v('Bellet', 'Clos Saint-Vincent', 2021, 74, pe=True),
                                   v('Cassis', 'Clos Sainte Magdeleine', 2022, 56)]),
         ]],
     },
     {
-        'nom': 'formule_magnums', 'titre': 'Chez Germaine', 'sous_titre': 'Vins — bouteille 75 cl', 'devise': '€',
+        'nom': 'formule_magnums', 'pepites_au_plus': 2, 'titre': 'Chez Germaine', 'sous_titre': 'Vins — bouteille 75 cl', 'devise': '€',
         'police': 'serif', 'format': 'fr', 'colonne_verre': True, 'pages': [[
             ('Effervescents', [v('Crémant de Loire', 'Langlois-Château', None, 32, 6),
-                               v('Champagne Blanc de Blancs Initial', 'Jacques Selosse', None, 260)]),
+                               v('Champagne Blanc de Blancs Initial', 'Jacques Selosse', None, 260, pe=True)]),
             ('Blancs', [v('Picpoul de Pinet', 'Domaine Félines Jourdan', 2023, 26, 5, a=VIF),
-                        v('Côtes Catalanes Les Calcinaires', 'Domaine Gauby', 2022, 44),
-                        v('Bouzeron', 'Domaine A. et P. de Villaine', 2021, 39, 7, a=VIF)]),
+                        v('Côtes Catalanes Les Calcinaires', 'Domaine Gauby', 2022, 44, pe=True),
+                        v('Bouzeron', 'Domaine A. et P. de Villaine', 2021, 39, 7, a=VIF, pe=True)]),
             ('Rouges', [v('Côtes du Rhône', 'Domaine de la Janasse', 2022, 29, 5.5),
                         v('Marcillac', 'Domaine du Cros', 2022, 27),
-                        v('Irouléguy', 'Domaine Arretxea', 2019, 46),
+                        v('Irouléguy', 'Domaine Arretxea', 2019, 46, pe=True),
                         v('Pic Saint-Loup', 'Domaine de l\'Hortus', 2020, 38, 7)]),
         ]],
     },
@@ -397,7 +401,7 @@ def main():
                     if rubrique in COULEUR_DE_RUBRIQUE:
                         attendu.setdefault('type', COULEUR_DE_RUBRIQUE[rubrique])
                     vins.append({**w, 'attendu': attendu} if attendu else w)
-        reference = {'mode': carte.get('mode', 'carte'), 'vins': vins}
+        reference = {'mode': carte.get('mode', 'carte'), 'pepites_au_plus': carte['pepites_au_plus'], 'vins': vins}
         (cible / 'reference.json').write_text(json.dumps(reference, ensure_ascii=False, indent=1) + '\n')
         print(f'{carte["nom"]} : {len(pages)} page(s), {len(vins)} vins')
 

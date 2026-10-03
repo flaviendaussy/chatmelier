@@ -2,6 +2,21 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.6.0+74] — 2026-10-03
+
+> La 74 reprend la 73, jamais envoyée, et c'est la première version pour iPhone. Les testeurs Android passent directement de la 71 à la 74 : tout ce que décrit la 73 les concerne aussi.
+
+### 🍷 Ce qui change pour vous
+- **Chatmelier sur iPhone** : la même app, le même compte et les mêmes caves. Sur iPhone, on se connecte par lien e-mail.
+- **Un palais encore deviné le dit** : tant que l'app vous connaît peu, vos accords à table s'affichent « ≈ 73 % », une ligne dit à quel point votre palais est connu, et ne rien savoir ne gonfle plus les pourcentages.
+- **Des pépites qui veulent dire quelque chose** : une ou deux par carte au plus, aucune sur une carte banale ; de même pour les bons plans.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Palais deviné (K5)* : `GuestProfile.ecartSurLAxe` / `ecartCarreSurLAxe` — un axe deviné compte pour un tiers son écart et pour le reste un écart d'ignorance de 2 points (`ecartDIgnorance`), au lieu de réduire l'écart seul ; `connaissance` (moyenne des huit axes) et `palaisDevine` (sous 0,35) ; `PalaisDevine.pourcentage` et `legende` (table, accord à la maison) ; le résultat publié porte `devine` et `connu`, la page invité les affiche (`table.js`).
+- *iPhone* : icône et écran de lancement Chatmelier ; `Info.plist` — langues (fr, en, es), micro et position (« pendant l'utilisation » seulement) décrits au plus juste, `ITSAppUsesNonExemptEncryption` ; iPhone seulement (`TARGETED_DEVICE_FAMILY = 1`) ; rappels affichés app ouverte (`AppDelegate`) ; connexion Google masquée sur iOS tant que « Se connecter avec Apple » n'existe pas (règle 4.8 de l'App Store) ; construction et envoi sur TestFlight par GitHub Actions (`.github/workflows/ios.yml`).
+- *Serveur, sans nouveau build (K9, sécurité des modèles)* : `scan-menu` note pépites et bons plans de 0 à 2 et n'en garde que les mieux notés (deux pépites, cinq au plus sur une carte exceptionnelle ; deux ou trois bons plans, jamais sans prix ni sans raison), et retire le millésime recopié à la fin du nom ; un modèle que Google ne connaît plus (404) est écarté six heures et signalé au journal des erreurs de la console (`IA_MODELE`).
+- *Banc d'essai (K3b)* : références corrigées (cuvée et producteur séparés, pas d'appellation « Texas »), pépites jugées carte par carte (`pepites_au_plus`, `pepite_possible`), millésime recopié dans le nom ignoré, `--rejuger` (rejuge les réponses gardées, sans clé).
+
 ## [v1.6.0+73] — 2026-10-02
 
 > La 73 reprend tout ce que contenait la 72, construite le même jour, avec en plus une note de table plus honnête, la source des installations et deux petits correctifs.

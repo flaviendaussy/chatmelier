@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +16,12 @@ class LoginScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
+
+/// Google en premier, sauf sur iPhone (V2.3 · iOS) : l'App Store exige « Se connecter avec
+/// Apple » à côté de toute connexion par un tiers (règle 4.8). En attendant, l'iPhone se
+/// connecte par lien e-mail, sur le même compte : Supabase relie les connexions d'une même
+/// adresse vérifiée.
+bool get _googleProposee => kIsWeb || defaultTargetPlatform != TargetPlatform.iOS;
 
 class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
@@ -411,72 +418,76 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                     ),
                   ),
 
-                  // GOOGLE EN PREMIER, ET NON TOUT EN BAS.
-                  //
-                  // Il était relégué sous un `TabBarView` de 380 pixels, derrière un
-                  // diviseur « OU », en bouton gris avec l'icône générique
-                  // `Icons.g_mobiledata`. Il fallait faire défiler pour le trouver, et une
-                  // fois trouvé rien ne disait que c'était Google. C'est pourtant la
-                  // connexion la plus rapide de toutes : aucun mot de passe à retenir,
-                  // aucune boîte mail à ouvrir.
-                  //
-                  // Fond blanc et « G » aux quatre couleurs : c'est à ça qu'on le
-                  // reconnaît d'un coup d'œil, pas à un libellé.
-                  Material(
-                    color: Colors.white,
-                    elevation: 1.5,
-                    shadowColor: Colors.black.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
+                  // Sur iPhone, pas de Google sans « Se connecter avec Apple » à côté : l'App
+                  // Store l'exige (règle 4.8). L'iPhone se connecte par lien e-mail.
+                  if (_googleProposee) ...[
+                    // GOOGLE EN PREMIER, ET NON TOUT EN BAS.
+                    //
+                    // Il était relégué sous un `TabBarView` de 380 pixels, derrière un
+                    // diviseur « OU », en bouton gris avec l'icône générique
+                    // `Icons.g_mobiledata`. Il fallait faire défiler pour le trouver, et une
+                    // fois trouvé rien ne disait que c'était Google. C'est pourtant la
+                    // connexion la plus rapide de toutes : aucun mot de passe à retenir,
+                    // aucune boîte mail à ouvrir.
+                    //
+                    // Fond blanc et « G » aux quatre couleurs : c'est à ça qu'on le
+                    // reconnaît d'un coup d'œil, pas à un libellé.
+                    Material(
+                      color: Colors.white,
+                      elevation: 1.5,
+                      shadowColor: Colors.black.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
-                      onTap: _isLoading ? null : _googleLogin,
-                      child: Container(
-                        height: 52,
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFDADCE0)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const _LogoGoogle(taille: 20),
-                            const SizedBox(width: 12),
-                            Text(
-                              l10n?.loginGoogleButton ?? tr('Continuer avec Google', 'Continue with Google'),
-                              style: const TextStyle(
-                                color: Color(0xFF3C4043),
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.1,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: _isLoading ? null : _googleLogin,
+                        child: Container(
+                          height: 52,
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFDADCE0)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const _LogoGoogle(taille: 20),
+                              const SizedBox(width: 12),
+                              Text(
+                                l10n?.loginGoogleButton ?? tr('Continuer avec Google', 'Continue with Google'),
+                                style: const TextStyle(
+                                  color: Color(0xFF3C4043),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.1,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-
-                  // Le diviseur sépare maintenant Google de ce qui suit, au lieu de
-                  // l'enterrer après.
-                  Row(
-                    children: [
-                      const Expanded(child: Divider()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          l10n?.loginOrDivider ?? 'OU',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                            ],
                           ),
                         ),
                       ),
-                      const Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Le diviseur sépare maintenant Google de ce qui suit, au lieu de
+                    // l'enterrer après.
+                    Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            l10n?.loginOrDivider ?? 'OU',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                  ],
 
                   // Auth Method Tabs
                   Container(

@@ -243,271 +243,271 @@
   "fr": "Email ou mot de passe incorrect. Si vous n'avez pas encore de compte, cliquez sur \"Créer un compte\".",
   "en": "Incorrect email or password. If you don't have an account yet, tap \"Create an account\".",
   "es": "Correo o contraseña incorrectos. Si aún no tienes cuenta, toca \"Crear una cuenta\".",
-  "ou": "lib/features/auth/presentation/login_screen.dart:51"
+  "ou": "lib/features/auth/presentation/login_screen.dart:58"
  },
  {
   "fr": "Format d'adresse email invalide. Veuillez vérifier votre saisie.",
   "en": "Invalid email address. Please check what you typed.",
   "es": "Formato de correo no válido. Revisa lo que has escrito.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:54"
+  "ou": "lib/features/auth/presentation/login_screen.dart:61"
  },
  {
   "fr": "Cette adresse email est déjà enregistrée. Veuillez vous connecter.",
   "en": "This email address is already registered. Please sign in.",
   "es": "Este correo ya está registrado. Inicia sesión.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:57"
+  "ou": "lib/features/auth/presentation/login_screen.dart:64"
  },
  {
   "fr": "Adresse email non confirmée. Veuillez vérifier votre boîte de réception.",
   "en": "Email address not confirmed. Please check your inbox.",
   "es": "Correo no confirmado. Revisa tu bandeja de entrada.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:60"
+  "ou": "lib/features/auth/presentation/login_screen.dart:67"
  },
  {
   "fr": "Le mot de passe doit comporter au moins 6 caractères.",
   "en": "The password must be at least 6 characters long.",
   "es": "La contraseña debe tener al menos 6 caracteres.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:63"
+  "ou": "lib/features/auth/presentation/login_screen.dart:70"
  },
  {
   "fr": "Trop de tentatives en peu de temps. Veuillez patienter 60 secondes avant de réessayer.",
   "en": "Too many attempts in a short time. Please wait 60 seconds before trying again.",
   "es": "Demasiados intentos en poco tiempo. Espera 60 segundos antes de volver a intentarlo.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:66"
+  "ou": "lib/features/auth/presentation/login_screen.dart:73"
  },
  {
   "fr": "Impossible de joindre le serveur. Veuillez vérifier votre connexion Internet et réessayer.",
   "en": "Can't reach the server. Please check your internet connection and try again.",
   "es": "No se puede conectar con el servidor. Comprueba tu conexión a internet y vuelve a intentarlo.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:74"
+  "ou": "lib/features/auth/presentation/login_screen.dart:81"
  },
  {
   "fr": "Une erreur est survenue lors de la connexion. Veuillez réessayer.",
   "en": "Something went wrong while signing in. Please try again.",
   "es": "Algo ha fallado al iniciar sesión. Vuelve a intentarlo.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:76"
+  "ou": "lib/features/auth/presentation/login_screen.dart:83"
  },
  {
   "fr": "Veuillez renseigner une adresse email valide",
   "en": "Please enter a valid email address",
   "es": "Introduce un correo electrónico válido",
-  "ou": "lib/features/auth/presentation/login_screen.dart:83"
+  "ou": "lib/features/auth/presentation/login_screen.dart:90"
  },
  {
   "fr": "✉️ Lien de connexion envoyé à {email} ! Cliquez sur le lien reçu (vérifiez vos spams) pour entrer directement.",
   "en": "✉️ Sign-in link sent to {email}! Tap the link in that email (check your spam folder) to sign straight in.",
   "es": "✉️ ¡Enlace de acceso enviado a {email}! Toca el enlace del correo (revisa el spam) para entrar directamente.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:98"
+  "ou": "lib/features/auth/presentation/login_screen.dart:105"
  },
  {
   "fr": "Veuillez remplir votre email et votre mot de passe",
   "en": "Please enter your email and password",
   "es": "Introduce tu correo y tu contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:123"
+  "ou": "lib/features/auth/presentation/login_screen.dart:130"
  },
  {
   "fr": "Mot de passe incorrect ou compte créé sans mot de passe.",
   "en": "Wrong password, or an account created without a password.",
   "es": "Contraseña incorrecta, o cuenta creada sin contraseña.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:139"
+  "ou": "lib/features/auth/presentation/login_screen.dart:146"
  },
  {
   "fr": "Connexion email ✉️",
   "en": "Email sign-in ✉️",
   "es": "Acceso por correo ✉️",
-  "ou": "lib/features/auth/presentation/login_screen.dart:143"
+  "ou": "lib/features/auth/presentation/login_screen.dart:150"
  },
  {
   "fr": "Mot de passe oublié ?",
   "en": "Forgot your password?",
   "es": "¿Has olvidado tu contraseña?",
-  "ou": "lib/features/auth/presentation/login_screen.dart:175"
+  "ou": "lib/features/auth/presentation/login_screen.dart:182"
  },
  {
   "fr": "Renseignez votre email pour recevoir un lien direct de connexion (sans mot de passe) ou un lien de réinitialisation :",
   "en": "Enter your email to get a direct sign-in link (no password needed) or a reset link:",
   "es": "Introduce tu correo para recibir un enlace de acceso directo (sin contraseña) o un enlace para restablecerla:",
-  "ou": "lib/features/auth/presentation/login_screen.dart:181"
+  "ou": "lib/features/auth/presentation/login_screen.dart:188"
  },
  {
   "fr": "Adresse email",
   "en": "Email address",
   "es": "Correo electrónico",
-  "ou": "lib/features/auth/presentation/login_screen.dart:189"
+  "ou": "lib/features/auth/presentation/login_screen.dart:196"
  },
  {
   "fr": "Lien direct par email (Recommandé)",
   "en": "Direct link by email (recommended)",
   "es": "Enlace directo por correo (recomendado)",
-  "ou": "lib/features/auth/presentation/login_screen.dart:204"
+  "ou": "lib/features/auth/presentation/login_screen.dart:211"
  },
  {
   "fr": "Veuillez renseigner une adresse email valide.",
   "en": "Please enter a valid email address.",
   "es": "Introduce un correo electrónico válido.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:209"
+  "ou": "lib/features/auth/presentation/login_screen.dart:216"
  },
  {
   "fr": "Réinitialiser le mot de passe",
   "en": "Reset password",
   "es": "Restablecer la contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:221"
+  "ou": "lib/features/auth/presentation/login_screen.dart:228"
  },
  {
   "fr": "✉️ Email de réinitialisation envoyé à {targetEmail} (vérifiez vos courriers indésirables / spams)",
   "en": "✉️ Reset email sent to {targetEmail} (check your junk / spam folder)",
   "es": "✉️ Correo para restablecer enviado a {targetEmail} (revisa la carpeta de correo no deseado / spam)",
-  "ou": "lib/features/auth/presentation/login_screen.dart:237"
+  "ou": "lib/features/auth/presentation/login_screen.dart:244"
  },
  {
   "fr": "Erreur : {err}",
   "en": "Error: {err}",
   "es": "Error: {err}",
-  "ou": "lib/features/auth/presentation/login_screen.dart:246"
+  "ou": "lib/features/auth/presentation/login_screen.dart:253"
  },
  {
   "fr": "Annuler",
   "en": "Cancel",
   "es": "Cancelar",
-  "ou": "lib/features/auth/presentation/login_screen.dart:254"
+  "ou": "lib/features/auth/presentation/login_screen.dart:261"
  },
  {
   "fr": "Échec de connexion Google : {e}",
   "en": "Google sign-in failed: {e}",
   "es": "Error al iniciar sesión con Google: {e}",
-  "ou": "lib/features/auth/presentation/login_screen.dart:271"
+  "ou": "lib/features/auth/presentation/login_screen.dart:278"
  },
  {
   "fr": "Votre cave à vin intelligente et partagée",
   "en": "Your smart, shared wine cellar",
   "es": "Tu bodega inteligente y compartida",
-  "ou": "lib/features/auth/presentation/login_screen.dart:317"
+  "ou": "lib/features/auth/presentation/login_screen.dart:324"
  },
  {
   "fr": "Au restaurant ce soir ?",
   "en": "Eating out tonight?",
   "es": "¿Al restaurante esta noche?",
-  "ou": "lib/features/auth/presentation/login_screen.dart:355"
+  "ou": "lib/features/auth/presentation/login_screen.dart:362"
  },
  {
   "fr": "Profitez du sommelier & de la table sans compte !",
   "en": "Use the sommelier and the table without an account!",
   "es": "¡Disfruta del sumiller y de la mesa sin cuenta!",
-  "ou": "lib/features/auth/presentation/login_screen.dart:359"
+  "ou": "lib/features/auth/presentation/login_screen.dart:366"
  },
  {
   "fr": "Rejoindre table",
   "en": "Join table",
   "es": "Unirme a una mesa",
-  "ou": "lib/features/auth/presentation/login_screen.dart:379"
+  "ou": "lib/features/auth/presentation/login_screen.dart:386"
  },
  {
   "fr": "Scanner menu",
   "en": "Scan menu",
   "es": "Escanear la carta",
-  "ou": "lib/features/auth/presentation/login_screen.dart:393"
+  "ou": "lib/features/auth/presentation/login_screen.dart:400"
  },
  {
   "fr": "J'ai un code de reprise",
   "en": "I have a recovery code",
   "es": "Tengo un código de recuperación",
-  "ou": "lib/features/auth/presentation/login_screen.dart:405"
+  "ou": "lib/features/auth/presentation/login_screen.dart:412"
  },
  {
   "fr": "Continuer avec Google",
   "en": "Continue with Google",
   "es": "Continuar con Google",
-  "ou": "lib/features/auth/presentation/login_screen.dart:447"
+  "ou": "lib/features/auth/presentation/login_screen.dart:457"
  },
  {
   "fr": "✉️ Lien de connexion",
   "en": "✉️ Sign-in link",
   "es": "✉️ Enlace de acceso",
-  "ou": "lib/features/auth/presentation/login_screen.dart:494"
+  "ou": "lib/features/auth/presentation/login_screen.dart:505"
  },
  {
   "fr": "🔑 Mot de passe",
   "en": "🔑 Password",
   "es": "🔑 Contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:495"
+  "ou": "lib/features/auth/presentation/login_screen.dart:506"
  },
  {
   "fr": "Lien de connexion envoyé !",
   "en": "Sign-in link sent!",
   "es": "¡Enlace de acceso enviado!",
-  "ou": "lib/features/auth/presentation/login_screen.dart:544"
+  "ou": "lib/features/auth/presentation/login_screen.dart:555"
  },
  {
   "fr": "Un email sécurisé a été envoyé à :\n{v1}\n\nOuvrez simplement cet email et cliquez sur le lien pour vous connecter automatiquement à votre cave (vérifiez votre dossier spams si nécessaire).",
   "en": "A secure email has been sent to:\n{v1}\n\nJust open it and tap the link to sign in to your cellar automatically (check your spam folder if needed).",
   "es": "Hemos enviado un correo seguro a:\n{v1}\n\nÁbrelo y toca el enlace para entrar automáticamente en tu bodega (revisa la carpeta de spam si hace falta).",
-  "ou": "lib/features/auth/presentation/login_screen.dart:552"
+  "ou": "lib/features/auth/presentation/login_screen.dart:563"
  },
  {
   "fr": "Renvoi en cours...",
   "en": "Resending...",
   "es": "Reenviando...",
-  "ou": "lib/features/auth/presentation/login_screen.dart:569"
+  "ou": "lib/features/auth/presentation/login_screen.dart:580"
  },
  {
   "fr": "Renvoyer le lien de connexion",
   "en": "Resend the sign-in link",
   "es": "Reenviar el enlace de acceso",
-  "ou": "lib/features/auth/presentation/login_screen.dart:569"
+  "ou": "lib/features/auth/presentation/login_screen.dart:580"
  },
  {
   "fr": "Changer d'adresse email",
   "en": "Use another email address",
   "es": "Usar otro correo",
-  "ou": "lib/features/auth/presentation/login_screen.dart:579"
+  "ou": "lib/features/auth/presentation/login_screen.dart:590"
  },
  {
   "fr": "Envoi en cours...",
   "en": "Sending...",
   "es": "Enviando...",
-  "ou": "lib/features/auth/presentation/login_screen.dart:593"
+  "ou": "lib/features/auth/presentation/login_screen.dart:604"
  },
  {
   "fr": "Recevoir mon lien de connexion",
   "en": "Email me a sign-in link",
   "es": "Recibir mi enlace de acceso",
-  "ou": "lib/features/auth/presentation/login_screen.dart:593"
+  "ou": "lib/features/auth/presentation/login_screen.dart:604"
  },
  {
   "fr": "Connexion sans mot de passe : vous recevrez un email contenant un lien direct et sécurisé pour accéder à votre cave.",
   "en": "Password-free sign-in: you'll get an email with a direct, secure link to your cellar.",
   "es": "Acceso sin contraseña: recibirás un correo con un enlace directo y seguro a tu bodega.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:599"
+  "ou": "lib/features/auth/presentation/login_screen.dart:610"
  },
  {
   "fr": "Mot de passe",
   "en": "Password",
   "es": "Contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:629"
+  "ou": "lib/features/auth/presentation/login_screen.dart:640"
  },
  {
   "fr": "Connexion...",
   "en": "Signing in...",
   "es": "Iniciando sesión...",
-  "ou": "lib/features/auth/presentation/login_screen.dart:650"
+  "ou": "lib/features/auth/presentation/login_screen.dart:661"
  },
  {
   "fr": "Se connecter",
   "en": "Sign in",
   "es": "Iniciar sesión",
-  "ou": "lib/features/auth/presentation/login_screen.dart:650"
+  "ou": "lib/features/auth/presentation/login_screen.dart:661"
  },
  {
   "fr": "Pas encore inscrit ? Créer un compte en 1 clic",
   "en": "Not registered yet? Create an account in one tap",
   "es": "¿Aún no tienes cuenta? Créala en un toque",
-  "ou": "lib/features/auth/presentation/login_screen.dart:658"
+  "ou": "lib/features/auth/presentation/login_screen.dart:669"
  },
  {
   "fr": "Créer un nouveau compte",
   "en": "Create a new account",
   "es": "Crear una cuenta nueva",
-  "ou": "lib/features/auth/presentation/login_screen.dart:674"
+  "ou": "lib/features/auth/presentation/login_screen.dart:685"
  },
  {
   "fr": "Amateur de Vin",

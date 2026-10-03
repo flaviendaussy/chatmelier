@@ -8,6 +8,14 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Chatmelier</string>
+	<!-- Les langues de l'app : sans elles, iOS montre ses propres écrans (photos, partage)
+	     en anglais sur un téléphone français. -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>fr</string>
+		<string>en</string>
+		<string>es</string>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -24,6 +32,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
@@ -31,11 +41,9 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Chatmelier a besoin d'accéder à vos photos pour importer des étiquettes de vin.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Chatmelier a besoin du micro pour les commandes vocales de gestion de cave.</string>
+	<string>Chatmelier photographie étiquettes et cartes des vins, sans jamais enregistrer de son.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Chatmelier utilise votre position pour localiser vos dégustations et détecter automatiquement votre cave à proximité.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Chatmelier utilise votre position pour localiser vos dégustations et détecter automatiquement votre cave à proximité.</string>
+	<string>Chatmelier utilise votre position pour proposer les restaurants et bars proches de vos dégustations, et reconnaître votre cave.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

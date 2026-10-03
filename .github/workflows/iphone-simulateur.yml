@@ -1,0 +1,102 @@
+name: iPhone (simulateur)
+
+# Lance l'app sur le simulateur iPhone d'Apple, sur un Mac de GitHub, et en garde des
+# captures d'écran : pour voir l'app sur iPhone sans en avoir un. Le passage échoue si l'app
+# se ferme au lancement. Rien n'est créé en production : l'app est seulement ouverte, et
+# une session anonyme ne s'ouvre qu'au premier geste (scanner, rejoindre une table).
+#
+#   gh workflow run iphone-simulateur.yml
+#
+# Les captures : onglet Actions → ce passage → Artifacts → « captures-iphone ».
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  simulateur:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Code
+        uses: actions/checkout@v4
+
+      - name: Xcode le plus récent
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Flutter, même version que les builds Android
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.1
+          cache: true
+
+      - name: Dépendances
+        working-directory: app
+        run: flutter pub get
+
+      # Les mêmes valeurs publiques que le web et Android, lues dans le script du web.
+      - name: Valeurs publiques de l'app
+        run: |
+          grep -E '^SUPABASE_(URL|ANON_KEY)=' build_and_sync_web.sh | tr -d '"' >> "$GITHUB_ENV"
+          echo "CHATMELIER_VERSION=$(grep '^version: ' app/pubspec.yaml | awk '{print $2}')" >> "$GITHUB_ENV"
+
+      # Le simulateur n'accepte que le mode debug (bandeau « DEBUG » dans le coin).
+      - name: Construire pour le simulateur
+        working-directory: app
+        run: |
+          flutter build ios --simulator --debug \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            --dart-define=CHATMELIER_VERSION="$CHATMELIER_VERSION"
+
+      - name: Lancer sur un iPhone en français, et capturer
+        run: |
+          set -euo pipefail
+          # Le plus grand iPhone du système iOS le plus récent : la taille des captures de
+          # l'App Store (6,9 pouces).
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, re, sys
+          appareils = json.load(sys.stdin)["devices"]
+          def version(cle):
+              return tuple(int(x) for x in re.findall(r"\d+", cle.split("iOS")[-1]))
+          for cle in sorted((c for c in appareils if "iOS" in c), key=version, reverse=True):
+              iphones = [a for a in appareils[cle] if a["name"].startswith("iPhone")]
+              grands = [a for a in iphones if "Pro Max" in a["name"]] or iphones
+              if grands:
+                  print(grands[-1]["udid"]); print(grands[-1]["name"], cle, file=sys.stderr); break
+          ')
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl spawn "$UDID" defaults write -g AppleLanguages -array fr-FR
+          xcrun simctl spawn "$UDID" defaults write -g AppleLocale -string fr_FR
+          xcrun simctl shutdown "$UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularBars 4
+          xcrun simctl install "$UDID" app/build/ios/iphonesimulator/Runner.app
+          mkdir -p captures
+          xcrun simctl launch "$UDID" com.chatmelier.chatmelier
+          for t in 10 25 45; do
+            sleep $(( t - ${precedent:-0} )); precedent=$t
+            xcrun simctl io "$UDID" screenshot "captures/lancement_${t}s.png"
+          done
+          if xcrun simctl spawn "$UDID" launchctl list | grep -q "com.chatmelier.chatmelier"; then
+            echo "✓ L'app tourne toujours après 45 secondes."
+          else
+            echo "❌ L'app s'est fermée au lancement."
+            ls -t ~/Library/Logs/DiagnosticReports/ 2>/dev/null | grep -i -E "runner|chatmelier" | head -3 || true
+            exit 1
+          fi
+
+      - name: Garder les captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures-iphone
+          path: captures/
+          retention-days: 14

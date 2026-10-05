@@ -2,6 +2,14 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.6.0+76] — 2026-10-05
+
+### 🍷 Ce qui change pour vous
+- **Scan de carte plus solide** : une réponse illisible du sommelier est relue par un autre modèle, et un échec dit enfin sa vraie cause.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *scan-menu* : JSON malformé → modèle suivant (`utilisable`) ; erreurs nommées `lecture_illisible` (502) et `erreur_serveur` (500). *Client* : `_causeServeur`, messages FR/EN/ES.
+
 ## [v1.6.0+75] — 2026-10-03
 
 > iPhone seulement (Android reste en 74) : la première version iPhone pour les testeurs, avec AdMob.

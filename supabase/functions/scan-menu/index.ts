@@ -517,7 +517,10 @@ serve(async (req) => {
         responseMimeType: 'application/json',
         ...(niveau ? { thinkingConfig: { thinkingLevel: niveau } } : {}),
       },
-    }), DELAI_PAR_MODELE_MS)
+    }), DELAI_PAR_MODELE_MS, (data) => {
+      // Un JSON malformé (05/10, 16h30) passe au modèle suivant au lieu d'échouer.
+      try { lireJson(texteDeLaReponse(data)); return true } catch { return false }
+    }).catch((e) => { throw new ErreurDeLecture(e instanceof Error ? e.message : String(e)) })
     const resultat = lireJson(texteDeLaReponse(appel.data) || '{}')
     const { modele, reflexion } = appel
     const usage = appel.data.usageMetadata ?? null
@@ -533,6 +536,10 @@ serve(async (req) => {
     })
   } catch (error: any) {
     console.error('Scan menu error:', error)
-    return reponse({ error: error.message }, 500)
+    // Une cause nommée, que l'app traduit en message clair (05/10).
+    const lecture = error instanceof ErreurDeLecture
+    return reponse({ error: lecture ? 'lecture_illisible' : 'erreur_serveur', detail: String(error?.message ?? error).slice(0, 200) }, lecture ? 502 : 500)
   }
 })
+
+class ErreurDeLecture extends Error {}

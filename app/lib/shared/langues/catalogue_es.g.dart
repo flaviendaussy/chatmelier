@@ -2333,6 +2333,8 @@ const Map<String, String> catalogueEs = {
   'Cépage': 'Variedad',
   'Prix': 'Precio',
   '{v1} sélectionné(s)': '{v1} seleccionado(s)',
+  'Le sommelier n\'a pas réussi à lire cette carte : sa réponse était incomplète. Vos photos sont gardées : réessayez.': 'El sumiller no ha podido leer esta carta: su respuesta estaba incompleta. Tus fotos se conservan: vuelve a intentarlo.',
+  'Le service de lecture des cartes est momentanément indisponible. Vos photos sont gardées : réessayez dans un instant.': 'El servicio de lectura de cartas no está disponible por el momento. Tus fotos se conservan: vuelve a intentarlo en un instante.',
   'La connexion s\'est interrompue pendant la lecture de la carte. Vos photos sont gardées : réessayez.': 'La conexión se interrumpió mientras se leía la carta. Tus fotos se conservan: vuelve a intentarlo.',
   'janvier': 'enero',
   'février': 'febrero',

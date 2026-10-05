@@ -117,10 +117,21 @@ class MenuScanService {
     // Depuis la V2.3, seul le serveur lit la carte (scan-menu) : l'app n'a plus de clé.
     onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud...' : 'Analyse de la carte des vins via le Cloud Chatmelier...');
     _coupureVue = false;
+    _causeServeur = null;
     parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn, ardoise: ardoise);
     usedModel = parsedJson?['modele'] as String?;
 
     if (parsedJson == null) {
+      if (_causeServeur == 'lecture_illisible') {
+        throw Exception(tr(
+            'Le sommelier n\'a pas réussi à lire cette carte : sa réponse était incomplète. Vos photos sont gardées : réessayez.',
+            'The sommelier could not read this menu: its answer was incomplete. Your photos are kept: try again.'));
+      }
+      if (_causeServeur != null) {
+        throw Exception(tr(
+            'Le service de lecture des cartes est momentanément indisponible. Vos photos sont gardées : réessayez dans un instant.',
+            'The menu reading service is briefly unavailable. Your photos are kept: try again in a moment.'));
+      }
       if (_coupureVue) {
         throw Exception(tr(
             'La connexion s\'est interrompue pendant la lecture de la carte. Vos photos sont gardées : réessayez.',
@@ -515,6 +526,10 @@ class MenuScanService {
   /// message d'échec doit le dire plutôt que d'accuser les photos (01/10).
   bool _coupureVue = false;
 
+  /// La cause qu'a nommée le serveur (`lecture_illisible`, `erreur_serveur`), pour un
+  /// message clair plutôt que « vérifiez vos photos » (05/10).
+  String? _causeServeur;
+
   static const _delaiScanMenu = Duration(seconds: 150);
 
   /// Au-delà, une page silencieuse est relancée. Une page répond en 12 à 25 s ; les plus
@@ -566,6 +581,12 @@ class MenuScanService {
         }
       }
       if (res.statusCode != 200) {
+        try {
+          final corps = jsonDecode(utf8.decode(res.bodyBytes));
+          if (corps is Map && corps['error'] is String) _causeServeur = corps['error'] as String;
+        } catch (_) {
+          _causeServeur = 'erreur_serveur';
+        }
         final extrait = res.body.length > 200 ? res.body.substring(0, 200) : res.body;
         throw http.ClientException('scan-menu HTTP ${res.statusCode} : $extrait');
       }

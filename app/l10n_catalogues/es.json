@@ -13992,10 +13992,22 @@
   "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3050"
  },
  {
+  "fr": "Le sommelier n'a pas réussi à lire cette carte : sa réponse était incomplète. Vos photos sont gardées : réessayez.",
+  "en": "The sommelier could not read this menu: its answer was incomplete. Your photos are kept: try again.",
+  "es": "El sumiller no ha podido leer esta carta: su respuesta estaba incompleta. Tus fotos se conservan: vuelve a intentarlo.",
+  "ou": "lib/features/menu_scan/data/menu_scan_service.dart:126"
+ },
+ {
+  "fr": "Le service de lecture des cartes est momentanément indisponible. Vos photos sont gardées : réessayez dans un instant.",
+  "en": "The menu reading service is briefly unavailable. Your photos are kept: try again in a moment.",
+  "es": "El servicio de lectura de cartas no está disponible por el momento. Tus fotos se conservan: vuelve a intentarlo en un instante.",
+  "ou": "lib/features/menu_scan/data/menu_scan_service.dart:131"
+ },
+ {
   "fr": "La connexion s'est interrompue pendant la lecture de la carte. Vos photos sont gardées : réessayez.",
   "en": "The connection dropped while the menu was being read. Your photos are kept: try again.",
   "es": "La conexión se interrumpió mientras se leía la carta. Tus fotos se conservan: vuelve a intentarlo.",
-  "ou": "lib/features/menu_scan/data/menu_scan_service.dart:125"
+  "ou": "lib/features/menu_scan/data/menu_scan_service.dart:136"
  },
  {
   "fr": "janvier",

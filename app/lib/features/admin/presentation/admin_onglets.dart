@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/admin_console_service.dart';
 import '../data/admin_personnes_service.dart';
 import '../domain/admin_economie.dart';
 import '../domain/admin_personnes.dart';
+import 'admin_console_onglets.dart';
+import 'admin_graphes.dart';
 import 'admin_personne_screen.dart';
 
 // =============================================================================
@@ -40,8 +43,7 @@ class BandeauModeTest extends ConsumerWidget {
       color: nominatif ? const Color(0xFFFFE0B2) : const Color(0xFFE0E0E0),
       child: Row(
         children: [
-          Icon(nominatif ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-              size: 16, color: Colors.black87),
+          Icon(nominatif ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 16, color: Colors.black87),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -129,11 +131,12 @@ class _OngletPersonnesState extends ConsumerState<OngletPersonnes> {
               for (final p in toutes)
                 if ((q.isEmpty || p.prenom.toLowerCase().contains(q)) && (!_masquerInactifs || p.gestes > 0)) p,
             ]..sort((a, b) => switch (_tri) {
-                _Tri.activite => (b.derniereActivite ?? DateTime(2000)).compareTo(a.derniereActivite ?? DateTime(2000)),
-                _Tri.arrivee => (b.arriveLe ?? DateTime(2000)).compareTo(a.arriveLe ?? DateTime(2000)),
-                _Tri.gestes => b.gestes.compareTo(a.gestes),
-                _Tri.erreurs => b.erreurs.compareTo(a.erreurs),
-              });
+                  _Tri.activite =>
+                    (b.derniereActivite ?? DateTime(2000)).compareTo(a.derniereActivite ?? DateTime(2000)),
+                  _Tri.arrivee => (b.arriveLe ?? DateTime(2000)).compareTo(a.arriveLe ?? DateTime(2000)),
+                  _Tri.gestes => b.gestes.compareTo(a.gestes),
+                  _Tri.erreurs => b.erreurs.compareTo(a.erreurs),
+                });
             final anonymes = toutes.where((p) => p.anonyme).length;
 
             return RefreshIndicator(
@@ -308,56 +311,70 @@ class OngletErreurs extends ConsumerWidget {
           error: (e, _) => MessageDEchec(erreur: '$e'),
           data: (erreurs) {
             if (erreurs.isEmpty) {
-              return const Center(child: Text('Aucune erreur sur cette période. 🎉', style: TextStyle(color: Colors.grey)));
+              return const Center(
+                  child: Text('Aucune erreur sur cette période. 🎉', style: TextStyle(color: Colors.grey)));
             }
             final nbErreurs = erreurs.where((e) => e.estErreur).fold(0, (a, e) => a + e.n);
             final nbAlertes = erreurs.where((e) => !e.estErreur).fold(0, (a, e) => a + e.n);
+            final parJour = ref.watch(adminErreursParJourProvider).valueOrNull ?? const [];
             return RefreshIndicator(
-              onRefresh: () async => ref.invalidate(adminErreursProvider),
+              onRefresh: () async {
+                ref.invalidate(adminErreursProvider);
+                ref.invalidate(adminErreursParJourProvider);
+              },
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
                 children: [
                   Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
+                    child: BarresDErreurs(jours: parJour),
+                  ),
+                  Padding(
                     padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-                    child: Text('$nbErreurs erreurs, $nbAlertes avertissements',
+                    child: Text('$nbErreurs erreurs, $nbAlertes avertissements · touchez-en une pour ses occurrences',
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   for (final e in erreurs)
                     Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: e.estErreur ? const Color(0xFFC62828) : const Color(0xFFEF6C00),
-                                    borderRadius: BorderRadius.circular(6),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () => FeuilleDOccurrences.ouvrir(context, e),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: e.estErreur ? const Color(0xFFC62828) : const Color(0xFFEF6C00),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(e.estErreur ? 'ERREUR' : 'ALERTE',
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                                   ),
-                                  child: Text(e.estErreur ? 'ERREUR' : 'ALERTE',
-                                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(e.tag, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
-                                const Spacer(),
-                                Text('×${e.n}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(e.forme, style: const TextStyle(fontSize: 12.5)),
-                            const SizedBox(height: 6),
-                            Text(
-                              [
-                                if (e.qui.isNotEmpty) e.qui,
-                                if (e.derniere != null) 'dernière : ${dateCourte(e.derniere!)} ${heure(e.derniere!)}',
-                                if (e.versions.isNotEmpty) e.versions,
-                              ].join(' · '),
-                              style: TextStyle(fontSize: 11.5, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                            ),
-                          ],
+                                  const SizedBox(width: 8),
+                                  Text(e.tag, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                                  const Spacer(),
+                                  Text('×${e.n}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(e.forme, style: const TextStyle(fontSize: 12.5)),
+                              const SizedBox(height: 6),
+                              Text(
+                                [
+                                  if (e.qui.isNotEmpty) e.qui,
+                                  if (e.derniere != null) 'dernière : ${dateCourte(e.derniere!)} ${heure(e.derniere!)}',
+                                  if (e.versions.isNotEmpty) e.versions,
+                                ].join(' · '),
+                                style: TextStyle(fontSize: 11.5, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -386,6 +403,7 @@ class OngletEconomie extends ConsumerWidget {
             onRefresh: () async {
               ref.invalidate(adminEconomieProvider);
               ref.invalidate(adminCroissanceProvider);
+              ref.invalidate(adminEconomieDetailProvider);
             },
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -407,6 +425,16 @@ class OngletEconomie extends ConsumerWidget {
                   style: TextStyle(fontSize: 11.5, color: gris, fontStyle: FontStyle.italic),
                 ),
                 const SizedBox(height: 20),
+                // Le détail de la V2.4 (migration 060) : sans elle, la section se tait.
+                ...ref.watch(adminEconomieDetailProvider).maybeWhen(
+                      data: (d) => [
+                        CourbeCoutEtRevenu(jours: d.parJour),
+                        CourbeCoutDesScans(jours: d.parJour),
+                        JaugeDeRecherche(utilisees: d.recherchesDuMois, franchise: d.franchiseMensuelle),
+                        CoutsParModele(modeles: d.parModele),
+                      ],
+                      orElse: () => const <Widget>[],
+                    ),
                 _Titre('Coût par fonctionnalité', '${b.appelsIa} appels, dont ${b.appelsGroundes} avec recherche'),
                 if (b.parFonctionnalite.isEmpty) _Vide(gris),
                 for (final l in b.parFonctionnalite)
@@ -510,9 +538,7 @@ class _Ratio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = bilan.ratio;
-    final couleur = r == null
-        ? Colors.grey
-        : (r >= 1 ? const Color(0xFF2E7D32) : const Color(0xFFC62828));
+    final couleur = r == null ? Colors.grey : (r >= 1 ? const Color(0xFF2E7D32) : const Color(0xFFC62828));
     Widget case_(String titre, String valeur) => Expanded(
           child: Column(
             children: [
@@ -598,6 +624,5 @@ class _Vide extends StatelessWidget {
   const _Vide(this.gris);
 
   @override
-  Widget build(BuildContext context) =>
-      Text('Rien sur cette période.', style: TextStyle(fontSize: 12.5, color: gris));
+  Widget build(BuildContext context) => Text('Rien sur cette période.', style: TextStyle(fontSize: 12.5, color: gris));
 }

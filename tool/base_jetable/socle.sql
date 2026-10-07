@@ -48,6 +48,21 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   is_admin     BOOLEAN NOT NULL DEFAULT false
 );
 
+-- Le journal de l'app (011), réduit aux colonnes que lisent les fonctions de la console.
+CREATE TABLE IF NOT EXISTS public.app_diagnostic_logs (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  device_id     TEXT,
+  platform      TEXT,
+  app_version   TEXT,
+  tag           TEXT NOT NULL,
+  level         TEXT NOT NULL,
+  message       TEXT NOT NULL,
+  error_details TEXT,
+  metadata      JSONB,
+  created_at    TIMESTAMPTZ DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS public.cellars (
   id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID REFERENCES public.profiles(id),

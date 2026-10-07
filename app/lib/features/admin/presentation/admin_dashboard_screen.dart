@@ -2,9 +2,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/admin_console_service.dart';
 import '../data/admin_metrics_service.dart';
 import '../data/admin_personnes_service.dart';
+import '../domain/admin_economie.dart';
 import '../domain/admin_metrics.dart';
+import 'admin_console_onglets.dart';
 import 'admin_onglets.dart';
 
 /// La console d'administration : qui utilise l'app, et pour quoi faire.
@@ -25,7 +28,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     final async = ref.watch(adminTableauProvider);
 
     return DefaultTabController(
-      length: 5,
+      length: 7,
       child: Scaffold(
       appBar: AppBar(
         title: const Text('Console'),
@@ -40,6 +43,12 @@ class AdminDashboardScreen extends ConsumerWidget {
               ref.invalidate(adminErreursProvider);
               ref.invalidate(adminNominatifProvider);
               ref.invalidate(adminEconomieProvider);
+              ref.invalidate(adminCroissanceProvider);
+              ref.invalidate(adminRetoursProvider);
+              ref.invalidate(adminReglagesProvider);
+              ref.invalidate(adminEconomieDetailProvider);
+              ref.invalidate(adminErreursParJourProvider);
+              ref.invalidate(adminVersionsProvider);
             },
           ),
         ],
@@ -65,12 +74,16 @@ class AdminDashboardScreen extends ConsumerWidget {
               ),
               const TabBar(
                 isScrollable: true,
+                // Sept onglets : le premier commence au bord, sans le retrait par défaut.
+                tabAlignment: TabAlignment.start,
                 tabs: [
                   Tab(text: 'Vue d\'ensemble'),
+                  Tab(text: 'Retours'),
                   Tab(text: 'Personnes'),
-                  Tab(text: 'Fonctionnalités'),
                   Tab(text: 'Erreurs'),
                   Tab(text: 'Économie'),
+                  Tab(text: 'Fonctionnalités'),
+                  Tab(text: 'Réglages'),
                 ],
               ),
             ],
@@ -84,10 +97,12 @@ class AdminDashboardScreen extends ConsumerWidget {
             child: TabBarView(
               children: [
                 _vueDEnsemble(ref, async, jours),
+                const OngletRetours(),
                 const OngletPersonnes(),
-                const OngletFonctionnalites(),
                 const OngletErreurs(),
                 const OngletEconomie(),
+                const OngletFonctionnalites(),
+                const OngletReglages(),
               ],
             ),
           ),
@@ -109,6 +124,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
                   children: [
                     _Resume(resume: t.resume, jours: jours),
+                    const SizedBox(height: 16),
+                    const _ASurveiller(),
                     const SizedBox(height: 24),
                     _Section(
                       titre: 'Personnes actives, jour par jour',
@@ -128,6 +145,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                       detail: 'Comptes créés par jour, anonymes compris.',
                       enfant: _CourbeNouveaux(jours: t.jours),
                     ),
+                    const SizedBox(height: 24),
+                    const SectionVersions(),
                     const SizedBox(height: 24),
                     _Camembert(titre: 'Répartition des gestes', parts: t.famille('geste')),
                     const SizedBox(height: 20),
@@ -212,6 +231,66 @@ class _Chiffre extends StatelessWidget {
               style: t.textTheme.bodySmall?.copyWith(fontSize: 11, color: Colors.grey)),
         ],
       ),
+    );
+  }
+}
+
+// =============================================================================
+// À surveiller : ce qui demande un geste, et où aller le faire
+// =============================================================================
+class _ASurveiller extends ConsumerWidget {
+  const _ASurveiller();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final etatRetours = ref.watch(adminRetoursProvider);
+    final etatErreurs = ref.watch(adminErreursProvider);
+    final etatEconomie = ref.watch(adminEconomieProvider);
+    final aTraiter = etatRetours.valueOrNull?.where((r) => r.statut.ouvert).length;
+    final nbErreurs = etatErreurs.valueOrNull?.where((e) => e.estErreur).fold<int>(0, (s, e) => s + e.n);
+    final economie = etatEconomie.valueOrNull;
+    // « … » pendant le chargement ; « — » quand la lecture a échoué (une migration pas encore
+    // appliquée, par exemple) : l'onglet dit pourquoi.
+    String valeur(AsyncValue<Object?> etat, String? lue) => lue ?? (etat.hasError ? '—' : '…');
+    void aller(int onglet) => DefaultTabController.of(context).animateTo(onglet);
+    Widget tuile(String valeur, String libelle, IconData icone, Color couleur, int onglet) => Expanded(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => aller(onglet),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: couleur.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: couleur.withValues(alpha: 0.35)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(icone, size: 18, color: couleur),
+                  const SizedBox(height: 6),
+                  Text(valeur,
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: couleur,
+                          fontFeatures: const [FontFeature.tabularFigures()])),
+                  Text(libelle, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                ],
+              ),
+            ),
+          ),
+        );
+    return Row(
+      children: [
+        tuile(valeur(etatRetours, aTraiter?.toString()), 'retours à traiter', Icons.campaign_outlined,
+            const Color(0xFFC62828), 1),
+        const SizedBox(width: 8),
+        tuile(valeur(etatErreurs, nbErreurs?.toString()), 'erreurs', Icons.error_outline, const Color(0xFFEF6C00), 3),
+        const SizedBox(width: 8),
+        tuile(valeur(etatEconomie, economie == null ? null : euros(economie.coutIaEur)), 'coût de l\'IA',
+            Icons.payments_outlined, const Color(0xFF8B1E3F), 4),
+      ],
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'admin_console.dart';
+
 /// Ce que coûte l'IA et ce que rapporte la pub, sur une période (migration 047, S5).
 ///
 /// Le revenu est une ESTIMATION : impressions × eCPM de `app_config.ecpm_eur_estime`,
@@ -92,7 +94,8 @@ class LigneDeCout {
         'chat_sommelier' => 'Sommelier de la cave',
         'offline_enrichment' => 'Enrichissement hors ligne',
         'text_wine_analysis' => 'Analyse d\'un vin saisi',
-        _ => fonctionnalite,
+        // Les tâches de `taches-ia` comptent leur coût sous leur propre nom.
+        _ => TachesIa.libelle(fonctionnalite),
       };
 }
 

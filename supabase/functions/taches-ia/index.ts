@@ -32,9 +32,11 @@ const REGLAGES: Record<string, Reglage> = {
   synthese_table: { modele: 'flash', reflexion: 'low' },
   meuble: { modele: 'flash', reflexion: 'low' },
   import_cave: { modele: 'flash-lite', reflexion: 'minimal' },
-  fiche_texte: { modele: 'flash-lite', reflexion: 'minimal' },
+  // Identifier un vin depuis un nom : Flash, pas Flash-Lite (V2.4 · R1).
+  fiche_texte: { modele: 'flash', reflexion: 'low' },
   enrichir_fiche: { modele: 'flash', reflexion: 'low' },
-  vin_depuis_texte: { modele: 'flash-lite', reflexion: 'minimal' },
+  // Flash, pas Flash-Lite : le 07/10, Flash-Lite a fait d'un vin marocain un Côtes du Rhône (V2.4 · R1).
+  vin_depuis_texte: { modele: 'flash', reflexion: 'low' },
 }
 
 // Le quota de chaque tâche (consommer_quota_ia) : l'import d'une grande cave compte à part.
@@ -424,9 +426,12 @@ Retourne STRICTEMENT un tableau JSON d'objets vin.` }],
       return {
         enJson: true,
         parts: [{ text: `Tu es un sommelier expert. Identifie ce vin : "${nom}"${millesime ? ` (millésime ${millesime})` : ''}.
+NE DEVINE JAMAIS : un vin faux affiché comme un fait est la pire réponse ; un champ vide vaut toujours mieux.
+- Si tu ne reconnais pas ce vin précis avec certitude, renvoie {"reconnu": false} et rien d'autre.
+- Ne remplis un champ que si le nom le dit ou si tu le sais avec certitude pour CE vin ; sinon null. Ne déduis jamais un pays, une région ou une appellation d'une langue, d'un mot ou d'un style.
 Renvoie STRICTEMENT un objet JSON :
-{"name": "Nom complet du vin", "producer": "Domaine", "vintage": ${millesime ?? 'null'}, "wine_type": "red|white|rosé|sparkling|dessert|fortified|orange", "country": "Pays", "region": "Région", "appellation": "Appellation", "grapes": ["Cépage"], "ideal_drinking_start": 2024, "ideal_drinking_end": 2032}
-Si tu n'es pas sûr d'une valeur, donne la valeur typique de l'appellation plutôt qu'un chiffre précis inventé.` }],
+{"reconnu": true, "name": "Nom complet du vin", "producer": "Domaine ou null", "vintage": ${millesime ?? 'null'}, "wine_type": "red|white|rosé|sparkling|dessert|fortified|orange ou null", "country": "Pays ou null", "region": "Région ou null", "appellation": "Appellation ou null", "grapes": ["Cépage"], "ideal_drinking_start": 2024, "ideal_drinking_end": 2032}
+Pour la seule fenêtre de consommation, quand l'appellation est certaine, sa valeur typique vaut mieux qu'une année précise inventée ; sinon null.` }],
       }
     }
     case 'enrichir_fiche': {
@@ -460,20 +465,28 @@ If you are unsure of a value, give the typical value of the appellation rather t
     case 'vin_depuis_texte': {
       const description = texte(e.texte, 600)
       if (!description) return 'texte vide'
+      // Recherche Google : vérifier que ce vin existe, et d'où il vient, avant d'affirmer quoi
+      // que ce soit (V2.4 · R1, « S de Siroua », vin marocain devenu Côtes du Rhône le 07/10).
       return {
-        enJson: true,
+        enJson: false,
+        recherche: true,
         parts: [{ text: `You are Chatmelier, a master sommelier.
 Analyse this wine description, wine-list entry or chalkboard line:
 "${description}"
 
-Return strictly one JSON object with:
+NEVER GUESS. A wrong wine shown as a fact is the worst possible answer: an empty field is always better.
+- If you do not recognise this exact wine with certainty, answer {"reconnu": false, "name": <the text as written>} and nothing else.
+- Fill a field only if the text states it or you know it for certain for THIS wine; otherwise null. Never deduce a country, region or appellation from a language, a word or a style.
+- Use Google Search to check that this exact wine exists and where it comes from. If the search does not confirm it, answer {"reconnu": false, ...} as above.
+Return strictly one JSON object, and nothing else, with:
+"reconnu": true;
 "name": wine or spirit name / cuvée; "producer": estate, winery or distillery, or null;
 "vintage": integer or null; "cuvee_parcel": parcel or cuvée, or null;
 "wine_type": one of red, white, rosé, sparkling, dessert, fortified, orange, liqueur, spirit, grappa, eau-de-vie, whisky, gin, rum, vodka, tequila, cognac, vermouth.
 Spirits, grappas, digestifs and herbal liqueurs (Grappa, Marc, Bénédictine, Chartreuse, Cointreau, Amaretto, Gin, Rum, Whisky, Vodka, Pastis…) take their spirit type or "liqueur" / "spirit", never red, white, fortified or dessert. "fortified" is only for true fortified wines (Port, Sherry, Banyuls, Madeira, Marsala);
-"country" (France by default for a French appellation), "region", "sub_region", "appellation", "classification": or null;
-"alcohol_pct": typical ABV, or null;
-"grapes": [{"name": "...", "pct": number | null}];
+"country", "region", "sub_region", "appellation", "classification": or null;
+"alcohol_pct": ABV if stated or known for this wine, else null;
+"grapes": [{"name": "...", "pct": number | null}] — only grapes known for this wine, else [];
 "tasting_notes": aromas, palate and structure, ${EN_LANGUE[langue]};
 "food_pairings": 3 to 5 pairings, ${EN_LANGUE[langue]};
 "ideal_drinking_start", "ideal_drinking_end", "peak_drinking_start", "peak_drinking_end": years, or null;

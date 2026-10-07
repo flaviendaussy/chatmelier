@@ -502,14 +502,15 @@ Return strictly a valid JSON object matching this schema:
   "vintage": number | null,
   "cuvee_parcel": string | null,
   "wine_type": "red" | "white" | "rosé" | "sparkling" | "dessert" | "fortified" | "orange" | "liqueur" | "spirit" | "grappa" | "eau-de-vie" | "whisky" | "gin" | "rum" | "vodka" | "tequila" | "cognac" | "vermouth",
-  "country": string,
-  "region": string,
+  "country": string | null,
+  "region": string | null,
   "sub_region": string | null,
   "appellation": string | null,
   "classification": string | null,
   "alcohol_pct": number | null
 }
-Spirits, grappas, digestifs and herbal liqueurs (Grappa, Marc, Bénédictine, Chartreuse, Cointreau, Amaretto, Gin, Rum, Whisky, Vodka, Pastis…) take their spirit type, or "liqueur" / "spirit": never red, white, fortified or dessert. "fortified" is only for true fortified wines (Port, Sherry, Banyuls, Madeira, Marsala).`
+Spirits, grappas, digestifs and herbal liqueurs (Grappa, Marc, Bénédictine, Chartreuse, Cointreau, Amaretto, Gin, Rum, Whisky, Vodka, Pastis…) take their spirit type, or "liqueur" / "spirit": never red, white, fortified or dessert. "fortified" is only for true fortified wines (Port, Sherry, Banyuls, Madeira, Marsala).
+Never guess. Copy what the label shows. For country, region and appellation, use what the label states, or your certain knowledge of this exact producer; otherwise null. Never deduce them from the language of the label or the style of the wine.`
     const lecture = await appelerPourLaFiche(apiKey, [{ role: 'user', parts: [...imageParts, { text: extractPrompt }] }],
       reglages.scan_etiquette_lecture)
     const extracted = lecture.resultat
@@ -571,7 +572,7 @@ Spirits, grappas, digestifs and herbal liqueurs (Grappa, Marc, Bénédictine, Ch
 Name: ${extracted.name}
 Cuvée/Parcel: ${extracted.cuvee_parcel || 'Standard'}
 Vintage: ${extracted.vintage ? extracted.vintage : 'Non-Vintage (NV)'}
-Region: ${extracted.region}, ${extracted.country}`
+Region: ${[extracted.region, extracted.country].filter(Boolean).join(', ') || 'Unknown'}`
 
     // Sans recherche, on ne demande ni notes de critiques, ni sources, ni valeur de marché :
     // le modèle les inventait (29/09 pour les critiques, 30/09 pour la valeur).

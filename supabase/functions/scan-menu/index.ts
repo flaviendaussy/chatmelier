@@ -366,7 +366,7 @@ Each wine object:
 "a": appellation, or null
 "rg": broad region, in French (Bordeaux, Bourgogne, Vallée du Rhône, Loire, Alsace, Champagne, Toscane...)
 "co": country, in French (France, Italie, Espagne...)
-"g": grape varieties, array of strings (typical ones for the appellation if not printed)
+"g": grape varieties, array of strings (typical ones for the appellation if not printed; [] if the appellation is unknown)
 "b": bottle price as printed (number), or null
 "gl": glass prices as [[format, price]], e.g. [["12cl", 8]], or []
 "m": 8 integers from 0 to 10, in this order: tannins (0 for white, rosé, sparkling), acidity, body, fruit, oak, minerality, butteriness, sweetness
@@ -381,6 +381,7 @@ Each wine object:
 Gems are rare. A gem is the bottle a sommelier would point at on THIS list: a cult or hard-to-find cuvée, a producer far above the level of the rest of the list, a mature vintage rarely offered. A famous appellation, a well-known house or a good producer is not enough. Most lists have no gem: mark at most two, unless the list itself is exceptional ("ex": 1), and even then about one wine in ten. When in doubt, 0.
 Bargains are rare too: a bottle priced clearly below what it usually costs on a restaurant list. Never without a printed price. Most lists have none or one: mark at most three.
 
+Never guess: for a wine you do not know, leave "p", "a", "rg" and "co" null rather than deducing them from the language of the list, a word or a style.
 Do not add any other key. Do not invent wines that are not on the pages.`
 }
 

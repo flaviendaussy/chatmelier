@@ -2,6 +2,22 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.6.0+77] — 2026-10-07
+
+### 🍷 Ce qui change pour vous
+- **Plus jamais un vin inventé** : un vin que le sommelier ne reconnaît pas avec certitude reste « non reconnu », à compléter à la main. Une étiquette déjà lue n'est plus écrasée par une recherche sur le nom, et ni le pays, ni la région, ni la couleur, ni les cépages ne sont devinés.
+- **Un compte dès la première ouverture de l'app** : l'app installée demande de créer son compte (lien par e-mail), et une invitation à une table reprend après la connexion. Le site web reste ouvert sans compte pour les invités.
+- **Aller très vite** : « Enregistrer sans noter » dans le questionnaire ; plus rien de pré-rempli que vous n'avez pas choisi (la description du sommelier se reprend d'un geste) ; balayer une dégustation du journal la supprime, avec « Annuler » ; le clavier se ferme en touchant ailleurs.
+- **Déguster à plusieurs sans rien perdre** : revenir en arrière ne fait plus tout recommencer ; l'app annonce à qui c'est le tour ; « Bouteille défectueuse » passe en bas de l'étape du nez, et une bouteille défectueuse ne touche à aucun palais ; une réponse neutre, « Rien de particulier ».
+- **La bonne version** : « À propos » affiche la version installée.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *R1, serveur* : `taches-ia` — `vin_depuis_texte` sur Flash avec recherche Google, `fiche_texte` sur Flash (réflexion basse), consignes « ne jamais deviner » et sortie `{"reconnu": false}`, plus de « France par défaut » (migration 059) ; `scan-label` — pays et région `null` plutôt que devinés ; `scan-menu` — cépages vides et profil `null` pour un vin inconnu. *App* : `VinNonReconnu`, `FicheDepuisTexte.aEcrire` (une étiquette lue n'est jamais écrasée ; sans étiquette, ce qu'un texte précédent avait rempli est remplacé) ; relecture, import Excel et synchronisation sans « France » ni « Bordeaux » par défaut. *Banc* : « Identifier un vin depuis son nom », 19 vins hors de France dont 3 fictifs.
+- *R2* : `GardeDesRoutes.redirection` — app installée : tout exige un compte non anonyme ; les parcours invités reprennent après la connexion (`/login?suite=`) ; web inchangé ; un compte anonyme se convertit en gardant son historique.
+- *R3* : `TastingQuestionnaireSheet(dejaAuJournal)` ; reprise au premier convive incomplet ; `PopScope` ; journal en `Dismissible`, suppression différée jusqu'à la fermeture du bandeau (`persist: false`) ; `ClavierQuiSeFerme` à la racine ; `reponsesSansTrait` (« Rien de particulier », « Décevant » et « Rien, c'était parfait ! » ne sont plus comptés comme des goûts).
+- *R9, console (migration 060)* : onglets Retours (statut, note, capture) et Réglages (interrupteurs, modèle et réflexion par tâche d'IA, version minimale, eCPM, quotas, journal des changements) ; Économie et Erreurs jour par jour, coût par modèle, occurrences d'une erreur, versions installées, « À surveiller ».
+- *K10* : « À propos » lisait 1.2.1 écrit en dur ; le site construit par `deploy.yml` envoie sa version (suffixe `-pages`).
+
 ## [v1.6.0+76] — 2026-10-05
 
 ### 🍷 Ce qui change pour vous

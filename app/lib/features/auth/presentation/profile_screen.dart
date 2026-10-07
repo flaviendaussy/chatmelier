@@ -1694,7 +1694,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
         AboutListTile(
           applicationName: 'Chatmelier',
-          applicationVersion: '1.2.1',
+          // La version du build, pas un numéro écrit en dur : « 1.2.1 » s'affichait pour
+          // tout le monde, quelle que soit la version installée (V2.4 · K10).
+          applicationVersion: versionApp,
           applicationIcon: Image.asset(
             'assets/images/logo_transparent_64.png',
             width: 36,

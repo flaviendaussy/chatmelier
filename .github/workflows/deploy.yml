@@ -40,10 +40,14 @@ jobs:
         working-directory: app
         run: flutter pub get
 
+      # Ce site (flaviendaussy.github.io/chatmelier) double le site officiel
+      # (chatmelier.github.io, publié par build_and_sync_web.sh). Sans numéro de version, ses
+      # remontées arrivaient en « dev » : le suffixe « -pages » les distingue (V2.4 · K10).
       - name: Build Flutter Web
         working-directory: app
         run: |
-          flutter build web --base-href="/chatmelier/" --release
+          VERSION=$(grep '^version: ' pubspec.yaml | awk '{print $2}')
+          flutter build web --base-href="/chatmelier/" --release --dart-define=CHATMELIER_VERSION="${VERSION}-pages"
           cp build/web/index.html build/web/404.html
 
       - name: Setup Pages

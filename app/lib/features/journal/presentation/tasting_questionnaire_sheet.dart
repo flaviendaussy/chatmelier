@@ -1618,15 +1618,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               label: Text(opt.localizedLabel(l10n), style: const TextStyle(fontSize: 12)),
               selectedColor: const Color(0xFFD4AF37).withValues(alpha: 0.2),
               checkmarkColor: const Color(0xFFD4AF37),
-              onSelected: (val) {
-                setState(() {
-                  if (val) {
-                    _r.aime.add(opt.id);
-                  } else {
-                    _r.aime.remove(opt.id);
-                  }
-                });
-              },
+              onSelected: (val) => setState(() => _r.basculerAime(opt.id, val)),
             );
           }).toList(),
         ),
@@ -1650,21 +1642,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               label: Text(opt.localizedLabel(l10n), style: const TextStyle(fontSize: 12)),
               selectedColor: Colors.red.withValues(alpha: 0.15),
               checkmarkColor: Colors.red,
-              onSelected: (val) {
-                setState(() {
-                  if (val) {
-                    // If "rien" is selected, clear everything else
-                    if (opt.id == 'rien') {
-                      _r.aimePas = {'rien'};
-                    } else {
-                      _r.aimePas.remove('rien');
-                      _r.aimePas.add(opt.id);
-                    }
-                  } else {
-                    _r.aimePas.remove(opt.id);
-                  }
-                });
-              },
+              onSelected: (val) => setState(() => _r.basculerAimePas(opt.id, val)),
             );
           }).toList(),
         ),

@@ -1706,6 +1706,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get likedLength => 'La longueur en bouche';
 
   @override
+  String get nothingInParticular => 'Rien de particulier';
+
+  @override
   String get likedDisappointing => 'Rien / Décevant 😕';
 
   @override

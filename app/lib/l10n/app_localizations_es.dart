@@ -1710,6 +1710,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get likedLength => 'La persistencia';
 
   @override
+  String get nothingInParticular => 'Nada en particular';
+
+  @override
   String get likedDisappointing => 'Nada / Decepcionante 😕';
 
   @override

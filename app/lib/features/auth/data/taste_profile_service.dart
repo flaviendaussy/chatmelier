@@ -394,6 +394,8 @@ class TasteProfileService {
     // 3. Update liked traits
     final updatedLiked = Map<String, int>.from(profile.likedTraits);
     for (final trait in result.whatLikedMost) {
+      // « Rien de particulier », « Décevant » : pas des goûts (V2.4 · R3).
+      if (TastingQuestionnaireResult.reponsesSansTrait.contains(trait)) continue;
       updatedLiked[trait] = (updatedLiked[trait] ?? 0) + 1;
     }
     profile = profile.copyWith(likedTraits: updatedLiked);
@@ -401,7 +403,7 @@ class TasteProfileService {
     // 4. Update disliked traits
     final updatedDisliked = Map<String, int>.from(profile.dislikedTraits);
     for (final trait in result.whatDislikedMost) {
-      if (trait == 'rien') continue; // "Rien, c'était parfait" doesn't count
+      if (TastingQuestionnaireResult.reponsesSansTrait.contains(trait)) continue;
       updatedDisliked[trait] = (updatedDisliked[trait] ?? 0) + 1;
     }
     profile = profile.copyWith(dislikedTraits: updatedDisliked);
@@ -871,10 +873,14 @@ class TasteProfileService {
           buffer.writeln('    - Arômes préférés: $top');
         }
 
-        // Top liked traits
-        if (p.likedTraits.isNotEmpty) {
-          final sorted = p.likedTraits.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-          final top = sorted.take(4).map((e) => _likedIdToLabel(e.key)).join(', ');
+        // Top liked traits. Un profil d'avant la V2.4 peut porter « rien_decevant » parmi ses
+        // traits aimés : ce n'est pas un goût.
+        final traitsAimes = p.likedTraits.entries
+            .where((e) => !TastingQuestionnaireResult.reponsesSansTrait.contains(e.key))
+            .toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+        if (traitsAimes.isNotEmpty) {
+          final top = traitsAimes.take(4).map((e) => _likedIdToLabel(e.key)).join(', ');
           buffer.writeln('    - Ce qu\'il/elle apprécie le plus: $top');
         }
       }

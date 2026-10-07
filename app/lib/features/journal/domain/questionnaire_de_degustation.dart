@@ -84,6 +84,25 @@ class ReponsesDuConvive {
   Set<String> aime = {};
   Set<String> aimePas = {};
 
+  /// Ce qui a plu et ce qui a déplu : une réponse « rien » exclut les traits, et un trait
+  /// exclut les réponses « rien » (V2.4 · R3).
+  void basculerAime(String id, bool choisi) => _basculer(aime, id, choisi);
+  void basculerAimePas(String id, bool choisi) => _basculer(aimePas, id, choisi);
+
+  static void _basculer(Set<String> choix, String id, bool choisi) {
+    if (!choisi) {
+      choix.remove(id);
+    } else if (TastingQuestionnaireResult.reponsesSansTrait.contains(id)) {
+      choix
+        ..clear()
+        ..add(id);
+    } else {
+      choix
+        ..removeAll(TastingQuestionnaireResult.reponsesSansTrait)
+        ..add(id);
+    }
+  }
+
   /// Un visage choisi donne la note de sa tranche.
   void choisirLeVisage(int i) {
     visage = i;

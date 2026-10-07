@@ -213,6 +213,13 @@ class TastingQuestionnaireResult {
     ];
   }
 
+  /// Les réponses « rien » des deux listes (V2.4 · R3) : aucune ne dit un goût. « Rien de
+  /// particulier » est la réponse neutre que demandait Caro (07/10) ; les listes n'offraient
+  /// que deux extrêmes, « Rien / Décevant » et « Rien, c'était parfait ! ». Elles excluent
+  /// les traits (on ne peut pas n'avoir rien aimé et aimer la fraîcheur) et le profil de
+  /// goût ne les compte pas : « Décevant » était compté parmi les traits aimés.
+  static const Set<String> reponsesSansTrait = {'rien', 'rien_de_particulier', 'rien_decevant'};
+
   static const List<LikeOption> likedOptions = [
     LikeOption(id: 'fraicheur', label: 'La fraîcheur'),
     LikeOption(id: 'fruite', label: 'Le fruité'),
@@ -224,6 +231,7 @@ class TastingQuestionnaireResult {
     LikeOption(id: 'accord_plat', label: 'L\'accord avec le plat'),
     LikeOption(id: 'minerale', label: 'La minéralité'),
     LikeOption(id: 'longueur', label: 'La longueur en bouche'),
+    LikeOption(id: 'rien_de_particulier', label: 'Rien de particulier'),
     LikeOption(id: 'rien_decevant', label: 'Rien / Décevant 😕'),
   ];
 
@@ -240,6 +248,7 @@ class TastingQuestionnaireResult {
       LikeOption(id: 'accord_plat', label: l10n.likedFoodPairing),
       LikeOption(id: 'minerale', label: l10n.likedMinerality),
       LikeOption(id: 'longueur', label: l10n.likedLength),
+      LikeOption(id: 'rien_de_particulier', label: l10n.nothingInParticular),
       LikeOption(id: 'rien_decevant', label: l10n.likedDisappointing),
     ];
   }
@@ -266,6 +275,7 @@ class TastingQuestionnaireResult {
     LikeOption(id: 'manque_fruit', label: 'Manque de fruit'),
     LikeOption(id: 'trop_sucre', label: 'Trop sucré'),
     LikeOption(id: 'trop_cher', label: 'Trop cher pour la qualité'),
+    LikeOption(id: 'rien_de_particulier', label: 'Rien de particulier'),
     LikeOption(id: 'rien', label: 'Rien, c\'était parfait !'),
   ];
 
@@ -280,6 +290,7 @@ class TastingQuestionnaireResult {
       LikeOption(id: 'manque_fruit', label: l10n.dislikedLacksFruit),
       LikeOption(id: 'trop_sucre', label: l10n.dislikedTooSweet),
       LikeOption(id: 'trop_cher', label: l10n.dislikedTooExpensive),
+      LikeOption(id: 'rien_de_particulier', label: l10n.nothingInParticular),
       LikeOption(id: 'rien', label: l10n.dislikedNothing),
     ];
   }
@@ -391,6 +402,7 @@ class LikeOption {
       case 'accord_plat': return l10n.likedFoodPairing;
       case 'minerale': return l10n.likedMinerality;
       case 'longueur': return l10n.likedLength;
+      case 'rien_de_particulier': return l10n.nothingInParticular;
       case 'rien_decevant': return l10n.likedDisappointing;
       case 'trop_acide': return l10n.dislikedTooAcidic;
       case 'trop_tannique': return l10n.dislikedTooTannic;

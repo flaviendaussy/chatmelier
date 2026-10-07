@@ -3118,6 +3118,12 @@ abstract class AppLocalizations {
   /// **'Finish length'**
   String get likedLength;
 
+  /// No description provided for @nothingInParticular.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in particular'**
+  String get nothingInParticular;
+
   /// No description provided for @likedDisappointing.
   ///
   /// In en, this message translates to:

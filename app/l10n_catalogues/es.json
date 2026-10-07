@@ -1179,7 +1179,7 @@
   "fr": "© 2026 Chatmelier • Gestionnaire de Cave Intelligent par IA\nConforme RGPD & Apple/Google Store Guidelines",
   "en": "© 2026 Chatmelier • Smart AI Wine Cellar Manager\nCompliant with GDPR & Apple/Google Store Guidelines",
   "es": "© 2026 Chatmelier • Gestor de bodega inteligente con IA\nConforme al RGPD y a las normas de Apple y Google",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1703"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1705"
  },
  {
   "fr": "Envoi impossible : {e}",
@@ -13461,121 +13461,133 @@
   "fr": "fr_FR",
   "en": "en_US",
   "es": "es_ES",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:229"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:234"
  },
  {
   "fr": "Journal de dégustation",
   "en": "Tasting journal",
   "es": "Diario de cata",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:246"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:251"
  },
  {
   "fr": "Dégustation Hors-Cave (Restaurant, Amis)",
   "en": "Out-of-Cellar Tasting (Restaurant, Friends)",
   "es": "Cata fuera de la bodega (restaurante, amigos)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:251"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:256"
  },
  {
   "fr": "Déguster Hors-Cave",
   "en": "Taste Out-of-Cellar",
   "es": "Catar fuera de la bodega",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:260"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:265"
  },
  {
   "fr": "Aucun souvenir de dégustation pour le moment",
   "en": "No tasting memories yet",
   "es": "Aún no hay recuerdos de cata",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:280"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:286"
  },
  {
   "fr": "Dégustez et sortez une bouteille de votre cave, notez un vin bu au restaurant ou scannez une carte.",
   "en": "Taste and check out a bottle from your cellar, rate a wine at a restaurant or scan a menu.",
   "es": "Cata y saca una botella de tu bodega, puntúa un vino bebido en un restaurante o escanea una carta.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:282"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:288"
  },
  {
   "fr": "Noter un vin hors-cave (Restaurant, Amis)",
   "en": "Log out-of-cellar wine (Restaurant, Friends)",
   "es": "Puntuar un vino fuera de la bodega (restaurante, amigos)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:285"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:291"
  },
  {
   "fr": "Rechercher : vin, lieu, invité, plat, note, année...",
   "en": "Search: wine, place, guest, dish, rating, year...",
   "es": "Buscar: vino, lugar, invitado, plato, nota, año...",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:325"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:331"
  },
  {
   "fr": "Hors-Cave",
   "en": "Out-of-Cellar",
   "es": "Fuera de la bodega",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:384"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:390"
  },
  {
   "fr": "Coups de Cœur (≥ 8/10)",
   "en": "Top Rated (≥ 8/10)",
   "es": "Flechazos (≥ 8/10)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:413"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:419"
  },
  {
   "fr": "Année",
   "en": "Year",
   "es": "Año",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:445"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:451"
  },
  {
   "fr": "Toutes les années",
   "en": "All years",
   "es": "Todos los años",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:451"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:457"
  },
  {
   "fr": "Aucun souvenir trouvé",
   "en": "No memories found",
   "es": "No se ha encontrado ningún recuerdo",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:492"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:498"
  },
  {
   "fr": "Aucune dégustation ne correspond aux filtres actuels.",
   "en": "No tastings match current filters.",
   "es": "Ninguna cata coincide con los filtros actuales.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:498"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:504"
  },
  {
   "fr": "Réinitialiser les filtres",
   "en": "Reset filters",
   "es": "Restablecer los filtros",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:506"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:512"
+ },
+ {
+  "fr": "« {nom} » supprimé du journal.",
+  "en": "\"{nom}\" removed from your journal.",
+  "es": "«{nom}» eliminado de tu diario.",
+  "ou": "lib/features/journal/presentation/journal_screen.dart:631"
+ },
+ {
+  "fr": "Pas de connexion : « {nom} » reviendra au journal. Supprimez-le à nouveau une fois connecté.",
+  "en": "No connection: \"{nom}\" will come back to your journal. Delete it again once online.",
+  "es": "Sin conexión: «{nom}» volverá a tu diario. Vuelve a eliminarlo cuando tengas conexión.",
+  "ou": "lib/features/journal/presentation/journal_screen.dart:648"
  },
  {
   "fr": "🍽️ Hors-Cave",
   "en": "🍽️ Out-of-Cellar",
   "es": "🍽️ Fuera de la bodega",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:696"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:786"
  },
  {
   "fr": "🍷 Cave",
   "en": "🍷 Cellar",
   "es": "🍷 Bodega",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:708"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:798"
  },
  {
   "fr": "Accord",
   "en": "Pairing",
   "es": "Maridaje",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:748"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:838"
  },
  {
   "fr": "Fiche complète & arômes",
   "en": "Full details & aromas",
   "es": "Ficha completa y aromas",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:788"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:878"
  },
  {
   "fr": "Quiz sommelier",
   "en": "Sommelier quiz",
   "es": "Quiz del sumiller",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:804"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:894"
  },
  {
   "fr": "Modifier",

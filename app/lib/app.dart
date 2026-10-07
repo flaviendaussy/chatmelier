@@ -15,6 +15,7 @@ import 'features/feedback/data/shake_feedback_service.dart';
 import 'features/config/garde_de_version.dart';
 import 'shared/utils/app_logger.dart';
 import 'shared/utils/langue.dart';
+import 'shared/widgets/clavier_qui_se_ferme.dart';
 
 class ChatmelierApp extends ConsumerWidget {
   const ChatmelierApp({super.key});
@@ -81,10 +82,13 @@ class ChatmelierApp extends ConsumerWidget {
         });
         return RepaintBoundary(
           key: ShakeFeedbackService.rootRepaintBoundaryKey,
-          // Pendant la phase de test : une version trop ancienne est bloquée (045).
-          child: GardeDeVersion(
-            versionInstallee: versionApp,
-            child: child ?? const SizedBox.shrink(),
+          // Toucher ailleurs referme le clavier (V2.4 · R3).
+          child: ClavierQuiSeFerme(
+            // Pendant la phase de test : une version trop ancienne est bloquée (045).
+            child: GardeDeVersion(
+              versionInstallee: versionApp,
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
         );
       },

@@ -5,7 +5,9 @@ import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/utils/responsive_layout.dart';
 import '../../../l10n/app_localizations.dart';
+import '../data/tasting_deletion_service.dart';
 import '../domain/tasting_entry.dart';
+import '../../auth/data/taste_profile_service.dart';
 import 'external_tasting_dialog.dart';
 import 'tasting_questionnaire_sheet.dart';
 import 'tasting_entry_detail_screen.dart';
@@ -163,6 +165,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
   bool _minRatingOnly = false; // >= 8/10 or >= 4/5
   bool _onlyFavorites = false;
 
+  /// Balayées, en attente de la fermeture du bandeau « Annuler » (V2.4 · R3).
+  final Set<String> _enSuppression = {};
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -269,7 +274,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             child: Text(trSi(isFr, 'Erreur : {err}', 'Error: {err}', {'err': err})),
           ),
         ),
-        data: (allEntries) {
+        data: (toutes) {
+          final allEntries = toutes.where((e) => !_enSuppression.contains(e.id)).toList();
           if (allEntries.isEmpty) {
             return SingleChildScrollView(
               child: Column(
@@ -579,6 +585,90 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         : ' (NV)';
     final dateStr = _formatDate(entry.consumedAt, isFr);
 
+    return Dismissible(
+      key: ObjectKey(entry),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        alignment: Alignment.centerRight,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              trSi(isFr, 'Supprimer', 'Delete'),
+              style: TextStyle(color: theme.colorScheme.onError, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.delete_outline, color: theme.colorScheme.onError),
+          ],
+        ),
+      ),
+      onDismissed: (_) => _supprimerAvecAnnulation(entry, isFr),
+      child: _carteDeDegustation(context, entry, isDark, theme, isFr, wineName, vintage, dateStr, enGrille),
+    );
+  }
+
+  /// Balayer une dégustation la supprime, avec « Annuler » (V2.4 · R3 ; Dimitri, 04/10).
+  ///
+  /// Elle disparaît tout de suite de la liste, mais n'est vraiment supprimée (serveur,
+  /// cache, file d'attente, profils de goût) qu'à la fermeture du bandeau sans « Annuler » :
+  /// défaire une suppression déjà faite demanderait de rejouer ce qu'elle avait appris au
+  /// profil. Un second balayage referme le bandeau précédent, dont la suppression part.
+  void _supprimerAvecAnnulation(TastingEntry entry, bool isFr) {
+    setState(() => _enSuppression.add(entry.id));
+    final service = ref.read(tastingDeletionServiceProvider);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final messager = ScaffoldMessenger.of(context);
+    final nom = entry.wineName ?? trSi(isFr, 'Vin dégusté', 'Tasted wine');
+    messager.hideCurrentSnackBar();
+    messager
+        .showSnackBar(SnackBar(
+          content: Text(trSi(isFr, '« {nom} » supprimé du journal.', '"{nom}" removed from your journal.', {'nom': nom})),
+          duration: const Duration(seconds: 5),
+          // Un bandeau qui porte une action reste affiché sans fin (`persist` vaut alors
+          // vrai par défaut) : la suppression ne partirait jamais.
+          persist: false,
+          action: SnackBarAction(label: trSi(isFr, 'Annuler', 'Undo'), onPressed: () {}),
+        ))
+        .closed
+        .then((raison) async {
+      if (raison == SnackBarClosedReason.action) {
+        if (mounted) setState(() => _enSuppression.remove(entry.id));
+        return;
+      }
+      final resultat = await service.supprimer(entry.id);
+      conteneur.invalidate(tastingLogProvider);
+      conteneur.invalidate(tasteProfilesListProvider);
+      final message = !resultat.supprimeeEnLigne
+          ? trSi(
+              isFr,
+              'Pas de connexion : « {nom} » reviendra au journal. Supprimez-le à nouveau une fois connecté.',
+              'No connection: "{nom}" will come back to your journal. Delete it again once online.',
+              {'nom': nom},
+            )
+          : TastingDeletionService.phraseDesRestes(resultat.restes);
+      if (message != null) {
+        messager.showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 6)));
+      }
+    });
+  }
+
+  Widget _carteDeDegustation(
+    BuildContext context,
+    TastingEntry entry,
+    bool isDark,
+    ThemeData theme,
+    bool isFr,
+    String wineName,
+    String vintage,
+    String dateStr,
+    bool enGrille,
+  ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

@@ -2259,6 +2259,8 @@ const Map<String, String> catalogueEs = {
   'Aucun souvenir trouvé': 'No se ha encontrado ningún recuerdo',
   'Aucune dégustation ne correspond aux filtres actuels.': 'Ninguna cata coincide con los filtros actuales.',
   'Réinitialiser les filtres': 'Restablecer los filtros',
+  '« {nom} » supprimé du journal.': '«{nom}» eliminado de tu diario.',
+  'Pas de connexion : « {nom} » reviendra au journal. Supprimez-le à nouveau une fois connecté.': 'Sin conexión: «{nom}» volverá a tu diario. Vuelve a eliminarlo cuando tengas conexión.',
   '🍽️ Hors-Cave': '🍽️ Fuera de la bodega',
   '🍷 Cave': '🍷 Bodega',
   'Accord': 'Maridaje',

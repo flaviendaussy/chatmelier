@@ -11,6 +11,9 @@ import '../../../shared/services/nearby_places_service.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/widgets/bottle_image_view.dart';
 import '../../scan/data/scan_service.dart';
+import '../../../shared/utils/langue.dart';
+import '../../scan/domain/scan_result.dart';
+import '../domain/fiche_depuis_texte.dart';
 import '../../friends/data/friends_repository.dart';
 import '../../friends/domain/friend.dart';
 import '../../auth/domain/taste_profile.dart';
@@ -183,6 +186,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   String? _photoUrl;
   bool _isScanningPhoto = false;
   bool _isQuickAnalyzing = false;
+
+  /// L'étiquette de la photo a été lue : une détection sur le nom ne l'écrase plus (R1).
+  bool _etiquetteLue = false;
+
+  /// Les champs que la dernière détection sur le nom a remplis : « à vérifier » (R1).
+  Set<String> _remplisParLeTexte = const {};
   late final TextEditingController _quickSearchController;
 
   String _normalizeWineType(String type) {
@@ -258,6 +267,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             if (result.foodPairings.isNotEmpty) {
               _foodController.text = result.foodPairings.first;
             }
+            _etiquetteLue = true;
+            _remplisParLeTexte = const {};
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -303,29 +314,56 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     try {
       final supabase = ref.read(supabaseProvider);
       final scanService = ScanService(supabase);
-      final result = await scanService.analyzeWineFromText(text);
+      final ScanResult result;
+      try {
+        result = await scanService.analyzeWineFromText(text);
+      } on VinNonReconnu {
+        if (mounted) {
+          setState(() {
+            _isQuickAnalyzing = false;
+            if (_nameController.text.trim().isEmpty) _nameController.text = text;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(
+              'Vin non reconnu avec certitude : complétez à la main, rien n\'a été inventé.',
+              'Wine not recognised with certainty: fill it in by hand, nothing was made up.'))));
+        }
+        return;
+      }
 
+      // Une étiquette lue n'est jamais écrasée par une identification sur le nom (V2.4 · R1,
+      // vin marocain de Camille, 07/10) : voir FicheDepuisTexte.
+      final champs = {
+        'nom': _nameController,
+        'producteur': _producerController,
+        'millesime': _vintageController,
+        'region': _regionController,
+        'notes': _notesController,
+        'accord': _foodController,
+      };
+      final ecrire = FicheDepuisTexte.aEcrire(
+        actuels: {for (final e in champs.entries) e.key: e.value.text},
+        proposes: {
+          'nom': result.name,
+          'producteur': result.producer,
+          'millesime': result.vintage?.toString(),
+          'region': (result.appellation?.isNotEmpty ?? false) ? result.appellation : result.region,
+          'notes': result.tastingNotes,
+          'accord': result.foodPairings.isNotEmpty ? result.foodPairings.first : null,
+        },
+        etiquetteLue: _etiquetteLue,
+        remplisParLeTexte: _remplisParLeTexte,
+      );
       if (mounted) {
         setState(() {
-          _nameController.text = result.name;
-          if (result.producer != null && result.producer!.isNotEmpty) {
-            _producerController.text = result.producer!;
+          for (final e in ecrire.entries) {
+            champs[e.key]!.text = e.value;
           }
-          if (result.vintage != null) {
-            _vintageController.text = '${result.vintage}';
-          }
-          if (result.appellation != null && result.appellation!.isNotEmpty) {
-            _regionController.text = result.appellation!;
-          } else if (result.region.isNotEmpty) {
-            _regionController.text = result.region;
-          }
-          _wineType = _normalizeWineType(result.wineType);
-          if (result.tastingNotes != null && result.tastingNotes!.isNotEmpty) {
-            _notesController.text = result.tastingNotes!;
-          }
-          if (result.foodPairings.isNotEmpty) {
-            _foodController.text = result.foodPairings.first;
-          }
+          if (!_etiquetteLue && result.wineType.isNotEmpty) _wineType = _normalizeWineType(result.wineType);
+          _remplisParLeTexte = {
+            if (!_etiquetteLue) ..._remplisParLeTexte,
+            for (final e in ecrire.entries)
+              if (e.value.isNotEmpty) e.key,
+          }..removeWhere((cle) => ecrire[cle] == '');
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1278,6 +1316,14 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               ),
             ],
           ),
+          if (_remplisParLeTexte.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              tr('Complété d\'après le nom : vérifiez avant d\'enregistrer.',
+                  'Filled in from the name: check before saving.'),
+              style: TextStyle(fontSize: 11, color: Colors.orange.shade800, fontStyle: FontStyle.italic),
+            ),
+          ],
         ],
       ),
     );
@@ -1383,7 +1429,10 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                         visualDensity: VisualDensity.compact,
                         icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
                         tooltip: l10n.externalTastingDeletePhoto,
-                        onPressed: () => setState(() => _photoUrl = null),
+                        onPressed: () => setState(() {
+                          _photoUrl = null;
+                          _etiquetteLue = false;
+                        }),
                       ),
                     ],
                   ),

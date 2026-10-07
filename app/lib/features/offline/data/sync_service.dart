@@ -254,7 +254,8 @@ class SyncService {
     if (vintage == null || region == null || region.isEmpty) {
       try {
         final enriched = await _enrichirLeVin(wineName, vintage);
-        if (enriched != null) {
+        // « Non reconnu » : le vin garde ce que la personne a saisi, rien de plus (R1).
+        if (enriched != null && enriched['reconnu'] != false) {
           wineName = enriched['name'] as String? ?? wineName;
           producer = enriched['producer'] as String? ?? producer;
           vintage = vintage ?? enriched['vintage'] as int?;
@@ -289,8 +290,9 @@ class SyncService {
         'vintage': vintage,
         'producer': producer,
         'wine_type': wineType,
-        'country': country ?? 'France',
-        'region': region ?? 'Bordeaux',
+        // Inconnu reste vide : « France, Bordeaux » par défaut entrait au catalogue partagé (R1).
+        'country': country,
+        'region': region,
         if (subRegion != null) 'sub_region': subRegion,
         if (appellation != null) 'appellation': appellation,
         if (classification != null) 'classification': classification,

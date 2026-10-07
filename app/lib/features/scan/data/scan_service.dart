@@ -503,24 +503,37 @@ class ScanService {
       'langue': Langue.code,
     }, delai: const Duration(seconds: 30));
     final brut = r.ok ? r.donnees!['resultat'] : null;
+    if (brut is Map && nonReconnu(brut)) {
+      AppLogger.info('SCAN_AI', 'Vin non reconnu depuis le texte : rien n\'est inventé');
+      throw VinNonReconnu();
+    }
     if (brut is Map) {
-      final result = ScanResult.fromJson(Map<String, dynamic>.from(brut));
+      var result = ScanResult.fromJson(Map<String, dynamic>.from(brut));
+      // ScanResult.fromJson prend « rouge » sans couleur donnée : depuis un nom, une couleur
+      // inconnue reste inconnue (R1).
+      if (brut['wine_type'] == null) result = result.copyWith(wineType: '');
       AppLogger.info('SCAN_AI',
           'Vin reconnu depuis le texte en ${DateTime.now().difference(startTime).inMilliseconds} ms');
       return result;
     }
 
-    // Heuristic fallback if offline
+    // Hors ligne ou vin non reconnu : le texte tel quel, et rien d'inventé (V2.4 · R1). Le
+    // repli d'avant écrivait « rouge, France » sur n'importe quel vin.
     return ScanResult(
-      name: text.trim().isNotEmpty ? text.trim() : 'Vin Dégusté',
+      name: text.trim(),
       producer: null,
       vintage: null,
-      wineType: 'red',
-      country: 'France',
-      region: 'France',
-      tastingNotes: 'Vin dégusté hors-cave.',
+      wineType: '',
+      country: '',
+      region: '',
       foodPairings: const [],
       detectedQuantity: 1,
     );
   }
+
+  /// Le serveur a répondu qu'il ne reconnaissait pas ce vin avec certitude.
+  static bool nonReconnu(Map brut) => brut['reconnu'] == false;
 }
+
+/// Le texte ne suffit pas à reconnaître le vin avec certitude (V2.4 · R1).
+class VinNonReconnu implements Exception {}

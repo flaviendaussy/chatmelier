@@ -2240,6 +2240,8 @@ const Map<String, String> catalogueEs = {
   'Élevage en {contenant} (sans contact boisé)': 'Crianza en {contenant} (sin contacto con madera)',
   '{source} : {duree} en {v1}.\n\n': '{source}: {duree} en {v1}.\n\n',
   'Empreinte du Terroir & Climat ({regionDisplay})': 'Huella del terruño y del clima ({regionDisplay})',
+  'Vin non reconnu avec certitude : complétez à la main, rien n\'a été inventé.': 'Vino no reconocido con certeza: complétalo a mano, no se ha inventado nada.',
+  'Complété d\'après le nom : vérifiez avant d\'enregistrer.': 'Completado a partir del nombre: compruébalo antes de guardar.',
   'fr_FR': 'es_ES',
   'Journal de dégustation': 'Diario de cata',
   'Dégustation Hors-Cave (Restaurant, Amis)': 'Cata fuera de la bodega (restaurante, amigos)',

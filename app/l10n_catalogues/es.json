@@ -13434,6 +13434,18 @@
   "ou": "lib/features/journal/domain/tasting_pedagogy_engine.dart:1249"
  },
  {
+  "fr": "Vin non reconnu avec certitude : complétez à la main, rien n'a été inventé.",
+  "en": "Wine not recognised with certainty: fill it in by hand, nothing was made up.",
+  "es": "Vino no reconocido con certeza: complétalo a mano, no se ha inventado nada.",
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:326"
+ },
+ {
+  "fr": "Complété d'après le nom : vérifiez avant d'enregistrer.",
+  "en": "Filled in from the name: check before saving.",
+  "es": "Completado a partir del nombre: compruébalo antes de guardar.",
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1322"
+ },
+ {
   "fr": "fr_FR",
   "en": "en_US",
   "es": "es_ES",
@@ -17883,361 +17895,361 @@
   "fr": "L'analyse automatique a rencontré une difficulté ({e}). Vous pouvez réessayer ou remplir manuellement.",
   "en": "The automatic analysis ran into a problem ({e}). You can try again or fill it in by hand.",
   "es": "El análisis automático ha tenido un problema ({e}). Puedes volver a intentarlo o rellenarlo a mano.",
-  "ou": "lib/features/scan/presentation/review_screen.dart:236"
+  "ou": "lib/features/scan/presentation/review_screen.dart:238"
  },
  {
   "fr": "{detectedQty} bouteilles",
   "en": "{detectedQty} bottles",
   "es": "{detectedQty} botellas",
-  "ou": "lib/features/scan/presentation/review_screen.dart:263"
+  "ou": "lib/features/scan/presentation/review_screen.dart:265"
  },
  {
   "fr": "Erreur lors de la mise à jour du stock : {e}",
   "en": "Couldn't update the stock: {e}",
   "es": "No se pudieron actualizar las existencias: {e}",
-  "ou": "lib/features/scan/presentation/review_screen.dart:530"
+  "ou": "lib/features/scan/presentation/review_screen.dart:532"
  },
  {
   "fr": "Impossible de trouver ou créer une cave pour cet utilisateur.",
   "en": "Couldn't find or create a cellar for this user.",
   "es": "No se pudo encontrar ni crear una bodega para este usuario.",
-  "ou": "lib/features/scan/presentation/review_screen.dart:720"
+  "ou": "lib/features/scan/presentation/review_screen.dart:722"
  },
  {
   "fr": "Erreur lors de l'ajout : {e}",
   "en": "Couldn't add it: {e}",
   "es": "No se pudo añadir: {e}",
-  "ou": "lib/features/scan/presentation/review_screen.dart:897"
+  "ou": "lib/features/scan/presentation/review_screen.dart:899"
  },
  {
   "fr": "Chatmelier essaye de trouver...",
   "en": "Chatmelier is looking...",
   "es": "Chatmelier intenta encontrarlo...",
-  "ou": "lib/features/scan/presentation/review_screen.dart:984"
+  "ou": "lib/features/scan/presentation/review_screen.dart:986"
  },
  {
   "fr": "Lecture de l'étiquette, détection du domaine ou de la distillerie, millésime...",
   "en": "Reading the label, finding the estate or distillery, the vintage...",
   "es": "Leyendo la etiqueta, detectando la bodega o la destilería, la añada...",
-  "ou": "lib/features/scan/presentation/review_screen.dart:985"
+  "ou": "lib/features/scan/presentation/review_screen.dart:987"
  },
  {
   "fr": "Retour",
   "en": "Back",
   "es": "Volver",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1003"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1005"
  },
  {
   "fr": "Mode Hors-Ligne",
   "en": "Offline mode",
   "es": "Modo sin conexión",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1006"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1008"
  },
  {
   "fr": "Chatmelier cherche du réseau...",
   "en": "Chatmelier is looking for a connection...",
   "es": "Chatmelier busca red...",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1015"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1017"
  },
  {
   "fr": "La détection photo automatique par IA a besoin d'une connexion internet. Vous pouvez saisir les détails manuellement ou réessayer dès que le réseau revient.",
   "en": "Automatic photo recognition needs an internet connection. You can enter the details by hand, or try again once you're back online.",
   "es": "El reconocimiento automático de fotos con IA necesita conexión a internet. Puedes introducir los datos a mano o volver a intentarlo cuando vuelva la red.",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1016"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1018"
  },
  {
   "fr": "Saisir manuellement ma bouteille",
   "en": "Enter my bottle by hand",
   "es": "Introducir mi botella a mano",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1036"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1038"
  },
  {
   "fr": "Réessayer l'analyse IA",
   "en": "Retry the AI analysis",
   "es": "Volver a intentar el análisis con IA",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1505"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1507"
  },
  {
   "fr": "Niveau / Rangée",
   "en": "Shelf / row",
   "es": "Nivel / fila",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1988"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1990"
  },
  {
   "fr": "Notes & Commentaires Personnels",
   "en": "Personal notes",
   "es": "Notas y comentarios personales",
-  "ou": "lib/features/scan/presentation/review_screen.dart:2014"
+  "ou": "lib/features/scan/presentation/review_screen.dart:2016"
  },
  {
   "fr": "Impressions, potentiel de garde, circonstances particulières...",
   "en": "Impressions, ageing potential, special occasions...",
   "es": "Impresiones, potencial de guarda, circunstancias especiales...",
-  "ou": "lib/features/scan/presentation/review_screen.dart:2020"
+  "ou": "lib/features/scan/presentation/review_screen.dart:2022"
  },
  {
   "fr": "Ajouter à ma cave",
   "en": "Add to my cellar",
   "es": "Añadir a mi bodega",
-  "ou": "lib/features/scan/presentation/review_screen.dart:2043"
+  "ou": "lib/features/scan/presentation/review_screen.dart:2045"
  },
  {
   "fr": "Dégusté hors cave (Chez des proches, resto...)",
   "en": "Tasted outside the cellar (friends, restaurant...)",
   "es": "Catado fuera de la bodega (en casa de amigos, restaurante...)",
-  "ou": "lib/features/scan/presentation/review_screen.dart:2073"
+  "ou": "lib/features/scan/presentation/review_screen.dart:2075"
  },
  {
   "fr": "Annuler et fermer sans ajouter",
   "en": "Cancel and close without adding",
   "es": "Cancelar y cerrar sin añadir",
-  "ou": "lib/features/scan/presentation/review_screen.dart:2084"
+  "ou": "lib/features/scan/presentation/review_screen.dart:2086"
  },
  {
   "fr": "Carton de 6 bouteilles 📦",
   "en": "6-bottle case 📦",
   "es": "Caja de 6 botellas 📦",
-  "ou": "lib/features/scan/presentation/review_screen.dart:267"
+  "ou": "lib/features/scan/presentation/review_screen.dart:269"
  },
  {
   "fr": "Caisse bois de 12 bouteilles 🪵",
   "en": "12-bottle wooden crate 🪵",
   "es": "Caja de madera de 12 botellas 🪵",
-  "ou": "lib/features/scan/presentation/review_screen.dart:270"
+  "ou": "lib/features/scan/presentation/review_screen.dart:272"
  },
  {
   "fr": "L'IA a identifié plusieurs exemplaires sur votre photo ({pkgLabel}).\n\nSouhaitez-vous enregistrer directement {detectedQty} bouteilles ?",
   "en": "AI identified multiple bottles on your photo ({pkgLabel}).\n\nWould you like to directly add {detectedQty} bottles?",
   "es": "La IA ha identificado varias botellas en tu foto ({pkgLabel}).\n\n¿Quieres registrar directamente {detectedQty} botellas?",
-  "ou": "lib/features/scan/presentation/review_screen.dart:285"
+  "ou": "lib/features/scan/presentation/review_screen.dart:287"
  },
  {
   "fr": "Indiquez ou confirmez l'année de récolte de cette bouteille :",
   "en": "Enter or confirm the harvest year of this bottle:",
   "es": "Indica o confirma el año de cosecha de esta botella:",
-  "ou": "lib/features/scan/presentation/review_screen.dart:586"
+  "ou": "lib/features/scan/presentation/review_screen.dart:588"
  },
  {
   "fr": "Année (ex: 2018, 2020)",
   "en": "Year (e.g. 2018, 2020)",
   "es": "Año (p. ej.: 2018, 2020)",
-  "ou": "lib/features/scan/presentation/review_screen.dart:595"
+  "ou": "lib/features/scan/presentation/review_screen.dart:597"
  },
  {
   "fr": "C'est un Non millésimé (NM)",
   "en": "Non-vintage (NV)",
   "es": "Es un vino sin añada (S/A)",
-  "ou": "lib/features/scan/presentation/review_screen.dart:621"
+  "ou": "lib/features/scan/presentation/review_screen.dart:623"
  },
  {
   "fr": "Abandonner",
   "en": "Discard",
   "es": "Descartar",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1064"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1066"
  },
  {
   "fr": "Bouteille non détectée",
   "en": "Bottle not detected",
   "es": "Botella no detectada",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1068"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1070"
  },
  {
   "fr": "Vin non reconnu",
   "en": "Wine not recognized",
   "es": "Vino no reconocido",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1116"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1118"
  },
  {
   "fr": "Chatmelier n'a pas réussi à identifier l'étiquette sur cette photo. Elle est peut-être trop sombre, floue ou avec des reflets.",
   "en": "Chatmelier could not identify the label on this photo. It may be too dark, blurry, or have reflections.",
   "es": "Chatmelier no ha logrado identificar la etiqueta en esta foto. Quizá esté demasiado oscura, desenfocada o con reflejos.",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1125"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1127"
  },
  {
   "fr": "Reprendre une photo",
   "en": "Retake photo",
   "es": "Hacer otra foto",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1147"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1149"
  },
  {
   "fr": "Entrer manuellement les détails",
   "en": "Enter details manually",
   "es": "Introducir los datos a mano",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1167"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1169"
  },
  {
   "fr": "Vous avez des informations non enregistrées sur cette bouteille. Souhaitez-vous vraiment quitter sans sauvegarder ?",
   "en": "You have unsaved information for this bottle. Are you sure you want to discard without saving?",
   "es": "Tienes información sin guardar sobre esta botella. ¿Seguro que quieres salir sin guardar?",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1209"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1211"
  },
  {
   "fr": "Annuler et fermer",
   "en": "Cancel and close",
   "es": "Cancelar y cerrar",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1235"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1237"
  },
  {
   "fr": "Déguster hors-cave (Restaurant/Amis)",
   "en": "Taste outside cellar (Restaurant/Friends)",
   "es": "Catar fuera de la bodega (restaurante/amigos)",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1254"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1256"
  },
  {
   "fr": "Vin déjà présent dans votre cave ! ({dupStock} en stock)",
   "en": "Wine already in your cellar! ({dupStock} in stock)",
   "es": "¡Este vino ya está en tu bodega! ({dupStock} en existencias)",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1314"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1316"
  },
  {
   "fr": "Ce vin existe déjà ({v1} {v2}). Que souhaitez-vous faire ?",
   "en": "This wine already exists ({v1} {v2}). What would you like to do?",
   "es": "Este vino ya existe ({v1} {v2}). ¿Qué quieres hacer?",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1322"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1324"
  },
  {
   "fr": "Augmenter le stock existant ({totalStock} btl au total)",
   "en": "Increase existing stock ({totalStock} bottles total)",
   "es": "Aumentar las existencias ({totalStock} bot. en total)",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1422"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1424"
  },
  {
   "fr": "Vin identifié par l'IA Sommelier ✨",
   "en": "Wine identified by Sommelier AI ✨",
   "es": "Vino identificado por el sumiller IA ✨",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1464"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1466"
  },
  {
   "fr": "Informations extraites de votre étiquette. Vérifiez ou ajustez les détails ci-dessous.",
   "en": "Information extracted from your label. Verify or adjust the details below.",
   "es": "Datos extraídos de tu etiqueta. Comprueba o ajusta los detalles de abajo.",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1468"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1470"
  },
  {
   "fr": "ex: Château Margaux, Domaine de la Solitude...",
   "en": "e.g. Château Margaux, Opus One...",
   "es": "p. ej.: Château Margaux, Vega Sicilia...",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1609"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1611"
  },
  {
   "fr": "Veuillez saisir le nom du vin",
   "en": "Please enter wine name",
   "es": "Introduce el nombre del vino",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1613"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1615"
  },
  {
   "fr": "ex: Famille Perrin, Antinori...",
   "en": "e.g. Famille Perrin, Antinori...",
   "es": "p. ej.: Famille Perrin, Antinori...",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1621"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1623"
  },
  {
   "fr": "ex: 2018",
   "en": "e.g. 2018",
   "es": "p. ej.: 2018",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1637"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1639"
  },
  {
   "fr": "Non millésimé",
   "en": "Non-vintage",
   "es": "Sin añada",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1642"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1644"
  },
  {
   "fr": "ex: 13.5 ou 40",
   "en": "e.g. 13.5 or 40",
   "es": "p. ej.: 13.5 o 40",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1661"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1663"
  },
  {
   "fr": "Catégorie",
   "en": "Category",
   "es": "Categoría",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1673"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1675"
  },
  {
   "fr": "Cliquer si Non millésimé (NM)",
   "en": "Tap if Non-vintage (NV)",
   "es": "Toca si es sin añada (S/A)",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1742"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1744"
  },
  {
   "fr": "Pays *",
   "en": "Country *",
   "es": "País *",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1781"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1783"
  },
  {
   "fr": "Pays obligatoire",
   "en": "Country required",
   "es": "El país es obligatorio",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1785"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1787"
  },
  {
   "fr": "Région / Vignoble *",
   "en": "Region / Vineyard *",
   "es": "Región / viñedo *",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1791"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1793"
  },
  {
   "fr": "ex: Bordeaux, Bourgogne, Vallée du Rhône...",
   "en": "e.g. Bordeaux, Burgundy, Napa Valley...",
   "es": "p. ej.: Rioja, Borgoña, valle del Ródano...",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1792"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1794"
  },
  {
   "fr": "Région obligatoire",
   "en": "Region required",
   "es": "La región es obligatoria",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1796"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1798"
  },
  {
   "fr": "Appellation (AOC / AOP / DOCG)",
   "en": "Appellation (AOC / AOP / DOCG)",
   "es": "Denominación (DO / AOC / DOCG)",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1802"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1804"
  },
  {
   "fr": "ex: Margaux, Pauillac, Saint-Émilion...",
   "en": "e.g. Margaux, Pauillac, Saint-Émilion...",
   "es": "p. ej.: Margaux, Pauillac, Saint-Émilion...",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1803"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1805"
  },
  {
   "fr": "Format / Contenance",
   "en": "Bottle Size / Volume",
   "es": "Formato / capacidad",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1832"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1834"
  },
  {
   "fr": "Quantité :",
   "en": "Quantity:",
   "es": "Cantidad:",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1873"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1875"
  },
  {
   "fr": "Prix unitaire",
   "en": "Unit price",
   "es": "Precio por unidad",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1930"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1932"
  },
  {
   "fr": "Circonstances de l'achat (texte libre)",
   "en": "Purchase notes (optional)",
   "es": "Circunstancias de la compra (texto libre)",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1964"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1966"
  },
  {
   "fr": "ex: Acheté en vacances au Chili avec Caro...",
   "en": "e.g. Bought on vacation in Chile with Caro...",
   "es": "p. ej.: comprada de vacaciones en Chile con Caro...",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1965"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1967"
  },
  {
   "fr": "Casier / Étagère",
   "en": "Rack / Shelf",
   "es": "Botellero / estante",
-  "ou": "lib/features/scan/presentation/review_screen.dart:1977"
+  "ou": "lib/features/scan/presentation/review_screen.dart:1979"
  },
  {
   "fr": "Scanner une bouteille",

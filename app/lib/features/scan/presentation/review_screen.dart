@@ -164,8 +164,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     _producerCtrl.text = w?.producer ?? '';
     _vintageCtrl.text = w?.vintage != null ? '${w!.vintage}' : '';
     _wineType = _normalizeWineType(w?.type ?? 'red');
-    _countryCtrl.text = w?.country ?? 'France';
-    _regionCtrl.text = w?.region ?? 'Bordeaux';
+    // Inconnu reste vide : « France, Bordeaux » par défaut faisait d'un vin marocain un
+    // bordeaux (V2.4 · R1).
+    _countryCtrl.text = w?.country ?? '';
+    _regionCtrl.text = w?.region ?? '';
     _appellationCtrl.text = w?.appellation ?? '';
     _selectedCurrency = b.currency;
     if (b.purchasePrice != null) {
@@ -212,8 +214,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           _producerCtrl.text = result.producer ?? '';
           _vintageCtrl.text = result.vintage != null ? '${result.vintage}' : '';
           _wineType = _normalizeWineType(result.wineType);
-          _countryCtrl.text = result.country.isNotEmpty ? result.country : 'France';
-          _regionCtrl.text = result.region.isNotEmpty ? result.region : 'Bordeaux';
+          _countryCtrl.text = result.country;
+          _regionCtrl.text = result.region;
           _appellationCtrl.text = result.appellation ?? '';
           if (result.alcoholPct != null) {
             _alcoholPctCtrl.text = result.alcoholPct!.toStringAsFixed(result.alcoholPct! % 1 == 0 ? 0 : 1);
@@ -826,8 +828,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         producer: _producerCtrl.text.trim().isEmpty ? null : _producerCtrl.text.trim(),
         vintage: vintage,
         wineType: _wineType,
-        country: _countryCtrl.text.trim().isEmpty ? 'France' : _countryCtrl.text.trim(),
-        region: _regionCtrl.text.trim().isEmpty ? 'Bordeaux' : _regionCtrl.text.trim(),
+        country: _countryCtrl.text.trim().isEmpty ? null : _countryCtrl.text.trim(),
+        region: _regionCtrl.text.trim().isEmpty ? null : _regionCtrl.text.trim(),
         appellation: _appellationCtrl.text.trim().isEmpty ? null : _appellationCtrl.text.trim(),
         classification: _scanResult?.classification,
         cuveeParcel: _scanResult?.cuveeParcel,

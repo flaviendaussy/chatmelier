@@ -243,271 +243,277 @@
   "fr": "Email ou mot de passe incorrect. Si vous n'avez pas encore de compte, cliquez sur \"Créer un compte\".",
   "en": "Incorrect email or password. If you don't have an account yet, tap \"Create an account\".",
   "es": "Correo o contraseña incorrectos. Si aún no tienes cuenta, toca \"Crear una cuenta\".",
-  "ou": "lib/features/auth/presentation/login_screen.dart:58"
+  "ou": "lib/features/auth/presentation/login_screen.dart:62"
  },
  {
   "fr": "Format d'adresse email invalide. Veuillez vérifier votre saisie.",
   "en": "Invalid email address. Please check what you typed.",
   "es": "Formato de correo no válido. Revisa lo que has escrito.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:61"
+  "ou": "lib/features/auth/presentation/login_screen.dart:65"
  },
  {
   "fr": "Cette adresse email est déjà enregistrée. Veuillez vous connecter.",
   "en": "This email address is already registered. Please sign in.",
   "es": "Este correo ya está registrado. Inicia sesión.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:64"
+  "ou": "lib/features/auth/presentation/login_screen.dart:68"
  },
  {
   "fr": "Adresse email non confirmée. Veuillez vérifier votre boîte de réception.",
   "en": "Email address not confirmed. Please check your inbox.",
   "es": "Correo no confirmado. Revisa tu bandeja de entrada.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:67"
+  "ou": "lib/features/auth/presentation/login_screen.dart:71"
  },
  {
   "fr": "Le mot de passe doit comporter au moins 6 caractères.",
   "en": "The password must be at least 6 characters long.",
   "es": "La contraseña debe tener al menos 6 caracteres.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:70"
+  "ou": "lib/features/auth/presentation/login_screen.dart:74"
  },
  {
   "fr": "Trop de tentatives en peu de temps. Veuillez patienter 60 secondes avant de réessayer.",
   "en": "Too many attempts in a short time. Please wait 60 seconds before trying again.",
   "es": "Demasiados intentos en poco tiempo. Espera 60 segundos antes de volver a intentarlo.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:73"
+  "ou": "lib/features/auth/presentation/login_screen.dart:77"
  },
  {
   "fr": "Impossible de joindre le serveur. Veuillez vérifier votre connexion Internet et réessayer.",
   "en": "Can't reach the server. Please check your internet connection and try again.",
   "es": "No se puede conectar con el servidor. Comprueba tu conexión a internet y vuelve a intentarlo.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:81"
+  "ou": "lib/features/auth/presentation/login_screen.dart:85"
  },
  {
   "fr": "Une erreur est survenue lors de la connexion. Veuillez réessayer.",
   "en": "Something went wrong while signing in. Please try again.",
   "es": "Algo ha fallado al iniciar sesión. Vuelve a intentarlo.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:83"
+  "ou": "lib/features/auth/presentation/login_screen.dart:87"
  },
  {
   "fr": "Veuillez renseigner une adresse email valide",
   "en": "Please enter a valid email address",
   "es": "Introduce un correo electrónico válido",
-  "ou": "lib/features/auth/presentation/login_screen.dart:90"
+  "ou": "lib/features/auth/presentation/login_screen.dart:94"
  },
  {
   "fr": "✉️ Lien de connexion envoyé à {email} ! Cliquez sur le lien reçu (vérifiez vos spams) pour entrer directement.",
   "en": "✉️ Sign-in link sent to {email}! Tap the link in that email (check your spam folder) to sign straight in.",
   "es": "✉️ ¡Enlace de acceso enviado a {email}! Toca el enlace del correo (revisa el spam) para entrar directamente.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:105"
+  "ou": "lib/features/auth/presentation/login_screen.dart:120"
  },
  {
   "fr": "Veuillez remplir votre email et votre mot de passe",
   "en": "Please enter your email and password",
   "es": "Introduce tu correo y tu contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:130"
+  "ou": "lib/features/auth/presentation/login_screen.dart:145"
  },
  {
   "fr": "Mot de passe incorrect ou compte créé sans mot de passe.",
   "en": "Wrong password, or an account created without a password.",
   "es": "Contraseña incorrecta, o cuenta creada sin contraseña.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:146"
+  "ou": "lib/features/auth/presentation/login_screen.dart:161"
  },
  {
   "fr": "Connexion email ✉️",
   "en": "Email sign-in ✉️",
   "es": "Acceso por correo ✉️",
-  "ou": "lib/features/auth/presentation/login_screen.dart:150"
+  "ou": "lib/features/auth/presentation/login_screen.dart:165"
  },
  {
   "fr": "Mot de passe oublié ?",
   "en": "Forgot your password?",
   "es": "¿Has olvidado tu contraseña?",
-  "ou": "lib/features/auth/presentation/login_screen.dart:182"
+  "ou": "lib/features/auth/presentation/login_screen.dart:197"
  },
  {
   "fr": "Renseignez votre email pour recevoir un lien direct de connexion (sans mot de passe) ou un lien de réinitialisation :",
   "en": "Enter your email to get a direct sign-in link (no password needed) or a reset link:",
   "es": "Introduce tu correo para recibir un enlace de acceso directo (sin contraseña) o un enlace para restablecerla:",
-  "ou": "lib/features/auth/presentation/login_screen.dart:188"
+  "ou": "lib/features/auth/presentation/login_screen.dart:203"
  },
  {
   "fr": "Adresse email",
   "en": "Email address",
   "es": "Correo electrónico",
-  "ou": "lib/features/auth/presentation/login_screen.dart:196"
+  "ou": "lib/features/auth/presentation/login_screen.dart:211"
  },
  {
   "fr": "Lien direct par email (Recommandé)",
   "en": "Direct link by email (recommended)",
   "es": "Enlace directo por correo (recomendado)",
-  "ou": "lib/features/auth/presentation/login_screen.dart:211"
+  "ou": "lib/features/auth/presentation/login_screen.dart:226"
  },
  {
   "fr": "Veuillez renseigner une adresse email valide.",
   "en": "Please enter a valid email address.",
   "es": "Introduce un correo electrónico válido.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:216"
+  "ou": "lib/features/auth/presentation/login_screen.dart:231"
  },
  {
   "fr": "Réinitialiser le mot de passe",
   "en": "Reset password",
   "es": "Restablecer la contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:228"
+  "ou": "lib/features/auth/presentation/login_screen.dart:243"
  },
  {
   "fr": "✉️ Email de réinitialisation envoyé à {targetEmail} (vérifiez vos courriers indésirables / spams)",
   "en": "✉️ Reset email sent to {targetEmail} (check your junk / spam folder)",
   "es": "✉️ Correo para restablecer enviado a {targetEmail} (revisa la carpeta de correo no deseado / spam)",
-  "ou": "lib/features/auth/presentation/login_screen.dart:244"
+  "ou": "lib/features/auth/presentation/login_screen.dart:259"
  },
  {
   "fr": "Erreur : {err}",
   "en": "Error: {err}",
   "es": "Error: {err}",
-  "ou": "lib/features/auth/presentation/login_screen.dart:253"
+  "ou": "lib/features/auth/presentation/login_screen.dart:268"
  },
  {
   "fr": "Annuler",
   "en": "Cancel",
   "es": "Cancelar",
-  "ou": "lib/features/auth/presentation/login_screen.dart:261"
+  "ou": "lib/features/auth/presentation/login_screen.dart:276"
  },
  {
   "fr": "Échec de connexion Google : {e}",
   "en": "Google sign-in failed: {e}",
   "es": "Error al iniciar sesión con Google: {e}",
-  "ou": "lib/features/auth/presentation/login_screen.dart:278"
+  "ou": "lib/features/auth/presentation/login_screen.dart:293"
  },
  {
   "fr": "Votre cave à vin intelligente et partagée",
   "en": "Your smart, shared wine cellar",
   "es": "Tu bodega inteligente y compartida",
-  "ou": "lib/features/auth/presentation/login_screen.dart:324"
+  "ou": "lib/features/auth/presentation/login_screen.dart:339"
  },
  {
   "fr": "Au restaurant ce soir ?",
   "en": "Eating out tonight?",
   "es": "¿Al restaurante esta noche?",
-  "ou": "lib/features/auth/presentation/login_screen.dart:362"
+  "ou": "lib/features/auth/presentation/login_screen.dart:380"
  },
  {
   "fr": "Profitez du sommelier & de la table sans compte !",
   "en": "Use the sommelier and the table without an account!",
   "es": "¡Disfruta del sumiller y de la mesa sin cuenta!",
-  "ou": "lib/features/auth/presentation/login_screen.dart:366"
+  "ou": "lib/features/auth/presentation/login_screen.dart:384"
  },
  {
   "fr": "Rejoindre table",
   "en": "Join table",
   "es": "Unirme a una mesa",
-  "ou": "lib/features/auth/presentation/login_screen.dart:386"
+  "ou": "lib/features/auth/presentation/login_screen.dart:404"
  },
  {
   "fr": "Scanner menu",
   "en": "Scan menu",
   "es": "Escanear la carta",
-  "ou": "lib/features/auth/presentation/login_screen.dart:400"
+  "ou": "lib/features/auth/presentation/login_screen.dart:418"
  },
  {
   "fr": "J'ai un code de reprise",
   "en": "I have a recovery code",
   "es": "Tengo un código de recuperación",
-  "ou": "lib/features/auth/presentation/login_screen.dart:412"
+  "ou": "lib/features/auth/presentation/login_screen.dart:430"
+ },
+ {
+  "fr": "Créez votre compte pour garder votre cave, vos dégustations et votre palais.",
+  "en": "Create your account to keep your cellar, your tastings and your palate.",
+  "es": "Crea tu cuenta para guardar tu bodega, tus catas y tu paladar.",
+  "ou": "lib/features/auth/presentation/login_screen.dart:442"
  },
  {
   "fr": "Continuer avec Google",
   "en": "Continue with Google",
   "es": "Continuar con Google",
-  "ou": "lib/features/auth/presentation/login_screen.dart:457"
+  "ou": "lib/features/auth/presentation/login_screen.dart:485"
  },
  {
   "fr": "✉️ Lien de connexion",
   "en": "✉️ Sign-in link",
   "es": "✉️ Enlace de acceso",
-  "ou": "lib/features/auth/presentation/login_screen.dart:505"
+  "ou": "lib/features/auth/presentation/login_screen.dart:533"
  },
  {
   "fr": "🔑 Mot de passe",
   "en": "🔑 Password",
   "es": "🔑 Contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:506"
+  "ou": "lib/features/auth/presentation/login_screen.dart:534"
  },
  {
   "fr": "Lien de connexion envoyé !",
   "en": "Sign-in link sent!",
   "es": "¡Enlace de acceso enviado!",
-  "ou": "lib/features/auth/presentation/login_screen.dart:555"
+  "ou": "lib/features/auth/presentation/login_screen.dart:583"
  },
  {
   "fr": "Un email sécurisé a été envoyé à :\n{v1}\n\nOuvrez simplement cet email et cliquez sur le lien pour vous connecter automatiquement à votre cave (vérifiez votre dossier spams si nécessaire).",
   "en": "A secure email has been sent to:\n{v1}\n\nJust open it and tap the link to sign in to your cellar automatically (check your spam folder if needed).",
   "es": "Hemos enviado un correo seguro a:\n{v1}\n\nÁbrelo y toca el enlace para entrar automáticamente en tu bodega (revisa la carpeta de spam si hace falta).",
-  "ou": "lib/features/auth/presentation/login_screen.dart:563"
+  "ou": "lib/features/auth/presentation/login_screen.dart:591"
  },
  {
   "fr": "Renvoi en cours...",
   "en": "Resending...",
   "es": "Reenviando...",
-  "ou": "lib/features/auth/presentation/login_screen.dart:580"
+  "ou": "lib/features/auth/presentation/login_screen.dart:608"
  },
  {
   "fr": "Renvoyer le lien de connexion",
   "en": "Resend the sign-in link",
   "es": "Reenviar el enlace de acceso",
-  "ou": "lib/features/auth/presentation/login_screen.dart:580"
+  "ou": "lib/features/auth/presentation/login_screen.dart:608"
  },
  {
   "fr": "Changer d'adresse email",
   "en": "Use another email address",
   "es": "Usar otro correo",
-  "ou": "lib/features/auth/presentation/login_screen.dart:590"
+  "ou": "lib/features/auth/presentation/login_screen.dart:618"
  },
  {
   "fr": "Envoi en cours...",
   "en": "Sending...",
   "es": "Enviando...",
-  "ou": "lib/features/auth/presentation/login_screen.dart:604"
+  "ou": "lib/features/auth/presentation/login_screen.dart:632"
  },
  {
   "fr": "Recevoir mon lien de connexion",
   "en": "Email me a sign-in link",
   "es": "Recibir mi enlace de acceso",
-  "ou": "lib/features/auth/presentation/login_screen.dart:604"
+  "ou": "lib/features/auth/presentation/login_screen.dart:632"
  },
  {
   "fr": "Connexion sans mot de passe : vous recevrez un email contenant un lien direct et sécurisé pour accéder à votre cave.",
   "en": "Password-free sign-in: you'll get an email with a direct, secure link to your cellar.",
   "es": "Acceso sin contraseña: recibirás un correo con un enlace directo y seguro a tu bodega.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:610"
+  "ou": "lib/features/auth/presentation/login_screen.dart:638"
  },
  {
   "fr": "Mot de passe",
   "en": "Password",
   "es": "Contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:640"
+  "ou": "lib/features/auth/presentation/login_screen.dart:668"
  },
  {
   "fr": "Connexion...",
   "en": "Signing in...",
   "es": "Iniciando sesión...",
-  "ou": "lib/features/auth/presentation/login_screen.dart:661"
+  "ou": "lib/features/auth/presentation/login_screen.dart:689"
  },
  {
   "fr": "Se connecter",
   "en": "Sign in",
   "es": "Iniciar sesión",
-  "ou": "lib/features/auth/presentation/login_screen.dart:661"
+  "ou": "lib/features/auth/presentation/login_screen.dart:689"
  },
  {
   "fr": "Pas encore inscrit ? Créer un compte en 1 clic",
   "en": "Not registered yet? Create an account in one tap",
   "es": "¿Aún no tienes cuenta? Créala en un toque",
-  "ou": "lib/features/auth/presentation/login_screen.dart:669"
+  "ou": "lib/features/auth/presentation/login_screen.dart:697"
  },
  {
   "fr": "Créer un nouveau compte",
   "en": "Create a new account",
   "es": "Crear una cuenta nueva",
-  "ou": "lib/features/auth/presentation/login_screen.dart:685"
+  "ou": "lib/features/auth/presentation/login_screen.dart:713"
  },
  {
   "fr": "Amateur de Vin",
@@ -13437,13 +13443,19 @@
   "fr": "Vin non reconnu avec certitude : complétez à la main, rien n'a été inventé.",
   "en": "Wine not recognised with certainty: fill it in by hand, nothing was made up.",
   "es": "Vino no reconocido con certeza: complétalo a mano, no se ha inventado nada.",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:326"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:327"
+ },
+ {
+  "fr": "Reprendre la description du sommelier",
+  "en": "Use the sommelier's description",
+  "es": "Usar la descripción del sumiller",
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1001"
  },
  {
   "fr": "Complété d'après le nom : vérifiez avant d'enregistrer.",
   "en": "Filled in from the name: check before saving.",
   "es": "Completado a partir del nombre: compruébalo antes de guardar.",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1322"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1329"
  },
  {
   "fr": "fr_FR",
@@ -13947,61 +13959,79 @@
   "fr": "Moi ({userDisplayName})",
   "en": "Me ({userDisplayName})",
   "es": "Yo ({userDisplayName})",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:194"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:201"
+ },
+ {
+  "fr": "Enregistrer sans noter",
+  "en": "Save without rating",
+  "es": "Guardar sin valorar",
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:692"
+ },
+ {
+  "fr": "Enregistré dans votre journal, sans note : vous pourrez la donner plus tard.",
+  "en": "Saved to your journal, unrated: you can rate it later.",
+  "es": "Guardado en tu diario, sin nota: podrás ponerla más tarde.",
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:695"
+ },
+ {
+  "fr": "Bouteille défectueuse : le palais de {name} n'a pas été modifié.",
+  "en": "Faulty bottle: {name}'s palate was not changed.",
+  "es": "Botella defectuosa: el paladar de {name} no se ha modificado.",
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2030"
  },
  {
   "fr": "Vous l'avez bu avec un plat ?",
   "en": "Did you have it with food?",
   "es": "¿Lo has bebido con un plato?",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2239"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2325"
  },
  {
   "fr": "Oui, avec un plat",
   "en": "Yes, with food",
   "es": "Sí, con un plato",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2245"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2331"
  },
  {
   "fr": "Non, seul",
   "en": "No, on its own",
   "es": "No, solo",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2247"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2333"
  },
  {
   "fr": "Quel plat ? (facultatif)",
   "en": "Which dish? (optional)",
   "es": "¿Qué plato? (opcional)",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2260"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2346"
  },
  {
   "fr": "L'accord avec « {plat} »",
   "en": "The pairing with \"{plat}\"",
   "es": "El maridaje con «{plat}»",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2267"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2353"
  },
  {
   "fr": "Domaine",
   "en": "Producer",
   "es": "Productor",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2677"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2763"
  },
  {
   "fr": "Cépage",
   "en": "Grape",
   "es": "Variedad",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2706"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2792"
  },
  {
   "fr": "Prix",
   "en": "Price",
   "es": "Precio",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2722"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2808"
  },
  {
   "fr": "{v1} sélectionné(s)",
   "en": "{v1} selected",
   "es": "{v1} seleccionado(s)",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3050"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3136"
  },
  {
   "fr": "Le sommelier n'a pas réussi à lire cette carte : sa réponse était incomplète. Vos photos sont gardées : réessayez.",

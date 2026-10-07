@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
+import 'garde_des_routes.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
 import '../features/cellar/presentation/cellar_screen.dart';
@@ -76,14 +77,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Un anonyme est donc traité comme un visiteur : les parcours invités lui sont
       // ouverts, le reste demande un vrai compte. Ce n'est pas une restriction ajoutée,
       // c'est l'état antérieur préservé.
+      //
+      // Depuis le 07/10 (V2.4 · R2), l'app installée exige un vrai compte dès la première
+      // ouverture ; seule la page web garde ses parcours invités sans compte.
       final estAnonyme = session?.user.isAnonymous ?? false;
       final isLoggedIn = session != null && !estAnonyme;
-      final isAuthRoute = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register';
-      final isInviteRoute = state.matchedLocation.startsWith('/invite/');
-      final isTableConsensusRoute = state.matchedLocation.startsWith('/table-consensus') ||
-          state.matchedLocation.startsWith('/menu-match');
-      final isMenuScanRoute = state.matchedLocation.startsWith('/scan/menu');
       if (kIsWeb) {
         final uri = Uri.base;
         final isOAuthCallback = uri.queryParameters.containsKey('code') ||
@@ -96,15 +94,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      if (!isLoggedIn && !isAuthRoute && !isInviteRoute && !isTableConsensusRoute && !isMenuScanRoute) return '/login';
-      if (isLoggedIn && isAuthRoute) return '/';
-      return null;
+      return GardeDesRoutes.redirection(
+        web: kIsWeb,
+        connecte: isLoggedIn,
+        chemin: state.matchedLocation,
+        emplacement: state.uri.toString(),
+        suite: state.uri.queryParameters['suite'],
+      );
     },
     routes: [
       // Auth routes
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        builder: (context, state) => LoginScreen(suite: GardeDesRoutes.suiteSure(state.uri.queryParameters['suite'])),
       ),
       GoRoute(
         path: '/register',

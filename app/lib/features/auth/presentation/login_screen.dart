@@ -12,7 +12,10 @@ import '../../menu_scan/presentation/join_table_sheet.dart';
 import 'reprise_de_soiree_sheet.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  /// La route à rejoindre une fois connecté : la table d'un lien ouvert dans l'app (R2).
+  final String? suite;
+
+  const LoginScreen({super.key, this.suite});
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
@@ -37,8 +40,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _authSub = ref.read(supabaseProvider).auth.onAuthStateChange.listen((data) {
-      if (data.session != null && mounted) {
-        context.go('/');
+      // Une session anonyme n'est pas un compte : on reste ici (R2).
+      if (data.session != null && !data.session!.user.isAnonymous && mounted) {
+        context.go(widget.suite ?? '/');
       }
     });
   }
@@ -95,7 +99,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     setState(() => _isLoading = true);
     try {
       final repo = ref.read(authRepositoryProvider);
-      await repo.sendMagicLink(email);
+      // Déjà venu sans compte (V2.4 · R2) : son compte anonyme reçoit l'adresse, et garde
+      // ses tables, ses notes et son palais. Adresse déjà prise : connexion classique.
+      var converti = false;
+      if (ref.read(supabaseProvider).auth.currentUser?.isAnonymous ?? false) {
+        try {
+          await repo.convertirEnCompte(email);
+          converti = true;
+        } catch (e) {
+          AppLogger.info('AUTH', 'Compte anonyme non converti ($e) : lien de connexion classique');
+        }
+      }
+      if (!converti) await repo.sendMagicLink(email);
       setState(() {
         _magicLinkSent = true;
       });
@@ -136,7 +151,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     try {
       final repo = ref.read(authRepositoryProvider);
       await repo.signIn(email, pass);
-      if (mounted) context.go('/');
+      if (mounted) context.go(widget.suite ?? '/');
     } catch (e) {
       final errText = e.toString().toLowerCase();
       if (mounted) {
@@ -329,94 +344,107 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                   ),
                   const SizedBox(height: 16),
 
-                  // 🍽️ Section Invité / Restaurant (Accès immédiat sans compte)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 20),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF2C1530), Color(0xFF190C1C)],
+                  // 🍽️ Les parcours invités sans compte : sur la page web seulement (V2.4 · R2). L'app
+                  // installée exige un compte dès la première ouverture ; le web recrute.
+                  if (kIsWeb) ...[
+                    // 🍽️ Section Invité / Restaurant (Accès immédiat sans compte)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF2C1530), Color(0xFF190C1C)],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.8), width: 1.2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF8B1E3F).withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.8), width: 1.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF8B1E3F).withValues(alpha: 0.25),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            const Text('🍽️', style: TextStyle(fontSize: 20)),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    tr('Au restaurant ce soir ?', 'Eating out tonight?'),
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
-                                  ),
-                                  Text(
-                                    tr('Profitez du sommelier & de la table sans compte !', 'Use the sommelier and the table without an account!'),
-                                    style: TextStyle(color: const Color(0xFFD4AF37).withValues(alpha: 0.9), fontSize: 11),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFFD4AF37),
-                                  side: const BorderSide(color: Color(0xFFD4AF37), width: 1),
-                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const Text('🍽️', style: TextStyle(fontSize: 20)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      tr('Au restaurant ce soir ?', 'Eating out tonight?'),
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
+                                    ),
+                                    Text(
+                                      tr('Profitez du sommelier & de la table sans compte !', 'Use the sommelier and the table without an account!'),
+                                      style: TextStyle(color: const Color(0xFFD4AF37).withValues(alpha: 0.9), fontSize: 11),
+                                    ),
+                                  ],
                                 ),
-                                icon: const Icon(Icons.groups_rounded, size: 16),
-                                label: Text(tr('Rejoindre table', 'Join table'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                                onPressed: () => JoinTableSheet.show(context),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF8B1E3F),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFFD4AF37),
+                                    side: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                  icon: const Icon(Icons.groups_rounded, size: 16),
+                                  label: Text(tr('Rejoindre table', 'Join table'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                  onPressed: () => JoinTableSheet.show(context),
                                 ),
-                                icon: const Icon(Icons.camera_alt_rounded, size: 16),
-                                label: Text(tr('Scanner menu', 'Scan menu'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                                onPressed: () => context.push('/scan/menu'),
                               ),
-                            ),
-                          ],
-                        ),
-                        // Une soirée commencée sans compte, sur un autre appareil ou avant
-                        // d'avoir vidé son cache : le code de reprise la rend (P6).
-                        Center(
-                          child: TextButton(
-                            onPressed: () => RepriseDeSoireeSheet.show(context),
-                            child: Text(
-                              tr('J\'ai un code de reprise', 'I have a recovery code'),
-                              style: const TextStyle(fontSize: 12),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF8B1E3F),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                  icon: const Icon(Icons.camera_alt_rounded, size: 16),
+                                  label: Text(tr('Scanner menu', 'Scan menu'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                  onPressed: () => context.push('/scan/menu'),
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Une soirée commencée sans compte, sur un autre appareil ou avant
+                          // d'avoir vidé son cache : le code de reprise la rend (P6).
+                          Center(
+                            child: TextButton(
+                              onPressed: () => RepriseDeSoireeSheet.show(context),
+                              child: Text(
+                                tr('J\'ai un code de reprise', 'I have a recovery code'),
+                                style: const TextStyle(fontSize: 12),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                  ] else
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: Text(
+                        tr('Créez votre compte pour garder votre cave, vos dégustations et votre palais.',
+                            'Create your account to keep your cellar, your tastings and your palate.'),
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    ),
 
                   // Sur iPhone, pas de Google sans « Se connecter avec Apple » à côté : l'App
                   // Store l'exige (règle 4.8). L'iPhone se connecte par lien e-mail.

@@ -101,7 +101,9 @@ class AuthRepository {
     final user = _client.auth.currentUser;
     if (user == null) throw StateError('aucune session à convertir');
     if (!user.isAnonymous) return; // déjà nommé : rien à faire
-    await _client.auth.updateUser(UserAttributes(email: email.trim()));
+    // Le lien de confirmation revient dans l'app (ou sur la page web), pas sur le site par
+    // défaut du projet.
+    await _client.auth.updateUser(UserAttributes(email: email.trim()), emailRedirectTo: _getRedirectUrl());
     AppLogger.info('AUTH', 'Compte anonyme ${user.id} converti vers ${masquerEmail(email)}');
   }
 

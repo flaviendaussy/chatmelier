@@ -44,6 +44,10 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
   final VoidCallback? onFinished;
   final bool initialIsExpress;
 
+  /// La dégustation est déjà au journal (vin bu dehors) : le questionnaire n'est qu'un
+  /// complément, et « Enregistrer sans noter » le referme (V2.4 · R3, Dimitri, 04/10).
+  final bool dejaAuJournal;
+
   const TastingQuestionnaireSheet({
     super.key,
     required this.wineName,
@@ -61,6 +65,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
     this.bottleOwnerName,
     this.onFinished,
     this.initialIsExpress = false,
+    this.dejaAuJournal = false,
   });
 
   /// Show the questionnaire as a full-screen modal bottom sheet.
@@ -81,6 +86,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
     String? bottleOwnerName,
     VoidCallback? onFinished,
     bool initialIsExpress = false,
+    bool dejaAuJournal = false,
   }) {
     return showModalBottomSheet<bool>(
       context: context,
@@ -104,6 +110,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
         bottleOwnerName: bottleOwnerName,
         onFinished: onFinished,
         initialIsExpress: initialIsExpress,
+        dejaAuJournal: dejaAuJournal,
       ),
     );
   }
@@ -230,6 +237,14 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
   void _resetAnswers() => _r = ReponsesDuConvive();
 
+  /// À qui appartiennent les réponses en cours : un retour au choix des dégustateurs ne les
+  /// efface plus (V2.4 · R3 — Caro, 07/10 : « ça a repris depuis le début, Caro doit tout
+  /// refaire, c'est très critique »).
+  String? _reponsesDe;
+
+  /// Les convives dont le palais n'a pas été modifié : bouteille défectueuse (R3).
+  final Set<String> _palaisNonModifie = {};
+
   void _nextStep() {
     if (_currentStep < 4) {
       setState(() => _currentStep++);
@@ -241,6 +256,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       HapticFeedback.selectionClick();
     }
   }
+
+  /// Revenir d'une étape, sans jamais rouvrir le choix des dégustateurs une fois le premier
+  /// convive passé : c'est de là que tout repartait de zéro (R3).
+  bool get _peutRevenir => _currentStep > 1 || (_currentStep == 1 && _currentProfileIndex == 0);
 
   void _prevStep() {
     if (_currentStep > 0) {
@@ -279,6 +298,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         // enseignerait à la personne qu'elle déteste une région qu'elle n'a pas goûtée.
         AppLogger.info('QUESTIONNAIRE',
             'Profil non modifié pour ${profile.name} : bouteille défectueuse ($_defaut)');
+        _palaisNonModifie.add(profile.id);
       } else {
         final service = ref.read(tasteProfileServiceProvider);
         await service.applyQuestionnaireResult(
@@ -472,6 +492,23 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
   @override
   Widget build(BuildContext context) {
+    // Le retour d'Android revient d'une étape ; il ne referme plus tout le questionnaire
+    // en perdant les réponses (R3).
+    return PopScope(
+      canPop: _isCompleted,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (!_isTransitioningToNextTaster && _peutRevenir) {
+          _prevStep();
+        } else {
+          _confirmClose(context);
+        }
+      },
+      child: _construire(context),
+    );
+  }
+
+  Widget _construire(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
@@ -647,6 +684,21 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                           if (val) setState(() => _isExpressMode = false);
                         },
                       ),
+                      // Pas le temps : la dégustation est déjà au journal, on referme (R3).
+                      if (widget.dejaAuJournal) ...[
+                        const SizedBox(width: 8),
+                        ActionChip(
+                          avatar: const Icon(Icons.check_rounded, size: 14, color: Color(0xFF10B981)),
+                          label: Text(tr('Enregistrer sans noter', 'Save without rating'), style: const TextStyle(fontSize: 11.5)),
+                          onPressed: () {
+                            ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+                              content: Text(tr('Enregistré dans votre journal, sans note : vous pourrez la donner plus tard.',
+                                  'Saved to your journal, unrated: you can rate it later.')),
+                            ));
+                            Navigator.of(context).pop(false);
+                          },
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -727,7 +779,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                 child: Row(
                   children: [
-                    if (_currentStep > 0)
+                    if (_peutRevenir)
                       OutlinedButton.icon(
                         onPressed: _prevStep,
                         icon: const Icon(Icons.arrow_back, size: 16),
@@ -746,9 +798,23 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                                 _selectedProfiles = _allProfiles
                                     .where((p) => _selectedProfileIds.contains(p.id))
                                     .toList();
-                                _currentProfileIndex = 0;
-                                _resetAnswers();
-                                _nextStep();
+                                // Reprendre au premier convive qui n'a pas fini, avec ses
+                                // réponses déjà données (R3).
+                                final aFaire = _selectedProfiles.indexWhere((p) => !_completedResults.containsKey(p.id));
+                                final suivant = aFaire < 0 ? 0 : aFaire;
+                                if (_reponsesDe != _selectedProfiles[suivant].id) _resetAnswers();
+                                _reponsesDe = _selectedProfiles[suivant].id;
+                                if (_selectedProfiles.length > 1) {
+                                  // À plusieurs, chacun est annoncé avant ses questions, le
+                                  // premier aussi (Caro, 07/10).
+                                  setState(() {
+                                    _currentProfileIndex = suivant - 1;
+                                    _isTransitioningToNextTaster = true;
+                                  });
+                                } else {
+                                  _currentProfileIndex = suivant;
+                                  _nextStep();
+                                }
                               },
                         icon: const Icon(Icons.arrow_forward, size: 16),
                         label: Text(
@@ -1246,9 +1312,6 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         ),
         const SizedBox(height: 16),
 
-        _buildFaultCheck(theme, l10n),
-        const SizedBox(height: 16),
-
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -1307,6 +1370,11 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           value: _r.intensiteAromatique,
           onChanged: (v) => setState(() => _r.intensiteAromatique = v),
         ),
+
+        // Le défaut en bas de la page, après les arômes : on le cherche quand quelque chose
+        // cloche, pas avant de sentir le vin (V2.4 · R3, Caro, 07/10).
+        const SizedBox(height: 24),
+        _buildFaultCheck(theme, l10n),
       ],
     );
   }
@@ -1950,6 +2018,23 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                     ),
                   ],
                   const SizedBox(height: 10),
+                  if (_palaisNonModifie.contains(profile.id))
+                    // Bouteille défectueuse : rien n'a été appris du palais (R3 — Caro, 07/10 :
+                    // « ça dit que le profil de Flavien est mis à jour »).
+                    Row(
+                      children: [
+                        const Icon(Icons.report_gmailerrorred_rounded, size: 16, color: Colors.orange),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            tr('Bouteille défectueuse : le palais de {name} n\'a pas été modifié.',
+                                'Faulty bottle: {name}\'s palate was not changed.', {'name': displayName}),
+                            style: TextStyle(fontSize: 12, color: Colors.orange.shade800),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
                   Row(
                     children: [
                       Icon(
@@ -2166,7 +2251,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                   _isTransitioningToNextTaster = false;
                   _currentStep = 1;
                   _pageController = PageController(initialPage: 1);
-                  _resetAnswers();
+                  if (_reponsesDe != nextProfile.id) _resetAnswers();
+                  _reponsesDe = nextProfile.id;
                 });
               },
               icon: const Icon(Icons.play_arrow),

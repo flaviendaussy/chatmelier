@@ -192,6 +192,10 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
 
   /// Les champs que la dernière détection sur le nom a remplis : « à vérifier » (R1).
   Set<String> _remplisParLeTexte = const {};
+
+  /// La description du sommelier, proposée et non imposée : les notes sont celles de la
+  /// personne (V2.4 · R3 — Dimitri, 04/10 : « ne pas pré-remplir, c'est à l'utilisateur »).
+  String? _notesDuSommelier;
   late final TextEditingController _quickSearchController;
 
   String _normalizeWineType(String type) {
@@ -262,10 +266,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             }
             _wineType = _normalizeWineType(result.wineType);
             if (result.tastingNotes != null && result.tastingNotes!.isNotEmpty) {
-              _notesController.text = result.tastingNotes!;
-            }
-            if (result.foodPairings.isNotEmpty) {
-              _foodController.text = result.foodPairings.first;
+              _notesDuSommelier = result.tastingNotes;
             }
             _etiquetteLue = true;
             _remplisParLeTexte = const {};
@@ -337,8 +338,6 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         'producteur': _producerController,
         'millesime': _vintageController,
         'region': _regionController,
-        'notes': _notesController,
-        'accord': _foodController,
       };
       final ecrire = FicheDepuisTexte.aEcrire(
         actuels: {for (final e in champs.entries) e.key: e.value.text},
@@ -347,8 +346,6 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           'producteur': result.producer,
           'millesime': result.vintage?.toString(),
           'region': (result.appellation?.isNotEmpty ?? false) ? result.appellation : result.region,
-          'notes': result.tastingNotes,
-          'accord': result.foodPairings.isNotEmpty ? result.foodPairings.first : null,
         },
         etiquetteLue: _etiquetteLue,
         remplisParLeTexte: _remplisParLeTexte,
@@ -359,6 +356,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             champs[e.key]!.text = e.value;
           }
           if (!_etiquetteLue && result.wineType.isNotEmpty) _wineType = _normalizeWineType(result.wineType);
+          if (result.tastingNotes?.isNotEmpty ?? false) _notesDuSommelier = result.tastingNotes;
           _remplisParLeTexte = {
             if (!_etiquetteLue) ..._remplisParLeTexte,
             for (final e in ecrire.entries)
@@ -406,7 +404,6 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           );
 
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
       setState(() {
         _nearbyPlaces = places;
         _isLoadingPlaces = false;
@@ -417,9 +414,9 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           if (top.isCustom || (top.distanceMeters != null && top.distanceMeters! <= 80)) {
             _selectedPlace = top;
             _contextController.text = top.name;
-          } else {
-            _contextController.text = l10n.externalTastingDefaultPlace;
           }
+          // Sinon le champ reste vide : « Au restaurant » écrit par défaut était un lieu
+          // inventé à corriger (R3).
         } else {
           _showCustomPlaceInput = true;
           _contextController.text = '';
@@ -517,6 +514,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         if (targetCtx != null && targetCtx.mounted) {
           TastingQuestionnaireSheet.show(
             targetCtx,
+            dejaAuJournal: true,
             wineName: wineName,
             vintage: vintage,
             producer: producer.isNotEmpty ? producer : null,
@@ -993,9 +991,18 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             TextField(
               controller: _notesController,
               maxLines: 2,
+              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 labelText: l10n.externalTastingNotesLabel,
                 hintText: l10n.externalTastingNotesHint,
+                // La description du sommelier, à reprendre d'un geste si on le veut (R3).
+                suffixIcon: _notesDuSommelier != null && _notesController.text.trim().isEmpty
+                    ? IconButton(
+                        tooltip: tr('Reprendre la description du sommelier', 'Use the sommelier\'s description'),
+                        icon: const Icon(Icons.auto_awesome, size: 20),
+                        onPressed: () => setState(() => _notesController.text = _notesDuSommelier!),
+                      )
+                    : null,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 contentPadding: const EdgeInsets.all(12),
               ),

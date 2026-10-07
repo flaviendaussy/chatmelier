@@ -89,6 +89,14 @@ Future<void> _toucher(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
+/// Fait défiler la page en cours jusqu'à [f] : le défaut est en bas de la page du nez,
+/// après les arômes (V2.4 · R3), hors de ce que la liste construit d'emblée.
+Future<void> _jusquA(WidgetTester tester, Finder f) async {
+  await tester.scrollUntilVisible(f, 250,
+      scrollable: find.byWidgetPredicate((w) => w is Scrollable && w.axisDirection == AxisDirection.down).last);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('un blanc, en entier : le palais reçoit ses réponses, sans tanins', (tester) async {
     final palais = await _ouvrir(tester, type: 'white');
@@ -133,6 +141,8 @@ void main() {
     final palais = await _ouvrir(tester, type: 'red', profils: const [_moi, _caro], convives: ['caro']);
 
     await _toucher(tester, find.text('Commencer (2)'));
+    // À plusieurs, le premier convive est annoncé lui aussi (V2.4 · R3, Caro, 07/10).
+    await _toucher(tester, find.text('C\'est parti, Moi ! 🍷'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
@@ -148,11 +158,32 @@ void main() {
     expect(palais.recus.map((r) => (r.profileId, r.emojiImpression)), [('moi', 4), ('caro', 1)]);
   });
 
+  testWidgets('à deux, le retour ne fait plus tout refaire : il ne rouvre pas le choix des dégustateurs', (tester) async {
+    await _ouvrir(tester, type: 'red', profils: const [_moi, _caro], convives: ['caro']);
+
+    await _toucher(tester, find.text('Commencer (2)'));
+    await _toucher(tester, find.text('C\'est parti, Moi ! 🍷'));
+    await _toucher(tester, find.text('Suivant'));
+    await _toucher(tester, find.text('Suivant'));
+    await _toucher(tester, find.text('Suivant'));
+    await _toucher(tester, find.text('😍').first);
+    await _toucher(tester, find.text('Valider → Dégustateur suivant'));
+    await _toucher(tester, find.text('C\'est parti, Caro ! 🍷'));
+
+    // Au premier écran de Caro, plus de « Retour » vers le choix des dégustateurs : c'est de
+    // là que tout repartait de zéro.
+    expect(find.text('Retour'), findsNothing);
+    await _toucher(tester, find.text('Suivant'));
+    expect(find.text('Retour'), findsOneWidget, reason: 'entre ses propres étapes, Caro peut revenir');
+  });
+
   testWidgets('une bouteille bouchonnée l\'est pour toute la table : personne n\'en apprend rien', (tester) async {
     final palais = await _ouvrir(tester, type: 'red', profils: const [_moi, _caro], convives: ['caro']);
     final bouchon = find.widgetWithText(FilterChip, '📦 Carton mouillé, cave humide');
 
     await _toucher(tester, find.text('Commencer (2)'));
+    await _toucher(tester, find.text('C\'est parti, Moi ! 🍷'));
+    await _jusquA(tester, bouchon);
     await _toucher(tester, bouchon);
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
@@ -160,6 +191,7 @@ void main() {
     await _toucher(tester, find.text('Valider → Dégustateur suivant'));
     await _toucher(tester, find.text('C\'est parti, Caro ! 🍷'));
 
+    await _jusquA(tester, bouchon);
     expect(tester.widget<FilterChip>(bouchon).selected, isTrue, reason: 'le défaut reste signalé au convive suivant');
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));

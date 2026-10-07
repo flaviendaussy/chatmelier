@@ -1,0 +1,24 @@
+{
+ "_note": "Banc R1 (V2.4) : identifier un vin depuis son nom, sans rien inventer. « pays » : le pays attendu (plusieurs écritures acceptées) ; null : vin imaginaire, qui doit rester non reconnu. Vins réels relus le 07/10/2026.",
+ "textes": [
+  {"texte": "S de Siroua", "pays": ["Maroc", "Morocco"]},
+  {"texte": "Volubilia rouge, Domaine de la Zouina", "pays": ["Maroc", "Morocco"]},
+  {"texte": "Tandem Syrah du Maroc", "pays": ["Maroc", "Morocco"]},
+  {"texte": "Château Musar 2015", "pays": ["Liban", "Lebanon"]},
+  {"texte": "Château Ksara Réserve du Couvent", "pays": ["Liban", "Lebanon"]},
+  {"texte": "Château Kefraya Comte de M", "pays": ["Liban", "Lebanon"]},
+  {"texte": "Pheasant's Tears Rkatsiteli", "pays": ["Géorgie", "Georgia"]},
+  {"texte": "Tbilvino Saperavi", "pays": ["Géorgie", "Georgia"]},
+  {"texte": "Gaia Thalassitis Assyrtiko", "pays": ["Grèce", "Greece"]},
+  {"texte": "Domaine Sigalas Assyrtiko Santorini", "pays": ["Grèce", "Greece"]},
+  {"texte": "Bodega Garzón Tannat", "pays": ["Uruguay"]},
+  {"texte": "Bodega Bouza Tannat", "pays": ["Uruguay"]},
+  {"texte": "Kanonkop Pinotage", "pays": ["Afrique du Sud", "South Africa"]},
+  {"texte": "Oremus Tokaji Aszú 5 puttonyos", "pays": ["Hongrie", "Hungary"]},
+  {"texte": "Cramele Recaș Fetească Neagră", "pays": ["Roumanie", "Romania"]},
+  {"texte": "Chablis William Fèvre 2021", "pays": ["France"]},
+  {"texte": "Domaine des Trois Lunes Bleues cuvée Zéphyr 2019", "pays": null},
+  {"texte": "Château Pelloquin-Arbez rouge", "pays": null},
+  {"texte": "Bodega Imaginaria Tinto Nube", "pays": null}
+ ]
+}

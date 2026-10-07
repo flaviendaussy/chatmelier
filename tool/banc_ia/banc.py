@@ -229,6 +229,23 @@ def juger_etiquette(reponse, reference):
     return {k: 1.0 if v else 0.0 for k, v in ok.items()}
 
 
+def juger_texte(reponse, attendu):
+    """Identifier un vin depuis son nom (V2.4 · R1). « invente » est éliminatoire : un pays
+    faux, ou un vin imaginaire présenté comme reconnu. Un vin réel non reconnu, ou sans pays,
+    n'est qu'un manque."""
+    resultat = reponse.get('resultat') if isinstance(reponse.get('resultat'), dict) else {}
+    reconnu = resultat.get('reconnu') is not False
+    pays = norme(resultat.get('country'))
+    if attendu is None:
+        return {'verdict': 'invente' if reconnu else 'juste', 'pays_lu': resultat.get('country')}
+    if not reconnu:
+        return {'verdict': 'non_reconnu', 'pays_lu': None}
+    if not pays:
+        return {'verdict': 'sans_pays', 'pays_lu': None}
+    juste = any(norme(x) == pays or norme(x) in pays for x in attendu)
+    return {'verdict': 'juste' if juste else 'invente', 'pays_lu': resultat.get('country')}
+
+
 # ─── L'edge runtime local ───────────────────────────────────────────────────────────────
 def lancer(fonction, reglages_par_tache):
     """Démarre le faux Supabase et l'edge runtime pour cette fonction et cette variante."""
@@ -370,6 +387,22 @@ def recommandation(resultats, variantes):
             "ON CONFLICT (cle) DO UPDATE SET valeur = public.app_config.valeur || EXCLUDED.valeur, maj_le = now();",
             '```',
         ]
+    stats = []
+    for nom, reglage in variantes:
+        rs = [r for r in resultats if r['variante'] == nom and r['type'] == 'texte']
+        if rs and not any(r.get('verdict') in ('invente', 'echec') for r in rs):
+            stats.append((nom, reglage, sum(r.get('verdict') == 'juste' for r in rs), sum(r['cout_eur'] for r in rs) / len(rs),
+                          le_plus_frequent([r.get('niveau') for r in rs])))
+    if stats:
+        meilleur = max(s[2] for s in stats)
+        nom, reglage, justes, cout, niveau = min((s for s in stats if s[2] == meilleur), key=lambda s: s[3])
+        valeur = {'vin_depuis_texte': {'modele': reglage['modele'], 'reflexion': niveau or reglage['reflexion']}}
+        lignes += [f'\n**texte** : {nom} — aucune invention, {justes} justes, {100 * cout:.2f} c€ par appel.', '',
+                   'Pour l\'adopter (SQL Editor) :', '', '```sql', "INSERT INTO public.app_config (cle, valeur)",
+                   f"VALUES ('modeles_ia', '{json.dumps(valeur, ensure_ascii=False)}'::jsonb)",
+                   "ON CONFLICT (cle) DO UPDATE SET valeur = public.app_config.valeur || EXCLUDED.valeur, maj_le = now();", '```']
+    elif any(r['type'] == 'texte' for r in resultats):
+        lignes.append('\n**texte** : toutes les variantes ont inventé au moins une fois ; ne rien adopter.')
     return lignes
 
 
@@ -391,6 +424,9 @@ def main():
     print('Variantes :', ' · '.join(nom for nom, _ in variantes), flush=True)
     cartes = sorted(p for p in (dossier / 'cartes').glob('*') if (p / 'reference.json').exists())
     etiquettes = sorted(p for p in (dossier / 'etiquettes').glob('*.jpg') if p.with_suffix('.json').exists())
+    # Identifier un vin depuis son nom (V2.4 · R1) : le jeu du dossier, sinon celui du dépôt.
+    source_textes = dossier / 'textes.json' if (dossier / 'textes.json').exists() else ICI / 'textes_hors_de_france.json'
+    textes = [] if '--sans-textes' in args else json.loads(source_textes.read_text())['textes']
     resultats = []
     journal = dossier / 'journal_fonctions.txt'
     journal.write_text('')
@@ -443,6 +479,28 @@ def main():
                     print(f'{nom} · étiquette {e.stem} : {jugement}', flush=True)
             finally:
                 arreter(faux, journal, f'{nom} · scan-label')
+        if textes:
+            faux = lancer('taches-ia', {'vin_depuis_texte': reglage})
+            try:
+                for t in textes:
+                    rep, duree, erreur = appeler({'tache': 'vin_depuis_texte', 'texte': t['texte'], 'langue': 'fr'})
+                    if erreur:
+                        print(f'{nom} · texte « {t["texte"]} » : ÉCHEC — {erreur}', flush=True)
+                        resultats.append({'variante': nom, 'type': 'texte', 'element': t['texte'], 'erreur': erreur,
+                                          'duree_s': round(duree, 1), 'cout_eur': 0, 'reflexion_jetons': 0, 'verdict': 'echec'})
+                        continue
+                    garder(dossier, nom, 'texte_' + norme(t['texte']).replace(' ', '_'), rep)
+                    jugement = juger_texte(rep, t['pays'])
+                    cout = (rep.get('couts') or [{}])[0]
+                    resultats.append({'variante': nom, 'type': 'texte', 'element': t['texte'], 'modele': rep.get('modele'),
+                                      'niveau': cout.get('reflexion'), 'duree_s': round(duree, 1),
+                                      'cout_eur': cout_eur(rep.get('modele', ''), cout.get('usageMetadata') or {}),
+                                      'recherches': cout.get('requetes', 0),
+                                      'reflexion_jetons': (cout.get('usageMetadata') or {}).get('thoughtsTokenCount', 0),
+                                      **jugement})
+                    print(f'{nom} · texte « {t["texte"]} » : {jugement["verdict"]} ({jugement["pays_lu"]})', flush=True)
+            finally:
+                arreter(faux, journal, f'{nom} · taches-ia')
 
     ecrire_rapport(dossier, resultats, variantes)
 
@@ -474,6 +532,25 @@ def ecrire_rapport(dossier, resultats, variantes, quand=None):
         if b and b['pepites'] is not None:
             lignes.append(f'| {nom} | {b["pepites"]:.1f} | {pourcent(b["borne"])} | {pourcent(b["defendables"])} | '
                           f'{b["bons_plans"]:.1f} |')
+    textes = [r for r in resultats if r['type'] == 'texte']
+    if textes:
+        lignes += ['', '## Identifier un vin depuis son nom', '',
+                   'Vins hors de France et vins imaginaires (V2.4 · R1). Une invention (un pays faux, ou un vin '
+                   'imaginaire présenté comme reconnu) est éliminatoire : il en faut zéro.', '',
+                   '| Variante | Inventions | Justes | Non reconnus ou sans pays | Recherches | Coût moyen |',
+                   '|---|---|---|---|---|---|']
+        for nom, _ in variantes:
+            rs = [r for r in textes if r['variante'] == nom]
+            if not rs:
+                continue
+            compte = Counter(r.get('verdict') for r in rs)
+            lignes.append(f'| {nom} | **{compte["invente"]}** | {compte["juste"]}/{len(rs)} | '
+                          f'{compte["non_reconnu"] + compte["sans_pays"]} | {sum(r.get("recherches", 0) for r in rs)} | '
+                          f'{100 * sum(r["cout_eur"] for r in rs) / len(rs):.2f} c€ |')
+        inventions = [r for r in textes if r.get('verdict') == 'invente']
+        if inventions:
+            lignes += ['', 'Inventions relevées :', '']
+            lignes += [f'- {r["variante"]} : « {r["element"]} » → {r.get("pays_lu")}' for r in inventions]
     lignes += ['', '## Recommandation'] + recommandation(resultats, variantes)
     (dossier / 'rapport.md').write_text('\n'.join(lignes) + '\n')
     print('\n'.join(lignes))
@@ -484,6 +561,8 @@ def rejuger(dossier):
     """Le dernier passage rejugé avec les références d'aujourd'hui : mêmes réponses, mêmes
     coûts, aucun appel à Gemini."""
     anciens = json.loads((dossier / 'rapport.json').read_text())
+    source_textes = dossier / 'textes.json' if (dossier / 'textes.json').exists() else ICI / 'textes_hors_de_france.json'
+    attendus_textes = {t['texte']: t['pays'] for t in json.loads(source_textes.read_text())['textes']}
     niveaux = {v: k for k, v in NIVEAUX.items()}
     variantes = []
     for nom in dict.fromkeys(r['variante'] for r in anciens):
@@ -491,16 +570,19 @@ def rejuger(dossier):
         variantes.append(variante(modele, niveaux.get(niveau, niveau)))
     resultats = []
     for r in anciens:
-        reponse = dossier / 'reponses' / norme(r['variante']).replace(' ', '_') / f"{r['element']}.json"
+        fichier = ('texte_' + norme(r['element']).replace(' ', '_')) if r['type'] == 'texte' else r['element']
+        reponse = dossier / 'reponses' / norme(r['variante']).replace(' ', '_') / f"{fichier}.json"
         if r.get('erreur') or not reponse.exists():
             resultats.append(r)
             continue
         rep = json.loads(reponse.read_text())
-        if r['type'] == 'carte':
+        if r['type'] == 'texte':
+            jugement = juger_texte(rep, attendus_textes.get(r['element']))
+        elif r['type'] == 'carte':
             jugement = juger_carte(rep, json.loads((dossier / 'cartes' / r['element'] / 'reference.json').read_text()))
         else:
             jugement = juger_etiquette(rep, json.loads((dossier / 'etiquettes' / f"{r['element']}.json").read_text()))
-        garde = ('variante', 'type', 'element', 'modele', 'niveau', 'duree_s', 'cout_eur', 'reflexion_jetons')
+        garde = ('variante', 'type', 'element', 'modele', 'niveau', 'duree_s', 'cout_eur', 'reflexion_jetons', 'recherches')
         resultats.append({**{k: r[k] for k in garde if k in r}, **jugement})
     passage = datetime.date.fromtimestamp((dossier / 'rapport.json').stat().st_mtime).isoformat()
     ecrire_rapport(dossier, resultats, variantes,

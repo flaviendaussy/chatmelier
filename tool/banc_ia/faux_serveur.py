@@ -86,6 +86,8 @@ class H(BaseHTTPRequestHandler):
                                         "wine_type": "red", "region": "Provence", "appellation": "Bandol",
                                         "ideal_drinking_start": 2024, "ideal_drinking_end": 2040}}])
         if '/rest/v1/app_config' in self.path:
+            if MODE == 'banc' and 'cle=eq.modeles_ia' in self.path:
+                return self.rep({"valeur": json.loads(os.environ.get('FAUX_MODELES_IA', '{}'))})
             if MODE == 'banc':
                 return self.rep([{"cle": "modeles_ia", "valeur": json.loads(os.environ.get('FAUX_MODELES_IA', '{}'))},
                                  {"cle": "scan_etiquette_recherche", "valeur": False}])
@@ -177,6 +179,12 @@ class H(BaseHTTPRequestHandler):
             if ('sommelier' in txt or 'sumiller' in txt) and ('Question du client' in txt or 'The guest asks' in txt or 'El cliente pregunta' in txt):
                 return self.rep({"candidates": [{"content": {"parts": [{"text": "Le Bandol, à 68 €, pour votre agneau."}]}}],
                                  "usageMetadata": {"promptTokenCount": 1203, "candidatesTokenCount": 120}})
+            if 'NEVER GUESS' in txt and 'Siroua' in txt:
+                # Un vin que le modèle ne reconnaît pas avec certitude (V2.4 · R1).
+                res = {"reconnu": False, "name": "S de Siroua"}
+                return self.rep({"candidates": [{"content": {"parts": [{"text": '```json\n' + json.dumps(res) + '\n```'}]},
+                                                 "groundingMetadata": {"webSearchQueries": ["S de Siroua vin"]}}],
+                                 "usageMetadata": {"promptTokenCount": 300, "candidatesTokenCount": 20, "thoughtsTokenCount": 0}})
             if txt.startswith('Read this wine bottle label'):
                 res = {"producer": "Domaine de Terrebrune", "name": "Bandol Rouge", "vintage": 2019, "wine_type": "red",
                        "country": "France", "region": "Provence", "appellation": "Bandol"}

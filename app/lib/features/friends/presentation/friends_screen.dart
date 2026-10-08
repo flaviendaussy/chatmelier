@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/widgets/owner_avatar.dart';
 import '../../../shared/widgets/notification_bell_button.dart';
 import '../../auth/domain/user_profile.dart';
@@ -303,7 +305,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                 children: [
                   Row(
                     children: [
-                      OwnerAvatar(userId: friend.friendUserId, radius: 22),
+                      OwnerAvatar(userId: friend.friendUserId, displayName: friend.displayName, avatarUrl: friend.avatarUrl, radius: 22),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -425,6 +427,32 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
     String selectedRole = friend.cellarAccessRole == 'editor' ? 'editor' : 'viewer';
     final messenger = ScaffoldMessenger.of(context);
 
+    // Sans cave à soi (ni cave dont on est administrateur), il n'y a rien à partager :
+    // le dire avant d'ouvrir le dialogue (Caro, 04/10).
+    final moi = ref.read(currentUserProvider)?.id;
+    final caves = ref.read(userCellarsProvider).valueOrNull;
+    if (caves != null &&
+        !caves.any((c) => c['role'] == 'admin' || (c['cellars'] is Map && (c['cellars'] as Map)['owner_id'] == moi))) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(tr('Pas encore de cave', 'No cellar yet')),
+          content: Text(const AucuneCaveAPartager().toString()),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(tr('Plus tard', 'Later'))),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.go('/');
+              },
+              child: Text(tr('Aller à ma cave', 'Go to my cellar')),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -497,7 +525,10 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                 } catch (e) {
                   if (mounted) {
                     messenger.showSnackBar(
-                      SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
+                      SnackBar(
+                        content: Text(e is AucuneCaveAPartager ? '$e' : tr('Erreur: {e}', 'Error: {e}', {'e': e})),
+                        backgroundColor: e is AucuneCaveAPartager ? null : Colors.redAccent,
+                      ),
                     );
                   }
                 }
@@ -588,7 +619,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            OwnerAvatar(userId: friend.friendUserId, radius: 22),
+            OwnerAvatar(userId: friend.friendUserId, displayName: friend.displayName, avatarUrl: friend.avatarUrl, radius: 22),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -636,7 +667,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
           children: [
             Row(
               children: [
-                OwnerAvatar(userId: req.requesterId, radius: 20),
+                OwnerAvatar(userId: req.requesterId, displayName: req.requesterName, radius: 20),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -801,7 +832,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                   elevation: 1,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: ListTile(
-                    leading: OwnerAvatar(userId: user.id, radius: 20),
+                    leading: OwnerAvatar(userId: user.id, displayName: user.displayName, avatarUrl: user.avatarUrl, radius: 20),
                     title: Text(user.displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(
                       '@${user.username ?? user.displayName.toLowerCase()}',

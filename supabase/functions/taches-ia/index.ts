@@ -37,10 +37,13 @@ const REGLAGES: Record<string, Reglage> = {
   enrichir_fiche: { modele: 'flash', reflexion: 'low' },
   // Flash, pas Flash-Lite : le 07/10, Flash-Lite a fait d'un vin marocain un Côtes du Rhône (V2.4 · R1).
   vin_depuis_texte: { modele: 'flash', reflexion: 'low' },
+  // Traduire une fiche lue dans une autre langue (V2.4 · R6) : une traduction, pas une
+  // création, Flash-Lite suffit.
+  traduire_fiche: { modele: 'flash-lite', reflexion: 'minimal' },
 }
 
 // Le quota de chaque tâche (consommer_quota_ia) : l'import d'une grande cave compte à part.
-const QUOTAS: Record<string, string> = { import_cave: 'import_cave' }
+const QUOTAS: Record<string, string> = { import_cave: 'import_cave', traduire_fiche: 'traduction' }
 
 type Langue = 'fr' | 'en' | 'es' | 'it'
 function langueDe(code: unknown): Langue {
@@ -51,6 +54,7 @@ function langueDe(code: unknown): Langue {
   return 'en'
 }
 const EN_LANGUE: Record<Langue, string> = { fr: 'en français', en: 'in English', es: 'en español', it: 'in italiano' }
+const VERS_LA_LANGUE: Record<Langue, string> = { fr: 'into French', en: 'into English', es: 'into Spanish', it: 'into Italian' }
 
 function texte(v: unknown, max: number): string {
   return typeof v === 'string' ? v.trim().slice(0, max) : ''
@@ -461,6 +465,22 @@ Return strictly one JSON object with:
 "alcohol_pct": number or null;
 "ai_summary": 1 or 2 sentences ${EN_LANGUE[langue]}, naming the grape varieties.
 If you are unsure of a value, give the typical value of the appellation rather than a precise-looking guess. Do not give any price.` }],
+      }
+    }
+    case 'traduire_fiche': {
+      // La fiche d'un vin lue dans une autre langue que celle de l'app : le catalogue garde la
+      // langue de qui l'a écrite la première fois (Caro, en français, lisait des fiches
+      // anglaises, 04/10). Une traduction fidèle : rien d'ajouté, rien de retiré.
+      const notes = texte(e.notes, 2500)
+      const accords = liste(e.accords, 8, 200)
+      if (!notes && accords.length === 0) return 'rien à traduire'
+      return {
+        enJson: true,
+        parts: [{ text: `Translate this wine description and these food pairings ${VERS_LA_LANGUE[langue]}, faithfully, in the words a sommelier would use.
+Do not add, remove or change anything: same aromas, same structure, same dishes, same facts. Keep wine names, appellations, grape varieties, producers and dish names that have no common translation as they are.
+Description: ${JSON.stringify(notes)}
+Food pairings: ${JSON.stringify(accords)}
+Return strictly one JSON object: {"notes": "<the translated description, or an empty string if none was given>", "accords": ["<each translated pairing, in the same order>"]}` }],
       }
     }
     case 'vin_depuis_texte': {

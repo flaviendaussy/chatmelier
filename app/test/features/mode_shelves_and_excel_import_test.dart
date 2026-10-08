@@ -123,9 +123,15 @@ void main() {
       expect(jero.volumeLiters, 3.0);
       expect(jero.shortName, contains('Jéroboam'));
 
+      // 70 cl (spiritueux) et litre : des formats courants, plus des formats « autres »
+      expect(BottleSize.fromCode('70cl').volumeLiters, 0.7);
+      expect(BottleSize.fromCode('700 ml').code, '70cl');
+      expect(BottleSize.fromCode('1L').volumeLiters, 1.0);
+      expect(BottleSize.fromCode('1 litre').code, '1L');
+
       // Unknown custom format falls back cleanly
-      final custom = BottleSize.fromCode('70cl');
-      expect(custom.code, '70cl');
+      final custom = BottleSize.fromCode('68cl');
+      expect(custom.code, '68cl');
       expect(custom.isStandard75cl, isFalse);
     });
   });

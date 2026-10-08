@@ -18,6 +18,9 @@ class VinBuDehors {
   final int? millesime;
   final String? region;
 
+  /// Le pays, s'il est lu sur l'étiquette ou saisi : jamais deviné (V2.4 · R1).
+  final String? pays;
+
   /// `red`, `white`, `rose`, `sparkling`… comme la colonne `wine_type`.
   final String couleur;
 
@@ -44,6 +47,7 @@ class VinBuDehors {
     this.producteur,
     this.millesime,
     this.region,
+    this.pays,
     this.couleur = 'red',
     this.note,
     this.lieu,
@@ -84,6 +88,7 @@ class DegustationRapide {
     final notes = (v.notes ?? '').trim();
     final producteur = (v.producteur ?? '').trim();
     final region = (v.region ?? '').trim();
+    final pays = (v.pays ?? '').trim();
     final occasion = lieu.isNotEmpty ? lieu : 'Dégustation hors cave';
     final maintenant = DateTime.now().toIso8601String();
 
@@ -101,6 +106,7 @@ class DegustationRapide {
           'vintage': v.millesime,
           'wine_type': v.couleur,
           'region': region.isNotEmpty ? region : 'Autre',
+          if (pays.isNotEmpty) 'country': pays,
           'image_url': v.photoUrl,
         });
         vinCree = true;
@@ -168,6 +174,7 @@ class DegustationRapide {
           'producer': producteur,
           'vintage': v.millesime,
           'region': region,
+          if (pays.isNotEmpty) 'country': pays,
           'wine_type': v.couleur,
           'rating': v.note,
           'occasion': lieu,
@@ -208,11 +215,12 @@ class DegustationRapide {
         'vintage': v.millesime,
         'type': v.couleur,
         'region': region.isNotEmpty ? region : 'Autre',
+        if (pays.isNotEmpty) 'country': pays,
         'image_url': v.photoUrl,
       },
     });
 
-    await _apprendre(v, wineId: wineId, tastingId: tastingId, region: region, producteur: producteur);
+    await _apprendre(v, wineId: wineId, tastingId: tastingId, region: region, pays: pays, producteur: producteur);
     return (id: tastingId, enLigne: enLigne);
   }
 
@@ -222,6 +230,7 @@ class DegustationRapide {
     required String wineId,
     required String tastingId,
     required String region,
+    required String pays,
     required String producteur,
   }) async {
     final note = v.note;
@@ -233,7 +242,9 @@ class DegustationRapide {
         producer: producteur,
         vintage: v.millesime,
         region: region,
-        country: 'France',
+        // Le pays lu ou saisi, sinon aucun : « France » écrit d'office comptait le vin
+        // marocain de Camille (07/10) parmi les vins français de son palais.
+        country: pays,
         type: v.couleur,
         imageUrl: v.photoUrl,
       );

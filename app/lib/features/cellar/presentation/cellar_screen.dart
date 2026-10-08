@@ -54,6 +54,10 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
   CellarFilterState _filter = const CellarFilterState();
 
+  /// Un vin bu jusqu'à la dernière bouteille reste en base (son journal, son rachat) mais
+  /// quitte l'étagère : « enlever quand 0 bouteilles » (Caro, 04/10). Un geste le remontre.
+  bool _afficherLesVinsBus = false;
+
   // Tab controller for swipeable Vins vs Spiritueux zones
   TabController? _tabController;
   int _activeTabIndex = 0; // 0 = wines, 1 = spirits (when both exist)
@@ -247,6 +251,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     final favIds = ref.watch(favoriteWineIdsProvider);
 
     return bottleList.where((b) {
+      if (b.quantity <= 0 && !_afficherLesVinsBus) return false;
       final wine = b.wine;
       if (wine == null) return true;
 
@@ -1273,7 +1278,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
             // Red
             FilterChip(
-              avatar: const Text('🔴', style: TextStyle(fontSize: 12)),
+              avatar: const _PastilleDeCouleur(Color(0xFF8B1E3F)),
               label: Text(l10n?.filterRed ?? (trSi(isFr, 'Rouge', 'Red'))),
               selected: _filter.wineType == 'red',
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
@@ -1287,7 +1292,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
             // White
             FilterChip(
-              avatar: const Text('⚪', style: TextStyle(fontSize: 12)),
+              avatar: const _PastilleDeCouleur(Color(0xFFE8D08D)),
               label: Text(l10n?.filterWhite ?? (trSi(isFr, 'Blanc', 'White'))),
               selected: _filter.wineType == 'white',
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
@@ -1301,7 +1306,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
             // Rosé
             FilterChip(
-              avatar: const Text('🌸', style: TextStyle(fontSize: 12)),
+              avatar: const _PastilleDeCouleur(Color(0xFFF48FB1)),
               label: Text(l10n?.filterRose ?? (trSi(isFr, 'Rosé', 'Rosé'))),
               selected: _filter.wineType == 'rose',
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
@@ -1315,7 +1320,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
             // Sparkling
             FilterChip(
-              avatar: const Text('🍾', style: TextStyle(fontSize: 12)),
+              avatar: const _PastilleDeCouleur(Color(0xFFD4AF37)),
               label: Text(l10n?.filterSparkling ?? (trSi(isFr, 'Bulles', 'Sparkling'))),
               selected: _filter.wineType == 'sparkling',
               selectedColor: const Color(0xFF8B1E3F).withAlpha(25),
@@ -1623,6 +1628,45 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     AppLocalizations? l10n,
   }) {
     final filteredList = _filterBottles(sourceBottles);
+    final vinsBus = sourceBottles.where((b) => b.quantity <= 0).length;
+    final lienDesVinsBus = vinsBus == 0
+        ? null
+        : Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 80, 4),
+              child: TextButton.icon(
+                icon: Icon(_afficherLesVinsBus ? Icons.visibility_off_outlined : Icons.history, size: 16),
+                label: Text(
+                  _afficherLesVinsBus
+                      ? tr('Masquer les vins bus jusqu\'à la dernière bouteille',
+                          'Hide wines drunk down to the last bottle')
+                      : vinsBus == 1
+                          ? tr('1 vin bu jusqu\'à la dernière bouteille, masqué : l\'afficher',
+                              '1 wine drunk down to the last bottle, hidden: show it')
+                          : tr('{n} vins bus jusqu\'à la dernière bouteille, masqués : les afficher',
+                              '{n} wines drunk down to the last bottle, hidden: show them', {'n': vinsBus}),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                onPressed: () => setState(() => _afficherLesVinsBus = !_afficherLesVinsBus),
+              ),
+            ),
+          );
+
+    if (filteredList.isEmpty && lienDesVinsBus != null && sourceBottles.every((b) => b.quantity <= 0)) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              tr('Toutes ces bouteilles sont bues.', 'All these bottles have been drunk.'),
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+            lienDesVinsBus,
+          ],
+        ),
+      );
+    }
 
     if (filteredList.isEmpty) {
       if (sourceBottles.isEmpty) {
@@ -1796,7 +1840,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
         notifyCellarChanged(ref, activeCellarId);
         await Future.delayed(const Duration(milliseconds: 200));
       },
-      child: mainContent,
+      child: lienDesVinsBus == null
+          ? mainContent
+          : Column(children: [Expanded(child: mainContent), lienDesVinsBus]),
     );
   }
 
@@ -2134,6 +2180,27 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
           ),
         ),
       ],
+    );
+  }
+}
+
+/// La pastille d'une couleur de vin, la même pour les quatre filtres : un rond rose et non
+/// une fleur à côté d'un rond rouge et d'un rond blanc (Caro, 04/10). Mêmes teintes que sur
+/// les cartes de restaurant.
+class _PastilleDeCouleur extends StatelessWidget {
+  final Color couleur;
+  const _PastilleDeCouleur(this.couleur);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: couleur,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.black.withValues(alpha: 0.18), width: 0.8),
+      ),
     );
   }
 }

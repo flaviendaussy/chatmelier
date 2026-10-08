@@ -13,6 +13,7 @@ import '../../cellar/domain/wine.dart';
 import '../data/stats_repository.dart';
 import '../domain/cellar_stats.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/valeurs_rangees.dart';
 import '../../../shared/widgets/onglets.dart';
 
 final statsDisplayCurrencyProvider = StateProvider<String>((ref) => 'EUR');
@@ -651,6 +652,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   // ================= 5. PIE CHART: WINE TYPES =================
   Widget _buildWineTypePieChartCard(ThemeData theme, bool isDark, CellarStats stats, bool isFr) {
     final entries = stats.byType.entries.toList();
+    final lang = Localizations.localeOf(context).languageCode;
 
     return Card(
       elevation: 2,
@@ -664,100 +666,116 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               children: [
                 const Icon(Icons.pie_chart, size: 20, color: Color(0xFF722F37)),
                 const SizedBox(width: 8),
-                Text(
-                  trSi(isFr, 'Répartition par Couleur & Type de Vin', 'Breakdown by Wine Color & Type'),
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                Expanded(
+                  child: Text(
+                    trSi(isFr, 'Répartition par Couleur & Type de Vin', 'Breakdown by Wine Color & Type'),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                SizedBox(
-                  width: 130,
-                  height: 130,
-                  child: PieChart(
-                    PieChartData(
-                      pieTouchData: PieTouchData(
-                        touchCallback: (event, pieTouchResponse) {
-                          setState(() {
-                            if (!event.isInterestedForInteractions ||
-                                pieTouchResponse == null ||
-                                pieTouchResponse.touchedSection == null) {
-                              _touchedTypeIndex = -1;
-                              return;
-                            }
-                            _touchedTypeIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                          });
-                        },
-                      ),
-                      borderData: FlBorderData(show: false),
-                      sectionsSpace: 2,
-                      centerSpaceRadius: 30,
-                      sections: entries.asMap().entries.map((e) {
-                        final idx = e.key;
-                        final type = e.value.key;
-                        final count = e.value.value;
-                        final isTouched = idx == _touchedTypeIndex;
-                        final color = WineTypeBadge.getColor(type);
-                        return PieChartSectionData(
-                          color: color,
-                          value: count.toDouble(),
-                          title: count >= 2 ? '$count' : '',
-                          radius: isTouched ? 34.0 : 28.0,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    children: entries.asMap().entries.map((e) {
-                      final type = e.value.key;
-                      final count = e.value.value;
-                      final color = WineTypeBadge.getColor(type);
-                      final pct = stats.totalBottles > 0 ? (count / stats.totalBottles * 100).toStringAsFixed(0) : '0';
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 3),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                            ),
-                            const SizedBox(width: 8),
-                            // La pastille garde sa largeur naturelle. Étirée, elle
-                            // remplissait l'espace que ne prend pas le texte du compte —
-                            // donc « 1 btl (1%) », plus court, produisait une pastille
-                            // PLUS LARGE que « 35 btl (39%) ». La longueur codait l'inverse
-                            // de la valeur, et la légende se lisait comme un graphique en
-                            // barres. Remonté par un utilisateur le 2026-09-06.
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: WineTypeBadge(type: type),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text('$count btl ($pct%)', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
+            _camembertEtLegende(
+              parts: [
+                for (final e in entries)
+                  (libelle: _enMinuscules(WineTypeBadge.getLabel(e.key, lang)), n: e.value, couleur: WineTypeBadge.getColor(e.key)),
               ],
+              total: stats.totalBottles,
+              touche: _touchedTypeIndex,
+              toucher: (i) => setState(() => _touchedTypeIndex = i),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// « EFFERVESCENT » → « Effervescent » : une légende se lit, elle ne crie pas.
+  static String _enMinuscules(String libelle) =>
+      libelle.isEmpty ? libelle : libelle[0].toUpperCase() + libelle.substring(1).toLowerCase();
+
+  /// Un camembert et sa légende, l'un sous l'autre : le camembert prend la largeur de la
+  /// carte (« give more space to the pie chart », 04/10), et la légende n'est faite que de
+  /// texte. Des pastilles de longueurs inégales se lisaient comme un second graphique en
+  /// barres, qui ne disait pas les mêmes nombres (retours du 06/09 et du 04/10).
+  Widget _camembertEtLegende({
+    required List<({String libelle, int n, Color couleur})> parts,
+    required int total,
+    required int touche,
+    required void Function(int) toucher,
+  }) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 200,
+          child: PieChart(
+            PieChartData(
+              pieTouchData: PieTouchData(
+                touchCallback: (event, reponse) {
+                  if (!event.isInterestedForInteractions || reponse == null || reponse.touchedSection == null) {
+                    toucher(-1);
+                    return;
+                  }
+                  toucher(reponse.touchedSection!.touchedSectionIndex);
+                },
+              ),
+              borderData: FlBorderData(show: false),
+              sectionsSpace: 2,
+              centerSpaceRadius: 46,
+              sections: [
+                for (var i = 0; i < parts.length; i++)
+                  PieChartSectionData(
+                    color: parts[i].couleur,
+                    value: parts[i].n.toDouble(),
+                    title: parts[i].n >= 2 ? '${parts[i].n}' : '',
+                    radius: i == touche ? 52.0 : 44.0,
+                    titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        LayoutBuilder(
+          builder: (context, contraintes) {
+            final largeur = contraintes.maxWidth >= 320 ? (contraintes.maxWidth - 16) / 2 : contraintes.maxWidth;
+            return Wrap(
+              spacing: 16,
+              runSpacing: 6,
+              children: [
+                for (final p in parts)
+                  SizedBox(
+                    width: largeur,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(color: p.couleur, shape: BoxShape.circle),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            p.libelle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          tr('{n} ({pct} %)', '{n} ({pct}%)',
+                              {'n': p.n, 'pct': total > 0 ? (p.n / total * 100).round() : 0}),
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -779,88 +797,27 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               children: [
                 const Icon(Icons.terrain_outlined, size: 20, color: Color(0xFF10B981)),
                 const SizedBox(width: 8),
-                Text(
-                  trSi(isFr, 'Répartition par Grand Vignoble', 'Breakdown by Wine Region'),
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                Expanded(
+                  child: Text(
+                    trSi(isFr, 'Répartition par Grand Vignoble', 'Breakdown by Wine Region'),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                SizedBox(
-                  width: 130,
-                  height: 130,
-                  child: PieChart(
-                    PieChartData(
-                      pieTouchData: PieTouchData(
-                        touchCallback: (event, pieTouchResponse) {
-                          setState(() {
-                            if (!event.isInterestedForInteractions ||
-                                pieTouchResponse == null ||
-                                pieTouchResponse.touchedSection == null) {
-                              _touchedRegionIndex = -1;
-                              return;
-                            }
-                            _touchedRegionIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                          });
-                        },
-                      ),
-                      borderData: FlBorderData(show: false),
-                      sectionsSpace: 2,
-                      centerSpaceRadius: 30,
-                      sections: topEntries.asMap().entries.map((e) {
-                        final idx = e.key;
-                        final count = e.value.value;
-                        final isTouched = idx == _touchedRegionIndex;
-                        return PieChartSectionData(
-                          color: _chartColors[(idx + 2) % _chartColors.length],
-                          value: count.toDouble(),
-                          title: count >= 2 ? '$count' : '',
-                          radius: isTouched ? 34.0 : 28.0,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        );
-                      }).toList(),
-                    ),
+            _camembertEtLegende(
+              parts: [
+                for (var i = 0; i < topEntries.length; i++)
+                  (
+                    libelle: valeurAffichee(topEntries[i].key),
+                    n: topEntries[i].value,
+                    couleur: _chartColors[(i + 2) % _chartColors.length],
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    children: topEntries.asMap().entries.map((e) {
-                      final idx = e.key;
-                      final region = e.value.key;
-                      final count = e.value.value;
-                      final pct = stats.totalBottles > 0 ? (count / stats.totalBottles * 100).toStringAsFixed(0) : '0';
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 3),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(color: _chartColors[(idx + 2) % _chartColors.length], shape: BoxShape.circle),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                region,
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Text('$count ($pct%)', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
               ],
+              total: stats.totalBottles,
+              touche: _touchedRegionIndex,
+              toucher: (i) => setState(() => _touchedRegionIndex = i),
             ),
           ],
         ),
@@ -872,6 +829,12 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Widget _buildVintageHistogramCard(ThemeData theme, bool isDark, CellarStats stats, bool isFr) {
     final sortedVintages = stats.byVintage.keys.toList()..sort();
     final maxCount = stats.byVintage.values.fold<int>(0, (prev, elem) => elem > prev ? elem : prev);
+    // Des graduations entières, quatre ou cinq au plus, dans une marge assez large pour deux
+    // chiffres : l'axe empilait « 1 / 6 / 4 / 2 » chiffre par chiffre (04/10).
+    final pas = maxCount <= 5 ? 1.0 : (maxCount / 4).ceilToDouble();
+    final hautDeLAxe = ((maxCount / pas).ceil() + 1) * pas;
+    // Beaucoup de millésimes : « ’12 » plutôt que « 2012 » tronqué en « 201 ».
+    final anneesCourtes = sortedVintages.length > 8;
 
     return Card(
       elevation: 2,
@@ -897,7 +860,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
-                  maxY: (maxCount + 2).toDouble(),
+                  maxY: hautDeLAxe,
                   barTouchData: BarTouchData(
                     touchTooltipData: BarTouchTooltipData(
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -910,31 +873,49 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     ),
                   ),
                   titlesData: FlTitlesData(
-                    leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: true, reservedSize: 26, interval: 2),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 32,
+                        interval: pas,
+                        getTitlesWidget: (val, meta) => Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Text(
+                            '${val.round()}',
+                            textAlign: TextAlign.right,
+                            maxLines: 1,
+                            softWrap: false,
+                            style: TextStyle(fontSize: 10, color: theme.colorScheme.onSurfaceVariant),
+                          ),
+                        ),
+                      ),
                     ),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
+                        reservedSize: 24,
                         getTitlesWidget: (val, meta) {
                           final idx = val.toInt();
                           if (idx >= 0 && idx < sortedVintages.length) {
+                            final annee = sortedVintages[idx];
                             return Padding(
                               padding: const EdgeInsets.only(top: 6),
                               child: Text(
-                                '${sortedVintages[idx]}',
+                                anneesCourtes ? '’${(annee % 100).toString().padLeft(2, '0')}' : '$annee',
+                                maxLines: 1,
+                                softWrap: false,
                                 style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                               ),
                             );
                           }
-                          return const Text('');
+                          return const SizedBox.shrink();
                         },
                       ),
                     ),
                     topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
-                  gridData: const FlGridData(show: true, drawVerticalLine: false),
+                  gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: pas),
                   borderData: FlBorderData(show: false),
                   barGroups: sortedVintages.asMap().entries.map((entry) {
                     final idx = entry.key;

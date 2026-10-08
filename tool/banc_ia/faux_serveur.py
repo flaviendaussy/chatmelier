@@ -140,6 +140,12 @@ class H(BaseHTTPRequestHandler):
                                  "usageMetadata": {"promptTokenCount": 2100, "candidatesTokenCount": 180}})
             outils = 'tools' in c
             txt = c['contents'][0]['parts'][-1]['text']
+            if txt.startswith('Translate this wine description'):
+                # Une fiche traduite (V2.4 · R6) : autant d'accords qu'envoyés.
+                res = {"notes": "Rubis profond aux reflets grenat ; cerise noire et prune.",
+                       "accords": ["Agneau de lait rôti au romarin", "Entrecôte grillée, sauce au poivre"]}
+                return self.rep({"candidates": [{"content": {"parts": [{"text": json.dumps(res, ensure_ascii=False)}]}}],
+                                 "usageMetadata": {"promptTokenCount": 220, "candidatesTokenCount": 90, "thoughtsTokenCount": 0}})
             if txt.startswith('You are Chatmelier, a sommelier reading the by-the-glass board'):
                 # L'ardoise d'un bar (V2.3 · J4) : des prix au verre, pas de bouteille.
                 res = {"r": "Le Bar à Vins", "c": "EUR", "v": [

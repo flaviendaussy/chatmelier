@@ -163,6 +163,8 @@ class _MobileAppShell extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
+            // Seulement ce qui touche à la cave (Caro, 04/10) : la carte d'un restaurant et le
+            // vin bu dehors vivent sous « Ce soir », le sommelier a son bouton partout.
             _ActionMenuItem(
               icon: Icons.add_a_photo_outlined,
               color: const Color(0xFF8B1E3F),
@@ -172,17 +174,6 @@ class _MobileAppShell extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/scan');
-              },
-            ),
-            const SizedBox(height: 8),
-            _ActionMenuItem(
-              icon: Icons.restaurant_menu_rounded,
-              color: const Color(0xFFC2185B),
-              title: trSi(isFr, 'Scanner la Carte des Vins (Restaurant)', 'Scan Wine List (Restaurant)'),
-              subtitle: trSi(isFr, 'Capture multi-pages, radar sensoriel, filtres & comparateur', 'Multi-page capture, taste radar, filters & comparison'),
-              onTap: () {
-                Navigator.pop(ctx);
-                context.push('/scan/menu');
               },
             ),
             const SizedBox(height: 8),
@@ -239,29 +230,6 @@ class _MobileAppShell extends ConsumerWidget {
                   bottles: bottles,
                   cellarName: cellarName,
                 );
-              },
-            ),
-            const SizedBox(height: 8),
-            _ActionMenuItem(
-              icon: Icons.restaurant_outlined,
-              color: const Color(0xFFE65100),
-              title: trSi(isFr, 'Déguster Hors-Cave (Restaurant, Amis)', 'Taste Out-of-Cellar (Restaurant, Friends)'),
-              subtitle: trSi(isFr, 'Noter un vin bu à l\'extérieur sans toucher au stock', 'Log a wine tasted outside without affecting stock'),
-              onTap: () {
-                Navigator.pop(ctx);
-                ExternalTastingDialog.show(context);
-              },
-            ),
-            const SizedBox(height: 8),
-            _ActionMenuItem(
-              icon: Icons.auto_awesome_outlined,
-              color: const Color(0xFF2E7D32),
-              title: l10n?.actionLookupWine ?? (trSi(isFr, 'Consulter / Identifier un vin', 'Ask Sommelier / Identify wine')),
-              subtitle: l10n?.actionLookupWineSub ??
-                  (trSi(isFr, 'Découverte et analyse instantanée par l\'IA', 'Instant AI sommelier discovery and analysis')),
-              onTap: () {
-                Navigator.pop(ctx);
-                context.push('/chat');
               },
             ),
             const SizedBox(height: 12),

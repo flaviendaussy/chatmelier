@@ -665,7 +665,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    leading: OwnerAvatar(userId: friend.friendUserId, radius: 20),
+                    leading: OwnerAvatar(userId: friend.friendUserId, displayName: friend.displayName, avatarUrl: friend.avatarUrl, radius: 20),
                     title: Text(friend.displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                     subtitle: Text(friend.handle, style: const TextStyle(fontSize: 12, color: Color(0xFF8B1E3F))),
                     trailing: isAlreadyMember

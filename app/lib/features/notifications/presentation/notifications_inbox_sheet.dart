@@ -646,7 +646,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
           children: [
             Row(
               children: [
-                OwnerAvatar(userId: friend.friendUserId, radius: 22),
+                OwnerAvatar(userId: friend.friendUserId, displayName: friend.displayName, avatarUrl: friend.avatarUrl, radius: 22),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -739,7 +739,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
           children: [
             Row(
               children: [
-                OwnerAvatar(userId: req.requesterId, radius: 22),
+                OwnerAvatar(userId: req.requesterId, displayName: req.requesterName, radius: 22),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

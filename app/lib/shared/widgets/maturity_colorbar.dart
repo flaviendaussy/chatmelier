@@ -70,12 +70,17 @@ class MaturityColorbar extends StatelessWidget {
   final double height;
   final bool showLabel;
 
+  /// Ce qui se lit au bout de la ligne de l'état, à droite : les années de la fenêtre, sur la
+  /// carte d'une bouteille. La jauge garde ainsi toute la largeur (retour du 08/10).
+  final String? fin;
+
   const MaturityColorbar({
     super.key,
     required this.wine,
     this.width = 110,
     this.height = 8,
     this.showLabel = true,
+    this.fin,
   });
 
   @override
@@ -95,7 +100,7 @@ class MaturityColorbar extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 3),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: fin == null ? MainAxisSize.min : MainAxisSize.max,
               children: [
                 Container(
                   width: 6,
@@ -106,14 +111,27 @@ class MaturityColorbar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  statusText,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: statusColor,
+                if (fin == null)
+                  Text(statusText, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor))
+                else ...[
+                  Expanded(
+                    child: Text(
+                      statusText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 6),
+                  Text(
+                    fin!,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

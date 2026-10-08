@@ -71,6 +71,16 @@ class BottleSize {
       shortNameFr: '62 cl',
       shortNameEn: '620 ml',
     ),
+    // Le format des spiritueux en Europe, et le litre (limoncello, vermouths, vins
+    // autrichiens) : demandés le 22/09.
+    BottleSize(
+      code: '70cl',
+      labelFr: 'Bouteille de spiritueux (70 cl)',
+      labelEn: 'Spirits bottle (700 ml)',
+      volumeLiters: 0.7,
+      shortNameFr: '70 cl',
+      shortNameEn: '700 ml',
+    ),
     BottleSize(
       code: '75cl',
       labelFr: 'Bouteille standard (75 cl)',
@@ -78,6 +88,14 @@ class BottleSize {
       volumeLiters: 0.75,
       shortNameFr: '75 cl',
       shortNameEn: '750 ml',
+    ),
+    BottleSize(
+      code: '1L',
+      labelFr: 'Litre (1 L)',
+      labelEn: 'Litre (1 L)',
+      volumeLiters: 1.0,
+      shortNameFr: '1 L',
+      shortNameEn: '1 L',
     ),
     BottleSize(
       code: '1.5L',
@@ -173,6 +191,15 @@ class BottleSize {
         norm == 'bottle' ||
         norm == 'bouteille') {
       return standardSizes.firstWhere((s) => s.code == '75cl');
+    }
+
+    // 2 bis. 70 cl et litre
+    if (norm == '700ml' || norm == '0.7l' || norm == '0.70l' || norm == '0.7' || norm == '70') {
+      return standardSizes.firstWhere((s) => s.code == '70cl');
+    }
+    if (norm == '1000ml' || norm == '100cl' || norm == '1' || norm == '1.0l' || norm == '1litre' || norm == '1liter' ||
+        norm == 'litre' || norm == 'liter') {
+      return standardSizes.firstWhere((s) => s.code == '1L');
     }
 
     // 3. Magnum heuristics

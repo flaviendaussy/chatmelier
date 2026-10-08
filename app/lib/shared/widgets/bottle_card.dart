@@ -342,29 +342,17 @@ class BottleCard extends StatelessWidget {
 
                     // Maturity Color Bar (wines only - spirits do not age in bottle)
                     if (wine != null && !wine.isSpirit && !wine.tracksFillLevel && !bottle.tracksFillLevel) ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: MaturityColorbar(
-                              wine: wine,
-                              width: double.infinity,
-                              height: 5,
-                            ),
-                          ),
-                          if (wine.peakStart != null && wine.peakEnd != null) ...[
-                            const SizedBox(width: 6),
-                            // Les années de la fenêtre effective — celle que dessine la
-                            // jauge — et non les valeurs brutes, qui peuvent la contredire.
-                            Text(
-                              '${wine.fenetreEffective.peakStart}-${wine.fenetreEffective.peakEnd}',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ],
+                      // Les années au bout de la ligne de l'état, et la jauge sur toute la
+                      // largeur de la tuile (retours du 08/10). Ce sont les années de la
+                      // fenêtre effective — celle que dessine la jauge — et non les valeurs
+                      // brutes, qui peuvent la contredire.
+                      MaturityColorbar(
+                        wine: wine,
+                        width: double.infinity,
+                        height: 5,
+                        fin: wine.peakStart != null && wine.peakEnd != null
+                            ? '${wine.fenetreEffective.peakStart}-${wine.fenetreEffective.peakEnd}'
+                            : null,
                       ),
                       const SizedBox(height: 6),
                     ] else if (bottle.tracksFillLevel || (wine?.tracksFillLevel ?? false)) ...[
@@ -406,7 +394,7 @@ class BottleCard extends StatelessWidget {
                           )
                         else
                           Text(
-                            'En cave',
+                            tr('En cave', 'In the cellar'),
                             style: TextStyle(
                               fontSize: 11,
                               fontStyle: FontStyle.italic,

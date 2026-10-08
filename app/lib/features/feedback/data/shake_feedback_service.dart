@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../../../config/navigator_keys.dart';
+import '../domain/detecteur_de_secousse.dart';
 import '../presentation/feedback_annotation_sheet.dart';
 
 /// Service detecting physical device shakes to prompt testers for feedback and annotations.
@@ -20,8 +21,8 @@ class ShakeFeedbackService {
   DateTime? _lastShakeTime;
   bool _isPromptOpen = false;
 
-  // Sensitivity configuration: user acceleration without gravity
-  static const double _shakeThreshold = 12.0; // m/s² acceleration magnitude
+  /// Plusieurs pics francs en moins d'une seconde (voir [DetecteurDeSecousse]).
+  final DetecteurDeSecousse _detecteur = DetecteurDeSecousse();
   static const Duration _cooldown = Duration(seconds: 2);
 
   /// Initializes the shake listener on supported platforms (Android / iOS)
@@ -34,13 +35,15 @@ class ShakeFeedbackService {
 
     _accelerometerSubscription?.cancel();
     try {
-      _accelerometerSubscription = userAccelerometerEventStream().listen(
+      // Une mesure toutes les 20 ms : à 200 ms (le rythme par défaut), les pics d'une
+      // secousse passaient entre deux mesures.
+      _accelerometerSubscription = userAccelerometerEventStream(samplingPeriod: SensorInterval.gameInterval).listen(
         (UserAccelerometerEvent event) {
           final double magnitude = sqrt(
             event.x * event.x + event.y * event.y + event.z * event.z,
           );
 
-          if (magnitude > _shakeThreshold) {
+          if (_detecteur.ajouter(magnitude, DateTime.now())) {
             final now = DateTime.now();
             if (_lastShakeTime == null || now.difference(_lastShakeTime!) > _cooldown) {
               _lastShakeTime = now;

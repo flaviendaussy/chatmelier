@@ -29,6 +29,7 @@ class ExternalTastingDialog extends ConsumerStatefulWidget {
   final int? initialVintage;
   final String? initialRegion;
   final String? initialAppellation;
+  final String? initialCountry;
   final String? initialType;
   final String? photoUrl;
 
@@ -39,6 +40,7 @@ class ExternalTastingDialog extends ConsumerStatefulWidget {
     this.initialVintage,
     this.initialRegion,
     this.initialAppellation,
+    this.initialCountry,
     this.initialType,
     this.photoUrl,
   });
@@ -50,6 +52,7 @@ class ExternalTastingDialog extends ConsumerStatefulWidget {
     int? vintage,
     String? region,
     String? appellation,
+    String? country,
     String? wineType,
     String? photoUrl,
   }) {
@@ -63,6 +66,7 @@ class ExternalTastingDialog extends ConsumerStatefulWidget {
         initialVintage: vintage,
         initialRegion: region,
         initialAppellation: appellation,
+        initialCountry: country,
         initialType: wineType,
         photoUrl: photoUrl,
       ),
@@ -78,6 +82,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   late final TextEditingController _producerController;
   late final TextEditingController _vintageController;
   late final TextEditingController _regionController;
+  late final TextEditingController _paysController;
   late final TextEditingController _contextController;
   late final TextEditingController _notesController;
   late final TextEditingController _foodController;
@@ -216,6 +221,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     _producerController = TextEditingController(text: widget.initialProducer ?? '');
     _vintageController = TextEditingController(text: widget.initialVintage != null ? '${widget.initialVintage}' : '');
     _regionController = TextEditingController(text: widget.initialRegion ?? widget.initialAppellation ?? '');
+    _paysController = TextEditingController(text: widget.initialCountry ?? '');
     _contextController = TextEditingController();
     _notesController = TextEditingController();
     _foodController = TextEditingController();
@@ -264,6 +270,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             } else if (result.region.isNotEmpty) {
               _regionController.text = result.region;
             }
+            if (result.country.isNotEmpty) _paysController.text = result.country;
             _wineType = _normalizeWineType(result.wineType);
             if (result.tastingNotes != null && result.tastingNotes!.isNotEmpty) {
               _notesDuSommelier = result.tastingNotes;
@@ -338,6 +345,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         'producteur': _producerController,
         'millesime': _vintageController,
         'region': _regionController,
+        'pays': _paysController,
       };
       final ecrire = FicheDepuisTexte.aEcrire(
         actuels: {for (final e in champs.entries) e.key: e.value.text},
@@ -346,6 +354,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           'producteur': result.producer,
           'millesime': result.vintage?.toString(),
           'region': (result.appellation?.isNotEmpty ?? false) ? result.appellation : result.region,
+          'pays': result.country,
         },
         etiquetteLue: _etiquetteLue,
         remplisParLeTexte: _remplisParLeTexte,
@@ -440,6 +449,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     _producerController.dispose();
     _vintageController.dispose();
     _regionController.dispose();
+    _paysController.dispose();
     _contextController.dispose();
     _notesController.dispose();
     _foodController.dispose();
@@ -491,6 +501,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             producteur: producer,
             millesime: vintage,
             region: region,
+            pays: _paysController.text.trim(),
             couleur: _wineType,
             note: effectiveRating,
             lieu: occasion,
@@ -864,15 +875,27 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             ),
             const SizedBox(height: 12),
 
-            // Domaine & Région
+            // Domaine, puis région et pays (le pays, demandé le 07/10 : un vin marocain se
+            // lisait sans lui comme un vin d'ici).
+            TextField(
+              controller: _producerController,
+              decoration: InputDecoration(
+                labelText: l10n.bottleDetailProducer,
+                hintText: l10n.externalTastingProducerHint,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              ),
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
+                  flex: 3,
                   child: TextField(
-                    controller: _producerController,
+                    controller: _regionController,
                     decoration: InputDecoration(
-                      labelText: l10n.bottleDetailProducer,
-                      hintText: l10n.externalTastingProducerHint,
+                      labelText: l10n.externalTastingRegionLabel,
+                      hintText: l10n.externalTastingRegionHint,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),
@@ -880,11 +903,13 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
+                  flex: 2,
                   child: TextField(
-                    controller: _regionController,
+                    controller: _paysController,
+                    textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration(
-                      labelText: l10n.externalTastingRegionLabel,
-                      hintText: l10n.externalTastingRegionHint,
+                      labelText: tr('Pays', 'Country'),
+                      hintText: tr('ex. Maroc', 'e.g. Morocco'),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),

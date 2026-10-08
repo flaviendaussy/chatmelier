@@ -83,7 +83,11 @@ class FurnitureGraphicCard extends ConsumerWidget {
                 Expanded(
                   child: FilledButton.tonalIcon(
                     icon: const Icon(Icons.fullscreen, size: 18),
-                    label: Text(trSi(isFr, 'Vue rayonnage', 'Shelf view')),
+                    // Sur une ligne, quitte à rétrécir (« Vue rayo / nnage », Caro, 04/10).
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(trSi(isFr, 'Vue rayonnage', 'Shelf view'), maxLines: 1, softWrap: false),
+                    ),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF8B1E3F).withValues(alpha: 0.12),
                       foregroundColor: const Color(0xFF8B1E3F),
@@ -104,7 +108,10 @@ class FurnitureGraphicCard extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.edit_location_alt_outlined, size: 16),
-                  label: Text(trSi(isFr, 'Déplacer', 'Move')),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(trSi(isFr, 'Déplacer', 'Move'), maxLines: 1, softWrap: false),
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: theme.colorScheme.onSurface,
                   ),

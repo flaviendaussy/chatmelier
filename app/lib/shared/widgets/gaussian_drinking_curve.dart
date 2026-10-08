@@ -163,39 +163,27 @@ class GaussianDrinkingCurve extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.wine_bar, size: 18, color: goldColor),
-                const SizedBox(width: 6),
-                Text(
-                  trSi(isFr, 'Maturité & Garde (Non Millésimé)', 'Maturity & Aging (Non-Vintage)'),
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.withValues(alpha: 0.5)),
+        // Le titre est celui de la section qui accueille la courbe (fiche de la bouteille,
+        // dégustation) : le répéter ici poussait « Prêt à boire » hors de la carte (Caro,
+        // 04/10).
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: Colors.green.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.green.withValues(alpha: 0.5)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check_circle, size: 12, color: Colors.green),
+              const SizedBox(width: 4),
+              Text(
+                trSi(isFr, 'PRÊT À BOIRE ✨', 'READY TO DRINK ✨'),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.check_circle, size: 12, color: Colors.green),
-                  const SizedBox(width: 4),
-                  Text(
-                    trSi(isFr, 'PRÊT À BOIRE ✨', 'READY TO DRINK ✨'),
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 12),
 

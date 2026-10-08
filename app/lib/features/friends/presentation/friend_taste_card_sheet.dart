@@ -411,7 +411,7 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
           // Header with Avatar & User Handle & Cellar Access Status
           Row(
             children: [
-              OwnerAvatar(userId: friend.friendUserId, radius: 28),
+              OwnerAvatar(userId: friend.friendUserId, displayName: friend.displayName, avatarUrl: friend.avatarUrl, radius: 28),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(

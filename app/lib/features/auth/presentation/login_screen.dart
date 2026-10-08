@@ -41,9 +41,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     _tabController = TabController(length: 2, vsync: this);
     _authSub = ref.read(supabaseProvider).auth.onAuthStateChange.listen((data) {
       // Une session anonyme n'est pas un compte : on reste ici (R2).
-      if (data.session != null && !data.session!.user.isAnonymous && mounted) {
-        context.go(widget.suite ?? '/');
-      }
+      if (data.session != null && !data.session!.user.isAnonymous && mounted) _entrer();
     });
   }
 
@@ -137,6 +135,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     }
   }
 
+  /// Entrer dans l'app, sans emporter les messages de l'écran de connexion : « mot de passe
+  /// incorrect » restait affiché sur le profil une fois connecté (Caro, 04/10).
+  void _entrer() {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    context.go(widget.suite ?? '/');
+  }
+
   Future<void> _passwordLogin() async {
     final email = _emailCtrl.text.trim();
     final pass = _passCtrl.text;
@@ -151,7 +156,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     try {
       final repo = ref.read(authRepositoryProvider);
       await repo.signIn(email, pass);
-      if (mounted) context.go(widget.suite ?? '/');
+      if (mounted) _entrer();
     } catch (e) {
       final errText = e.toString().toLowerCase();
       if (mounted) {

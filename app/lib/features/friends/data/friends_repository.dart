@@ -797,7 +797,7 @@ class FriendsRepository {
       }
     }
 
-    if (targetCellarId.isEmpty) throw Exception(tr('Impossible de déterminer la cave à partager.', 'Couldn\'t tell which cellar to share.'));
+    if (targetCellarId.isEmpty) throw const AucuneCaveAPartager();
 
     // Upsert into cellar_members
     await _client.from('cellar_members').upsert({
@@ -1000,4 +1000,14 @@ class FriendsRepository {
       AppLogger.warning('FRIENDS', 'Could not delete notification: $e');
     }
   }
+}
+
+/// Partager sa cave sans en avoir : le dire simplement, et non « Exception: Impossible de
+/// déterminer la cave à partager » (Caro, 04/10).
+class AucuneCaveAPartager implements Exception {
+  const AucuneCaveAPartager();
+
+  @override
+  String toString() => tr('Vous n\'avez pas encore de cave à partager : créez-la d\'abord dans l\'onglet Cave.',
+      'You don\'t have a cellar to share yet: create it first in the Cellar tab.');
 }

@@ -36,6 +36,7 @@ import '../../offline/presentation/sync_provider.dart';
 import '../../sommelier/presentation/thermal_aeration_calculator_sheet.dart';
 import '../../sommelier/presentation/sommelier_storyteller_dialog.dart';
 import 'aging_simulator_sheet.dart';
+import 'widgets/fiche_dans_ma_langue.dart';
 
 class BottleDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -1544,8 +1545,9 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                           side: const BorderSide(color: Color(0xFFD4AF37)),
                                         ),
                                         icon: const Icon(Icons.history_toggle_off, color: Color(0xFFD4AF37), size: 18),
+                                        // Le nom de ce que fait le bouton (Flavien, 04/10).
                                         label: Text(
-                                          trSi(isFr, 'Dans quelques années', 'In a few years'),
+                                          trSi(isFr, 'Simulateur de vieillissement', 'Ageing simulator'),
                                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -1609,35 +1611,50 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   ),
                               ],
                             ),
-                            if (wine.tastingNotes != null) ...[
-                              const SizedBox(height: 10),
-                              Text(
-                                wine.tastingNotes!,
-                                style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
+                            // Dans la langue de l'app, même quand la fiche a été écrite dans
+                            // une autre (V2.4 · R6, trois retours de Caro le 04/10).
+                            FicheDansMaLangue(
+                              notes: wine.tastingNotes,
+                              accords: wine.foodPairings,
+                              builder: (context, notes, accords, mention) => Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (notes != null) ...[
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      notes,
+                                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
+                                    ),
+                                  ],
+                                  if (accords.isNotEmpty) ...[
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      wine.tracksFillLevel
+                                          ? (trSi(isFr, 'Accords & Dégustation conseillés', 'Recommended pairings & tasting'))
+                                          : (l10n?.bottleDetailFoodPairings ?? (trSi(isFr, 'Accords Mets & Vins conseillés', 'Recommended Food & Wine Pairings'))),
+                                      style: theme.textTheme.labelLarge?.copyWith(
+                                        color: theme.brightness == Brightness.dark ? const Color(0xFFE25C74) : const Color(0xFF8B1E3F),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 6,
+                                      children: accords.map((pairing) => Chip(
+                                        avatar: const Icon(Icons.restaurant, size: 14),
+                                        label: Text(pairing),
+                                        visualDensity: VisualDensity.compact,
+                                      )).toList(),
+                                    ),
+                                  ],
+                                  if (mention != null) ...[
+                                    const SizedBox(height: 6),
+                                    mention,
+                                  ],
+                                ],
                               ),
-                            ],
-                            if (wine.foodPairings.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              Text(
-                                wine.tracksFillLevel
-                                    ? (trSi(isFr, 'Accords & Dégustation conseillés', 'Recommended pairings & tasting'))
-                                    : (l10n?.bottleDetailFoodPairings ?? (trSi(isFr, 'Accords Mets & Vins conseillés', 'Recommended Food & Wine Pairings'))),
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  color: theme.brightness == Brightness.dark ? const Color(0xFFE25C74) : const Color(0xFF8B1E3F),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 6,
-                                children: wine.foodPairings.map((pairing) => Chip(
-                                  avatar: const Icon(Icons.restaurant, size: 14),
-                                  label: Text(pairing),
-                                  visualDensity: VisualDensity.compact,
-                                )).toList(),
-                              ),
-                            ],
+                            ),
                             const SizedBox(height: 14),
                             SizedBox(
                               width: double.infinity,
@@ -2151,6 +2168,18 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               ),
                             ],
                           ),
+                          // « Why not valued? » (Flavien, 04/10) : le dire, et dire quoi faire.
+                          if (!isViewOnly && !(wine.estimatedMarketValue != null && (wine.valeurSourcee || wine.valeurSaisie))) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              tr('Aucune cote trouvée avec une source vérifiable, et Chatmelier n\'invente pas de prix. Vous pouvez saisir la vôtre dans « Modifier la fiche ».',
+                                  'No market price found with a verifiable source, and Chatmelier doesn\'t make prices up. You can enter your own in “Edit Details”.'),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 11,
+                                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
+                              ),
+                            ),
+                          ],
                           if (!isViewOnly && wine.estimatedMarketValue != null && (wine.valeurSourcee || wine.valeurSaisie)) ...[
                             const SizedBox(height: 12),
                             Text(

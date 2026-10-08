@@ -5,6 +5,7 @@ import 'cellar_bridge.dart';
 import '../../auth/domain/wine_taste_radar.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/pays.dart';
 
 /// Pricing entry for wine by the glass (e.g. "125ml", "175ml", "150ml", "Verre")
 class MenuWineGlassPrice {
@@ -383,9 +384,12 @@ class MenuWine {
     return '🌍';
   }
 
+  /// Le pays avec son drapeau, dans la langue de l'écran : la carte le donne souvent dans la
+  /// sienne (« Spain » sur une carte d'Édimbourg, lue par un téléphone en français).
   String get countryWithFlag {
     if (country == null || country!.trim().isEmpty) return '';
-    return '$countryFlag ${country!.trim()}';
+    final connu = Pays.code(country) != null;
+    return '${connu ? Pays.drapeau(country) : countryFlag} ${Pays.nom(country)}';
   }
 
   /// Un prix de la carte, dans sa devise, avec ses centimes s'il en a : un verre à

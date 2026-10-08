@@ -1263,6 +1263,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   vintage: vintage,
                   region: _regionCtrl.text.trim(),
                   appellation: _appellationCtrl.text.trim(),
+                  country: _countryCtrl.text.trim(),
                   wineType: _wineType,
                   photoUrl: widget.imagePath.isNotEmpty ? widget.imagePath : null,
                 );
@@ -2061,6 +2062,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     vintage: vintage,
                     region: _regionCtrl.text.trim(),
                     appellation: _appellationCtrl.text.trim(),
+                    country: _countryCtrl.text.trim(),
                     wineType: _wineType,
                     photoUrl: widget.imagePath.isNotEmpty ? widget.imagePath : null,
                   );

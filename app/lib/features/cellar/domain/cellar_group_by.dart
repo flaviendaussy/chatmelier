@@ -3,6 +3,7 @@ import 'bottle.dart';
 import 'wine.dart';
 import 'cellar_sort_by.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/pays.dart';
 
 enum CellarGroupBy {
   none,
@@ -459,21 +460,26 @@ class CellarGroupEngine {
         return trSi(isFr, 'Sans appellation', 'No appellation');
 
       case CellarGroupBy.region:
+        // Le pays dans la langue de l'écran, et aucun quand il manque : un vin sans pays
+        // n'est pas français pour autant (V2.4 · R6).
         final reg = wine.region.trim();
-        final c = wine.country.trim().isNotEmpty ? wine.country.trim() : 'France';
+        final c = Pays.nom(wine.country);
         if (reg.isNotEmpty) {
-          if (reg.toLowerCase().startsWith(c.toLowerCase())) return reg;
+          if (c.isEmpty || reg.toLowerCase().startsWith(c.toLowerCase())) return reg;
           return '$c - $reg';
         }
+        if (c.isEmpty) return tr('Région non renseignée', 'Region not specified');
         if (code == 'la') return '$c - Regio non descripta';
         if (code == 'es') return '$c - Región no indicada';
         if (code == 'ca') return '$c - Regió no indicada';
         return trSi(isFr, '{c} - Région non renseignée', '{c} - Region not specified', {'c': c});
 
       case CellarGroupBy.country:
-        final c = wine.country.trim();
+        // « Spain » et « Espagne » dans le même groupe, au nom de la langue de l'écran ; un
+        // vin sans pays à part, et non sous « France » (V2.4 · R6).
+        final c = Pays.nom(wine.country);
         if (c.isNotEmpty) return c;
-        return 'France';
+        return tr('Pays non renseigné', 'Country not specified');
 
       case CellarGroupBy.continent:
         return _getContinent(wine.country, lang: lang);
@@ -651,20 +657,8 @@ class CellarGroupEngine {
         );
 
       case CellarGroupBy.region:
-        String regFlag = '🗺️';
-        final k = key.toLowerCase();
-        if (k.contains('france')) regFlag = '🇫🇷';
-        if (k.contains('ital')) regFlag = '🇮🇹';
-        if (k.contains('espag') || k.contains('spain')) regFlag = '🇪🇸';
-        if (k.contains('portug')) regFlag = '🇵🇹';
-        if (k.contains('allemag') || k.contains('german')) regFlag = '🇩🇪';
-        if (k.contains('usa') || k.contains('état') || k.contains('etat') || k.contains('state')) regFlag = '🇺🇸';
-        if (k.contains('argentin')) regFlag = '🇦🇷';
-        if (k.contains('chili') || k.contains('chile')) regFlag = '🇨🇱';
-        if (k.contains('austral')) regFlag = '🇦🇺';
-        if (k.contains('zélande') || k.contains('zealand')) regFlag = '🇳🇿';
-        if (k.contains('afrique') || k.contains('south africa')) regFlag = '🇿🇦';
-        if (k.contains('suisse') || k.contains('switzer')) regFlag = '🇨🇭';
+        final paysDuGroupe = key.contains(' - ') ? key.split(' - ').first : key;
+        final regFlag = Pays.code(paysDuGroupe) != null ? Pays.drapeau(paysDuGroupe) : '🗺️';
         return _GroupMetadata(
           title: key,
           emoji: regFlag,
@@ -673,21 +667,7 @@ class CellarGroupEngine {
         );
 
       case CellarGroupBy.country:
-        String flag = '🌍';
-        final k = key.toLowerCase();
-        if (k.contains('france')) flag = '🇫🇷';
-        if (k.contains('ital')) flag = '🇮🇹';
-        if (k.contains('espag') || k.contains('spain')) flag = '🇪🇸';
-        if (k.contains('portug')) flag = '🇵🇹';
-        if (k.contains('allemag') || k.contains('german')) flag = '🇩🇪';
-        if (k.contains('usa') || k.contains('état') || k.contains('etat') || k.contains('state')) flag = '🇺🇸';
-        if (k.contains('argentin')) flag = '🇦🇷';
-        if (k.contains('chili') || k.contains('chile')) flag = '🇨🇱';
-        if (k.contains('austral')) flag = '🇦🇺';
-        if (k.contains('zélande') || k.contains('zealand')) flag = '🇳🇿';
-        if (k.contains('afrique') || k.contains('south africa')) flag = '🇿🇦';
-        if (k.contains('suisse') || k.contains('switzer')) flag = '🇨🇭';
-        return _GroupMetadata(title: key, emoji: flag);
+        return _GroupMetadata(title: key, emoji: Pays.drapeau(key));
 
       case CellarGroupBy.continent:
         String iconEmoji = '🌍';

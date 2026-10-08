@@ -25,6 +25,7 @@ class TachesIa {
     'synthese_table': 'Synthèse de table',
     'recit': 'Récit d\'un vin',
     'enrichir_fiche': 'Enrichir une fiche',
+    'traduire_fiche': 'Traduire une fiche (autre langue)',
     'notes_degustation': 'Notes de dégustation dictées',
     'meuble': 'Meuble de cave (photo)',
     'import_cave': 'Import Excel',

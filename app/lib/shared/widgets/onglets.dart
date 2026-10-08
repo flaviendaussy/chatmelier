@@ -60,13 +60,28 @@ int indexDeLOnglet(String emplacement, List<OngletDeLApp> onglets) {
 }
 
 /// Le sommelier, présent dans la barre de chaque onglet : il n'a plus d'onglet à lui.
+///
+/// Une bulle de conversation, et non plus les seules étincelles : celles-ci disent « IA »
+/// ailleurs dans l'app (compléter une fiche), et personne n'y lisait un chat (retours du
+/// 04/10 et du 08/10). Les étincelles restent, en petit, pour dire que c'est le sommelier.
 class BoutonSommelier extends StatelessWidget {
   const BoutonSommelier({super.key});
 
   @override
   Widget build(BuildContext context) {
+    const or = Color(0xFFD4AF37);
     return IconButton(
-      icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
+      icon: const SizedBox(
+        width: 30,
+        height: 28,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(left: 0, bottom: 0, child: Icon(Icons.sms_rounded, color: or, size: 25)),
+            Positioned(right: -1, top: -2, child: Icon(Icons.auto_awesome, color: or, size: 12)),
+          ],
+        ),
+      ),
       tooltip: tr('Demander au sommelier', 'Ask the sommelier'),
       onPressed: () => context.push('/chat'),
     );

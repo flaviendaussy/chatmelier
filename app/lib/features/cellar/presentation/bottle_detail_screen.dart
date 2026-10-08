@@ -15,6 +15,7 @@ import '../../../shared/widgets/gaussian_drinking_curve.dart';
 import '../../../shared/widgets/grape_chart.dart';
 import '../../../shared/widgets/owner_avatar.dart';
 import '../../../shared/widgets/bottle_image_view.dart';
+import '../domain/verdict_qualite_prix.dart';
 import '../domain/bottle.dart';
 import '../domain/wine.dart';
 import '../domain/wine_image_service.dart';
@@ -2164,6 +2165,38 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               ),
                             ),
                           ],
+                          // Le rapport qualité-prix, seulement face à une cote sourcée.
+                          if (!isViewOnly)
+                            if (VerdictQualitePrix.depuis(
+                                    prixPaye: purchasePrice,
+                                    cote: wine.estimatedMarketValue,
+                                    coteSourcee: wine.valeurSourcee)
+                                case final verdict?) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(
+                                    switch (verdict) {
+                                      VerdictQualitePrix.bonneAffaire => Icons.thumb_up_alt_outlined,
+                                      VerdictQualitePrix.justePrix => Icons.balance,
+                                      VerdictQualitePrix.auDessus => Icons.trending_up,
+                                    },
+                                    size: 16,
+                                    color: verdict == VerdictQualitePrix.auDessus
+                                        ? Colors.orange.shade800
+                                        : Colors.green.shade700,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      verdict.phrase(purchasePrice!, wine.estimatedMarketValue!,
+                                          (m) => CurrencyHelper.formatPrice(m, currency: currency, decimals: 2)),
+                                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                         ],
                       ),
                     ),

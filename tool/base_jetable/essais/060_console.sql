@@ -25,7 +25,10 @@ BEGIN
   IF public.reglage_invalide('quotas_ia', '{"chat": {"compte": -1, "anonyme": 5}}') IS NULL THEN RAISE EXCEPTION 'quota négatif refusé'; END IF;
   IF public.reglage_invalide('version_minimale_test', '{"build": 77, "lien": "https://play.google.com/x"}') IS NOT NULL
      OR public.reglage_invalide('version_minimale_test', '{"build": 77.5, "lien": "https://x"}') IS NULL
-     OR public.reglage_invalide('version_minimale_test', '{"build": 77, "lien": "http://x"}') IS NULL THEN
+     OR public.reglage_invalide('version_minimale_test', '{"build": 77, "lien": "http://x"}') IS NULL
+     OR public.reglage_invalide('version_minimale_test', '{"build": 77, "lien": "https://x", "build_ios": 76, "lien_ios": "itms-beta://"}') IS NOT NULL
+     OR public.reglage_invalide('version_minimale_test', '{"build": 77, "lien": "https://x", "build_ios": "76"}') IS NULL
+     OR public.reglage_invalide('version_minimale_test', '{"build": 77, "lien": "https://x", "lien_ios": "javascript:x"}') IS NULL THEN
     RAISE EXCEPTION 'version minimale : build entier et lien https';
   END IF;
   IF public.reglage_invalide('ecpm_eur_estime', '{"rewarded": 8.5}') IS NOT NULL

@@ -8,20 +8,43 @@ import '../../shared/utils/app_logger.dart';
 import '../../shared/utils/langue.dart';
 
 /// Ce que la phase de test exige (`app_config.version_minimale_test`, migration 045).
+///
+/// Une exigence par plateforme (08/10) : Android lit `build` et `lien` (Play Store) ;
+/// l'iPhone lit `build_ios` et `lien_ios` (TestFlight). Les deux magasins ne publient pas
+/// le même jour : sans `build_ios`, aucun iPhone n'est bloqué — ni renvoyé vers le Play
+/// Store, ni bloqué avant que TestFlight ait la version demandée.
 class ExigenceDeVersion {
   final int build;
   final String lien;
   final String? message;
+  final int? buildIos;
+  final String? lienIos;
 
-  const ExigenceDeVersion({required this.build, required this.lien, this.message});
+  /// TestFlight, l'app par laquelle les testeurs iPhone mettent à jour.
+  static const lienTestFlight = 'itms-beta://';
+
+  const ExigenceDeVersion({required this.build, required this.lien, this.message, this.buildIos, this.lienIos});
 
   static ExigenceDeVersion? depuis(Object? valeur) {
     if (valeur is! Map) return null;
     final build = valeur['build'];
     final lien = valeur['lien'];
     if (build is! num || lien is! String) return null;
-    return ExigenceDeVersion(build: build.toInt(), lien: lien, message: valeur['message'] as String?);
+    final buildIos = valeur['build_ios'];
+    final lienIos = valeur['lien_ios'];
+    return ExigenceDeVersion(
+      build: build.toInt(),
+      lien: lien,
+      message: valeur['message'] as String?,
+      buildIos: buildIos is num ? buildIos.toInt() : null,
+      lienIos: lienIos is String && lienIos.isNotEmpty ? lienIos : null,
+    );
   }
+
+  /// Le build exigé sur cette plateforme, ou nul : rien n'est exigé.
+  int? exigePour({required bool iphone}) => iphone ? buildIos : build;
+
+  String lienPour({required bool iphone}) => iphone ? (lienIos ?? lienTestFlight) : lien;
 }
 
 /// Le numéro de build d'une version « 1.4.0+70 » ; nul pour un build de développement.
@@ -33,11 +56,15 @@ int? numeroDeBuild(String version) {
 
 /// Faut-il bloquer cette version ? Jamais sans exigence lue, ni pour un build sans numéro
 /// (développement) : dans le doute, on laisse passer.
-bool doitMettreAJour(String version, ExigenceDeVersion? exigence) {
+bool doitMettreAJour(String version, ExigenceDeVersion? exigence, {bool iphone = false}) {
   final build = numeroDeBuild(version);
-  if (exigence == null || build == null) return false;
-  return build < exigence.build;
+  final exige = exigence?.exigePour(iphone: iphone);
+  if (exige == null || build == null) return false;
+  return build < exige;
 }
+
+/// L'app installée tourne sur un iPhone.
+bool get surIphone => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
 final exigenceDeVersionProvider = FutureProvider<ExigenceDeVersion?>((ref) async {
   // Le web se sert toujours de la dernière version publiée.
@@ -68,16 +95,17 @@ class GardeDeVersion extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final exigence = ref.watch(exigenceDeVersionProvider).valueOrNull;
-    if (!doitMettreAJour(versionInstallee, exigence)) return child;
-    return _MiseAJourObligatoire(exigence: exigence!, versionInstallee: versionInstallee);
+    if (!doitMettreAJour(versionInstallee, exigence, iphone: surIphone)) return child;
+    return _MiseAJourObligatoire(exigence: exigence!, versionInstallee: versionInstallee, iphone: surIphone);
   }
 }
 
 class _MiseAJourObligatoire extends StatelessWidget {
   final ExigenceDeVersion exigence;
   final String versionInstallee;
+  final bool iphone;
 
-  const _MiseAJourObligatoire({required this.exigence, required this.versionInstallee});
+  const _MiseAJourObligatoire({required this.exigence, required this.versionInstallee, required this.iphone});
 
   @override
   Widget build(BuildContext context) {
@@ -112,13 +140,14 @@ class _MiseAJourObligatoire extends StatelessWidget {
                 const SizedBox(height: 20),
                 FilledButton.icon(
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
-                  onPressed: () => launchUrl(Uri.parse(exigence.lien), mode: LaunchMode.externalApplication),
-                  icon: const Icon(Icons.shop),
-                  label: Text(trSi(fr, 'Mettre à jour', 'Update')),
+                  onPressed: () =>
+                      launchUrl(Uri.parse(exigence.lienPour(iphone: iphone)), mode: LaunchMode.externalApplication),
+                  icon: Icon(iphone ? Icons.flight_takeoff : Icons.shop),
+                  label: Text(iphone ? trSi(fr, 'Ouvrir TestFlight', 'Open TestFlight') : trSi(fr, 'Mettre à jour', 'Update')),
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  trSi(fr, 'Installée : {versionInstallee} · requise : build {build}', 'Installed: {versionInstallee} · required: build {build}', {'versionInstallee': versionInstallee, 'build': exigence.build}),
+                  trSi(fr, 'Installée : {versionInstallee} · requise : build {build}', 'Installed: {versionInstallee} · required: build {build}', {'versionInstallee': versionInstallee, 'build': exigence.exigePour(iphone: iphone)}),
                   style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                 ),
               ],

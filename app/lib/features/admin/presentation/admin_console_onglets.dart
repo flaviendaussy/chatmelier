@@ -604,11 +604,13 @@ class _EditeurDeVersionState extends ConsumerState<_EditeurDeVersion> {
   late final Map<String, dynamic> _avant =
       widget.actuelle is Map ? Map<String, dynamic>.from(widget.actuelle as Map) : <String, dynamic>{};
   late final _build = TextEditingController(text: '${_avant['build'] ?? 0}');
+  late final _buildIos = TextEditingController(text: _avant['build_ios'] == null ? '' : '${_avant['build_ios']}');
   late final _message = TextEditingController(text: '${_avant['message'] ?? ''}');
 
   @override
   void dispose() {
     _build.dispose();
+    _buildIos.dispose();
     _message.dispose();
     super.dispose();
   }
@@ -616,10 +618,17 @@ class _EditeurDeVersionState extends ConsumerState<_EditeurDeVersion> {
   @override
   Widget build(BuildContext context) {
     final build = int.tryParse(_build.text.trim());
+    // Vide : aucun iPhone n'est bloqué (TestFlight publie plus tard que le Play Store).
+    final buildIos = int.tryParse(_buildIos.text.trim());
     final versions = ref.watch(adminVersionsProvider).valueOrNull ?? const <VersionInstallee>[];
+    bool iphone(VersionInstallee v) => v.plateforme.toLowerCase() == 'ios';
     final enRetard = [
       for (final v in versions)
-        if (build != null && build > 0 && v.plateforme != 'web' && (v.build ?? 0) < build) v,
+        if (v.plateforme != 'web')
+          if (iphone(v)
+              ? (buildIos != null && buildIos > 0 && (v.build ?? 0) < buildIos)
+              : (build != null && build > 0 && (v.build ?? 0) < build))
+            v,
     ];
     return AlertDialog(
       title: const Text('Version minimale'),
@@ -632,8 +641,20 @@ class _EditeurDeVersionState extends ConsumerState<_EditeurDeVersion> {
               controller: _build,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration:
-                  const InputDecoration(labelText: 'Build exigé (0 : aucune exigence)', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                  labelText: 'Build exigé sur Android (0 : aucune exigence)', border: OutlineInputBorder()),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _buildIos,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(
+                labelText: 'Build exigé sur iPhone (vide : aucune exigence)',
+                helperText: 'Seulement une fois ce build ouvert aux testeurs sur TestFlight.',
+                border: OutlineInputBorder(),
+              ),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 10),
@@ -664,7 +685,9 @@ class _EditeurDeVersionState extends ConsumerState<_EditeurDeVersion> {
                     'build': build,
                     'message': _message.text.trim(),
                     'lien': _avant['lien'] ?? 'https://play.google.com/store/apps/details?id=com.chatmelier.chatmelier',
-                  }),
+                  }
+                    ..remove('build_ios')
+                    ..addAll({if (buildIos != null) 'build_ios': buildIos})),
           child: const Text('Continuer'),
         ),
       ],

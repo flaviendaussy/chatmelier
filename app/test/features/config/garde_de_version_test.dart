@@ -5,6 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 const _exigence71 = ExigenceDeVersion(build: 71, lien: 'https://play.google.com/store/apps/details?id=x');
 
+extension on ExigenceDeVersion {
+  ExigenceDeVersion copieAvecIos(int? buildIos) =>
+      ExigenceDeVersion(build: build, lien: lien, message: message, buildIos: buildIos);
+}
+
 Widget _app(String version, ExigenceDeVersion? exigence) => ProviderScope(
       overrides: [exigenceDeVersionProvider.overrideWith((ref) async => exigence)],
       child: MaterialApp(
@@ -26,6 +31,21 @@ void main() {
     expect(doitMettreAJour('dev', _exigence71), isFalse, reason: 'build de développement');
     expect(doitMettreAJour('1.4.0+70', const ExigenceDeVersion(build: 0, lien: 'x')), isFalse,
         reason: 'build 0 : rien n\'est exigé tant qu\'on ne l\'a pas relevé');
+  });
+
+  test('l\'iPhone a sa propre exigence : sans elle, aucun iPhone n\'est bloqué', () {
+    expect(doitMettreAJour('1.6.0+76', _exigence71.copieAvecIos(null), iphone: true), isFalse);
+    final deuxMagasins = ExigenceDeVersion.depuis({
+      'build': 77,
+      'lien': 'https://play.google.com/store/apps/details?id=x',
+      'build_ios': 76,
+    })!;
+    expect(doitMettreAJour('1.6.0+76', deuxMagasins), isTrue, reason: 'Android : 77 exigée');
+    expect(doitMettreAJour('1.6.0+76', deuxMagasins, iphone: true), isFalse, reason: 'iPhone : 76 suffit');
+    expect(doitMettreAJour('1.6.0+75', deuxMagasins, iphone: true), isTrue);
+    expect(deuxMagasins.lienPour(iphone: true), ExigenceDeVersion.lienTestFlight,
+        reason: 'jamais le Play Store pour un iPhone');
+    expect(deuxMagasins.lienPour(iphone: false), startsWith('https://play.google.com'));
   });
 
   test('l\'exigence se lit dans app_config', () {

@@ -66,6 +66,16 @@ BEGIN
          OR coalesce(p_valeur ->> 'lien', '') !~ '^https://' THEN
         RETURN 'un numéro de build entier (0 = aucune exigence) et un lien https';
       END IF;
+      -- L'iPhone a sa propre exigence, facultative : sans elle, aucun iPhone n'est bloqué.
+      IF p_valeur ? 'build_ios' AND (
+           jsonb_typeof(p_valeur -> 'build_ios') <> 'number'
+           OR (p_valeur ->> 'build_ios')::numeric < 0
+           OR (p_valeur ->> 'build_ios')::numeric <> trunc((p_valeur ->> 'build_ios')::numeric)) THEN
+        RETURN 'un build iPhone entier, ou rien';
+      END IF;
+      IF p_valeur ? 'lien_ios' AND coalesce(p_valeur ->> 'lien_ios', '') !~ '^(https|itms-beta)://' THEN
+        RETURN 'un lien TestFlight (https:// ou itms-beta://)';
+      END IF;
     WHEN 'ecpm_eur_estime' THEN
       IF jsonb_typeof(p_valeur) <> 'object' OR EXISTS (
         SELECT 1 FROM jsonb_each(p_valeur) t

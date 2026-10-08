@@ -71,7 +71,7 @@ class H(BaseHTTPRequestHandler):
             return self.rep({"models": [{"name": f"models/{m}", "supportedGenerationMethods": ["generateContent", "countTokens"]}
                                         for m in MODELES_PUBLIES]})
         if '/auth/v1/user' in self.path:
-            if MODE in ('session', 'limite', 'banc'):
+            if MODE in ('session', 'limite', 'banc', 'voix'):
                 return self.rep({"id": "00000000-0000-0000-0000-00000000a11c", "aud": "authenticated", "role": "authenticated"})
             return self.rep({"msg": "invalid JWT"}, 401)
         if '/rest/v1/chat_messages' in self.path:
@@ -94,7 +94,9 @@ class H(BaseHTTPRequestHandler):
             modeles = {"scan_etiquette_lecture": {"modele": "gemini-3.1-flash-lite", "reflexion": "minimal"}}
             modeles.update(json.loads(os.environ.get('FAUX_MODELES_IA', '{}')))
             lignes = [{"cle": "ia_session_obligatoire", "valeur": MODE == 'strict'},{"cle": "scan_etiquette_recherche", "valeur": MODE in ('inconnu', 'refuse_reflexion')},
-                      {"cle": "modeles_ia", "valeur": modeles}]
+                      {"cle": "modeles_ia", "valeur": modeles},
+                      # La voix naturelle (R8) : allumée seulement en mode « voix ».
+                      {"cle": "voix_naturelle", "valeur": MODE == 'voix'}]
             # Une seule clé demandée (eq.modeles_ia) : la ligne, comme maybeSingle l'attend.
             if 'cle=eq.modeles_ia' in self.path:
                 return self.rep({"valeur": modeles})
@@ -110,7 +112,7 @@ class H(BaseHTTPRequestHandler):
         noter(methode='POST', chemin=self.path, corps=c if 'generateContent' not in self.path else {
             'generationConfig': c.get('generationConfig'), 'tools': c.get('tools'),
             'systeme': ((c.get('systemInstruction') or {}).get('parts') or [{}])[0].get('text', '')[-400:],
-            'tours': [(t['role'], len(t['parts'])) for t in c.get('contents', [])]})
+            'tours': [(t.get('role'), len(t['parts'])) for t in c.get('contents', [])]})
         if '/rpc/consommer_quota_ia' in self.path:
             if MODE == 'limite':
                 return self.rep({"autorise": False, "raison": "limite", "limite": 3, "anonyme": True, "restant": 0})
@@ -140,6 +142,21 @@ class H(BaseHTTPRequestHandler):
                                  "usageMetadata": {"promptTokenCount": 2100, "candidatesTokenCount": 180}})
             outils = 'tools' in c
             txt = c['contents'][0]['parts'][-1]['text']
+            gc = c.get('generationConfig') or {}
+            if 'AUDIO' in (gc.get('responseModalities') or []):
+                # Une seconde de silence PCM 16 bits à 24 kHz, comme la vraie voix (R8).
+                import base64
+                pcm = base64.b64encode(b'\x00\x00' * 24000).decode()
+                return self.rep({"candidates": [{"content": {"parts": [{"inlineData": {"mimeType": "audio/L16;codec=pcm;rate=24000", "data": pcm}}]}}],
+                                 "usageMetadata": {"promptTokenCount": 120, "candidatesTokenCount": 25}, "modelVersion": modele})
+            if txt.startswith('You are Chatmelier, a sommelier who tells friends at the table'):
+                res = {"titre": "Le Bandol de Terrebrune", "terroir": "Le domaine est planté sur des sols de calcaire du Trias, face à la mer.",
+                       "histoire": "L'appellation Bandol date de 1941.", "verre": "Servez-le vers 16 °C, après une heure en carafe."}
+                return self.rep({"candidates": [{"content": {"parts": [{"text": json.dumps(res, ensure_ascii=False)}]},
+                                                 "groundingMetadata": {"webSearchQueries": ["Terrebrune Bandol histoire"],
+                                                                       "groundingChunks": [{"web": {"uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc", "title": "terrebrune.fr"}},
+                                                                                           {"web": {"uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/def", "title": "vinsdebandol.com"}}]}}],
+                                 "usageMetadata": {"promptTokenCount": 400, "candidatesTokenCount": 220, "thoughtsTokenCount": 60}})
             if txt.startswith('Translate this wine description'):
                 # Une fiche traduite (V2.4 · R6) : autant d'accords qu'envoyés.
                 res = {"notes": "Rubis profond aux reflets grenat ; cerise noire et prune.",

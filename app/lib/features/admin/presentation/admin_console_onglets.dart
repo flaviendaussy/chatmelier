@@ -337,6 +337,12 @@ class OngletReglages extends ConsumerWidget {
                     'admin_detail_nominatif',
                     'La console montre les prénoms et les conversations. Éteint : pseudonymes, conversations masquées.',
                   ),
+                  interrupteur(
+                    'voix_naturelle',
+                    'Les récits des vins sont lus par Gemini TTS, et non par la voix du téléphone. Payant à chaque lecture : '
+                        'son coût se lit dans Économie (fonction « voix »).',
+                    consequence: 'Chaque récit écouté sera facturé par Google (audio en sortie).',
+                  ),
                   const SizedBox(height: 16),
                   const _Titre('Modèles d\'IA'),
                   Text(

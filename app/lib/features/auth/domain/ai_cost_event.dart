@@ -98,6 +98,9 @@ class AiPricingCalculator {
   static ({double entree, double sortie}) tarif(String model, {DateTime? le}) {
     final m = model.toLowerCase();
     final date = le ?? DateTime.now();
+    // La voix des récits (V2.4 · R8, migration 068) : le texte entre à 0,50 $, l'audio sort à
+    // 10 $ le million de jetons pour Flash TTS ; le double pour Pro TTS.
+    if (m.contains('tts')) return m.contains('pro') ? (entree: 1.00, sortie: 20.00) : (entree: 0.50, sortie: 10.00);
     if (m.contains('pro') && !m.contains('flash')) return (entree: 1.25, sortie: 5.00);
     if (m.contains('lite')) {
       if (m.contains('2.0-flash-lite') || m.contains('2.5-flash-lite')) return (entree: 0.10, sortie: 0.40);

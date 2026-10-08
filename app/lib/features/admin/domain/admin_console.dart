@@ -26,6 +26,8 @@ class TachesIa {
     'recit': 'Récit d\'un vin',
     'enrichir_fiche': 'Enrichir une fiche',
     'traduire_fiche': 'Traduire une fiche (autre langue)',
+    'recit_source': 'Récit d\'un vin, avec recherche',
+    'voix': 'Voix des récits (nom exact d\'un modèle TTS)',
     'notes_degustation': 'Notes de dégustation dictées',
     'meuble': 'Meuble de cave (photo)',
     'import_cave': 'Import Excel',
@@ -144,6 +146,8 @@ class DescriptionDeReglage {
     'version_minimale_test': 'Version minimale',
     'ecpm_eur_estime': 'eCPM estimés',
     'quotas_ia': 'Quotas d\'IA par jour',
+    'voix_naturelle': 'Voix naturelle des récits (Gemini TTS)',
+    'taux_de_change': 'Taux de change des revenus pub',
   };
 
   static String libelle(String cle) => libelles[cle] ?? cle;
@@ -160,6 +164,7 @@ class DescriptionDeReglage {
       case 'scan_etiquette_recherche':
       case 'ia_session_obligatoire':
       case 'admin_detail_nominatif':
+      case 'voix_naturelle':
         return '${_ouiNon(avant)} → ${_ouiNon(apres)}';
       case 'version_minimale_test':
         final a = avant is Map ? avant['build'] : null;

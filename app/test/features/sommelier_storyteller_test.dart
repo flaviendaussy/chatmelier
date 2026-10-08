@@ -86,7 +86,7 @@ void main() {
     ));
     expect(t, isNot(contains('tanin')));
     expect(t, isNot(contains('fruits noirs')));
-    expect(t, contains('peaux'));
+    expect(t, contains('peau des raisins noirs'));
   });
 
   test('un liquoreux étiqueté « blanc » est raconté comme un liquoreux', () {
@@ -101,6 +101,94 @@ void main() {
     ));
     expect(t, contains('cueillis tard'));
     expect(t, contains('miel'));
+  });
+
+  test('« Château Cavalier » n\'est pas un cava, ni un Tokaji sec un liquoreux', () {
+    final cavalier = recit(const Wine(
+      id: 'cv',
+      name: 'Château Cavalier Cuvée Marafiance',
+      type: 'Rosé',
+      region: 'Provence',
+      country: 'France',
+      appellation: 'Côtes de Provence',
+    ));
+    expect(cavalier, isNot(contains('bulle')));
+    expect(cavalier, isNot(contains('en bouteille')));
+    final tokaj = recit(const Wine(
+      id: 'tk',
+      name: 'Tokaji Furmint Száraz',
+      type: 'Blanc',
+      region: 'Tokaj',
+      country: 'Hongrie',
+      grapes: [Grape(name: 'Furmint', pct: 100)],
+    ));
+    expect(tokaj, isNot(contains('cueillis tard')));
+    expect(tokaj, isNot(contains('miel')));
+  });
+
+  test('un porto ne passe pas pour un blanc pressé au frais', () {
+    final t = recit(const Wine(
+      id: 'pt',
+      name: 'Porto Tawny 10 ans',
+      type: 'Porto',
+      region: 'Douro',
+      country: 'Portugal',
+    ));
+    expect(t, isNot(contains('pressurage')));
+    expect(t, isNot(contains('fleurs')));
+    expect(t, isNot(contains('cueillis')));
+  });
+
+  test('rien d\'affirmé sur la vendange quand la fiche ne dit rien de l\'élevage', () {
+    final t = recit(const Wine(
+      id: 'cr',
+      name: 'Crozes-Hermitage',
+      type: 'Rouge',
+      region: 'Vallée du Rhône',
+      country: 'France',
+      grapes: [Grape(name: 'Syrah', pct: 100)],
+    ));
+    expect(t, isNot(contains('cueillis')));
+    expect(t, isNot(contains('mise en bouteille')));
+    expect(t, contains('poivre'));
+    // « Sans bois » n'est pas un élevage sous bois.
+    final inox = recit(const Wine(
+      id: 'ix',
+      name: 'Chablis',
+      type: 'Blanc',
+      region: 'Bourgogne',
+      country: 'France',
+      grapes: [Grape(name: 'Chardonnay', pct: 100)],
+      elevageType: 'Sans bois, en cuve inox',
+    ));
+    expect(inox, isNot(contains('sous bois')));
+    expect(inox, contains('élevage en cuve'));
+  });
+
+  test('le cépage principal décide : un nebbiolo n\'a pas le cassis d\'un cabernet, ni la grenache le poivre', () {
+    final barolo = recit(const Wine(
+      id: 'bl',
+      name: 'Barolo Castiglione',
+      type: 'Rouge',
+      region: 'Piémont',
+      country: 'Italie',
+      appellation: 'Barolo',
+      subRegion: 'Castiglione Falletto',
+      grapes: [Grape(name: 'Nebbiolo', pct: 100)],
+    ));
+    expect(barolo, contains('goudron'));
+    expect(barolo, isNot(contains('cassis')));
+    expect(barolo, isNot(contains('cuve close')), reason: '« asti » dans « Castiglione »');
+    final cdp = recit(const Wine(
+      id: 'cdp',
+      name: 'Châteauneuf-du-Pape',
+      type: 'Rouge',
+      region: 'Vallée du Rhône',
+      country: 'France',
+      grapes: [Grape(name: 'Syrah', pct: 15), Grape(name: 'Grenache', pct: 70), Grape(name: 'Mourvèdre', pct: 15)],
+    ));
+    expect(cdp, contains('kirsch'));
+    expect(cdp, isNot(contains('poivre')));
   });
 
   test('sans millésime, pas de « millésime les plus beaux millésimes »', () {

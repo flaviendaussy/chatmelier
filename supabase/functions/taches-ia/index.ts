@@ -40,10 +40,17 @@ const REGLAGES: Record<string, Reglage> = {
   // Traduire une fiche lue dans une autre langue (V2.4 · R6) : une traduction, pas une
   // création, Flash-Lite suffit.
   traduire_fiche: { modele: 'flash-lite', reflexion: 'minimal' },
+  // Le récit d'un vin, à la demande, avec des faits trouvés par la recherche (V2.4 · R8).
+  recit_source: { modele: 'flash', reflexion: 'low' },
 }
 
 // Le quota de chaque tâche (consommer_quota_ia) : l'import d'une grande cave compte à part.
-const QUOTAS: Record<string, string> = { import_cave: 'import_cave', traduire_fiche: 'traduction' }
+const QUOTAS: Record<string, string> = {
+  import_cave: 'import_cave',
+  traduire_fiche: 'traduction',
+  recit_source: 'recit',
+  voix: 'voix',
+}
 
 type Langue = 'fr' | 'en' | 'es' | 'it'
 function langueDe(code: unknown): Langue {
@@ -467,6 +474,34 @@ Return strictly one JSON object with:
 If you are unsure of a value, give the typical value of the appellation rather than a precise-looking guess. Do not give any price.` }],
       }
     }
+    case 'recit_source': {
+      // « Don't pre-generate anything here, generate on request. But the story needs to be
+      // interesting, with some interesting facts, and/or historical and/or geological »
+      // (Flavien, 04/10). Rien qu'on ne puisse sourcer : la recherche d'abord.
+      const nom = texte(e.nom, 200)
+      if (!nom) return 'nom vide'
+      return {
+        enJson: false,
+        recherche: true,
+        parts: [{ text: `You are Chatmelier, a sommelier who tells friends at the table the story of the bottle they are about to drink.
+Wine: ${nom}
+Producer / estate: ${texte(e.producteur, 120) || 'unknown'}
+Vintage: ${entier(e.millesime) ?? 'not stated'}
+Appellation: ${texte(e.appellation, 80) || 'unknown'}
+Region: ${texte(e.region, 80) || 'unknown'}
+Country: ${texte(e.pays, 60) || 'unknown'}
+Grapes: ${liste(e.cepages, 8, 40).join(', ') || 'unknown'}
+Type: ${texte(e.type, 30) || 'not stated'}
+
+Use Google Search to find TRUE and interesting facts: the history of the estate or of the appellation, its soils and geology, the weather of this vintage, a striking anecdote.
+NEVER INVENT: every fact, date, figure or name you write must come from what the search found. If you find nothing about this precise estate, tell the story of its appellation or region instead, and say so naturally. A shorter true story is always better than a longer invented one.
+Write ${EN_LANGUE[langue]}, warm and spoken, as if read aloud to friends: three short acts of two or three sentences each.
+- "terroir": the place, its soils and its geology;
+- "histoire": the history of the estate, the appellation or this style of wine;
+- "verre": what to notice in the glass, and how to serve it.
+Return strictly one JSON object, and nothing else: {"titre": "<a short title>", "terroir": "...", "histoire": "...", "verre": "..."}` }],
+      }
+    }
     case 'traduire_fiche': {
       // La fiche d'un vin lue dans une autre langue que celle de l'app : le catalogue garde la
       // langue de qui l'a écrite la première fois (Caro, en français, lisait des fiches
@@ -520,6 +555,152 @@ Do not give any price.` }],
   return 'tâche inconnue'
 }
 
+function sourcesDeLaRecherche(data: any): { titre: string; url: string }[] {
+  const morceaux = data?.candidates?.[0]?.groundingMetadata?.groundingChunks
+  if (!Array.isArray(morceaux)) return []
+  const vues = new Set<string>()
+  const sources: { titre: string; url: string }[] = []
+  for (const m of morceaux) {
+    const url = typeof m?.web?.uri === 'string' ? m.web.uri : ''
+    const titre = typeof m?.web?.title === 'string' ? m.web.title.slice(0, 120) : ''
+    if (!url.startsWith('https://') || vues.has(titre || url)) continue
+    vues.add(titre || url)
+    sources.push({ titre: titre || url, url })
+    if (sources.length >= 5) break
+  }
+  return sources
+}
+
+// ─── La voix (V2.4 · R8) ──────────────────────────────────────────────────────────
+// « The voice must sound much more natural than this horror. What about Gemini TTS? »
+// (Flavien, 04/10). Gemini TTS lit le récit. Elle coûte : rien ne part tant que
+// app_config.voix_naturelle n'est pas vrai (console, après mesure) ; l'app lit alors avec
+// la voix du téléphone. Le modèle : app_config.modeles_ia.voix.modele (nom exact), sinon
+// le plus récent Flash TTS publié par Google.
+const VOIX = 'Charon'
+const CONSIGNE_DE_VOIX: Record<Langue, string> = {
+  fr: 'Lis ce texte à voix haute, d\'un ton chaleureux et posé, comme un sommelier qui raconte une bouteille à des amis :',
+  en: 'Read this aloud in a warm, unhurried voice, like a sommelier telling friends the story of a bottle:',
+  es: 'Lee este texto en voz alta, con un tono cálido y pausado, como un sumiller que cuenta la historia de una botella a unos amigos:',
+  it: 'Leggi questo testo ad alta voce, con un tono caldo e pacato, come un sommelier che racconta una bottiglia agli amici:',
+}
+
+async function modelesDeVoix(apiKey: string, regle: unknown): Promise<string[]> {
+  if (typeof regle === 'string' && /^gemini-[a-z0-9.-]{3,60}$/.test(regle)) return [regle]
+  try {
+    const res = await fetch(`${GEMINI_BASE}/v1beta/models?pageSize=1000`, {
+      headers: { 'x-goog-api-key': apiKey },
+      signal: AbortSignal.timeout(5_000),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      const voix = (Array.isArray(data.models) ? data.models : [])
+        .filter((m: any) => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
+        .map((m: any) => String(m.name ?? '').replace(/^models\//, ''))
+        .filter((n: string) => /^gemini-[\d.]+-.*tts/.test(n))
+        // Flash avant Pro (moins cher), le plus récent d'abord, la version stable avant la préversion.
+        .sort((a: string, b: string) =>
+          (Number(a.includes('-pro')) - Number(b.includes('-pro'))) || plusRecentDabord(a, b) ||
+          (Number(a.includes('preview')) - Number(b.includes('preview'))))
+      if (voix.length > 0) return voix.slice(0, 2)
+    }
+  } catch (_) { /* la liste manque */ }
+  // Aucun nom écrit en dur (K8) : sans liste, pas de voix naturelle ; l'app lit avec la voix
+  // du téléphone.
+  return []
+}
+
+function versOctets(b64: string): Uint8Array {
+  const s = atob(b64)
+  const o = new Uint8Array(s.length)
+  for (let i = 0; i < s.length; i++) o[i] = s.charCodeAt(i)
+  return o
+}
+
+function versBase64(o: Uint8Array): string {
+  let s = ''
+  for (let i = 0; i < o.length; i += 0x8000) s += String.fromCharCode(...o.subarray(i, i + 0x8000))
+  return btoa(s)
+}
+
+// Le PCM 16 bits mono que rend Gemini, dans une enveloppe WAV que tout lecteur sait jouer.
+function enWav(pcm: Uint8Array, frequence: number): Uint8Array {
+  const entete = new DataView(new ArrayBuffer(44))
+  const ecrire = (o: number, t: string) => { for (let i = 0; i < t.length; i++) entete.setUint8(o + i, t.charCodeAt(i)) }
+  ecrire(0, 'RIFF'); entete.setUint32(4, 36 + pcm.length, true); ecrire(8, 'WAVE'); ecrire(12, 'fmt ')
+  entete.setUint32(16, 16, true); entete.setUint16(20, 1, true); entete.setUint16(22, 1, true)
+  entete.setUint32(24, frequence, true); entete.setUint32(28, frequence * 2, true)
+  entete.setUint16(32, 2, true); entete.setUint16(34, 16, true); ecrire(36, 'data'); entete.setUint32(40, pcm.length, true)
+  const wav = new Uint8Array(44 + pcm.length)
+  wav.set(new Uint8Array(entete.buffer), 0)
+  wav.set(pcm, 44)
+  return wav
+}
+
+async function lireAVoixHaute(supabase: any, apiKey: string, corps: any): Promise<Response> {
+  const aLire = texte(corps.texte, 3000)
+  if (!aLire) return json({ error: 'texte vide' }, 400)
+  let active = false
+  let regle: unknown
+  try {
+    const { data } = await supabase.from('app_config').select('cle, valeur').in('cle', ['voix_naturelle', 'modeles_ia'])
+    for (const l of data ?? []) {
+      if (l.cle === 'voix_naturelle') active = l.valeur === true
+      if (l.cle === 'modeles_ia') regle = l.valeur?.voix?.modele
+    }
+  } catch (_) { /* sans réglage : désactivée */ }
+  if (!active) return json({ error: 'voix_desactivee' }, 403)
+
+  try {
+    const { data, error } = await supabase.rpc('consommer_quota_ia', { p_fonction: QUOTAS.voix })
+    if (!error && data && data.autorise === false && data.raison === 'limite') {
+      return json({ error: 'limite_du_jour', limite: data.limite, anonyme: data.anonyme === true }, 429)
+    }
+  } catch (_) { /* migration 052 absente : pas de quota */ }
+
+  const langue = langueDe(corps.langue)
+  let derniere = ''
+  for (const modele of await modelesDeVoix(apiKey, regle)) {
+    try {
+      const res = await fetch(`${GEMINI_BASE}/v1beta/models/${modele}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: `${CONSIGNE_DE_VOIX[langue]}\n\n${aLire}` }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOIX } } },
+          },
+        }),
+        signal: AbortSignal.timeout(90_000),
+      })
+      if (!res.ok) {
+        derniere = `${modele} : HTTP ${res.status} ${(await res.text()).slice(0, 300)}`
+        continue
+      }
+      const data = await res.json()
+      const partie = (data.candidates?.[0]?.content?.parts ?? []).find((p: any) => typeof p?.inlineData?.data === 'string')
+      if (!partie) {
+        derniere = `${modele} : réponse sans audio`
+        continue
+      }
+      const frequence = Number(/rate=(\d+)/.exec(String(partie.inlineData.mimeType ?? ''))?.[1] ?? 24000)
+      const pcm = versOctets(partie.inlineData.data)
+      const servi = typeof data.modelVersion === 'string' ? data.modelVersion : modele
+      return json({
+        tache: 'voix',
+        resultat: { audio: versBase64(enWav(pcm, frequence)), mime: 'audio/wav', duree_s: Math.round(pcm.length / (frequence * 2)) },
+        modele: servi,
+        couts: [{ fonction: 'voix', modele: servi, usageMetadata: data.usageMetadata ?? null, recherche: false, requetes: 0, reflexion: null }],
+      })
+    } catch (e) {
+      derniere = `${modele} : ${e instanceof Error ? e.message : String(e)}`
+    }
+  }
+  console.error('taches-ia (voix) : aucun modèle de voix n\'a répondu', derniere)
+  return json({ error: 'Aucun modèle de voix n\'a répondu', details: [derniere] }, 502)
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   try {
@@ -534,6 +715,11 @@ serve(async (req) => {
 
     const corps = await req.json()
     const tache = texte(corps.tache, 40)
+    if (tache === 'voix') {
+      const apiKeyVoix = Deno.env.get('GEMINI_API_KEY')
+      if (!apiKeyVoix) return json({ error: 'GEMINI_API_KEY non configurée' }, 500)
+      return await lireAVoixHaute(supabase, apiKeyVoix, corps)
+    }
     if (!REGLAGES[tache]) return json({ error: 'tâche inconnue' }, 400)
     const c = consigne(tache, corps, langueDe(corps.langue))
     if (typeof c === 'string') return json({ error: c }, 400)
@@ -577,6 +763,8 @@ serve(async (req) => {
     return json({
       tache,
       resultat: c.enJson || c.recherche ? (tache === 'synthese_table' ? brut : lireJson(brut)) : brut,
+      // Les pages sur lesquelles la recherche s'est appuyée (R8) : ce qu'on montre comme sources.
+      sources: sourcesDeLaRecherche(appel.data),
       modele: appel.modele,
       couts: [{ fonction: tache, modele: appel.modele, usageMetadata: usage, recherche: n > 0, requetes: n, reflexion: appel.reflexion }],
     })

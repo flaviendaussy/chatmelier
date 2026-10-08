@@ -2,9 +2,15 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
-## [v1.6.0+77] — 2026-10-07
+## [v1.6.0+77] — 2026-10-08
 
 ### 🍷 Ce qui change pour vous
+- **En italien** : l'app parle désormais français, anglais, espagnol et italien (Profil → Réglages → Langue), jusqu'à la page invité, aux raisons de la table et aux réponses du sommelier.
+- **La carte du restaurant, sans rescanner** : après un scan, l'app demande où vous êtes (le restaurant le plus proche, ou un nom tapé). La personne suivante, au même endroit, retrouve la carte récente du lieu sans la scanner ; « Ce soir » propose les trois dernières cartes et « les cartes autour de moi ».
+- **Vos données** : « Télécharger mes données » (compte, caves, dégustations, palais, conversations, en un fichier) ; l'app vérifie à l'ouverture que vous avez l'âge légal ; la politique de confidentialité est réécrite, avec les durées de conservation réellement appliquées.
+- **Le rapport qualité-prix** d'une bouteille, seulement face à une cote dont la source est connue.
+- **Rien d'inventé, encore** : une note n'est plus doublée ni inventée sur la fiche d'une dégustation ; l'origine d'un vin n'est plus remplie à « France » ; la carte des terroirs ne place plus un vin inconnu à Pauillac ; « Quel vin pour mon plat ? » ne propose plus un rouge puissant pour un poulet rôti ou des gambas, et le bourguignon appelle un Bourgogne.
+- **Correctifs** : supprimer ou quitter une cave rafraîchit bien la liste ; l'app n'affiche plus « Créer ma première cave » pendant le chargement ; les étiquettes des bouteilles ne se chevauchent plus ; la recherche des restaurants proches patiente davantage et dit quand elle ne trouve rien.
 - **Plus jamais un vin inventé** : un vin que le sommelier ne reconnaît pas avec certitude reste « non reconnu », à compléter à la main. Une étiquette déjà lue n'est plus écrasée par une recherche sur le nom, et ni le pays, ni la région, ni la couleur, ni les cépages ne sont devinés.
 - **Un compte dès la première ouverture de l'app** : l'app installée demande de créer son compte (lien par e-mail), et une invitation à une table reprend après la connexion. Le site web reste ouvert sans compte pour les invités.
 - **Aller très vite** : « Enregistrer sans noter » dans le questionnaire ; plus rien de pré-rempli que vous n'avez pas choisi (la description du sommelier se reprend d'un geste) ; balayer une dégustation du journal la supprime, avec « Annuler » ; le clavier se ferme en touchant ailleurs.
@@ -17,6 +23,15 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - *R3* : `TastingQuestionnaireSheet(dejaAuJournal)` ; reprise au premier convive incomplet ; `PopScope` ; journal en `Dismissible`, suppression différée jusqu'à la fermeture du bandeau (`persist: false`) ; `ClavierQuiSeFerme` à la racine ; `reponsesSansTrait` (« Rien de particulier », « Décevant » et « Rien, c'était parfait ! » ne sont plus comptés comme des goûts).
 - *R9, console (migration 060)* : onglets Retours (statut, note, capture) et Réglages (interrupteurs, modèle et réflexion par tâche d'IA, version minimale, eCPM, quotas, journal des changements) ; Économie et Erreurs jour par jour, coût par modèle, occurrences d'une erreur, versions installées, « À surveiller ».
 - *K10* : « À propos » lisait 1.2.1 écrit en dur ; le site construit par `deploy.yml` envoie sa version (suffixe `-pages`).
+- *K6, la carte du lieu (migration 061)* : `cartes_de_lieux` (une carte par lieu, 30 jours), `cartes_proches`, `carte_du_lieu`, `deposer_carte` (lieu OpenStreetMap ou nom normalisé à la position arrondie, jamais celle de la personne ; ni photos ni identifiant d'appareil) ; `LieuDeLaCarte`, `CarteDuLieu`, `CartesDeLieuxService`, bloc « Où êtes-vous ? » de la capture, « Ce soir ».
+- *Sécurité (migration 064)* : le bucket `labels` acceptait en écriture et effacement tout rôle, `anon` compris (« Public Access Labels ») ; chacun n'écrit plus que dans son dossier (`photo_a_moi`). La suppression de compte efface d'abord ses fichiers. Recherche des membres par une fonction serveur (062, `chercher_des_membres`) au lieu d'une lecture de toute la table des profils.
+- *RGPD (migration 063)* : `purger_selon_les_durees`, chaque nuit : journaux de diagnostic 180 jours, retours un an, coûts d'IA et impressions publicitaires 400 jours ; `export_des_donnees.dart` ; `PorteDeLAge` ; `privacy.html` et `terms.html` réécrits (FR et EN).
+- *Version minimale* : une exigence par plateforme (`build_ios`, `lien_ios` ; TestFlight sur iPhone, jamais le Play Store), réglable dans la console (060).
+- *Langues* : catalogue italien complet (3 544 phrases, test de couverture), `app_it.arb` ; écrans à cinq langues codées à la main (catalan, latin) passés à `tr()` ; `FormesDuVerbe` en italien ; `deuxPoints()` ; fonctions `scan-label`, `scan-menu`, `menu-chat`, `chat`, `taches-ia` en italien ; page invité en italien.
+- *Accords mets et vins* : mots reconnus en début de mot, mijotés et plats épicés avant la viande, veau espagnol, accents espagnols et italiens, conseil sans bouteille dans les quatre langues (test : chaque plat proposé, dans chaque langue, trouve un vin).
+- *Consignes du modèle* : plus de « Type : Rouge », « Non millésimé », « Standard » par défaut (`taches-ia`, `scan-label`, `update-wine-values`).
+- *Base jetable* (`tool/base_jetable/`) : les migrations 047 à 064 passent à la suite, rejouées deux fois, avec leurs essais.
+- *Web* : plus d'artefacts de build suivis à la racine du dépôt ; `build_and_sync_web.sh` vérifie la présence de `privacy.html`, `terms.html` et `app-ads.txt`.
 
 ## [v1.6.0+76] — 2026-10-05
 

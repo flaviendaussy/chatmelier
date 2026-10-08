@@ -486,7 +486,9 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            trSi(isFr, '{shelfBottles_length} bouteille{v1}', '{shelfBottles_length} bottle{v1}', {'shelfBottles_length': shelfBottles.length, 'v1': shelfBottles.length > 1 ? "s" : ""}),
+                            shelfBottles.length > 1
+                                ? trSi(isFr, '{n} bouteilles', '{n} bottles', {'n': shelfBottles.length})
+                                : trSi(isFr, '{n} bouteille', '{n} bottle', {'n': shelfBottles.length}),
                             style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF9A7B1C)),
                           ),
                         ),

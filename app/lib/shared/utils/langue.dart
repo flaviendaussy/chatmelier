@@ -19,7 +19,7 @@ import '../langues/catalogues.dart';
 /// textes d'origine.
 class Langue {
   /// Les langues que l'app parle. Toute autre langue du téléphone reçoit l'anglais.
-  static const supportees = ['fr', 'en', 'es'];
+  static const supportees = ['fr', 'en', 'es', 'it'];
 
   static String code = 'fr';
 

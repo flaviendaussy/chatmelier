@@ -1648,9 +1648,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                             Icon(Icons.tune_rounded, size: 12, color: Colors.amber.shade900),
                             const SizedBox(width: 4),
                             Text(
-                              Localizations.localeOf(context).languageCode == 'fr'
-                                  ? 'Profil à compléter'
-                                  : 'Complete profile',
+                              tr('Profil à compléter', 'Complete profile'),
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,

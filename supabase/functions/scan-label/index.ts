@@ -456,7 +456,8 @@ serve(async (req) => {
     // Langue des notes et des accords. Les versions de l'app antérieures à la V2.3 ne
     // l'envoyaient pas : le français, langue de la grande majorité des comptes.
     const codeLangue = String(body.languageCode ?? 'fr').toLowerCase()
-    const langue = codeLangue.startsWith('fr') ? 'French' : codeLangue.startsWith('es') ? 'Spanish' : 'English'
+    const langue = codeLangue.startsWith('fr') ? 'French' : codeLangue.startsWith('es') ? 'Spanish'
+      : codeLangue.startsWith('it') ? 'Italian' : 'English'
 
     const imageParts: any[] = []
     if (imageBase64 && typeof imageBase64 === 'string') {

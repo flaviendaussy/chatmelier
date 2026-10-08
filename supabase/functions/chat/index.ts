@@ -238,13 +238,14 @@ function texteDeLaReponse(data: any): string {
 const DELAI_PAR_MODELE_MS = 30_000
 const LIMITES = { message: 2_000, contexte: 12_000 }
 
-type Langue = 'fr' | 'en' | 'es'
-const NOMS_DE_LANGUE: Record<Langue, string> = { fr: 'French (Français)', en: 'English', es: 'Spanish (Español)' }
+type Langue = 'fr' | 'en' | 'es' | 'it'
+const NOMS_DE_LANGUE: Record<Langue, string> = { fr: 'French (Français)', en: 'English', es: 'Spanish (Español)', it: 'Italian (Italiano)' }
 
 function langueDe(code: unknown): Langue {
   const c = String(code ?? 'fr').toLowerCase()
   if (c.startsWith('fr')) return 'fr'
   if (c.startsWith('es')) return 'es'
+  if (c.startsWith('it')) return 'it'
   return 'en'
 }
 

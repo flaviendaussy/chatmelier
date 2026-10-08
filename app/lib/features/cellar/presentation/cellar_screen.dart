@@ -502,7 +502,8 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
     final headerText = isLa
         ? '$totalCount ${totalCount > 1 ? "ampullae inventae" : "ampulla inventa"} (${filteredList.length} ${filteredList.length > 1 ? "vina" : "vinum"})'
-        : (trSi(isFr, '{totalCount} bouteille{v1} trouvée{v1} ({filteredList_length} référence{v2})', '{totalCount} bottle{v1} found ({filteredList_length} reference{v2})', {'totalCount': totalCount, 'v1': totalCount > 1 ? "s" : "", 'filteredList_length': filteredList.length, 'v2': filteredList.length > 1 ? "s" : ""}));
+        : '${totalCount > 1 ? trSi(isFr, '{n} bouteilles trouvées', '{n} bottles found', {'n': totalCount}) : trSi(isFr, '{n} bouteille trouvée', '{n} bottle found', {'n': totalCount})} '
+            '(${filteredList.length > 1 ? trSi(isFr, '{n} références', '{n} references', {'n': filteredList.length}) : trSi(isFr, '{n} référence', '{n} reference', {'n': filteredList.length})})';
 
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 4, 12, 8),
@@ -1671,7 +1672,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                       Text(
                         langCode == 'la'
                             ? '${sortedList.length} ${sortedList.length > 1 ? "vina" : "vinum"}'
-                            : (trSi(isFr, '{sortedList_length} référence{v1}', '{sortedList_length} reference{v1}', {'sortedList_length': sortedList.length, 'v1': sortedList.length > 1 ? "s" : ""})),
+                            : (sortedList.length > 1
+                                ? trSi(isFr, '{n} références', '{n} references', {'n': sortedList.length})
+                                : trSi(isFr, '{n} référence', '{n} reference', {'n': sortedList.length})),
                         style: const TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
@@ -1841,7 +1844,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                     Text(
                       langCode == 'la'
                           ? '${sections.length} ${sections.length > 1 ? "greces" : "grex"}'
-                          : (trSi(isFr, '{sections_length} groupe{v1}', '{sections_length} group{v1}', {'sections_length': sections.length, 'v1': sections.length > 1 ? "s" : ""})),
+                          : (sections.length > 1
+                              ? trSi(isFr, '{n} groupes', '{n} groups', {'n': sections.length})
+                              : trSi(isFr, '{n} groupe', '{n} group', {'n': sections.length})),
                       style: const TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.bold,

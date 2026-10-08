@@ -115,12 +115,16 @@ class CellarFurniture {
         ? (colNum == 1 ? '1ère colonne' : '${colNum}e colonne')
         : Langue.code == 'es'
             ? '$colNum.ª columna'
-            : '${_ordinalEn(colNum)} column';
+            : Langue.code == 'it'
+                ? '$colNumª colonna'
+                : '${_ordinalEn(colNum)} column';
     final rowDesc = isFr
         ? (rowNum == 1 ? '1ère rangée' : '${rowNum}e rangée')
         : Langue.code == 'es'
             ? '$rowNum.ª fila'
-            : '${_ordinalEn(rowNum)} row';
+            : Langue.code == 'it'
+                ? '$rowNumª fila'
+                : '${_ordinalEn(rowNum)} row';
     return '$colLetter$rowNum ($colDesc, $rowDesc)';
   }
 

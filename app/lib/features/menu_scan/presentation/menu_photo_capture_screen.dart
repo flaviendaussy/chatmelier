@@ -364,7 +364,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
     final currentLang = Localizations.localeOf(context).languageCode;
     setState(() {
       _isAnalyzing = true;
-      _currentStatusStep = currentLang == 'fr' ? 'Chatmelier analyse le menu...' : 'Chatmelier is analyzing the menu...';
+      _currentStatusStep = tr('Chatmelier analyse le menu...', 'Chatmelier is analyzing the menu...');
     });
     _startStatusTimer(restName);
 

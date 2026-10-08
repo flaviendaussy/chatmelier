@@ -583,28 +583,36 @@ class GuestMatcherEngine {
 /// Un verbe qui s'accorde avec le groupe de convives qu'il suit, dans chaque langue.
 /// En français, « vous » vaut pour la personne seule comme pour le groupe où elle figure ;
 /// en espagnol, « tú » seul (« lo vas a adorar ») et le groupe (« lo van a adorar »)
-/// diffèrent. Une clé de catalogue ne suffit pas : les formes sont données ici.
+/// diffèrent ; en italien, il en faut quatre : « tu lo adorerai », « Caro lo adorerà »,
+/// « Caro e Paul lo adoreranno », « Caro e tu lo adorerete ». Une clé de catalogue ne
+/// suffit pas : les formes sont données ici.
 class FormesDuVerbe {
-  final String vous, un, plusieurs, en, esTu, esUn, esPlusieurs;
+  final String vous, un, plusieurs, en, esTu, esUn, esPlusieurs, itTu, itUn, itPlusieurs, itVoi;
 
-  const FormesDuVerbe(this.vous, this.un, this.plusieurs, this.en, this.esTu, this.esUn, this.esPlusieurs);
+  const FormesDuVerbe(this.vous, this.un, this.plusieurs, this.en, this.esTu, this.esUn, this.esPlusieurs, this.itTu,
+      this.itUn, this.itPlusieurs, this.itVoi);
 
   /// [lecteur] : celui qui lit fait partie du groupe ; [plusieurs] : plus d'une personne.
   String pour({required bool fr, required bool lecteur, required bool plusieurs}) {
     if (fr) return lecteur ? vous : (plusieurs ? this.plusieurs : un);
     if (Langue.code == 'es') return plusieurs ? esPlusieurs : (lecteur ? esTu : esUn);
+    if (Langue.code == 'it') return lecteur ? (plusieurs ? itVoi : itTu) : (plusieurs ? itPlusieurs : itUn);
     return en;
   }
 
   static const adorer = FormesDuVerbe('allez l\'adorer', 'va l\'adorer', 'vont l\'adorer', 'will love it',
-      'lo vas a adorar', 'lo va a adorar', 'lo van a adorar');
+      'lo vas a adorar', 'lo va a adorar', 'lo van a adorar',
+      'lo adorerai', 'lo adorerà', 'lo adoreranno', 'lo adorerete');
   static const apprecier = FormesDuVerbe('l\'apprécierez', 'l\'appréciera', 'l\'apprécieront', 'will enjoy it',
-      'lo disfrutarás', 'lo disfrutará', 'lo disfrutarán');
+      'lo disfrutarás', 'lo disfrutará', 'lo disfrutarán',
+      'lo apprezzerai', 'lo apprezzerà', 'lo apprezzeranno', 'lo apprezzerete');
   static const sAccommoder = FormesDuVerbe('vous en accommoderez', 's\'en accommodera', 's\'en accommoderont',
-      'will be fine with it', 'lo aceptarás', 'lo aceptará', 'lo aceptarán');
+      'will be fine with it', 'lo aceptarás', 'lo aceptará', 'lo aceptarán',
+      'lo troverai accettabile', 'lo troverà accettabile', 'lo troveranno accettabile', 'lo troverete accettabile');
   static const moinsAimer = FormesDuVerbe('risquez de moins l\'aimer', 'risque de moins l\'aimer',
       'risquent de moins l\'aimer', 'may like it less', 'quizá lo disfrutes menos', 'quizá lo disfrute menos',
-      'quizá lo disfruten menos');
+      'quizá lo disfruten menos',
+      'rischi di apprezzarlo meno', 'rischia di apprezzarlo meno', 'rischiano di apprezzarlo meno', 'rischiate di apprezzarlo meno');
 }
 
 /// Ce que l'écran dit d'un palais encore deviné (V2.3 · K5) : un accord calculé sur un

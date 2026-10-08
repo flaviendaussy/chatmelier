@@ -304,29 +304,30 @@ function lireJson(raw: string): any {
 // entières et des codes de goût ; le serveur reconstruit le JSON que l'app connaît, si bien
 // que la version installée ne voit aucune différence. Le « prix de détail estimé » n'est
 // plus demandé : il était inventé.
-type Langue = 'fr' | 'en' | 'es'
+type Langue = 'fr' | 'en' | 'es' | 'it'
 
 const GOUTS: Record<string, Record<Langue, string>> = {
-  mineral: { fr: 'minéral', en: 'mineral', es: 'mineral' },
-  buttery: { fr: 'beurré', en: 'buttery', es: 'mantecoso' },
-  tannic: { fr: 'tannique', en: 'tannic', es: 'tánico' },
-  fruity: { fr: 'fruité', en: 'fruity', es: 'afrutado' },
-  light: { fr: 'léger', en: 'light', es: 'ligero' },
-  bold: { fr: 'puissant', en: 'bold', es: 'potente' },
-  oaky: { fr: 'boisé', en: 'oaky', es: 'con madera' },
-  floral: { fr: 'floral', en: 'floral', es: 'floral' },
-  spicy: { fr: 'épicé', en: 'spicy', es: 'especiado' },
-  fresh: { fr: 'frais', en: 'fresh', es: 'fresco' },
-  round: { fr: 'rond', en: 'round', es: 'redondo' },
-  savory: { fr: 'gourmand', en: 'savory', es: 'sabroso' },
+  mineral: { fr: 'minéral', en: 'mineral', es: 'mineral', it: 'minerale' },
+  buttery: { fr: 'beurré', en: 'buttery', es: 'mantecoso', it: 'burroso' },
+  tannic: { fr: 'tannique', en: 'tannic', es: 'tánico', it: 'tannico' },
+  fruity: { fr: 'fruité', en: 'fruity', es: 'afrutado', it: 'fruttato' },
+  light: { fr: 'léger', en: 'light', es: 'ligero', it: 'leggero' },
+  bold: { fr: 'puissant', en: 'bold', es: 'potente', it: 'potente' },
+  oaky: { fr: 'boisé', en: 'oaky', es: 'con madera', it: 'legnoso' },
+  floral: { fr: 'floral', en: 'floral', es: 'floral', it: 'floreale' },
+  spicy: { fr: 'épicé', en: 'spicy', es: 'especiado', it: 'speziato' },
+  fresh: { fr: 'frais', en: 'fresh', es: 'fresco', it: 'fresco' },
+  round: { fr: 'rond', en: 'round', es: 'redondo', it: 'rotondo' },
+  savory: { fr: 'gourmand', en: 'savory', es: 'sabroso', it: 'goloso' },
 }
 const TYPES: Record<string, string> = { r: 'red', w: 'white', p: 'rose', s: 'sparkling', d: 'dessert', f: 'fortified' }
-const NOMS_DE_LANGUE: Record<Langue, string> = { fr: 'French', en: 'English', es: 'Spanish' }
+const NOMS_DE_LANGUE: Record<Langue, string> = { fr: 'French', en: 'English', es: 'Spanish', it: 'Italian' }
 
 function langueDe(code: unknown): Langue {
   const c = String(code ?? 'fr').toLowerCase()
   if (c.startsWith('fr')) return 'fr'
   if (c.startsWith('es')) return 'es'
+  if (c.startsWith('it')) return 'it'
   return 'en'
 }
 
@@ -341,7 +342,7 @@ function modeDe(v: unknown): Mode {
 function consigne(langue: Langue, mode: Mode = 'carte'): string {
   const l = NOMS_DE_LANGUE[langue]
   // Le mot qui suit le prix à l'écran (« 7 €/verre ») : dans la langue de la personne.
-  const verre = langue === 'fr' ? 'verre' : langue === 'es' ? 'copa' : 'glass'
+  const verre = langue === 'fr' ? 'verre' : langue === 'es' ? 'copa' : langue === 'it' ? 'calice' : 'glass'
   const ouverture = mode === 'ardoise'
     ? `You are Chatmelier, a sommelier reading the by-the-glass board of a wine bar (a chalkboard, a slate or a short printed list).
 You are given one or several photos of the board. Extract EVERY wine written on it.

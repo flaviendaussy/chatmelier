@@ -613,9 +613,9 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                     ),
                     onPressed: _ouvrirLeMatchmaker,
                     icon: const Icon(Icons.how_to_vote_rounded),
-                    label: Text(Localizations.localeOf(context).languageCode == 'fr'
-                        ? (_avisHote.isEmpty ? 'Le matchmaker de la table' : 'Revoir mes ${_avisHote.length} avis')
-                        : (_avisHote.isEmpty ? 'The table matchmaker' : 'Review my ${_avisHote.length} views')),
+                    label: Text(_avisHote.isEmpty
+                        ? tr('Le matchmaker de la table', 'The table matchmaker')
+                        : tr('Revoir mes {n} avis', 'Review my {n} views', {'n': _avisHote.length})),
                   ),
                 ),
                 const SizedBox(height: 16),

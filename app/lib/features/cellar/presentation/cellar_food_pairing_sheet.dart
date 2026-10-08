@@ -40,15 +40,6 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
 
   String get _langCode => Localizations.maybeLocaleOf(context)?.languageCode ?? 'fr';
 
-  String _t(String en, String es, String ca, String la, String fr) {
-    switch (_langCode) {
-      case 'en': return en;
-      case 'es': return es;
-      case 'ca': return ca;
-      case 'la': return la;
-      default: return fr;
-    }
-  }
 
   @override
   void didChangeDependencies() {
@@ -155,14 +146,15 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _t('What wine for your dish?', '¿Qué vino para tu plato?', 'Quin vi pel teu plat?', 'Quod vinum ad cibum tuum?', 'Quel vin pour votre plat ?'),
+                        tr('Quel vin pour votre plat ?', 'What wine for your dish?'),
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Playfair Display',
                         ),
                       ),
                       Text(
-                        '${_t("Smart cellar search in", "Búsqueda inteligente en", "Cerca intel·ligent a", "Quaesitio ingeniosa in", "Recherche intelligente dans")} "${widget.cellarName}" (${inCellarBottles.length} ${_t("in stock", "en stock", "en estoc", "in cella", "en stock")})',
+                        tr('Recherche intelligente dans « {cave} » ({n} en stock)', 'Smart cellar search in “{cave}” ({n} in stock)',
+                            {'cave': widget.cellarName, 'n': inCellarBottles.length}),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: isDark ? Colors.white70 : Colors.black54,
                         ),
@@ -185,7 +177,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
               controller: _searchController,
               onChanged: _onSearchChanged,
               decoration: InputDecoration(
-                hintText: _t('e.g. Ribeye steak, Duck breast, Risotto, Salmon...', 'ej: Entrecot, Magret de pato, Risotto, Salmón...', 'ex: Entrecot, Magret d\'ànec, Risotto, Salmó...', 'ex: Bubula assa, Magret, Risotto, Salmo...', 'Ex: Bar de ligne, Magret de canard, Risotto...'),
+                hintText: tr('Ex: Bar de ligne, Magret de canard, Risotto...', 'e.g. Ribeye steak, Duck breast, Risotto, Salmon...'),
                 prefixIcon: const Icon(Icons.search, color: Color(0xFFD4AF37)),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -309,7 +301,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          _t('No bottle in cellar matches', 'Ninguna botella en bodega coincide', 'Cap ampolla al celler no coincideix', 'Nulla lagena in cella convenit', 'Aucun flacon en cave ne convient'),
+                          tr('Aucun flacon en cave ne convient', 'No bottle in cellar matches'),
                           textAlign: TextAlign.center,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
@@ -318,11 +310,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          _t('Sommelier requirement (Threshold ≥ 60%): better to open nothing than an unsuitable bottle that would spoil your dish.',
-                             'Exigencia de sumiller (Umbral ≥ 60%): mejor no abrir nada que una botella inadecuada que desvirtúe el plato.',
-                             'Exigència de sommelier (Llindar ≥ 60%): val més no obrir res que una ampolla inadequada que espatlli el plat.',
-                             'Postulatio sommelier (Limes ≥ 60%): melius nihil aperire quam lagenam ineptam quae cibum corrumpat.',
-                             'Exigence sommelière (Seuil ≥ 60%) : mieux vaut ne rien ouvrir plutôt qu\'une bouteille inadaptée qui dénaturerait votre mets.'),
+                          tr('Exigence sommelière (Seuil ≥ 60%) : mieux vaut ne rien ouvrir plutôt qu\'une bouteille inadaptée qui dénaturerait votre mets.', 'Sommelier requirement (Threshold ≥ 60%): better to open nothing than an unsuitable bottle that would spoil your dish.'),
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: isDark ? Colors.white70 : Colors.black87,
@@ -350,7 +338,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                                   const Text('💡', style: TextStyle(fontSize: 18)),
                                   const SizedBox(width: 8),
                                   Text(
-                                    _t("Chatmelier's Advice", "Consejo del Chatmelier", "Consell del Chatmelier", "Consilium Chatmelier", "Conseil du Chatmelier"),
+                                    tr("Conseil du Chatmelier", "Chatmelier's Advice"),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
@@ -372,11 +360,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          _t('Try another search or select a category above.',
-                             'Pruebe otra búsqueda o seleccione una categoría arriba.',
-                             'Proveu una altra cerca o seleccioneu una categoria a dalt.',
-                             'Aliam quaestionem tenta aut categoriam supra elige.',
-                             'Essayez une autre recherche ou sélectionnez une catégorie ci-dessus.'),
+                          tr('Essayez une autre recherche ou sélectionnez une catégorie ci-dessus.', 'Try another search or select a category above.'),
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: isDark ? Colors.white38 : Colors.black38,
@@ -564,7 +548,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                                   const SizedBox(width: 8),
                                   TextButton.icon(
                                     icon: const Icon(Icons.arrow_forward, size: 14),
-                                    label: Text(_t('View wine', 'Ver ficha', 'Veure fitxa', 'Vide lagenam', 'Voir fiche')),
+                                    label: Text(tr('Voir fiche', 'View wine')),
                                     style: TextButton.styleFrom(
                                       foregroundColor: const Color(0xFFD4AF37),
                                       visualDensity: VisualDensity.compact,

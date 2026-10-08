@@ -1415,7 +1415,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               child: Icon(Icons.wine_bar, color: theme.colorScheme.primary),
                             ),
                             title: Text('$wineName$vintage', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text(l10n?.checkoutStockRemaining(producer, qty) ?? tr('{producer} • En stock : {qty} bouteille{v1}', '{producer} • In stock: {qty} bottle{v1}', {'producer': producer, 'qty': qty, 'v1': qty > 1 ? "s" : ""})),
+                            subtitle: Text(l10n?.checkoutStockRemaining(producer, qty) ?? (qty > 1
+                                    ? tr('{producer} • En stock : {qty} bouteilles', '{producer} • In stock: {qty} bottles', {'producer': producer, 'qty': qty})
+                                    : tr('{producer} • En stock : {qty} bouteille', '{producer} • In stock: {qty} bottle', {'producer': producer, 'qty': qty}))),
                             trailing: FilledButton.tonal(
                               onPressed: () => setState(() => _selectedBottle = b),
                               child: Text(l10n?.bottleDetailDrinkButton ?? tr('Déguster', 'Taste')),
@@ -1796,9 +1798,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       const Text('1.0', style: TextStyle(fontSize: 11, color: Colors.grey)),
                       Text(
                         !_noteTouchee
-                            ? (Localizations.localeOf(context).languageCode == 'fr'
-                                ? 'Touchez le curseur pour noter'
-                                : 'Move the slider to rate')
+                            ? tr('Touchez le curseur pour noter', 'Move the slider to rate')
                             : _rating >= 9.5
                             ? (l10n?.ratingExceptional ?? tr('🏆 Exceptionnel', '🏆 Exceptional'))
                             : (_rating >= 8.5
@@ -1882,9 +1882,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       _isSubmitting
                           ? (l10n?.checkoutFastExitSubmitting ?? tr('Sortie en cours...', 'Taking out...'))
                           : !_noteTouchee
-                              ? (Localizations.localeOf(context).languageCode == 'fr'
-                                  ? 'Sortir sans noter ⚡'
-                                  : 'Exit without rating ⚡')
+                              ? tr('Sortir sans noter ⚡', 'Exit without rating ⚡')
                               : (l10n?.checkoutFastExit ?? tr('Sortie rapide sans questionnaire ⚡', 'Quick take-out, no questionnaire ⚡')),
                       style: TextStyle(
                         fontWeight: FontWeight.w600,

@@ -42,14 +42,15 @@ const REGLAGES: Record<string, Reglage> = {
 // Le quota de chaque tâche (consommer_quota_ia) : l'import d'une grande cave compte à part.
 const QUOTAS: Record<string, string> = { import_cave: 'import_cave' }
 
-type Langue = 'fr' | 'en' | 'es'
+type Langue = 'fr' | 'en' | 'es' | 'it'
 function langueDe(code: unknown): Langue {
   const c = String(code ?? 'fr').toLowerCase()
   if (c.startsWith('fr')) return 'fr'
   if (c.startsWith('es')) return 'es'
+  if (c.startsWith('it')) return 'it'
   return 'en'
 }
-const EN_LANGUE: Record<Langue, string> = { fr: 'en français', en: 'in English', es: 'en español' }
+const EN_LANGUE: Record<Langue, string> = { fr: 'en français', en: 'in English', es: 'en español', it: 'in italiano' }
 
 function texte(v: unknown, max: number): string {
   return typeof v === 'string' ? v.trim().slice(0, max) : ''

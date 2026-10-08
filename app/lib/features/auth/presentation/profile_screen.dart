@@ -259,6 +259,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           return 'No preferences defined yet. Customize your favorite styles, terroirs, and grape varieties!';
         case 'es':
           return '¡Aún no hay preferencias definidas. Personaliza tus estilos, terruños y variedades!';
+        case 'it':
+          return 'Nessuna preferenza definita per ora. Personalizza i tuoi stili, terroir e vitigni preferiti!';
         case 'ca':
           return 'Encara no hi ha preferències definides. Personalitza els teus estils, terroirs i varietats!';
         case 'la':
@@ -279,6 +281,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       case 'es':
         stylesLabel = 'Estilos'; terroirsLabel = 'Terruños'; grapesLabel = 'Uvas'; dislikesLabel = 'Aversiones';
         break;
+      case 'it':
+        stylesLabel = 'Stili'; terroirsLabel = 'Terroir'; grapesLabel = 'Vitigni'; dislikesLabel = 'Avversioni';
+        break;
       case 'ca':
         stylesLabel = 'Estils'; terroirsLabel = 'Terroirs'; grapesLabel = 'Raïms'; dislikesLabel = 'Aversions';
         break;
@@ -290,18 +295,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         break;
     }
 
+    // L'espace avant les deux-points est français.
+    final dp = langCode == 'fr' ? ' :' : ':';
     final parts = <String>[];
     if (p.favoriteTypes.isNotEmpty) {
-      parts.add('$stylesLabel : ${p.favoriteTypes.take(2).map(valeurAffichee).join(", ")}');
+      parts.add('$stylesLabel$dp ${p.favoriteTypes.take(2).map(valeurAffichee).join(", ")}');
     }
     if (p.favoriteRegions.isNotEmpty) {
-      parts.add('$terroirsLabel : ${p.favoriteRegions.take(2).map(valeurAffichee).join(", ")}');
+      parts.add('$terroirsLabel$dp ${p.favoriteRegions.take(2).map(valeurAffichee).join(", ")}');
     }
     if (p.favoriteGrapes.isNotEmpty) {
-      parts.add('$grapesLabel : ${p.favoriteGrapes.take(2).join(", ")}');
+      parts.add('$grapesLabel$dp ${p.favoriteGrapes.take(2).join(", ")}');
     }
     if (p.dislikedCharacteristics.isNotEmpty) {
-      parts.add('$dislikesLabel : ${p.dislikedCharacteristics.take(1).map(valeurAffichee).join(", ")}');
+      parts.add('$dislikesLabel$dp ${p.dislikedCharacteristics.take(1).map(valeurAffichee).join(", ")}');
     }
     return parts.join(' • ');
   }

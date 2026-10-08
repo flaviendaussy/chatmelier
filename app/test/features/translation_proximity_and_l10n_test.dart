@@ -129,10 +129,11 @@ void main() {
       };
     });
 
-    // Français, anglais, espagnol depuis la V2.3 (H6). Les dix autres `.arb` attendent dans
-    // `l10n_plus_tard/`, hors génération : ils ne sont plus tenus à jour ni vérifiés ici.
-    test('Les trois langues de l\'app ont toutes les clés du modèle', () {
-      const expectedLocales = ['en', 'fr', 'es'];
+    // Français, anglais, espagnol depuis la V2.3 (H6), italien depuis le 08/10. Les autres
+    // `.arb` attendent dans `l10n_plus_tard/`, hors génération : ils ne sont plus tenus à jour
+    // ni vérifiés ici.
+    test('Les quatre langues de l\'app ont toutes les clés du modèle', () {
+      const expectedLocales = ['en', 'fr', 'es', 'it'];
       expect(arbData.keys.toSet(), expectedLocales.toSet(),
           reason: 'lib/l10n ne contient que les langues de l\'app');
 
@@ -159,8 +160,8 @@ void main() {
       }
     });
 
-    test('L\'espagnol ne recopie ni l\'anglais ni le français', () {
-      final distantLangs = ['es'];
+    test('L\'espagnol et l\'italien ne recopient ni l\'anglais ni le français', () {
+      final distantLangs = ['es', 'it'];
       final suspiciousCollisions = <String, List<String>>{};
 
       for (final loc in distantLangs) {

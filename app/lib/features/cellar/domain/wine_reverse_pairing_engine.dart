@@ -31,6 +31,7 @@ class ReverseFoodPairing {
       switch (langCode) {
         case 'en': return 'Major Match 🌟';
         case 'es': return 'Maridaje Mayor 🌟';
+        case 'it': return 'Abbinamento maggiore 🌟';
         case 'ca': return 'Maridatge Major 🌟';
         case 'la': return 'Harmonia Optima 🌟';
         default: return affinityLevel;
@@ -39,6 +40,7 @@ class ReverseFoodPairing {
       switch (langCode) {
         case 'en': return 'Sublime Match ✨';
         case 'es': return 'Maridaje Sublime ✨';
+        case 'it': return 'Abbinamento sublime ✨';
         case 'ca': return 'Maridatge Sublime ✨';
         case 'la': return 'Harmonia Sublimis ✨';
         default: return affinityLevel;
@@ -47,6 +49,7 @@ class ReverseFoodPairing {
       switch (langCode) {
         case 'en': return 'Universal Harmony 🍷';
         case 'es': return 'Armonía Universal 🍷';
+        case 'it': return 'Armonia universale 🍷';
         case 'ca': return 'Harmonia Universal 🍷';
         case 'la': return 'Harmonia Universalis 🍷';
         default: return affinityLevel;
@@ -55,6 +58,7 @@ class ReverseFoodPairing {
       switch (langCode) {
         case 'en': return 'Perfect Harmony 🍷';
         case 'es': return 'Armonía Perfecta 🍷';
+        case 'it': return 'Armonia perfetta 🍷';
         case 'ca': return 'Harmonia Perfecta 🍷';
         case 'la': return 'Harmonia Perfecta 🍷';
         default: return affinityLevel;

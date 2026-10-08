@@ -8,6 +8,7 @@ import 'widgets/radar_legende.dart';
 import 'widgets/wine_taste_radar_chart.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/supabase_provider.dart';
+import '../../../shared/utils/langue.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
 
 /// 🎨 Distinct Vibrant Color Palette for Multi-Guest Overlays
@@ -80,8 +81,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
   String _profileLabel(TasteProfile p, [String? userDisplayName]) {
     if (p.isPrimary) {
       final name = userDisplayName ?? _userDisplayName;
-      final code = _langCode;
-      final moi = switch (code) { 'fr' => 'Moi', 'es' => 'Yo', 'ca' => 'Jo', 'la' => 'Ego', _ => 'Me' };
+      final moi = tr('Moi', 'Me');
       return name == null ? moi : '$moi ($name)';
     }
     return p.name;
@@ -105,18 +105,10 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
       ),
       child: profilesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text(_langCode == 'fr' ? 'Erreur : $err' : 'Error: $err')),
+        error: (err, _) => Center(child: Text(tr('Erreur : {err}', 'Error: {err}', {'err': err}))),
         data: (profiles) {
           if (profiles.isEmpty) {
-            final emptyText = _langCode == 'fr'
-                ? 'Aucun profil de goût disponible.'
-                : (_langCode == 'es'
-                    ? 'No hay perfiles de sabor disponibles.'
-                    : (_langCode == 'ca'
-                        ? 'Cap perfil de gust disponible.'
-                        : (_langCode == 'la'
-                            ? 'Nullus saporum habitus praesens.'
-                            : 'No taste profiles available.')));
+            final emptyText = tr('Aucun profil de goût disponible.', 'No taste profiles available.');
             return Center(child: Text(emptyText));
           }
 
@@ -168,11 +160,11 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _langCode == 'fr' ? 'Spider Chart des Goûts 🕸️🍷' : (_langCode == 'es' ? 'Radar de Sabores 🕸️🍷' : (_langCode == 'ca' ? 'Radar de Sabors 🕸️🍷' : (_langCode == 'la' ? 'Saporum Radar 🕸️🍷' : 'Spider Chart of Tastes 🕸️🍷'))),
+                            tr('Spider Chart des Goûts 🕸️🍷', 'Spider Chart of Tastes 🕸️🍷'),
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            _langCode == 'fr' ? 'Profils gustatifs de vous et vos invités' : (_langCode == 'es' ? 'Perfiles gustativos tuyos y de tus invitados' : (_langCode == 'ca' ? 'Perfils gustatius vostres i dels convidats' : (_langCode == 'la' ? 'Saporum habitus tui et hospitum tuorum' : 'Taste profiles of you and your guests'))),
+                            tr('Profils gustatifs de vous et vos invités', 'Taste profiles of you and your guests'),
                             style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                           ),
                         ],
@@ -180,7 +172,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                     ),
                     IconButton(
                       icon: const Icon(Icons.person_add_alt_1_outlined),
-                      tooltip: _langCode == 'fr' ? 'Ajouter un invité / proche' : (_langCode == 'es' ? 'Añadir un invitado' : (_langCode == 'ca' ? 'Afegir un convidat' : (_langCode == 'la' ? 'Hospitem adde' : 'Add a guest / friend'))),
+                      tooltip: tr('Ajouter un invité / proche', 'Add a guest / friend'),
                       onPressed: () => _showAddGuestDialog(context),
                     ),
                     IconButton(
@@ -200,17 +192,17 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                     ButtonSegment(
                       value: RadarViewMode.individual,
                       icon: const Icon(Icons.person, size: 16),
-                      label: Text(_langCode == 'fr' ? 'Individuel' : (_langCode == 'es' ? 'Individual' : (_langCode == 'ca' ? 'Individual' : (_langCode == 'la' ? 'Singulus' : 'Individual'))), style: const TextStyle(fontSize: 12)),
+                      label: Text(tr('Individuel', 'Individual'), style: const TextStyle(fontSize: 12)),
                     ),
                     ButtonSegment(
                       value: RadarViewMode.overlay,
                       icon: const Icon(Icons.layers, size: 16),
-                      label: Text(_langCode == 'fr' ? 'Overlay' : (_langCode == 'es' ? 'Superposición' : (_langCode == 'ca' ? 'Superposició' : (_langCode == 'la' ? 'Superpositio' : 'Overlay'))), style: const TextStyle(fontSize: 12)),
+                      label: Text(tr('Overlay', 'Overlay'), style: const TextStyle(fontSize: 12)),
                     ),
                     ButtonSegment(
                       value: RadarViewMode.comparison,
                       icon: const Icon(Icons.compare_arrows, size: 16),
-                      label: Text(_langCode == 'fr' ? 'Comparaison' : (_langCode == 'es' ? 'Comparación' : (_langCode == 'ca' ? 'Comparació' : (_langCode == 'la' ? 'Comparatio' : 'Comparison'))), style: const TextStyle(fontSize: 12)),
+                      label: Text(tr('Comparaison', 'Comparison'), style: const TextStyle(fontSize: 12)),
                     ),
                   ],
                   selected: {_mode},
@@ -321,21 +313,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
         Builder(
           builder: (context) {
             final axes = WineTasteRadarMetrics.localizedAxisLabels(_langCode);
-            final titleText = switch (_langCode) {
-              'fr' => 'Détail des 8 Dimensions Gustatives',
-              'es' => 'Detalle de las 8 Dimensiones Gustativas',
-              'ca' => 'Detall de les 8 Dimensions Gustatives',
-              'la' => '8 Saporum Dimensiones',
-              'it' => 'Dettaglio delle 8 Dimensioni Gustative',
-              'de' => 'Details der 8 Geschmacksdimensionen',
-              'nl' => 'Details van de 8 Smaakdimensies',
-              'pt' => 'Detalhes das 8 Dimensões Gustativas',
-              'ja' => '8つの味わい要素の詳細',
-              'ko' => '8가지 맛의 차원 상세',
-              'zh' => '8大风味维度详解',
-              'sv' => 'Detaljer om de 8 Smakdimensionerna',
-              _ => '8 Taste Dimensions Breakdown',
-            };
+            final titleText = tr('Détail des 8 Dimensions Gustatives', '8 Taste Dimensions Breakdown');
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -388,15 +366,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                     const Icon(Icons.favorite_outline, color: Color(0xFF8B1E3F), size: 18),
                     const SizedBox(width: 8),
                     Text(
-                      _langCode == 'fr'
-                          ? 'Préférences de ${currentProfile.name}'
-                          : (_langCode == 'es'
-                              ? 'Preferencias de ${currentProfile.name}'
-                              : (_langCode == 'ca'
-                                  ? 'Preferències de ${currentProfile.name}'
-                                  : (_langCode == 'la'
-                                      ? 'Praelationes ${currentProfile.name}'
-                                      : 'Preferences of ${currentProfile.name}'))),
+                      tr('Préférences de {nom}', 'Preferences of {nom}', {'nom': currentProfile.name}),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ],
@@ -414,7 +384,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                 if (currentProfile.dislikedCharacteristics.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
-                    '${_langCode == 'fr' ? "Évite : " : (_langCode == 'es' ? "Evita: " : (_langCode == 'ca' ? "Evita: " : (_langCode == 'la' ? "Vitat: " : "Avoids: ")))}${currentProfile.dislikedCharacteristics.map(valeurAffichee).join(", ")}',
+                    tr('Évite : {liste}', 'Avoids: {liste}', {'liste': currentProfile.dislikedCharacteristics.map(valeurAffichee).join(', ')}),
                     style: const TextStyle(color: Colors.redAccent, fontSize: 11.5),
                   ),
                 ],
@@ -530,15 +500,8 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _langCode == 'fr'
-                        ? 'Convives affichés (${datasets.where((d) => d.isVisible).length}/${profiles.length})'
-                        : (_langCode == 'es'
-                            ? 'Invitados mostrados (${datasets.where((d) => d.isVisible).length}/${profiles.length})'
-                            : (_langCode == 'ca'
-                                ? 'Convidats mostrats (${datasets.where((d) => d.isVisible).length}/${profiles.length})'
-                                : (_langCode == 'la'
-                                    ? 'Hospites ostensi (${datasets.where((d) => d.isVisible).length}/${profiles.length})'
-                                    : 'Guests shown (${datasets.where((d) => d.isVisible).length}/${profiles.length})'))),
+                    tr('Convives affichés ({n}/{total})', 'Guests shown ({n}/{total})',
+                        {'n': datasets.where((d) => d.isVisible).length, 'total': profiles.length}),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                   TextButton.icon(
@@ -553,15 +516,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                     },
                     icon: const Icon(Icons.select_all, size: 14),
                     label: Text(
-                      _langCode == 'fr'
-                          ? 'Tout cocher / décocher'
-                          : (_langCode == 'es'
-                              ? 'Marcar / desmarcar todo'
-                              : (_langCode == 'ca'
-                                  ? 'Marcar / desmarcar tot'
-                                  : (_langCode == 'la'
-                                      ? 'Omnia eligere / deligere'
-                                      : 'Toggle all'))),
+                      tr('Tout cocher / décocher', 'Toggle all'),
                       style: const TextStyle(fontSize: 11.5),
                     ),
                   ),
@@ -618,15 +573,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  _langCode == 'fr'
-                      ? 'Astuce Sommelier : Les zones où les polygones se chevauchent représentent le profil de vin idéal qui plaira à toute la table.'
-                      : (_langCode == 'es'
-                          ? 'Consejo del Sumiller: Las zonas donde los polígonos coinciden representan el vino ideal para todos los comensales.'
-                          : (_langCode == 'ca'
-                              ? 'Consell del Sommelier: Les zones on coincideixen els polígons representen el vi ideal per a tota la taula.'
-                              : (_langCode == 'la'
-                                  ? 'Monitum Pincernae: Spatia ubi figurae congruunt vinum optimum omnibus convivis ostendunt.'
-                                  : 'Sommelier Tip: Overlapping polygon zones represent the ideal wine profile that will please everyone at the table.'))),
+                  tr('Astuce Sommelier : Les zones où les polygones se chevauchent représentent le profil de vin idéal qui plaira à toute la table.', 'Sommelier Tip: Overlapping polygon zones represent the ideal wine profile that will please everyone at the table.'),
                   style: const TextStyle(fontSize: 12, height: 1.35),
                 ),
               ),
@@ -650,15 +597,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
               const Icon(Icons.people_outline, size: 48, color: Color(0xFF8B1E3F)),
               const SizedBox(height: 12),
               Text(
-                _langCode == 'fr'
-                    ? 'Ajoutez au moins 2 convives pour comparer leurs profils gustatifs'
-                    : (_langCode == 'es'
-                        ? 'Añade al menos 2 invitados para comparar sus perfiles gustativos'
-                        : (_langCode == 'ca'
-                            ? 'Afegiu almenys 2 convidats per comparar els seus perfils gustatius'
-                            : (_langCode == 'la'
-                                ? 'Adde saltem 2 hospites ad saporum habitus comparandos'
-                                : 'Add at least 2 guests to compare their taste profiles'))),
+                tr('Ajoutez au moins 2 convives pour comparer leurs profils gustatifs', 'Add at least 2 guests to compare their taste profiles'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
@@ -667,15 +606,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                 onPressed: () => _showAddGuestDialog(context),
                 icon: const Icon(Icons.person_add),
                 label: Text(
-                  _langCode == 'fr'
-                      ? 'Ajouter un invité (ex: Papa, Maman...)'
-                      : (_langCode == 'es'
-                          ? 'Añadir un invitado'
-                          : (_langCode == 'ca'
-                              ? 'Afegir un convidat'
-                              : (_langCode == 'la'
-                                  ? 'Hospitem adde'
-                                  : 'Add a guest (e.g. Dad, Mom...)'))),
+                  tr('Ajouter un invité (ex: Papa, Maman...)', 'Add a guest (e.g. Dad, Mom...)'),
                 ),
               ),
             ],
@@ -800,21 +731,13 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '${affinity.affinityPercentage.toStringAsFixed(0)}% ${_langCode == 'fr' ? "d'affinité" : (_langCode == 'es' ? 'afinidad' : (_langCode == 'ca' ? 'afinitat' : (_langCode == 'la' ? 'affinitas' : 'affinity')))}',
+                      tr('{pct} % d\'affinité', '{pct}% affinity', {'pct': affinity.affinityPercentage.toStringAsFixed(0)}),
                       style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    _langCode == 'fr'
-                        ? 'Compatibilité ${p1.name} & ${p2.name}'
-                        : (_langCode == 'es'
-                            ? 'Compatibilidad ${p1.name} y ${p2.name}'
-                            : (_langCode == 'ca'
-                                ? 'Compatibilitat ${p1.name} i ${p2.name}'
-                                : (_langCode == 'la'
-                                    ? 'Congruentia ${p1.name} & ${p2.name}'
-                                    : 'Compatibility ${p1.name} & ${p2.name}'))),
+                    tr('Compatibilité {a} & {b}', 'Compatibility {a} & {b}', {'a': p1.name, 'b': p2.name}),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ],
@@ -863,15 +786,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _langCode == 'fr'
-                              ? 'Recommandation Sommelier pour ce duo :'
-                              : (_langCode == 'es'
-                                  ? 'Recomendación del Sumiller para este dúo:'
-                                  : (_langCode == 'ca'
-                                      ? 'Recomanació del Sommelier per a aquest duo:'
-                                      : (_langCode == 'la'
-                                          ? 'Pincernae Monitum pro hoc pari:'
-                                          : 'Sommelier Recommendation for this duo:'))),
+                          tr('Recommandation Sommelier pour ce duo :', 'Sommelier Recommendation for this duo:'),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD4AF37)),
                         ),
                         const SizedBox(height: 4),
@@ -910,76 +825,19 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
     final nameCtrl = TextEditingController();
     final notesCtrl = TextEditingController();
 
-    final code = _langCode;
-    final dialogTitle = code == 'fr'
-        ? 'Ajouter un proche / invité'
-        : (code == 'es'
-            ? 'Añadir un invitado'
-            : (code == 'ca'
-                ? 'Afegir un convidat'
-                : (code == 'la'
-                    ? 'Hospitem adde'
-                    : 'Add a friend / guest')));
+    final dialogTitle = tr('Ajouter un proche / invité', 'Add a friend / guest');
 
-    final nameLabel = code == 'fr'
-        ? 'Prénom / Nom du convive *'
-        : (code == 'es'
-            ? 'Nombre del invitado *'
-            : (code == 'ca'
-                ? 'Nom del convidat *'
-                : (code == 'la'
-                    ? 'Nomen hospitis *'
-                    : 'Guest Name *')));
+    final nameLabel = tr('Prénom / Nom du convive *', 'Guest Name *');
 
-    final nameHint = code == 'fr'
-        ? 'ex: Papa, Maman, Sophie, Dimitri...'
-        : (code == 'es'
-            ? 'ej: Papá, Mamá, Sofía...'
-            : (code == 'ca'
-                ? 'ex: Pare, Mare, Sofia...'
-                : (code == 'la'
-                    ? 'ex: Marcus, Iulia...'
-                    : 'e.g. Dad, Mom, Sarah, David...')));
+    final nameHint = tr('ex: Papa, Maman, Sophie, Dimitri...', 'e.g. Dad, Mom, Sarah, David...');
 
-    final notesLabel = code == 'fr'
-        ? 'Notes ou préférences (optionnel)'
-        : (code == 'es'
-            ? 'Notas o preferencias (opcional)'
-            : (code == 'ca'
-                ? 'Notes o preferències (opcional)'
-                : (code == 'la'
-                    ? 'Notae vel praelationes (optivum)'
-                    : 'Notes or preferences (optional)')));
+    final notesLabel = tr('Notes ou préférences (optionnel)', 'Notes or preferences (optional)');
 
-    final notesHint = code == 'fr'
-        ? 'ex: Préfère les rouges charpentés et les vins du Sud'
-        : (code == 'es'
-            ? 'ej: Prefiere tintos con cuerpo y vinos del Sur'
-            : (code == 'ca'
-                ? 'ex: Prefereix negres amb cos i vins del Sud'
-                : (code == 'la'
-                    ? 'ex: Vina rubra valida praefert'
-                    : 'e.g. Prefers full-bodied reds and Southern wines')));
+    final notesHint = tr('ex: Préfère les rouges charpentés et les vins du Sud', 'e.g. Prefers full-bodied reds and Southern wines');
 
-    final cancelText = code == 'fr'
-        ? 'Annuler'
-        : (code == 'es'
-            ? 'Cancelar'
-            : (code == 'ca'
-                ? 'Cancel·lar'
-                : (code == 'la'
-                    ? 'Abstine'
-                    : 'Cancel')));
+    final cancelText = tr('Annuler', 'Cancel');
 
-    final createText = code == 'fr'
-        ? 'Créer le profil'
-        : (code == 'es'
-            ? 'Crear perfil'
-            : (code == 'ca'
-                ? 'Crear perfil'
-                : (code == 'la'
-                    ? 'Creare habitum'
-                    : 'Create profile')));
+    final createText = tr('Créer le profil', 'Create profile');
 
     showDialog(
       context: context,
@@ -1027,7 +885,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
               final service = ref.read(tasteProfileServiceProvider);
               final newP = await service.addProfile(
                 name: name,
-                notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : (code == 'fr' ? 'Ajouté par l\'utilisateur' : 'Added by user'),
+                notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : (tr('Ajouté par l\'utilisateur', 'Added by user')),
               );
               ref.invalidate(tasteProfilesListProvider);
               if (ctx.mounted) Navigator.pop(ctx);

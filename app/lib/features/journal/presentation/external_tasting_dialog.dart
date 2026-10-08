@@ -961,9 +961,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                   ),
                   if (!_noteTouchee)
                     Text(
-                      Localizations.localeOf(context).languageCode == 'fr'
-                          ? 'Pas de note ? La dégustation est gardée, mais n\'entre pas dans votre profil.'
-                          : 'No rating? The tasting is kept, but won\'t shape your profile.',
+                      tr('Pas de note ? La dégustation est gardée, mais n\'entre pas dans votre profil.',
+                          'No rating? The tasting is kept, but won\'t shape your profile.'),
                       style: const TextStyle(fontSize: 11, color: Colors.grey),
                     ),
                 ],

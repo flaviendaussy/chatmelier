@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:chatmelier/l10n/app_localizations.dart';
 import 'package:chatmelier/shared/l10n/fallback_localizations_delegates.dart';
 import 'package:chatmelier/shared/providers/locale_provider.dart';
+import 'package:chatmelier/shared/utils/langue.dart';
 import 'package:chatmelier/shared/widgets/adaptive_app_shell.dart';
 import 'package:chatmelier/features/auth/presentation/profile_screen.dart';
 import 'package:chatmelier/features/badges/domain/badge.dart';
@@ -68,18 +69,20 @@ class _MockAuthRepo implements AuthRepository {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  // Depuis la V2.3 (H6), l'app parle français, anglais et espagnol. Les dix autres `.arb`
-  // attendent dans `l10n_plus_tard/` : ils reviendront avec leur catalogue de phrases
-  // (`tool/langues`), sans quoi l'écran mêlerait leur langue et l'anglais.
-  group('Langues de l\'app : français, anglais, espagnol', () {
-    test('les traductions générées et le choix du profil proposent les trois mêmes langues', () {
+  // Depuis la V2.3 (H6), l'app parle français, anglais et espagnol ; l'italien est revenu
+  // le 08/10 avec son catalogue. Les autres `.arb` attendent dans `l10n_plus_tard/` : ils
+  // reviendront avec leur catalogue de phrases (`tool/langues`), sans quoi l'écran
+  // mêlerait leur langue et l'anglais.
+  group('Langues de l\'app : français, anglais, espagnol, italien', () {
+    test('les traductions générées et le choix du profil proposent les quatre mêmes langues', () {
       final codes = AppLocalizations.supportedLocales.map((l) => l.languageCode).toSet();
-      expect(codes, {'fr', 'en', 'es'});
+      expect(codes, {'fr', 'en', 'es', 'it'});
       expect(kSupportedLanguageCodes.toSet(), codes);
+      expect(Langue.supportees.toSet(), codes);
     });
 
     test('une langue choisie avant la 72 et mise de côté revient à celle du téléphone', () async {
-      SharedPreferences.setMockInitialValues({'user_selected_locale': 'it'});
+      SharedPreferences.setMockInitialValues({'user_selected_locale': 'de'});
       final notifier = LocaleNotifier();
       await Future<void>.delayed(Duration.zero);
       expect(notifier.state, isNull);

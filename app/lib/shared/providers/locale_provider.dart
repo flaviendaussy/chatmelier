@@ -17,6 +17,7 @@ const kLangues = [
   LangueProposee('fr', 'Français 🇫🇷'),
   LangueProposee('en', 'English 🇬🇧'),
   LangueProposee('es', 'Español 🇪🇸'),
+  LangueProposee('it', 'Italiano 🇮🇹'),
 ];
 
 final kSupportedLanguageCodes = [for (final l in kLangues) l.code];

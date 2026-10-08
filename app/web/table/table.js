@@ -21,7 +21,7 @@ const LANGUE = (() => {
   const forcee = new URLSearchParams(location.search).get('lang');
   for (const l of [forcee, ...(navigator.languages || [navigator.language || 'en'])].filter(Boolean)) {
     const c = String(l).slice(0, 2).toLowerCase();
-    if (c === 'fr' || c === 'en' || c === 'es') return c;
+    if (c === 'fr' || c === 'en' || c === 'es' || c === 'it') return c;
   }
   return 'en';
 })();
@@ -247,6 +247,79 @@ const TEXTES = {
     couleursNoms: { Rouge: 'Tinto', Blanc: 'Blanco', 'Rosé': 'Rosado', Bulles: 'Espumoso' },
     aversionsNoms: { tanin: 'Taninos duros', 'boisé': 'Madera marcada', acide: 'Acidez viva' },
   },
+  it: {
+    codeTitre: 'Unisciti a un tavolo',
+    codeAide: 'Il codice di sei caratteri mostrato sul telefono di chi ospita.',
+    codeOk: 'Unisciti',
+    introuvable: 'Questo tavolo non esiste o è terminato. Controlla il codice con chi ospita.',
+    reseau: 'Nessuna rete per ora: riprova tra un momento.',
+    reessayer: 'Riprova',
+    titrePage: 'Chatmelier — A tavola',
+    tableDe: 'Tavolo {code} — {restaurant}',
+    tableSeule: 'Tavolo {code}',
+    aTable: 'A tavola',
+    auComptoir: 'Al bancone',
+    vosGoutsAideComptoir: 'Facoltativo: i tuoi gusti compaiono accanto al tuo nome.',
+    rejoindreComptoir: 'Unisciti al bancone con i miei gusti',
+    assisComptoir: 'Sei al bancone, {nom}.',
+    personne: 'Non si è ancora seduto nessuno.',
+    nePasBoire: 'non beve',
+    prenom: 'Il tuo nome',
+    vosGouts: 'I tuoi gusti, in venti secondi',
+    vosGoutsAide: 'Facoltativo: il tavolo ne terrà conto per scegliere la bottiglia.',
+    couleurs: 'I colori che ami',
+    aversions: 'Quello che non ti piace',
+    rejoindre: 'Unisciti al tavolo con i miei gusti',
+    justeMonPrenom: 'Solo il mio nome — i gusti li dirò dopo',
+    jeNeBoisPas: 'Stasera non bevo',
+    assis: 'Sei a tavola, {nom}.',
+    assisSansGouts: 'Nessuna preferenza: la classifica non tiene conto dei tuoi gusti.',
+    assisSansBoire: 'Stasera non bevi: le bottiglie si scelgono per gli altri.',
+    modifier: 'Indica i miei gusti',
+    podiumTitre: 'Le tre bottiglie più adatte al tavolo',
+    podiumAttente: 'Chi ospita sta preparando la classifica: comparirà qui appena pubblicata.',
+    accord: '{n}% di affinità',
+    devineUn: '≈: palato ancora stimato, {liste}. Le sue affinità restano prudenti e si precisano a ogni vino votato.',
+    devinePlusieurs: '≈: palati ancora stimati, {liste}. Le loro affinità restano prudenti e si precisano a ogni vino votato.',
+    connuA: '{nom} (conosciuto al {pct}%)',
+    deuxBouteilles: 'Con due bottiglie',
+    choixTitre: 'Stasera il tavolo ha scelto',
+    noter: 'Votalo con un gesto',
+    note: 'votato',
+    noterTitre: '{vin}, stasera',
+    noterAide: 'Basta un gesto: il tuo palato ne terrà conto.',
+    reprendriez: 'Lo riprenderesti?',
+    oui: 'Sì', peutEtre: 'Forse', non: 'No',
+    racheter: { yes: 'Lo riprenderei.', maybe: 'Forse lo riprenderei.', no: 'Non lo riprenderei.' },
+    enregistrer: 'Salva',
+    noteEchec: 'Non è stato possibile salvare il voto: riprova.',
+    garderTitre: 'Conserva questa serata',
+    garderAide: 'I tuoi gusti e i voti di stasera ti aspettano per 30 giorni. Conservali con un codice da inserire nell\'app: Stasera → Unisciti a un tavolo → «Ho un codice di recupero».',
+    garderBouton: 'Ottieni il mio codice di recupero',
+    codeReprise: 'Il tuo codice di recupero',
+    installer: 'Installa l\'app',
+    iphone: 'L\'app arriverà presto su iPhone. Nel frattempo, conserva la serata con il codice di recupero.',
+    connexionPerdue: 'Connessione con il tavolo persa.',
+    versionComplete: 'Hai un account Chatmelier? Apri la versione completa',
+    comptoirTitre: 'I calici della lavagna',
+    comptoirAide: 'Vota ogni calice con un gesto: alla fine sapremo a chi è piaciuto cosa.',
+    quiAimeQuoi: 'A chi è piaciuto cosa',
+    prefere: 'Il preferito del bancone: {vin} ({visages}).',
+    divise: 'Quello che divide: {vin} ({visages}).',
+    chacun: 'Il preferito di ciascuno: {liste}.',
+    changer: 'cambia',
+    exemples: {
+      tanins: 'Ciò che asciuga la bocca, come un tè lasciato in infusione troppo a lungo. Marcati in un Madiran, discreti in un Beaujolais.',
+      corps: 'Il peso del vino in bocca: leggero come il latte scremato, o ampio come la panna.',
+      acidite: 'Ciò che fa salivare e dà freschezza, come una scorza di limone. Vivace in uno Chablis.',
+      boise: 'La vaniglia, il tostato o l\'affumicato che dà l\'affinamento in botti di rovere.',
+      fruit: 'L\'intensità dei profumi di frutta: ciliegia, ribes nero, pesca…',
+      mineralite: 'Una sensazione sapida, di pietra bagnata o di gesso, tipica di uno Chablis o di un Sancerre.',
+    },
+    axes: { tanins: 'Tannini', corps: 'Corpo', acidite: 'Acidità', boise: 'Legno', fruit: 'Frutto', mineralite: 'Mineralità' },
+    couleursNoms: { Rouge: 'Rosso', Blanc: 'Bianco', 'Rosé': 'Rosato', Bulles: 'Bollicine' },
+    aversionsNoms: { tanin: 'Tannini duri', 'boisé': 'Legno marcato', acide: 'Acidità spiccata' },
+  },
 };
 const T = TEXTES[LANGUE];
 document.title = T.titrePage;
@@ -260,22 +333,22 @@ function t(cle, valeurs = {}) {
 // Les archétypes sont rangés en français (la valeur du moteur de consensus) et lus dans la
 // langue du lecteur.
 const ARCHETYPES = {
-  'Curieux & Éclectique': { en: 'Curious & eclectic', es: 'Curioso y ecléctico' },
+  'Curieux & Éclectique': { en: 'Curious & eclectic', es: 'Curioso y ecléctico', it: 'Curioso ed eclettico' },
   // Les étiquettes de l'app : un hôte peut les porter, un invité doit les lire dans sa langue.
-  'Amateur de Grands Rouges Puissants': { en: 'Lover of big, powerful reds', es: 'Amante de los grandes tintos potentes' },
-  'Adepte de Minéralité & Fraîcheur Droite': { en: 'Mineral & crisp lover', es: 'Adepto de la mineralidad y el frescor recto' },
-  'Palais Friand & Fruit Croquant': { en: 'Crunchy-fruit lover', es: 'Paladar goloso y de fruta crujiente' },
-  'Amateur de Vins Épicés & Singuliers': { en: 'Spicy & singular wines lover', es: 'Amante de los vinos especiados y singulares' },
-  'Amateur de Rouges': { en: 'Red wine lover', es: 'Amante de los tintos' },
-  'Amateur de Blancs': { en: 'White wine lover', es: 'Amante de los blancos' },
-  'Amateur de Rosés': { en: 'Rosé lover', es: 'Amante de los rosados' },
-  'Amateur de Bulles': { en: 'Sparkling wine lover', es: 'Amante de los espumosos' },
-  'Grands Rouges Puissants': { en: 'Big, powerful reds', es: 'Grandes tintos potentes' },
-  'Blancs Minéraux & Tendus': { en: 'Taut, mineral whites', es: 'Blancos minerales y tensos' },
-  'Rouges Fruits Croquants': { en: 'Crunchy fruity reds', es: 'Tintos de fruta crujiente' },
-  'Aversion aux tanins durs': { en: 'Dislikes firm tannins', es: 'Aversión a los taninos duros' },
-  'Sans préférences déclarées': { en: 'No stated preferences', es: 'Sin preferencias indicadas' },
-  'Ne boit pas ce soir': { en: 'Not drinking tonight', es: 'No bebe esta noche' },
+  'Amateur de Grands Rouges Puissants': { en: 'Lover of big, powerful reds', es: 'Amante de los grandes tintos potentes', it: 'Amante dei grandi rossi potenti' },
+  'Adepte de Minéralité & Fraîcheur Droite': { en: 'Mineral & crisp lover', es: 'Adepto de la mineralidad y el frescor recto', it: 'Fan di mineralità e freschezza dritta' },
+  'Palais Friand & Fruit Croquant': { en: 'Crunchy-fruit lover', es: 'Paladar goloso y de fruta crujiente', it: 'Palato goloso e frutto croccante' },
+  'Amateur de Vins Épicés & Singuliers': { en: 'Spicy & singular wines lover', es: 'Amante de los vinos especiados y singulares', it: 'Amante dei vini speziati e singolari' },
+  'Amateur de Rouges': { en: 'Red wine lover', es: 'Amante de los tintos', it: 'Amante dei rossi' },
+  'Amateur de Blancs': { en: 'White wine lover', es: 'Amante de los blancos', it: 'Amante dei bianchi' },
+  'Amateur de Rosés': { en: 'Rosé lover', es: 'Amante de los rosados', it: 'Amante dei rosati' },
+  'Amateur de Bulles': { en: 'Sparkling wine lover', es: 'Amante de los espumosos', it: 'Amante delle bollicine' },
+  'Grands Rouges Puissants': { en: 'Big, powerful reds', es: 'Grandes tintos potentes', it: 'Grandi rossi potenti' },
+  'Blancs Minéraux & Tendus': { en: 'Taut, mineral whites', es: 'Blancos minerales y tensos', it: 'Bianchi minerali e tesi' },
+  'Rouges Fruits Croquants': { en: 'Crunchy fruity reds', es: 'Tintos de fruta crujiente', it: 'Rossi dal frutto croccante' },
+  'Aversion aux tanins durs': { en: 'Dislikes firm tannins', es: 'Aversión a los taninos duros', it: 'Avversione ai tannini duri' },
+  'Sans préférences déclarées': { en: 'No stated preferences', es: 'Sin preferencias indicadas', it: 'Nessuna preferenza indicata' },
+  'Ne boit pas ce soir': { en: 'Not drinking tonight', es: 'No bebe esta noche', it: 'Stasera non beve' },
 };
 const archetypeLu = (a) => (LANGUE === 'fr' ? a : ARCHETYPES[a]?.[LANGUE] ?? a);
 
@@ -529,7 +602,7 @@ function nomLibre(nom) {
 async function rejoindre(options) {
   const assis = lire(CLE_NOM(), '');
   const champ = document.getElementById('prenom');
-  const saisi = (champ?.value || etat.prenomSaisi || assis || '').trim() || (LANGUE === 'fr' ? 'Invité' : LANGUE === 'es' ? 'Invitado' : 'Guest');
+  const saisi = (champ?.value || etat.prenomSaisi || assis || '').trim() || (LANGUE === 'fr' ? 'Invité' : LANGUE === 'es' ? 'Invitado' : LANGUE === 'it' ? 'Ospite' : 'Guest');
   const nom = assis || nomLibre(saisi);
   try {
     const envoye = { ...profil(nom, options), verres: lire(CLE_PROFIL(), {})?.verres || {} };

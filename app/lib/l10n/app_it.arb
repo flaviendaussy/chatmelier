@@ -1,9 +1,11 @@
 {
   "@@locale": "it",
   "appTitle": "Chatmelier",
+  "defaultCellarName": "La mia Cantina",
   "navCellar": "Cantina",
   "navChat": "Chat",
-  "navJournal": "Storico",
+  "navJournal": "Diario",
+  "navTonight": "Stasera",
   "navStats": "Statistiche",
   "actionMenuTitle": "Azioni Cantina",
   "actionAddBottle": "Aggiungi una bottiglia",
@@ -17,13 +19,6 @@
   "emptyCellarSub": "Scansiona la tua prima bottiglia per iniziare la collezione",
   "emptyCellarButton": "Aggiungi la mia prima bottiglia",
   "cellarBottlesCount": "{count, plural, =0{0 bottiglie} =1{1 bottiglia} other{{count} bottiglie}}",
-  "@cellarBottlesCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cellarTotalValue": "Valore totale",
   "filterAll": "Tutti",
   "filterRed": "Rosso",
@@ -78,13 +73,6 @@
   "checkoutSelectPrompt": "Tocca per scegliere una bottiglia dalla cantina...",
   "checkoutQtyOpened": "Numero di bottiglie aperte",
   "checkoutQtyOfTotal": "su {total} in cantina",
-  "@checkoutQtyOfTotal": {
-    "placeholders": {
-      "total": {
-        "type": "int"
-      }
-    }
-  },
   "checkoutRating": "Valutazione di Degustazione",
   "checkoutFoodPairing": "Piatti e Cibi abbinati (opzionale)",
   "checkoutFoodHint": "es. Bistecca alla fiorentina, risotto ai funghi porcini...",
@@ -98,9 +86,7 @@
   "chatInputHint": "Chiedi a Chatmelier...",
   "chatChipTonight": "🍷 Cosa dovrei bere stasera?",
   "chatChipDuo": "🍷 Cosa bere stasera per {a} e {b}?",
-  "@chatChipDuo": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
   "chatChipSolo": "🍷 Cosa bere stasera per {a} e me?",
-  "@chatChipSolo": {"placeholders": {"a": {"type": "String"}}},
   "chatChipSteak": "🥩 Abbina una bottiglia alla bistecca",
   "chatChipSeafood": "🐟 Miglior bianco per frutti di mare",
   "chatChipPeak": "⏰ Quali bottiglie sono all'apogeo?",
@@ -108,13 +94,6 @@
   "journalEmpty": "Nessuna degustazione registrata",
   "journalEmptySub": "Stappa e degusta una bottiglia dalla tua cantina per iniziare il diario",
   "journalTastedOn": "Degustato il {date}",
-  "@journalTastedOn": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "statsTitle": "Statistiche Cantina",
   "statsTotalBottles": "Bottiglie in Cantina",
   "statsTotalValue": "Valore della Cantina",
@@ -132,13 +111,6 @@
   "profileLanguageFr": "Français",
   "profileLanguageEn": "English",
   "profileCurrencyUpdated": "Valuta predefinita aggiornata: {currency}",
-  "@profileCurrencyUpdated": {
-    "placeholders": {
-      "currency": {
-        "type": "String"
-      }
-    }
-  },
   "profileLanguageUpdated": "Lingua aggiornata",
   "profileLogout": "Disconnetti",
   "profileAbout": "Informazioni su Chatmelier",
@@ -149,7 +121,7 @@
   "scanIdentified": "Vino identificato da Chatmelier ✨",
   "scanSaveToCellar": "Aggiungi alla mia cantina",
   "loginTitle": "Accedi",
-  "loginTagline": "La tua Cantina Intelligente Condivisa con IA",
+  "loginTagline": "Il sommelier della tua tavola",
   "loginTabMagicLink": "✉️ Link di Accesso",
   "loginTabPassword": "🔑 Password",
   "loginEmailLabel": "Indirizzo email",
@@ -207,81 +179,19 @@
   "badgesShowcaseTitle": "Trofei e Distintivi",
   "badgesShowcaseCount": "{unlocked} su {total} sbloccati",
   "badgesShowcaseGallery": "Galleria",
-  "defaultCellarName": "La mia Cantina",
   "save": "Salva",
   "continueAnyway": "Continua comunque",
   "cellarDetected": "Cantina rilevata: ",
   "proximityWifi": "Connesso al Wi-Fi \"{ssid}\"",
-  "@proximityWifi": {
-    "placeholders": {
-      "ssid": {
-        "type": "String"
-      }
-    }
-  },
   "proximityGps": "Posizione GPS rilevata a {distance}",
-  "@proximityGps": {
-    "placeholders": {
-      "distance": {
-        "type": "String"
-      }
-    }
-  },
   "proximitySwitch": "Passa a questa",
   "proximityIgnore": "Ignora",
   "proximitySwitchedSnack": "📍 Passato automaticamente a \"{cellar}\"",
-  "@proximitySwitchedSnack": {
-    "placeholders": {
-      "cellar": {
-        "type": "String"
-      }
-    }
-  },
   "distantCellarTitle": "Cantina distante rilevata",
   "distantCellarWifiWarning": "Sei attualmente connesso al Wi-Fi \"{ssid}\" associato all'altra tua cantina \"{cellar}\".",
-  "@distantCellarWifiWarning": {
-    "placeholders": {
-      "ssid": {
-        "type": "String"
-      },
-      "cellar": {
-        "type": "String"
-      }
-    }
-  },
   "distantCellarGpsWarning": "Ti trovi attualmente a circa {distance} da \"{cellar}\".",
-  "@distantCellarGpsWarning": {
-    "placeholders": {
-      "distance": {
-        "type": "String"
-      },
-      "cellar": {
-        "type": "String"
-      }
-    }
-  },
   "distantCellarAddConfirm": "{warning}\n\nVuoi comunque aggiungere questa bottiglia alla cantina \"{cellar}\"?",
-  "@distantCellarAddConfirm": {
-    "placeholders": {
-      "warning": {
-        "type": "String"
-      },
-      "cellar": {
-        "type": "String"
-      }
-    }
-  },
   "distantCellarCheckoutConfirm": "{warning}\n\nVuoi comunque prelevare questa bottiglia dalla cantina \"{cellar}\"?",
-  "@distantCellarCheckoutConfirm": {
-    "placeholders": {
-      "warning": {
-        "type": "String"
-      },
-      "cellar": {
-        "type": "String"
-      }
-    }
-  },
   "ratingExceptional": "🏆 Eccezionale",
   "ratingRemarkable": "✨ Notevole",
   "ratingVeryGood": "🍷 Ottimo",
@@ -289,16 +199,6 @@
   "ratingPassable": "Discreto",
   "checkoutWhoTasted": "Chi ha degustato questo vino con te?",
   "checkoutStockRemaining": "{producer} • In cantina: {qty} {qty, plural, =1{bottiglia} other{bottiglie}}",
-  "@checkoutStockRemaining": {
-    "placeholders": {
-      "producer": {
-        "type": "String"
-      },
-      "qty": {
-        "type": "int"
-      }
-    }
-  },
   "checkoutAddGuest": "Aggiungi un ospite",
   "checkoutAddGuestHint": "Aggiungi (Mamma, Papà...)",
   "checkoutCloseAndTaste": "Chiudi e degusta 🍷",
@@ -313,44 +213,16 @@
   "checkoutDelayedWeekend": "Questo fine settimana (Sabato alle 11:00)",
   "checkoutDelayedWeekendSub": "Prenditi il tuo tempo in un momento libero",
   "checkoutDelayedInTwoHours": "Tra 2 ore ({time})",
-  "@checkoutDelayedInTwoHours": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
   "checkoutDelayedInTwoHoursSub": "Promemoria rapido al termine della degustazione",
   "checkoutDelayedCustom": "Scegli data e ora personalizzate...",
   "reviewPackagingDetected": "Formato confezione rilevato",
   "reviewSingleBottleOnly": "No, solo 1 bottiglia",
   "reviewMultipleBottlesConfirm": "Sì, {count} bottiglie",
-  "@reviewMultipleBottlesConfirm": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "reviewStockUpdatedSuccess": "🍾 Scorte aggiornate con successo! ({count} bottiglie in cantina)",
-  "@reviewStockUpdatedSuccess": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "reviewVintageYear": "Annata / Anno di vendemmia",
   "reviewNonVintage": "Salta / Senza annata (NV)",
   "reviewValidate": "Conferma",
   "reviewBottleAddedSuccess": "🍾 {name} aggiunta con successo alla cantina!",
-  "@reviewBottleAddedSuccess": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "reviewBottleAnalysis": "Analisi della bottiglia",
   "reviewDiscard": "Elimina",
   "reviewDiscardConfirmTitle": "Annullare l'inserimento?",
@@ -368,42 +240,11 @@
   "reviewOriginTerroir": "Origine e Terroir",
   "reviewQuantityPurchase": "Quantità & Dettagli acquisto",
   "cellarWifiDetectedSuccess": "📡 Wi-Fi rilevato e associato: \"{ssid}\"",
-  "@cellarWifiDetectedSuccess": {
-    "placeholders": {
-      "ssid": {
-        "type": "String"
-      }
-    }
-  },
   "cellarWifiDetectionFailed": "Impossibile rilevare il Wi-Fi (attiva la posizione o inserisci manualmente)",
   "cellarGpsCoordsCaptured": "📍 Coordinate GPS acquisite ({lat}, {lon})",
-  "@cellarGpsCoordsCaptured": {
-    "placeholders": {
-      "lat": {
-        "type": "String"
-      },
-      "lon": {
-        "type": "String"
-      }
-    }
-  },
   "cellarGpsInaccessible": "Posizione GPS non disponibile. Verifica le autorizzazioni.",
   "cellarCreatedSuccess": "✨ Cantina \"{cellar}\" creata con successo!",
-  "@cellarCreatedSuccess": {
-    "placeholders": {
-      "cellar": {
-        "type": "String"
-      }
-    }
-  },
   "cellarCreationError": "Errore durante la creazione: {error}",
-  "@cellarCreationError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "cellarRadiusPrecise": "100 metri (molto preciso)",
   "cellarRadiusRecommended": "300 metri (consigliato)",
   "cellarRadius500m": "500 metri",
@@ -412,21 +253,7 @@
   "cellarCreateButton": "Crea cantina",
   "cellarUseCurrentGps": "Imposta con posizione GPS attuale",
   "cellarUpdatedSuccess": "✅ Impostazioni cantina \"{cellar}\" aggiornate",
-  "@cellarUpdatedSuccess": {
-    "placeholders": {
-      "cellar": {
-        "type": "String"
-      }
-    }
-  },
   "cellarUpdateError": "Errore durante l'aggiornamento: {error}",
-  "@cellarUpdateError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "wineTypeRed": "Vino Rosso 🍷",
   "wineTypeWhite": "Vino Bianco 🥂",
   "wineTypeRose": "Vino Rosato 🌸",
@@ -529,13 +356,6 @@
   "feedbackEmptyError": "Aggiungi un commento o disegna sullo screenshot.",
   "feedbackSuccess": "Grazie per il tuo feedback! 🍷 Segnalazione inviata.",
   "feedbackError": "Errore durante l'invio: {error}",
-  "@feedbackError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "checkoutFastExit": "Prelievo rapido senza questionario ⚡",
   "checkoutFastExitSubmitting": "Prelievo in corso...",
   "checkoutRatingSubtitle": "Assegna il tuo voto complessivo dopo la degustazione",
@@ -551,10 +371,7 @@
   "tastingBlindModeDesc": "Nasconde il nome del vino e attiva un quiz interattivo al tavolo con svelamento finale!",
   "tastingPrimaryProfile": "Profilo principale",
   "tastingAppInstalled": "App installata 📱",
-  "tastingStepTastersTitle": "👥 Selezione degustatori",
-  "tastingStepTastersSubtitle": "Scegli chi condividerà questo vino stasera.",
-  "tastingAddTaster": "Aggiungi degustatore",
-  "tastingAddTasterHint": "Nome o soprannome",
+  "tastingQuestionnairesCompletedCount": "{count, plural, =0{0 questionari completati} =1{1 questionario completato} other{{count} questionari completati}}",
   "tastingStepNezTitle": "👃 L'Esame Olfattivo — Espressione degli aromi",
   "tastingStepNezSubtitle": "Fai roteare il calice e cogli i sentori che salgono al naso.",
   "tastingFaultTitle": "Il vino ha uno di questi odori?",
@@ -591,31 +408,28 @@
   "tastingLengthShort": "⏱️ Corta",
   "tastingLengthLong": "♾️ Molto persistente",
   "tastingStepVerdictTitle": "✅ Verdetto finale",
-  "tastingBuyAgain": "Ricompreresti questa bottiglia?",
-  "tastingBuyAgainYes": "🤩 Assolutamente sì!",
-  "tastingBuyAgainMaybe": "🤔 Forse",
-  "tastingBuyAgainNo": "👎 No, grazie",
   "sipSectionTitle": "🍷 Il sorso",
   "tasteConfidenceUnknown": "Non conosco ancora il tuo palato: le linee tratteggiate e i punti vuoti sono solo supposizioni.",
   "tasteEvidenceTitle": "Da dove viene questo profilo",
   "tasteEvidenceEmpty": "Ancora nessuna traccia. Il tuo profilo si costruisce degustando.",
   "tasteEvidenceOpen": "Vedi da dove viene questo profilo",
   "tasteConfidenceKnown": "Palato noto al {percent} %. Linea continua: osservato; tratteggiata: indovinato.",
-  "@tasteConfidenceKnown": {"placeholders": {"percent": {"type": "String"}}},
   "tasteConfidenceFrontier": "Ciò che conosco meno: {axis}.",
-  "@tasteConfidenceFrontier": {"placeholders": {"axis": {"type": "String"}}},
   "radarLegendObserved": "Osservato",
   "radarLegendGuessed": "Indovinato",
   "radarLegendMargin": "Margine di incertezza",
   "radarAxisTastings": "{count, plural, =0{Indovinato} =1{1 degustazione} other{{count} degustazioni}}",
-  "@radarAxisTastings": {"placeholders": {"count": {"type": "int"}}},
   "sipSectionSubtitle": "Due tocchi, e questo calice insegna qualcosa al tuo profilo di gusto.",
+  "tastingBuyAgain": "Ricompreresti questa bottiglia?",
+  "tastingBuyAgainYes": "🤩 Assolutamente sì!",
+  "tastingBuyAgainMaybe": "🤔 Forse",
+  "tastingBuyAgainNo": "👎 No, grazie",
   "tastingIdealMoment": "Occasione ideale per questo vino?",
   "tastingMomentApero": "🥂 Aperitivo",
   "tastingMomentMeal": "🍽️ Pranzo informale",
   "tastingMomentDinner": "🎩 Cena importante",
   "tastingMomentRomantic": "🕯️ Cena romantica",
-  "tastingMomentSolo": "🧘 Momento di relax personale",
+  "tastingMomentSolo": "🧘 Da solo / Meditazione",
   "tastingWhatLiked": "Cosa ti è piaciuto di più:",
   "tastingWhatDisliked": "Cosa ti è piaciuto di meno:",
   "tastingOccasionLabel": "Occasione / Ricordo condiviso (opzionale) ✨",
@@ -689,6 +503,7 @@
   "likedFoodPairing": "Sinergia con il cibo",
   "likedMinerality": "Sapidità minerale",
   "likedLength": "Persistenza finale",
+  "nothingInParticular": "Niente di particolare",
   "likedDisappointing": "Nulla / Deludente 😕",
   "dislikedTooAcidic": "Troppo acido",
   "dislikedTooTannic": "Troppo tannico / astringente",
@@ -755,7 +570,6 @@
   "checkoutActionTastingSubtitle": "Formato express (1 pagina) o dettagliato da sommelier",
   "checkoutActionDeferredRemind": "Ricordamelo più tardi 🌙",
   "checkoutActionAerationTimer": "Timer di aerazione ⏱️",
-  "tastingQuestionnairesCompletedCount": "{count, plural, =0{0 questionari completati} =1{1 questionario completato} other{{count} questionari completati}}",
   "externalTastingTitle": "Degustazione fuori cantina",
   "externalTastingSubtitle": "Ristorante, bar, a casa di amici... senza toccare le tue scorte",
   "externalTastingWithWhom": "Con chi stai degustando questo vino?",

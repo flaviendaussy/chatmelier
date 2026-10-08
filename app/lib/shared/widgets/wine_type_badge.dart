@@ -173,6 +173,50 @@ class WineTypeBadge extends StatelessWidget {
       }
     }
 
+    if (lang == 'it') {
+      switch (t) {
+        case 'red':
+        case 'rouge':
+          return 'ROSSO';
+        case 'white':
+        case 'blanc':
+          return 'BIANCO';
+        case 'rosé':
+        case 'rose':
+          return 'ROSATO';
+        case 'sparkling':
+        case 'bulles':
+        case 'champagne':
+        case 'effervescent':
+          return 'SPUMANTE';
+        case 'dessert':
+        case 'moelleux':
+        case 'liquoreux':
+          return 'DOLCE';
+        case 'orange':
+          return 'ORANGE';
+        case 'fortified':
+        case 'muté':
+        case 'porto':
+        case 'xérès':
+          return 'LIQUOROSO';
+        case 'whisky':
+        case 'whiskey':
+          return 'WHISKY';
+        case 'rum':
+        case 'rhum':
+          return 'RUM';
+        case 'spirit':
+        case 'spiritueux':
+          return 'DISTILLATO';
+        case 'aperol':
+        case 'aperitif':
+          return 'APERITIVO';
+        default:
+          return type.toUpperCase();
+      }
+    }
+
     if (lang == 'ca') {
       switch (t) {
         case 'red':

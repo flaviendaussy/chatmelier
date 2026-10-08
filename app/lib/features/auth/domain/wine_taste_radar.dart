@@ -114,7 +114,7 @@ class WineTasteRadarMetrics {
       case 'it':
         return const [
           'Struttura\n& Tannini',
-          'Corpo\n& Struttura',
+          'Corpo\n& Potenza',
           'Legno\n& Affinamento',
           'Frutto Maturo\n& Denso',
           'Spezie\n& Carattere',
@@ -536,6 +536,12 @@ class WineTasteRadarCalculator {
           } else {
             divergences.add('${p2.name} magis amat "$cleanName" quam ${p1.name}');
           }
+        } else if (code == 'it') {
+          if (l1[i] > l2[i]) {
+            divergences.add('A ${p1.name} piace di più «$cleanName» che a ${p2.name}');
+          } else {
+            divergences.add('A ${p2.name} piace di più «$cleanName» che a ${p1.name}');
+          }
         } else if (code == 'en') {
           if (l1[i] > l2[i]) {
             divergences.add('${p1.name} appreciates "$cleanName" more than ${p2.name}');
@@ -565,6 +571,10 @@ class WineTasteRadarCalculator {
       commonSummary = commonGrounds.isNotEmpty
           ? 'Magnam concordiam habetis in: ${commonGrounds.join(', ')}.'
           : 'Palata vestra congruunt in omnibus generibus vini.';
+    } else if (code == 'it') {
+      commonSummary = commonGrounds.isNotEmpty
+          ? 'Condividete una bella affinità per: ${commonGrounds.join(', ')}.'
+          : 'I vostri palati si completano su tutti gli stili di vino.';
     } else if (code == 'en') {
       commonSummary = commonGrounds.isNotEmpty
           ? 'You share a great affinity for: ${commonGrounds.join(', ')}.'
@@ -588,6 +598,10 @@ class WineTasteRadarCalculator {
       divSummary = divergences.isNotEmpty
           ? divergences.join('. ')
           : 'Paucae differentiae inter habitus vestros!';
+    } else if (code == 'it') {
+      divSummary = divergences.isNotEmpty
+          ? divergences.join('. ')
+          : 'Pochissime differenze notevoli tra i vostri due profili!';
     } else if (code == 'en') {
       divSummary = divergences.isNotEmpty
           ? divergences.join('. ')
@@ -632,6 +646,16 @@ class WineTasteRadarCalculator {
         recommendation = '🥂 Vinum album recens ac salinum: Chablis Premier Cru vel Campania Extra-Brut.';
       } else {
         recommendation = '✨ Vinum aequatum et iucundum: Burgundia Pinot Noir vel Ligeris Chenin.';
+      }
+    } else if (code == 'it') {
+      if (avgSpice >= 7.0 && avgTannin >= 6.5) {
+        recommendation = '🍷 Un rosso speziato e di carattere: Rodano settentrionale (Cornas, Côte-Rôtie) o un bel Syrah selvatico.';
+      } else if (avgTannin >= 7.0) {
+        recommendation = '🍷 Un rosso strutturato ma vellutato: un Bordeaux della Rive Droite o un elegante Sangiovese toscano.';
+      } else if (avgAcid >= 7.0 && avgMinerality >= 6.5) {
+        recommendation = '🥂 Un bianco vivace e sapido: Chablis Premier Cru, Sancerre o uno Champagne Extra-Brut.';
+      } else {
+        recommendation = '✨ Un vino equilibrato e versatile: un delicato Pinot Noir di Borgogna o un Chenin minerale della Loira.';
       }
     } else if (code == 'en') {
       if (avgSpice >= 7.0 && avgTannin >= 6.5) {

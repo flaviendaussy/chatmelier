@@ -2,6 +2,30 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.8.0+79] — 2026-10-08
+
+> La 1.7.0+78 n'a pas été publiée seule : la 79 la contient, avec en plus ce qui suit. Version affichée 1.8 (le récit du vin, la prise en main, la dégustation pour un ami et le plat à table sont des nouveautés à part entière).
+
+### 🍷 Ce qui change pour vous
+- **« À prix égal, je prendrais celui-ci »** (idée de Robin) : sur une carte, entre vins de même couleur au même prix, le sommelier désigne celui qui ira le mieux à vos goûts, s'il en devance vraiment un autre ; « % pour vous » remplace « % Match ».
+- **Ce que vous mangez compte à table** : chacun choisit son plat (viande rouge, poisson, volaille, fromage, pâtes, dessert), sur la page invité comme dans l'app ; il pèse pour un tiers dans son vote, ses goûts restent l'essentiel. L'hôte dit le sien en touchant son nom.
+- **L'histoire du vin, à la demande** : « Récit Audio » écrit le récit d'un vin quand vous le demandez, appuyé sur des pages que l'app cite (« Sources ») ; sans réseau, un récit simplifié qui ne dit que ce que la fiche et l'appellation garantissent. Lu par la voix du téléphone, dans la langue de l'app.
+- **Une dégustation notée pour vous par un ami arrive « à accepter »** : une notification (« Caro a noté avec vous Bardos Reserva 2020 »), Refuser ou Ajouter à mon journal ; rien n'entre dans votre journal sans votre accord, et une bouteille défectueuse ne touche pas à votre palais.
+- **Vos amis** : leur carte de goût montre enfin leur palais ; ils sont proposés dans la superposition du radar ; « Retirer » un proche de vos profils.
+- **Prise en main** : un guide d'une minute au premier lancement, sur de fausses bouteilles (« Passer » à chaque étape), puis « Le saviez-vous ? » à l'ouverture, une fonction à la fois, coupable d'un geste (Profil → Réglages).
+- **Chaque fiche dans votre langue** : une description ou des accords écrits dans une autre langue sont traduits, avec « Voir l'original ».
+- **Vos retours, corrigés** : la bulle du sommelier se lit comme une conversation ; sur la carte d'une bouteille, les années au niveau de l'état et la jauge sur toute la largeur ; le pays affiché, dans votre langue ; les vins bus jusqu'à la dernière bouteille quittent l'étagère ; « Vue rayonnage » sur une ligne ; statistiques plus lisibles ; « Simulateur de vieillissement » ; « Non cotée » expliqué ; formats 70 cl et 1 L ; la secousse demande un geste franc ; « Noter un vin bu dehors » ne redemande plus ce que vous venez de dire.
+- **À table** : plus de « vous en avez en cave » sous un vin d'un autre domaine du même producteur ; un échec pour rejoindre dit sa vraie cause (réseau, Wi-Fi d'hôtel, serveur).
+- **Hors ligne** : les polices sont dans l'app (plus de texte de secours, plus d'appel à Google à chaque lancement).
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Migrations 065 à 068* : `ad_revenus` et `admin_revenus_pub` (065, revenu réel `onPaidEvent`, remplace J7) ; `degustations_proposees`, `proposer_degustation`, `accepter_degustation`, `refuser_degustation` (066, remplace 025, à ne pas appliquer) ; `palais_d_un_ami` (067) ; `voix_naturelle` (éteinte), tarifs TTS dans `tarifs_ia`, `reglage_invalide` pour `voix_naturelle` et `taux_de_change` (068). Base jetable : 047 → 068 verts.
+- *taches-ia* : `traduire_fiche` (Flash-Lite, quota « traduction »), `recit_source` (Flash, réflexion basse, recherche Google, `sources` dans la réponse, quota « recit »), `voix` (Gemini TTS, WAV, quota « voix », seulement si `voix_naturelle`). Aucun nom de modèle TTS écrit en dur (K8).
+- *App* : `APrixEgal`, `GuestProfile.plat` et `FoodPairingEngine.scoreDeLAccord` (`MenuTableMatcherEngine.poidsDuPlat` = 0,3 ; un convive « juste mon prénom » qui dit son plat vote par son plat seul) ; `RecitDuVin`, `ServiceDuRecit`, `VoixDuRecit` (`audioplayers`) ; `SommelierStorytellerEngine` : mots entiers, prise de mousse et vendange tardive seulement quand l'appellation les impose, rien sur la vendange sans élevage sur la fiche, vins mutés et spiritueux sans actes 2 et 3, typicité du cépage principal ; `DegustationsPartagees` ; `PriseEnMainAuDemarrage`, `GuideDePriseEnMain`, `LeSaviezVous` ; `Pays` ; `MesureDesPubs.revenu`.
+- *Console* : capture chargée pas à pas avec la vraie cause d'un échec ; « Revenu réel (AdMob) » ; interrupteur `voix_naturelle`, taux de change.
+- *Page invité* (`web/table`) : le plat du convive (quatre langues), la cause d'un échec nommée et journalisée.
+- *Polices* : Inter et Playfair Display embarquées (OFL), `allowRuntimeFetching = false`.
+
 ## [v1.7.0+78] — 2026-10-08
 
 > La 1.6.0+77, construite le même jour, n'a pas été distribuée : la 1.7.0+78 la remplace, au contenu identique. La version affichée passe à 1.7 (l'italien, la carte du lieu, le compte obligatoire et l'export de vos données sont des nouveautés à part entière), le build à 78 (la 77 a déjà été envoyée chez Apple).

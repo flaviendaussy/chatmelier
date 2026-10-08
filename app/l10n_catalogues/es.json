@@ -8934,22 +8934,28 @@
   "ou": "lib/features/cellar/presentation/excel_import_screen.dart:372"
  },
  {
+  "fr": "Producteur inconnu",
+  "en": "Unknown producer",
+  "es": "Productor desconocido",
+  "ou": "lib/features/cellar/presentation/excel_import_screen.dart:445"
+ },
+ {
   "fr": "Import gratuit par lot de {freeBatchSize} vins (avec pause vidéo) ou instantané avec Privilège.",
   "en": "Free import in batches of {freeBatchSize} wines (with a video break), or instant with Privilege.",
   "es": "Importación gratuita por lotes de {freeBatchSize} vinos (con pausa de vídeo) o instantánea con Privilegio.",
-  "ou": "lib/features/cellar/presentation/excel_import_screen.dart:523"
+  "ou": "lib/features/cellar/presentation/excel_import_screen.dart:526"
  },
  {
   "fr": "Importer le 1er lot ({freeBatchSize} vins)",
   "en": "Import the first batch ({freeBatchSize} wines)",
   "es": "Importar el primer lote ({freeBatchSize} vinos)",
-  "ou": "lib/features/cellar/presentation/excel_import_screen.dart:551"
+  "ou": "lib/features/cellar/presentation/excel_import_screen.dart:554"
  },
  {
   "fr": "Importer les {selectedCount} vins",
   "en": "Import the {selectedCount} wines",
   "es": "Importar los {selectedCount} vinos",
-  "ou": "lib/features/cellar/presentation/excel_import_screen.dart:552"
+  "ou": "lib/features/cellar/presentation/excel_import_screen.dart:555"
  },
  {
   "fr": "✨ Meuble analysé : {columns}x{rows} ({layout_name})",
@@ -9321,307 +9327,307 @@
   "fr": "🔔 Le vin est parfaitement aéré et prêt pour la dégustation !",
   "en": "🔔 The wine has breathed perfectly and is ready to taste!",
   "es": "🔔 ¡El vino está perfectamente aireado y listo para la cata!",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:180"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:185"
  },
  {
   "fr": "Robe : {selectedAppearance}",
   "en": "Colour: {selectedAppearance}",
   "es": "Color: {selectedAppearance}",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:213"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:218"
  },
  {
   "fr": "Nez : {v1}",
   "en": "Nose: {v1}",
   "es": "Nariz: {v1}",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:216"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:221"
  },
  {
   "fr": "Bouche : {selectedStructure} (Longueur : {caudalies} caudalies)",
   "en": "Palate: {selectedStructure} (length: {caudalies} seconds)",
   "es": "Boca: {selectedStructure} (persistencia: {caudalies} caudalías)",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:219"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:224"
  },
  {
   "fr": "Impression : {v1}",
   "en": "Impression: {v1}",
   "es": "Impresión: {v1}",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:222"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:227"
  },
  {
   "fr": "Dégustation Sommelier à Table",
   "en": "Sommelier tasting at the table",
   "es": "Cata de sumiller en la mesa",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:238"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:244"
  },
  {
   "fr": "✨ Fiche de dégustation enregistrée dans votre Journal !",
   "en": "✨ Tasting note saved in your journal!",
   "es": "✨ ¡Ficha de cata guardada en tu diario!",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:302"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:313"
  },
  {
   "fr": "Sommelier à Table",
   "en": "Table Sommelier",
   "es": "Sumiller en la mesa",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:383"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:394"
  },
  {
   "fr": "Service du vin",
   "en": "Wine service",
   "es": "Servicio del vino",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:390"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:401"
  },
  {
   "fr": "Minuteur & Aération",
   "en": "Timer & Aeration",
   "es": "Temporizador y aireación",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:416"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:427"
  },
  {
   "fr": "Dégustation Guidée",
   "en": "Guided Tasting",
   "es": "Cata guiada",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:417"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:428"
  },
  {
   "fr": "En cours d'aération",
   "en": "Aerating in progress",
   "es": "Aireando",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:456"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:467"
  },
  {
   "fr": "En attente",
   "en": "Waiting",
   "es": "En espera",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:456"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:467"
  },
  {
   "fr": "Démarrer Minuteur",
   "en": "Start Timer",
   "es": "Iniciar el temporizador",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:485"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:496"
  },
  {
   "fr": "Chrono actif en direct sur votre écran de verrouillage",
   "en": "Live timer active on your lock screen",
   "es": "Cronómetro activo en directo en tu pantalla de bloqueo",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:508"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:519"
  },
  {
   "fr": "Conseils de Service Idéal",
   "en": "Ideal Service Advice",
   "es": "Consejos para un servicio ideal",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:541"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:552"
  },
  {
   "fr": "1. 👁️ L'Œil (Robe & Reflets)",
   "en": "1. 👁️ Sight (Appearance & Hue)",
   "es": "1. 👁️ La vista (color y reflejos)",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:567"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:578"
  },
  {
   "fr": "2. 👃 Le Nez (Familles Aromatiques)",
   "en": "2. 👃 Nose (Aroma Families)",
   "es": "2. 👃 La nariz (familias aromáticas)",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:591"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:602"
  },
  {
   "fr": "3. 👄 La Bouche & Texture",
   "en": "3. 👄 Palate & Texture",
   "es": "3. 👄 La boca y la textura",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:619"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:630"
  },
  {
   "fr": "Longueur en bouche : ",
   "en": "Palate length: ",
   "es": "Persistencia en boca: ",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:645"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:656"
  },
  {
   "fr": "caudalies (secondes)",
   "en": "caudalies (seconds)",
   "es": "caudalías (segundos)",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:646"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:657"
  },
  {
   "fr": "Note globale :",
   "en": "Overall rating:",
   "es": "Nota global:",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:667"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:678"
  },
  {
   "fr": "Impression personnelle, accord du repas...",
   "en": "Personal impression, food pairing...",
   "es": "Impresión personal, maridaje de la comida...",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:701"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:715"
  },
  {
   "fr": "Enregistrer dans le Journal",
   "en": "Save to Journal",
   "es": "Guardar en el diario",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:726"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:740"
  },
  {
   "fr": "Rubis brillant",
   "en": "Bright ruby",
   "es": "Rubí brillante",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:77"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:82"
  },
  {
   "fr": "Grenat profond",
   "en": "Deep garnet",
   "es": "Granate profundo",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:78"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:83"
  },
  {
   "fr": "Pourpre intense",
   "en": "Intense purple",
   "es": "Púrpura intenso",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:79"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:84"
  },
  {
   "fr": "Tuilé / Évolué",
   "en": "Tawny / Evolved",
   "es": "Teja / evolucionado",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:80"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:85"
  },
  {
   "fr": "Doré éclatant",
   "en": "Radiant gold",
   "es": "Dorado brillante",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:81"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:86"
  },
  {
   "fr": "Or pâle",
   "en": "Pale gold",
   "es": "Oro pálido",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:82"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:87"
  },
  {
   "fr": "Paille",
   "en": "Straw yellow",
   "es": "Pajizo",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:83"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:88"
  },
  {
   "fr": "Robe ambrée",
   "en": "Amber hue",
   "es": "Ambarino",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:84"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:89"
  },
  {
   "fr": "Rosé saumoné",
   "en": "Salmon rosé",
   "es": "Rosado salmón",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:85"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:90"
  },
  {
   "fr": "🍒 Fruits rouges",
   "en": "🍒 Red berries",
   "es": "🍒 Frutos rojos",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:89"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:94"
  },
  {
   "fr": "🫐 Fruits noirs",
   "en": "🫐 Black fruit",
   "es": "🫐 Frutos negros",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:90"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:95"
  },
  {
   "fr": "🪵 Boisé / Chêne",
   "en": "🪵 Oak / Vanilla",
   "es": "🪵 Madera / roble",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:91"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:96"
  },
  {
   "fr": "🌲 Sous-bois / Humus",
   "en": "🌲 Forest floor / Earth",
   "es": "🌲 Sotobosque / humus",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:92"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:97"
  },
  {
   "fr": "🪨 Minéral / Craie",
   "en": "🪨 Mineral / Chalk",
   "es": "🪨 Mineral / tiza",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:93"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:98"
  },
  {
   "fr": "🌸 Floral / Violette",
   "en": "🌸 Floral / Violet",
   "es": "🌸 Floral / violeta",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:94"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:99"
  },
  {
   "fr": "🌿 Végétal noble",
   "en": "🌿 Noble herbaceous",
   "es": "🌿 Vegetal noble",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:95"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:100"
  },
  {
   "fr": "☕ Cacao / Torréfaction",
   "en": "☕ Cocoa / Roasted",
   "es": "☕ Cacao / tostado",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:96"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:101"
  },
  {
   "fr": "🍯 Miel / Cire",
   "en": "🍯 Honey / Beeswax",
   "es": "🍯 Miel / cera",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:97"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:102"
  },
  {
   "fr": "🧈 Beurre / Brioche",
   "en": "🧈 Butter / Brioche",
   "es": "🧈 Mantequilla / brioche",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:98"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:103"
  },
  {
   "fr": "🌶️ Poivre / Épices",
   "en": "🌶️ Pepper / Spice",
   "es": "🌶️ Pimienta / especias",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:99"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:104"
  },
  {
   "fr": "🍋 Agrumes / Zeste",
   "en": "🍋 Citrus / Zest",
   "es": "🍋 Cítricos / piel",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:100"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:105"
  },
  {
   "fr": "Tanins soyeux et fondus",
   "en": "Silky, melted tannins",
   "es": "Taninos sedosos y fundidos",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:104"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:109"
  },
  {
   "fr": "Tanins fermes et structurés",
   "en": "Firm, structured tannins",
   "es": "Taninos firmes y estructurados",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:105"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:110"
  },
  {
   "fr": "Grande rondeur et gras",
   "en": "Great roundness & richness",
   "es": "Gran redondez y untuosidad",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:106"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:111"
  },
  {
   "fr": "Vivacité et fraîcheur saline",
   "en": "Vibrant acidity & saline finish",
   "es": "Viveza y frescor salino",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:107"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:112"
  },
  {
   "fr": "Équilibre parfait",
   "en": "Perfect balance",
   "es": "Equilibrio perfecto",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:108"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:113"
  },
  {
   "fr": "Légèreté et fluidité",
   "en": "Lightness & easy drinking",
   "es": "Ligereza y fluidez",
-  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:109"
+  "ou": "lib/features/cellar/presentation/sommelier_table_mode_sheet.dart:114"
  },
  {
   "fr": "Niveau de la bouteille",
@@ -9687,109 +9693,121 @@
   "fr": "Relief sombre",
   "en": "Dark relief",
   "es": "Relieve oscuro",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:166"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:182"
  },
  {
   "fr": "Relief",
   "en": "Relief",
   "es": "Relieve",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:170"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:186"
+ },
+ {
+  "fr": "Ce terroir n'est pas encore dans notre atlas.",
+  "en": "This terroir is not in our atlas yet.",
+  "es": "Este terruño aún no está en nuestro atlas.",
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:266"
+ },
+ {
+  "fr": "{lieu} : ce terroir n'est pas encore dans notre atlas.",
+  "en": "{lieu}: this terroir is not in our atlas yet.",
+  "es": "{lieu}: este terruño aún no está en nuestro atlas.",
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:267"
  },
  {
   "fr": "Zoom avant",
   "en": "Zoom in",
   "es": "Acercar",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:410"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:467"
  },
  {
   "fr": "Zoom arrière",
   "en": "Zoom out",
   "es": "Alejar",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:416"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:473"
  },
  {
   "fr": "Recadrer sur le terroir",
   "en": "Centre on the terroir",
   "es": "Centrar en el terruño",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:422"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:479"
  },
  {
   "fr": "Masquer hexagones",
   "en": "Hide hexagons",
   "es": "Ocultar hexágonos",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:428"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:485"
  },
  {
   "fr": "Afficher hexagones",
   "en": "Show hexagons",
   "es": "Mostrar hexágonos",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:428"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:485"
  },
  {
   "fr": "Revenir sur {nomAffiche}",
   "en": "Back to {nomAffiche}",
   "es": "Volver a {nomAffiche}",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:487"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:544"
  },
  {
   "fr": "Sol",
   "en": "Soil",
   "es": "Suelo",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:581"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:638"
  },
  {
   "fr": "Climat",
   "en": "Climate",
   "es": "Clima",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:587"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:644"
  },
  {
   "fr": "{label} : ",
   "en": "{label}: ",
   "es": "{label}: ",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:785"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:842"
  },
  {
   "fr": "Afficher/Masquer Hexagones Terroir",
   "en": "Show/hide terroir hexagons",
   "es": "Mostrar/ocultar los hexágonos del terruño",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:873"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:930"
  },
  {
   "fr": "Fond de carte",
   "en": "Base map",
   "es": "Mapa base",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:882"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:939"
  },
  {
   "fr": "⛰️ Relief Topographique",
   "en": "⛰️ Topographic relief",
   "es": "⛰️ Relieve topográfico",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:896"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:953"
  },
  {
   "fr": "🪨 Sol",
   "en": "🪨 Soil",
   "es": "🪨 Suelo",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1026"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1083"
  },
  {
   "fr": "☀️ Climat",
   "en": "☀️ Climate",
   "es": "☀️ Clima",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1027"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1084"
  },
  {
   "fr": "📐 Relief & Exposition",
   "en": "📐 Relief & aspect",
   "es": "📐 Relieve y orientación",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1028"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1085"
  },
  {
   "fr": "🍇 Cépages Phares",
   "en": "🍇 Signature grapes",
   "es": "🍇 Variedades emblemáticas",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1029"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1086"
  },
  {
   "fr": "Veuillez saisir une année valide (ex: 2018)",
@@ -11853,31 +11871,31 @@
   "fr": "Dégustation guidée. Arômes : {v1}",
   "en": "Guided tasting. Aromas: {v1}",
   "es": "Cata guiada. Aromas: {v1}",
-  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:291"
+  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:310"
  },
  {
   "fr": "Dégustation guidée.",
   "en": "Guided tasting.",
   "es": "Cata guiada.",
-  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:292"
+  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:311"
  },
  {
   "fr": "Dégustation guidée",
   "en": "Guided tasting",
   "es": "Cata guiada",
-  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:297"
+  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:316"
  },
  {
   "fr": "Dégustation partagée. Arômes : {v1}",
   "en": "Shared tasting. Aromas: {v1}",
   "es": "Cata compartida. Aromas: {v1}",
-  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:403"
+  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:422"
  },
  {
   "fr": "Dégustation partagée.",
   "en": "Shared tasting.",
   "es": "Cata compartida.",
-  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:404"
+  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:423"
  },
  {
   "fr": "Cépages & Concentration",
@@ -13989,61 +14007,61 @@
   "fr": "Bouteille défectueuse : le palais de {name} n'a pas été modifié.",
   "en": "Faulty bottle: {name}'s palate was not changed.",
   "es": "Botella defectuosa: el paladar de {name} no se ha modificado.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2030"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2008"
  },
  {
   "fr": "Vous l'avez bu avec un plat ?",
   "en": "Did you have it with food?",
   "es": "¿Lo has bebido con un plato?",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2325"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2303"
  },
  {
   "fr": "Oui, avec un plat",
   "en": "Yes, with food",
   "es": "Sí, con un plato",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2331"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2309"
  },
  {
   "fr": "Non, seul",
   "en": "No, on its own",
   "es": "No, solo",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2333"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2311"
  },
  {
   "fr": "Quel plat ? (facultatif)",
   "en": "Which dish? (optional)",
   "es": "¿Qué plato? (opcional)",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2346"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2324"
  },
  {
   "fr": "L'accord avec « {plat} »",
   "en": "The pairing with \"{plat}\"",
   "es": "El maridaje con «{plat}»",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2353"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2331"
  },
  {
   "fr": "Domaine",
   "en": "Producer",
   "es": "Productor",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2763"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2741"
  },
  {
   "fr": "Cépage",
   "en": "Grape",
   "es": "Variedad",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2792"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2770"
  },
  {
   "fr": "Prix",
   "en": "Price",
   "es": "Precio",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2808"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2786"
  },
  {
   "fr": "{v1} sélectionné(s)",
   "en": "{v1} selected",
   "es": "{v1} seleccionado(s)",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3136"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3114"
  },
  {
   "fr": "Le sommelier n'a pas réussi à lire cette carte : sa réponse était incomplète. Vos photos sont gardées : réessayez.",

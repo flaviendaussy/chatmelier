@@ -75,7 +75,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
           name: widget.entry.wineName ?? tr('Vin dégusté', 'Tasted wine'),
           vintage: widget.entry.vintage,
           region: widget.entry.region ?? '',
-          country: widget.entry.country ?? 'France',
+          country: widget.entry.country ?? '',
           appellation: widget.entry.appellation,
           type: widget.entry.wineType ?? 'red',
         );
@@ -195,16 +195,16 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
     }
   }
 
-  String _formatRatingScore(double? rating) {
-    if (rating == null) return '-';
-    // If rating was previously stored on a /5 scale (e.g. 4.5), normalize to /10
-    final val = (rating <= 5.0 && rating > 0) ? rating * 2 : rating;
-    return val % 1 == 0 ? '${val.toInt()} / 10' : '${val.toStringAsFixed(1)} / 10';
+  /// [note] est déjà sur 10 (`TastingEntry.displayRating`, qui lit `rating_scale`). La
+  /// fiche doublait encore toute note ≤ 5 : un 3,5/10 décevant s'y lisait 7/10 (V2 · S2).
+  String _formatRatingScore(double? note) {
+    if (note == null) return '-';
+    return note % 1 == 0 ? '${note.toInt()} / 10' : '${note.toStringAsFixed(1)} / 10';
   }
 
-  String _getSommelierVerdict(double? rating, {bool isFr = true}) {
-    if (rating == null) return trSi(isFr, 'Dégusté', 'Tasted');
-    final val = (rating <= 5.0 && rating > 0) ? rating * 2 : rating;
+  String _getSommelierVerdict(double? note, {bool isFr = true}) {
+    if (note == null) return trSi(isFr, 'Dégusté', 'Tasted');
+    final val = note;
     if (val >= 9.5) return trSi(isFr, 'Exceptionnel 🏆', 'Exceptional 🏆');
     if (val >= 8.5) return trSi(isFr, 'Remarquable ✨', 'Remarkable ✨');
     if (val >= 7.5) return trSi(isFr, 'Très bon vin 🍷', 'Very good wine 🍷');
@@ -215,10 +215,10 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
   void _shareTasting({bool isFr = true}) {
     final entry = widget.entry;
     final wineTitle = '${entry.wineName ?? trSi(isFr, 'Vin', 'Wine')}${entry.vintage != null ? " ${entry.vintage}" : ""}';
-    final ratingStr = _formatRatingScore(entry.rating);
+    final ratingStr = _formatRatingScore(entry.displayRating);
     final buffer = StringBuffer();
     buffer.writeln(trSi(isFr, '🍷 Souvenir de Dégustation : {wineTitle}', '🍷 Tasting Memory: {wineTitle}', {'wineTitle': wineTitle}));
-    buffer.writeln(trSi(isFr, '⭐ Note : {ratingStr} ({v1})', '⭐ Rating: {ratingStr} ({v1})', {'ratingStr': ratingStr, 'v1': _getSommelierVerdict(entry.rating, isFr: isFr)}));
+    buffer.writeln(trSi(isFr, '⭐ Note : {ratingStr} ({v1})', '⭐ Rating: {ratingStr} ({v1})', {'ratingStr': ratingStr, 'v1': _getSommelierVerdict(entry.displayRating, isFr: isFr)}));
     if (entry.locationName != null && entry.locationName!.isNotEmpty) {
       buffer.writeln(trSi(isFr, '📍 Lieu : {locationName}', '📍 Location: {locationName}', {'locationName': entry.locationName}));
     }
@@ -249,8 +249,8 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
         ? '${entry.vintage}'
         : (trSi(isFr, 'Non Millésimé (NM)', 'Non-Vintage (NV)'));
     final wineType = entry.wineType ?? wine?.type ?? 'red';
-    final ratingStr = _formatRatingScore(entry.rating);
-    final verdict = _getSommelierVerdict(entry.rating, isFr: isFr);
+    final ratingStr = _formatRatingScore(entry.displayRating);
+    final verdict = _getSommelierVerdict(entry.displayRating, isFr: isFr);
     final dateFormatted = DateFormat(
       trSi(isFr, 'EEEE d MMMM yyyy à HH:mm', 'EEEE, MMMM d, yyyy at h:mm a'),
       trSi(isFr, 'fr_FR', 'en_US'),
@@ -622,13 +622,13 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                                 name: entry.wineName ?? tr('Vin', 'Wine'),
                                 vintage: entry.vintage,
                                 region: entry.region ?? '',
-                                country: entry.country ?? 'France',
+                                country: entry.country ?? '',
                                 appellation: entry.appellation,
                                 type: entry.wineType ?? 'red',
                               );
                               final report = TastingPedagogyEngine.analyze(
                                 wine: wineObj,
-                                userRating: entry.rating ?? 8.0,
+                                userRating: entry.displayRating ?? 0,
                                 userComment: entry.tastingNotes,
                               );
                               TastingPedagogySheet.show(context, report: report);
@@ -765,7 +765,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
                       ),
                       const SizedBox(height: 10),
                       TerroirMapView(
-                        country: wine.country.isNotEmpty ? wine.country : 'France',
+                        country: wine.country,
                         region: wine.region,
                         subRegion: wine.subRegion,
                         appellation: wine.appellation,

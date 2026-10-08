@@ -232,6 +232,55 @@ class TerroirGeoResolver {
     String? wineType,
     String? wineName,
     String? producer,
+  }) =>
+      _resoudre(
+        country: country,
+        region: region,
+        subRegion: subRegion,
+        appellation: appellation,
+        isSpirit: isSpirit,
+        wineType: wineType,
+        wineName: wineName,
+        producer: producer,
+        avecRepli: true,
+      )!;
+
+  /// Le terroir du vin, seulement s'il est vraiment reconnu : appellation, sous-région,
+  /// région ou nom. Sans correspondance, `null` (V2.4 · R1, rien d'affirmé sans preuve) :
+  /// [resolve] retombait sur la première appellation du pays, puis sur Pauillac, et la
+  /// fiche d'un vin marocain montrait le sol et le climat de Pauillac.
+  static TerroirGeoProfile? trouver({
+    required String country,
+    required String region,
+    String? subRegion,
+    String? appellation,
+    bool isSpirit = false,
+    String? wineType,
+    String? wineName,
+    String? producer,
+  }) =>
+      _resoudre(
+        country: country,
+        region: region,
+        subRegion: subRegion,
+        appellation: appellation,
+        isSpirit: isSpirit,
+        wineType: wineType,
+        wineName: wineName,
+        producer: producer,
+        avecRepli: false,
+      );
+
+  static TerroirGeoProfile? _resoudre({
+    required String country,
+    required String region,
+    String? subRegion,
+    String? appellation,
+    bool isSpirit = false,
+    String? wineType,
+    String? wineName,
+    String? producer,
+    required bool avecRepli,
   }) {
     final normApp = normalize(appellation ?? '');
     final normSub = normalize(subRegion ?? '');
@@ -295,6 +344,8 @@ class TerroirGeoResolver {
           }
         }
       }
+
+      if (!avecRepli) return null;
 
       // 5. Spirit Country & Regional Fallback (NEVER Pauillac!)
       if (normCtry == 'france' || normCtry == 'fr') {
@@ -387,6 +438,8 @@ class TerroirGeoResolver {
         }
       }
     }
+
+    if (!avecRepli) return null;
 
     // 5. Country Fallback
     for (final profile in wineProfiles) {

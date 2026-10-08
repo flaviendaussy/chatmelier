@@ -50,6 +50,11 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
   String? _selectedStructure;
   int _caudalies = 6;
   double _userRating = 8.5;
+  // Plus de note inventée (V2.1 · 1.4, étendu ici le 08/10) : le curseur part de 8,5 pour
+  // la main, mais tant qu'on n'y a pas touché la dégustation part sans note et n'apprend
+  // rien au palais.
+  bool _noteTouchee = false;
+  double? get _noteSaisie => _noteTouchee ? _userRating : null;
   final _commentController = TextEditingController();
   bool _isSaving = false;
 
@@ -233,7 +238,8 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
             'wine_id': wine.id,
             'bottle_id': widget.bottle.id,
             'user_id': userId,
-            'rating': _userRating,
+            'rating': _noteSaisie,
+            'rating_scale': 10,
             'tasting_notes': notesSummary.toString(),
             'occasion': tr('Dégustation Sommelier à Table', 'Sommelier tasting at the table'),
             'consumed_at': DateTime.now().toIso8601String(),
@@ -261,7 +267,8 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
             'region': wine.region,
             'country': wine.country,
             'appellation': wine.appellation,
-            'rating': _userRating,
+            'rating': _noteSaisie,
+            'rating_scale': 10,
             'tasting_notes': notesSummary.toString(),
             'occasion': tr('Dégustation Sommelier à Table', 'Sommelier tasting at the table'),
             'quantity': 0,
@@ -272,17 +279,21 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
 
       ref.invalidate(tastingLogProvider);
 
-      try {
-        final tasteService = ref.read(tasteProfileServiceProvider);
-        final primaryProfile = await tasteService.getPrimaryProfile();
-        await tasteService.recordTastingExperience(
-          nameOrId: primaryProfile.id,
-          wine: wine,
-          rating: _userRating,
-          tastingId: tastingId,
-        );
-        ref.invalidate(tasteProfilesListProvider);
-      } catch (_) {}
+      // Une dégustation sans note n'apprend rien au palais.
+      final note = _noteSaisie;
+      if (note != null) {
+        try {
+          final tasteService = ref.read(tasteProfileServiceProvider);
+          final primaryProfile = await tasteService.getPrimaryProfile();
+          await tasteService.recordTastingExperience(
+            nameOrId: primaryProfile.id,
+            wine: wine,
+            rating: note,
+            tastingId: tastingId,
+          );
+          ref.invalidate(tasteProfilesListProvider);
+        } catch (_) {}
+      }
 
       final report = TastingPedagogyEngine.analyze(
         wine: wine,
@@ -290,7 +301,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
         userAromas: _selectedAromas.toList(),
         userStructure: _selectedStructure,
         userCaudalies: _caudalies,
-        userRating: _userRating,
+        userRating: _noteSaisie ?? 0,
         userComment: _commentController.text.trim(),
       );
 
@@ -672,7 +683,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              '${_userRating.toStringAsFixed(1)} / 10',
+                              _noteTouchee ? '${_userRating.toStringAsFixed(1)} / 10' : '— / 10',
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                           ),
@@ -687,7 +698,10 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
                         label: '${_userRating.toStringAsFixed(1)} / 10',
                         onChanged: (val) {
                           HapticFeedback.selectionClick();
-                          setState(() => _userRating = val);
+                          setState(() {
+                            _userRating = val;
+                            _noteTouchee = true;
+                          });
                         },
                       ),
 

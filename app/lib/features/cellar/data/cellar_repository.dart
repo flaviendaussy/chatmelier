@@ -456,8 +456,10 @@ class CellarRepository {
         'vintage': vintage,
         'producer': producer,
         'wine_type': wineType,
-        'country': country ?? 'France',
-        'region': region ?? 'Bordeaux',
+        // Ni pays ni région inventés (V2.4 · R1) : la relecture laissait déjà vide ce que le
+        // scan ne savait pas, puis l'enregistrement écrivait « France » et « Bordeaux ».
+        'country': country,
+        'region': region,
         if (subRegion != null) 'sub_region': subRegion,
         if (appellation != null) 'appellation': appellation,
         if (classification != null) 'classification': classification,
@@ -526,8 +528,8 @@ class CellarRepository {
         producer: producer,
         vintage: vintage,
         type: wineType,
-        country: country ?? 'France',
-        region: region ?? 'Bordeaux',
+        country: country ?? '',
+        region: region ?? '',
         subRegion: subRegion,
         appellation: appellation,
         classification: classification,

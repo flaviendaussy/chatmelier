@@ -96,6 +96,10 @@ class _TerroirMapViewState extends State<TerroirMapView> {
   bool _cibleHorsChamp = false;
 
   late TerroirGeoProfile _profile;
+
+  /// Faux quand le terroir n'est pas dans l'atlas : la carte le dit au lieu de montrer
+  /// une appellation approchante (V2.4 · R1).
+  bool _repertorie = true;
   late List<TerroirHexPolygon> _hexagons;
   late List<LatLng> _appellationBoundary;
 
@@ -117,12 +121,12 @@ class _TerroirMapViewState extends State<TerroirMapView> {
         oldWidget.wineName != widget.wineName ||
         oldWidget.producer != widget.producer) {
       _resolveTerroir();
-      _mapController.move(_profile.center, _profile.defaultZoom);
+      if (_repertorie) _mapController.move(_profile.center, _profile.defaultZoom);
     }
   }
 
   void _resolveTerroir() {
-    _profile = TerroirGeoResolver.resolve(
+    final trouve = TerroirGeoResolver.trouver(
       country: widget.country,
       region: widget.region,
       subRegion: widget.subRegion,
@@ -132,6 +136,18 @@ class _TerroirMapViewState extends State<TerroirMapView> {
       wineName: widget.wineName,
       producer: widget.producer,
     );
+    _repertorie = trouve != null;
+    _profile = trouve ??
+        TerroirGeoResolver.resolve(
+          country: widget.country,
+          region: widget.region,
+          subRegion: widget.subRegion,
+          appellation: widget.appellation,
+          isSpirit: widget.isSpirit,
+          wineType: widget.wineType,
+          wineName: widget.wineName,
+          producer: widget.producer,
+        );
     _hexagons = _profile.generateHexagons();
     _appellationBoundary = _profile.generateAppellationBoundary();
   }
@@ -218,6 +234,47 @@ class _TerroirMapViewState extends State<TerroirMapView> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_repertorie) return _nonRepertorie(context);
+    return _carte(context);
+  }
+
+  /// Un terroir hors de l'atlas : on le nomme tel que l'étiquette le donne, sans rien en
+  /// dire de plus.
+  Widget _nonRepertorie(BuildContext context) {
+    final theme = Theme.of(context);
+    final lieu = [widget.appellation, widget.subRegion, widget.region, widget.country]
+        .whereType<String>()
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toSet()
+        .join(', ');
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.travel_explore, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              lieu.isEmpty
+                  ? tr('Ce terroir n\'est pas encore dans notre atlas.', 'This terroir is not in our atlas yet.')
+                  : tr('{lieu} : ce terroir n\'est pas encore dans notre atlas.',
+                      '{lieu}: this terroir is not in our atlas yet.', {'lieu': lieu}),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _carte(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 

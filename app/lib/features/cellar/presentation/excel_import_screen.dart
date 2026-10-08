@@ -441,7 +441,10 @@ class _ExcelImportScreenState extends ConsumerState<ExcelImportScreen> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          '${wine.producer ?? "Domaine inconnu"} • ${wine.region ?? "France"}',
+                                          [
+                                            wine.producer ?? tr('Producteur inconnu', 'Unknown producer'),
+                                            if ((wine.region ?? wine.country ?? '').isNotEmpty) wine.region ?? wine.country!,
+                                          ].join(' • '),
                                           style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                                         ),
                                         const SizedBox(height: 8),

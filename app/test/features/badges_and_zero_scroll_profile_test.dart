@@ -699,7 +699,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Mes Amis & Cartes des Goûts'), findsOneWidget);
-      expect(find.textContaining('Exporter ma Cave'), findsOneWidget);
+      expect(find.textContaining('Exporter ma cave'), findsOneWidget);
       // « Carte à Gratter des Terroirs » et « Journal des versions » ont été retirées
       // de l'app : scratchcard parqué, changelog supprimé — voir HANDOVER.md.
 

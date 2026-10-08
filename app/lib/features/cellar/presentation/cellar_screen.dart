@@ -773,8 +773,39 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
               ),
             ),
 
-          // Bottle grid, list or empty state
-          if (cellarsList.isEmpty)
+          // Bottle grid, list or empty state.
+          // Tant que la liste des caves n'est pas arrivée (démarrage, réseau lent ou coupé),
+          // ce n'est pas « aucune cave » : l'accueil « Créer ma première cave » s'affichait
+          // alors quelques secondes chez quelqu'un qui en a déjà, de quoi en créer une en double.
+          if (!cellarsAsync.hasValue)
+            Expanded(
+              child: cellarsAsync.hasError
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(28),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.cloud_off_outlined, size: 48, color: Colors.grey),
+                            const SizedBox(height: 12),
+                            Text(
+                              trSi(isFr, 'Vos caves n\'ont pas pu être chargées. Vérifiez la connexion.',
+                                  'Your cellars could not be loaded. Check your connection.'),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              icon: const Icon(Icons.refresh),
+                              label: Text(trSi(isFr, 'Réessayer', 'Try again')),
+                              onPressed: () => ref.invalidate(userCellarsProvider),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : const Center(child: CircularProgressIndicator()),
+            )
+          else if (cellarsList.isEmpty)
             Expanded(
               child: Center(
                 child: Padding(

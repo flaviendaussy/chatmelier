@@ -129,86 +129,102 @@ class BottleCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Top-Left: Wine Type Badge
-                if (wine != null)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: WineTypeBadge(type: wine.type),
-                  ),
-                // Top-Right: Apogée status capsule (for wines) or Fill level capsule (for spirits & fortified)
+                // En haut : la couleur à gauche, l'apogée (ou le niveau) à droite, dans une même
+                // rangée : un libellé long (« In invecchiamento », « Demasiado joven ») s'abrège au
+                // lieu de passer sous le badge de couleur.
                 Positioned(
                   top: 8,
+                  left: 8,
                   right: 8,
-                  child: (bottle.tracksFillLevel || (wine?.tracksFillLevel ?? false))
-                      ? Builder(
-                          builder: (context) {
-                            final fillLevel = bottle.fillLevel;
-                            final fillColor = fillLevel <= 20
-                                ? Colors.redAccent
-                                : fillLevel <= 50
-                                    ? Colors.orangeAccent
-                                    : Colors.amber.shade400;
-                            final borderColor = fillLevel <= 20
-                                ? Colors.red.shade700
-                                : fillLevel <= 50
-                                    ? Colors.orange.shade700
-                                    : Colors.amber.shade700;
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.75),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: borderColor.withValues(alpha: 0.85), width: 1),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.local_bar, size: 10, color: fillColor),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    trSi(isFr, '{fillLevel}% plein', '{fillLevel}% full', {'fillLevel': fillLevel}),
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: fillColor,
-                                    ),
+                  child: Row(
+                    children: [
+                      if (wine != null) WineTypeBadge(type: wine.type),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: (bottle.tracksFillLevel || (wine?.tracksFillLevel ?? false))
+                              ? Builder(
+                                  builder: (context) {
+                                    final fillLevel = bottle.fillLevel;
+                                    final fillColor = fillLevel <= 20
+                                        ? Colors.redAccent
+                                        : fillLevel <= 50
+                                            ? Colors.orangeAccent
+                                            : Colors.amber.shade400;
+                                    final borderColor = fillLevel <= 20
+                                        ? Colors.red.shade700
+                                        : fillLevel <= 50
+                                            ? Colors.orange.shade700
+                                            : Colors.amber.shade700;
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.75),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: borderColor.withValues(alpha: 0.85), width: 1),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.local_bar, size: 10, color: fillColor),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              trSi(isFr, '{fillLevel}% plein', '{fillLevel}% full',
+                                                  {'fillLevel': fillLevel}),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 10.5,
+                                                fontWeight: FontWeight.bold,
+                                                color: fillColor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.65),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: maturityColor.withValues(alpha: 0.8), width: 1),
                                   ),
-                                ],
-                              ),
-                            );
-                          },
-                        )
-                      : Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.65),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: maturityColor.withValues(alpha: 0.8), width: 1),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: maturityColor,
-                                  shape: BoxShape.circle,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: BoxDecoration(
+                                          color: maturityColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text(
+                                          maturityText,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: maturityColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                maturityText,
-                                style: TextStyle(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: maturityColor,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
+                      ),
+                    ],
+                  ),
                 ),
                 // Bottom-Left: Favorite Heart Toggle Button
                 Positioned(

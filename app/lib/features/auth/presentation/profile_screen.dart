@@ -1447,15 +1447,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           leading: const Icon(Icons.notifications_active_outlined, color: Color(0xFF8B1E3F)),
           title: Text(trSi(isFr, 'Notifications & Alertes Système 🔔', 'Notifications & System Alerts 🔔'), style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Text(
-            '${ref.watch(notificationPreferencesProvider).activeCount} ${trSi(isFr, "alerte(s) active(s) • Dégustations, apogées, caves", "active alert(s) • Tastings, aging peak, cellars")}',
+            _alertesActives(ref.watch(notificationPreferencesProvider).activeCount, isFr),
             style: const TextStyle(fontSize: 12),
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => NotificationSettingsSheet.show(context),
         ),
-        const Divider(height: 28),
 
-        // RGPD Consent options
+        // RGPD Consent options (le séparateur vient avec : sans elles, aucun espace vide)
         if (_showPrivacyOptions) ...[
           const Divider(height: 28),
           ListTile(
@@ -1469,6 +1468,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ],
     );
+  }
+
+  /// « 1 alerte active », « 3 alertes actives » : en français, zéro est au singulier.
+  static String _alertesActives(int n, bool isFr) {
+    final un = isFr ? n <= 1 : n == 1;
+    return un
+        ? trSi(isFr, '{n} alerte active • Dégustations, apogées, caves', '{n} active alert • Tastings, aging peaks, cellars', {'n': n})
+        : trSi(isFr, '{n} alertes actives • Dégustations, apogées, caves', '{n} active alerts • Tastings, aging peaks, cellars', {'n': n});
   }
 
   // =========================================================================
@@ -1505,8 +1512,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.file_download_outlined, color: Color(0xFF2E7D32)),
-          title: Text(trSi(isFr, 'Exporter ma Cave & Rapport d\'Assurance', 'Export My Cellar & Insurance Report'), style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(trSi(isFr, 'Excel / CSV & Certificat de valeur patrimoniale', 'Excel / CSV & Asset valuation certificate'), style: const TextStyle(fontSize: 12)),
+          title: Text(trSi(isFr, 'Exporter ma cave', 'Export my cellar'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(trSi(isFr, 'Excel / CSV, et un inventaire à valeurs indicatives', 'Excel / CSV, and an inventory with indicative values'), style: const TextStyle(fontSize: 12)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
             final cellars = ref.read(userCellarsProvider).value ?? [];

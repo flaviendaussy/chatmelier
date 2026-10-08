@@ -84,6 +84,13 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       _cartesProches = resultats[1] as List<CarteProche>;
       _chercheLesLieux = false;
     });
+    // Rien trouvé après un geste de la personne : le dire, plutôt qu'une icône qui ne fait rien.
+    if (demander && _lieuxProches.isEmpty && _cartesProches.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(tr('Aucun restaurant ni bar trouvé autour de vous : tapez le nom du lieu.',
+            'No restaurant or bar found around you: type the place name.')),
+      ));
+    }
   }
 
   void _choisirLeLieu(NearbyPlace lieu) {

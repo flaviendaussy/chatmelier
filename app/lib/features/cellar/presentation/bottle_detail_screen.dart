@@ -1463,7 +1463,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('${trSi(isFr, "Verre conseillé", "Recommended glassware")} : ${advice.glasswareType}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                                      Text('${trSi(isFr, "Verre conseillé", "Recommended glassware")}${deuxPoints(isFr)}${advice.glasswareType}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
                                       const SizedBox(height: 4),
                                       Text(advice.decantingAdvice, style: theme.textTheme.bodySmall?.copyWith(height: 1.3)),
                                     ],
@@ -2277,7 +2277,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  '${trSi(isFr, "Provenance", "Origin")} : ${bottleObj.getProvenanceDisplay(isFr)}',
+                                  '${trSi(isFr, "Provenance", "Origin")}${deuxPoints(isFr)}${bottleObj.getProvenanceDisplay(isFr)}',
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: theme.brightness == Brightness.dark ? const Color(0xFFF3E5AB) : const Color(0xFF722F37),
@@ -2334,7 +2334,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      '${trSi(isFr, "Provenance", "Origin")} : ${bottleObj.getProvenanceDisplay(isFr)}',
+                                      '${trSi(isFr, "Provenance", "Origin")}${deuxPoints(isFr)}${bottleObj.getProvenanceDisplay(isFr)}',
                                       style: theme.textTheme.bodyMedium?.copyWith(
                                         fontWeight: FontWeight.w600,
                                         color: theme.brightness == Brightness.dark ? const Color(0xFFF3E5AB) : const Color(0xFF722F37),

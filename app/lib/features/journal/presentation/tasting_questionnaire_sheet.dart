@@ -1940,7 +1940,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                         const Icon(Icons.restaurant, size: 13, color: Color(0xFFD4AF37)),
                         const SizedBox(width: 4),
                         Text(
-                          '${l10n.tastingFoodSynergyTitle} : ${res.foodPairingSynergy == 'sublime' ? l10n.tastingSynergySublime : (res.foodPairingSynergy == 'harmonious' ? l10n.tastingSynergyHarmonious : (res.foodPairingSynergy == 'neutral' ? l10n.tastingSynergyNeutral : l10n.tastingSynergyClashing))}',
+                          '${l10n.tastingFoodSynergyTitle}${deuxPoints()}${res.foodPairingSynergy == 'sublime' ? l10n.tastingSynergySublime : (res.foodPairingSynergy == 'harmonious' ? l10n.tastingSynergyHarmonious : (res.foodPairingSynergy == 'neutral' ? l10n.tastingSynergyNeutral : l10n.tastingSynergyClashing))}',
                           style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFD4AF37)),
                         ),
                       ],

@@ -309,16 +309,24 @@ class NearbyPlacesService {
   /// Query OpenStreetMap Overpass API for restaurants/bars/wine bars within 400m
   Future<List<NearbyPlace>> _fetchOsmNearby(double lat, double lon) async {
     final query =
-        '[out:json][timeout:4];(node["amenity"~"restaurant|bar|pub|bistro|cafe"](around:400,$lat,$lon);way["amenity"~"restaurant|bar|pub|bistro|cafe"](around:400,$lat,$lon););out center 20;';
+        '[out:json][timeout:7];(node["amenity"~"restaurant|bar|pub|bistro|cafe"](around:400,$lat,$lon);way["amenity"~"restaurant|bar|pub|bistro|cafe"](around:400,$lat,$lon););out center 20;';
 
+    // Le serveur public répond souvent en 5 à 8 s, ou 504 quand il est chargé (mesuré le
+    // 08/10) : à 4 s, la plupart des recherches tombaient sur le repli, qui ne trouve qu'une
+    // adresse. Un second essai, une seconde plus tard, sur 429 ou 504.
     final uri = Uri.parse('https://overpass-api.de/api/interpreter');
-    final response = await http
+    Future<http.Response> demander() => http
         .post(
           uri,
           headers: {'User-Agent': _userAgent, 'Content-Type': 'application/x-www-form-urlencoded'},
           body: {'data': query},
         )
-        .timeout(const Duration(seconds: 4));
+        .timeout(const Duration(seconds: 8));
+    var response = await demander();
+    if (response.statusCode == 429 || response.statusCode == 504) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+      response = await demander();
+    }
 
     if (response.statusCode != 200) {
       throw Exception('Overpass API returned status ${response.statusCode}');

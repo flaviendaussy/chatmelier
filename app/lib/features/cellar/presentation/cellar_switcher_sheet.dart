@@ -89,7 +89,7 @@ class CellarSwitcherSheet extends ConsumerWidget {
             ),
             error: (err, _) => Padding(
               padding: const EdgeInsets.all(16),
-              child: Text('${trSi(isFr, "Erreur", "Error")} : $err'),
+              child: Text('${trSi(isFr, "Erreur", "Error")}${deuxPoints(isFr)}$err'),
             ),
             data: (rawCellars) {
               // Deduplicate cellars by ID (prefer admin/owner role if present)
@@ -432,27 +432,31 @@ class CellarSwitcherSheet extends ConsumerWidget {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
+              // La feuille se ferme avant la fin : son `ref` et son `context` meurent avec elle.
+              // Sans le conteneur et le messager pris avant, « Cannot use ref after the widget
+              // was disposed » (iPhone, 1.6.0+75) arrêtait tout : liste des caves jamais
+              // rafraîchie, cave supprimée encore sélectionnée, aucun message.
+              final conteneur = ProviderScope.containerOf(context, listen: false);
+              final messager = ScaffoldMessenger.of(context);
               Navigator.of(ctx).pop(); // Close dialog
               Navigator.of(context).pop(); // Close sheet
 
-              await ref.read(cellarRepositoryProvider).deleteCellar(cellarId);
+              await conteneur.read(cellarRepositoryProvider).deleteCellar(cellarId);
 
               if (isSelected) {
-                ref.read(currentCellarIdProvider.notifier).state = null;
+                conteneur.read(currentCellarIdProvider.notifier).state = null;
               }
-              ref.invalidate(userCellarsProvider);
-              ref.invalidate(bottlesProvider(null));
+              conteneur.invalidate(userCellarsProvider);
+              conteneur.invalidate(bottlesProvider(null));
 
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      trSi(isFr, 'Cave "{cellarName}" supprimée définitivement', 'Cellar "{cellarName}" permanently deleted', {'cellarName': cellarName}),
-                    ),
-                    backgroundColor: Colors.redAccent,
+              messager.showSnackBar(
+                SnackBar(
+                  content: Text(
+                    trSi(isFr, 'Cave "{cellarName}" supprimée définitivement', 'Cellar "{cellarName}" permanently deleted', {'cellarName': cellarName}),
                   ),
-                );
-              }
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
             },
             child: Text(trSi(isFr, 'Supprimer définitivement', 'Delete permanently')),
           ),
@@ -493,27 +497,31 @@ class CellarSwitcherSheet extends ConsumerWidget {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
+              // La feuille se ferme avant la fin : son `ref` et son `context` meurent avec elle.
+              // Sans le conteneur et le messager pris avant, « Cannot use ref after the widget
+              // was disposed » (iPhone, 1.6.0+75) arrêtait tout : liste des caves jamais
+              // rafraîchie, cave supprimée encore sélectionnée, aucun message.
+              final conteneur = ProviderScope.containerOf(context, listen: false);
+              final messager = ScaffoldMessenger.of(context);
               Navigator.of(ctx).pop(); // Close dialog
               Navigator.of(context).pop(); // Close sheet
 
-              await ref.read(cellarRepositoryProvider).leaveCellar(cellarId);
+              await conteneur.read(cellarRepositoryProvider).leaveCellar(cellarId);
 
               if (isSelected) {
-                ref.read(currentCellarIdProvider.notifier).state = null;
+                conteneur.read(currentCellarIdProvider.notifier).state = null;
               }
-              ref.invalidate(userCellarsProvider);
-              ref.invalidate(bottlesProvider(null));
+              conteneur.invalidate(userCellarsProvider);
+              conteneur.invalidate(bottlesProvider(null));
 
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      trSi(isFr, 'Cave "{cellarName}" retirée de votre vue', 'Cellar "{cellarName}" removed from your view', {'cellarName': cellarName}),
-                    ),
-                    backgroundColor: Colors.orange.shade800,
+              messager.showSnackBar(
+                SnackBar(
+                  content: Text(
+                    trSi(isFr, 'Cave "{cellarName}" retirée de votre vue', 'Cellar "{cellarName}" removed from your view', {'cellarName': cellarName}),
                   ),
-                );
-              }
+                  backgroundColor: Colors.orange.shade800,
+                ),
+              );
             },
             child: Text(trSi(isFr, 'Retirer de ma vue', 'Remove from my view')),
           ),

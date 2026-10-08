@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../domain/bottle.dart';
 import '../domain/wine_food_matcher.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/wine_type_badge.dart';
 import '../domain/wine_food_matcher_en.dart';
 
 class CellarFoodPairingSheet extends StatefulWidget {
@@ -443,7 +444,7 @@ class _CellarFoodPairingSheetState extends State<CellarFoodPairingSheet> {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      wine.type.toUpperCase(),
+                                      WineTypeBadge.getLabel(wine.type, _langCode),
                                       style: TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,

@@ -835,7 +835,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        '${trSi(isFr, "Accord", "Pairing")} : ${entry.foodPaired}',
+                        '${trSi(isFr, "Accord", "Pairing")}${deuxPoints(isFr)}${entry.foodPaired}',
                         style: const TextStyle(
                             fontSize: 11.5,
                             fontStyle: FontStyle.italic,

@@ -523,7 +523,7 @@ class _MenuMatchmakerSheetState extends State<MenuMatchmakerSheet> {
     ].where((e) => e.isNotEmpty).join(', ');
 
     final phrases = [
-      if (raisons.isNotEmpty) '${trSi(isFr, 'Pourquoi ce choix', 'Why this choice')} : ${raisons.join(', ')}.',
+      if (raisons.isNotEmpty) '${trSi(isFr, 'Pourquoi ce choix', 'Why this choice')}${deuxPoints(isFr)}${raisons.join(', ')}.',
       if (seconde.isNotEmpty) '${seconde[0].toUpperCase()}${seconde.substring(1)}.',
     ];
     if (phrases.isEmpty) {

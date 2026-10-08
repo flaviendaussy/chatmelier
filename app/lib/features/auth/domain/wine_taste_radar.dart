@@ -115,7 +115,7 @@ class WineTasteRadarMetrics {
         return const [
           'Struttura\n& Tannini',
           'Corpo\n& Potenza',
-          'Legno\n& Affinamento',
+          'Legno\n& Barrique',
           'Frutto Maturo\n& Denso',
           'Spezie\n& Carattere',
           'Frutto Fresco\n& Fragrante',

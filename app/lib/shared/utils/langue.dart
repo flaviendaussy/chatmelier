@@ -61,6 +61,10 @@ String _horsFrancais(String fr, String en) {
   return catalogues[code]?[fr] ?? en;
 }
 
+/// Les deux-points entre un libellé traduit et sa valeur : précédés d'une espace en
+/// français seulement (« Accord : cassoulet », « Pairing: cassoulet », « Abbinamento: … »).
+String deuxPoints([bool? fr]) => (fr ?? Langue.estFr) ? ' : ' : ': ';
+
 /// Le texte dans la langue de l'écran. [fr] sert aussi de clé aux catalogues des autres
 /// langues ; les {marques} du texte choisi sont remplies par [valeurs].
 String tr(String fr, String en, [Map<String, Object?> valeurs = const {}]) =>

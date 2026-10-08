@@ -321,7 +321,7 @@ class RedactionDesRaisons {
       var raison = _majuscule(_pourQui(r, convives, isFr, idLecteur));
       if (seconde.isNotEmpty) raison = '$raison. ${_majuscule(seconde)}.';
       if (r.aversionAlerts.isNotEmpty) {
-        raison = '$raison ${trSi(isFr, 'Attention', 'Heads-up')} : ${r.aversionAlerts.first}';
+        raison = '$raison ${trSi(isFr, 'Attention', 'Heads-up')}${deuxPoints(isFr)}${r.aversionAlerts.first}';
       }
       // Jamais deux fois la même phrase : le nom du vin tranche.
       if (raisons.contains(raison)) {

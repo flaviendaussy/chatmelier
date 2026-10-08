@@ -102,6 +102,8 @@ const TEXTES = {
     axes: { tanins: 'Tanins', corps: 'Corps', acidite: 'Acidité', boise: 'Boisé', fruit: 'Fruit', mineralite: 'Minéralité' },
     couleursNoms: { Rouge: 'Rouge', Blanc: 'Blanc', 'Rosé': 'Rosé', Bulles: 'Bulles' },
     aversionsNoms: { tanin: 'Tanins durs', 'boisé': 'Boisé marqué', acide: 'Acidité vive' },
+    votrePlat: 'Ce que vous mangez (le plus proche)',
+    platsNoms: { viande: '🥩 Viande rouge', poisson: '🐟 Poisson, fruits de mer', volaille: '🍗 Volaille, porc, veau', fromage: '🧀 Fromages', pates: '🍝 Pâtes, risotto, pizza', dessert: '🍰 Dessert' },
   },
   en: {
     codeTitre: 'Join a table',
@@ -177,6 +179,8 @@ const TEXTES = {
     axes: { tanins: 'Tannins', corps: 'Body', acidite: 'Acidity', boise: 'Oak', fruit: 'Fruit', mineralite: 'Minerality' },
     couleursNoms: { Rouge: 'Red', Blanc: 'White', 'Rosé': 'Rosé', Bulles: 'Sparkling' },
     aversionsNoms: { tanin: 'Firm tannins', 'boisé': 'Heavy oak', acide: 'Sharp acidity' },
+    votrePlat: 'What you\'re eating (closest match)',
+    platsNoms: { viande: '🥩 Red meat', poisson: '🐟 Fish, seafood', volaille: '🍗 Poultry, pork, veal', fromage: '🧀 Cheese', pates: '🍝 Pasta, risotto, pizza', dessert: '🍰 Dessert' },
   },
   es: {
     codeTitre: 'Unirse a una mesa',
@@ -252,6 +256,8 @@ const TEXTES = {
     axes: { tanins: 'Taninos', corps: 'Cuerpo', acidite: 'Acidez', boise: 'Madera', fruit: 'Fruta', mineralite: 'Mineralidad' },
     couleursNoms: { Rouge: 'Tinto', Blanc: 'Blanco', 'Rosé': 'Rosado', Bulles: 'Espumoso' },
     aversionsNoms: { tanin: 'Taninos duros', 'boisé': 'Madera marcada', acide: 'Acidez viva' },
+    votrePlat: 'Lo que vas a comer (lo más parecido)',
+    platsNoms: { viande: '🥩 Carne roja', poisson: '🐟 Pescado, marisco', volaille: '🍗 Ave, cerdo, ternera', fromage: '🧀 Quesos', pates: '🍝 Pasta, risotto, pizza', dessert: '🍰 Postre' },
   },
   it: {
     codeTitre: 'Unisciti a un tavolo',
@@ -327,6 +333,8 @@ const TEXTES = {
     axes: { tanins: 'Tannini', corps: 'Corpo', acidite: 'Acidità', boise: 'Legno', fruit: 'Frutto', mineralite: 'Mineralità' },
     couleursNoms: { Rouge: 'Rosso', Blanc: 'Bianco', 'Rosé': 'Rosato', Bulles: 'Bollicine' },
     aversionsNoms: { tanin: 'Tannini duri', 'boisé': 'Legno marcato', acide: 'Acidità spiccata' },
+    votrePlat: 'Cosa mangi (il più vicino)',
+    platsNoms: { viande: '🥩 Carne rossa', poisson: '🐟 Pesce, frutti di mare', volaille: '🍗 Pollame, maiale, vitello', fromage: '🧀 Formaggi', pates: '🍝 Pasta, risotto, pizza', dessert: '🍰 Dolce' },
   },
 };
 const T = TEXTES[LANGUE];
@@ -490,6 +498,8 @@ const etat = {
   palais: { tanins: 5, corps: 5, acidite: 5, boise: 3, fruit: 5, mineralite: 5 },
   couleurs: new Set(),
   aversions: new Set(),
+  // Ce qu'il mange ce soir (R4) : une seule catégorie, ou rien.
+  plat: null,
   noteEnCours: null,
   codeReprise: null,
   connexionPerdue: false,
@@ -566,7 +576,8 @@ function blocConvives() {
       ? el('p', { class: 'discret' }, t('personne'))
       : el('div', { class: 'convives' }, etat.convives.map((c) => el('span', {
           class: `convive${c.nom.toLowerCase() === moi.toLowerCase() ? ' moi' : ''}`,
-        }, c.nom, c.neBoitPas ? ` · ${t('nePasBoire')}` : (c.archetype ? ` · ${archetypeLu(c.archetype)}` : '')))),
+        }, c.nom, c.neBoitPas ? ` · ${t('nePasBoire')}` : (c.archetype ? ` · ${archetypeLu(c.archetype)}` : ''),
+        c.plat && T.platsNoms[c.plat] ? ` · ${T.platsNoms[c.plat].split(' ')[0]}` : ''))),
   );
 }
 
@@ -621,6 +632,8 @@ function profil(nom, { sansPreferences = false, neBoitPas = false } = {}) {
     disliked: sansPreferences ? [] : [...etat.aversions],
     ...(sansPreferences ? { sans_preferences: true } : {}),
     ...(neBoitPas ? { ne_boit_pas: true } : {}),
+    // Son plat pèse sur son vote (R4) ; sans vin ce soir, il n'a rien à départager.
+    ...(etat.plat && !neBoitPas ? { plat: etat.plat } : {}),
     radar: {
       tannin: p.tanins, body: p.corps, oak: p.boise, ripe_fruit: p.fruit,
       spice: 4, fresh_fruit: p.fruit, minerality: p.mineralite, acidity: p.acidite,
@@ -694,6 +707,15 @@ function blocProfil() {
     curseurs,
     el('label', {}, t('couleurs')), puces(etat.couleurs, T.couleursNoms),
     el('label', {}, t('aversions')), puces(etat.aversions, T.aversionsNoms),
+    estUnComptoir() ? null : el('label', {}, t('votrePlat')),
+    estUnComptoir() ? null : el('div', { class: 'puces' }, Object.entries(T.platsNoms).map(([cle, libelle]) => el('button', {
+      class: 'puce', 'aria-pressed': etat.plat === cle ? 'true' : 'false',
+      onclick: (e) => {
+        etat.plat = etat.plat === cle ? null : cle;
+        e.currentTarget.parentElement.querySelectorAll('.puce').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+        if (etat.plat) e.currentTarget.setAttribute('aria-pressed', 'true');
+      },
+    }, libelle))),
     el('button', { class: 'principal', onclick: () => rejoindre({}) }, t(estUnComptoir() ? 'rejoindreComptoir' : 'rejoindre')),
     assis ? null : el('button', { class: 'lien', onclick: () => rejoindre({ sansPreferences: true }) }, t('justeMonPrenom')),
     assis ? null : el('button', { class: 'lien', onclick: () => rejoindre({ sansPreferences: true, neBoitPas: true }) }, t('jeNeBoisPas')),
@@ -1017,6 +1039,7 @@ async function rafraichir() {
     nom: g.guest_name,
     archetype: g.profile?.archetype || '',
     neBoitPas: g.profile?.ne_boit_pas === true,
+    plat: typeof g.profile?.plat === 'string' ? g.profile.plat : null,
     verres: g.profile?.verres && typeof g.profile.verres === 'object' ? g.profile.verres : {},
   }));
   const e = Array.isArray(etatTable) ? etatTable[0] : etatTable;

@@ -79,6 +79,9 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   /// « Je ne bois pas ce soir » (E3).
   bool _neBoitPas = false;
 
+  /// Ce qu'il mange ce soir (R4), au plus proche : son plat pèse sur son vote.
+  String? _plat;
+
   /// Ses avis au matchmaker de table (clé du vin → avis).
   Map<String, AvisDeTable> _mesAvis = {};
   ScannedMenu? _menu;
@@ -375,7 +378,9 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   void _rejoindre(GuestProfile Function(String nom) profil) {
     final saisi = _nameCtrl.text.trim().isEmpty ? (trSi(_isFr, 'Convive', 'Guest')) : _nameCtrl.text.trim();
     final name = _nomLibre(saisi);
-    final newGuest = profil(name);
+    final base = profil(name);
+    // Sans vin ce soir, pas de plat à accorder.
+    final newGuest = base.neBoitPas || _plat == null ? base.copie(sansPlat: true) : base.copie(plat: _plat);
 
     setState(() {
       // Retirer aussi sa copie venue du serveur : sinon on se compte deux fois jusqu'au
@@ -389,6 +394,44 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
     _recalculateConsensus();
     if (_code != null) unawaited(_rejoindreLaTable(name, newGuest));
+  }
+
+  /// « Ce que vous mangez » : une pastille au plus. Assis, la changer met sa place à jour.
+  Widget _choixDuPlat(bool isFr) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          trSi(isFr, 'Ce que vous mangez (le plus proche)', 'What you\'re eating (closest match)'),
+          style: const TextStyle(color: Colors.white70, fontSize: 12.5),
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final c in FoodPairingEngine.categories)
+              ChoiceChip(
+                label: Text(FoodPairingEngine.libelle(c, isFr: isFr),
+                    style: TextStyle(fontSize: 11.5, color: _plat == c ? Colors.white : Colors.white70)),
+                selected: _plat == c,
+                showCheckmark: false,
+                selectedColor: const Color(0xFF8B1E3F),
+                backgroundColor: Colors.black26,
+                side: BorderSide(color: _plat == c ? const Color(0xFFD4AF37) : Colors.white12),
+                onSelected: (_) {
+                  setState(() {
+                    _plat = _plat == c ? null : c;
+                    // L'onglet des accords part de son plat.
+                    if (_plat != null) _selectedDishCategory = _plat!;
+                  });
+                  if (_hasJoined && !_neBoitPas) _rejoindre((nom) => _moiATable().copie(id: 'guest_me', name: nom));
+                },
+              ),
+          ],
+        ),
+      ],
+    );
   }
 
   /// Sa propre place à table : la copie locale, ou celle venue du serveur.
@@ -447,6 +490,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       return [
         champNom,
         const SizedBox(height: 10),
+        if (!_neBoitPas) ...[_choixDuPlat(isFr), const SizedBox(height: 10)],
         if (_neBoitPas)
           Text(
             trSi(isFr, 'Vous êtes à table sans boire ce soir : les bouteilles se choisissent pour les autres. '
@@ -509,6 +553,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       return [
         champNom,
         const SizedBox(height: 12),
+        _choixDuPlat(isFr),
+        const SizedBox(height: 12),
         Text(
           trSi(isFr, 'Votre palais Chatmelier sera utilisé ({questionnairesCompleted} dégustations).', 'Your Chatmelier palate will be used ({questionnairesCompleted} tastings).', {'questionnairesCompleted': palaisDuCompte.questionnairesCompleted}),
           style: note,
@@ -559,6 +605,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
 
     return [
       champNom,
+      const SizedBox(height: 12),
+      _choixDuPlat(isFr),
       const SizedBox(height: 12),
       Text(
         _aUnCompte == true

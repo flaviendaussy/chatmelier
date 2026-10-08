@@ -200,6 +200,52 @@ void main() {
     expect(find.textContaining('You joined without preferences'), findsOneWidget);
   });
 
+  testWidgets('son plat part avec sa place, et le changer assis la met à jour (R4)', (tester) async {
+    final table = await ouvrir(tester);
+    await tester.enterText(find.byType(TextField).first, 'Aude');
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('What you\'re eating'), findsOneWidget);
+    final poisson = find.text('🐟 Fish & Shellfish');
+    await tester.ensureVisible(poisson);
+    await tester.tap(poisson);
+    await tester.pumpAndSettle();
+    final refus = find.textContaining('Just my name');
+    await tester.ensureVisible(refus);
+    await tester.tap(refus);
+    await tester.pumpAndSettle();
+
+    expect(table.profils.single!.plat, 'poisson');
+    expect(table.profils.single!.sansPreferences, isTrue);
+
+    // Assise : elle change d'avis, sa place repart avec la volaille.
+    final volaille = find.text('🍗 Poultry');
+    await tester.ensureVisible(volaille);
+    await tester.tap(volaille);
+    await tester.pumpAndSettle();
+    expect(table.profils.last!.plat, 'volaille');
+    expect(table.arrivees.last, ('KYZ3YZ', 'Aude'));
+  });
+
+  testWidgets('sans vin ce soir, pas de plat transmis', (tester) async {
+    final table = await ouvrir(tester);
+    await tester.enterText(find.byType(TextField).first, 'Marc');
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
+    final viande = find.text('🥩 Red Meat');
+    await tester.ensureVisible(viande);
+    await tester.tap(viande);
+    await tester.pumpAndSettle();
+    final sansBoire = find.text('I\'m not drinking tonight');
+    await tester.ensureVisible(sansBoire);
+    await tester.tap(sansBoire);
+    await tester.pumpAndSettle();
+
+    expect(table.profils.single!.neBoitPas, isTrue);
+    expect(table.profils.single!.plat, isNull);
+    expect(find.textContaining('What you\'re eating'), findsNothing);
+  });
+
   testWidgets('« Je ne bois pas ce soir » : assis à table, sans voter (V2.3 · E3)', (tester) async {
     final table = await ouvrir(tester);
     await tester.enterText(find.byType(TextField).first, 'Léa');

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import 'menu_wine.dart';
+import 'food_pairing_engine.dart';
 import 'table_matchmaker.dart';
 import '../../../shared/utils/langue.dart';
 
@@ -37,6 +38,9 @@ class MenuTableMatcherEngine {
     return vin.wineType.toLowerCase().contains(p);
   }
 
+  /// Ce que pèse le plat annoncé d'un convive dans son score d'un vin.
+  static const double poidsDuPlat = 0.3;
+
   /// Toute la carte, classée pour la table (sans les raisons, rédigées pour le podium).
   static List<MenuTableMatchResult> classerLaCarte({
     required List<MenuWine> menuWines,
@@ -49,8 +53,11 @@ class MenuTableMatcherEngine {
     final buveurs = [for (final g in guests) if (!g.neBoitPas) g];
     // Ceux qui n'ont rien dit de leurs goûts ne votent pas : leur prêter un palais moyen
     // tirerait la table vers des vins tièdes. S'ils sont seuls, on classe quand même. Un
-    // avis donné au matchmaker de table, lui, fait voter.
-    final votants = [for (final g in buveurs) if (!g.sansPreferences || g.avis.isNotEmpty) g];
+    // avis donné au matchmaker de table, lui, fait voter, comme le plat annoncé (R4).
+    final votants = [
+      for (final g in buveurs)
+        if (!g.sansPreferences || g.avis.isNotEmpty || g.plat != null) g,
+    ];
     final jury = votants.isNotEmpty ? votants : (buveurs.isNotEmpty ? buveurs : guests);
 
     final results = <MenuTableMatchResult>[];
@@ -61,7 +68,14 @@ class MenuTableMatcherEngine {
       final scoresList = <double>[];
 
       for (final guest in jury) {
-        final score = _calculateGuestWineHarmony(wine, guest, alerts, isFr);
+        final plat = guest.plat;
+        // Sans goûts dits, seul son plat le départage : un palais neutre, le même pour tous
+        // les vins, plutôt qu'un palais moyen prêté.
+        final seulementLePlat = plat != null && guest.sansPreferences && guest.avis.isEmpty;
+        var score = seulementLePlat ? 70.0 : _calculateGuestWineHarmony(wine, guest, alerts, isFr);
+        // Son plat pèse sur son vote : un tiers environ, son palais reste l'essentiel (R4,
+        // « the user inputs also what they're eating », 04/10).
+        if (plat != null) score = score * (1 - poidsDuPlat) + FoodPairingEngine.scoreDeLAccord(wine, plat) * poidsDuPlat;
         guestScores[guest.id] = score;
         scoresList.add(score);
       }

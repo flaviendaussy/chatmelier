@@ -49,6 +49,12 @@ class GuestProfile {
   /// de la page invité) ou déduit d'un archétype : il compte alors pleinement.
   final Map<String, double>? confianceParAxe;
 
+  /// Ce qu'il mange ce soir, au plus proche (une catégorie de `FoodPairingEngine` :
+  /// viande, poisson, volaille, fromage, pates, dessert) : son plat pèse sur son vote
+  /// (« if most are having fish, white wine… could make more sense », 04/10). Nul : il
+  /// n'a rien dit, seul son palais compte.
+  final String? plat;
+
   const GuestProfile({
     required this.id,
     required this.name,
@@ -64,6 +70,7 @@ class GuestProfile {
     this.neBoitPas = false,
     this.verres = const {},
     this.confianceParAxe,
+    this.plat,
   });
 
   /// Le poids d'un axe dans les accords : un axe deviné pèse un tiers, un axe bien observé
@@ -110,7 +117,15 @@ class GuestProfile {
   bool get palaisDevine => (connaissance ?? 1.0) < seuilAxeObserve;
 
   /// Le même convive, sous un autre identifiant, un autre prénom ou avec d'autres avis.
-  GuestProfile copie({String? id, String? name, Map<String, String>? avis, bool? neBoitPas, Map<String, double>? verres}) =>
+  GuestProfile copie({
+    String? id,
+    String? name,
+    Map<String, String>? avis,
+    bool? neBoitPas,
+    Map<String, double>? verres,
+    String? plat,
+    bool sansPlat = false,
+  }) =>
       GuestProfile(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -126,6 +141,7 @@ class GuestProfile {
         neBoitPas: neBoitPas ?? this.neBoitPas,
         verres: verres ?? this.verres,
         confianceParAxe: confianceParAxe,
+        plat: sansPlat ? null : (plat ?? this.plat),
       );
 
   /// Ce qu'un convive emporte avec lui en rejoignant une table.
@@ -144,6 +160,7 @@ class GuestProfile {
         if (neBoitPas) 'ne_boit_pas': true,
         if (avis.isNotEmpty) 'avis': avis,
         if (verres.isNotEmpty) 'verres': verres,
+        if (plat != null) 'plat': plat,
         'radar': {
           'tannin': radar.tannin,
           'body': radar.body,
@@ -177,6 +194,7 @@ class GuestProfile {
       dislikedCharacteristics: liste('disliked'),
       sansPreferences: json['sans_preferences'] == true,
       neBoitPas: json['ne_boit_pas'] == true,
+      plat: _platsConnus.contains(json['plat']) ? json['plat'] as String : null,
       avis: json['avis'] is Map
           ? {for (final e in (json['avis'] as Map).entries) e.key.toString(): e.value.toString()}
           : const {},
@@ -300,6 +318,9 @@ class GuestProfile {
 
   /// Une confiance de 0,35 : environ trois dégustations sur l'axe.
   static const double seuilAxeObserve = 0.35;
+
+  /// Les plats qu'un convive peut annoncer (les catégories de `FoodPairingEngine`).
+  static const _platsConnus = {'viande', 'poisson', 'volaille', 'fromage', 'pates', 'dessert'};
 
   WineTasteRadarMetrics get radar {
     // Le radar transmis prime : il vient d'un vrai profil, mesuré sur l'appareil de son

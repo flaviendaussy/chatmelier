@@ -45,6 +45,28 @@ class FoodPairingEngine {
     'pates': _mots('pâtes|pates|pasta|risotto|pizza|lasagnes?|gnocchi|spaghetti|tagliatelle'),
   };
 
+  /// Le nom d'une catégorie de plat à l'écran, avec son emoji (pastilles de la table, R4).
+  static String libelle(String categorie, {bool isFr = true}) => switch (categorie) {
+        'viande' => trSi(isFr, '🥩 Viande Rouge', '🥩 Red Meat'),
+        'poisson' => trSi(isFr, '🐟 Poisson & Crustacés', '🐟 Fish & Shellfish'),
+        'volaille' => trSi(isFr, '🍗 Volaille', '🍗 Poultry'),
+        'fromage' => trSi(isFr, '🧀 Fromages', '🧀 Cheese'),
+        'pates' => trSi(isFr, '🍝 Pâtes & Risotto', '🍝 Pasta & Risotto'),
+        'dessert' => trSi(isFr, '🍰 Desserts', '🍰 Desserts'),
+        _ => categorie,
+      };
+
+  /// Son seul emoji, pour une pastille courte (« Caro · 🐟 »).
+  static String emoji(String categorie) => switch (categorie) {
+        'viande' => '🥩',
+        'poisson' => '🐟',
+        'volaille' => '🍗',
+        'fromage' => '🧀',
+        'pates' => '🍝',
+        'dessert' => '🍰',
+        _ => '',
+      };
+
   /// La catégorie d'un plat saisi librement (« Scottish beef fillet » → viande), ou nulle.
   static String? categorieDuPlat(String saisie) {
     final texte = saisie.trim();
@@ -66,6 +88,11 @@ class FoodPairingEngine {
       ..sort((a, b) => b.score.compareTo(a.score));
     return accords.take(nombre).toList();
   }
+
+  /// L'accord d'un vin avec un plat, de 0 à 100 : ce que pèse le plat d'un convive dans son
+  /// vote à table (V2.4 · R4).
+  static double scoreDeLAccord(MenuWine vin, String categorie) =>
+      _evaluer(vin, categorie, true).score.clamp(0.0, 100.0).toDouble();
 
   static AccordMetVin _evaluer(MenuWine vin, String categorie, bool fr) {
     final m = vin.metrics;

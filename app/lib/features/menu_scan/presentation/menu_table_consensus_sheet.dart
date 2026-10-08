@@ -7,6 +7,7 @@ import '../../auth/data/taste_profile_service.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../domain/menu_wine.dart';
 import '../domain/menu_table_matcher_engine.dart';
+import '../domain/food_pairing_engine.dart';
 import '../../blind_battle/presentation/widgets/stylized_chatmelier_qr.dart';
 import '../data/menu_table_session_manager.dart';
 import '../data/table_session_service.dart';
@@ -147,15 +148,80 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       if (i >= 0) _tableGuests[i] = avecAvis;
     });
     _calculateConsensus();
+    await _envoyerLaPlaceDeLHote(avecAvis);
+  }
 
+  /// La place de l'hôte à sa table, avec ses avis et son plat : elle pèse chez chaque invité.
+  Future<void> _envoyerLaPlaceDeLHote(GuestProfile hote) async {
     final code = _codeServeur;
     final nom = _nomHoteInscrit;
     if (code == null || nom == null) return;
     try {
-      await ref.read(tableSessionServiceProvider).rejoindre(code: code, nom: nom, profil: avecAvis);
+      await ref.read(tableSessionServiceProvider).rejoindre(code: code, nom: nom, profil: hote);
     } catch (e) {
-      AppLogger.warning('TABLE', 'Avis de l\'hôte non transmis à la table $code: $e');
+      AppLogger.warning('TABLE', 'Place de l\'hôte non transmise à la table $code: $e');
     }
+  }
+
+  /// Ce que mange un convive (R4) : l'hôte dit le sien, et celui des convives ajoutés à la
+  /// main. Ceux qui ont rejoint depuis leur téléphone le disent eux-mêmes.
+  bool _platModifiable(GuestProfile g) => g.id == _idHote || g.id.startsWith('guest_');
+
+  Future<void> _choisirLePlat(GuestProfile g) async {
+    final fr = _isFr;
+    final choix = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF1A1020),
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+                child: Text(
+                  g.id == _idHote
+                      ? trSi(fr, 'Ce que vous mangez (le plus proche)', 'What you\'re eating (closest match)')
+                      : trSi(fr, 'Ce que mange {name} (le plus proche)', 'What {name} is eating (closest match)',
+                          {'name': _nomAffiche(g)}),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: Text(
+                  trSi(fr, 'Le plat compte pour un tiers dans son vote ; ses goûts restent l\'essentiel.',
+                      'The dish counts for about a third of their vote; their taste still comes first.'),
+                  style: const TextStyle(color: Colors.white60, fontSize: 12),
+                ),
+              ),
+              for (final c in FoodPairingEngine.categories)
+                ListTile(
+                  title: Text(FoodPairingEngine.libelle(c, isFr: fr), style: const TextStyle(color: Colors.white)),
+                  trailing: g.plat == c ? const Icon(Icons.check_rounded, color: Color(0xFFD4AF37)) : null,
+                  onTap: () => Navigator.pop(ctx, c),
+                ),
+              ListTile(
+                title: Text(trSi(fr, 'Rien de particulier', 'Nothing in particular'),
+                    style: const TextStyle(color: Colors.white70)),
+                trailing: g.plat == null ? const Icon(Icons.check_rounded, color: Color(0xFFD4AF37)) : null,
+                onTap: () => Navigator.pop(ctx, ''),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (choix == null || !mounted) return;
+    final nouveau = choix.isEmpty ? g.copie(sansPlat: true) : g.copie(plat: choix);
+    setState(() {
+      final i = _tableGuests.indexWhere((x) => x.id == g.id);
+      if (i >= 0) _tableGuests[i] = nouveau;
+    });
+    _calculateConsensus();
+    if (g.id == _idHote) await _envoyerLaPlaceDeLHote(nouveau);
   }
 
   /// L'hôte s'assoit à sa propre table, sous son prénom et avec son vrai palais.
@@ -169,10 +235,13 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
       final userId = ref.read(currentUserProvider)?.id;
       final compte = userId == null ? null : await ref.read(authRepositoryProvider).getProfile(userId);
       final prenom = (compte?.displayName.trim().isNotEmpty ?? false) ? compte!.displayName.trim() : primary.name;
+      // Sa place à l'écran si elle existe déjà : un plat ou des avis donnés avant que la
+      // table ne soit ouverte partent avec lui.
+      final local = _tableGuests.where((g) => g.id == _idHote).firstOrNull;
       await ref.read(tableSessionServiceProvider).rejoindre(
             code: code,
             nom: prenom,
-            profil: GuestProfile.fromTasteProfile(primary),
+            profil: local ?? GuestProfile.fromTasteProfile(primary),
           );
       _nomHoteInscrit = prenom;
     } catch (e) {
@@ -572,7 +641,9 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                   spacing: 8,
                   runSpacing: 8,
                   children: _tableGuests.map((g) {
-                    return Chip(
+                    final plat = g.plat;
+                    return InputChip(
+                      onPressed: _platModifiable(g) ? () => _choisirLePlat(g) : null,
                       backgroundColor: const Color(0xFF22162A),
                       side: const BorderSide(color: Color(0xFFD4AF37), width: 0.8),
                       avatar: CircleAvatar(
@@ -583,7 +654,8 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                         ),
                       ),
                       label: Text(
-                        '${_nomAffiche(g)} (${GuestProfile.archetypeAffiche(g.archetype, _isFr)})',
+                        '${_nomAffiche(g)} (${GuestProfile.archetypeAffiche(g.archetype, _isFr)})'
+                        '${plat != null ? ' · ${FoodPairingEngine.emoji(plat)}' : ''}',
                         style: const TextStyle(color: Colors.white, fontSize: 11),
                       ),
                       onDeleted: _tableGuests.length > 1
@@ -595,6 +667,12 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                       deleteIconColor: Colors.white38,
                     );
                   }).toList(),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  trSi(_isFr, 'Touchez votre nom pour dire ce que vous mangez : le plat pèse sur le choix.',
+                      'Tap your name to say what you\'re eating: the dish weighs on the choice.'),
+                  style: const TextStyle(color: Colors.white54, fontSize: 11, height: 1.3),
                 ),
                 if (PalaisDevine.legende(_tableGuests, fr: _isFr, idLecteur: _idHote, nom: _nomAffiche) case final legende?) ...[
                   const SizedBox(height: 8),

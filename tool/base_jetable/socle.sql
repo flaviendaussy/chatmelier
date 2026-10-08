@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id           UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   display_name TEXT,
   username     TEXT,
+  avatar_url   TEXT,
   is_admin     BOOLEAN NOT NULL DEFAULT false
 );
 
@@ -218,3 +219,30 @@ CREATE TABLE IF NOT EXISTS public.table_sessions (
   expires_at      TIMESTAMPTZ NOT NULL DEFAULT now() + interval '4 hours'
 );
 ALTER TABLE public.table_sessions ENABLE ROW LEVEL SECURITY;
+
+-- Le stockage de Supabase, réduit à ce que lisent les règles (064) : `storage.objects`
+-- et `storage.foldername`, tels que Supabase les définit.
+CREATE SCHEMA IF NOT EXISTS storage;
+CREATE TABLE IF NOT EXISTS storage.objects (
+  id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  bucket_id TEXT NOT NULL,
+  name      TEXT NOT NULL,
+  owner     UUID DEFAULT auth.uid()
+);
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+CREATE OR REPLACE FUNCTION storage.foldername(name TEXT) RETURNS TEXT[] LANGUAGE plpgsql IMMUTABLE AS $$
+DECLARE _parts TEXT[];
+BEGIN
+  SELECT string_to_array(name, '/') INTO _parts;
+  RETURN _parts[1:array_length(_parts, 1) - 1];
+END $$;
+GRANT USAGE ON SCHEMA storage TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON storage.objects TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION storage.foldername(TEXT) TO anon, authenticated;
+-- Les règles trouvées en production le 08/10 (lecture du catalogue), que 064 remplace.
+DROP POLICY IF EXISTS "Public Access Labels" ON storage.objects;
+CREATE POLICY "Public Access Labels" ON storage.objects USING (bucket_id = 'labels') WITH CHECK (bucket_id = 'labels');
+DROP POLICY IF EXISTS "Authenticated Delete Labels" ON storage.objects;
+CREATE POLICY "Authenticated Delete Labels" ON storage.objects FOR DELETE USING (bucket_id = 'labels' AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Anyone can read labels" ON storage.objects;
+CREATE POLICY "Anyone can read labels" ON storage.objects FOR SELECT USING (bucket_id = 'labels');

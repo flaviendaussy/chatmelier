@@ -335,6 +335,23 @@ class AuthRepository {
     final cleanQuery = q.replaceAll('@', '');
     final currentUserId = _client.auth.currentUser?.id;
 
+    // La recherche en base (migration 062) : seules les correspondances reviennent, et
+    // plus seulement parmi les cinquante premiers comptes. L'ancienne lecture de
+    // l'annuaire ne sert plus que tant que la 062 n'est pas appliquée.
+    try {
+      final res = await _client.rpc('chercher_des_membres', params: {'p_texte': cleanQuery});
+      return [
+        for (final j in res as List<dynamic>)
+          if (j is Map) UserProfile.fromJson(Map<String, dynamic>.from(j)),
+      ];
+    } on PostgrestException catch (e) {
+      final absente = e.code == 'PGRST202' || e.message.contains('Could not find the function');
+      if (!absente) {
+        AppLogger.warning('AUTH', 'Recherche de membres refusée : ${e.message}');
+        rethrow;
+      }
+    }
+
     // 1. Remote search across profiles
     try {
       final res = await _client.from('profiles').select().limit(50);
@@ -475,6 +492,36 @@ class AuthRepository {
 
   /// Permanently deletes the user account and associated personal data,
   /// satisfying Apple Guideline 5.1.1(v), Google Play Account Deletion requirements, and RGPD.
+  /// Photos de bouteilles, avatar, captures de retours : `delete_user_account` efface les
+  /// lignes de la base, pas les fichiers du stockage, qui restaient en ligne après la
+  /// suppression du compte (08/10). La personne efface les siens, sous ses propres droits
+  /// (migration 064 : chacun chez soi). Un échec n'empêche pas la suppression du compte.
+  Future<void> _effacerMesFichiers(String uid) async {
+    Future<void> vider(String bucket, String dossier, {String? prefixe}) async {
+      try {
+        final stock = _client.storage.from(bucket);
+        // Par paquets de 500, vingt au plus ; un paquet que le stockage refuse arrête tout
+        // (sinon on relirait sans fin les mêmes fichiers).
+        for (var tour = 0; tour < 20; tour++) {
+          final fichiers = await stock.list(path: dossier, searchOptions: SearchOptions(limit: 500, search: prefixe ?? ''));
+          final chemins = [
+            for (final f in fichiers)
+              if (f.id != null && (prefixe == null || f.name.startsWith(prefixe))) '$dossier/${f.name}',
+          ];
+          if (chemins.isEmpty) break;
+          final effaces = await stock.remove(chemins);
+          if (effaces.isEmpty || fichiers.length < 500) break;
+        }
+      } catch (e) {
+        AppLogger.warning('AUTH', 'Fichiers de $bucket/$dossier non effacés : $e');
+      }
+    }
+
+    await vider('labels', uid);
+    await vider('labels', 'avatars', prefixe: 'avatar_${uid}_');
+    await vider('feedback', uid);
+  }
+
   Future<void> deleteAccount() async {
     final user = currentUser;
     if (user == null) {
@@ -482,6 +529,9 @@ class AuthRepository {
     }
 
     AppLogger.warning('AUTH', 'Initiating permanent account deletion for user: ${user.id}');
+
+    // 0. Les fichiers d'abord : la base ne les emporte pas avec ses lignes (08/10).
+    await _effacerMesFichiers(user.id);
 
     // 1. Appeler la fonction RPC Supabase delete_user_account
     await _client.rpc('delete_user_account');

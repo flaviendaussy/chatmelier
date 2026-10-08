@@ -12006,94 +12006,124 @@
   "ou": "lib/features/friends/data/friends_repository.dart:1011"
  },
  {
+  "fr": " le {jour}",
+  "en": " on {jour}",
+  "es": " el {jour}",
+  "ou": "lib/features/friends/domain/user_notification.dart:75"
+ },
+ {
   "fr": "Nouvelle demande d'ami 🍷",
   "en": "New friend request 🍷",
   "es": "Nueva solicitud de amistad 🍷",
-  "ou": "lib/features/friends/domain/user_notification.dart:73"
+  "ou": "lib/features/friends/domain/user_notification.dart:89"
  },
  {
   "fr": "{qui} vous a envoyé une demande d'ami pour partager vos goûts et vos caves.",
   "en": "{qui} sent you a friend request to share your taste and your cellars.",
   "es": "{qui} te ha enviado una solicitud de amistad para compartir vuestros gustos y vuestras bodegas.",
-  "ou": "lib/features/friends/domain/user_notification.dart:74"
+  "ou": "lib/features/friends/domain/user_notification.dart:90"
  },
  {
   "fr": "Demande d'ami acceptée ! 🎉",
   "en": "Friend request accepted! 🎉",
   "es": "¡Solicitud de amistad aceptada! 🎉",
-  "ou": "lib/features/friends/domain/user_notification.dart:79"
+  "ou": "lib/features/friends/domain/user_notification.dart:95"
  },
  {
   "fr": "{qui} a accepté votre demande d'ami. Vous voyez désormais sa carte des goûts, et pouvez demander l'accès à sa cave.",
   "en": "{qui} accepted your friend request. You can now see their taste map and ask for access to their cellar.",
   "es": "{qui} ha aceptado tu solicitud de amistad. Ya puedes ver su mapa de gustos y pedir acceso a su bodega.",
-  "ou": "lib/features/friends/domain/user_notification.dart:80"
+  "ou": "lib/features/friends/domain/user_notification.dart:96"
  },
  {
   "fr": "Demande d'accès à votre cave 🍷",
   "en": "Request to access your cellar 🍷",
   "es": "Solicitud de acceso a tu bodega 🍷",
-  "ou": "lib/features/friends/domain/user_notification.dart:86"
+  "ou": "lib/features/friends/domain/user_notification.dart:102"
  },
  {
   "fr": "{qui} souhaite accéder à votre cave : {droits}.",
   "en": "{qui} would like to access your cellar: {droits}.",
   "es": "{qui} quiere acceder a tu bodega: {droits}.",
-  "ou": "lib/features/friends/domain/user_notification.dart:87"
+  "ou": "lib/features/friends/domain/user_notification.dart:103"
  },
  {
   "fr": "ajouter et retirer des bouteilles",
   "en": "adding and removing bottles",
   "es": "añadir y retirar botellas",
-  "ou": "lib/features/friends/domain/user_notification.dart:90"
+  "ou": "lib/features/friends/domain/user_notification.dart:106"
  },
  {
   "fr": "consultation seule",
   "en": "view only",
   "es": "solo consulta",
-  "ou": "lib/features/friends/domain/user_notification.dart:91"
+  "ou": "lib/features/friends/domain/user_notification.dart:107"
  },
  {
   "fr": "Accès à la cave accordé ! 🍾",
   "en": "Cellar access granted! 🍾",
   "es": "¡Acceso a la bodega concedido! 🍾",
-  "ou": "lib/features/friends/domain/user_notification.dart:95"
+  "ou": "lib/features/friends/domain/user_notification.dart:111"
  },
  {
   "fr": "{qui} vous a ouvert sa cave{cave} : {droits}.",
   "en": "{qui} gave you access to their cellar{cave}: {droits}.",
   "es": "{qui} te ha abierto su bodega{cave}: {droits}.",
-  "ou": "lib/features/friends/domain/user_notification.dart:96"
+  "ou": "lib/features/friends/domain/user_notification.dart:112"
  },
  {
   "fr": " « {nom} »",
   "en": " \"{nom}\"",
   "es": " «{nom}»",
-  "ou": "lib/features/friends/domain/user_notification.dart:98"
+  "ou": "lib/features/friends/domain/user_notification.dart:114"
  },
  {
   "fr": "vous pouvez ajouter et retirer des bouteilles",
   "en": "you can add and remove bottles",
   "es": "puedes añadir y retirar botellas",
-  "ou": "lib/features/friends/domain/user_notification.dart:100"
+  "ou": "lib/features/friends/domain/user_notification.dart:116"
  },
  {
   "fr": "en consultation",
   "en": "view only",
   "es": "solo consulta",
-  "ou": "lib/features/friends/domain/user_notification.dart:101"
+  "ou": "lib/features/friends/domain/user_notification.dart:117"
  },
  {
   "fr": "Demande d'accès à la cave refusée",
   "en": "Cellar access request declined",
   "es": "Solicitud de acceso a la bodega rechazada",
-  "ou": "lib/features/friends/domain/user_notification.dart:105"
+  "ou": "lib/features/friends/domain/user_notification.dart:121"
  },
  {
   "fr": "{qui} a décliné votre demande d'accès à sa cave.",
   "en": "{qui} declined your request to access their cellar.",
   "es": "{qui} ha rechazado tu solicitud de acceso a su bodega.",
-  "ou": "lib/features/friends/domain/user_notification.dart:106"
+  "ou": "lib/features/friends/domain/user_notification.dart:122"
+ },
+ {
+  "fr": "Une dégustation à ajouter à votre journal 🍷",
+  "en": "A tasting to add to your journal 🍷",
+  "es": "Una cata para añadir a tu diario 🍷",
+  "ou": "lib/features/friends/domain/user_notification.dart:128"
+ },
+ {
+  "fr": "{qui} a noté avec vous {vin}{note}{quand}.",
+  "en": "{qui} rated {vin}{note} with you{quand}.",
+  "es": "{qui} ha catado contigo {vin}{note}{quand}.",
+  "ou": "lib/features/friends/domain/user_notification.dart:130"
+ },
+ {
+  "fr": "Bouteille défectueuse : votre palais n'en apprendra rien.",
+  "en": "Faulty bottle: your palate won't learn anything from it.",
+  "es": "Botella defectuosa: tu paladar no aprenderá nada de ella.",
+  "ou": "lib/features/friends/domain/user_notification.dart:137"
+ },
+ {
+  "fr": "L'ajouter à votre journal ?",
+  "en": "Add it to your journal?",
+  "es": "¿Añadirla a tu diario?",
+  "ou": "lib/features/friends/domain/user_notification.dart:139"
  },
  {
   "fr": "Salut {prenom} ! ",
@@ -12708,6 +12738,12 @@
   "ou": "lib/features/friends/presentation/friends_screen.dart:867"
  },
  {
+  "fr": "Arômes : {v1}",
+  "en": "Aromas: {v1}",
+  "es": "Aromas: {v1}",
+  "ou": "lib/features/journal/data/degustations_partagees.dart:55"
+ },
+ {
   "fr": "Dégustation guidée. Arômes : {v1}",
   "en": "Guided tasting. Aromas: {v1}",
   "es": "Cata guiada. Aromas: {v1}",
@@ -12724,18 +12760,6 @@
   "en": "Guided tasting",
   "es": "Cata guiada",
   "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:316"
- },
- {
-  "fr": "Dégustation partagée. Arômes : {v1}",
-  "en": "Shared tasting. Aromas: {v1}",
-  "es": "Cata compartida. Aromas: {v1}",
-  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:422"
- },
- {
-  "fr": "Dégustation partagée.",
-  "en": "Shared tasting.",
-  "es": "Cata compartida.",
-  "ou": "lib/features/journal/domain/questionnaire_de_degustation.dart:423"
  },
  {
   "fr": "Cépages & Concentration",
@@ -14835,79 +14859,91 @@
   "fr": "Moi ({userDisplayName})",
   "en": "Me ({userDisplayName})",
   "es": "Yo ({userDisplayName})",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:201"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:202"
  },
  {
   "fr": "Enregistrer sans noter",
   "en": "Save without rating",
   "es": "Guardar sin valorar",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:692"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:696"
  },
  {
   "fr": "Enregistré dans votre journal, sans note : vous pourrez la donner plus tard.",
   "en": "Saved to your journal, unrated: you can rate it later.",
   "es": "Guardado en tu diario, sin nota: podrás ponerla más tarde.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:695"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:699"
  },
  {
   "fr": "Bouteille défectueuse : le palais de {name} n'a pas été modifié.",
   "en": "Faulty bottle: {name}'s palate was not changed.",
   "es": "Botella defectuosa: el paladar de {name} no se ha modificado.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2008"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2012"
+ },
+ {
+  "fr": "Envoyée à {name} : elle entrera dans son journal une fois acceptée.",
+  "en": "Sent to {name}: it goes into their journal once they accept it.",
+  "es": "Enviada a {name}: entrará en su diario cuando la acepte.",
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2033"
+ },
+ {
+  "fr": "Pas envoyée à {name} : vérifiez la connexion.",
+  "en": "Not sent to {name}: check the connection.",
+  "es": "No enviada a {name}: comprueba la conexión.",
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2036"
  },
  {
   "fr": "Vous l'avez bu avec un plat ?",
   "en": "Did you have it with food?",
   "es": "¿Lo has bebido con un plato?",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2303"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2314"
  },
  {
   "fr": "Oui, avec un plat",
   "en": "Yes, with food",
   "es": "Sí, con un plato",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2309"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2320"
  },
  {
   "fr": "Non, seul",
   "en": "No, on its own",
   "es": "No, solo",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2311"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2322"
  },
  {
   "fr": "Quel plat ? (facultatif)",
   "en": "Which dish? (optional)",
   "es": "¿Qué plato? (opcional)",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2324"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2335"
  },
  {
   "fr": "L'accord avec « {plat} »",
   "en": "The pairing with \"{plat}\"",
   "es": "El maridaje con «{plat}»",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2331"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2342"
  },
  {
   "fr": "Domaine",
   "en": "Producer",
   "es": "Productor",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2741"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2752"
  },
  {
   "fr": "Cépage",
   "en": "Grape",
   "es": "Variedad",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2770"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2781"
  },
  {
   "fr": "Prix",
   "en": "Price",
   "es": "Precio",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2786"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2797"
  },
  {
   "fr": "{v1} sélectionné(s)",
   "en": "{v1} selected",
   "es": "{v1} seleccionado(s)",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3114"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3125"
  },
  {
   "fr": "Le sommelier n'a pas réussi à lire cette carte : sa réponse était incomplète. Vos photos sont gardées : réessayez.",
@@ -18687,145 +18723,181 @@
   "fr": "{label} mis de côté pour plus tard ⏱️",
   "en": "{label} saved for later ⏱️",
   "es": "{label} guardado para más tarde ⏱️",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:88"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:91"
  },
  {
   "fr": "🍾 Accès accordé à {requesterName} ({v1}) !",
   "en": "🍾 Access granted to {requesterName} ({v1})!",
   "es": "🍾 ¡Acceso concedido a {requesterName} ({v1})!",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:115"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:118"
  },
  {
   "fr": "Sommelier",
   "en": "Sommelier",
   "es": "Sumiller",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:115"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:118"
  },
  {
   "fr": "avec {requesterName}",
   "en": "with {requesterName}",
   "es": "con {requesterName}",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:199"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:202"
  },
  {
   "fr": "🍾 Accès accordé pour {grantedCount} cave(s) à {requesterName} !",
   "en": "🍾 Access to {grantedCount} cellar(s) granted to {requesterName}!",
   "es": "🍾 ¡Acceso a {grantedCount} bodega(s) concedido a {requesterName}!",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:391"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:394"
  },
  {
   "fr": "Boîte de réception",
   "en": "Inbox",
   "es": "Bandeja de entrada",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:485"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:488"
  },
  {
   "fr": "👥 Demandes d'amis ({activeFriends_length})",
   "en": "👥 Friend requests ({activeFriends_length})",
   "es": "👥 Solicitudes de amistad ({activeFriends_length})",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:531"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:534"
  },
  {
   "fr": "🍷 Demandes d'accès à votre Cave ({activeCellar_length})",
   "en": "🍷 Requests to access your cellar ({activeCellar_length})",
   "es": "🍷 Solicitudes de acceso a tu bodega ({activeCellar_length})",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:543"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:546"
  },
  {
   "fr": "🔔 Activité récente",
   "en": "🔔 Recent activity",
   "es": "🔔 Actividad reciente",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:558"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:561"
  },
  {
   "fr": "Tout marquer comme lu",
   "en": "Mark all as read",
   "es": "Marcar todo como leído",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:563"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:566"
  },
  {
   "fr": "Votre boîte de réception est vide",
   "en": "Your inbox is empty",
   "es": "Tu bandeja de entrada está vacía",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:589"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:592"
  },
  {
   "fr": "Les demandes d'amis, invitations et partages de cave apparaîtront ici.",
   "en": "Friend requests, invitations and shared cellars will show up here.",
   "es": "Aquí aparecerán las solicitudes de amistad, las invitaciones y las bodegas compartidas.",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:594"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:597"
  },
  {
   "fr": "Afficher les {snoozedCount} élément(s) mis de côté",
   "en": "Show the {snoozedCount} item(s) saved for later",
   "es": "Mostrar los {snoozedCount} elemento(s) guardado(s) para más tarde",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:608"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:611"
  },
  {
   "fr": "Souhaite devenir votre ami pour échanger vos goûts et partager vos caves.",
   "en": "Would like to be your friend, to compare tastes and share cellars.",
   "es": "Quiere ser tu amigo para comparar gustos y compartir bodegas.",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:674"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:677"
  },
  {
   "fr": "Garder pour plus tard",
   "en": "Keep for later",
   "es": "Guardar para más tarde",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:705"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:708"
  },
  {
   "fr": "Demande de {displayName}",
   "en": "Request from {displayName}",
   "es": "Solicitud de {displayName}",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:706"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:709"
  },
  {
   "fr": "Fermer / Ignorer",
   "en": "Close / ignore",
   "es": "Cerrar / ignorar",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:710"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:713"
  },
  {
   "fr": "Accorder l'accès ({v1})",
   "en": "Grant access ({v1})",
   "es": "Conceder el acceso ({v1})",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:801"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:804"
  },
  {
   "fr": "Demande de cave de {requesterName}",
   "en": "Cellar request from {requesterName}",
   "es": "Solicitud de bodega de {requesterName}",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:824"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:827"
+ },
+ {
+  "fr": "Ajouter à mon journal",
+  "en": "Add to my journal",
+  "es": "Añadir a mi diario",
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:910"
  },
  {
   "fr": "Marquer comme lu",
   "en": "Mark as read",
   "es": "Marcar como leído",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:898"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:925"
+ },
+ {
+  "fr": "Ajoutée à votre journal 🍷",
+  "en": "Added to your journal 🍷",
+  "es": "Añadida a tu diario 🍷",
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:960"
+ },
+ {
+  "fr": "Dégustation refusée : elle n'apparaîtra pas dans votre journal.",
+  "en": "Tasting declined: it won't appear in your journal.",
+  "es": "Cata rechazada: no aparecerá en tu diario.",
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:961"
+ },
+ {
+  "fr": "Déjà décidée.",
+  "en": "Already decided.",
+  "es": "Ya decidida.",
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:968"
+ },
+ {
+  "fr": "Cette dégustation n'existe plus.",
+  "en": "This tasting no longer exists.",
+  "es": "Esta cata ya no existe.",
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:970"
+ },
+ {
+  "fr": "Pas de réponse du serveur : réessayez dans un instant.",
+  "en": "No answer from the server: try again in a moment.",
+  "es": "Sin respuesta del servidor: vuelve a intentarlo en un momento.",
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:971"
  },
  {
   "fr": "À l'instant",
   "en": "Just now",
   "es": "Ahora mismo",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:921"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:980"
  },
  {
   "fr": "Il y a {inMinutes} min",
   "en": "{inMinutes} min ago",
   "es": "Hace {inMinutes} min",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:922"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:981"
  },
  {
   "fr": "Il y a {inHours} h",
   "en": "{inHours} h ago",
   "es": "Hace {inHours} h",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:923"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:982"
  },
  {
   "fr": "Il y a {inDays} j",
   "en": "{inDays} d ago",
   "es": "Hace {inDays} d",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:924"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:983"
  },
  {
   "fr": "Ajout de bouteille",
@@ -20487,187 +20559,187 @@
   "fr": "{n} ({pct} %)",
   "en": "{n} ({pct}%)",
   "es": "{n} ({pct} %)",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:767"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:768"
  },
  {
   "fr": "Statistiques de la Cave",
   "en": "Cellar Statistics",
   "es": "Estadísticas de la bodega",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:59"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:60"
  },
  {
   "fr": "Périmètre :",
   "en": "Scope :",
   "es": "Ámbito:",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:99"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:100"
  },
  {
   "fr": "Toutes mes caves (Global)",
   "en": "All my cellars (Global / Overall)",
   "es": "Todas mis bodegas (global)",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:129"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:130"
  },
  {
   "fr": "Cave {id}",
   "en": "Cellar {id}",
   "es": "Bodega {id}",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:140"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:141"
  },
  {
   "fr": "Erreur lors du chargement des statistiques : {err}",
   "en": "Error loading statistics: {err}",
   "es": "Error al cargar las estadísticas: {err}",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:184"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:185"
  },
  {
   "fr": "Ajoutez votre première bouteille pour débloquer l'estimation en temps réel, l'apogée et les statistiques.",
   "en": "Add your first bottle to unlock real-time valuation, drinking windows, and cellar analytics.",
   "es": "Añade tu primera botella para desbloquear la valoración en tiempo real, el apogeo y las estadísticas.",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:200"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:201"
  },
  {
   "fr": "Prêtes à boire rapidement ({drinkSoonBottles_length})",
   "en": "Ready to drink soon ({drinkSoonBottles_length})",
   "es": "Para beber pronto ({drinkSoonBottles_length})",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:308"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:309"
  },
  {
   "fr": "Qté",
   "en": "Qty",
   "es": "Cant.",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:320"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:321"
  },
  {
   "fr": "Valeur Totale Estimée",
   "en": "Total Estimated Value",
   "es": "Valor total estimado",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:445"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:446"
  },
  {
   "fr": "Coût d'achat total",
   "en": "Total purchase cost",
   "es": "Coste total de compra",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:476"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:477"
  },
  {
   "fr": "bouteilles renseignées",
   "en": "bottles specified",
   "es": "botellas con precio",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:476"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:477"
  },
  {
   "fr": "Prix d'achat non renseigné pour vos bouteilles",
   "en": "Purchase price not specified for your bottles",
   "es": "Tus botellas no tienen precio de compra indicado",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:484"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:485"
  },
  {
   "fr": "Devises d'achat déclarées :",
   "en": "Declared purchase currencies:",
   "es": "Monedas de compra indicadas:",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:495"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:496"
  },
  {
   "fr": "Total Bouteilles",
   "en": "Total Bottles",
   "es": "Total de botellas",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:530"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:531"
  },
  {
   "fr": "Dégustées",
   "en": "Enjoyed",
   "es": "Catadas",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:539"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:540"
  },
  {
   "fr": "Prix moyen / btl",
   "en": "Avg price / btl",
   "es": "Precio medio / bot.",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:574"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:575"
  },
  {
   "fr": "Doyenne de la cave",
   "en": "Oldest vintage",
   "es": "La decana de la bodega",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:583"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:584"
  },
  {
   "fr": "Votre cave est équilibrée avec un bel étalement de millésimes.",
   "en": "Your cellar is well-balanced with a great spread of vintages.",
   "es": "Tu bodega está equilibrada, con un buen reparto de añadas.",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:601"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:602"
  },
  {
   "fr": "Attention : {drinkSoonCount} bouteilles arrivent en fin d'apogée et devraient être ouvertes prochainement.",
   "en": "Warning: {drinkSoonCount} bottles are reaching the end of their peak and should be enjoyed soon.",
   "es": "Atención: {drinkSoonCount} botellas llegan al final de su apogeo y deberían abrirse pronto.",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:603"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:604"
  },
  {
   "fr": "Une grande majorité de vos bouteilles sont encore en phase de vieillissement. Laissez-les reposer !",
   "en": "A large majority of your bottles are still aging. Let them rest!",
   "es": "La gran mayoría de tus botellas aún están envejeciendo. ¡Déjalas reposar!",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:605"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:606"
  },
  {
   "fr": "Analyse & Conseil du Sommelier",
   "en": "Sommelier Insight & Advice",
   "es": "Análisis y consejo del sumiller",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:624"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:625"
  },
  {
   "fr": "🏰 Terroir de prédilection : {topRegion} ({v1} btl)",
   "en": "🏰 Favorite terroir: {topRegion} ({v1} btl)",
   "es": "🏰 Terruño favorito: {topRegion} ({v1} bot.)",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:639"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:640"
  },
  {
   "fr": "Répartition par Couleur & Type de Vin",
   "en": "Breakdown by Wine Color & Type",
   "es": "Reparto por color y tipo de vino",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:671"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:672"
  },
  {
   "fr": "Répartition par Grand Vignoble",
   "en": "Breakdown by Wine Region",
   "es": "Reparto por gran región vinícola",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:802"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:803"
  },
  {
   "fr": "Histogramme des Millésimes",
   "en": "Vintage Distribution",
   "es": "Histograma de añadas",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:852"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:856"
  },
  {
   "fr": "En garde & Jeune ⏳",
   "en": "Aging & Young ⏳",
   "es": "En guarda y jóvenes ⏳",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:947"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:951"
  },
  {
   "fr": "À boire rapidement ⏰",
   "en": "Drink Soon ⏰",
   "es": "Para beber pronto ⏰",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:949"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:953"
  },
  {
   "fr": "Passé l'apogée ⚠️",
   "en": "Past Peak ⚠️",
   "es": "Pasado su apogeo ⚠️",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:950"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:954"
  },
  {
   "fr": "Maturité & Fenêtres d'Apogée",
   "en": "Maturity & Drinking Windows",
   "es": "Madurez y ventanas de apogeo",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:966"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:970"
  },
  {
   "fr": "Gammes de Valeur / Prix",
   "en": "Value & Price Tiers",
   "es": "Rangos de valor / precio",
-  "ou": "lib/features/stats/presentation/stats_screen.dart:1027"
+  "ou": "lib/features/stats/presentation/stats_screen.dart:1031"
  },
  {
   "fr": "Votre palais commence à se dessiner : installez l'app pour le garder, et scanner d'autres cartes. La table en cours et ses accords restent disponibles.",

@@ -4,6 +4,9 @@ import '../../friends/data/friends_repository.dart';
 import '../../friends/domain/cellar_access_request.dart';
 import '../../friends/domain/friend.dart';
 import '../../friends/domain/user_notification.dart';
+import '../../journal/data/degustations_partagees.dart';
+import '../../journal/presentation/journal_screen.dart' show tastingLogProvider;
+import '../../auth/data/taste_profile_service.dart' show tasteProfilesListProvider;
 import '../../../shared/widgets/owner_avatar.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/utils/langue.dart';
@@ -852,7 +855,11 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     } else if (notif.type == 'cellar_request') {
       iconData = Icons.vpn_key;
       iconColor = const Color(0xFF8B1E3F);
+    } else if (notif.type == 'degustation_a_accepter') {
+      iconData = Icons.wine_bar_outlined;
+      iconColor = const Color(0xFF8B1E3F);
     }
+    final aDecider = notif.type == 'degustation_a_accepter' && !notif.isRead && notif.data['degustation_id'] != null;
 
     return Card(
       elevation: 0.5,
@@ -887,9 +894,29 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
               _formatRelativeDate(notif.createdAt),
               style: const TextStyle(fontSize: 10.5, color: Colors.grey),
             ),
+            if (aDecider) ...[
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  OutlinedButton(
+                    onPressed: () => _deciderDeLaDegustation(notif, accepter: false),
+                    child: Text(tr('Refuser', 'Decline')),
+                  ),
+                  FilledButton(
+                    style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
+                    onPressed: () => _deciderDeLaDegustation(notif, accepter: true),
+                    child: Text(tr('Ajouter à mon journal', 'Add to my journal')),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
-        trailing: Row(
+        trailing: aDecider
+            ? null
+            : Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (!notif.isRead)
@@ -913,6 +940,38 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
         ),
       ),
     );
+  }
+
+  /// Accepter ou refuser la dégustation qu'un ami a faite pour soi (V2.4 · R4).
+  Future<void> _deciderDeLaDegustation(UserNotification notif, {required bool accepter}) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final id = notif.data['degustation_id'].toString();
+    try {
+      final service = ref.read(degustationsPartageesProvider);
+      if (accepter) {
+        await service.accepter(id);
+        ref.invalidate(tastingLogProvider);
+        ref.invalidate(tasteProfilesListProvider);
+      } else {
+        await service.refuser(id);
+      }
+      messenger.showSnackBar(SnackBar(
+        content: Text(accepter
+            ? tr('Ajoutée à votre journal 🍷', 'Added to your journal 🍷')
+            : tr('Dégustation refusée : elle n\'apparaîtra pas dans votre journal.',
+                'Tasting declined: it won\'t appear in your journal.')),
+      ));
+    } catch (e) {
+      final texte = '$e';
+      messenger.showSnackBar(SnackBar(
+        content: Text(texte.contains('deja_decidee')
+            ? tr('Déjà décidée.', 'Already decided.')
+            : texte.contains('proposition_introuvable')
+                ? tr('Cette dégustation n\'existe plus.', 'This tasting no longer exists.')
+                : tr('Pas de réponse du serveur : réessayez dans un instant.', 'No answer from the server: try again in a moment.')),
+      ));
+    }
+    refreshFriendsAndNotifications(ref);
   }
 
   String _formatRelativeDate(DateTime? date) {

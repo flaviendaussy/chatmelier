@@ -136,6 +136,44 @@ CREATE TABLE IF NOT EXISTS public.tasting_log (
   rating    NUMERIC,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Les colonnes de production (pg_attribute, 08/10), pour les fonctions qui écrivent au journal.
+ALTER TABLE public.tasting_log
+  ADD COLUMN IF NOT EXISTS bottle_id         UUID,
+  ADD COLUMN IF NOT EXISTS cellar_id         UUID,
+  ADD COLUMN IF NOT EXISTS occasion          TEXT,
+  ADD COLUMN IF NOT EXISTS food_paired       TEXT,
+  ADD COLUMN IF NOT EXISTS tasting_notes     TEXT,
+  ADD COLUMN IF NOT EXISTS photo_url         TEXT,
+  ADD COLUMN IF NOT EXISTS consumed_at       TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS co_tasters        JSONB,
+  ADD COLUMN IF NOT EXISTS bottle_owner_id   UUID,
+  ADD COLUMN IF NOT EXISTS bottle_owner_name TEXT,
+  ADD COLUMN IF NOT EXISTS location_name     TEXT,
+  ADD COLUMN IF NOT EXISTS is_external       BOOLEAN,
+  ADD COLUMN IF NOT EXISTS rating_scale      SMALLINT NOT NULL DEFAULT 10,
+  ADD COLUMN IF NOT EXISTS is_favorite       BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS is_blind          BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS fault             TEXT;
+
+-- Amitiés et notifications (018).
+CREATE TABLE IF NOT EXISTS public.friendships (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  friend_id  UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  status     TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.user_notifications (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  actor_id   UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  type       TEXT NOT NULL,
+  title      TEXT NOT NULL,
+  body       TEXT NOT NULL,
+  data       JSONB DEFAULT '{}'::jsonb,
+  is_read    BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated, service_role;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon;

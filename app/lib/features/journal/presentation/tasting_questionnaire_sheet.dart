@@ -21,6 +21,7 @@ import 'journal_screen.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../offline/data/offline_storage_service.dart';
 import '../../../shared/utils/langue.dart';
+import '../data/degustations_partagees.dart';
 
 /// A 4-step paginated bottom sheet for structured post-tasting feedback.
 ///
@@ -317,25 +318,28 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
     _completedResults[profile.id] = result;
 
-    // Synchronize to friend's app if friendUserId is present
-    if (profile.friendUserId != null && widget.wineId != null) {
+    // La dégustation faite pour un ami qui a l'app lui est proposée : elle n'entre dans son
+    // journal que s'il l'accepte (V2.4 · R4 ; Flavien, 07/10 : « me demander si je suis ok
+    // que cette dégustation s'affiche ici »).
+    if (profile.friendUserId != null) {
       try {
-        final supabase = ref.read(supabaseProvider);
-        await supabase.rpc('record_shared_tasting_log',
-            params: degustationPartagee(
-              wineId: widget.wineId!,
+        await ref.read(degustationsPartageesProvider).proposer(propositionDeDegustation(
               amiId: profile.friendUserId!,
+              nomDuVin: widget.wineName,
+              millesime: widget.vintage,
+              producteur: widget.producer,
+              couleur: widget.wineType,
+              region: widget.region,
+              cepages: widget.wineGrapes ?? const [],
               resultat: result,
               convives: _selectedProfiles.map((p) => p.name).toList(),
-              bottleId: widget.bottleId,
-              cellarId: widget.cellarId,
-              proprietaireId: widget.bottleOwnerId,
+              defaut: _defaut,
               proprietaireNom: widget.bottleOwnerName,
             ));
         _syncedFriendNames.add(profile.name);
-        AppLogger.info('QUESTIONNAIRE', 'Synced shared tasting to friend ${profile.name}');
+        AppLogger.info('QUESTIONNAIRE', 'Dégustation proposée à ${profile.name}');
       } catch (e) {
-        AppLogger.error('QUESTIONNAIRE', 'Failed to sync friend tasting log', e);
+        AppLogger.error('QUESTIONNAIRE', 'Dégustation non proposée à un ami', e);
       }
     }
 
@@ -2021,14 +2025,21 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                         color: isSynced ? Colors.green : const Color(0xFFD4AF37),
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        isSynced
-                            ? l10n.tastingProfileSynced(profile.name)
-                            : l10n.tastingProfileEnriched,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: isSynced ? FontWeight.bold : FontWeight.normal,
-                          color: isSynced ? Colors.green.shade700 : Colors.grey,
+                      Expanded(
+                        child: Text(
+                          profile.friendUserId == null
+                              ? l10n.tastingProfileEnriched
+                              : isSynced
+                                  ? tr('Envoyée à {name} : elle entrera dans son journal une fois acceptée.',
+                                      'Sent to {name}: it goes into their journal once they accept it.',
+                                      {'name': displayName})
+                                  : tr('Pas envoyée à {name} : vérifiez la connexion.',
+                                      'Not sent to {name}: check the connection.', {'name': displayName}),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSynced ? FontWeight.bold : FontWeight.normal,
+                            color: isSynced ? Colors.green.shade700 : Colors.grey,
+                          ),
                         ),
                       ),
                     ],

@@ -399,33 +399,43 @@ Map<String, dynamic> bouteilleApresDegustation({
         ? {'quantity': quantite - bues}
         : {'quantity': 0, 'status': 'consumed', 'consumed_at': quand.toIso8601String()};
 
-/// La dégustation envoyée à un ami qui a l'app (`record_shared_tasting_log`) : elle entre
-/// dans son journal à lui, avec ses réponses.
-Map<String, dynamic> degustationPartagee({
-  required String wineId,
+/// La dégustation faite pour un ami qui a l'app, proposée à son journal (V2.4 · R4,
+/// migration 066 `proposer_degustation`) : elle n'y entre que s'il l'accepte. Le vin voyage
+/// en instantané (l'ami n'a pas forcément accès à la cave) et les réponses brutes, que son
+/// app rédige dans sa langue et apprend à son palais — sauf bouteille défectueuse.
+Map<String, dynamic> propositionDeDegustation({
   required String amiId,
+  required String nomDuVin,
+  int? millesime,
+  String? producteur,
+  String? couleur,
+  String? region,
+  String? pays,
+  List<String> cepages = const [],
+  String? photo,
   required TastingQuestionnaireResult resultat,
   required List<String> convives,
-  String? bottleId,
-  String? cellarId,
-  String? proprietaireId,
+  String? defaut,
   String? proprietaireNom,
 }) {
-  final aromes = libellesDesAromes(resultat.perceivedAromas);
+  String? propre(String? v) => (v == null || v.trim().isEmpty) ? null : v.trim();
   return {
-    'p_wine_id': wineId,
-    'p_friend_user_id': amiId,
-    'p_rating': resultat.noteOutOf10,
-    if (estUnUuid(bottleId)) 'p_bottle_id': bottleId,
-    if (estUnUuid(cellarId)) 'p_cellar_id': cellarId,
-    'p_notes': aromes.isNotEmpty
-        ? tr('Dégustation partagée. Arômes : {v1}', 'Shared tasting. Aromas: {v1}', {'v1': aromes.join(', ')})
-        : tr('Dégustation partagée.', 'Shared tasting.'),
-    'p_occasion': resultat.idealMoment,
-    'p_co_tasters': convives,
-    if (estUnUuid(proprietaireId)) 'p_bottle_owner_id': proprietaireId,
-    if (proprietaireNom != null) 'p_bottle_owner_name': proprietaireNom,
-    'p_is_external': false,
-    'p_questionnaire_data': resultat.toJson(),
+    'p_pour': amiId,
+    'p_vin': {
+      'nom': nomDuVin.trim(),
+      if (millesime != null) 'millesime': millesime,
+      if (propre(producteur) != null) 'producteur': propre(producteur),
+      if (propre(couleur) != null) 'couleur': propre(couleur),
+      if (propre(region) != null) 'region': propre(region),
+      if (propre(pays) != null) 'pays': propre(pays),
+      if (cepages.isNotEmpty) 'cepages': cepages,
+      if (propre(photo) != null && photo!.startsWith('http')) 'photo': propre(photo),
+    },
+    'p_note': resultat.noteOutOf10,
+    'p_questionnaire': resultat.toJson(),
+    if (propre(defaut) != null) 'p_defaut': propre(defaut),
+    if (propre(resultat.platAccorde) != null) 'p_plat': propre(resultat.platAccorde),
+    'p_convives': convives,
+    if (propre(proprietaireNom) != null) 'p_proprietaire_nom': propre(proprietaireNom),
   };
 }

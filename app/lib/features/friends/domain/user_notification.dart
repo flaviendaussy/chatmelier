@@ -59,6 +59,22 @@ class UserNotification {
   /// Le texte, dans la langue de celui qui lit — voir [titreLu].
   String get corpsLu => _redaction().corps;
 
+  /// « (7,5/10) », dans la langue de l'écran ; rien sans note.
+  static String _note(Object? brut) {
+    final n = brut is num ? brut : num.tryParse('${brut ?? ''}');
+    if (n == null) return '';
+    final texte = n % 1 == 0 ? n.toInt().toString() : n.toStringAsFixed(1);
+    return ' (${Langue.code == 'en' ? texte : texte.replaceAll('.', ',')}/10)';
+  }
+
+  /// « le 07/10 » ; rien si la date manque.
+  static String _quand(Object? brut) {
+    final d = DateTime.tryParse('${brut ?? ''}')?.toLocal();
+    if (d == null) return '';
+    final jour = '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
+    return tr(' le {jour}', ' on {jour}', {'jour': jour});
+  }
+
   ({String titre, String corps}) _redaction() {
     final nom = [actorName, data['requester_name']?.toString()]
             .whereType<String>()
@@ -105,6 +121,23 @@ class UserNotification {
           titre: tr('Demande d\'accès à la cave refusée', 'Cellar access request declined'),
           corps: tr('{qui} a décliné votre demande d\'accès à sa cave.', '{qui} declined your request to access their cellar.',
               {'qui': qui}),
+        ),
+      // La dégustation qu'un ami a faite pour vous (V2.4 · R4) : elle n'entre au journal que
+      // si vous l'acceptez.
+      'degustation_a_accepter' => (
+          titre: tr('Une dégustation à ajouter à votre journal 🍷', 'A tasting to add to your journal 🍷'),
+          corps: [
+            tr('{qui} a noté avec vous {vin}{note}{quand}.', '{qui} rated {vin}{note} with you{quand}.', {
+              'qui': qui,
+              'vin': [data['vin'], data['millesime']].where((v) => v != null && '$v'.isNotEmpty).join(' '),
+              'note': _note(data['note']),
+              'quand': _quand(data['date']),
+            }),
+            if (data['defaut'] != null)
+              tr('Bouteille défectueuse : votre palais n\'en apprendra rien.',
+                  'Faulty bottle: your palate won\'t learn anything from it.'),
+            if (!isRead) tr('L\'ajouter à votre journal ?', 'Add it to your journal?'),
+          ].join(' '),
         ),
       _ => (titre: title, corps: body),
     };

@@ -48,4 +48,21 @@ void main() {
     final n = recue('nouveau_type', const {});
     expect((n.titreLu, n.corpsLu), ('Titre rangé en français', 'Texte rangé en français'));
   });
+
+  test('la dégustation qu\'un ami a faite pour vous : à accepter (R4)', () {
+    final n = recue('degustation_a_accepter',
+        {'degustation_id': 'd1', 'vin': 'Bardos Reserva', 'millesime': 2020, 'note': 7.5, 'date': '2026-10-07T20:10:00Z'},
+        acteur: 'Caro');
+    Langue.code = 'fr';
+    expect(n.titreLu, 'Une dégustation à ajouter à votre journal 🍷');
+    expect(n.corpsLu, 'Caro a noté avec vous Bardos Reserva 2020 (7,5/10) le 07/10. L\'ajouter à votre journal ?');
+    Langue.code = 'en';
+    expect(n.corpsLu, 'Caro rated Bardos Reserva 2020 (7.5/10) with you on 07/10. Add it to your journal?');
+    final bouchonnee = recue('degustation_a_accepter', {'degustation_id': 'd2', 'vin': 'Morgon', 'note': 3, 'defaut': 'cork'},
+        acteur: 'Caro');
+    Langue.code = 'fr';
+    expect(bouchonnee.corpsLu, contains('(3/10)'));
+    expect(bouchonnee.corpsLu, contains('votre palais n\'en apprendra rien'));
+  });
 }
+

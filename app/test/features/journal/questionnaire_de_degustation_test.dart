@@ -218,18 +218,33 @@ void main() {
       expect(ligne.complete()['tasting_notes'], 'Dégustation guidée.');
     });
 
-    test('la dégustation envoyée à un ami porte ses réponses', () {
-      final p = degustationPartagee(
-        wineId: idVin,
-        amiId: 'u-caro',
+    test('la dégustation faite pour un ami lui est proposée, avec le vin et ses réponses (R4)', () {
+      final p = propositionDeDegustation(
+        amiId: 'u-flavien',
+        nomDuVin: ' Bardos Reserva ',
+        millesime: 2020,
+        couleur: 'red',
+        region: 'Ribera del Duero',
+        pays: '',
+        cepages: const ['Tempranillo'],
+        photo: '/data/user/0/cache/photo.jpg',
         resultat: resultat(),
-        convives: const ['Moi', 'Caro'],
-        bottleId: 'locale',
+        convives: const ['Caro', 'Flavien'],
+        defaut: 'cork',
+        proprietaireNom: 'Flavien',
       );
-      expect(p['p_rating'], 7.5);
-      expect(p.containsKey('p_bottle_id'), isFalse);
-      expect(p['p_notes'], 'Dégustation partagée. Arômes : 🍋 Agrumes');
-      expect((p['p_questionnaire_data'] as Map)['profile_id'] ?? (p['p_questionnaire_data'] as Map)['profileId'], 'moi');
+      expect(p['p_pour'], 'u-flavien');
+      expect(p['p_note'], 7.5);
+      expect(p['p_vin'], {
+        'nom': 'Bardos Reserva',
+        'millesime': 2020,
+        'couleur': 'red',
+        'region': 'Ribera del Duero',
+        'cepages': ['Tempranillo'],
+      }, reason: 'ni pays vide, ni photo restée sur le téléphone');
+      expect((p['p_questionnaire'] as Map)['profile_id'], 'moi');
+      expect(p['p_defaut'], 'cork');
+      expect(p.containsKey('p_notes'), isFalse, reason: 'le texte se rédige chez l\'ami, dans sa langue');
     });
   });
 

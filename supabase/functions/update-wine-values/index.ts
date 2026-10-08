@@ -273,8 +273,8 @@ serve(async (req) => {
       const prompt = `Search current merchant or auction listings for this wine:
 Estate / Producer: ${wine.producer || 'Unknown'}
 Wine: ${wine.wine_name}
-Cuvée/Parcel: ${wine.cuvee_parcel || 'Standard'}
-Vintage: ${wine.vintage || 'NV'}
+Cuvée/Parcel: ${wine.cuvee_parcel || 'not stated'}
+Vintage: ${wine.vintage || 'not stated'}
 
 Return strictly a JSON object, and nothing else:
 {"current_market_value": number | null, "currency": "EUR", "source_url": string | null}

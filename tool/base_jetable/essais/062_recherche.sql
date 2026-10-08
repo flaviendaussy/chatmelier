@@ -23,20 +23,21 @@ BEGIN
   IF public.pseudo_du_profil('meta://?u=flavien') <> 'flavien' OR public.pseudo_du_profil('https://x/a.png') IS NOT NULL THEN
     RAISE EXCEPTION 'lecture du pseudo inattendue';
   END IF;
-  -- Par le pseudo, par le prénom, jamais soi-même.
-  SELECT count(*) INTO n FROM public.chercher_des_membres('@caro');
+  -- Par le pseudo, par le prénom, jamais soi-même. Seuls les comptes de cet essai comptent :
+  -- d'autres essais créent aussi des « Caro ».
+  SELECT count(*) INTO n FROM public.chercher_des_membres('@caro') m WHERE m.id::text LIKE '62000000-%';
   IF n <> 1 THEN RAISE EXCEPTION 'caro : % résultats', n; END IF;
-  SELECT count(*) INTO n FROM public.chercher_des_membres('dimi');
+  SELECT count(*) INTO n FROM public.chercher_des_membres('dimi') m WHERE m.id::text LIKE '62000000-%';
   IF n <> 1 THEN RAISE EXCEPTION 'dimi : % résultats', n; END IF;
-  SELECT count(*) INTO n FROM public.chercher_des_membres('flavien');
+  SELECT count(*) INTO n FROM public.chercher_des_membres('flavien') m WHERE m.id::text LIKE '62000000-%';
   IF n <> 0 THEN RAISE EXCEPTION 'on ne se trouve pas soi-même'; END IF;
   -- Une lettre ne suffit pas ; un joker tapé n'en est pas un.
-  SELECT count(*) INTO n FROM public.chercher_des_membres('a');
+  SELECT count(*) INTO n FROM public.chercher_des_membres('a') m WHERE m.id::text LIKE '62000000-%';
   IF n <> 0 THEN RAISE EXCEPTION 'une lettre ne doit rien rendre'; END IF;
   -- Sans échappement, « %% » trouverait tout le monde ; échappé, personne n'a « %% » dans son nom.
-  SELECT count(*) INTO n FROM public.chercher_des_membres('%%');
+  SELECT count(*) INTO n FROM public.chercher_des_membres('%%') m WHERE m.id::text LIKE '62000000-%';
   IF n <> 0 THEN RAISE EXCEPTION '« %%%% » ne doit trouver personne : %', n; END IF;
-  SELECT count(*) INTO n FROM public.chercher_des_membres('0%');
+  SELECT count(*) INTO n FROM public.chercher_des_membres('0%') m WHERE m.id::text LIKE '62000000-%';
   IF n <> 1 THEN RAISE EXCEPTION '« 0%% » ne doit trouver que « 100%% Camille » : %', n; END IF;
   SELECT display_name INTO premier FROM public.chercher_des_membres('ro') LIMIT 1;
   IF premier IS NULL THEN RAISE EXCEPTION 'ro devait trouver Caroline ou bandolero'; END IF;

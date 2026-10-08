@@ -340,10 +340,10 @@ Réponds STRICTEMENT par un objet JSON :
 Pour le vin suivant servi à table :
 - Vin : ${nom}
 - Domaine / Producteur : ${texte(e.producteur, 120) || 'Inconnu'}
-- Millésime : ${entier(e.millesime) ?? 'Non millésimé'}
+- Millésime : ${entier(e.millesime) ?? 'non précisé'}
 - Région / Appellation : ${texte(e.region, 80)} ${texte(e.appellation, 80)}
 - Cépages : ${liste(e.cepages, 8, 40).join(', ') || 'Non spécifiés'}
-- Type : ${texte(e.type, 30) || 'Rouge'}
+- Type : ${texte(e.type, 30) || 'non précisé'}
 
 Écris ${EN_LANGUE[langue]} de courtes anecdotes captivantes et élégantes, pour le maître de maison qui raconte la bouteille à ses invités :
 1. "terroir_and_grape" : le terroir et la typicité des cépages (1 à 2 phrases).
@@ -446,10 +446,10 @@ Pour la seule fenêtre de consommation, quand l'appellation est certaine, sa val
 Give reliable sommelier data for:
 - Wine name: ${nom}
 - Producer / domaine: ${texte(e.producteur, 120) || 'Unknown'}
-- Vintage: ${entier(e.millesime) ?? 'Non-vintage'}
+- Vintage: ${entier(e.millesime) ?? 'not stated'}
 - Region: ${texte(e.region, 80) || 'Unknown'}
 - Appellation: ${texte(e.appellation, 80) || 'Unknown'}
-- Wine type: ${texte(e.type, 30) || 'red'}
+- Wine type: ${texte(e.type, 30) || 'not stated'}
 ${recherche ? 'Search trusted wine references (producer site, Guide Hachette, RVF, Wine Spectator, Decanter) and use what you find.\n' : ''}
 Return strictly one JSON object with:
 "grapes": [{"name": "...", "pct": number | null}] — the real blend of this appellation or cuvée;

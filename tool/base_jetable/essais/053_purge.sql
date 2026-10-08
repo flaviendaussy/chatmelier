@@ -22,8 +22,9 @@ INSERT INTO auth.users (id, is_anonymous, email, created_at, last_sign_in_at) VA
   ('00000000-0000-0000-0000-000000005301', true, NULL, now() - interval '40 days', now() - interval '35 days'),
   ('00000000-0000-0000-0000-000000005302', true, NULL, now() - interval '3 days', now() - interval '1 day'),
   ('00000000-0000-0000-0000-000000005303', true, 'converti@exemple.fr', now() - interval '60 days', now() - interval '50 days');
-INSERT INTO public.codes_de_reprise (user_id, expire_le) VALUES
-  ('00000000-0000-0000-0000-000000005301', now() + interval '5 days');
+-- L'empreinte est donnée : la vraie table (050) n'a pas de valeur par défaut.
+INSERT INTO public.codes_de_reprise (user_id, empreinte, expire_le) VALUES
+  ('00000000-0000-0000-0000-000000005301', extensions.gen_random_bytes(8), now() + interval '5 days');
 
 DO $$
 DECLARE n INTEGER;
@@ -40,8 +41,8 @@ END $$;
 
 -- Le ménage : un code expiré part, un code valide reste ; les vieux essais et quotas partent.
 INSERT INTO auth.users (id) VALUES ('00000000-0000-0000-0000-0000000053b0');
-INSERT INTO public.codes_de_reprise (user_id, expire_le) VALUES
-  ('00000000-0000-0000-0000-0000000053b0', now() - interval '3 days');
+INSERT INTO public.codes_de_reprise (user_id, empreinte, expire_le) VALUES
+  ('00000000-0000-0000-0000-0000000053b0', extensions.gen_random_bytes(8), now() - interval '3 days');
 INSERT INTO public.tentatives_de_reprise (user_id, le) VALUES
   ('00000000-0000-0000-0000-0000000053b0', now() - interval '2 days'),
   ('00000000-0000-0000-0000-0000000053b0', now());

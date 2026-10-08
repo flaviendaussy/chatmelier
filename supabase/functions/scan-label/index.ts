@@ -571,8 +571,8 @@ Never guess. Copy what the label shows. For country, region and appellation, use
     //    premières requêtes du mois sont offertes, puis 0,014 $ chacune.
     const identite = `Producer: ${extracted.producer || 'Unknown'}
 Name: ${extracted.name}
-Cuvée/Parcel: ${extracted.cuvee_parcel || 'Standard'}
-Vintage: ${extracted.vintage ? extracted.vintage : 'Non-Vintage (NV)'}
+Cuvée/Parcel: ${extracted.cuvee_parcel || 'not stated'}
+Vintage: ${extracted.vintage ? extracted.vintage : 'not read on the label'}
 Region: ${[extracted.region, extracted.country].filter(Boolean).join(', ') || 'Unknown'}`
 
     // Sans recherche, on ne demande ni notes de critiques, ni sources, ni valeur de marché :

@@ -14,6 +14,7 @@ import '../data/stats_repository.dart';
 import '../domain/cellar_stats.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
+import '../../../shared/utils/pays.dart';
 import '../../../shared/widgets/onglets.dart';
 
 final statsDisplayCurrencyProvider = StateProvider<String>((ref) => 'EUR');
@@ -810,7 +811,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               parts: [
                 for (var i = 0; i < topEntries.length; i++)
                   (
-                    libelle: valeurAffichee(topEntries[i].key),
+                    // Une « région » qui est un pays (« England ») se lit dans la langue de l'app.
+                    libelle: Pays.code(topEntries[i].key) != null
+                        ? Pays.nom(topEntries[i].key)
+                        : valeurAffichee(topEntries[i].key),
                     n: topEntries[i].value,
                     couleur: _chartColors[(i + 2) % _chartColors.length],
                   ),

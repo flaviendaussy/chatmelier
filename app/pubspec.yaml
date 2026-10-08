@@ -70,6 +70,9 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
+    # Les deux polices de l'app, embarquées (V2.4) : google_fonts les téléchargeait chez Google à
+    # chaque lancement (erreurs hors ligne, adresse IP envoyée sans consentement).
+    - assets/google_fonts/
     - assets/images/
     - assets/icons/
     - assets/data/

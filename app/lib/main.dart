@@ -3,6 +3,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,6 +19,16 @@ import 'shared/utils/app_logger.dart';
 
 void main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
+
+  // Inter et Playfair Display sont dans l'app (assets/google_fonts) : plus de téléchargement
+  // chez Google au lancement. Hors ligne, il échouait (« Failed to load font », journaux de
+  // la 78), et il envoyait l'adresse IP de chacun à Google sans qu'on le lui ait demandé.
+  GoogleFonts.config.allowRuntimeFetching = false;
+  LicenseRegistry.addLicense(() async* {
+    for (final (famille, fichier) in [('Inter', 'OFL-Inter.txt'), ('Playfair Display', 'OFL-PlayfairDisplay.txt')]) {
+      yield LicenseEntryWithLineBreaks([famille], await rootBundle.loadString('assets/google_fonts/$fichier'));
+    }
+  });
 
   // Publie l'arbre sémantique en build de test, sans attendre un lecteur d'écran.
   //

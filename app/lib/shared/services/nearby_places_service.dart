@@ -129,7 +129,7 @@ final nearbyPlacesServiceProvider = Provider<NearbyPlacesService>((ref) {
 
 class NearbyPlacesService {
   static const String _customPlacesKey = 'chatmelier_custom_places_v1';
-  static const String _userAgent = 'ChatmelierApp/1.0 (contact@chatmelier.app)';
+  static const String _userAgent = 'ChatmelierApp/1.7 (+https://chatmelier.github.io)';
 
   // =========================================================================
   // 1. CUSTOM PLACES MANAGEMENT (Chez Dimitri, etc.)

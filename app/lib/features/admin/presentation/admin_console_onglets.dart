@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/admin_console_service.dart';
 import '../data/admin_personnes_service.dart';
 import '../domain/admin_console.dart';
+import '../domain/capture_de_retour.dart';
 import '../domain/admin_personnes.dart';
 import 'admin_onglets.dart';
 
@@ -179,17 +180,27 @@ class _CarteDeRetour extends ConsumerWidget {
               return const SizedBox(height: 220, child: Center(child: CircularProgressIndicator()));
             }
             if (s.hasError || s.data == null) {
+              final e = s.error;
+              final cause = e is FunctionException
+                  ? CaptureDeRetour.cause(statut: e.status, details: e.details ?? e.reasonPhrase)
+                  : CaptureDeRetour.cause(statut: null, details: e);
               return Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text(
-                  'Capture illisible : ${s.error ?? 'introuvable'}.\nLa fonction sign-feedback-capture est-elle déployée ?',
-                  textAlign: TextAlign.center,
-                ),
+                child: Text('Capture illisible : $cause.', textAlign: TextAlign.center),
               );
             }
             return InteractiveViewer(
               maxScale: 5,
-              child: Image.network(s.data!, fit: BoxFit.contain),
+              child: Image.network(
+                s.data!,
+                fit: BoxFit.contain,
+                // Une capture d'avant le 22/09 vit encore à son adresse publique, sauf si
+                // elle a été effacée depuis : le dire plutôt qu'une image cassée.
+                errorBuilder: (_, __, ___) => const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Text('Capture illisible : le fichier n\'existe plus à cette adresse.', textAlign: TextAlign.center),
+                ),
+              ),
             );
           },
         ),

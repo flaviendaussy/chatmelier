@@ -736,7 +736,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               '• Une carte que vous scannez en disant où vous êtes est proposée aux membres qui passent au même endroit, sans photo ni rien qui vous désigne.\n'
               '• La localisation ne sert que pendant l\'utilisation, avec votre accord.\n'
               '• La base de données est hébergée à Paris (Supabase).\n\n'
-              'Vos droits : Profil → Compte → « Télécharger mes données » et « Supprimer mon compte ». Contact : contact@chatmelier.app\n\n'
+              'Vos droits : Profil → Compte → « Télécharger mes données » et « Supprimer mon compte ». Responsable : Flavien Daussy, Londres. Contact : flavien.daussy@gmail.com\n\n'
               'Tout le détail : https://chatmelier.github.io/privacy.html',
           'Updated: October 8, 2026\n\n'
               '• Chatmelier does not sell your data.\n'
@@ -746,7 +746,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               '• A wine list you scan while saying where you are is offered to members who come to the same place, without photos or anything identifying you.\n'
               '• Location is only used while you use the app, with your permission.\n'
               '• The database is hosted in Paris (Supabase).\n\n'
-              'Your rights: Profile → Account → “Download my data” and “Delete my account”. Contact: contact@chatmelier.app\n\n'
+              'Your rights: Profile → Account → “Download my data” and “Delete my account”. Controller: Flavien Daussy, London. Contact: flavien.daussy@gmail.com\n\n'
               'Full details: https://chatmelier.github.io/privacy.html'),
     );
   }
@@ -1799,7 +1799,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             width: 36,
             height: 36,
           ),
-          applicationLegalese: trSi(isFr, '© 2026 Chatmelier • Gestionnaire de Cave Intelligent par IA\nConforme RGPD & Apple/Google Store Guidelines', '© 2026 Chatmelier • Smart AI Wine Cellar Manager\nCompliant with GDPR & Apple/Google Store Guidelines'),
+          // Ni « conforme RGPD » ni « conforme aux règles des magasins » : rien ne le prouve. L'éditeur, oui.
+          applicationLegalese: trSi(isFr, '© 2026 Chatmelier\nÉdité par Flavien Daussy, Londres', '© 2026 Chatmelier\nPublished by Flavien Daussy, London'),
           icon: const Icon(Icons.info_outline, size: 20),
         ),
       ],

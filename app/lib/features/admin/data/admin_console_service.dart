@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/providers/supabase_provider.dart';
 import '../domain/admin_console.dart';
+import '../domain/capture_de_retour.dart';
 import 'admin_metrics_service.dart';
 import 'admin_personnes_service.dart';
 
@@ -47,7 +48,9 @@ class AdminConsoleService {
 
   /// L'adresse, valable cinq minutes, d'une capture jointe à un retour : la fonction
   /// `sign-feedback-capture` vérifie que l'appelant est administrateur avant de signer.
+  /// Une capture d'avant le 22/09 est déjà une adresse : elle s'ouvre telle quelle.
   Future<String?> adresseDeCapture(String chemin) async {
+    if (CaptureDeRetour.estUneAdresse(chemin)) return chemin;
     final r = await _client.functions.invoke('sign-feedback-capture', body: {'path': chemin});
     final d = r.data;
     return d is Map ? d['url'] as String? : null;

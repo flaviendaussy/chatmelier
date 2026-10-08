@@ -120,7 +120,7 @@ class WineMerchantService {
       );
 
       final res = await http.get(url, headers: {
-        'User-Agent': 'ChatmelierWineApp/1.2.0 (contact@chatmelier.app)',
+        'User-Agent': 'ChatmelierWineApp/1.7 (+https://chatmelier.github.io)',
         'Accept-Language': 'fr,en;q=0.9',
       }).timeout(const Duration(seconds: 5));
 

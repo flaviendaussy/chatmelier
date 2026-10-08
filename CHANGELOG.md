@@ -2,7 +2,9 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
-## [v1.6.0+77] — 2026-10-08
+## [v1.7.0+78] — 2026-10-08
+
+> La 1.6.0+77, construite le même jour, n'a pas été distribuée : la 1.7.0+78 la remplace, au contenu identique. La version affichée passe à 1.7 (l'italien, la carte du lieu, le compte obligatoire et l'export de vos données sont des nouveautés à part entière), le build à 78 (la 77 a déjà été envoyée chez Apple).
 
 ### 🍷 Ce qui change pour vous
 - **En italien** : l'app parle désormais français, anglais, espagnol et italien (Profil → Réglages → Langue), jusqu'à la page invité, aux raisons de la table et aux réponses du sommelier.

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'admob_config.dart';
 import '../../shared/utils/app_logger.dart';
 import 'mesure_des_pubs.dart';
+import 'package:uuid/uuid.dart';
 
 final admobServiceProvider = Provider<AdMobService>((ref) {
   return AdMobService();
@@ -165,6 +166,27 @@ class AdMobService {
     }
   }
 
+  /// Ce que Google a payé pour cette pub (`onPaidEvent`), relié à son impression. Il ne
+  /// vient que si « Revenus publicitaires au niveau des impressions » est activé dans AdMob,
+  /// et parfois après la fermeture de la pub : il part alors seul, avec le même identifiant.
+  void _mesurerLeRevenu(AdWithoutView ad, String idImpression, {required String format, required String emplacement}) {
+    ad.onPaidEvent = (Ad _, double valeurMicros, PrecisionType precision, String devise) {
+      MesureDesPubs.revenu(
+        impressionId: idImpression,
+        format: format,
+        emplacement: emplacement,
+        valeurMicros: valeurMicros,
+        precision: switch (precision) {
+          PrecisionType.precise => 'precise',
+          PrecisionType.estimated => 'estimated',
+          PrecisionType.publisherProvided => 'publisher_provided',
+          _ => 'unknown',
+        },
+        devise: devise,
+      );
+    };
+  }
+
   /// Preloads a rewarded ad in the background so it is instantly ready when the user initiates a scan.
   void preloadRewardedAd() {
     if (!AdMobConfig.isPlatformSupported || _isAdLoading || _rewardedAd != null) {
@@ -218,11 +240,13 @@ class AdMobService {
     _rewardedAd = null; // Consume the ad
 
     bool userEarnedReward = false;
+    final idImpression = const Uuid().v4();
+    _mesurerLeRevenu(ad, idImpression, format: 'rewarded', emplacement: emplacement);
 
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (RewardedAd ad) {
         recordAdShown();
-        MesureDesPubs.impression(format: 'rewarded', emplacement: emplacement);
+        MesureDesPubs.impression(format: 'rewarded', emplacement: emplacement, id: idImpression);
         AppLogger.info('ADMOB', 'RewardedAd showed full screen content.');
       },
       onAdDismissedFullScreenContent: (RewardedAd ad) {
@@ -399,12 +423,14 @@ class AdMobService {
     final completer = Completer<bool>();
     final ad = _appOpenAd!;
     _appOpenAd = null;
+    final idImpression = const Uuid().v4();
+    _mesurerLeRevenu(ad, idImpression, format: 'app_open', emplacement: 'ouverture');
 
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
         _isShowingAppOpenAd = true;
         recordAdShown();
-        MesureDesPubs.impression(format: 'app_open', emplacement: 'ouverture');
+        MesureDesPubs.impression(format: 'app_open', emplacement: 'ouverture', id: idImpression);
         AppLogger.info('ADMOB', 'AppOpenAd showed full screen content.');
       },
       onAdDismissedFullScreenContent: (ad) {

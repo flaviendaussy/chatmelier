@@ -404,6 +404,7 @@ class OngletEconomie extends ConsumerWidget {
               ref.invalidate(adminEconomieProvider);
               ref.invalidate(adminCroissanceProvider);
               ref.invalidate(adminEconomieDetailProvider);
+              ref.invalidate(adminRevenusPubProvider);
             },
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -421,9 +422,11 @@ class OngletEconomie extends ConsumerWidget {
                 Text(
                   'Revenu ESTIMÉ : impressions × eCPM de app_config.ecpm_eur_estime '
                   '(${b.ecpmEstime.entries.map((e) => '${e.key} ${e.value.toStringAsFixed(1)} €').join(', ')}). '
-                  'À remplacer par les eCPM réels de la console AdMob.',
+                  'Le revenu réel, payé par Google impression par impression, est juste en dessous.',
                   style: TextStyle(fontSize: 11.5, color: gris, fontStyle: FontStyle.italic),
                 ),
+                const SizedBox(height: 12),
+                _RevenuReel(coutIaEur: b.coutIaEur),
                 const SizedBox(height: 20),
                 // Le détail de la V2.4 (migration 060) : sans elle, la section se tait.
                 ...ref.watch(adminEconomieDetailProvider).maybeWhen(
@@ -566,6 +569,82 @@ class _Ratio extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Le revenu réel des pubs (migration 065) : ce que Google a payé, l'eCPM réel face à
+/// l'estimé, et la part de l'IA que la pub paie vraiment.
+class _RevenuReel extends ConsumerWidget {
+  final double coutIaEur;
+  const _RevenuReel({required this.coutIaEur});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gris = Theme.of(context).colorScheme.onSurfaceVariant;
+    return ref.watch(adminRevenusPubProvider).when(
+          loading: () => const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator())),
+          error: (e, _) => Text('Revenu réel : illisible ($e). Migration 065 appliquée ?',
+              style: TextStyle(fontSize: 12, color: gris)),
+          data: (r) {
+            if (r.paiements == 0) {
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Text(
+                    'Revenu réel : aucun paiement reçu sur la période (${r.impressions} impressions). Dans AdMob : '
+                    'Paramètres → Compte → Contrôles du compte → « Revenus publicitaires au niveau des '
+                    'impressions » ; les pubs de la 1.8.0 envoient ensuite ce que chacune a rapporté.',
+                    style: TextStyle(fontSize: 12.5, color: gris),
+                  ),
+                ),
+              );
+            }
+            final ratio = r.ratioSur(coutIaEur);
+            final couleur = ratio == null ? Colors.grey : (ratio >= 1 ? const Color(0xFF2E7D32) : const Color(0xFFC62828));
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _Titre('Revenu réel (AdMob)', '${r.paiements} paiements pour ${r.impressions} impressions'),
+                    Text(
+                      r.revenuEur == null ? 'aucun montant convertible en euros' : euros(r.revenuEur!),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    for (final d in r.nonConvertis)
+                      Text(
+                        '+ ${d.total.toStringAsFixed(4)} ${d.devise} (${d.paiements} paiements) : sans taux connu, '
+                        'hors du total (app_config.taux_de_change)',
+                        style: TextStyle(fontSize: 11.5, color: gris),
+                      ),
+                    if (ratio != null) ...[
+                      const SizedBox(height: 6),
+                      Text('Au revenu réel, la pub paie ${(ratio * 100).toStringAsFixed(0)} % de l\'IA',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: couleur)),
+                    ],
+                    const SizedBox(height: 10),
+                    for (final f in r.parFormat)
+                      ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(f.format),
+                        subtitle: Text('${f.paiements} paiements · ${f.impressions} impressions'),
+                        trailing: Text(
+                          [
+                            if (f.ecpmReelEur != null) 'eCPM réel ${euros(f.ecpmReelEur!)}',
+                            if (f.ecpmEstimeEur != null) 'estimé ${euros(f.ecpmEstimeEur!)}',
+                          ].join('\n'),
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
   }
 }
 

@@ -6,6 +6,7 @@ import '../domain/admin_console.dart';
 import '../domain/capture_de_retour.dart';
 import 'admin_metrics_service.dart';
 import 'admin_personnes_service.dart';
+import '../domain/revenus_pub.dart';
 
 /// La console, deuxième version (V2.4 · R9, migration 060) : réglages, retours suivis,
 /// économie et erreurs jour par jour, versions installées. Comme le reste de la console :
@@ -32,6 +33,10 @@ class AdminConsoleService {
 
   Future<DetailEconomique> economie(int jours, {bool inclureTests = false}) async => DetailEconomique.fromJson(
       _objet(await _client.rpc('admin_economie_detail', params: {'p_jours': jours, 'p_inclure_tests': inclureTests})));
+
+  /// Le revenu réel des pubs (migration 065).
+  Future<RevenusPub> revenusPub(int jours, {bool inclureTests = false}) async => RevenusPub.fromJson(
+      _objet(await _client.rpc('admin_revenus_pub', params: {'p_jours': jours, 'p_inclure_tests': inclureTests})));
 
   Future<List<JourDErreurs>> erreursParJour(int jours) async =>
       _liste(await _client.rpc('admin_erreurs_par_jour', params: {'p_jours': jours}))
@@ -83,6 +88,13 @@ final adminRetoursProvider = FutureProvider<List<RetourSuivi>>((ref) {
 
 final adminEconomieDetailProvider = FutureProvider<DetailEconomique>((ref) {
   return ref.read(adminConsoleServiceProvider).economie(
+        ref.watch(adminPeriodeProvider),
+        inclureTests: ref.watch(adminInclureTestsProvider),
+      );
+});
+
+final adminRevenusPubProvider = FutureProvider<RevenusPub>((ref) {
+  return ref.read(adminConsoleServiceProvider).revenusPub(
         ref.watch(adminPeriodeProvider),
         inclureTests: ref.watch(adminInclureTestsProvider),
       );

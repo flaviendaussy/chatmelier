@@ -47,6 +47,7 @@ class AdminDashboardScreen extends ConsumerWidget {
               ref.invalidate(adminRetoursProvider);
               ref.invalidate(adminReglagesProvider);
               ref.invalidate(adminEconomieDetailProvider);
+              ref.invalidate(adminRevenusPubProvider);
               ref.invalidate(adminErreursParJourProvider);
               ref.invalidate(adminVersionsProvider);
             },

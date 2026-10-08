@@ -12,6 +12,7 @@ import '../../features/cellar/presentation/shelf_grid_view_sheet.dart';
 import '../../config/navigator_keys.dart';
 import '../../shared/utils/langue.dart';
 import 'onglets.dart';
+import '../../features/prise_en_main/presentation/le_saviez_vous.dart';
 
 class AdaptiveAppShell extends ConsumerWidget {
   final Widget child;
@@ -79,7 +80,8 @@ class AdaptiveAppShell extends ConsumerWidget {
           }
         }
       },
-      child: shell,
+      // Le guide au premier lancement, ensuite « Le saviez-vous ? » (R10).
+      child: PriseEnMainAuDemarrage(child: shell),
     );
   }
 }

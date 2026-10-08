@@ -42,6 +42,7 @@ import '../../../shared/utils/langue.dart';
 import '../../../shared/widgets/onglets.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
 import 'widgets/carte_des_terroirs_card.dart';
+import '../../prise_en_main/presentation/le_saviez_vous.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -1453,6 +1454,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           trailing: const Icon(Icons.chevron_right),
           onTap: () => NotificationSettingsSheet.show(context),
         ),
+        const Divider(height: 28),
+
+        // La prise en main (R10) : revoir le guide, couper ou remettre les astuces.
+        const ReglagesDePriseEnMain(),
 
         // RGPD Consent options (le séparateur vient avec : sans elles, aucun espace vide)
         if (_showPrivacyOptions) ...[

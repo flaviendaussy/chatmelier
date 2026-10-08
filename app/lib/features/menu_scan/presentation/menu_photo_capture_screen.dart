@@ -6,13 +6,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../shared/services/cellar_location_service.dart';
 import '../../../shared/services/fonctions_ia.dart';
+import '../../../shared/services/nearby_places_service.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../../shared/widgets/chatmelier_loader.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../monetization/admob_service.dart';
+import '../data/cartes_de_lieux_service.dart';
 import '../data/menu_scan_service.dart';
+import '../domain/carte_du_lieu.dart';
 import '../domain/menu_wine.dart';
+import 'carte_du_lieu_vue.dart';
 import '../../../shared/utils/langue.dart';
 
 class MenuPhotoCaptureScreen extends ConsumerStatefulWidget {
@@ -34,6 +39,146 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
   String _currentStatusStep = 'Chatmelier analyse le menu...';
   Timer? _statusTimer;
   int _statusStepIndex = 0;
+
+  // Où est-on ? (V2.3 · K6) : le lieu donne son nom à la carte et la partage avec la
+  // personne suivante ; la carte qu'un autre a déjà scannée ici évite un scan.
+  List<NearbyPlace> _lieuxProches = const [];
+  NearbyPlace? _lieuChoisi;
+  ({double lat, double lon})? _position;
+  bool _chercheLesLieux = false;
+  List<CarteProche> _cartesProches = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Sans rien demander : si la position est déjà permise, les lieux viennent d'eux-mêmes.
+    _chercherLesLieux(demander: false);
+  }
+
+  Future<void> _chercherLesLieux({required bool demander}) async {
+    if (_chercheLesLieux) return;
+    setState(() => _chercheLesLieux = true);
+    final lieux = ref.read(nearbyPlacesServiceProvider);
+    final cartes = ref.read(cartesDeLieuxServiceProvider);
+    final pos = demander
+        ? await CellarLocationService.getCurrentPosition()
+        : await CellarLocationService.positionSansDemander();
+    if (pos == null) {
+      if (!mounted) return;
+      setState(() => _chercheLesLieux = false);
+      if (demander) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr('Position indisponible : tapez le nom du lieu.', 'Location unavailable: type the place name.')),
+        ));
+      }
+      return;
+    }
+    final resultats = await Future.wait([
+      lieux.getNearbyPlaces(latitude: pos.latitude, longitude: pos.longitude, maxResults: 8),
+      cartes.proches(pos.latitude, pos.longitude),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _position = (lat: pos.latitude, lon: pos.longitude);
+      _lieuxProches = resultats[0] as List<NearbyPlace>;
+      _cartesProches = resultats[1] as List<CarteProche>;
+      _chercheLesLieux = false;
+    });
+  }
+
+  void _choisirLeLieu(NearbyPlace lieu) {
+    setState(() {
+      _lieuChoisi = lieu;
+      _restaurantController.text = lieu.name;
+    });
+  }
+
+  /// Le lieu sous lequel la carte sera partagée : celui qu'on a choisi, ou le nom tapé à
+  /// la position (arrondie) où l'on est. Sans nom ou sans position, aucun partage.
+  LieuDeLaCarte? get _lieuDeLaCarte {
+    final choisi = _lieuChoisi;
+    if (choisi != null) return LieuDeLaCarte.depuisLieuProche(choisi);
+    final pos = _position;
+    if (pos == null) return null;
+    return LieuDeLaCarte.tape(_restaurantController.text, pos.lat, pos.lon);
+  }
+
+  /// La carte déjà scannée qu'on propose : celle du lieu choisi, sinon la plus proche.
+  CarteProche? get _carteDejaScannee {
+    if (_cartesProches.isEmpty) return null;
+    final cle = _lieuDeLaCarte?.cle;
+    if (cle != null) {
+      for (final c in _cartesProches) {
+        if (c.lieuCle == cle) return c;
+      }
+      if (_lieuChoisi != null) return null;
+    }
+    return _cartesProches.first;
+  }
+
+  Widget _ouEtesVous(ThemeData theme) {
+    final dejaScannee = _carteDejaScannee;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (dejaScannee != null) ...[
+            BandeauCarteDuLieu(
+              carte: dejaScannee,
+              onOuvrir: () => ouvrirLaCarteDuLieu(context, ref, dejaScannee, remplacer: true),
+            ),
+            const SizedBox(height: 8),
+          ],
+          TextField(
+            controller: _restaurantController,
+            textCapitalization: TextCapitalization.words,
+            onChanged: (t) {
+              final choisi = _lieuChoisi;
+              if (choisi != null && t.trim() != choisi.name) setState(() => _lieuChoisi = null);
+            },
+            decoration: InputDecoration(
+              isDense: true,
+              labelText: tr('Où êtes-vous ?', 'Where are you?'),
+              hintText: tr('Nom du restaurant ou du bar', 'Restaurant or bar name'),
+              prefixIcon: const Icon(Icons.place_outlined),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              suffixIcon: _chercheLesLieux
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.my_location),
+                      tooltip: tr('Lieux proches', 'Nearby places'),
+                      onPressed: () => _chercherLesLieux(demander: true),
+                    ),
+            ),
+          ),
+          if (_lieuxProches.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            SizedBox(
+              height: 36,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _lieuxProches.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 6),
+                itemBuilder: (_, i) {
+                  final lieu = _lieuxProches[i];
+                  return ChoiceChip(
+                    label: Text(lieu.displayLabel, style: const TextStyle(fontSize: 12)),
+                    selected: _lieuChoisi?.id == lieu.id,
+                    visualDensity: VisualDensity.compact,
+                    onSelected: (_) => _choisirLeLieu(lieu),
+                  );
+                },
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -194,7 +339,14 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
         return;
       }
 
-      context.pushReplacement('/scan/menu/result', extra: menu);
+      // Le lieu dit par la personne l'emporte sur le nom lu sur la carte ; la carte est
+      // partagée sous ce lieu, sans attendre (V2.3 · K6).
+      final nom = _restaurantController.text.trim();
+      final carte = nom.isEmpty ? menu : menu.copie(restaurantName: nom);
+      final lieu = nom.isEmpty ? null : _lieuDeLaCarte;
+      if (lieu != null) unawaited(ref.read(cartesDeLieuxServiceProvider).deposer(carte, lieu));
+
+      context.pushReplacement('/scan/menu/result', extra: carte);
       if (videoRegardee) {
         messenger.showSnackBar(SnackBar(
           content: Text(trSi(isFr, 'Pendant la vidéo, Chatmelier a lu votre carte : pas une seconde de perdue.', 'While the video played, Chatmelier read your menu — no time lost.')),
@@ -325,6 +477,8 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                     ],
                   ),
                 ),
+
+                _ouEtesVous(theme),
 
                 // Pages List / Grid
                 Expanded(

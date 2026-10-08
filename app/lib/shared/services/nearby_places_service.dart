@@ -17,6 +17,10 @@ class NearbyPlace {
   final double? longitude;
   final String? address;
 
+  /// L'identifiant OpenStreetMap (« node/123 », « way/456 ») d'un lieu trouvé par
+  /// Overpass : stable d'une personne à l'autre, il sert de clé à la carte du lieu (K6).
+  final String? osmCle;
+
   const NearbyPlace({
     required this.id,
     required this.name,
@@ -26,6 +30,7 @@ class NearbyPlace {
     this.latitude,
     this.longitude,
     this.address,
+    this.osmCle,
   });
 
   String get iconEmoji {
@@ -358,6 +363,7 @@ class NearbyPlacesService {
         latitude: elemLat,
         longitude: elemLon,
         address: address,
+        osmCle: elem['type'] != null && elem['id'] != null ? '${elem['type']}/${elem['id']}' : null,
       ));
     }
 

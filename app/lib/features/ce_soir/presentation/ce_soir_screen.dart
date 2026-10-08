@@ -8,6 +8,8 @@ import '../../../shared/widgets/onglets.dart';
 import '../../cellar/presentation/cellar_food_pairing_sheet.dart';
 import '../../journal/presentation/external_tasting_dialog.dart';
 import '../../menu_scan/data/recent_menus_store.dart';
+import '../../menu_scan/domain/carte_du_lieu.dart';
+import '../../menu_scan/presentation/carte_du_lieu_vue.dart';
 import '../../menu_scan/presentation/join_table_sheet.dart';
 
 /// L'onglet « Ce soir » (V2.3 · E1) : ce qu'on fait d'un vin ce soir, au restaurant ou à
@@ -26,7 +28,9 @@ class CeSoirScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final derniere = ref.watch(recentMenusProvider).valueOrNull?.firstOrNull;
+    // Les cartes récentes, pas seulement la dernière : celle d'un restaurant scanné avant
+    // un autre restait inaccessible (V2.3 · K6).
+    final recentes = ref.watch(recentMenusProvider).valueOrNull ?? const [];
 
     return Scaffold(
       appBar: AppBar(
@@ -50,18 +54,31 @@ class CeSoirScreen extends ConsumerWidget {
             couleur: _bordeaux,
             onTap: () => context.push('/scan/menu'),
           ),
-          if (derniere != null) ...[
-            const SizedBox(height: 10),
+          for (final carte in recentes.take(RecentMenusStore.maximum)) ...[
+            const SizedBox(height: 8),
             _Ligne(
               icone: Icons.history_rounded,
               couleur: Colors.teal.shade700,
-              titre: tr('Rouvrir « {restaurantName} »', 'Reopen “{restaurantName}”', {'restaurantName': derniere.restaurantName}),
-              sousTitre: tr('{wines_length} vins · sans rescanner', '{wines_length} wines · no rescan needed',
-                  {'wines_length': derniere.wines.length}),
+              titre: tr('Rouvrir « {restaurantName} »', 'Reopen “{restaurantName}”', {'restaurantName': carte.restaurantName}),
+              sousTitre: tr('{wines_length} vins · {age} · sans rescanner', '{wines_length} wines · {age} · no rescan needed',
+                  {'wines_length': carte.wines.length, 'age': CarteDuLieu.age(carte.scannedAt)}),
               fond: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
-              onTap: () => context.push('/scan/menu/result', extra: derniere),
+              onTap: () => context.push('/scan/menu/result', extra: carte),
             ),
           ],
+          const SizedBox(height: 8),
+          _Ligne(
+            icone: Icons.near_me_outlined,
+            couleur: Colors.teal.shade700,
+            titre: tr('Les cartes autour de moi', 'Menus around me'),
+            sousTitre: tr('Déjà scannées par d\'autres membres : sans rescanner',
+                'Already scanned by other members: no rescan needed'),
+            fond: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
+            onTap: () async {
+              final choisie = await CartesAutourDeMoiSheet.show(context);
+              if (choisie != null && context.mounted) await ouvrirLaCarteDuLieu(context, ref, choisie);
+            },
+          ),
           const SizedBox(height: 10),
           Row(
             children: [

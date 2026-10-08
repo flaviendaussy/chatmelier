@@ -117,6 +117,22 @@ class CellarLocationService {
     }
   }
 
+  /// La position, seulement si la personne l'a déjà permise : rien n'est demandé. Pour
+  /// proposer sans déranger (les cartes des lieux proches, K6).
+  static Future<Position?> positionSansDemander() async {
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return null;
+      final permission = await Geolocator.checkPermission();
+      if (permission != LocationPermission.always && permission != LocationPermission.whileInUse) return null;
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, timeLimit: Duration(seconds: 4)),
+      );
+    } catch (e) {
+      debugPrint('CellarLocationService.positionSansDemander notice: $e');
+      return null;
+    }
+  }
+
   /// Calculate distance between two coordinates in meters
   static double calculateDistanceMeters(
     double startLatitude,

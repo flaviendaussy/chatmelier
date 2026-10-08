@@ -11,6 +11,7 @@ import '../../../shared/providers/theme_provider.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../cellar/presentation/cellar_export_dialog.dart';
+import '../data/export_des_donnees.dart';
 import 'taste_profiles_dialog.dart';
 import 'taste_profile_edit_sheet.dart';
 import 'taste_profile_radar_screen.dart';
@@ -715,9 +716,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   void _showPrivacyPolicy() {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    // Le résumé ; le détail (données, durées, destinataires) est sur le site (08/10).
     _showLegalDialog(
-      trSi(isFr, 'Politique de Confidentialité', 'Privacy Policy'),
-      trSi(isFr, 'APPLICATION CHATMELIER — POLITIQUE DE CONFIDENTIALITÉ\n' 'Dernière mise à jour : 4 septembre 2026\n\n' '1. ENGAGEMENT DE CONFIDENTIALITÉ\n' 'Chatmelier respecte scrupuleusement la vie privée de ses utilisateurs conformément au RGPD (Règlement UE 2016/679) et aux exigences d\'Apple et de Google.\n\n' '2. DONNÉES COLLECTÉES\n' '• Compte : Email, nom d\'affichage, pseudo et téléphone optionnel pour l\'ajout d\'amis.\n' '• Caves & Bouteilles : Noms de caves, inventaire, notes de dégustation, historique de consommation.\n' '• Photos : Étiquettes et bouteilles analysées par IA (Google Gemini Vision).\n' '• Localisation (Optionnelle) : Coordonnées GPS pour localiser les dégustations extérieures et détecter votre cave à proximité.\n' '• Publicités : Identifiants publicitaires pour annonces récompensées via Google AdMob.\n\n' '3. SUPPRESSION DU COMPTE (Article 17 RGPD)\n' 'Vous pouvez à tout moment supprimer définitivement votre compte et l\'intégralité de vos données via le bouton "Supprimer mon compte" ci-dessous ou par email à contact@chatmelier.app.\n\n' 'Version web complète consultable sur : https://chatmelier.github.io/privacy.html', 'CHATMELIER APPLICATION — PRIVACY POLICY\n' 'Last updated: September 4, 2026\n\n' '1. PRIVACY COMMITMENT\n' 'Chatmelier strictly respects user privacy in compliance with GDPR (EU Regulation 2016/679) and Apple/Google store requirements.\n\n' '2. COLLECTED DATA\n' '• Account: Email, display name, username, and optional phone for friend additions.\n' '• Cellars & Bottles: Cellar names, inventory, tasting notes, consumption history.\n' '• Photos: Labels and bottles analyzed by AI (Google Gemini Vision).\n' '• Location (Optional): GPS coordinates to locate outdoor tastings and detect nearby cellar.\n' '• Ads: Advertising identifiers for rewarded ads via Google AdMob.\n\n' '3. ACCOUNT DELETION (Article 17 GDPR)\n' 'You can permanently delete your account and all data at any time via the "Delete my account" button below or by email to contact@chatmelier.app.\n\n' 'Full web version available at: https://chatmelier.github.io/privacy.html'),
+      trSi(isFr, 'Confidentialité', 'Privacy'),
+      trSi(
+          isFr,
+          'Mise à jour : 8 octobre 2026\n\n'
+              '• Chatmelier ne vend pas vos données.\n'
+              '• Les photos d\'étiquettes et de cartes, un vin saisi par son nom et vos questions au sommelier sont analysés par l\'intelligence artificielle de Google (Gemini), depuis nos serveurs.\n'
+              '• Votre palais vous suit : sur votre appareil, avec une copie que vous seul pouvez lire.\n'
+              '• À une table, vos convives voient votre prénom et votre palais ; la table est effacée quelques heures après.\n'
+              '• Une carte que vous scannez en disant où vous êtes est proposée aux membres qui passent au même endroit, sans photo ni rien qui vous désigne.\n'
+              '• La localisation ne sert que pendant l\'utilisation, avec votre accord.\n'
+              '• La base de données est hébergée à Paris (Supabase).\n\n'
+              'Vos droits : Profil → Compte → « Télécharger mes données » et « Supprimer mon compte ». Contact : contact@chatmelier.app\n\n'
+              'Tout le détail : https://chatmelier.github.io/privacy.html',
+          'Updated: October 8, 2026\n\n'
+              '• Chatmelier does not sell your data.\n'
+              '• Label and wine-list photos, a wine entered by its name and your questions to the sommelier are analysed by Google\'s artificial intelligence (Gemini), from our servers.\n'
+              '• Your palate follows you: on your device, with a copy only you can read.\n'
+              '• At a table, your guests see your first name and palate; the table is deleted a few hours later.\n'
+              '• A wine list you scan while saying where you are is offered to members who come to the same place, without photos or anything identifying you.\n'
+              '• Location is only used while you use the app, with your permission.\n'
+              '• The database is hosted in Paris (Supabase).\n\n'
+              'Your rights: Profile → Account → “Download my data” and “Delete my account”. Contact: contact@chatmelier.app\n\n'
+              'Full details: https://chatmelier.github.io/privacy.html'),
     );
   }
 
@@ -725,7 +748,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     _showLegalDialog(
       trSi(isFr, 'Conditions Générales d\'Utilisation', 'Terms of Service'),
-      trSi(isFr, 'APPLICATION CHATMELIER — CONDITIONS GÉNÉRALES D\'UTILISATION\n' 'En vigueur au 4 septembre 2026\n\n' '1. OBJET DU SERVICE\n' 'Chatmelier est une application de gestion de cave à vins et spiritueux assistée par intelligence artificielle.\n\n' '2. PRÉVENTION & SANTÉ\n' 'L\'abus d\'alcool est dangereux pour la santé, à consommer avec modération. Chatmelier est un outil informatif de gestion patrimoniale et n\'encourage pas la consommation excessive.\n\n' '3. CONSEILS DE L\'INTELLIGENCE ARTIFICIELLE\n' 'Les estimations d\'apogée, accords mets-vins et valorisations financières sont donnés à titre indicatif sans garantie de valorisation marchande future.\n\n' '4. PROPRIÉTÉ DES DONNÉES\n' 'Vous demeurez propriétaire de vos photos et notes de dégustation.\n\n' 'Version web complète consultable sur : https://chatmelier.github.io/terms.html', 'CHATMELIER APPLICATION — TERMS OF SERVICE\n' 'Effective as of September 4, 2026\n\n' '1. PURPOSE OF SERVICE\n' 'Chatmelier is an AI-assisted wine and spirits cellar management application.\n\n' '2. HEALTH & PREVENTION\n' 'Alcohol abuse is dangerous to health, consume in moderation. Chatmelier is an informative asset management tool and does not encourage excessive consumption.\n\n' '3. ARTIFICIAL INTELLIGENCE ADVICE\n' 'Peak maturity estimates, food & wine pairings, and valuations are given for informational purposes without market value guarantee.\n\n' '4. DATA OWNERSHIP\n' 'You remain the owner of your photos and tasting notes.\n\n' 'Full web version available at: https://chatmelier.github.io/terms.html'),
+      trSi(
+          isFr,
+          'En vigueur au 8 octobre 2026\n\n'
+              '1. LE SERVICE\n'
+              'Chatmelier gère votre cave, votre journal de dégustation et votre palais, et vous aide à choisir un vin, au restaurant ou chez vous, avec l\'aide de l\'intelligence artificielle.\n\n'
+              '2. ÂGE ET SANTÉ\n'
+              'Chatmelier est réservé aux personnes qui ont l\'âge légal de consommer de l\'alcool dans leur pays. L\'abus d\'alcool est dangereux pour la santé, à consommer avec modération.\n\n'
+              '3. CE QUE DIT L\'INTELLIGENCE ARTIFICIELLE\n'
+              'Apogées, accords et commentaires sont indicatifs. Quand Chatmelier ne reconnaît pas un vin avec certitude, il le dit plutôt que de deviner ; vérifiez avant de vous y fier.\n\n'
+              '4. CE QUE VOUS PARTAGEZ\n'
+              'Vous restez propriétaire de vos photos et de vos notes. Une carte des vins que vous scannez en indiquant le lieu est proposée aux autres membres qui s\'y trouvent, sans rien qui vous désigne.\n\n'
+              '5. VOTRE COMPTE\n'
+              'Vous pouvez télécharger vos données et supprimer votre compte à tout moment, depuis Profil → Compte.\n\n'
+              'Texte complet : https://chatmelier.github.io/terms.html',
+          'Effective as of October 8, 2026\n\n'
+              '1. THE SERVICE\n'
+              'Chatmelier manages your cellar, tasting journal and palate, and helps you choose a wine, out or at home, with the help of artificial intelligence.\n\n'
+              '2. AGE AND HEALTH\n'
+              'Chatmelier is for people of legal drinking age in their country. Alcohol abuse is dangerous for your health. Drink responsibly.\n\n'
+              '3. WHAT THE ARTIFICIAL INTELLIGENCE SAYS\n'
+              'Drinking windows, pairings and comments are indicative. When Chatmelier cannot recognise a wine with certainty, it says so rather than guessing; check before relying on it.\n\n'
+              '4. WHAT YOU SHARE\n'
+              'You remain the owner of your photos and notes. A wine list you scan while giving the place is offered to other members who are there, without anything identifying you.\n\n'
+              '5. YOUR ACCOUNT\n'
+              'You can download your data and delete your account at any time, from Profile → Account.\n\n'
+              'Full text: https://chatmelier.github.io/terms.html'),
     );
   }
 
@@ -1541,6 +1589,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // =========================================================================
   // TAB 3 : COMPTE & LÉGAL (ZERO SCROLL)
   // =========================================================================
+  /// RGPD, articles 15 et 20 : la personne emporte ses données (V2.1 · 0.6, fait le 08/10).
+  Future<void> _telechargerMesDonnees(bool isFr) async {
+    final messager = ScaffoldMessenger.of(context);
+    messager.showSnackBar(SnackBar(
+      duration: const Duration(seconds: 2),
+      content: Text(trSi(isFr, 'Préparation de vos données…', 'Preparing your data…')),
+    ));
+    try {
+      final manquants = await ref.read(exportDesDonneesProvider).partager();
+      if (manquants > 0) {
+        messager.showSnackBar(SnackBar(
+          content: Text(trSi(isFr, 'Fichier prêt, mais {n} partie(s) n\'ont pas pu être lues : le fichier les nomme.',
+              'File ready, but {n} part(s) could not be read: the file lists them.', {'n': manquants})),
+        ));
+      }
+    } catch (e) {
+      AppLogger.error('EXPORT_DONNEES', 'Export impossible', e);
+      messager.showSnackBar(SnackBar(
+        content: Text(trSi(isFr, 'Export impossible pour l\'instant : vérifiez la connexion et réessayez.',
+            'Export failed for now: check your connection and try again.')),
+      ));
+    }
+  }
+
   Widget _buildAccountTab(BuildContext context, ThemeData theme, bool isDark, bool isFr) {
     final user = ref.watch(currentUserProvider);
     final l10n = AppLocalizations.of(context);
@@ -1682,6 +1754,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               context.go('/login');
             }
           },
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.download_outlined, color: Color(0xFF8B1E3F)),
+          title: Text(trSi(isFr, 'Télécharger mes données', 'Download my data'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          subtitle: Text(
+              trSi(isFr, 'Compte, caves, dégustations, palais et conversations, en un fichier', 'Account, cellars, tastings, palate and conversations, in one file'),
+              style: const TextStyle(fontSize: 12)),
+          trailing: const Icon(Icons.chevron_right, size: 18),
+          onTap: () => _telechargerMesDonnees(isFr),
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,

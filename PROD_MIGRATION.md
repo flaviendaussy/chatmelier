@@ -28,8 +28,10 @@ règle a été tenue.
 Le responsable de traitement doit pouvoir répondre à chacune de ces questions avant le
 lancement public.
 
-- **Politique de confidentialité à réécrire** (`privacy.html`), en mentionnant
-  explicitement :
+- ✅ **Politique de confidentialité réécrite le 08/10** (`app/web/privacy.html`, français et
+  anglais ; résumé dans l'app, Profil → Compte). Reste à Flavien : **nommer le responsable
+  du traitement** (nom ou société, adresse : exigé par le RGPD, la page dit « l'éditeur »).
+  Ce qu'elle devait mentionner, et mentionne :
   - les **comptes anonymes** ouverts sans formulaire en rejoignant une table, et leur
     **purge à 30 jours** s'ils ne sont pas convertis ;
   - le **partage du profil de goût avec les autres convives** d'une table (les huit axes
@@ -44,17 +46,25 @@ lancement public.
     30 jours, usage unique).
 - **Registre des traitements** : un traitement par finalité (cave, dégustations, profil de
   goût, tables de restaurant, retours, diagnostic, publicité).
-- **Durées de conservation**, par table, écrites et appliquées : `app_diagnostic_logs`,
+- ✅ **Durées de conservation écrites et appliquées (migration 063, 08/10)** : journaux
+  180 jours, retours un an, coûts d'IA et impressions 400 jours, cartes des lieux 180 jours
+  (061), en plus des purges de la 053. Historique : `app_diagnostic_logs`,
   `chat_messages`, `table_sessions` (4 h + 24 h, déjà purgées par fonction), comptes
   anonymes (30 jours).
-- **Droit d'accès et de portabilité — MANQUANT.** La suppression de compte existe
+- ✅ **Droit d'accès et de portabilité — fait le 08/10** : Profil → Compte → « Télécharger
+  mes données » (JSON : compte, caves, bouteilles, dégustations, palais, conversations, amis,
+  journaux). La suppression de compte efface aussi les fichiers (photos, avatar, captures),
+  que la base n'emportait pas. Historique : la suppression de compte existe
   (`delete_user_account`, migrations 023, 031, puis 039 — **cassée par la 039, réparée par
   la 049** : vérifier en production qu'un compte de test se supprime) ; **aucun export des
   données personnelles n'existe**. À construire : un export JSON (cave, dégustations, profil,
   conversations) depuis Profil → Compte.
 - **Sous-traitants** : accord de traitement (DPA) avec Supabase et Google ; vérifier la
   région d'hébergement du projet Supabase.
-- **Recherche d'amis — annuaire ouvert.** `AuthRepository.searchUsers` télécharge les
+- 🟡 **Recherche d'amis — en base depuis la migration 062 (08/10)** : seules les
+  correspondances reviennent (vingt au plus), à un compte non anonyme. **Reste** : restreindre
+  la politique « Public profiles are viewable by everyone » (l'app lit `profiles` en direct
+  pour les amis, les convives et les notifications : à revoir écran par écran). Historique : `AuthRepository.searchUsers` télécharge les
   50 premiers profils et filtre sur l'appareil : tout compte connecté peut lister les
   prénoms et avatars de tous les utilisateurs (en production, `profiles` ne porte ni
   e-mail ni téléphone — vérifié le 28/09 dans le catalogue). Et au-delà de 50 comptes,
@@ -66,11 +76,22 @@ lancement public.
 
 ## 3. Alcool
 
-- **Vérification d'âge** (18 ans) à la première ouverture, sur mobile et sur le web.
+- ✅ **Vérification d'âge** à la première ouverture, sur mobile et sur le web Flutter
+  (`PorteDeLAge`, 08/10). La page invité légère (`/table/`) n'en a pas : à décider.
 - **Loi Évin** : la publicité dans une application consacrée au vin est encadrée en France ;
   faire valider le format des publicités affichées (AdMob) et le ton des contenus.
 - **Politiques des stores** : catégorie « alcool » du Play Store (déclaration de contenu,
   classification d'âge) et de l'App Store (17+ minimum).
+
+## 3 bis. Sécurité du stockage (trouvé le 08/10)
+
+- ✅ **Migration 064** : le bucket public `labels` acceptait dépôt, remplacement et
+  effacement par n'importe qui (règle « Public Access Labels » pour toutes les opérations et
+  tous les rôles, y compris sans compte). Chacun n'écrit plus que dans son dossier.
+  **À appliquer en priorité.**
+- À vérifier par Flavien : **le projet Google de la clé Gemini est facturé** (les données
+  envoyées à un projet gratuit peuvent servir à Google), et les **accords de sous-traitance**
+  (DPA) de Supabase et de Google sont acceptés.
 
 ## 4. Exploitation
 

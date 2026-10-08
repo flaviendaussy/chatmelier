@@ -171,8 +171,9 @@ class TasteFrontierEngine {
         _ => trSi(fr, 'de ce style', 'this style'),
       };
 
-  /// La phrase qui accompagne la suggestion.
-  static String phrase(SuggestionDeFrontiere<Object?> s, String nomDuVin, bool fr) {
+  /// La phrase qui accompagne la suggestion. Un palais encore deviné lit sa chance de plaisir
+  /// « ≈ 71 % », comme partout ailleurs (V2.3 · K5).
+  static String phrase(SuggestionDeFrontiere<Object?> s, String nomDuVin, bool fr, {bool palaisDevine = false}) {
     final quoi = switch (s.axe) {
       'tannin' => trSi(fr, 'des tanins', 'tannins'),
       'body' => trSi(fr, 'des vins amples', 'full-bodied wines'),
@@ -184,7 +185,7 @@ class TasteFrontierEngine {
     final comment = _commentLeVinLeMontre(s.axe, s.valeurDuVin, fr);
     final risque = s.plaisir == null
         ? ''
-        : (trSi(fr, ', et il a de bonnes chances de vous plaire ({v1} %)', ', and there is a good chance you will enjoy it ({v1}%)', {'v1': s.plaisir!.round()}));
+        : (trSi(fr, ', et il a de bonnes chances de vous plaire ({v1} %)', ', and there is a good chance you will enjoy it ({v1}%)', {'v1': '${palaisDevine ? '≈' : ''}${s.plaisir!.round()}'}));
     return trSi(fr, 'Je ne sais pas encore ce que vous pensez {quoi}. {nomDuVin}, {comment}, me le dirait{risque}.', 'I don\'t know yet how you feel about {quoi}. {nomDuVin}, {comment}, would tell me{risque}.', {'quoi': quoi, 'nomDuVin': nomDuVin, 'comment': comment, 'risque': risque});
   }
 

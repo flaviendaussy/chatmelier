@@ -16074,304 +16074,370 @@
   "ou": "lib/features/menu_scan/presentation/comptoir_screen.dart:291"
  },
  {
+  "fr": "{n} % pour vous",
+  "en": "{n}% for you",
+  "it": "{n}% per te",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:132"
+ },
+ {
+  "fr": "À prix égal, je prendrais sans doute celui-ci",
+  "en": "At the same price, I'd probably pick this one",
+  "it": "A parità di prezzo, probabilmente sceglierei questo",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:151"
+ },
+ {
+  "fr": "À prix égal, je prendrais celui-ci",
+  "en": "At the same price, I'd pick this one",
+  "it": "A parità di prezzo, sceglierei questo",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:152"
+ },
+ {
+  "fr": "plus proche de vos goûts que {autre} ({pct} %), au même prix le verre",
+  "en": "closer to your taste than {autre} ({pct}%), same price by the glass",
+  "it": "più vicino ai tuoi gusti di {autre} ({pct}%), allo stesso prezzo al calice",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:161"
+ },
+ {
+  "fr": "plus proche de vos goûts que {autre} ({pct} %), au même prix",
+  "en": "closer to your taste than {autre} ({pct}%), at the same price",
+  "it": "più vicino ai tuoi gusti di {autre} ({pct}%), allo stesso prezzo",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:163"
+ },
+ {
+  "fr": "plus proche de vos goûts que les {n} autres rouges à {prix}",
+  "en": "closer to your taste than the {n} other reds at {prix}",
+  "it": "più vicino ai tuoi gusti degli altri {n} rossi a {prix}",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:168"
+ },
+ {
+  "fr": "plus proche de vos goûts que les {n} autres blancs à {prix}",
+  "en": "closer to your taste than the {n} other whites at {prix}",
+  "it": "più vicino ai tuoi gusti degli altri {n} bianchi a {prix}",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:170"
+ },
+ {
+  "fr": "plus proche de vos goûts que les {n} autres rosés à {prix}",
+  "en": "closer to your taste than the {n} other rosés at {prix}",
+  "it": "più vicino ai tuoi gusti degli altri {n} rosati a {prix}",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:172"
+ },
+ {
+  "fr": "plus proche de vos goûts que les {n} autres effervescents à {prix}",
+  "en": "closer to your taste than the {n} other sparkling wines at {prix}",
+  "it": "più vicino ai tuoi gusti degli altri {n} spumanti a {prix}",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:174"
+ },
+ {
+  "fr": "plus proche de vos goûts que les {n} autres vins à {prix}",
+  "en": "closer to your taste than the {n} other wines at {prix}",
+  "it": "più vicino ai tuoi gusti degli altri {n} vini a {prix}",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:176"
+ },
+ {
+  "fr": "plus proche de vos goûts que les {n} autres verres à {prix}",
+  "en": "closer to your taste than the {n} other glasses at {prix}",
+  "it": "più vicino ai tuoi gusti degli altri {n} calici a {prix}",
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:178"
+ },
+ {
   "fr": "Carte sans prix : on choisit au goût.",
   "en": "No prices on this list: choose by taste.",
   "it": "Carta senza prezzi: si sceglie in base al gusto.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:461"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:548"
  },
  {
   "fr": "Le comptoir à plusieurs 🥂",
   "en": "Bar with friends 🥂",
   "it": "Il bancone in compagnia 🥂",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:666"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:753"
  },
  {
   "fr": "Chacun note chaque verre",
   "en": "Everyone rates each glass",
   "it": "Ognuno vota ogni calice",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:678"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:765"
  },
  {
   "fr": "Profil à compléter",
   "en": "Complete profile",
   "it": "Profilo da completare",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1651"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1741"
  },
  {
   "fr": "{n} Blanc",
   "en": "{n} White",
   "it": "{n} bianco",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:384"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:471"
  },
  {
   "fr": "{n} Blancs",
   "en": "{n} Whites",
   "it": "{n} bianchi",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:384"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:471"
  },
  {
   "fr": "{n} Rouge",
   "en": "{n} Red",
   "it": "{n} rosso",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:385"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:472"
  },
  {
   "fr": "{n} Rouges",
   "en": "{n} Reds",
   "it": "{n} rossi",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:385"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:472"
  },
  {
   "fr": "{n} Rosé",
   "en": "{n} Rosé",
   "it": "{n} rosato",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:386"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:473"
  },
  {
   "fr": "{n} Rosés",
   "en": "{n} Rosés",
   "it": "{n} rosati",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:386"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:473"
  },
  {
   "fr": "{n} Effervescent",
   "en": "{n} Sparkling",
   "it": "{n} spumante",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:387"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:474"
  },
  {
   "fr": "{n} Effervescents",
   "en": "{n} Sparkling",
   "it": "{n} spumanti",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:387"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:474"
  },
  {
   "fr": "🧭 Pour mieux vous connaître",
   "en": "🧭 To get to know you better",
   "it": "🧭 Per conoscerti meglio",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:157"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:244"
  },
  {
   "fr": "Ce {nom}",
   "en": "This {nom}",
   "it": "Questo {nom}",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:161"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:248"
  },
  {
   "fr": "Vous connaissez ({n})",
   "en": "You know ({n})",
   "it": "Li conosci ({n})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:248"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:335"
  },
  {
   "fr": "Nom de l'établissement",
   "en": "Venue Name",
   "it": "Nome del locale",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:343"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:430"
  },
  {
   "fr": "Restaurant / Bar",
   "en": "Restaurant / Bar",
   "it": "Ristorante / bar",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:347"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:434"
  },
  {
   "fr": "Valider",
   "en": "Save",
   "it": "Conferma",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:361"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:448"
  },
  {
   "fr": "Une page n'a pas pu être lue : la carte ci-dessous est incomplète. Reprenez-la en photo pour l'ajouter.",
   "en": "One page could not be read: this list is incomplete. Take the photo again to add it.",
   "it": "Una pagina non è stata letta: la carta qui sotto è incompleta. Rifotografala per aggiungerla.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:423"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:510"
  },
  {
   "fr": "{n} pages n'ont pas pu être lues : la carte ci-dessous est incomplète. Reprenez-les en photo pour les ajouter.",
   "en": "{n} pages could not be read: this list is incomplete. Take the photos again to add them.",
   "it": "{n} pagine non sono state lette: la carta qui sotto è incompleta. Rifotografale per aggiungerle.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:425"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:512"
  },
  {
   "fr": "Reprendre",
   "en": "Retake",
   "it": "Riprendi",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:432"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:519"
  },
  {
   "fr": "{wines_length} références détectées",
   "en": "{wines_length} references detected",
   "it": "{wines_length} referenze trovate",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:450"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:537"
  },
  {
   "fr": "Compact",
   "en": "Compact",
   "it": "Compatta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:489"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:576"
  },
  {
   "fr": "Détaillé",
   "en": "Detailed",
   "it": "Dettagliata",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:489"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:576"
  },
  {
   "fr": "Discuter avec la Carte",
   "en": "Chat with the Wine List",
   "it": "Parla con la carta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:558"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:645"
  },
  {
   "fr": "IA SOMMELIER",
   "en": "AI SOMMELIER",
   "it": "SOMMELIER IA",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:574"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:661"
  },
  {
   "fr": "Posez vos questions : accords mets & vins, conseils en direct...",
   "en": "Ask questions: food & wine pairings, live sommelier advice...",
   "it": "Fai le tue domande: abbinamenti, consigli in diretta...",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:586"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:673"
  },
  {
   "fr": "Choisir en groupe 👥",
   "en": "Choose as a group 👥",
   "it": "Scegliere in gruppo 👥",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:667"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:754"
  },
  {
   "fr": "Consensus multi-palais",
   "en": "Multi-palate consensus",
   "it": "Consenso tra più palati",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:679"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:766"
  },
  {
   "fr": "Flight Sommelier 🍷",
   "en": "Wine Flight 🍷",
   "it": "Percorso del sommelier 🍷",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:737"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:824"
  },
  {
   "fr": "3 ou 5 verres en ordre",
   "en": "3 or 5 glasses in order",
   "it": "3 o 5 calici in ordine",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:747"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:834"
  },
  {
   "fr": "Rechercher un vin, domaine, cépage, appellation...",
   "en": "Search wine, estate, grape, appellation...",
   "it": "Cerca un vino, un produttore, un vitigno, una denominazione...",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:772"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:859"
  },
  {
   "fr": "Bons plans",
   "en": "Deals",
   "it": "Affari",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:804"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:891"
  },
  {
   "fr": "Pépites",
   "en": "Gems",
   "it": "Chicche",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:806"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:893"
  },
  {
   "fr": "Pour vous",
   "en": "For you",
   "it": "Per te",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:808"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:895"
  },
  {
   "fr": "Rouges ({redCount})",
   "en": "Reds ({redCount})",
   "it": "Rossi ({redCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:846"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:933"
  },
  {
   "fr": "Blancs ({whiteCount})",
   "en": "Whites ({whiteCount})",
   "it": "Bianchi ({whiteCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:860"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:947"
  },
  {
   "fr": "Bulles ({sparklingCount})",
   "en": "Sparkling ({sparklingCount})",
   "it": "Bollicine ({sparklingCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:881"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:968"
  },
  {
   "fr": "Profil : ",
   "en": "Profile: ",
   "it": "Profilo: ",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:902"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:989"
  },
  {
   "fr": "Minéral",
   "en": "Mineral",
   "it": "Minerale",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:912"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:999"
  },
  {
   "fr": "Beurré",
   "en": "Buttery",
   "it": "Burroso",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:913"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1000"
  },
  {
   "fr": "Tannique",
   "en": "Tannic",
   "it": "Tannico",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:914"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1001"
  },
  {
   "fr": "Fruité",
   "en": "Fruity",
   "it": "Fruttato",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:915"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1002"
  },
  {
   "fr": "Léger",
   "en": "Light",
   "it": "Leggero",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:916"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1003"
  },
  {
   "fr": "Puissant",
   "en": "Bold",
   "it": "Potente",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:917"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1004"
  },
  {
   "fr": "Aucun vin ne correspond à vos filtres",
   "en": "No wines match your filters",
   "it": "Nessun vino corrisponde ai tuoi filtri",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:956"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1043"
  },
  {
   "fr": "Chat Menu",
   "en": "Chat Menu",
   "it": "Chat della carta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1032"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1119"
  },
  {
   "fr": "Comparer ({selectedWineIds_length})",
   "en": "Compare ({selectedWineIds_length})",
   "it": "Confronta ({selectedWineIds_length})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1060"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1147"
  },
  {
   "fr": "Comparer",
   "en": "Compare",
   "it": "Confronta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1061"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1148"
  },
  {
   "fr": "v",
   "en": "glass",
   "it": "cal.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1248"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1335"
  },
  {
   "fr": "Invité",

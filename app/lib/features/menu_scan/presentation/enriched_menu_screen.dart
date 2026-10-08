@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../shared/utils/currency_helper.dart';
 import '../../auth/presentation/taste_profiles_dialog.dart';
 import '../domain/menu_wine.dart';
+import '../domain/a_prix_egal.dart';
 import '../domain/cellar_bridge.dart';
 import '../data/cellar_context_provider.dart';
 import '../data/recent_menus_store.dart';
@@ -18,6 +19,7 @@ import 'menu_flight_sheet.dart';
 import '../domain/menu_flight_engine.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../sommelier/domain/taste_frontier_engine.dart';
+import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../../../shared/utils/langue.dart';
 import '../../auth/domain/taste_profile.dart';
 import 'comptoir_screen.dart';
@@ -116,12 +118,92 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
   /// Le palais principal, gardé pour le parcours qui apprend (V2.3 · J4).
   TasteProfile? _palais;
 
+  /// Un palais encore deviné (V2.3 · K5) : ses pourcentages s'affichent « ≈ 73 % » et le
+  /// sommelier ne prend « sans doute » que tel vin. Même seuil qu'à table.
+  bool get _palaisDevine => (_palais?.overallConfidence ?? 1.0) < GuestProfile.seuilAxeObserve;
+
+  String _pourVous(double score) =>
+      tr('{n} % pour vous', '{n}% for you', {'n': '${_palaisDevine ? '≈' : ''}${score.round()}'});
+
+  /// « À prix égal, je prendrais celui-ci » (Robin, 08/10), recalculé quand la carte change.
+  List<MenuWine>? _vinsDuChoix;
+  Map<String, ChoixAPrixEgal> _choixDuPrix = const {};
+  Map<String, ChoixAPrixEgal> get _aPrixEgal {
+    if (!identical(_vinsDuChoix, _menu.wines)) {
+      _vinsDuChoix = _menu.wines;
+      _choixDuPrix = APrixEgal.choisir(_menu.wines, ardoise: _menu.ardoise);
+    }
+    return _choixDuPrix;
+  }
+
+  /// La ligne du sommelier sous un vin qui devance, à prix égal, les autres de sa couleur.
+  Widget? _ligneAPrixEgal(MenuWine wine, bool isDark, {required double taille}) {
+    final c = _aPrixEgal[wine.id];
+    if (c == null) return null;
+    final devine = _palaisDevine;
+    final titre = devine
+        ? tr('À prix égal, je prendrais sans doute celui-ci', 'At the same price, I\'d probably pick this one')
+        : tr('À prix égal, je prendrais celui-ci', 'At the same price, I\'d pick this one');
+    final String detail;
+    if (c.autres.length == 1) {
+      final autre = c.autres.first;
+      final vals = {
+        'autre': '${autre.name}${autre.vintage != null ? ' ${autre.vintage}' : ''}',
+        'pct': '${devine ? '≈' : ''}${autre.userMatchScore!.round()}',
+      };
+      detail = c.auVerre
+          ? tr('plus proche de vos goûts que {autre} ({pct} %), au même prix le verre',
+              'closer to your taste than {autre} ({pct}%), same price by the glass', vals)
+          : tr('plus proche de vos goûts que {autre} ({pct} %), au même prix',
+              'closer to your taste than {autre} ({pct}%), at the same price', vals);
+    } else {
+      final vals = {'n': c.autres.length, 'prix': _prix(c.prix)};
+      detail = switch ((c.couleur, c.auVerre)) {
+        ('rouge', false) => tr('plus proche de vos goûts que les {n} autres rouges à {prix}',
+            'closer to your taste than the {n} other reds at {prix}', vals),
+        ('blanc', false) => tr('plus proche de vos goûts que les {n} autres blancs à {prix}',
+            'closer to your taste than the {n} other whites at {prix}', vals),
+        ('rose', false) => tr('plus proche de vos goûts que les {n} autres rosés à {prix}',
+            'closer to your taste than the {n} other rosés at {prix}', vals),
+        ('bulles', false) => tr('plus proche de vos goûts que les {n} autres effervescents à {prix}',
+            'closer to your taste than the {n} other sparkling wines at {prix}', vals),
+        (_, false) => tr('plus proche de vos goûts que les {n} autres vins à {prix}',
+            'closer to your taste than the {n} other wines at {prix}', vals),
+        (_, true) => tr('plus proche de vos goûts que les {n} autres verres à {prix}',
+            'closer to your taste than the {n} other glasses at {prix}', vals),
+      };
+    }
+    final vert = isDark ? const Color(0xFF81C784) : const Color(0xFF2E7D32);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('⚖️', style: TextStyle(fontSize: taille)),
+        const SizedBox(width: 5),
+        Expanded(
+          child: Text.rich(
+            TextSpan(
+              style: TextStyle(fontSize: taille, height: 1.25),
+              children: [
+                TextSpan(text: titre, style: TextStyle(fontWeight: FontWeight.bold, color: vert)),
+                TextSpan(
+                  text: ' — $detail',
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _chercherLaFrontiere() async {
     try {
       final profils = await ref.read(tasteProfilesListProvider.future);
       if (profils.isEmpty || !mounted) return;
       final principal = profils.firstWhere((p) => p.isPrimary, orElse: () => profils.first);
-      _palais = principal;
+      // Redessiner tout de suite : le « ≈ » d'un palais deviné ne dépend pas de la suggestion.
+      setState(() => _palais = principal);
       final s = TasteFrontierEngine.choisir<MenuWine>(
         TasteFrontierEngine.candidatsDeLaCarte(_menu.wines),
         principal,
@@ -158,7 +240,8 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
                 const SizedBox(height: 6),
                 Text(
-                  TasteFrontierEngine.phrase(f, trSi(isFr, 'Ce {nom}', 'This {nom}', {'nom': nom}), isFr),
+                  TasteFrontierEngine.phrase(f, trSi(isFr, 'Ce {nom}', 'This {nom}', {'nom': nom}), isFr,
+                      palaisDevine: _palaisDevine),
                   style: TextStyle(fontSize: 12.5, height: 1.35, color: isDark ? Colors.white70 : Colors.black87),
                 ),
               ],
@@ -1298,6 +1381,9 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                   ),
                 ),
 
+              if (_ligneAPrixEgal(wine, isDark, taille: 11) case final ligne?)
+                Padding(padding: const EdgeInsets.only(left: 34, top: 4), child: ligne),
+
               // Line 2: Origin & Producer + Glass Price / Match score
               Padding(
                 padding: const EdgeInsets.only(left: 34, top: 2),
@@ -1335,7 +1421,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          '${wine.userMatchScore!.round()}% Match',
+                          _pourVous(wine.userMatchScore!),
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -1619,7 +1705,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                           const Icon(Icons.favorite, size: 12, color: Color(0xFF2E7D32)),
                           const SizedBox(width: 4),
                           Text(
-                            '${wine.userMatchScore!.round()}% Match',
+                            _pourVous(wine.userMatchScore!),
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -1661,6 +1747,11 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     ),
                 ],
               ),
+
+              if (_ligneAPrixEgal(wine, isDark, taille: 12) case final ligne?) ...[
+                const SizedBox(height: 8),
+                ligne,
+              ],
 
               if (wine.sommelierComment != null && wine.sommelierComment!.isNotEmpty) ...[
                 const SizedBox(height: 8),

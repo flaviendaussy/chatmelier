@@ -34,6 +34,8 @@ const TEXTES = {
     codeOk: 'Rejoindre',
     introuvable: 'Cette table est introuvable ou terminée. Vérifiez le code auprès de l\'hôte.',
     reseau: 'Pas de réseau pour l\'instant : réessayez dans un moment.',
+    tropDeConnexions: 'Trop de nouvelles connexions depuis ce réseau (Wi-Fi d\'hôtel, d\'avion…) : réessayez dans quelques minutes, ou en 4G.',
+    serveurIndisponible: 'Le serveur n\'a pas répondu ({cause}) : réessayez dans un moment.',
     reessayer: 'Réessayer',
     titrePage: 'Chatmelier — À table',
     tableDe: 'Table {code} — {restaurant}',
@@ -107,6 +109,8 @@ const TEXTES = {
     codeOk: 'Join',
     introuvable: 'This table can\'t be found or has ended. Check the code with the host.',
     reseau: 'No network right now: try again in a moment.',
+    tropDeConnexions: 'Too many new connections from this network (hotel or plane Wi-Fi…): try again in a few minutes, or on mobile data.',
+    serveurIndisponible: 'The server didn\'t answer ({cause}): try again in a moment.',
     reessayer: 'Try again',
     titrePage: 'Chatmelier — At the table',
     tableDe: 'Table {code} — {restaurant}',
@@ -180,6 +184,8 @@ const TEXTES = {
     codeOk: 'Unirse',
     introuvable: 'No se encuentra esta mesa o ya ha terminado. Comprueba el código con el anfitrión.',
     reseau: 'Sin red por ahora: inténtalo de nuevo en un momento.',
+    tropDeConnexions: 'Demasiadas conexiones nuevas desde esta red (wifi de hotel, de avión…): inténtalo de nuevo en unos minutos, o con datos móviles.',
+    serveurIndisponible: 'El servidor no ha respondido ({cause}): inténtalo de nuevo en un momento.',
     reessayer: 'Reintentar',
     titrePage: 'Chatmelier — En la mesa',
     tableDe: 'Mesa {code} — {restaurant}',
@@ -253,6 +259,8 @@ const TEXTES = {
     codeOk: 'Unisciti',
     introuvable: 'Questo tavolo non esiste o è terminato. Controlla il codice con chi ospita.',
     reseau: 'Nessuna rete per ora: riprova tra un momento.',
+    tropDeConnexions: 'Troppe nuove connessioni da questa rete (wifi d\'hotel, d\'aereo…): riprova tra qualche minuto, o con i dati mobili.',
+    serveurIndisponible: 'Il server non ha risposto ({cause}): riprova tra un momento.',
     reessayer: 'Riprova',
     titrePage: 'Chatmelier — A tavola',
     tableDe: 'Tavolo {code} — {restaurant}',
@@ -417,6 +425,33 @@ async function rpc(fonction, parametres = {}, { connecte = false } = {}) {
   return texte ? JSON.parse(texte) : null;
 }
 
+/**
+ * Pourquoi la page n'a pas pu rejoindre ou lire la table, en clair, et dans les journaux
+ * de la console (05/10 : Gianpaolo voyait « pas de réseau », et rien n'était écrit nulle part).
+ */
+function causeDe(e) {
+  const message = String(e?.message || e || '');
+  if (message.includes('table_introuvable')) return { erreur: 'introuvable', detail: null };
+  if (/^auth 429/.test(message)) return { erreur: 'tropDeConnexions', detail: 'auth 429' };
+  if (/^auth \d+/.test(message)) return { erreur: 'serveurIndisponible', detail: message };
+  if (e instanceof ErreurServeur) return { erreur: 'serveurIndisponible', detail: `HTTP ${e.statut}` };
+  return { erreur: 'reseau', detail: message.slice(0, 120) || null };
+}
+
+function noterLEchec(etape, e, cause) {
+  // Clé publique seule : la page peut journaliser même sans session (politique d'insertion anon).
+  fetch(`${API}/rest/v1/app_diagnostic_logs`, {
+    method: 'POST',
+    headers: { apikey: CLE, Authorization: `Bearer ${CLE}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      tag: 'TABLE_WEB', level: 'warning', platform: 'web', app_version: 'page-table-1',
+      message: `${etape} impossible (${etat.code || 'sans code'}) : ${cause.erreur}${cause.detail ? ` — ${cause.detail}` : ''}`,
+      error_details: String(e?.message || e || '').slice(0, 500),
+      metadata: { langue: LANGUE, en_ligne: navigator.onLine },
+    }),
+  }).catch(() => { /* sans réseau, rien ne part : c'est justement le cas à décrire */ });
+}
+
 async function inserer(table, ligne) {
   const s = await session();
   const res = await fetch(`${API}/rest/v1/${table}`, {
@@ -450,6 +485,7 @@ const etat = {
   resultat: null,
   choix: [],
   erreur: null,
+  detail: null,
   modeProfil: false,
   palais: { tanins: 5, corps: 5, acidite: 5, boise: 3, fruit: 5, mineralite: 5 },
   couleurs: new Set(),
@@ -514,7 +550,10 @@ function ecranErreur() {
   afficher(
     el('h1', {}, t('codeTitre')),
     el('section', { class: 'carte' },
-      el('p', {}, etat.erreur === 'introuvable' ? t('introuvable') : t('reseau')),
+      el('p', {}, etat.erreur === 'introuvable' ? t('introuvable')
+        : etat.erreur === 'tropDeConnexions' ? t('tropDeConnexions')
+        : etat.erreur === 'serveurIndisponible' ? t('serveurIndisponible', { cause: etat.detail || '?' })
+        : t('reseau')),
       el('button', { class: 'secondaire', onclick: () => location.reload() }, t('reessayer'))),
   );
 }
@@ -619,7 +658,10 @@ async function rejoindre(options) {
     rendre();
     window.scrollTo({ top: 0 });
   } catch (e) {
-    etat.erreur = String(e.message || '').includes('table_introuvable') ? 'introuvable' : 'reseau';
+    const cause = causeDe(e);
+    etat.erreur = cause.erreur;
+    etat.detail = cause.detail;
+    noterLEchec('Jointure', e, cause);
     rendre();
   }
 }
@@ -1024,7 +1066,10 @@ async function demarrer() {
     await rafraichir();
     rendre();
   } catch (e) {
-    etat.erreur = String(e.message || '').includes('table_introuvable') ? 'introuvable' : 'reseau';
+    const cause = causeDe(e);
+    etat.erreur = cause.erreur;
+    etat.detail = cause.detail;
+    noterLEchec('Lecture de la table', e, cause);
     return rendre();
   }
   sondage.minuteur = setTimeout(() => sondage.tour(), sondage.delais[0]);

@@ -531,6 +531,10 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             producer: producer.isNotEmpty ? producer : null,
             region: region.isNotEmpty ? region : null,
             wineType: _wineType,
+            // La « Gorgée » a déjà posé ces questions : le questionnaire ne les repose pas.
+            racheterDeja: _wouldBuyAgain,
+            textureDeja: _mouthfeelTexture,
+            fruitDeja: _fruitProfile,
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

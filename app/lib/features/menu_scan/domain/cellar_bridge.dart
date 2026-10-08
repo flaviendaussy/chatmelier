@@ -212,22 +212,32 @@ class CellarBridgeEngine {
   /// Deux désignations parlent-elles du même vin ?
   ///
   /// Strict par construction. Deux voies seulement :
-  ///   · le producteur correspond — c'est le signal le plus sûr, un domaine ne se
-  ///     confond pas ;
-  ///   · à défaut de producteur des deux côtés, les noms partagent au moins deux mots
+  ///   · le même producteur ET un mot du nom en commun. Le producteur seul ne suffit pas :
+  ///     une maison fait plusieurs vins (07/10 : un Ribera del Duero de Torres annoncé « en
+  ///     cave, payé 12 € », le prix du Floralis Moscatel de Familia Torres). Un nom réduit
+  ///     au producteur des deux côtés (« Château Talbot ») est son vin éponyme ;
+  ///   · à défaut de producteur connu des deux côtés, les noms partagent au moins deux mots
   ///     significatifs. Un seul ne suffit pas : « Bandol Rouge » et « Bandol Rosé »
   ///     partagent « bandol » et ne sont pas le même vin.
+  ///
+  /// Les producteurs se comparent mot à mot, sans les mots qui ne désignent personne :
+  /// un producteur lu « Domaine » allait avec n'importe quel « Domaine X » du journal
+  /// (07/10 : un Lambrusco « noté 9,5/10 » qu'on n'avait jamais bu).
   ///
   /// Le millésime n'entre pas dans la comparaison : avoir goûté le 2019 dit quelque chose
   /// d'utile sur le 2020, et l'exiger ferait rater presque tous les rapprochements.
   static bool _memeVin(
       String nomCarte, String? prodCarte, String nomConnu, String? prodConnu) {
-    final pc = _norm(prodCarte);
-    final pk = _norm(prodConnu);
+    final pc = _motsDuProducteur(prodCarte);
+    final pk = _motsDuProducteur(prodConnu);
     if (pc.isNotEmpty && pk.isNotEmpty) {
-      if (pc == pk || pc.contains(pk) || pk.contains(pc)) return true;
+      final memeMaison = pc.containsAll(pk) || pk.containsAll(pc);
       // Producteurs différents : c'est un autre vin, même si les noms se ressemblent.
-      return false;
+      if (!memeMaison) return false;
+      final a = _motsSignificatifs(nomCarte).difference(pc.union(pk));
+      final b = _motsSignificatifs(nomConnu).difference(pc.union(pk));
+      if (a.isEmpty && b.isEmpty) return true;
+      return a.intersection(b).isNotEmpty;
     }
 
     final a = _motsSignificatifs(nomCarte);
@@ -237,7 +247,7 @@ class CellarBridgeEngine {
     return communs.length >= 2;
   }
 
-  /// Les mots qui identifient, débarrassés de ceux qui ne disent rien.
+  /// Les mots qui identifient, débarrassés de ceux qui ne disent rien (et des millésimes).
   static Set<String> _motsSignificatifs(String s) {
     const vides = {
       'le', 'la', 'les', 'de', 'du', 'des', 'et', 'aux', 'au', 'vin', 'cuvee',
@@ -246,7 +256,21 @@ class CellarBridgeEngine {
     };
     return _norm(s)
         .split(RegExp(r'[^a-z0-9]+'))
-        .where((m) => m.length > 2 && !vides.contains(m))
+        .where((m) => m.length > 2 && !vides.contains(m) && !RegExp(r'^(19|20)\d\d$').hasMatch(m))
+        .toSet();
+  }
+
+  /// Le nom d'un producteur, sans ce qui ne désigne personne en particulier.
+  static Set<String> _motsDuProducteur(String? s) {
+    const generiques = {
+      'domaine', 'domaines', 'chateau', 'chateaux', 'maison', 'famille', 'familia', 'bodega', 'bodegas',
+      'cantina', 'cantine', 'tenuta', 'weingut', 'quinta', 'vina', 'vinedos', 'cave', 'caves', 'cellier',
+      'vignobles', 'vignoble', 'estate', 'estates', 'winery', 'wines', 'vineyards', 'cellars', 'vins',
+      'les', 'des', 'and', 'the', 'srl', 'spa', 'gmbh', 'sas', 'earl', 'gaec', 'scea', 'fils', 'freres',
+    };
+    return _norm(s)
+        .split(RegExp(r'[^a-z0-9]+'))
+        .where((m) => m.length > 1 && !generiques.contains(m) && m != 'de' && m != 'du' && m != 'la' && m != 'le')
         .toSet();
   }
 

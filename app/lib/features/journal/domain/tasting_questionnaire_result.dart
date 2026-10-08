@@ -183,7 +183,7 @@ class TastingQuestionnaireResult {
     AromaOption(id: 'agrumes', label: 'Agrumes', emoji: '🍋'),
     AromaOption(id: 'floral', label: 'Floral', emoji: '🌸'),
     AromaOption(id: 'vegetal', label: 'Végétal / Herbes', emoji: '🌿'),
-    AromaOption(id: 'epices_douces', label: 'Épices douces', emoji: '🧀'),
+    AromaOption(id: 'epices_douces', label: 'Épices douces', emoji: '🧂'), // et non 🧀 : « pourquoi un fromage ? » (04/10)
     AromaOption(id: 'epices_vives', label: 'Épices vives / Poivre', emoji: '🌶️'),
     AromaOption(id: 'boise', label: 'Boisé / Vanille', emoji: '🪵'),
     AromaOption(id: 'beurre', label: 'Beurré / Brioche', emoji: '🧈'),
@@ -202,7 +202,7 @@ class TastingQuestionnaireResult {
       AromaOption(id: 'agrumes', label: l10n.aromaAgrumes, emoji: '🍋'),
       AromaOption(id: 'floral', label: l10n.aromaFloral, emoji: '🌸'),
       AromaOption(id: 'vegetal', label: l10n.aromaVegetal, emoji: '🌿'),
-      AromaOption(id: 'epices_douces', label: l10n.aromaEpicesDouces, emoji: '🧀'),
+      AromaOption(id: 'epices_douces', label: l10n.aromaEpicesDouces, emoji: '🧂'),
       AromaOption(id: 'epices_vives', label: l10n.aromaEpicesVives, emoji: '🌶️'),
       AromaOption(id: 'boise', label: l10n.aromaBoise, emoji: '🪵'),
       AromaOption(id: 'beurre', label: l10n.aromaBeurre, emoji: '🧈'),

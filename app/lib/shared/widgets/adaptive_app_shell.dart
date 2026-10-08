@@ -137,103 +137,112 @@ class _MobileAppShell extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      // Défilant : sur un petit écran ou en grands caractères, la dernière action sortait
+      // de l'écran sans qu'on puisse l'atteindre (07/10).
+      isScrollControlled: true,
       builder: (ctx) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.85),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E1E2A) : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.withAlpha(80),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n?.actionMenuTitle ?? (trSi(isFr, 'Actions Cave', 'Cellar Actions')),
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Seulement ce qui touche à la cave (Caro, 04/10) : la carte d'un restaurant et le
-            // vin bu dehors vivent sous « Ce soir », le sommelier a son bouton partout.
-            _ActionMenuItem(
-              icon: Icons.add_a_photo_outlined,
-              color: const Color(0xFF8B1E3F),
-              title: l10n?.actionAddBottle ?? (trSi(isFr, 'Ajouter une bouteille', 'Add a bottle')),
-              subtitle: l10n?.actionAddBottleSub ??
-                  (trSi(isFr, 'Scanner une étiquette ou saisie manuelle', 'Scan a label or enter manually')),
-              onTap: () {
-                Navigator.pop(ctx);
-                context.push('/scan');
-              },
-            ),
-            const SizedBox(height: 8),
-            _ActionMenuItem(
-              icon: Icons.wine_bar_outlined,
-              color: const Color(0xFFD4AF37),
-              title: l10n?.actionCheckoutBottle ??
-                  (trSi(isFr, 'Déguster / Sortir une bouteille', 'Taste / Checkout a bottle')),
-              subtitle: l10n?.actionCheckoutBottleSub ??
-                  (trSi(isFr, 'Enregistrer une dégustation et sortir du stock', 'Log a tasting and deduct from stock')),
-              onTap: () {
-                Navigator.pop(ctx);
-                context.push('/checkout');
-              },
-            ),
-            const SizedBox(height: 8),
-            _ActionMenuItem(
-              icon: Icons.table_chart_outlined,
-              color: const Color(0xFF1B5E20),
-              title: trSi(isFr, 'Importer un fichier (Excel / CSV)', 'Import File (Excel / CSV)'),
-              subtitle: trSi(isFr, 'Importez toute votre cave en quelques secondes par IA', 'Import your whole cellar in seconds via AI'),
-              onTap: () {
-                Navigator.pop(ctx);
-                final currentCellarId = ref.read(currentCellarIdProvider);
-                context.push('/cellar/import-excel?cellarId=${currentCellarId ?? ""}');
-              },
-            ),
-            const SizedBox(height: 8),
-            _ActionMenuItem(
-              icon: Icons.restaurant_menu_rounded,
-              color: const Color(0xFFD4AF37),
-              title: trSi(isFr, 'Quel vin pour mon plat ? (Accords Mets & Vins)', 'Which wine for my dish? (Food Pairings)'),
-              subtitle: trSi(isFr, 'L\'IA sommelier trouve les meilleurs accords dans votre cave', 'AI Sommelier finds the best pairings from your cellar'),
-              onTap: () {
-                Navigator.pop(ctx);
-                final currentCellarId = ref.read(currentCellarIdProvider);
-                final bottles = (ref.read(bottlesProvider(currentCellarId)).valueOrNull ?? []);
-                final cellars = ref.read(userCellarsProvider).valueOrNull ?? [];
-                String cellarName = trSi(isFr, 'Ma Cave', 'My Cellar');
-                for (final item in cellars) {
-                  final cMap = item['cellars'];
-                  if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
-                    final raw = cMap['name']?.toString() ?? '';
-                    if (raw.isEmpty || raw == 'Ma Cave' || raw == 'My Cellar') {
-                      cellarName = trSi(isFr, 'Ma Cave', 'My Cellar');
-                    } else {
-                      cellarName = raw;
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withAlpha(80),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l10n?.actionMenuTitle ?? (trSi(isFr, 'Actions Cave', 'Cellar Actions')),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Seulement ce qui touche à la cave (Caro, 04/10) : la carte d'un restaurant et le
+                // vin bu dehors vivent sous « Ce soir », le sommelier a son bouton partout.
+                _ActionMenuItem(
+                  icon: Icons.add_a_photo_outlined,
+                  color: const Color(0xFF8B1E3F),
+                  title: l10n?.actionAddBottle ?? (trSi(isFr, 'Ajouter une bouteille', 'Add a bottle')),
+                  subtitle: l10n?.actionAddBottleSub ??
+                      (trSi(isFr, 'Scanner une étiquette ou saisie manuelle', 'Scan a label or enter manually')),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    context.push('/scan');
+                  },
+                ),
+                const SizedBox(height: 8),
+                _ActionMenuItem(
+                  icon: Icons.wine_bar_outlined,
+                  color: const Color(0xFFD4AF37),
+                  title: l10n?.actionCheckoutBottle ??
+                      (trSi(isFr, 'Déguster / Sortir une bouteille', 'Taste / Checkout a bottle')),
+                  subtitle: l10n?.actionCheckoutBottleSub ??
+                      (trSi(isFr, 'Enregistrer une dégustation et sortir du stock', 'Log a tasting and deduct from stock')),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    context.push('/checkout');
+                  },
+                ),
+                const SizedBox(height: 8),
+                _ActionMenuItem(
+                  icon: Icons.table_chart_outlined,
+                  color: const Color(0xFF1B5E20),
+                  title: trSi(isFr, 'Importer un fichier (Excel / CSV)', 'Import File (Excel / CSV)'),
+                  subtitle: trSi(isFr, 'Importez toute votre cave en quelques secondes par IA', 'Import your whole cellar in seconds via AI'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    final currentCellarId = ref.read(currentCellarIdProvider);
+                    context.push('/cellar/import-excel?cellarId=${currentCellarId ?? ""}');
+                  },
+                ),
+                const SizedBox(height: 8),
+                _ActionMenuItem(
+                  icon: Icons.restaurant_menu_rounded,
+                  color: const Color(0xFFD4AF37),
+                  title: trSi(isFr, 'Quel vin pour mon plat ? (Accords Mets & Vins)', 'Which wine for my dish? (Food Pairings)'),
+                  subtitle: trSi(isFr, 'L\'IA sommelier trouve les meilleurs accords dans votre cave', 'AI Sommelier finds the best pairings from your cellar'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    final currentCellarId = ref.read(currentCellarIdProvider);
+                    final bottles = (ref.read(bottlesProvider(currentCellarId)).valueOrNull ?? []);
+                    final cellars = ref.read(userCellarsProvider).valueOrNull ?? [];
+                    String cellarName = trSi(isFr, 'Ma Cave', 'My Cellar');
+                    for (final item in cellars) {
+                      final cMap = item['cellars'];
+                      if (cMap is Map && cMap['id']?.toString() == currentCellarId) {
+                        final raw = cMap['name']?.toString() ?? '';
+                        if (raw.isEmpty || raw == 'Ma Cave' || raw == 'My Cellar') {
+                          cellarName = trSi(isFr, 'Ma Cave', 'My Cellar');
+                        } else {
+                          cellarName = raw;
+                        }
+                        break;
+                      }
                     }
-                    break;
-                  }
-                }
-                CellarFoodPairingSheet.show(
-                  context,
-                  bottles: bottles,
-                  cellarName: cellarName,
-                );
-              },
+                    CellarFoodPairingSheet.show(
+                      context,
+                      bottles: bottles,
+                      cellarName: cellarName,
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
-            const SizedBox(height: 12),
-          ],
+          ),
         ),
       ),
     );

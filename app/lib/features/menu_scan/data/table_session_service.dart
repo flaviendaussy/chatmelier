@@ -48,7 +48,14 @@ enum EchecDeTable {
 
 class TableSessionException implements Exception {
   final EchecDeTable cause;
-  const TableSessionException(this.cause);
+
+  /// Ce que le serveur a répondu, pour les journaux (« Instance of 'TableSessionException' »
+  /// ne disait rien, 05/10).
+  final String? detail;
+  const TableSessionException(this.cause, [this.detail]);
+
+  @override
+  String toString() => 'TableSessionException(${cause.name}${detail == null ? '' : ' : $detail'})';
 }
 
 /// Les tables de restaurant, côté serveur.
@@ -100,7 +107,10 @@ class TableSessionService {
         'p_profile': profil?.toJson() ?? <String, dynamic>{},
       });
       final row = _premiere(res);
-      if (row == null) throw const TableSessionException(EchecDeTable.introuvable);
+      if (row == null) {
+        AppLogger.warning('TABLE', 'Jointure ($code) : le serveur n\'a rendu aucune table');
+        throw const TableSessionException(EchecDeTable.introuvable, 'aucune ligne');
+      }
 
       final brut = row['menu'];
       final menu = brut is Map
@@ -109,7 +119,9 @@ class TableSessionService {
       if (menu == null || menu.wines.isEmpty) {
         // Une table sans carte lisible ne vaut pas mieux qu'une table absente : mieux vaut
         // le dire que d'ouvrir un écran vide.
-        throw const TableSessionException(EchecDeTable.introuvable);
+        AppLogger.warning('TABLE',
+            'Jointure ($code) : carte ${brut == null ? 'absente' : brut is Map ? 'sans vin' : 'illisible (${brut.runtimeType})'}');
+        throw TableSessionException(EchecDeTable.introuvable, brut == null ? 'carte absente' : 'carte sans vin');
       }
 
       return TableRejointe(
@@ -124,8 +136,7 @@ class TableSessionService {
       // `table_introuvable` est levé par la fonction SQL ; tout le reste est du réseau.
       final introuvable = e.toString().contains('table_introuvable');
       AppLogger.warning('TABLE', 'Jointure impossible ($code): $e');
-      throw TableSessionException(
-          introuvable ? EchecDeTable.introuvable : EchecDeTable.reseau);
+      throw TableSessionException(introuvable ? EchecDeTable.introuvable : EchecDeTable.reseau, '$e');
     }
   }
 

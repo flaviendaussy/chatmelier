@@ -49,6 +49,12 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
   /// complément, et « Enregistrer sans noter » le referme (V2.4 · R3, Dimitri, 04/10).
   final bool dejaAuJournal;
 
+  /// Ce que la « Gorgée » de « Noter un vin bu dehors » a déjà demandé à la personne
+  /// principale : ni redemandé, ni écrasé (Flavien, 04/10 : « it's asked me twice »).
+  final String? racheterDeja;
+  final String? textureDeja;
+  final String? fruitDeja;
+
   const TastingQuestionnaireSheet({
     super.key,
     required this.wineName,
@@ -67,6 +73,9 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
     this.onFinished,
     this.initialIsExpress = false,
     this.dejaAuJournal = false,
+    this.racheterDeja,
+    this.textureDeja,
+    this.fruitDeja,
   });
 
   /// Show the questionnaire as a full-screen modal bottom sheet.
@@ -88,6 +97,9 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
     VoidCallback? onFinished,
     bool initialIsExpress = false,
     bool dejaAuJournal = false,
+    String? racheterDeja,
+    String? textureDeja,
+    String? fruitDeja,
   }) {
     return showModalBottomSheet<bool>(
       context: context,
@@ -112,6 +124,9 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
         onFinished: onFinished,
         initialIsExpress: initialIsExpress,
         dejaAuJournal: dejaAuJournal,
+        racheterDeja: racheterDeja,
+        textureDeja: textureDeja,
+        fruitDeja: fruitDeja,
       ),
     );
   }
@@ -238,6 +253,22 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
 
   void _resetAnswers() => _r = ReponsesDuConvive();
 
+  /// La personne principale répond en ce moment, et la « Gorgée » lui a déjà demandé si elle
+  /// en reprendrait : la question ne revient pas.
+  bool get _racheterDejaDit {
+    if (widget.racheterDeja == null || _selectedProfiles.isEmpty) return false;
+    final i = _currentProfileIndex.clamp(0, _selectedProfiles.length - 1);
+    return _selectedProfiles[i].isPrimary;
+  }
+
+  /// Les réponses de la « Gorgée », reprises pour la personne principale.
+  void _reprendreLaGorgee(TasteProfile profil) {
+    if (!profil.isPrimary) return;
+    if (widget.racheterDeja != null) _r.racheter = widget.racheterDeja!;
+    _r.texture ??= widget.textureDeja;
+    _r.fruit ??= widget.fruitDeja;
+  }
+
   /// À qui appartiennent les réponses en cours : un retour au choix des dégustateurs ne les
   /// efface plus (V2.4 · R3 — Caro, 07/10 : « ça a repris depuis le début, Caro doit tout
   /// refaire, c'est très critique »).
@@ -282,6 +313,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     final profile = _selectedProfiles.isNotEmpty
         ? _selectedProfiles[_currentProfileIndex]
         : (_allProfiles.firstOrNull ?? TasteProfile(id: 'me', name: tr('Moi', 'Me'), isPrimary: true));
+    _reprendreLaGorgee(profile);
     final result = _r.resultat(
       profileId: profile.id,
       profileName: profile.name,
@@ -1525,37 +1557,39 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         ),
         const SizedBox(height: 16),
 
-        // Would buy again
-        Text(
-          l10n.tastingBuyAgain,
-          style: theme.textTheme.titleSmall,
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            _buildChoiceChip(
-              l10n.tastingBuyAgainYes,
-              'yes',
-              _r.racheter,
-              (v) => setState(() => _r.racheter = v),
-            ),
-            const SizedBox(width: 8),
-            _buildChoiceChip(
-              l10n.tastingBuyAgainMaybe,
-              'maybe',
-              _r.racheter,
-              (v) => setState(() => _r.racheter = v),
-            ),
-            const SizedBox(width: 8),
-            _buildChoiceChip(
-              l10n.tastingBuyAgainNo,
-              'no',
-              _r.racheter,
-              (v) => setState(() => _r.racheter = v),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
+        // Would buy again — sauf si la « Gorgée » l'a déjà demandé (« asked me twice », 04/10).
+        if (!_racheterDejaDit) ...[
+          Text(
+            l10n.tastingBuyAgain,
+            style: theme.textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _buildChoiceChip(
+                l10n.tastingBuyAgainYes,
+                'yes',
+                _r.racheter,
+                (v) => setState(() => _r.racheter = v),
+              ),
+              const SizedBox(width: 8),
+              _buildChoiceChip(
+                l10n.tastingBuyAgainMaybe,
+                'maybe',
+                _r.racheter,
+                (v) => setState(() => _r.racheter = v),
+              ),
+              const SizedBox(width: 8),
+              _buildChoiceChip(
+                l10n.tastingBuyAgainNo,
+                'no',
+                _r.racheter,
+                (v) => setState(() => _r.racheter = v),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
 
         // Ideal moment
         Text(

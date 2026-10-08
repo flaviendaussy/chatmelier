@@ -120,6 +120,24 @@ void main() {
       expect(l?.type, equals(TypeDeLien.dejaGoute));
     });
 
+    test('un producteur lu « Domaine » ne désigne personne (Lambrusco, 07/10)', () {
+      final l = lien(
+        carteVin('Lambrusco rosado', producteur: 'Domaine'),
+        const ContexteDeCave(journal: [
+          VinDejaGoute(nom: 'Bandol Rouge', producteur: 'Domaine de Terrebrune', note: 9.5),
+        ]),
+      );
+      expect(l, isNull, reason: 'il n\'a jamais bu ce Lambrusco');
+    });
+
+    test('un vin éponyme, des deux côtés, est le même vin', () {
+      final l = lien(
+        carteVin('Château Talbot', producteur: 'Château Talbot'),
+        const ContexteDeCave(journal: [VinDejaGoute(nom: 'Château Talbot 2016', producteur: 'Château Talbot', note: 8)]),
+      );
+      expect(l?.type, TypeDeLien.dejaGoute);
+    });
+
     test('les mots creux ne comptent pas comme correspondance', () {
       // « Domaine », « Château », « Vieilles Vignes », « Rouge » : présents partout.
       final l = lien(
@@ -132,6 +150,27 @@ void main() {
   });
 
   group('🏠 Vous en avez chez vous', () {
+    test('une même maison, un autre vin : rien (Torres, 07/10)', () {
+      final l = lien(
+        carteVin('Celeste Crianza', producteur: 'Torres', prix: 21, region: 'Ribera del Duero'),
+        const ContexteDeCave(cave: [
+          VinDeMaCave(nom: 'Floralis Moscatel Oro', producteur: 'Familia Torres', prixAchat: 12),
+        ]),
+      );
+      expect(l?.type, isNot(TypeDeLien.enCave),
+          reason: 'le Floralis est un vin doux du Penedès, pas ce Ribera del Duero');
+    });
+
+    test('la même maison et le même vin, sous deux graphies : oui', () {
+      final l = lien(
+        carteVin('Floralis Moscatel', producteur: 'Torres', prix: 30),
+        const ContexteDeCave(cave: [
+          VinDeMaCave(nom: 'Floralis Moscatel Oro', producteur: 'Familia Torres', prixAchat: 12),
+        ]),
+      );
+      expect(l?.type, TypeDeLien.enCave);
+    });
+
     test('le prix payé est rappelé, et l\'écart calculé', () {
       final l = lien(
         carteVin('Bandol', producteur: 'Terrebrune', prix: 78),

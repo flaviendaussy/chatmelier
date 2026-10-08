@@ -224,7 +224,12 @@ class _LignePersonne extends StatelessWidget {
       ),
       subtitle: Text(
         [
-          ilYA(p.derniereActivite),
+          // « jamais » se lisait comme une panne (07/10) : c'est un compte qui n'a encore
+          // rien fait — ni dégustation, ni bouteille, ni question.
+          if (p.derniereActivite != null)
+            ilYA(p.derniereActivite)
+          else
+            'aucune activité encore${p.arriveLe != null ? ' (arrivé ${ilYA(p.arriveLe)})' : ''}',
           if (p.plateforme != null) p.plateforme!,
           if (p.version != null) p.version!,
           if (p.gestes > 0)

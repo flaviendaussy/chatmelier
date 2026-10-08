@@ -1,3 +1,5 @@
+import 'dart:async';
+
 /// Une capture jointe à un retour, telle que la console doit l'ouvrir (08/10).
 ///
 /// Avant la migration 036 (retours du 6 au 16/09), la capture était écrite par son adresse
@@ -25,5 +27,23 @@ class CaptureDeRetour {
     if (statut == 400) return 'chemin de capture refusé ($texte)';
     if (statut == null) return texte.isEmpty ? 'réponse vide de la fonction' : texte;
     return 'erreur $statut${texte.isEmpty ? '' : ' : $texte'}';
+  }
+
+  /// Pourquoi l'image elle-même ne s'est pas téléchargée. Le 08/10, réseau coupé : la
+  /// fenêtre restait vide sans fin, puis disait « le fichier n'existe plus » d'un fichier
+  /// bien présent. Le réseau n'est pas le fichier.
+  static String causeDuTelechargement({int? statut, Object? erreur}) {
+    if (erreur is TimeoutException) {
+      return 'le téléchargement n\'a pas abouti en 30 secondes : réseau lent ou coupé';
+    }
+    final texte = '${erreur ?? ''}';
+    if (RegExp('SocketException|ClientException|HttpException|HandshakeException|Connection closed|Failed host lookup')
+        .hasMatch(texte)) {
+      return 'pas de réseau, ou un réseau qui intercepte les connexions (portail Wi-Fi)';
+    }
+    if (statut == 400 || statut == 404) return 'le fichier n\'existe plus à cette adresse';
+    if (statut == 403) return 'lien expiré ou refusé : réessaie';
+    if (statut != null) return 'erreur $statut';
+    return texte.isEmpty ? 'erreur inconnue' : texte;
   }
 }

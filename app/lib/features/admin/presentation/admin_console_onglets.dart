@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/admin_console_service.dart';
@@ -168,41 +169,13 @@ class _CarteDeRetour extends ConsumerWidget {
   }
 
   Future<void> _voirLaCapture(BuildContext context, WidgetRef ref) async {
-    final adresse = ref.read(adminConsoleServiceProvider).adresseDeCapture(retour.capture!);
+    final service = ref.read(adminConsoleServiceProvider);
     await showDialog<void>(
       context: context,
       builder: (c) => Dialog(
         insetPadding: const EdgeInsets.all(12),
-        child: FutureBuilder<String?>(
-          future: adresse,
-          builder: (c, s) {
-            if (s.connectionState != ConnectionState.done) {
-              return const SizedBox(height: 220, child: Center(child: CircularProgressIndicator()));
-            }
-            if (s.hasError || s.data == null) {
-              final e = s.error;
-              final cause = e is FunctionException
-                  ? CaptureDeRetour.cause(statut: e.status, details: e.details ?? e.reasonPhrase)
-                  : CaptureDeRetour.cause(statut: null, details: e);
-              return Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text('Capture illisible : $cause.', textAlign: TextAlign.center),
-              );
-            }
-            return InteractiveViewer(
-              maxScale: 5,
-              child: Image.network(
-                s.data!,
-                fit: BoxFit.contain,
-                // Une capture d'avant le 22/09 vit encore à son adresse publique, sauf si
-                // elle a été effacée depuis : le dire plutôt qu'une image cassée.
-                errorBuilder: (_, __, ___) => const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text('Capture illisible : le fichier n\'existe plus à cette adresse.', textAlign: TextAlign.center),
-                ),
-              ),
-            );
-          },
+        child: _FenetreDeCapture(
+          signer: () => service.adresseDeCapture(retour.capture!).timeout(const Duration(seconds: 20)),
         ),
       ),
     );
@@ -894,4 +867,109 @@ class FeuilleDOccurrences extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => _liste(null);
+}
+
+/// La capture d'un retour : signée, téléchargée (30 secondes au plus), puis affichée. Chaque
+/// étape se voit, chaque échec dit sa vraie cause et se réessaie (08/10 : réseau coupé,
+/// fenêtre vide pendant dix minutes).
+class _FenetreDeCapture extends StatefulWidget {
+  final Future<String?> Function() signer;
+  const _FenetreDeCapture({required this.signer});
+
+  @override
+  State<_FenetreDeCapture> createState() => _FenetreDeCaptureState();
+}
+
+class _FenetreDeCaptureState extends State<_FenetreDeCapture> {
+  String _etape = 'Signature du lien…';
+  Uint8List? _image;
+  String? _erreur;
+
+  @override
+  void initState() {
+    super.initState();
+    _charger();
+  }
+
+  Future<void> _charger() async {
+    setState(() {
+      _etape = 'Signature du lien…';
+      _image = null;
+      _erreur = null;
+    });
+    final String? adresse;
+    try {
+      adresse = await widget.signer();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _erreur = e is FunctionException
+          ? CaptureDeRetour.cause(statut: e.status, details: e.details ?? e.reasonPhrase)
+          : CaptureDeRetour.causeDuTelechargement(erreur: e));
+      return;
+    }
+    if (!mounted) return;
+    if (adresse == null) {
+      setState(() => _erreur = CaptureDeRetour.cause(statut: null));
+      return;
+    }
+    setState(() => _etape = 'Téléchargement de la capture…');
+    try {
+      final r = await http.get(Uri.parse(adresse)).timeout(const Duration(seconds: 30));
+      if (!mounted) return;
+      if (r.statusCode != 200) {
+        setState(() => _erreur = CaptureDeRetour.causeDuTelechargement(statut: r.statusCode));
+        return;
+      }
+      setState(() => _image = r.bodyBytes);
+    } catch (e) {
+      if (mounted) setState(() => _erreur = CaptureDeRetour.causeDuTelechargement(erreur: e));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_image != null) {
+      return InteractiveViewer(
+        maxScale: 5,
+        child: Image.memory(
+          _image!,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const Padding(
+            padding: EdgeInsets.all(24),
+            child: Text('Capture illisible : le fichier reçu n\'est pas une image.', textAlign: TextAlign.center),
+          ),
+        ),
+      );
+    }
+    if (_erreur != null) {
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Capture illisible : $_erreur.', textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            FilledButton.tonalIcon(
+              icon: const Icon(Icons.refresh),
+              label: const Text('Réessayer'),
+              onPressed: _charger,
+            ),
+          ],
+        ),
+      );
+    }
+    return SizedBox(
+      height: 220,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 12),
+            Text(_etape),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:chatmelier/features/admin/domain/capture_de_retour.dart';
@@ -15,4 +17,16 @@ void main() {
     expect(CaptureDeRetour.cause(statut: 403, details: {'error': 'Forbidden'}), contains('administrateurs'));
     expect(CaptureDeRetour.cause(statut: 401), contains('reconnecte'));
   });
+
+  test('une image qui ne vient pas : le réseau n\'est pas le fichier (08/10)', () {
+    expect(CaptureDeRetour.causeDuTelechargement(erreur: TimeoutException('lent')), contains('30 secondes'));
+    expect(
+        CaptureDeRetour.causeDuTelechargement(
+            erreur: 'HttpException: Connection closed before full header was received'),
+        contains('pas de réseau'));
+    expect(CaptureDeRetour.causeDuTelechargement(statut: 404), contains('n\'existe plus'));
+    expect(CaptureDeRetour.causeDuTelechargement(statut: 403), contains('expiré'));
+    expect(CaptureDeRetour.causeDuTelechargement(statut: 500), 'erreur 500');
+  });
 }
+

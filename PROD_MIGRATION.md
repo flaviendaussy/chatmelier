@@ -134,7 +134,9 @@ lancement public.
   le 16/09 pendant une campagne de test, sur le compte de Flavien), les tables de test
   (codes `KYZ3YZ` et suivants), le convive « Paul » de vérification, le compte de test
   seedé s'il en reste.
-- **Artefacts web suivis à la racine du dépôt** : `main.dart.js` (10 Mo), `assets/`,
+- ✅ **Artefacts web à la racine — retirés le 08/10** (le script ne les écrit plus, le
+  `.gitignore` les écarte ; Pages de ce dépôt est construit par son workflow). Historique :
+  **Artefacts web suivis à la racine du dépôt** : `main.dart.js` (10 Mo), `assets/`,
   `flutter_bootstrap.js`, `version.json` — déversés par `build_and_sync_web.sh`
   (`cp -r build/web/* "$DIR/"`) alors que le site est servi depuis un autre dépôt. Retirer
   la copie et les fichiers.

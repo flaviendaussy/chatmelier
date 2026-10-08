@@ -38,21 +38,14 @@ printf "window.CHATMELIER_CONFIG = { supabaseUrl: '%s', supabaseKey: '%s' };\n" 
 sed -i -E "s#(href|src)=\"(table\.css|config\.js|table\.js)\"#\1=\"\2?v=${VERSION}-${BUILD_TIME}\"#g" build/web/table/index.html
 grep -q "table.js?v=" build/web/table/index.html || { echo "❌ version absente des adresses de la page invité." >&2; exit 1; }
 
-echo "📦 Syncing web build artifacts to repository root..."
-cp -r build/web/* "$DIR/"
-cp "$DIR/index.html" "$DIR/404.html"
-cp "$DIR/index.html" "$DIR/app/build/web/404.html"
-
-# Ensure legal, admin and store docs are in place
-if [ -f "$DIR/privacy.html" ]; then
-  cp "$DIR/privacy.html" "$DIR/app/build/web/privacy.html"
-fi
-if [ -f "$DIR/terms.html" ]; then
-  cp "$DIR/terms.html" "$DIR/app/build/web/terms.html"
-fi
-if [ -f "$DIR/app-ads.txt" ]; then
-  cp "$DIR/app-ads.txt" "$DIR/app/build/web/app-ads.txt"
-fi
+# Plus de copie à la racine du dépôt (08/10, PROD_MIGRATION.md · Nettoyage) : le site est
+# servi depuis Chatmelier/chatmelier.github.io, et le Pages de ce dépôt par son workflow.
+# La racine recevait main.dart.js (10 Mo) et le reste à chaque publication, pour rien.
+# privacy.html, terms.html et app-ads.txt viennent d'app/web/, déjà dans build/web.
+cp build/web/index.html build/web/404.html
+for f in privacy.html terms.html app-ads.txt; do
+  [ -f "build/web/$f" ] || { echo "❌ build/web/$f absent : il ne serait pas publié." >&2; exit 1; }
+done
 # ⚠️  La console admin n'est plus déployée : elle embarquait un JWT service_role Supabase
 #     en clair, lisible par quiconque ouvrait le code source de la page publique.
 #     Le `cp -r` vers une cible existante ajoutait en prime un niveau d'imbrication à chaque
@@ -64,9 +57,6 @@ TMP_DIR=$(mktemp -d)
 git clone --depth 1 --branch main git@github.com:Chatmelier/chatmelier.github.io.git "$TMP_DIR"
 cp -r "$DIR"/app/build/web/* "$TMP_DIR/"
 rm -rf "$TMP_DIR/admin_console"
-cp -f "$DIR"/privacy.html "$TMP_DIR/" 2>/dev/null || true
-cp -f "$DIR"/terms.html "$TMP_DIR/" 2>/dev/null || true
-cp -f "$DIR"/app-ads.txt "$TMP_DIR/" 2>/dev/null || true
 # (console admin volontairement non déployée — voir la note plus haut)
 touch "$TMP_DIR/.nojekyll"
 

@@ -61,3 +61,27 @@ _parked_assets/
 
 # Caches Python des outils (tool/langues)
 __pycache__/
+
+# Copies du site à la racine (supprimées le 08/10) : le site se construit dans app/build/web
+# et se publie sur Chatmelier/chatmelier.github.io ; build_and_sync_web.sh ne les écrit plus.
+/404.html
+/index.html
+/main.dart.js
+/flutter.js
+/flutter_bootstrap.js
+/flutter_service_worker.js
+/manifest.json
+/version.json
+/vercel.json
+/_redirects
+/favicon.png
+/apple-touch-icon.png
+/logo_transparent.png
+/Icon-*.png
+/app-ads.txt
+/privacy.html
+/terms.html
+/assets/
+/canvaskit/
+/icons/
+/table/

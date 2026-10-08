@@ -6,6 +6,10 @@ import '../../../shared/utils/phone_dial_code.dart';
 import '../../../shared/widgets/owner_avatar.dart';
 import '../data/friends_repository.dart';
 import '../domain/friend.dart';
+import '../../auth/domain/taste_profile.dart';
+import '../../auth/domain/wine_taste_radar.dart';
+import '../../auth/presentation/widgets/radar_legende.dart';
+import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../../../shared/utils/langue.dart';
 
 class FriendTasteCardSheet extends ConsumerStatefulWidget {
@@ -383,7 +387,9 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final friend = widget.friend;
-    final taste = friend.tasteProfile;
+    // Son vrai palais (migration 067) ; à défaut, ce que son profil déclare.
+    final palais = ref.watch(palaisDUnAmiProvider(friend.friendUserId));
+    final taste = palais.valueOrNull ?? friend.tasteProfile;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.90,
@@ -498,6 +504,37 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
           Expanded(
             child: ListView(
               children: [
+                // Son radar (« I want to see the spider here », 04/10) : ce qui est observé,
+                // et ce qui n'est encore que deviné.
+                if (palais.isLoading)
+                  const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()))
+                else if (palais.valueOrNull != null) ...[
+                  Center(
+                    child: WineTasteRadarChart(
+                      size: 240,
+                      datasets: [
+                        RadarChartDataset(
+                          label: friend.displayName,
+                          metrics: WineTasteRadarCalculator.compute(taste),
+                          color: const Color(0xFF8B1E3F),
+                          confidences: TasteProfile.axisKeys.map(taste.axisConfidence).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const LegendeDuRadar(color: Color(0xFF8B1E3F)),
+                  const SizedBox(height: 16),
+                ] else
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: Text(
+                      tr('{displayName} n\'a pas encore noté assez de vins pour dessiner son palais.',
+                          '{displayName} hasn\'t rated enough wines yet to draw their palate.',
+                          {'displayName': friend.displayName}),
+                      style: const TextStyle(fontSize: 12.5, color: Colors.grey),
+                    ),
+                  ),
                 // Style & Notes if provided
                 if (taste.notes.isNotEmpty) ...[
                   Container(

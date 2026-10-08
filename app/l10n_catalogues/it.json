@@ -669,565 +669,565 @@
   "fr": "Avatar réinitialisé.",
   "en": "Avatar reset.",
   "it": "Avatar reimpostato.",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:334"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:335"
  },
  {
   "fr": "Avatar mis à jour ! 🍷",
   "en": "Avatar updated! 🍷",
   "it": "Avatar aggiornato! 🍷",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:335"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:336"
  },
  {
   "fr": "Erreur lors de la sélection de la photo",
   "en": "Error picking avatar image",
   "it": "Errore durante la scelta della foto",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:385"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:386"
  },
  {
   "fr": "Photo de profil & Avatar",
   "en": "Profile Picture & Avatar",
   "it": "Foto profilo e avatar",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:427"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:428"
  },
  {
   "fr": "Appareil photo",
   "en": "Camera",
   "it": "Fotocamera",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:437"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:438"
  },
  {
   "fr": "Galerie",
   "en": "Gallery",
   "it": "Galleria",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:452"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:453"
  },
  {
   "fr": "Avatars Sommelier",
   "en": "Sommelier Avatars",
   "it": "Avatar sommelier",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:467"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:468"
  },
  {
   "fr": "Supprimer l'avatar actuel",
   "en": "Remove current avatar",
   "it": "Rimuovi l'avatar attuale",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:511"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:512"
  },
  {
   "fr": "Votre nom ou prénom",
   "en": "Your first or last name",
   "it": "Il tuo nome",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:563"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:564"
  },
  {
   "fr": "ex: Flavien",
   "en": "e.g. Flavien",
   "it": "es.: Giulia",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:564"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:565"
  },
  {
   "fr": "Enregistrer",
   "en": "Save",
   "it": "Salva",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:579"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:580"
  },
  {
   "fr": "Nom d'affichage mis à jour",
   "en": "Display name updated",
   "it": "Nome visualizzato aggiornato",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:600"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:601"
  },
  {
   "fr": "Numéro de téléphone",
   "en": "Phone Number",
   "it": "Numero di telefono",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:620"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:621"
  },
  {
   "fr": "Votre numéro (indicatif obligatoire)",
   "en": "Your number (country code required)",
   "it": "Il tuo numero (prefisso obbligatorio)",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:628"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:629"
  },
  {
   "fr": "FR (+33) par défaut, UK (+44) ou indicatif détecté par GPS",
   "en": "FR (+33) default, UK (+44) or GPS detected code",
   "it": "FR (+33) predefinito, UK (+44) o prefisso rilevato dal GPS",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:629"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:630"
  },
  {
   "fr": "Ce numéro de téléphone est déjà associé à un autre compte.",
   "en": "This phone number is already associated with another account.",
   "it": "Questo numero di telefono è già associato a un altro account.",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:668"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:669"
  },
  {
   "fr": "Numéro de téléphone mis à jour avec succès",
   "en": "Phone number updated successfully",
   "it": "Numero di telefono aggiornato",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:688"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:689"
  },
  {
   "fr": "Fermer",
   "en": "Close",
   "it": "Chiudi",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:717"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:718"
  },
  {
   "fr": "Confidentialité",
   "en": "Privacy",
   "it": "Privacy",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:728"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:729"
  },
  {
   "fr": "Mise à jour : 8 octobre 2026\n\n• Chatmelier ne vend pas vos données.\n• Les photos d'étiquettes et de cartes, un vin saisi par son nom et vos questions au sommelier sont analysés par l'intelligence artificielle de Google (Gemini), depuis nos serveurs.\n• Votre palais vous suit : sur votre appareil, avec une copie que vous seul pouvez lire.\n• À une table, vos convives voient votre prénom et votre palais ; la table est effacée quelques heures après.\n• Une carte que vous scannez en disant où vous êtes est proposée aux membres qui passent au même endroit, sans photo ni rien qui vous désigne.\n• La localisation ne sert que pendant l'utilisation, avec votre accord.\n• La base de données est hébergée à Paris (Supabase).\n\nVos droits : Profil → Compte → « Télécharger mes données » et « Supprimer mon compte ». Responsable : Flavien Daussy, Londres. Contact : flavien.daussy@gmail.com\n\nTout le détail : https://chatmelier.github.io/privacy.html",
   "en": "Updated: October 8, 2026\n\n• Chatmelier does not sell your data.\n• Label and wine-list photos, a wine entered by its name and your questions to the sommelier are analysed by Google's artificial intelligence (Gemini), from our servers.\n• Your palate follows you: on your device, with a copy only you can read.\n• At a table, your guests see your first name and palate; the table is deleted a few hours later.\n• A wine list you scan while saying where you are is offered to members who come to the same place, without photos or anything identifying you.\n• Location is only used while you use the app, with your permission.\n• The database is hosted in Paris (Supabase).\n\nYour rights: Profile → Account → “Download my data” and “Delete my account”. Controller: Flavien Daussy, London. Contact: flavien.daussy@gmail.com\n\nFull details: https://chatmelier.github.io/privacy.html",
   "it": "Aggiornata: 8 ottobre 2026\n\n• Chatmelier non vende i tuoi dati.\n• Le foto di etichette e carte dei vini, un vino inserito per nome e le tue domande al sommelier sono analizzati dall'intelligenza artificiale di Google (Gemini), dai nostri server.\n• Il tuo palato ti segue: sul tuo dispositivo, con una copia che solo tu puoi leggere.\n• A un tavolo, i tuoi commensali vedono il tuo nome e il tuo palato; il tavolo viene cancellato qualche ora dopo.\n• Una carta che scansioni dicendo dove ti trovi viene proposta ai membri che passano nello stesso posto, senza foto né nulla che ti identifichi.\n• La posizione serve solo durante l'uso, con il tuo consenso.\n• Il database è ospitato a Parigi (Supabase).\n\nI tuoi diritti: Profilo → Account → «Scarica i miei dati» ed «Elimina il mio account». Titolare del trattamento: Flavien Daussy, Londra. Contatto: flavien.daussy@gmail.com\n\nTutti i dettagli: https://chatmelier.github.io/privacy.html",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:729"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:730"
  },
  {
   "fr": "Conditions Générales d'Utilisation",
   "en": "Terms of Service",
   "it": "Condizioni generali d'uso",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:757"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:758"
  },
  {
   "fr": "En vigueur au 8 octobre 2026\n\n1. LE SERVICE\nChatmelier gère votre cave, votre journal de dégustation et votre palais, et vous aide à choisir un vin, au restaurant ou chez vous, avec l'aide de l'intelligence artificielle.\n\n2. ÂGE ET SANTÉ\nChatmelier est réservé aux personnes qui ont l'âge légal de consommer de l'alcool dans leur pays. L'abus d'alcool est dangereux pour la santé, à consommer avec modération.\n\n3. CE QUE DIT L'INTELLIGENCE ARTIFICIELLE\nApogées, accords et commentaires sont indicatifs. Quand Chatmelier ne reconnaît pas un vin avec certitude, il le dit plutôt que de deviner ; vérifiez avant de vous y fier.\n\n4. CE QUE VOUS PARTAGEZ\nVous restez propriétaire de vos photos et de vos notes. Une carte des vins que vous scannez en indiquant le lieu est proposée aux autres membres qui s'y trouvent, sans rien qui vous désigne.\n\n5. VOTRE COMPTE\nVous pouvez télécharger vos données et supprimer votre compte à tout moment, depuis Profil → Compte.\n\nTexte complet : https://chatmelier.github.io/terms.html",
   "en": "Effective as of October 8, 2026\n\n1. THE SERVICE\nChatmelier manages your cellar, tasting journal and palate, and helps you choose a wine, out or at home, with the help of artificial intelligence.\n\n2. AGE AND HEALTH\nChatmelier is for people of legal drinking age in their country. Alcohol abuse is dangerous for your health. Drink responsibly.\n\n3. WHAT THE ARTIFICIAL INTELLIGENCE SAYS\nDrinking windows, pairings and comments are indicative. When Chatmelier cannot recognise a wine with certainty, it says so rather than guessing; check before relying on it.\n\n4. WHAT YOU SHARE\nYou remain the owner of your photos and notes. A wine list you scan while giving the place is offered to other members who are there, without anything identifying you.\n\n5. YOUR ACCOUNT\nYou can download your data and delete your account at any time, from Profile → Account.\n\nFull text: https://chatmelier.github.io/terms.html",
   "it": "In vigore dall'8 ottobre 2026\n\n1. IL SERVIZIO\nChatmelier gestisce la tua cantina, il tuo diario di degustazione e il tuo palato, e ti aiuta a scegliere un vino, al ristorante o a casa, con l'aiuto dell'intelligenza artificiale.\n\n2. ETÀ E SALUTE\nChatmelier è riservato a chi ha l'età legale per bere alcolici nel proprio Paese. L'abuso di alcol è pericoloso per la salute: bevi responsabilmente.\n\n3. COSA DICE L'INTELLIGENZA ARTIFICIALE\nFinestre di beva, abbinamenti e commenti sono indicativi. Quando Chatmelier non riconosce un vino con certezza, lo dice invece di tirare a indovinare: verifica prima di fidarti.\n\n4. COSA CONDIVIDI\nResti proprietario delle tue foto e delle tue note. Una carta dei vini che scansioni indicando il luogo viene proposta agli altri membri che vi si trovano, senza nulla che ti identifichi.\n\n5. IL TUO ACCOUNT\nPuoi scaricare i tuoi dati ed eliminare il tuo account in qualsiasi momento, da Profilo → Account.\n\nTesto completo: https://chatmelier.github.io/terms.html",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:758"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:759"
  },
  {
   "fr": "Supprimer mon compte ?",
   "en": "Delete my account?",
   "it": "Eliminare il mio account?",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:804"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:805"
  },
  {
   "fr": "Cette action est irréversible et immédiate.\n\nToutes vos données seront définitivement effacées :\n• Vos caves, casiers et bouteilles\n• Vos photos et vos notes de dégustation\n• Votre profil et votre historique de discussion",
   "en": "This action is irreversible and immediate.\n\nAll your data will be permanently deleted:\n• Your cellars, racks and bottles\n• Your photos and tasting notes\n• Your profile and chat history",
   "it": "Questa azione è irreversibile e immediata.\n\nTutti i tuoi dati saranno cancellati definitivamente:\n• Le tue cantine, i portabottiglie e le bottiglie\n• Le tue foto e le tue note di degustazione\n• Il tuo profilo e la cronologia delle conversazioni",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:815"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:816"
  },
  {
   "fr": "Pour confirmer, tapez SUPPRIMER ci-dessous :",
   "en": "To confirm, type DELETE below:",
   "it": "Per confermare, scrivi ELIMINA qui sotto:",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:820"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:821"
  },
  {
   "fr": "SUPPRIMER",
   "en": "DELETE",
   "it": "ELIMINA",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:828"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:829"
  },
  {
   "fr": "Supprimer définitivement",
   "en": "Permanently delete",
   "it": "Elimina definitivamente",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:852"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:853"
  },
  {
   "fr": "Suppression du compte et des données...",
   "en": "Deleting account and data...",
   "it": "Eliminazione dell'account e dei dati...",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:872"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:873"
  },
  {
   "fr": "Votre compte et vos données ont été définitivement supprimés.",
   "en": "Your account and data have been permanently deleted.",
   "it": "Il tuo account e i tuoi dati sono stati eliminati definitivamente.",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:890"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:891"
  },
  {
   "fr": "Erreur lors de la suppression : {e}",
   "en": "Error during deletion: {e}",
   "it": "Errore durante l'eliminazione: {e}",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:902"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:903"
  },
  {
   "fr": "Profil & Réglages",
   "en": "Profile & Settings",
   "it": "Profilo e impostazioni",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:927"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:928"
  },
  {
   "fr": "Mode Invité",
   "en": "Guest Mode",
   "it": "Modalità ospite",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1008"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1009"
  },
  {
   "fr": "Connexion",
   "en": "Sign in",
   "it": "Accedi",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1026"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1027"
  },
  {
   "fr": "Palais",
   "en": "Palate",
   "it": "Palato",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1042"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1043"
  },
  {
   "fr": "Réglages",
   "en": "Settings",
   "it": "Impostazioni",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1046"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1047"
  },
  {
   "fr": "Outils",
   "en": "Tools",
   "it": "Strumenti",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1050"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1051"
  },
  {
   "fr": "Compte",
   "en": "Account",
   "it": "Account",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1054"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1055"
  },
  {
   "fr": "Moi",
   "en": "Me",
   "it": "Io",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1083"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1084"
  },
  {
   "fr": "Radar des Goûts",
   "en": "Taste Radar",
   "it": "Radar del gusto",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1128"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1129"
  },
  {
   "fr": "Empreinte œnologique & équilibre des saveurs",
   "en": "Oenological footprint & flavor balance",
   "it": "Impronta enologica ed equilibrio dei sapori",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1129"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1130"
  },
  {
   "fr": "Plein écran",
   "en": "Fullscreen",
   "it": "Schermo intero",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1151"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1152"
  },
  {
   "fr": "Mes Goûts",
   "en": "My Taste",
   "it": "I miei gusti",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1167"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1168"
  },
  {
   "fr": "Invités / Proches",
   "en": "Guests / Friends",
   "it": "Ospiti / persone care",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1217"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1218"
  },
  {
   "fr": "Personnaliser",
   "en": "Customize",
   "it": "Personalizza",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1230"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1231"
  },
  {
   "fr": "Statistiques de la Cave 📊",
   "en": "Cellar & Tasting Analytics 📊",
   "it": "Statistiche della cantina 📊",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1273"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1274"
  },
  {
   "fr": "Répartition par couleur, régions, valeur patrimoniale, apogée",
   "en": "Color breakdown, regions, total asset value, peak windows",
   "it": "Ripartizione per colore, regioni, valore del patrimonio, apice",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1278"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1279"
  },
  {
   "fr": "Langue de l'application",
   "en": "Application Language",
   "it": "Lingua dell'applicazione",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1313"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1314"
  },
  {
   "fr": "Système 🌐",
   "en": "System 🌐",
   "it": "Sistema 🌐",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1330"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1331"
  },
  {
   "fr": "Langue modifiée avec succès",
   "en": "Language updated successfully",
   "it": "Lingua cambiata",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1347"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1348"
  },
  {
   "fr": "Devise par défaut",
   "en": "Default Currency",
   "it": "Valuta predefinita",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1367"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1368"
  },
  {
   "fr": "Ambiance / Thème",
   "en": "Appearance / Theme",
   "it": "Aspetto / tema",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1404"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1405"
  },
  {
   "fr": "Système ⚙️",
   "en": "System ⚙️",
   "it": "Sistema ⚙️",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1421"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1422"
  },
  {
   "fr": "Lumineux ☀️",
   "en": "Light ☀️",
   "it": "Chiaro ☀️",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1425"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1426"
  },
  {
   "fr": "Sombre 🕯️",
   "en": "Dark 🕯️",
   "it": "Scuro 🕯️",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1429"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1430"
  },
  {
   "fr": "Notifications & Alertes Système 🔔",
   "en": "Notifications & System Alerts 🔔",
   "it": "Notifiche e avvisi di sistema 🔔",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1448"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1449"
  },
  {
   "fr": "Préférences Publicitaires & RGPD",
   "en": "Ad Preferences & Privacy",
   "it": "Preferenze pubblicitarie e GDPR",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1463"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1468"
  },
  {
   "fr": "Modifier mes choix de consentement publicitaire",
   "en": "Manage your advertising consent choices",
   "it": "Modifica le mie scelte di consenso pubblicitario",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1464"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1469"
  },
  {
   "fr": "{n} alerte active • Dégustations, apogées, caves",
   "en": "{n} active alert • Tastings, aging peaks, cellars",
   "it": "{n} avviso attivo • Degustazioni, apici, cantine",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1477"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1482"
  },
  {
   "fr": "{n} alertes actives • Dégustations, apogées, caves",
   "en": "{n} active alerts • Tastings, aging peaks, cellars",
   "it": "{n} avvisi attivi • Degustazioni, apici, cantine",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1478"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1483"
  },
  {
   "fr": "Statistiques de Cave & Analyses 📊",
   "en": "Cellar Analytics & Insights 📊",
   "it": "Statistiche e analisi della cantina 📊",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1495"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1500"
  },
  {
   "fr": "Graphiques, apogées, valeurs financières et stocks",
   "en": "Charts, aging peaks, financial valuation and stock",
   "it": "Grafici, apici, valore economico e scorte",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1496"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1501"
  },
  {
   "fr": "Mes Amis & Cartes des Goûts 🍷",
   "en": "My Friends & Taste Maps 🍷",
   "it": "I miei amici e le mappe dei gusti 🍷",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1505"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1510"
  },
  {
   "fr": "Boire ensemble, recherche @pseudo, cartes partagées",
   "en": "Drink together, search @username, shared maps",
   "it": "Bere insieme, cerca @nomeutente, mappe condivise",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1506"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1511"
  },
  {
   "fr": "Exporter ma cave",
   "en": "Export my cellar",
   "it": "Esporta la mia cantina",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1515"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1520"
  },
  {
   "fr": "Excel / CSV, et un inventaire à valeurs indicatives",
   "en": "Excel / CSV, and an inventory with indicative values",
   "it": "Excel / CSV, e un inventario con valori indicativi",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1516"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1521"
  },
  {
   "fr": "Ma Cave",
   "en": "My Cellar",
   "it": "La mia cantina",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1520"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1525"
  },
  {
   "fr": "Importer une Cave (Excel / CSV / Texte)",
   "en": "Import a Cellar (Excel / CSV / Text)",
   "it": "Importa una cantina (Excel / CSV / testo)",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1529"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1534"
  },
  {
   "fr": "Import instantané intelligent par IA sommelier",
   "en": "Instant smart import powered by AI sommelier",
   "it": "Importazione intelligente immediata con il sommelier IA",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1530"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1535"
  },
  {
   "fr": "Signaler un bug / Commenter",
   "en": "Report a Bug / Feedback",
   "it": "Segnala un bug / commenta",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1544"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1549"
  },
  {
   "fr": "Secouer le téléphone ou cliquer ici pour annoter",
   "en": "Shake phone or tap here to annotate",
   "it": "Scuoti il telefono o tocca qui per annotare",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1545"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1550"
  },
  {
   "fr": "Mes retours envoyés",
   "en": "My sent reports",
   "it": "Le mie segnalazioni inviate",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1561"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1566"
  },
  {
   "fr": "{n} envoyés · à retirer si vous le souhaitez",
   "en": "{n} sent · withdraw them if you wish",
   "it": "{n} inviate · puoi ritirarle se vuoi",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1565"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1570"
  },
  {
   "fr": "{n} envoyé · à retirer si vous le souhaitez",
   "en": "{n} sent · withdraw it if you wish",
   "it": "{n} inviata · puoi ritirarla se vuoi",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1566"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1571"
  },
  {
   "fr": "Console",
   "en": "Console",
   "it": "Console",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1579"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1584"
  },
  {
   "fr": "Actifs par jour, ce qu'ils font, répartitions",
   "en": "Daily actives, what they do, breakdowns",
   "it": "Attivi al giorno, cosa fanno, ripartizioni",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1582"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1587"
  },
  {
   "fr": "Estimation des Coûts IA (Gemini)",
   "en": "AI Cost Estimation (Gemini)",
   "it": "Stima dei costi IA (Gemini)",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1590"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1595"
  },
  {
   "fr": "Suivi des tokens et dépenses All-Time",
   "en": "Token usage & all-time expenditure",
   "it": "Monitoraggio dei token e della spesa totale",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1591"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1596"
  },
  {
   "fr": "Préparation de vos données…",
   "en": "Preparing your data…",
   "it": "Preparazione dei tuoi dati…",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1611"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1616"
  },
  {
   "fr": "Fichier prêt, mais {n} partie(s) n'ont pas pu être lues : le fichier les nomme.",
   "en": "File ready, but {n} part(s) could not be read: the file lists them.",
   "it": "File pronto, ma {n} parte/i non sono state lette: il file le elenca.",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1617"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1622"
  },
  {
   "fr": "Export impossible pour l'instant : vérifiez la connexion et réessayez.",
   "en": "Export failed for now: check your connection and try again.",
   "it": "Esportazione non possibile per ora: controlla la connessione e riprova.",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1624"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1629"
  },
  {
   "fr": "👑 Mode Premium (Admin actif)",
   "en": "👑 Premium Mode (Admin active)",
   "it": "👑 Modalità Premium (admin attivo)",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1661"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1666"
  },
  {
   "fr": "Mode Standard (Gratuit)",
   "en": "Standard Mode (Free)",
   "it": "Modalità standard (gratuita)",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1662"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1667"
  },
  {
   "fr": "Pseudo unique",
   "en": "Unique Username",
   "it": "Nome utente unico",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1682"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1687"
  },
  {
   "fr": "Non défini",
   "en": "Not set",
   "it": "Non impostato",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1684"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1689"
  },
  {
   "fr": "Utilisateur",
   "en": "User",
   "it": "Utente",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1707"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1712"
  },
  {
   "fr": "Non renseigné",
   "en": "Not set",
   "it": "Non indicato",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1720"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1725"
  },
  {
   "fr": "Email",
   "en": "Email",
   "it": "Email",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1731"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1736"
  },
  {
   "fr": "Non renseigné (Mode Invité)",
   "en": "Not set (Guest Mode)",
   "it": "Non indicata (modalità ospite)",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1732"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1737"
  },
  {
   "fr": "Politique de Confidentialité",
   "en": "Privacy Policy",
   "it": "Informativa sulla privacy",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1739"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1744"
  },
  {
   "fr": "Se déconnecter",
   "en": "Log out",
   "it": "Esci",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1755"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1760"
  },
  {
   "fr": "Télécharger mes données",
   "en": "Download my data",
   "it": "Scarica i miei dati",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1775"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1780"
  },
  {
   "fr": "Compte, caves, dégustations, palais et conversations, en un fichier",
   "en": "Account, cellars, tastings, palate and conversations, in one file",
   "it": "Account, cantine, degustazioni, palato e conversazioni, in un unico file",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1778"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1783"
  },
  {
   "fr": "Supprimer mon compte",
   "en": "Delete my account",
   "it": "Elimina il mio account",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1786"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1791"
  },
  {
   "fr": "© 2026 Chatmelier\nÉdité par Flavien Daussy, Londres",
   "en": "© 2026 Chatmelier\nPublished by Flavien Daussy, London",
   "it": "© 2026 Chatmelier\nPubblicato da Flavien Daussy, Londra",
-  "ou": "lib/features/auth/presentation/profile_screen.dart:1803"
+  "ou": "lib/features/auth/presentation/profile_screen.dart:1808"
  },
  {
   "fr": "Envoi impossible : {e}",
@@ -1650,154 +1650,178 @@
   "ou": "lib/features/auth/presentation/taste_profile_edit_sheet.dart:580"
  },
  {
+  "fr": "Retirer {name} ?",
+  "en": "Remove {name}?",
+  "it": "Rimuovere {name}?",
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:99"
+ },
+ {
+  "fr": "Son profil de goût disparaît de vos listes. Les dégustations déjà notées restent dans votre journal.",
+  "en": "Their taste profile disappears from your lists. Tastings already rated stay in your journal.",
+  "it": "Il suo profilo di gusto scompare dalle tue liste. Le degustazioni già annotate restano nel tuo diario.",
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:100"
+ },
+ {
+  "fr": "Retirer",
+  "en": "Remove",
+  "it": "Togli",
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:104"
+ },
+ {
   "fr": "Aucun profil de goût disponible.",
   "en": "No taste profiles available.",
   "it": "Nessun profilo di gusto disponibile.",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:111"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:143"
  },
  {
   "fr": "Spider Chart des Goûts 🕸️🍷",
   "en": "Spider Chart of Tastes 🕸️🍷",
   "it": "Radar dei gusti 🕸️🍷",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:163"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:196"
  },
  {
   "fr": "Profils gustatifs de vous et vos invités",
   "en": "Taste profiles of you and your guests",
   "it": "I profili di gusto tuoi e dei tuoi ospiti",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:167"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:200"
  },
  {
   "fr": "Ajouter un invité / proche",
   "en": "Add a guest / friend",
   "it": "Aggiungi un ospite / una persona cara",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:175"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:208"
  },
  {
   "fr": "Individuel",
   "en": "Individual",
   "it": "Singolo",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:195"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:228"
  },
  {
   "fr": "Overlay",
   "en": "Overlay",
   "it": "Sovrapposizione",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:200"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:233"
  },
  {
   "fr": "Comparaison",
   "en": "Comparison",
   "it": "Confronto",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:205"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:238"
+ },
+ {
+  "fr": "Retirer {name} de mes profils",
+  "en": "Remove {name} from my profiles",
+  "it": "Rimuovi {name} dai miei profili",
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:330"
  },
  {
   "fr": "Détail des 8 Dimensions Gustatives",
   "en": "8 Taste Dimensions Breakdown",
   "it": "Dettaglio delle 8 Dimensioni Gustative",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:316"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:358"
  },
  {
   "fr": "Préférences de {nom}",
   "en": "Preferences of {nom}",
   "it": "Preferenze di {nom}",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:369"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:411"
  },
  {
   "fr": "Évite : {liste}",
   "en": "Avoids: {liste}",
   "it": "Evita: {liste}",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:387"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:429"
  },
  {
   "fr": "Convives affichés ({n}/{total})",
   "en": "Guests shown ({n}/{total})",
   "it": "Commensali mostrati ({n}/{total})",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:503"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:545"
  },
  {
   "fr": "Tout cocher / décocher",
   "en": "Toggle all",
   "it": "Seleziona / deseleziona tutto",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:519"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:561"
  },
  {
   "fr": "Astuce Sommelier : Les zones où les polygones se chevauchent représentent le profil de vin idéal qui plaira à toute la table.",
   "en": "Sommelier Tip: Overlapping polygon zones represent the ideal wine profile that will please everyone at the table.",
   "it": "Consiglio del sommelier: le zone in cui i poligoni si sovrappongono rappresentano il vino ideale che piacerà a tutto il tavolo.",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:576"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:618"
  },
  {
   "fr": "Ajoutez au moins 2 convives pour comparer leurs profils gustatifs",
   "en": "Add at least 2 guests to compare their taste profiles",
   "it": "Aggiungi almeno 2 commensali per confrontare i loro profili di gusto",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:600"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:642"
  },
  {
   "fr": "Ajouter un invité (ex: Papa, Maman...)",
   "en": "Add a guest (e.g. Dad, Mom...)",
   "it": "Aggiungi un ospite (es.: papà, mamma...)",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:609"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:651"
  },
  {
   "fr": "{pct} % d'affinité",
   "en": "{pct}% affinity",
   "it": "{pct}% di affinità",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:734"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:776"
  },
  {
   "fr": "Compatibilité {a} & {b}",
   "en": "Compatibility {a} & {b}",
   "it": "Compatibilità {a} e {b}",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:740"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:782"
  },
  {
   "fr": "Recommandation Sommelier pour ce duo :",
   "en": "Sommelier Recommendation for this duo:",
   "it": "Il consiglio del sommelier per questa coppia:",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:789"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:831"
  },
  {
   "fr": "Ajouter un proche / invité",
   "en": "Add a friend / guest",
   "it": "Aggiungi una persona cara / un ospite",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:828"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:870"
  },
  {
   "fr": "Prénom / Nom du convive *",
   "en": "Guest Name *",
   "it": "Nome del commensale *",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:830"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:872"
  },
  {
   "fr": "ex: Papa, Maman, Sophie, Dimitri...",
   "en": "e.g. Dad, Mom, Sarah, David...",
   "it": "es.: papà, mamma, Sofia, Dimitri...",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:832"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:874"
  },
  {
   "fr": "Notes ou préférences (optionnel)",
   "en": "Notes or preferences (optional)",
   "it": "Note o preferenze (facoltativo)",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:834"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:876"
  },
  {
   "fr": "ex: Préfère les rouges charpentés et les vins du Sud",
   "en": "e.g. Prefers full-bodied reds and Southern wines",
   "it": "es.: preferisce i rossi strutturati e i vini del Sud",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:836"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:878"
  },
  {
   "fr": "Créer le profil",
   "en": "Create profile",
   "it": "Crea il profilo",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:840"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:882"
  },
  {
   "fr": "Ajouté par l'utilisateur",
   "en": "Added by user",
   "it": "Aggiunto dall'utente",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:888"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:930"
  },
  {
   "fr": "Profils de Goût & Co-Dégustateurs",
@@ -7662,12 +7686,6 @@
   "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2259"
  },
  {
-  "fr": "Retirer",
-  "en": "Remove",
-  "it": "Togli",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2270"
- },
- {
   "fr": "Provenance",
   "en": "Origin",
   "it": "Provenienza",
@@ -11985,25 +12003,25 @@
   "fr": "Cave Partagée",
   "en": "Shared cellar",
   "it": "Cantina condivisa",
-  "ou": "lib/features/friends/data/friends_repository.dart:224"
+  "ou": "lib/features/friends/data/friends_repository.dart:242"
  },
  {
   "fr": "Vous ne pouvez pas vous ajouter vous-même en ami.",
   "en": "You can't add yourself as a friend.",
   "it": "Non puoi aggiungere te stesso come amico.",
-  "ou": "lib/features/friends/data/friends_repository.dart:393"
+  "ou": "lib/features/friends/data/friends_repository.dart:411"
  },
  {
   "fr": "Vous êtes déjà propriétaire de cette cave.",
   "en": "You already own this cellar.",
   "it": "Sei già il proprietario di questa cantina.",
-  "ou": "lib/features/friends/data/friends_repository.dart:498"
+  "ou": "lib/features/friends/data/friends_repository.dart:516"
  },
  {
   "fr": "Vous n'avez pas encore de cave à partager : créez-la d'abord dans l'onglet Cave.",
   "en": "You don't have a cellar to share yet: create it first in the Cellar tab.",
   "it": "Non hai ancora una cantina da condividere: creala prima nella scheda Cantina.",
-  "ou": "lib/features/friends/data/friends_repository.dart:1011"
+  "ou": "lib/features/friends/data/friends_repository.dart:1048"
  },
  {
   "fr": " le {jour}",
@@ -12237,271 +12255,277 @@
   "fr": "Demander l'accès à la cave",
   "en": "Ask for cellar access",
   "it": "Chiedi l'accesso alla cantina",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:47"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:51"
  },
  {
   "fr": "Vous pouvez demander à {displayName} l'accès à sa cave à vin. Une notification lui sera envoyée.",
   "en": "You can ask {displayName} for access to their wine cellar. They'll get a notification.",
   "it": "Puoi chiedere a {displayName} l'accesso alla sua cantina. Riceverà una notifica.",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:59"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:63"
  },
  {
   "fr": "Niveau d'accès souhaité :",
   "en": "Access you'd like:",
   "it": "Livello di accesso desiderato:",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:63"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:67"
  },
  {
   "fr": "👁️ Consultation (Lecture seule)",
   "en": "👁️ View only",
   "it": "👁️ Consultazione (sola lettura)",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:68"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:72"
  },
  {
   "fr": "Voir les bouteilles, emplacements et apogées.",
   "en": "See bottles, where they are, and when they peak.",
   "it": "Vedere le bottiglie, dove sono e quando arrivano all'apice.",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:69"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:73"
  },
  {
   "fr": "✍️ Sommelier délégué (Écriture)",
   "en": "✍️ Deputy sommelier (write)",
   "it": "✍️ Sommelier delegato (scrittura)",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:77"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:81"
  },
  {
   "fr": "Ajouter, modifier ou consommer des bouteilles.",
   "en": "Add, edit or drink bottles.",
   "it": "Aggiungere, modificare o consumare bottiglie.",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:78"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:82"
  },
  {
   "fr": "Message facultatif",
   "en": "Message (optional)",
   "it": "Messaggio facoltativo",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:87"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:91"
  },
  {
   "fr": "Ex: \"Pour qu'on gère nos bouteilles en commun !\"",
   "en": "E.g. \"So we can manage our bottles together!\"",
   "it": "Es.: «Per gestire insieme le nostre bottiglie!»",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:88"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:92"
  },
  {
   "fr": "📬 Demande envoyée à {displayName} !",
   "en": "📬 Request sent to {displayName}!",
   "it": "📬 Richiesta inviata a {displayName}!",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:122"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:126"
  },
  {
   "fr": "Envoyer la demande",
   "en": "Send request",
   "it": "Invia la richiesta",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:137"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:141"
  },
  {
   "fr": "Aucune cave propriétaire trouvée.",
   "en": "No cellar of yours found.",
   "it": "Nessuna cantina di tua proprietà trovata.",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:154"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:158"
  },
  {
   "fr": "Partager mes caves",
   "en": "Share my cellars",
   "it": "Condividi le mie cantine",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:196"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:200"
  },
  {
   "fr": "avec {displayName}",
   "en": "with {displayName}",
   "it": "con {displayName}",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:200"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:204"
  },
  {
   "fr": "Choisissez quelle(s) cave(s) partager et l'accès pour chacune :",
   "en": "Choose which cellar(s) to share, and the access for each:",
   "it": "Scegli quale/i cantina/e condividere e l'accesso per ciascuna:",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:214"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:218"
  },
  {
   "fr": "Accès :",
   "en": "Access:",
   "it": "Accesso:",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:277"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:281"
  },
  {
   "fr": "✍️ Sommelier (Écriture)",
   "en": "✍️ Sommelier (write)",
   "it": "✍️ Sommelier (scrittura)",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:287"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:291"
  },
  {
   "fr": "👁️ Lecteur (Lecture)",
   "en": "👁️ Viewer (read)",
   "it": "👁️ Lettore (lettura)",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:291"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:295"
  },
  {
   "fr": "🎉 Accès accordé pour {grantedCount} cave(s) à {displayName} !",
   "en": "🎉 {displayName} now has access to {grantedCount} cellar(s)!",
   "it": "🎉 {displayName} ha ora accesso a {grantedCount} cantina/e!",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:356"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:360"
  },
  {
   "fr": "Confirmer le partage",
   "en": "Confirm sharing",
   "it": "Conferma la condivisione",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:372"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:376"
  },
  {
   "fr": "Carte des Goûts",
   "en": "Taste card",
   "it": "Mappa dei gusti",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:442"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:448"
  },
  {
   "fr": "Accès cave partagée : {v1}",
   "en": "Shared cellar access: {v1}",
   "it": "Accesso alla cantina condivisa: {v1}",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:485"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:491"
  },
  {
   "fr": "Sommelier / Éditeur ✍️",
   "en": "sommelier / editor ✍️",
   "it": "Sommelier / editor ✍️",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:485"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:491"
  },
  {
   "fr": "Consultation 👁️",
   "en": "view only 👁️",
   "it": "Consultazione 👁️",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:485"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:491"
+ },
+ {
+  "fr": "{displayName} n'a pas encore noté assez de vins pour dessiner son palais.",
+  "en": "{displayName} hasn't rated enough wines yet to draw their palate.",
+  "it": "{displayName} non ha ancora annotato abbastanza vini per disegnare il suo palato.",
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:532"
  },
  {
   "fr": "🍇 Cépages Favoris",
   "en": "🍇 Favourite grapes",
   "it": "🍇 Vitigni preferiti",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:527"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:564"
  },
  {
   "fr": "Aucun cépage spécifique renseigné",
   "en": "No particular grape given",
   "it": "Nessun vitigno specifico indicato",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:538"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:575"
  },
  {
   "fr": "🗺️ Régions & Terroirs Préférés",
   "en": "🗺️ Favourite regions",
   "it": "🗺️ Regioni e terroir preferiti",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:542"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:579"
  },
  {
   "fr": "Aucune région renseignée",
   "en": "No region given",
   "it": "Nessuna regione indicata",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:553"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:590"
  },
  {
   "fr": "🍷 Styles & Couleurs Préférés",
   "en": "🍷 Favourite styles & colours",
   "it": "🍷 Stili e colori preferiti",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:557"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:594"
  },
  {
   "fr": "Tous types de vins",
   "en": "All kinds of wine",
   "it": "Tutti i tipi di vino",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:568"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:605"
  },
  {
   "fr": "⚖️ Profil Palais & Sensibilités",
   "en": "⚖️ Palate",
   "it": "⚖️ Palato e sensibilità",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:572"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:609"
  },
  {
   "fr": "Acidité",
   "en": "Acidity",
   "it": "Acidità",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:575"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:612"
  },
  {
   "fr": "Tendre / Ronde",
   "en": "Soft / round",
   "it": "Morbida / rotonda",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:577"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:614"
  },
  {
   "fr": "Vive / Minérale",
   "en": "Crisp / mineral",
   "it": "Vivace / minerale",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:578"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:615"
  },
  {
   "fr": "Tanins",
   "en": "Tannins",
   "it": "Tannini",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:584"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:621"
  },
  {
   "fr": "Fondus / Soyeux",
   "en": "Silky / supple",
   "it": "Fusi / setosi",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:586"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:623"
  },
  {
   "fr": "Puissants / Structurés",
   "en": "Firm / structured",
   "it": "Potenti / strutturati",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:587"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:624"
  },
  {
   "fr": "Corps & Puissance",
   "en": "Body",
   "it": "Corpo e potenza",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:593"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:630"
  },
  {
   "fr": "Ample & Corsé",
   "en": "Full & powerful",
   "it": "Ampio e corposo",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:596"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:633"
  },
  {
   "fr": "🚫 Ce qu'{displayName} n'aime pas",
   "en": "🚫 What {displayName} doesn't like",
   "it": "🚫 Cosa non piace a {displayName}",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:604"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:641"
  },
  {
   "fr": "✨ Arômes les plus plébiscités",
   "en": "✨ Favourite aromas",
   "it": "✨ Aromi più amati",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:618"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:655"
  },
  {
   "fr": "Explorer sa cave",
   "en": "Explore their cellar",
   "it": "Esplora la sua cantina",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:648"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:685"
  },
  {
   "fr": "Demander l'accès cave",
   "en": "Ask for cellar access",
   "it": "Chiedi l'accesso alla cantina",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:648"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:685"
  },
  {
   "fr": "Partager ma cave",
   "en": "Share my cellar",
   "it": "Condividi la mia cantina",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:675"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:712"
  },
  {
   "fr": "Demander conseil à Chatmelier pour {displayName}",
   "en": "Ask Chatmelier what to pour for {displayName}",
   "it": "Chiedi consiglio a Chatmelier per {displayName}",
-  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:693"
+  "ou": "lib/features/friends/presentation/friend_taste_card_sheet.dart:730"
  },
  {
   "fr": "🎉 Vous êtes désormais ami avec {displayName} !",
@@ -14331,25 +14355,25 @@
   "fr": "ex. Maroc",
   "en": "e.g. Morocco",
   "it": "es. Marocco",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:912"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:916"
  },
  {
   "fr": "Pas de note ? La dégustation est gardée, mais n'entre pas dans votre profil.",
   "en": "No rating? The tasting is kept, but won't shape your profile.",
   "it": "Nessun voto? La degustazione viene conservata, ma non entra nel tuo profilo.",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:989"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:993"
  },
  {
   "fr": "Reprendre la description du sommelier",
   "en": "Use the sommelier's description",
   "it": "Riprendi la descrizione del sommelier",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1025"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1029"
  },
  {
   "fr": "Complété d'après le nom : vérifiez avant d'enregistrer.",
   "en": "Filled in from the name: check before saving.",
   "it": "Completato in base al nome: verifica prima di salvare.",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1353"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1357"
  },
  {
   "fr": "fr_FR",
@@ -14859,91 +14883,91 @@
   "fr": "Moi ({userDisplayName})",
   "en": "Me ({userDisplayName})",
   "it": "Io ({userDisplayName})",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:202"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:217"
  },
  {
   "fr": "Enregistrer sans noter",
   "en": "Save without rating",
   "it": "Salva senza voto",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:696"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:728"
  },
  {
   "fr": "Enregistré dans votre journal, sans note : vous pourrez la donner plus tard.",
   "en": "Saved to your journal, unrated: you can rate it later.",
   "it": "Salvata nel tuo diario, senza voto: potrai darlo più tardi.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:699"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:731"
  },
  {
   "fr": "Bouteille défectueuse : le palais de {name} n'a pas été modifié.",
   "en": "Faulty bottle: {name}'s palate was not changed.",
   "it": "Bottiglia difettosa: il palato di {name} non è stato modificato.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2012"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2046"
  },
  {
   "fr": "Envoyée à {name} : elle entrera dans son journal une fois acceptée.",
   "en": "Sent to {name}: it goes into their journal once they accept it.",
   "it": "Inviata a {name}: entrerà nel suo diario una volta accettata.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2033"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2067"
  },
  {
   "fr": "Pas envoyée à {name} : vérifiez la connexion.",
   "en": "Not sent to {name}: check the connection.",
   "it": "Non inviata a {name}: controlla la connessione.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2036"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2070"
  },
  {
   "fr": "Vous l'avez bu avec un plat ?",
   "en": "Did you have it with food?",
   "it": "L'hai bevuto con un piatto?",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2314"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2348"
  },
  {
   "fr": "Oui, avec un plat",
   "en": "Yes, with food",
   "it": "Sì, con un piatto",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2320"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2354"
  },
  {
   "fr": "Non, seul",
   "en": "No, on its own",
   "it": "No, da solo",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2322"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2356"
  },
  {
   "fr": "Quel plat ? (facultatif)",
   "en": "Which dish? (optional)",
   "it": "Quale piatto? (facoltativo)",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2335"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2369"
  },
  {
   "fr": "L'accord avec « {plat} »",
   "en": "The pairing with \"{plat}\"",
   "it": "L'abbinamento con «{plat}»",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2342"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2376"
  },
  {
   "fr": "Domaine",
   "en": "Producer",
   "it": "Produttore",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2752"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2786"
  },
  {
   "fr": "Cépage",
   "en": "Grape",
   "it": "Vitigno",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2781"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2815"
  },
  {
   "fr": "Prix",
   "en": "Price",
   "it": "Prezzo",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2797"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2831"
  },
  {
   "fr": "{v1} sélectionné(s)",
   "en": "{v1} selected",
   "it": "{v1} selezionato/i",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3125"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3159"
  },
  {
   "fr": "Le sommelier n'a pas réussi à lire cette carte : sa réponse était incomplète. Vos photos sont gardées : réessayez.",
@@ -14985,73 +15009,73 @@
   "fr": "janvier",
   "en": "January",
   "it": "gennaio",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:268"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:292"
  },
  {
   "fr": "février",
   "en": "February",
   "it": "febbraio",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:268"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:292"
  },
  {
   "fr": "mars",
   "en": "March",
   "it": "marzo",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:268"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:292"
  },
  {
   "fr": "avril",
   "en": "April",
   "it": "aprile",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:269"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:293"
  },
  {
   "fr": "mai",
   "en": "May",
   "it": "maggio",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:269"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:293"
  },
  {
   "fr": "juin",
   "en": "June",
   "it": "giugno",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:269"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:293"
  },
  {
   "fr": "juillet",
   "en": "July",
   "it": "luglio",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:270"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:294"
  },
  {
   "fr": "août",
   "en": "August",
   "it": "agosto",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:270"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:294"
  },
  {
   "fr": "septembre",
   "en": "September",
   "it": "settembre",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:270"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:294"
  },
  {
   "fr": "octobre",
   "en": "October",
   "it": "ottobre",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:271"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:295"
  },
  {
   "fr": "novembre",
   "en": "November",
   "it": "novembre",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:271"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:295"
  },
  {
   "fr": "décembre",
   "en": "December",
   "it": "dicembre",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:271"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:295"
  },
  {
   "fr": "Vous connaissez ce vin",
@@ -15111,13 +15135,13 @@
   "fr": "Goûté",
   "en": "Tasted",
   "it": "Assaggiato",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:261"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:285"
  },
  {
   "fr": "en {mois} {year}",
   "en": "in {mois} {year}",
   "it": "a {mois} {year}",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:273"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:297"
  },
  {
   "fr": "Le préféré du comptoir : {vin} ({visages}).",
@@ -19050,6 +19074,342 @@
   "ou": "lib/features/offline/presentation/pending_actions_sheet.dart:431"
  },
  {
+  "fr": "Quand ouvrir chaque bouteille",
+  "en": "When to open each bottle",
+  "it": "Quando aprire ogni bottiglia",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:29"
+ },
+ {
+  "fr": "Sous chaque bouteille de votre cave, une petite jauge dit si elle est en garde, à son apogée ou à boire bientôt.",
+  "en": "Under each bottle in your cellar, a small gauge shows whether it should wait, is at its peak, or should be drunk soon.",
+  "it": "Sotto ogni bottiglia della tua cantina, un piccolo indicatore dice se va conservata, se è al suo apice o se va bevuta presto.",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:30"
+ },
+ {
+  "fr": "À prix égal, le sommelier choisit",
+  "en": "Same price? The sommelier picks",
+  "it": "A parità di prezzo, sceglie il sommelier",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:38"
+ },
+ {
+  "fr": "Photographiez la carte d'un restaurant : quand deux vins coûtent le même prix, Chatmelier vous dit lequel va le mieux à vos goûts.",
+  "en": "Take a photo of a restaurant's wine list: when two wines cost the same, Chatmelier tells you which one suits your taste best.",
+  "it": "Fotografa la carta di un ristorante: quando due vini costano uguale, Chatmelier ti dice quale si adatta meglio ai tuoi gusti.",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:39"
+ },
+ {
+  "fr": "Une question au sommelier",
+  "en": "Ask the sommelier",
+  "it": "Una domanda al sommelier",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:47"
+ },
+ {
+  "fr": "La bulle en haut de l'écran ouvre le sommelier : demandez quelle bouteille ouvrir ce soir, ou avec quel plat la servir.",
+  "en": "The bubble at the top of the screen opens the sommelier: ask which bottle to open tonight, or what dish to serve it with.",
+  "it": "La bolla in alto sullo schermo apre il sommelier: chiedigli quale bottiglia aprire stasera, o con quale piatto servirla.",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:48"
+ },
+ {
+  "fr": "Choisir à plusieurs",
+  "en": "Choosing together",
+  "it": "Scegliere insieme",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:56"
+ },
+ {
+  "fr": "Au restaurant, « Choisir en groupe » fait voter la table : chacun donne ses goûts sur son propre téléphone, même sans l'app.",
+  "en": "At a restaurant, “Choose as a group” lets the table vote: everyone gives their taste on their own phone, even without the app.",
+  "it": "Al ristorante, «Scegliere in gruppo» fa votare il tavolo: ognuno dà i suoi gusti sul proprio telefono, anche senza l'app.",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:57"
+ },
+ {
+  "fr": "Un vin bu ailleurs",
+  "en": "A wine you had elsewhere",
+  "it": "Un vino bevuto altrove",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:65"
+ },
+ {
+  "fr": "Chez des amis ou au restaurant, « Noter un vin bu dehors » le garde dans votre journal, sans toucher à votre cave.",
+  "en": "At friends' or at a restaurant, “Rate a wine had out” keeps it in your journal without touching your cellar.",
+  "it": "Da amici o al ristorante, «Annota un vino bevuto fuori» lo conserva nel tuo diario, senza toccare la tua cantina.",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:66"
+ },
+ {
+  "fr": "Dans votre cave, dites ce que vous cuisinez : Chatmelier choisit parmi vos propres bouteilles.",
+  "en": "In your cellar, say what you're cooking: Chatmelier picks from your own bottles.",
+  "it": "Nella tua cantina, di' cosa cucini: Chatmelier sceglie tra le tue bottiglie.",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:75"
+ },
+ {
+  "fr": "Chaque vin noté affine votre profil de goût. Profil → Palais montre ce que l'app a compris, et ce qu'elle devine encore.",
+  "en": "Every wine you rate sharpens your taste profile. Profile → Palate shows what the app has understood, and what it still guesses.",
+  "it": "Ogni vino annotato affina il tuo profilo di gusto. Profilo → Palato mostra cosa l'app ha capito, e cosa indovina ancora.",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:84"
+ },
+ {
+  "fr": "Votre cave dans un tableur",
+  "en": "Your cellar in a spreadsheet",
+  "it": "La tua cantina in un foglio di calcolo",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:92"
+ },
+ {
+  "fr": "Profil → Outils → Exporter ma cave : un fichier Excel ou CSV de toutes vos bouteilles.",
+  "en": "Profile → Tools → Export my cellar: an Excel or CSV file of all your bottles.",
+  "it": "Profilo → Strumenti → Esporta la mia cantina: un file Excel o CSV con tutte le tue bottiglie.",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:93"
+ },
+ {
+  "fr": "Un avis, un souci ?",
+  "en": "A thought, a problem?",
+  "it": "Un parere, un problema?",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:101"
+ },
+ {
+  "fr": "Secouez le téléphone : vous pouvez nous écrire, et entourer sur l'écran ce qui ne va pas.",
+  "en": "Shake your phone: you can write to us, and circle on the screen what's wrong.",
+  "it": "Scuoti il telefono: puoi scriverci e cerchiare sullo schermo ciò che non va.",
+  "ou": "lib/features/prise_en_main/domain/astuces.dart:102"
+ },
+ {
+  "fr": "Passer",
+  "en": "Skip",
+  "it": "Salta",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:94"
+ },
+ {
+  "fr": "Commencer",
+  "en": "Start",
+  "it": "Inizia",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:128"
+ },
+ {
+  "fr": "C'est parti",
+  "en": "Let's go",
+  "it": "Si parte",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:130"
+ },
+ {
+  "fr": "Suivant",
+  "en": "Next",
+  "it": "Avanti",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:132"
+ },
+ {
+  "fr": "Faites le geste ci-dessus",
+  "en": "Try the gesture above",
+  "it": "Fai il gesto qui sopra",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:133"
+ },
+ {
+  "fr": "Bienvenue dans Chatmelier",
+  "en": "Welcome to Chatmelier",
+  "it": "Benvenuto in Chatmelier",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:148"
+ },
+ {
+  "fr": "Il vous aide à choisir un vin, au restaurant comme à la maison, et à ouvrir vos bouteilles au bon moment. Voyons comment, en une minute.",
+  "en": "It helps you choose a wine, out or at home, and open your bottles at the right time. Let's see how, in one minute.",
+  "it": "Ti aiuta a scegliere un vino, al ristorante come a casa, e ad aprire le tue bottiglie al momento giusto. Vediamo come, in un minuto.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:149"
+ },
+ {
+  "fr": "Votre cave",
+  "en": "Your cellar",
+  "it": "La tua cantina",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:156"
+ },
+ {
+  "fr": "Touchez une bouteille : sa jauge dit quand l'ouvrir.",
+  "en": "Tap a bottle: its gauge tells you when to open it.",
+  "it": "Tocca una bottiglia: il suo indicatore dice quando aprirla.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:157"
+ },
+ {
+  "fr": "Champagne brut",
+  "en": "Champagne brut",
+  "it": "Champagne brut",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:161"
+ },
+ {
+  "fr": "Prêt à boire",
+  "en": "Ready to drink",
+  "it": "Pronto da bere",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:161"
+ },
+ {
+  "fr": "Prêt à boire : un champagne sans millésime se boit dans les deux ou trois ans.",
+  "en": "Ready to drink: a non-vintage champagne is best within two or three years.",
+  "it": "Pronto da bere: uno champagne senza annata si beve entro due o tre anni.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:163"
+ },
+ {
+  "fr": "Bandol rouge 2019",
+  "en": "Bandol red 2019",
+  "it": "Bandol rosso 2019",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:165"
+ },
+ {
+  "fr": "En garde : un Bandol rouge s'ouvre plutôt à partir de 2028.",
+  "en": "Keep for now: a red Bandol is better opened from 2028.",
+  "it": "Da conservare: un Bandol rosso si apre meglio dal 2028.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:167"
+ },
+ {
+  "fr": "Beaujolais-Villages 2021",
+  "en": "Beaujolais-Villages 2021",
+  "it": "Beaujolais-Villages 2021",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:169"
+ },
+ {
+  "fr": "À boire cette année",
+  "en": "Drink this year",
+  "it": "Da bere quest'anno",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:170"
+ },
+ {
+  "fr": "À boire cette année : un Beaujolais-Villages se boit jeune, pour son fruit.",
+  "en": "Drink this year: a Beaujolais-Villages is drunk young, for its fruit.",
+  "it": "Da bere quest'anno: un Beaujolais-Villages si beve giovane, per il suo frutto.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:171"
+ },
+ {
+  "fr": "Ajouter une bouteille",
+  "en": "Add a bottle",
+  "it": "Aggiungi una bottiglia",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:179"
+ },
+ {
+  "fr": "Touchez le bouton +. Dans l'app, il ouvre l'appareil photo : Chatmelier lit l'étiquette et remplit la fiche.",
+  "en": "Tap the + button. In the app it opens the camera: Chatmelier reads the label and fills in the details.",
+  "it": "Tocca il pulsante +. Nell'app apre la fotocamera: Chatmelier legge l'etichetta e compila la scheda.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:180"
+ },
+ {
+  "fr": "Ici, l'appareil photo s'ouvrirait. Rien n'est enregistré pendant ce guide.",
+  "en": "This is where the camera would open. Nothing is saved during this guide.",
+  "it": "Qui si aprirebbe la fotocamera. Durante questa guida non viene salvato nulla.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:193"
+ },
+ {
+  "fr": "Photographiez la carte des vins : Chatmelier classe chaque vin selon vos goûts. Touchez celui qui vous tente.",
+  "en": "Take a photo of the wine list: Chatmelier ranks each wine for your taste. Tap the one you fancy.",
+  "it": "Fotografa la carta dei vini: Chatmelier ordina ogni vino secondo i tuoi gusti. Tocca quello che ti ispira.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:205"
+ },
+ {
+  "fr": "⚖️ À prix égal, je prendrais celui-ci",
+  "en": "⚖️ At the same price, I'd pick this one",
+  "it": "⚖️ A parità di prezzo, sceglierei questo",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:213"
+ },
+ {
+  "fr": "Noter un verre",
+  "en": "Rate a glass",
+  "it": "Annotare un calice",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:220"
+ },
+ {
+  "fr": "Après un vin, notez-le d'un geste : votre palais apprend, et les conseils vous ressemblent de plus en plus.",
+  "en": "After a wine, rate it in one tap: your palate learns, and the advice fits you better and better.",
+  "it": "Dopo un vino, annotalo con un gesto: il tuo palato impara, e i consigli ti somigliano sempre di più.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:221"
+ },
+ {
+  "fr": "Noté ! Pour de faux : ce guide n'écrit rien dans votre journal.",
+  "en": "Rated! Only pretend: this guide writes nothing to your journal.",
+  "it": "Annotato! Per finta: questa guida non scrive nulla nel tuo diario.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:236"
+ },
+ {
+  "fr": "Une question ?",
+  "en": "A question?",
+  "it": "Una domanda?",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:256"
+ },
+ {
+  "fr": "La bulle, en haut de chaque écran, ouvre le sommelier. Touchez-la.",
+  "en": "The bubble at the top of every screen opens the sommelier. Tap it.",
+  "it": "La bolla, in alto in ogni schermata, apre il sommelier. Toccala.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:257"
+ },
+ {
+  "fr": "« Que boire avec un poulet rôti ? » — « Un blanc ample, comme un Meursault, ou un rouge léger, comme un Fleurie. »",
+  "en": "“What goes with roast chicken?” — “A rich white, like a Meursault, or a light red, like a Fleurie.”",
+  "it": "«Cosa bere con un pollo arrosto?» — «Un bianco ampio, come un Meursault, o un rosso leggero, come un Fleurie.»",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:268"
+ },
+ {
+  "fr": "C'est parti !",
+  "en": "You're all set!",
+  "it": "Si parte!",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:279"
+ },
+ {
+  "fr": "Vous retrouverez ce guide dans Profil → Réglages. Une astuce vous attendra parfois à l'ouverture : un geste suffit pour les couper.",
+  "en": "You'll find this guide again in Profile → Settings. A tip will sometimes greet you when the app opens: one tap turns them off.",
+  "it": "Ritroverai questa guida in Profilo → Impostazioni. A volte ti aspetterà un consiglio all'apertura: basta un gesto per disattivarli.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:280"
+ },
+ {
+  "fr": "« À prix égal, je prendrais celui-ci » : plus proche de vos goûts que le Morgon, au même prix.",
+  "en": "“At the same price, I'd pick this one”: closer to your taste than the Morgon, for the same price.",
+  "it": "«A parità di prezzo, sceglierei questo»: più vicino ai tuoi gusti del Morgon, allo stesso prezzo.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:374"
+ },
+ {
+  "fr": "{n} % pour vous : la part de vos goûts que ce vin coche. Plus vous notez, plus ce chiffre est juste.",
+  "en": "{n}% for you: how much of your taste this wine ticks. The more you rate, the more accurate it gets.",
+  "it": "{n}% per te: la parte dei tuoi gusti che questo vino soddisfa. Più annoti, più la cifra è precisa.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:376"
+ },
+ {
+  "fr": "💡 Le saviez-vous ?",
+  "en": "💡 Did you know?",
+  "it": "💡 Lo sapevi?",
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:58"
+ },
+ {
+  "fr": "Me montrer",
+  "en": "Show me",
+  "it": "Mostramelo",
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:76"
+ },
+ {
+  "fr": "Ne plus afficher ces astuces",
+  "en": "Don't show these tips again",
+  "it": "Non mostrare più questi consigli",
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:83"
+ },
+ {
+  "fr": "Astuces coupées. Profil → Réglages pour les remettre.",
+  "en": "Tips turned off. Profile → Settings to bring them back.",
+  "it": "Consigli disattivati. Profilo → Impostazioni per riattivarli.",
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:89"
+ },
+ {
+  "fr": "Revoir la prise en main",
+  "en": "See the walkthrough again",
+  "it": "Rivedi la guida iniziale",
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:187"
+ },
+ {
+  "fr": "Une minute, sur de fausses bouteilles",
+  "en": "One minute, on pretend bottles",
+  "it": "Un minuto, con bottiglie per finta",
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:189"
+ },
+ {
+  "fr": "« Le saviez-vous ? » à l'ouverture",
+  "en": "“Did you know?” when opening",
+  "it": "«Lo sapevi?» all'apertura",
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:197"
+ },
+ {
+  "fr": "Une astuce sur une fonction de l'app, à chaque lancement",
+  "en": "A tip about one feature of the app, each time it starts",
+  "it": "Un consiglio su una funzione dell'app, a ogni avvio",
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:199"
+ },
+ {
   "fr": "Analyse de l'étiquette impossible. Vérifiez votre connexion ou saisissez les informations manuellement.",
   "en": "The label couldn't be analysed. Check your connection or enter the details manually.",
   "it": "Impossibile analizzare l'etichetta. Controlla la connessione o inserisci i dati a mano.",
@@ -19426,12 +19786,6 @@
   "en": "Scan a bottle",
   "it": "Scansiona una bottiglia",
   "ou": "lib/features/scan/presentation/scan_screen.dart:227"
- },
- {
-  "fr": "Ajouter une bouteille",
-  "en": "Add a bottle",
-  "it": "Aggiungi una bottiglia",
-  "ou": "lib/features/scan/presentation/scan_screen.dart:238"
  },
  {
   "fr": "Prenez une photo de votre étiquette ou choisissez une image depuis votre galerie pour l'analyse automatique.",
@@ -21093,91 +21447,91 @@
   "fr": "Demander au sommelier",
   "en": "Ask the sommelier",
   "it": "Chiedi al sommelier",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:537"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:548"
  },
  {
   "fr": "Actions Cave",
   "en": "Cellar Actions",
   "it": "Azioni della cantina",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:159"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:168"
  },
  {
   "fr": "Scanner une étiquette ou saisie manuelle",
   "en": "Scan a label or enter manually",
   "it": "Scansiona un'etichetta o inserisci a mano",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:173"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:182"
  },
  {
   "fr": "Déguster / Sortir une bouteille",
   "en": "Taste / Checkout a bottle",
   "it": "Degusta / togli una bottiglia",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:184"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:193"
  },
  {
   "fr": "Enregistrer une dégustation et sortir du stock",
   "en": "Log a tasting and deduct from stock",
   "it": "Registra una degustazione e scalala dalle scorte",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:186"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:195"
  },
  {
   "fr": "Importer un fichier (Excel / CSV)",
   "en": "Import File (Excel / CSV)",
   "it": "Importa un file (Excel / CSV)",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:196"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:205"
  },
  {
   "fr": "Importez toute votre cave en quelques secondes par IA",
   "en": "Import your whole cellar in seconds via AI",
   "it": "Importa tutta la tua cantina in pochi secondi con l'IA",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:197"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:206"
  },
  {
   "fr": "Quel vin pour mon plat ? (Accords Mets & Vins)",
   "en": "Which wine for my dish? (Food Pairings)",
   "it": "Quale vino per il mio piatto? (abbinamenti)",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:208"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:217"
  },
  {
   "fr": "L'IA sommelier trouve les meilleurs accords dans votre cave",
   "en": "AI Sommelier finds the best pairings from your cellar",
   "it": "Il sommelier IA trova i migliori abbinamenti nella tua cantina",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:209"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:218"
  },
  {
   "fr": "Mon Profil & Paramètres",
   "en": "My Profile & Settings",
   "it": "Il mio profilo e impostazioni",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:318"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:329"
  },
  {
   "fr": "Sommelier & Cave à Vin",
   "en": "Sommelier & Wine Cellar",
   "it": "Sommelier e cantina",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:441"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:452"
  },
  {
   "fr": "ACTIONS RAPIDES",
   "en": "QUICK ACTIONS",
   "it": "AZIONI RAPIDE",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:521"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:532"
  },
  {
   "fr": "Meubles & Rayonnages",
   "en": "Furniture & Shelves",
   "it": "Mobili e scaffali",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:549"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:560"
  },
  {
   "fr": "Déguster / Sortir un vin",
   "en": "Taste / Checkout wine",
   "it": "Degusta / togli un vino",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:559"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:570"
  },
  {
   "fr": "Mon Profil",
   "en": "My Profile",
   "it": "Il mio profilo",
-  "ou": "lib/shared/widgets/adaptive_app_shell.dart:602"
+  "ou": "lib/shared/widgets/adaptive_app_shell.dart:613"
  },
  {
   "fr": "Connexion perdue avec la table : les arrivées ne s'affichent plus.",

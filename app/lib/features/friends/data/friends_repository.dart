@@ -23,6 +23,24 @@ final friendsListProvider = FutureProvider<List<Friend>>((ref) async {
   return repo.getFriends();
 });
 
+/// Le palais principal d'un ami (V2.4 · R5, migration 067), par son identifiant ; nul s'il
+/// n'en a pas encore, ou tant que la migration n'est pas appliquée.
+final palaisDUnAmiProvider = FutureProvider.family<TasteProfile?, String>((ref, amiId) async {
+  final amis = await ref.watch(friendsListProvider.future);
+  final ami = amis.where((a) => a.friendUserId == amiId).firstOrNull;
+  if (ami == null) return null;
+  return ref.read(friendsRepositoryProvider).palaisDUnAmi(ami);
+});
+
+/// Les palais de tous ses amis, pour le radar comparatif (« I want to have Caro suggested for
+/// the overlay since she's my friend », 04/10).
+final palaisDesAmisProvider = FutureProvider<List<TasteProfile>>((ref) async {
+  final amis = await ref.watch(friendsListProvider.future);
+  final repo = ref.read(friendsRepositoryProvider);
+  final palais = await Future.wait([for (final a in amis.where((a) => a.isAccepted)) repo.palaisDUnAmi(a)]);
+  return palais.whereType<TasteProfile>().toList();
+});
+
 final pendingIncomingRequestsProvider = FutureProvider<List<Friend>>((ref) async {
   final repo = ref.watch(friendsRepositoryProvider);
   return repo.getPendingIncomingRequests();
@@ -934,6 +952,25 @@ class FriendsRepository {
       }
 
     return requests;
+  }
+
+  /// Le palais principal d'un ami (migration 067) : son seul profil principal, rendu par le
+  /// serveur entre amis acceptés. Nul s'il n'a pas encore de palais, ou si la fonction
+  /// manque.
+  Future<TasteProfile?> palaisDUnAmi(Friend ami) async {
+    try {
+      final r = await _client.rpc('palais_d_un_ami', params: {'p_ami': ami.friendUserId}).timeout(_delaiReseau);
+      if (r is! Map) return null;
+      return TasteProfile.fromJson(Map<String, dynamic>.from(r)).copyWith(
+        id: 'ami:${ami.friendUserId}',
+        name: ami.displayName,
+        isPrimary: false,
+        friendUserId: ami.friendUserId,
+      );
+    } catch (e) {
+      AppLogger.debug('FRIENDS', 'Palais de ${ami.displayName} illisible : $e');
+      return null;
+    }
   }
 
   // ---------------------------------------------------------------------------

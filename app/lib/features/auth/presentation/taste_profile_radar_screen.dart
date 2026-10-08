@@ -10,6 +10,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
+import '../../friends/data/friends_repository.dart' show palaisDesAmisProvider;
 
 /// 🎨 Distinct Vibrant Color Palette for Multi-Guest Overlays
 const List<Color> kRadarPalette = [
@@ -84,7 +85,30 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
       final moi = tr('Moi', 'Me');
       return name == null ? moi : '$moi ($name)';
     }
-    return p.name;
+    return _estUnAmi(p) ? '${p.name} (@)' : p.name;
+  }
+
+  /// Le palais d'un ami, lu sur le serveur : il n'est pas à nous, on ne le retire pas.
+  static bool _estUnAmi(TasteProfile p) => p.id.startsWith('ami:');
+
+  /// Retirer un proche de ses profils (« je ne veux pas voir Paul et Aude ici », 07/10).
+  Future<void> _retirer(TasteProfile p) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(tr('Retirer {name} ?', 'Remove {name}?', {'name': p.name})),
+        content: Text(tr('Son profil de goût disparaît de vos listes. Les dégustations déjà notées restent dans votre journal.',
+            'Their taste profile disappears from your lists. Tastings already rated stay in your journal.')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(tr('Annuler', 'Cancel'))),
+          FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(tr('Retirer', 'Remove'))),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref.read(tasteProfileServiceProvider).deleteProfile(p.id);
+    ref.invalidate(tasteProfilesListProvider);
+    if (mounted) setState(() => _selectedProfileId = null);
   }
 
   @override
@@ -106,7 +130,15 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
       child: profilesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text(tr('Erreur : {err}', 'Error: {err}', {'err': err}))),
-        data: (profiles) {
+        data: (propres) {
+          // Ses amis aussi, avec leur vrai palais (R5, migration 067) — sauf ceux qu'un profil
+          // local représente déjà.
+          final amis = ref.watch(palaisDesAmisProvider).valueOrNull ?? const <TasteProfile>[];
+          final profiles = [
+            ...propres,
+            for (final a in amis)
+              if (!propres.any((p) => p.friendUserId != null && p.friendUserId == a.friendUserId)) a,
+          ];
           if (profiles.isEmpty) {
             final emptyText = tr('Aucun profil de goût disponible.', 'No taste profiles available.');
             return Center(child: Text(emptyText));
@@ -119,7 +151,8 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
           }
 
           for (final p in profiles) {
-            _overlayVisibility.putIfAbsent(p.id, () => true);
+            // Les amis sont proposés en superposition, pas imposés : un geste les ajoute.
+            _overlayVisibility.putIfAbsent(p.id, () => !_estUnAmi(p));
           }
 
           _compareProfileId1 ??= profiles.first.id;
@@ -289,6 +322,15 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
             },
           ),
         ),
+        if (!currentProfile.isPrimary && !_estUnAmi(currentProfile))
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              icon: const Icon(Icons.person_remove_outlined, size: 18),
+              label: Text(tr('Retirer {name} de mes profils', 'Remove {name} from my profiles', {'name': currentProfile.name})),
+              onPressed: () => _retirer(currentProfile),
+            ),
+          ),
         const SizedBox(height: 20),
 
         // Radar Chart

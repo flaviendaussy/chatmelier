@@ -533,10 +533,12 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
                     sliver: Responsive.isTabletOrDesktop(context)
                         ? SliverGrid(
-                            gridDelegate:
-                                const SliverGridDelegateWithMaxCrossAxisExtent(
+                            // Hauteur fixe de la grille : de la place pour le domaine (09/10), et
+                            // ce qu'il faut en plus quand le texte du téléphone est agrandi.
+                            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                               maxCrossAxisExtent: 460,
-                              mainAxisExtent: 220,
+                              mainAxisExtent: 240 +
+                                  90 * ((MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 3.0) - 1),
                               crossAxisSpacing: 14,
                               mainAxisSpacing: 14,
                             ),

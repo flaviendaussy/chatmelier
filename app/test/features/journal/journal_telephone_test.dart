@@ -38,6 +38,22 @@ void main() {
                   vintage: 2019,
                   consumedAt: DateTime(2026, 9, 12),
                 ),
+                // Le domaine sous le nom (Flavien, 09/10), pas répété quand le nom le porte.
+                TastingEntry(
+                  id: 't3',
+                  wineId: 'w3',
+                  wineName: 'Côtes du Rhône Blanc',
+                  producer: 'Domaine Jamet',
+                  vintage: 2024,
+                  consumedAt: DateTime(2026, 10, 9),
+                ),
+                TastingEntry(
+                  id: 't4',
+                  wineId: 'w4',
+                  wineName: 'Château Crabitey Graves Blanc',
+                  producer: 'Château Crabitey',
+                  consumedAt: DateTime(2026, 10, 7),
+                ),
               ]),
         ],
         child: const MaterialApp(
@@ -53,5 +69,7 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.textContaining('Clio'), findsWidgets);
     expect(find.textContaining('Bandol Rouge'), findsWidgets);
+    expect(find.text('Domaine Jamet'), findsOneWidget);
+    expect(find.text('Château Crabitey'), findsNothing, reason: 'déjà dans le nom du vin');
   });
 }

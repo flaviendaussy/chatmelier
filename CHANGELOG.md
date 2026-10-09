@@ -12,6 +12,7 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - **Texte agrandi du téléphone** : la cave, la fiche d'une bouteille, le profil et « Noter un vin bu dehors » ne débordent plus ; les titres et les boutons passent à la ligne.
 - **La valeur de votre cave dans votre devise** : plus de livres additionnées à des euros sous « € » ; les prix s'écrivent « 24,50 € » en français, en espagnol et en italien.
 - **Vos amis vous trouvent par votre pseudo**, même avec une photo de profil ; choisir son pseudo n'efface plus la photo.
+- **Le domaine dans le journal** : sous le nom du vin, son domaine (« Côtes du Rhône Blanc — Domaine Jamet ») ; la recherche du journal le trouve aussi.
 
 ### 🛠️ Notes Techniques (Développeurs)
 - *Migration 069* : `inviter_a_noter` (entre amis ou membres d'une même cave, le vin seul, trente par jour, une par ami et par vin dans le quart d'heure), notification `invitation_a_noter`. Base jetable : 047 → 069 verts.

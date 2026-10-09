@@ -203,6 +203,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
         final wineName = (entry.wineName ?? '').toLowerCase();
+        final domaine = (entry.producer ?? '').toLowerCase();
         final notes = (entry.tastingNotes ?? '').toLowerCase();
         final food = (entry.foodPaired ?? '').toLowerCase();
         final region = (entry.region ?? '').toLowerCase();
@@ -213,6 +214,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         final guests = entry.coTasters.map((g) => g.toLowerCase()).join(' ');
 
         final matches = wineName.contains(q) ||
+            domaine.contains(q) ||
             notes.contains(q) ||
             food.contains(q) ||
             region.contains(q) ||
@@ -704,6 +706,17 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                        if (entry.domaineAffiche case final domaine?)
+                          Text(
+                            domaine,
+                            style: TextStyle(
+                              color: isDark ? const Color(0xFFE8A0B4) : const Color(0xFF8B1E3F),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         const SizedBox(height: 2),
                         Text(
                           [

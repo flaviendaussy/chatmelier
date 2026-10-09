@@ -120,6 +120,15 @@ class TastingEntry {
     return r % 1 == 0 ? '${r.toInt()}/10' : '${r.toStringAsFixed(1)}/10';
   }
 
+  /// Le domaine à montrer sous le nom du vin, s'il n'y figure pas déjà (Flavien, 09/10 : « je
+  /// veux voir le domaine et le vin aussi ici » — « Côtes du Rhône Blanc » sans « Domaine Jamet »).
+  String? get domaineAffiche {
+    final p = producer?.trim();
+    if (p == null || p.isEmpty) return null;
+    if ((wineName ?? '').toLowerCase().contains(p.toLowerCase())) return null;
+    return p;
+  }
+
   factory TastingEntry.fromJson(Map<String, dynamic> json) {
     final wineMap = json['wines'] as Map<String, dynamic>?;
 

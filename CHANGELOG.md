@@ -4,7 +4,7 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 
 ## [v1.9.0+81] — 2026-10-09
 
-> Remplace la 1.8.0+79 (jamais publiée sur le Play Store) : tout ce qu'annonce la 79 y est, avec en plus ce qui suit. Le site web passe aussi en 81.
+> Remplace la 1.8.0+79 (jamais publiée sur le Play Store) : tout ce qu'annonce la 79 y est, avec en plus ce qui suit. Le site web reste en 1.8.1+80 jusqu'à sa prochaine publication (le partage de connexion coupait l'envoi).
 
 ### 🍷 Ce qui change pour vous
 - **Demander à un ami de noter lui-même** : dans « Qui déguste ? », un ami qui a l'app porte « Lui demander de noter sur son téléphone ». Il reçoit le vin à noter, et vous ne répondez plus à sa place ; chez lui, « Noter ce vin » ouvre la dégustation avec le vin et vous parmi les convives.

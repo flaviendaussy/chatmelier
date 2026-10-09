@@ -2,6 +2,16 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.8.1+80] — 2026-10-09
+
+> Site web seulement (la page invité) : l'app Android et iPhone reste en 1.8.0+79.
+
+### 🍷 Ce qui change pour vous
+- **Rejoindre une table depuis le site marche à nouveau** : un invité arrivé sur un navigateur neuf restait à la porte (« serveur indisponible », le « pas de réseau » de Gianpaolo le 05/10). Il rejoint la table, voit les bouteilles et note les verres au comptoir ; tant que les sessions anonymes restent coupées, ses notes restent sur son téléphone, et la page le dit au lieu de promettre un code de reprise.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Page invité* (`web/table/table.js`) : les connexions anonymes sont coupées en production (`/auth/v1/settings` : `anonymous_users: false` ; journaux : refusées depuis au moins le 29/09). Un refus 422 de `signup` devient `SansSession`, retenu six heures ; `rpc(…, { connecte: true })` passe alors par la clé publique, que `join_table_session` accepte (`user_id` nul) ; journal, code de reprise et mesure J6 se taisent, textes « sans compte » dans les quatre langues.
+
 ## [v1.8.0+79] — 2026-10-08
 
 > La 1.7.0+78 n'a pas été publiée seule : la 79 la contient, avec en plus ce qui suit. Version affichée 1.8 (le récit du vin, la prise en main, la dégustation pour un ami et le plat à table sont des nouveautés à part entière).

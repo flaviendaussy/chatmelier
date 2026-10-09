@@ -71,6 +71,7 @@ const TEXTES = {
     note: 'noté',
     noterTitre: '{vin}, ce soir',
     noterAide: 'Un geste suffit : votre palais en tiendra compte.',
+    noterAideSansCompte: 'Un geste suffit : la note reste sur ce téléphone.',
     reprendriez: 'Vous en reprendriez ?',
     oui: 'Oui', peutEtre: 'Peut-être', non: 'Non',
     racheter: { yes: 'Je le reprendrais.', maybe: 'Je le reprendrais peut-être.', no: 'Je ne le reprendrais pas.' },
@@ -82,6 +83,8 @@ const TEXTES = {
     codeReprise: 'Votre code de reprise',
     installer: 'Installer l\'app',
     iphone: 'L\'app arrive bientôt sur iPhone. D\'ici là, gardez votre soirée avec le code de reprise.',
+    garderSansCompte: 'Vos goûts et vos notes de ce soir restent sur ce téléphone. Pour les garder dans votre journal, installez l\'app et créez votre compte.',
+    iphoneSansCompte: 'L\'app arrive bientôt sur iPhone.',
     connexionPerdue: 'Connexion perdue avec la table.',
     versionComplete: 'Vous avez un compte Chatmelier ? Ouvrir la version complète',
     comptoirTitre: 'Les verres de l\'ardoise',
@@ -148,6 +151,7 @@ const TEXTES = {
     note: 'rated',
     noterTitre: '{vin}, tonight',
     noterAide: 'One tap is enough: your palate will learn from it.',
+    noterAideSansCompte: 'One tap is enough: the rating stays on this phone.',
     reprendriez: 'Would you have it again?',
     oui: 'Yes', peutEtre: 'Maybe', non: 'No',
     racheter: { yes: 'I would have it again.', maybe: 'I might have it again.', no: 'I would not have it again.' },
@@ -159,6 +163,8 @@ const TEXTES = {
     codeReprise: 'Your recovery code',
     installer: 'Install the app',
     iphone: 'The iPhone app is coming soon. Until then, keep your evening with the recovery code.',
+    garderSansCompte: 'Your taste and tonight\'s ratings stay on this phone. To keep them in your journal, install the app and create your account.',
+    iphoneSansCompte: 'The iPhone app is coming soon.',
     connexionPerdue: 'Lost the connection to the table.',
     versionComplete: 'Have a Chatmelier account? Open the full version',
     comptoirTitre: 'The glasses on the board',
@@ -225,6 +231,7 @@ const TEXTES = {
     note: 'anotado',
     noterTitre: '{vin}, esta noche',
     noterAide: 'Un gesto basta: tu paladar lo tendrá en cuenta.',
+    noterAideSansCompte: 'Un gesto basta: la nota se queda en este teléfono.',
     reprendriez: '¿Repetirías?',
     oui: 'Sí', peutEtre: 'Quizás', non: 'No',
     racheter: { yes: 'Lo repetiría.', maybe: 'Quizás lo repetiría.', no: 'No lo repetiría.' },
@@ -236,6 +243,8 @@ const TEXTES = {
     codeReprise: 'Tu código de recuperación',
     installer: 'Instalar la app',
     iphone: 'La app llegará pronto al iPhone. Mientras tanto, guarda tu velada con el código de recuperación.',
+    garderSansCompte: 'Tus gustos y tus notas de esta noche se quedan en este teléfono. Para guardarlos en tu diario, instala la app y crea tu cuenta.',
+    iphoneSansCompte: 'La app llegará pronto al iPhone.',
     connexionPerdue: 'Se perdió la conexión con la mesa.',
     versionComplete: '¿Tienes una cuenta de Chatmelier? Abrir la versión completa',
     comptoirTitre: 'Las copas de la pizarra',
@@ -302,6 +311,7 @@ const TEXTES = {
     note: 'votato',
     noterTitre: '{vin}, stasera',
     noterAide: 'Basta un gesto: il tuo palato ne terrà conto.',
+    noterAideSansCompte: 'Basta un gesto: il voto resta su questo telefono.',
     reprendriez: 'Lo riprenderesti?',
     oui: 'Sì', peutEtre: 'Forse', non: 'No',
     racheter: { yes: 'Lo riprenderei.', maybe: 'Forse lo riprenderei.', no: 'Non lo riprenderei.' },
@@ -313,6 +323,8 @@ const TEXTES = {
     codeReprise: 'Il tuo codice di recupero',
     installer: 'Installa l\'app',
     iphone: 'L\'app arriverà presto su iPhone. Nel frattempo, conserva la serata con il codice di recupero.',
+    garderSansCompte: 'I tuoi gusti e i voti di stasera restano su questo telefono. Per conservarli nel tuo diario, installa l\'app e crea il tuo account.',
+    iphoneSansCompte: 'L\'app arriverà presto su iPhone.',
     connexionPerdue: 'Connessione con il tavolo persa.',
     versionComplete: 'Hai un account Chatmelier? Apri la versione completa',
     comptoirTitre: 'I calici della lavagna',
@@ -395,8 +407,26 @@ async function auth(chemin, corps) {
     headers: { apikey: CLE, 'Content-Type': 'application/json' },
     body: JSON.stringify(corps),
   });
-  if (!res.ok) throw new Error(`auth ${res.status}`);
+  if (!res.ok) {
+    let code = '';
+    try { code = (await res.json())?.error_code || ''; } catch { /* corps illisible */ }
+    throw new Error(`auth ${res.status}${code ? ` ${code}` : ''}`);
+  }
   return depuisReponseAuth(await res.json());
+}
+
+// Les connexions anonymes peuvent être coupées côté Supabase (relevé le 09/10 : refusées
+// depuis au moins le 29/09, et tout invité arrivé sur un navigateur neuf restait à la
+// porte). La page rejoint alors la table avec la clé publique, ce que join_table_session
+// accepte ; seul ce qui demande un compte (journal, code de reprise, mesure) se tait. Le
+// refus est retenu six heures, pour ne pas redemander à chaque geste.
+const CLE_SANS_SESSION = 'chatmelier.table.sans-session.v1';
+class SansSession extends Error {}
+function sessionsRefusees() {
+  try { return Date.now() < Number(localStorage.getItem(CLE_SANS_SESSION) || 0); } catch { return false; }
+}
+function retenirLeRefus() {
+  try { localStorage.setItem(CLE_SANS_SESSION, String(Date.now() + 6 * 3600 * 1000)); } catch { /* navigation privée */ }
 }
 
 /** Une session valide, anonyme au besoin. */
@@ -411,7 +441,16 @@ async function session() {
       return s;
     } catch { /* jeton périmé : nouvelle session */ }
   }
-  s = await auth('signup', { data: {} });
+  if (sessionsRefusees()) throw new SansSession('sans_session');
+  try {
+    s = await auth('signup', { data: {} });
+  } catch (e) {
+    if (/^auth 422/.test(String(e?.message))) {
+      retenirLeRefus();
+      throw new SansSession('sans_session');
+    }
+    throw e;
+  }
   garderSession(s);
   return s;
 }
@@ -422,7 +461,14 @@ class ErreurServeur extends Error {
 
 /** Appelle une fonction SQL. `connecte` : avec la session de l'invité. */
 async function rpc(fonction, parametres = {}, { connecte = false } = {}) {
-  const jeton = connecte ? (await session()).access_token : CLE;
+  let jeton = CLE;
+  if (connecte) {
+    try {
+      jeton = (await session()).access_token;
+    } catch (e) {
+      if (!(e instanceof SansSession)) throw e;
+    }
+  }
   const res = await fetch(`${API}/rest/v1/rpc/${fonction}`, {
     method: 'POST',
     headers: { apikey: CLE, Authorization: `Bearer ${jeton}`, 'Content-Type': 'application/json' },
@@ -477,6 +523,7 @@ async function inserer(table, ligne) {
 
 /** Ce qui mène un invité web jusqu'à l'app (J6), sans donnée personnelle. */
 function noterEvenement(type) {
+  if (sessionsRefusees()) return;
   inserer('evenements_croissance', {
     type, source: 'page_invite', table_code: etat.code, plateforme: 'web', app_version: 'page-table-1',
   }).catch(() => { /* la mesure ne bloque jamais la soirée */ });
@@ -774,7 +821,7 @@ function blocChoix() {
       const n = etat.noteEnCours;
       return el('div', { class: 'vin' },
         el('span', { class: 'nom' }, t('noterTitre', { vin: libelle })),
-        el('p', { class: 'discret' }, t('noterAide')),
+        el('p', { class: 'discret' }, t(sessionsRefusees() ? 'noterAideSansCompte' : 'noterAide')),
         el('div', { class: 'visages' }, visages.map((f, i) => el('button', {
           class: 'visage', 'aria-pressed': n.visage === i ? 'true' : 'false', 'aria-label': `${valeurs[i]} / 10`,
           onclick: () => { n.visage = i; rendre(); },
@@ -814,15 +861,19 @@ async function enregistrerAuJournal(vin, note, racheter) {
 async function enregistrerLaNote(vin, note, racheter) {
   try {
     await enregistrerAuJournal(vin, note, racheter);
-    const notes = lire(CLE_NOTES(), {});
-    notes[vin.cle] = note;
-    ecrire(CLE_NOTES(), notes);
-    etat.noteEnCours = null;
     noterEvenement('invite_web_note');
-    rendre();
-  } catch {
-    alert(t('noteEchec'));
+  } catch (e) {
+    // Sans compte possible, la note reste sur ce téléphone (blocGarder le dit).
+    if (!(e instanceof SansSession)) {
+      alert(t('noteEchec'));
+      return;
+    }
   }
+  const notes = lire(CLE_NOTES(), {});
+  notes[vin.cle] = note;
+  ecrire(CLE_NOTES(), notes);
+  etat.noteEnCours = null;
+  rendre();
 }
 
 function blocGarder() {
@@ -833,6 +884,13 @@ function blocGarder() {
     onclick: () => noterEvenement('clic_installer'),
     style: 'display:block;text-align:center;text-decoration:none;padding:12px;border-radius:12px;border:1px solid var(--or);color:var(--or)',
   }, t('installer'));
+  if (sessionsRefusees()) {
+    return el('section', { class: 'carte' },
+      el('h2', {}, t('garderTitre')),
+      el('p', { class: 'discret' }, t('garderSansCompte')),
+      ios ? el('p', { class: 'discret' }, t('iphoneSansCompte')) : installer,
+    );
+  }
   return el('section', { class: 'carte' },
     el('h2', {}, t('garderTitre')),
     el('p', { class: 'discret' }, t('garderAide')),
@@ -852,6 +910,12 @@ function codeDejaObtenu() {
 }
 
 async function obtenirUnCode() {
+  try {
+    await session();
+  } catch (e) {
+    // Pas de compte possible : la section le dit, sans code à promettre.
+    if (e instanceof SansSession) return rendre();
+  }
   try {
     etat.codeReprise = await rpc('creer_code_de_reprise', {}, { connecte: true });
     ecrire(CLE_REPRISE, { code: etat.codeReprise, user: lireSession()?.user_id, jusquA: Date.now() + 30 * 86400000 });
@@ -961,7 +1025,12 @@ function blocComptoir() {
 /** Un verre noté : au journal de l'invité, et dans son profil à table pour les autres. */
 async function noterUnVerre(w, note) {
   try {
-    await enregistrerAuJournal({ nom: w.name, producteur: w.producer, millesime: w.vintage, couleur: w.wine_type || 'red' }, note, null);
+    try {
+      await enregistrerAuJournal({ nom: w.name, producteur: w.producer, millesime: w.vintage, couleur: w.wine_type || 'red' }, note, null);
+    } catch (e) {
+      // Sans compte possible, pas de journal : la note part quand même à la table.
+      if (!(e instanceof SansSession)) throw e;
+    }
     const profilEnvoye = lire(CLE_PROFIL(), null) || profil(lire(CLE_NOM(), '') || 'Invité', { sansPreferences: true });
     const avecLaNote = { ...profilEnvoye, verres: { ...(profilEnvoye.verres || {}), [cleDuVin(w)]: note } };
     await rpc('join_table_session', { p_code: etat.code, p_guest_name: lire(CLE_NOM(), ''), p_profile: avecLaNote }, { connecte: true });

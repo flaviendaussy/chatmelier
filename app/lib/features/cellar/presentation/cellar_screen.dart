@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/widgets/bottle_card.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -32,6 +33,7 @@ import '../../../shared/widgets/offline_sync_banner.dart';
 import '../../../shared/widgets/grape_chart.dart';
 import '../../../shared/utils/responsive_layout.dart';
 import '../../../shared/widgets/notification_bell_button.dart';
+import '../../../shared/utils/currency_helper.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/widgets/onglets.dart';
 
@@ -547,6 +549,12 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
   /// La hauteur d'une carte de bouteille dans la grille : 295 à taille normale, et ce
   /// qu'il faut en plus quand le texte du téléphone est agrandi (environ 85 de texte par
   /// carte ; à 150 %, le prix sortait de la carte, 09/10).
+  /// La devise du compte (Profil → Réglages), dans laquelle la cave compte sa valeur.
+  String get _devise {
+    final d = (ref.read(currentUserProvider)?.userMetadata?['default_currency'] as String?)?.toUpperCase();
+    return CurrencyHelper.supportedCurrencies.any((c) => c.code == d) ? d! : 'EUR';
+  }
+
   static double _hauteurDesCartes(BuildContext context) {
     final facteur = (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 3.0);
     return 295 + 90 * (facteur - 1);
@@ -1718,10 +1726,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
     final sortedList = _sortBy.sort(filteredList);
     final totalBottles = sortedList.fold<int>(0, (sum, b) => sum + b.quantity);
-    final totalValue = sortedList.fold<double>(0.0, (sum, b) {
-      final val = b.wine?.valeurFiable ?? b.purchasePrice ?? 0.0;
-      return sum + (val * b.quantity);
-    });
+    final totalValue = valeurDesBouteilles(sortedList, devise: _devise);
 
     Widget mainContent;
 
@@ -1882,8 +1887,8 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
           Expanded(
             child: Text(
               isLa
-                  ? 'Pretium totale aestimatum : ${totalValue.toStringAsFixed(0)} € ($totalBottles amp. • $totalReferences ref.)'
-                  : (trSi(isFr, 'Coût total estimé : {v1} € ({totalBottles} btl • {totalReferences} réf.)', 'Estimated total value: €{v1} ({totalBottles} btl • {totalReferences} ref.)', {'v1': totalValue.toStringAsFixed(0), 'totalBottles': totalBottles, 'totalReferences': totalReferences})),
+                  ? 'Pretium totale aestimatum : ${CurrencyHelper.formatPrice(totalValue, currency: _devise)} ($totalBottles amp. • $totalReferences ref.)'
+                  : (trSi(isFr, 'Coût total estimé : {v1} ({totalBottles} btl • {totalReferences} réf.)', 'Estimated total value: {v1} ({totalBottles} btl • {totalReferences} ref.)', {'v1': CurrencyHelper.formatPrice(totalValue, currency: _devise), 'totalBottles': totalBottles, 'totalReferences': totalReferences})),
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
@@ -1915,7 +1920,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     AppLocalizations? l10n,
   }) {
     final allCollapsed = sections.isNotEmpty && sections.every((s) => _collapsedGroups.contains(s.key));
-    final grandTotalValue = sections.fold<double>(0.0, (sum, s) => sum + s.totalEstimatedValue);
+    final grandTotalValue = sections.fold<double>(0.0, (sum, s) => sum + s.valeurEn(_devise));
 
     return Column(
       children: [
@@ -1982,7 +1987,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                       const Icon(Icons.account_balance_wallet_outlined, size: 13, color: Color(0xFFD4AF37)),
                       const SizedBox(width: 3),
                       Text(
-                        trSi(isFr, '{v1} €', '€{v1}', {'v1': grandTotalValue.toStringAsFixed(0)}),
+                        CurrencyHelper.formatPrice(grandTotalValue, currency: _devise),
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
@@ -2127,7 +2132,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  '${section.totalEstimatedValue.toStringAsFixed(0)} €',
+                                  CurrencyHelper.formatPrice(section.valeurEn(_devise), currency: _devise),
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,

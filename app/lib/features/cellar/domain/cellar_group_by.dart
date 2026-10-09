@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'bottle.dart';
 import 'wine.dart';
 import 'cellar_sort_by.dart';
+import '../../../shared/utils/currency_helper.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/utils/pays.dart';
 
@@ -200,11 +201,26 @@ class CellarGroupSection {
 
   int get totalBottleCount => bottles.fold(0, (sum, b) => sum + b.quantity);
 
-  double get totalEstimatedValue => bottles.fold(0.0, (sum, b) {
-        final val = b.wine?.valeurFiable ?? b.purchasePrice ?? 0.0;
-        return sum + (val * b.quantity);
-      });
+  /// En euros : de quoi comparer les groupes entre eux (tri par valeur).
+  double get totalEstimatedValue => valeurDesBouteilles(bottles);
+
+  double valeurEn(String devise) => valeurDesBouteilles(bottles, devise: devise);
 }
+
+/// La valeur de bouteilles dans une devise : la cote sourcée (en euros) quand elle existe,
+/// sinon le prix d'achat, dans la devise de la bouteille, convertis comme dans les
+/// statistiques. Jusqu'au 09/10, la cave additionnait livres et euros sous « € ».
+double valeurDesBouteilles(Iterable<Bottle> bottles, {String devise = 'EUR'}) => bottles.fold(0.0, (somme, b) {
+      final cote = b.wine?.valeurFiable;
+      if (cote != null && cote > 0) {
+        return somme + CurrencyHelper.convert(cote * b.quantity, from: 'EUR', to: devise);
+      }
+      final achat = b.purchasePrice;
+      if (achat != null && achat > 0) {
+        return somme + CurrencyHelper.convert(achat * b.quantity, from: b.currency, to: devise);
+      }
+      return somme;
+    });
 
 class CellarGroupEngine {
   static List<CellarGroupSection> partitionBottles(

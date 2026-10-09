@@ -175,6 +175,18 @@ void main() {
       Bottle(id: 'b4', cellarId: 'c1', wineId: 'w4', addedBy: 'u1', ownerId: 'u1', createdAt: now, wine: wineNapa, quantity: 1, purchasePrice: 350.0),
     ];
 
+    test('la valeur de la cave convertit chaque bouteille dans la devise du compte (09/10)', () {
+      final melange = [
+        Bottle(id: 'g1', cellarId: 'c1', wineId: 'w1', addedBy: 'u1', ownerId: 'u1', createdAt: now,
+            wine: wineTerrebrune, quantity: 2, purchasePrice: 30.0, currency: 'GBP'),
+        Bottle(id: 'e1', cellarId: 'c1', wineId: 'w2', addedBy: 'u1', ownerId: 'u1', createdAt: now,
+            wine: wineTempier, quantity: 1, purchasePrice: 50.0),
+      ];
+      // 2 × 30 £ = 70,20 € au taux de l'app (1,17), plus 50 € : plus jamais « 110 € ».
+      expect(valeurDesBouteilles(melange), closeTo(2 * 30 * 1.17 + 50, 0.001));
+      expect(valeurDesBouteilles(melange, devise: 'GBP'), closeTo(60 + 50 / 1.17, 0.001));
+    });
+
     test('GroupBy none returns single section with all bottles', () {
       final sections = CellarGroupEngine.partitionBottles(bottles, CellarGroupBy.none);
       expect(sections.length, equals(1));

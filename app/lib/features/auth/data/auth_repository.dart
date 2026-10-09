@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../../../shared/utils/avatar_et_pseudo.dart';
 import '../domain/user_profile.dart';
 
 class AuthRepository {
@@ -445,44 +446,47 @@ class AuthRepository {
         AppLogger.debug('AUTH', 'Repli : $e');
       }
 
-    // 3. Remote Postgres profiles table Update with fallback
-    //
-    // JAMAIS le téléphone ni l'e-mail dans `profiles` : la table est lisible par tous,
-    // sans compte (politique « Public profiles are viewable by everyone »). Le 29/09,
-    // douze adresses e-mail y étaient exposées par le repli `meta://` ci-dessous. Ils
-    // restent sur l'appareil et dans le compte d'authentification, pas dans l'annuaire.
-    final updates = <String, dynamic>{
-      'display_name': displayName,
-      if (cleanUsername != null && cleanUsername.isNotEmpty) 'username': cleanUsername,
-      if (avatarUrl != null) 'avatar_url': avatarUrl,
-      if (defaultCurrency != null) 'default_currency': defaultCurrency,
-      if (tasteProfileData != null) 'taste_profile': tasteProfileData,
-    };
+    // 3. La table `profiles`, lisible par tous, sans compte : le nom, la devise et, dans
+    // `avatar_url`, le pseudo avec la photo (AvatarEtPseudo). JAMAIS le téléphone ni l'e-mail
+    // (29/09 : douze adresses y étaient exposées par l'ancien repli `meta://`). La table n'a
+    // ni `username` ni `taste_profile` : l'ancien premier essai les envoyait et échouait à
+    // chaque fois (« Could not update all profile columns »), puis le repli remplaçait le
+    // pseudo par la photo, ou la photo par le pseudo (09/10).
+    final pseudoDonne = cleanUsername != null && cleanUsername.isNotEmpty;
+    String? avatarARanger;
+    var toucherALAvatar = avatarUrl != null || pseudoDonne;
+    if (toucherALAvatar) {
+      String? actuel;
+      var lu = false;
+      try {
+        final ligne = await _client.from('profiles').select('avatar_url').eq('id', user.id).maybeSingle();
+        actuel = ligne?['avatar_url'] as String?;
+        lu = true;
+      } catch (e) {
+        AppLogger.debug('AUTH', 'Profil actuel illisible : $e');
+      }
+      if (avatarUrl == null && !lu) {
+        // Sans l'image d'avant, l'écrire effacerait la photo : on n'y touche pas.
+        toucherALAvatar = false;
+      } else {
+        avatarARanger = AvatarEtPseudo.composer(
+          pseudo: pseudoDonne ? cleanUsername : AvatarEtPseudo.pseudo(actuel),
+          // Une photo donnée (ou retirée : '') remplace l'ancienne ; sinon on garde celle d'avant.
+          image: avatarUrl ?? AvatarEtPseudo.image(actuel),
+        );
+      }
+    }
 
     try {
-      await _client.from('profiles').upsert({'id': user.id, ...updates});
-      AppLogger.info('AUTH', 'Updated profiles table for user ${user.id} (handle: @$cleanUsername)');
+      await _client.from('profiles').upsert({
+        'id': user.id,
+        'display_name': displayName,
+        if (toucherALAvatar) 'avatar_url': avatarARanger,
+        if (defaultCurrency != null) 'default_currency': defaultCurrency,
+      });
+      AppLogger.info('AUTH', 'Profil enregistré pour ${user.id} (pseudo : @$cleanUsername)');
     } catch (e) {
-      AppLogger.warning('AUTH', 'Could not update all profile columns, attempting fallback encoding: $e');
-      
-      // Repli : le pseudo seul, encodé dans avatar_url faute de colonne `username` en
-      // production. Le pseudo est public par nature ; le téléphone et l'e-mail ne le sont
-      // pas, et ce repli les y écrivait (voir plus haut).
-      final metaAvatar = (avatarUrl == null || avatarUrl.isEmpty || avatarUrl.startsWith('meta://'))
-          ? UserProfile.avatarPseudoSeul(cleanUsername)
-          : avatarUrl;
-
-      try {
-        await _client.from('profiles').upsert({
-          'id': user.id,
-          'display_name': displayName,
-          'avatar_url': metaAvatar,
-          if (defaultCurrency != null) 'default_currency': defaultCurrency,
-        });
-        AppLogger.info('AUTH', 'Saved fallback profile with meta avatar for user ${user.id}');
-      } catch (e2) {
-        AppLogger.warning('AUTH', 'Final fallback profile upsert failed: $e2');
-      }
+      AppLogger.warning('AUTH', 'Profil non enregistré dans profiles : $e');
     }
   }
 

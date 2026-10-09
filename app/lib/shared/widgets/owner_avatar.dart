@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 
+import '../utils/avatar_et_pseudo.dart';
+
 class OwnerAvatar extends StatelessWidget {
   final String? displayName;
   final String? avatarUrl;
@@ -24,11 +26,13 @@ class OwnerAvatar extends StatelessWidget {
         ? displayName![0].toUpperCase()
         : 'U';
 
-    if (avatarUrl != null && avatarUrl!.isNotEmpty) {
+    // `meta://?u=…&avatar=…` : le pseudo et la photo rangés ensemble (AvatarEtPseudo).
+    final image = AvatarEtPseudo.image(avatarUrl);
+    if (image != null) {
       // 1. Data URI Base64
-      if (avatarUrl!.startsWith('data:image')) {
+      if (image.startsWith('data:image')) {
         try {
-          final b64 = avatarUrl!.split(',').last;
+          final b64 = image.split(',').last;
           final bytes = base64Decode(b64);
           return CircleAvatar(
             radius: effectiveRadius,
@@ -38,8 +42,8 @@ class OwnerAvatar extends StatelessWidget {
       }
 
       // 2. Emoji preset avatar
-      if (avatarUrl!.startsWith('emoji:')) {
-        final emoji = avatarUrl!.substring('emoji:'.length);
+      if (image.startsWith('emoji:')) {
+        final emoji = image.substring('emoji:'.length);
         return CircleAvatar(
           radius: effectiveRadius,
           backgroundColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
@@ -48,10 +52,10 @@ class OwnerAvatar extends StatelessWidget {
       }
 
       // 3. Network URL
-      if (avatarUrl!.startsWith('http://') || avatarUrl!.startsWith('https://')) {
+      if (image.startsWith('http://') || image.startsWith('https://')) {
         return CircleAvatar(
           radius: effectiveRadius,
-          backgroundImage: NetworkImage(avatarUrl!),
+          backgroundImage: NetworkImage(image),
         );
       }
     }

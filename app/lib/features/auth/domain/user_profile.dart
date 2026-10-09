@@ -89,6 +89,7 @@ class UserProfile {
   /// pseudo voyage dans `avatar_url`. Jamais le téléphone ni l'e-mail : `profiles` est
   /// lisible par tous, sans compte.
   static String avatarPseudoSeul(String? username) => 'meta://?u=${Uri.encodeComponent(username ?? '')}';
+  // Voir AvatarEtPseudo : le pseudo et la photo se rangent désormais ensemble.
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     String? username = json['username'] as String?;

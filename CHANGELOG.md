@@ -2,6 +2,25 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.9.0+81] — 2026-10-09
+
+> Remplace la 1.8.0+79 (jamais publiée sur le Play Store) : tout ce qu'annonce la 79 y est, avec en plus ce qui suit. Le site web passe aussi en 81.
+
+### 🍷 Ce qui change pour vous
+- **Demander à un ami de noter lui-même** : dans « Qui déguste ? », un ami qui a l'app porte « Lui demander de noter sur son téléphone ». Il reçoit le vin à noter, et vous ne répondez plus à sa place ; chez lui, « Noter ce vin » ouvre la dégustation avec le vin et vous parmi les convives.
+- **Le lien d'une table s'ouvre dans l'app** (Android), avec votre prénom et votre palais, au lieu du site.
+- **Texte agrandi du téléphone** : la cave, la fiche d'une bouteille, le profil et « Noter un vin bu dehors » ne débordent plus ; les titres et les boutons passent à la ligne.
+- **La valeur de votre cave dans votre devise** : plus de livres additionnées à des euros sous « € » ; les prix s'écrivent « 24,50 € » en français, en espagnol et en italien.
+- **Vos amis vous trouvent par votre pseudo**, même avec une photo de profil ; choisir son pseudo n'efface plus la photo.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Migration 069* : `inviter_a_noter` (entre amis ou membres d'une même cave, le vin seul, trente par jour, une par ami et par vin dans le quart d'heure), notification `invitation_a_noter`. Base jetable : 047 → 069 verts.
+- *Liens* : route `/table?t=`, filtre Android vérifié pour `chatmelier.github.io/table` (l'ancien `chatmelier.app/invite` visait un domaine inexistant), `/.well-known/assetlinks.json` (clé d'envoi ; clé de signature Play à ajouter), copie de `.well-known` dans `build_and_sync_web.sh`. iPhone : capacité « Associated Domains » à venir.
+- *Grandes tailles de texte* : vérifié à 150 % et 200 % ; `FittedBox`, `Wrap` et `Expanded` là où ça débordait ; hauteur des cartes de la grille selon le texte ; en-tête du profil sorti de la barre (sa hauteur fixe écrasait le titre).
+- *Profil* : `AvatarEtPseudo` (`meta://?u=…&avatar=…`), un seul envoi vers `profiles` sans les colonnes absentes, `OwnerAvatar` qui lit l'image rangée avec le pseudo.
+- *Cave* : `valeurDesBouteilles` (cote en euros, prix d'achat dans sa devise, vers la devise du compte) ; `CurrencyHelper.formatPrice` à virgule décimale hors anglais.
+- *Fiche* : les puces « Service » et « Terroir » traduites.
+
 ## [v1.8.1+80] — 2026-10-09
 
 > Site web seulement (la page invité) : l'app Android et iPhone reste en 1.8.0+79.

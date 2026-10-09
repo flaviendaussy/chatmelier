@@ -47,4 +47,12 @@ void main() {
       expect(aller('/', web: true), '/login');
     });
   });
+
+  test('le lien d\'une table ouvert dans l\'app sans compte y revient après l\'inscription (#25)', () {
+    expect(
+      GardeDesRoutes.redirection(web: false, connecte: false, chemin: '/table', emplacement: '/table?t=KYZ3YZ'),
+      '/login?suite=${Uri.encodeComponent('/table?t=KYZ3YZ')}',
+    );
+    expect(GardeDesRoutes.redirection(web: false, connecte: true, chemin: '/table', emplacement: '/table?t=KYZ3YZ'), isNull);
+  });
 }

@@ -6,7 +6,7 @@
 /// qu'arrivent les nouveaux. Une session anonyme n'est pas un compte.
 class GardeDesRoutes {
   /// Les parcours qu'un invité sans compte peut suivre, sur le web seulement.
-  static const parcoursInvites = ['/invite/', '/table-consensus', '/menu-match', '/scan/menu'];
+  static const parcoursInvites = ['/invite/', '/table', '/menu-match', '/scan/menu'];
 
   static bool estUneRouteDeConnexion(String chemin) => chemin == '/login' || chemin == '/register';
 

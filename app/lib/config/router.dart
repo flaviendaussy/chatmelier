@@ -127,6 +127,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/blind/:sessionId', redirect: (context, state) => '/login'),
       GoRoute(path: '/blind-host', redirect: (context, state) => '/'),
 
+      // Le lien d'une table (QR, partage) : https://chatmelier.github.io/table/?t=CODE. Sur le
+      // web, c'est la page invité légère ; ouvert dans l'app installée (#25), l'écran invité
+      // de l'app, avec le palais de son compte.
+      GoRoute(
+        path: '/table',
+        builder: (context, state) => MenuTableConsensusGuestScreen(codeTable: state.uri.queryParameters['t']),
+      ),
+
       // Table Consensus routes (public access for guests via QR code on web or app)
       GoRoute(
         path: '/table-consensus',

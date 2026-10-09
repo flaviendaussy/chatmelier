@@ -43,12 +43,16 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Deep linking for cellar invites -->
+            <!-- Le lien d'une table (QR, partage : https://chatmelier.github.io/table/?t=CODE)
+                 s'ouvre dans l'app installée (V2.4 · R4, #25), vérifié par
+                 https://chatmelier.github.io/.well-known/assetlinks.json. L'ancien filtre
+                 chatmelier.app/invite visait un domaine qui n'existe pas : sous Android 11, un
+                 domaine non vérifié empêche la vérification de tous les autres. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="chatmelier.app" android:pathPrefix="/invite" />
+                <data android:scheme="https" android:host="chatmelier.github.io" android:pathPrefix="/table" />
             </intent-filter>
             <!-- Deep linking for Chatmelier OAuth / Magic Link callbacks -->
             <intent-filter>

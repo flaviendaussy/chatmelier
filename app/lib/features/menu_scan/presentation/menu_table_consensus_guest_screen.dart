@@ -126,6 +126,17 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: 'Invité');
+    // Ouvert dans l'app par le lien d'une table (#25), avec un compte : son prénom plutôt
+    // qu'« Invité ».
+    try {
+      final compte = ref.read(currentUserProvider);
+      final nomDuCompte = (compte == null || compte.isAnonymous)
+          ? null
+          : (compte.userMetadata?['display_name'] as String?)?.trim();
+      if (nomDuCompte != null && nomDuCompte.isNotEmpty) _nameCtrl.text = nomDuCompte;
+    } catch (_) {
+      // Sans session lisible (page web, essais) : « Invité ».
+    }
     _loadMenu();
     if (widget.dejaAssis) _hasJoined = true;
     if (widget.nomAssis != null && widget.nomAssis!.trim().isNotEmpty) {
@@ -726,6 +737,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       backgroundColor: const Color(0xFF140F1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1F1528),
+        foregroundColor: Colors.white,
         elevation: 0,
         title: Text(trSi(isFr, 'Table {code}', 'Table {code}', {'code': _code ?? ''})),
       ),
@@ -741,6 +753,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       backgroundColor: const Color(0xFF140F1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1F1528),
+        foregroundColor: Colors.white,
         elevation: 0,
         title: Text(trSi(isFr, 'Table {code}', 'Table {code}', {'code': _code ?? ''})),
       ),
@@ -804,6 +817,7 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
       backgroundColor: const Color(0xFF140F1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1F1528),
+        foregroundColor: Colors.white,
         elevation: 0,
         title: Text(trSi(isFr, 'Carte indisponible', 'Menu unavailable')),
       ),
@@ -853,6 +867,8 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
         backgroundColor: const Color(0xFF140F1A),
         appBar: AppBar(
           backgroundColor: const Color(0xFF1F1528),
+          // Barre sombre : titre et retour en clair (sombre sur sombre en thème clair, 09/10).
+          foregroundColor: Colors.white,
           elevation: 0,
           title: Text(
             menu.restaurantName.isNotEmpty ? menu.restaurantName : (trSi(isFr, 'Menu de Table', 'Table Menu')),

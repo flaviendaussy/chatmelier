@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.chatmelier.chatmelier",
+      "sha256_cert_fingerprints": [
+        "9A:95:92:4C:57:6D:7B:83:35:93:2E:12:6F:85:7B:E1:11:54:89:7B:13:A5:87:64:E1:4C:72:EB:97:96:EC:62"
+      ]
+    }
+  }
+]

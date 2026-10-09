@@ -56,6 +56,11 @@ echo "🚀 Syncing to Chatmelier/chatmelier.github.io (org)..."
 TMP_DIR=$(mktemp -d)
 git clone --depth 1 --branch main git@github.com:Chatmelier/chatmelier.github.io.git "$TMP_DIR"
 cp -r "$DIR"/app/build/web/* "$TMP_DIR/"
+# Les liens d'une table s'ouvrent dans l'app installée (#25) : Android vérifie
+# /.well-known/assetlinks.json, que le motif * ci-dessus ne copie pas (dossier caché).
+if [ -d "$DIR/app/build/web/.well-known" ]; then
+  cp -r "$DIR/app/build/web/.well-known" "$TMP_DIR/"
+fi
 rm -rf "$TMP_DIR/admin_console"
 # (console admin volontairement non déployée — voir la note plus haut)
 touch "$TMP_DIR/.nojekyll"

@@ -1202,6 +1202,8 @@ const Map<String, String> catalogueIt = {
   'Cote relevée sur {site} le {date}': 'Quotazione trovata su {site} il {date}',
   'Aucune cote trouvée avec une source vérifiable, et Chatmelier n\'invente pas de prix. Vous pouvez saisir la vôtre dans « Modifier la fiche ».': 'Nessuna quotazione trovata con una fonte verificabile, e Chatmelier non inventa i prezzi. Puoi inserire la tua in «Modifica la scheda».',
   'Votre estimation': 'La tua stima',
+  'Service': 'Servizio',
+  'Terroir': 'Terroir',
   'Photo & Étiquette': 'Foto ed etichetta',
   'Prendre une photo': 'Scatta una foto',
   'Photographier l\'étiquette de cette bouteille': 'Fotografa l\'etichetta di questa bottiglia',

@@ -544,6 +544,14 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     );
   }
 
+  /// La hauteur d'une carte de bouteille dans la grille : 295 à taille normale, et ce
+  /// qu'il faut en plus quand le texte du téléphone est agrandi (environ 85 de texte par
+  /// carte ; à 150 %, le prix sortait de la carte, 09/10).
+  static double _hauteurDesCartes(BuildContext context) {
+    final facteur = (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 3.0);
+    return 295 + 90 * (facteur - 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -971,8 +979,11 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                                     tabs: [
                                       Tab(
                                         height: 38,
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                        // Texte agrandi du téléphone : le libellé rétrécit plutôt que de déborder.
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Row(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Text(l10n?.cellarWinesTab ?? (trSi(isFr, '🍷 Vins', '🍷 Wines')), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                                             const SizedBox(width: 6),
@@ -994,12 +1005,16 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                                               ),
                                             ),
                                           ],
+                                          ),
                                         ),
                                       ),
                                       Tab(
                                         height: 38,
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                        // Texte agrandi du téléphone : le libellé rétrécit plutôt que de déborder.
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Row(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Text(l10n?.cellarSpiritsTab ?? (trSi(isFr, '🥃 Spiritueux', '🥃 Spirits')), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                                             const SizedBox(width: 6),
@@ -1021,6 +1036,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                                               ),
                                             ),
                                           ],
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -1784,9 +1800,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             child: _viewMode == CellarViewMode.grid
                 ? GridView.builder(
                     padding: const EdgeInsets.all(12),
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                       maxCrossAxisExtent: 260,
-                      mainAxisExtent: 295,
+                      mainAxisExtent: _hauteurDesCartes(context),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
@@ -1906,8 +1922,17 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
         // Group summary on 2 lines & controls: Tout replier, Trier, Catégories
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-          child: Row(
+          // Texte agrandi du téléphone : les commandes passent à la ligne au lieu de
+          // déborder (« Catégories » coupée à 150 %, 09/10). À taille normale, une ligne.
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 4,
             children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -1968,7 +1993,13 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                   ),
                 ),
               ],
-              const Spacer(),
+                ],
+              ),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 4,
+                runSpacing: 4,
+                children: [
               TextButton.icon(
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
@@ -1997,10 +2028,10 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                   }
                 },
               ),
-              const SizedBox(width: 4),
               _buildSortButton(theme, langCode ?? isFr, l10n),
-              const SizedBox(width: 6),
               _buildGroupByButton(theme, langCode ?? isFr, l10n),
+                ],
+              ),
             ],
           ),
         ),
@@ -2128,9 +2159,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                               return GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                                   maxCrossAxisExtent: 250,
-                                  mainAxisExtent: 295,
+                                  mainAxisExtent: _hauteurDesCartes(context),
                                   crossAxisSpacing: 10,
                                   mainAxisSpacing: 10,
                                 ),

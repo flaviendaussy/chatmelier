@@ -1385,9 +1385,12 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                   children: [
                                     const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 22),
                                     const SizedBox(width: 8),
-                                    Text(
-                                      trSi(isFr, 'Conseils de Service & Dégustation', 'Service & Tasting Advice'),
-                                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                    // Texte agrandi du téléphone : le titre passe à la ligne.
+                                    Expanded(
+                                      child: Text(
+                                        trSi(isFr, 'Conseils de Service & Dégustation', 'Service & Tasting Advice'),
+                                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -1702,11 +1705,15 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                 children: [
                                   const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37), size: 20),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    wine.vintage != null && wine.vintage! > 0
-                                        ? trSi(isFr, 'Garde & Fenêtre d\'Apogée', 'Aging & Peak Drinking Window')
-                                        : trSi(isFr, 'Garde & Maturité (Non Millésimé)', 'Aging & Maturity (Non-Vintage)'),
-                                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                  // Texte agrandi du téléphone : le titre passe à la ligne, les
+                                  // boutons restent à droite (débordement à 150 %, 09/10).
+                                  Expanded(
+                                    child: Text(
+                                      wine.vintage != null && wine.vintage! > 0
+                                          ? trSi(isFr, 'Garde & Fenêtre d\'Apogée', 'Aging & Peak Drinking Window')
+                                          : trSi(isFr, 'Garde & Maturité (Non Millésimé)', 'Aging & Maturity (Non-Vintage)'),
+                                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                    ),
                                   ),
                                   if (wine.userOverrides.any((k) => k.contains('drinking') || k.contains('peak'))) ...[
                                     const SizedBox(width: 8),
@@ -1726,7 +1733,6 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                       ),
                                     ),
                                   ],
-                                  const Spacer(),
                                   IconButton(
                                     icon: const Icon(Icons.help_outline, size: 18, color: Colors.grey),
                                     tooltip: trSi(isFr, 'Qu\'est-ce que l\'apogée ?', 'What is the peak window?'),
@@ -1765,7 +1771,10 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               children: [
                                 const Icon(Icons.explore_outlined, size: 18, color: Color(0xFF8B1E3F)),
                                 const SizedBox(width: 6),
-                                Text(trSi(isFr, 'Origine Géographique & Terroir', 'Geographic Origin & Terroir'), style: theme.textTheme.titleMedium),
+                                Expanded(
+                                  child: Text(trSi(isFr, 'Origine Géographique & Terroir', 'Geographic Origin & Terroir'),
+                                      style: theme.textTheme.titleMedium),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 12),
@@ -2082,8 +2091,10 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                             children: [
                               Icon(Icons.trending_up, color: theme.colorScheme.primary, size: 20),
                               const SizedBox(width: 8),
-                              Text(trSi(isFr, 'Estimation & Valeur patrimoniale', 'Valuation & Asset Value'), style: theme.textTheme.titleMedium),
-                              const Spacer(),
+                              Expanded(
+                                child: Text(trSi(isFr, 'Estimation & Valeur patrimoniale', 'Valuation & Asset Value'),
+                                    style: theme.textTheme.titleMedium),
+                              ),
                               IconButton(
                                 icon: const Icon(Icons.edit_outlined, size: 18),
                                 tooltip: trSi(isFr, 'Modifier prix ou devise', 'Edit price or currency'),
@@ -2524,12 +2535,17 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                           children: [
                             const Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFFD4AF37)),
                             const SizedBox(width: 8),
-                            Text(
-                              trSi(isFr, '💬 Discuter de ce vin avec le Chatmelier', '💬 Chat about this wine with Chatmelier'),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: Color(0xFFD4AF37),
+                            // Texte agrandi du téléphone : le libellé passe à la ligne (79 px de
+                            // débordement à 150 %, 09/10).
+                            Flexible(
+                              child: Text(
+                                trSi(isFr, '💬 Discuter de ce vin avec le Chatmelier', '💬 Chat about this wine with Chatmelier'),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: Color(0xFFD4AF37),
+                                ),
                               ),
                             ),
                           ],
@@ -2746,9 +2762,9 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               _buildQuickNavChip(context, icon: Icons.show_chart, label: trSi(isFr, 'Apogée', 'Peak Window'), targetKey: _apogeeKey),
               const SizedBox(width: 8),
             ],
-            _buildQuickNavChip(context, icon: Icons.wine_bar, label: 'Service', targetKey: _serviceKey),
+            _buildQuickNavChip(context, icon: Icons.wine_bar, label: tr('Service', 'Service'), targetKey: _serviceKey),
             const SizedBox(width: 8),
-            _buildQuickNavChip(context, icon: Icons.explore_outlined, label: 'Terroir', targetKey: _terroirKey),
+            _buildQuickNavChip(context, icon: Icons.explore_outlined, label: tr('Terroir', 'Terroir'), targetKey: _terroirKey),
             if (!wine.isSpirit) ...[
               const SizedBox(width: 8),
               _buildQuickNavChip(context, icon: Icons.pie_chart_outline, label: trSi(isFr, 'Cépages', 'Grapes'), targetKey: _grapesKey),

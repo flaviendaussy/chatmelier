@@ -930,146 +930,149 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             BoutonSommelier(),
             NotificationBellButton(),
           ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(104),
-            child: Column(
-              children: [
-                // Compact Profile Header
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: user == null ? null : _showAvatarPickerSheet,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            OwnerAvatar(
-                              userId: user?.id ?? '',
-                              avatarUrl: _avatarUrl,
-                              radius: 24,
+        ),
+        // L'en-tête et les onglets dans le contenu, plus dans la barre : déclarés à 104 de
+        // haut, ils écrasaient le titre dès que le texte du téléphone était agrandi (150 %,
+        // 09/10). Ici, ils prennent la hauteur qu'il leur faut.
+        body: Column(
+          children: [
+            // Compact Profile Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: user == null ? null : _showAvatarPickerSheet,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        OwnerAvatar(
+                          userId: user?.id ?? '',
+                          avatarUrl: _avatarUrl,
+                          radius: 24,
+                        ),
+                        if (user != null)
+                          Positioned(
+                            bottom: -2,
+                            right: -2,
+                            child: Container(
+                              padding: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: theme.scaffoldBackgroundColor,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                size: 10,
+                                color: Colors.white,
+                              ),
                             ),
-                            if (user != null)
-                              Positioned(
-                                bottom: -2,
-                                right: -2,
-                                child: Container(
-                                  padding: const EdgeInsets.all(3),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: theme.scaffoldBackgroundColor,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.camera_alt,
-                                    size: 10,
+                          ),
+                        if (_isUploadingAvatar)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.black45,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
                                     color: Colors.white,
                                   ),
                                 ),
                               ),
-                            if (_isUploadingAvatar)
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    color: Colors.black45,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Center(
-                                    child: SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              resolvedDisplayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                             ),
-                            Text(
-                              _username != null && _username!.isNotEmpty
-                                  ? '@$_username'
-                                  : (user?.email ?? (trSi(isFr, 'Mode Invité', 'Guest Mode'))),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? Colors.white70 : Colors.black54,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (user == null)
-                        FilledButton.tonal(
-                          style: FilledButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           ),
-                          onPressed: () => context.go('/login'),
-                          child: Text(trSi(isFr, 'Connexion', 'Sign in'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          resolvedDisplayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        Text(
+                          _username != null && _username!.isNotEmpty
+                              ? '@$_username'
+                              : (user?.email ?? (trSi(isFr, 'Mode Invité', 'Guest Mode'))),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (user == null)
+                    FilledButton.tonal(
+                      style: FilledButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      ),
+                      onPressed: () => context.go('/login'),
+                      child: Text(trSi(isFr, 'Connexion', 'Sign in'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                    ),
+                ],
+              ),
+            ),
+            // Segmented TabBar
+            TabBar(
+              isScrollable: false,
+              indicatorColor: const Color(0xFF8B1E3F),
+              indicatorWeight: 3,
+              labelColor: const Color(0xFF8B1E3F),
+              unselectedLabelColor: Colors.grey,
+              labelPadding: EdgeInsets.zero,
+              tabs: [
+                Tab(
+                  icon: const Icon(Icons.wine_bar, size: 20),
+                  // Texte agrandi du téléphone : le libellé rétrécit au lieu d'être rogné.
+                  child: FittedBox(fit: BoxFit.scaleDown, child: Text(l10n?.profileTabPalate ?? (trSi(isFr, 'Palais', 'Palate')))),
                 ),
-                // Segmented TabBar
-                TabBar(
-                  isScrollable: false,
-                  indicatorColor: const Color(0xFF8B1E3F),
-                  indicatorWeight: 3,
-                  labelColor: const Color(0xFF8B1E3F),
-                  unselectedLabelColor: Colors.grey,
-                  labelPadding: EdgeInsets.zero,
-                  tabs: [
-                    Tab(
-                      icon: const Icon(Icons.wine_bar, size: 20),
-                      text: l10n?.profileTabPalate ?? (trSi(isFr, 'Palais', 'Palate')),
-                    ),
-                    Tab(
-                      icon: const Icon(Icons.tune, size: 20),
-                      text: l10n?.profileTabSettings ?? (trSi(isFr, 'Réglages', 'Settings')),
-                    ),
-                    Tab(
-                      icon: const Icon(Icons.inventory_2_outlined, size: 20),
-                      text: l10n?.profileTabTools ?? (trSi(isFr, 'Outils', 'Tools')),
-                    ),
-                    Tab(
-                      icon: const Icon(Icons.shield_outlined, size: 20),
-                      text: l10n?.profileTabAccount ?? (trSi(isFr, 'Compte', 'Account')),
-                    ),
-                  ],
+                Tab(
+                  icon: const Icon(Icons.tune, size: 20),
+                  child: FittedBox(fit: BoxFit.scaleDown, child: Text(l10n?.profileTabSettings ?? (trSi(isFr, 'Réglages', 'Settings')))),
+                ),
+                Tab(
+                  icon: const Icon(Icons.inventory_2_outlined, size: 20),
+                  child: FittedBox(fit: BoxFit.scaleDown, child: Text(l10n?.profileTabTools ?? (trSi(isFr, 'Outils', 'Tools')))),
+                ),
+                Tab(
+                  icon: const Icon(Icons.shield_outlined, size: 20),
+                  child: FittedBox(fit: BoxFit.scaleDown, child: Text(l10n?.profileTabAccount ?? (trSi(isFr, 'Compte', 'Account')))),
                 ),
               ],
             ),
-          ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : TabBarView(
+                      children: [
+                        _buildPalaisAndBadgesTab(context, theme, isDark, isFr),
+                        _buildSettingsTab(context, theme, isDark, isFr),
+                        _buildToolsTab(context, theme, isDark, isFr),
+                        _buildAccountTab(context, theme, isDark, isFr),
+                      ],
+                    ),
+            ),
+          ],
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : TabBarView(
-                children: [
-                  _buildPalaisAndBadgesTab(context, theme, isDark, isFr),
-                  _buildSettingsTab(context, theme, isDark, isFr),
-                  _buildToolsTab(context, theme, isDark, isFr),
-                  _buildAccountTab(context, theme, isDark, isFr),
-                ],
-              ),
       ),
     );
   }

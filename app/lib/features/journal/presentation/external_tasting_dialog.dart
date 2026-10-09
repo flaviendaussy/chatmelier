@@ -737,16 +737,24 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             _buildLocationSection(theme, isDark, l10n),
             const SizedBox(height: 16),
 
-            // Convives, Famille & Amis Co-dégustateurs
-            Row(
+            // Convives, Famille & Amis Co-dégustateurs. Texte agrandi du téléphone : le bouton
+            // passe sous le titre au lieu de l'écraser en colonne (« qui dég / ustez- », 09/10).
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                const Icon(Icons.people_alt, color: Color(0xFF8B1E3F), size: 18),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    l10n.externalTastingWithWhom,
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.people_alt, color: Color(0xFF8B1E3F), size: 18),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        l10n.externalTastingWithWhom,
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
                 TextButton.icon(
                   style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
@@ -947,32 +955,40 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  // Texte agrandi du téléphone : la note et le coup de cœur passent à la ligne.
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    runSpacing: 4,
                     children: [
                       Text(l10n.externalTastingRatingLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD4AF37),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          _noteTouchee ? '${_rating.toStringAsFixed(1)} / 10' : '— / 10',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        avatar: Icon(
-                          _isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: _isFavorite ? Colors.red : Colors.grey,
-                          size: 16,
-                        ),
-                        label: Text(l10n.externalTastingFavorite, style: const TextStyle(fontSize: 12)),
-                        selected: _isFavorite,
-                        selectedColor: Colors.red.withValues(alpha: 0.15),
-                        onSelected: (val) => setState(() => _isFavorite = val),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD4AF37),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _noteTouchee ? '${_rating.toStringAsFixed(1)} / 10' : '— / 10',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          FilterChip(
+                            avatar: Icon(
+                              _isFavorite ? Icons.favorite : Icons.favorite_border,
+                              color: _isFavorite ? Colors.red : Colors.grey,
+                              size: 16,
+                            ),
+                            label: Text(l10n.externalTastingFavorite, style: const TextStyle(fontSize: 12)),
+                            selected: _isFavorite,
+                            selectedColor: Colors.red.withValues(alpha: 0.15),
+                            onSelected: (val) => setState(() => _isFavorite = val),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -1305,11 +1321,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             children: [
               const Icon(Icons.auto_awesome, color: Color(0xFF8B1E3F), size: 16),
               const SizedBox(width: 6),
-              Text(
-                l10n.externalTastingAiIdentifyTitle,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+              Expanded(
+                child: Text(
+                  l10n.externalTastingAiIdentifyTitle,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                ),
               ),
-              const Spacer(),
               if (_isQuickAnalyzing)
                 const SizedBox(
                   width: 14,
@@ -1490,43 +1507,55 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           style: BorderStyle.solid,
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF8B1E3F).withAlpha(20),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF8B1E3F), size: 22),
+      // Texte agrandi du téléphone : le bouton passe sous les textes (175 px de
+      // débordement à 200 %, 09/10).
+      child: Builder(builder: (context) {
+        final bouton = FilledButton.tonalIcon(
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            visualDensity: VisualDensity.compact,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          onPressed: () => _showPhotoPickerSheet(context),
+          icon: const Icon(Icons.add_a_photo, size: 15),
+          label: Text(l10n.externalTastingScanLabelButton, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+        );
+        final grandTexte = MediaQuery.textScalerOf(context).scale(14) / 14 > 1.3;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Row(
               children: [
-                Text(
-                  l10n.externalTastingScanLabelTitle,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8B1E3F).withAlpha(20),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF8B1E3F), size: 22),
                 ),
-                Text(
-                  l10n.externalTastingScanLabelSub,
-                  style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.externalTastingScanLabelTitle,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      Text(
+                        l10n.externalTastingScanLabelSub,
+                        style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
                 ),
+                if (!grandTexte) bouton,
               ],
             ),
-          ),
-          FilledButton.tonalIcon(
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              visualDensity: VisualDensity.compact,
-            ),
-            onPressed: () => _showPhotoPickerSheet(context),
-            icon: const Icon(Icons.add_a_photo, size: 15),
-            label: Text(l10n.externalTastingScanLabelButton, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+            if (grandTexte) ...[const SizedBox(height: 8), bouton],
+          ],
+        );
+      }),
     );
   }
 

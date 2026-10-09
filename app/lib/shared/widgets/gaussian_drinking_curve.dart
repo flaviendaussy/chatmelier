@@ -85,16 +85,22 @@ class GaussianDrinkingCurve extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.auto_graph, size: 18, color: Color(0xFF8B1E3F)),
-                const SizedBox(width: 6),
-                Text(
-                  trSi(isFr, 'Courbe de Maturité & Apogée', 'Maturity & Drinking Window Curve'),
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
+            // Texte agrandi du téléphone : le titre passe à la ligne, le badge reste entier.
+            Expanded(
+              child: Row(
+                children: [
+                  const Icon(Icons.auto_graph, size: 18, color: Color(0xFF8B1E3F)),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      trSi(isFr, 'Courbe de Maturité & Apogée', 'Maturity & Drinking Window Curve'),
+                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(

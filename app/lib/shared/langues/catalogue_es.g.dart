@@ -1202,6 +1202,8 @@ const Map<String, String> catalogueEs = {
   'Cote relevée sur {site} le {date}': 'Precio encontrado en {site} el {date}',
   'Aucune cote trouvée avec une source vérifiable, et Chatmelier n\'invente pas de prix. Vous pouvez saisir la vôtre dans « Modifier la fiche ».': 'No se ha encontrado ninguna cotización con una fuente verificable, y Chatmelier no se inventa los precios. Puedes introducir la tuya en «Editar la ficha».',
   'Votre estimation': 'Tu estimación',
+  'Service': 'Servicio',
+  'Terroir': 'Terruño',
   'Photo & Étiquette': 'Foto y etiqueta',
   'Prendre une photo': 'Hacer una foto',
   'Photographier l\'étiquette de cette bouteille': 'Fotografiar la etiqueta de esta botella',

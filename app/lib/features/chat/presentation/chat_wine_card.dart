@@ -259,9 +259,11 @@ class ChatWineCard extends StatelessWidget {
               children: [
                 const Icon(Icons.thermostat, color: Colors.amber, size: 28),
                 const SizedBox(width: 10),
-                Text(
-                  trSi(isFr, 'Conseils de Service & Dégustation', 'Service & Tasting Advice'),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                Expanded(
+                  child: Text(
+                    trSi(isFr, 'Conseils de Service & Dégustation', 'Service & Tasting Advice'),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),

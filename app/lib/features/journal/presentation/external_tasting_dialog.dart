@@ -33,6 +33,10 @@ class ExternalTastingDialog extends ConsumerStatefulWidget {
   final String? initialType;
   final String? photoUrl;
 
+  /// Les convives et le lieu déjà connus : ceux d'une invitation à noter (V2.4 · R4, #59).
+  final List<String>? initialCoTasters;
+  final String? initialPlace;
+
   const ExternalTastingDialog({
     super.key,
     this.initialWineName,
@@ -43,6 +47,8 @@ class ExternalTastingDialog extends ConsumerStatefulWidget {
     this.initialCountry,
     this.initialType,
     this.photoUrl,
+    this.initialCoTasters,
+    this.initialPlace,
   });
 
   static Future<void> show(
@@ -55,6 +61,8 @@ class ExternalTastingDialog extends ConsumerStatefulWidget {
     String? country,
     String? wineType,
     String? photoUrl,
+    List<String>? coTasters,
+    String? place,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -69,6 +77,8 @@ class ExternalTastingDialog extends ConsumerStatefulWidget {
         initialCountry: country,
         initialType: wineType,
         photoUrl: photoUrl,
+        initialCoTasters: coTasters,
+        initialPlace: place,
       ),
     );
   }
@@ -222,7 +232,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     _vintageController = TextEditingController(text: widget.initialVintage != null ? '${widget.initialVintage}' : '');
     _regionController = TextEditingController(text: widget.initialRegion ?? widget.initialAppellation ?? '');
     _paysController = TextEditingController(text: widget.initialCountry ?? '');
-    _contextController = TextEditingController();
+    _contextController = TextEditingController(text: widget.initialPlace ?? '');
+    _selectedCoTasters.addAll(widget.initialCoTasters ?? const []);
     _notesController = TextEditingController();
     _foodController = TextEditingController();
     if (widget.initialType != null) {
@@ -420,7 +431,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         // Auto-select matched custom place or very close place
         if (places.isNotEmpty) {
           final top = places.first;
-          if (top.isCustom || (top.distanceMeters != null && top.distanceMeters! <= 80)) {
+          if (_contextController.text.trim().isEmpty &&
+              (top.isCustom || (top.distanceMeters != null && top.distanceMeters! <= 80))) {
             _selectedPlace = top;
             _contextController.text = top.name;
           }
@@ -428,7 +440,6 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           // inventé à corriger (R3).
         } else {
           _showCustomPlaceInput = true;
-          _contextController.text = '';
         }
       });
     } catch (e) {

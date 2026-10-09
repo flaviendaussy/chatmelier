@@ -12150,6 +12150,24 @@
   "ou": "lib/features/friends/domain/user_notification.dart:139"
  },
  {
+  "fr": "Un vin à noter 🍷",
+  "en": "A wine to rate 🍷",
+  "it": "Un vino da votare 🍷",
+  "ou": "lib/features/friends/domain/user_notification.dart:144"
+ },
+ {
+  "fr": "{qui} goûte {vin} avec vous{lieu} : notez-le à votre tour.",
+  "en": "{qui} is tasting {vin} with you{lieu}: rate it too.",
+  "it": "{qui} sta degustando {vin} con te{lieu}: votalo anche tu.",
+  "ou": "lib/features/friends/domain/user_notification.dart:145"
+ },
+ {
+  "fr": " ({lieu})",
+  "en": " ({lieu})",
+  "it": " ({lieu})",
+  "ou": "lib/features/friends/domain/user_notification.dart:149"
+ },
+ {
   "fr": "Salut {prenom} ! ",
   "en": "Hi {prenom}! ",
   "it": "Ciao {prenom}! ",
@@ -14355,31 +14373,31 @@
   "fr": "Vin non reconnu avec certitude : complétez à la main, rien n'a été inventé.",
   "en": "Wine not recognised with certainty: fill it in by hand, nothing was made up.",
   "it": "Vino non riconosciuto con certezza: completa a mano, non è stato inventato nulla.",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:334"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:345"
  },
  {
   "fr": "ex. Maroc",
   "en": "e.g. Morocco",
   "it": "es. Marocco",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:924"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:935"
  },
  {
   "fr": "Pas de note ? La dégustation est gardée, mais n'entre pas dans votre profil.",
   "en": "No rating? The tasting is kept, but won't shape your profile.",
   "it": "Nessun voto? La degustazione viene conservata, ma non entra nel tuo profilo.",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1009"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1020"
  },
  {
   "fr": "Reprendre la description du sommelier",
   "en": "Use the sommelier's description",
   "it": "Riprendi la descrizione del sommelier",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1045"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1056"
  },
  {
   "fr": "Complété d'après le nom : vérifiez avant d'enregistrer.",
   "en": "Filled in from the name: check before saving.",
   "it": "Completato in base al nome: verifica prima di salvare.",
-  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1374"
+  "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1385"
  },
  {
   "fr": "fr_FR",
@@ -14889,91 +14907,109 @@
   "fr": "Moi ({userDisplayName})",
   "en": "Me ({userDisplayName})",
   "it": "Io ({userDisplayName})",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:217"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:222"
  },
  {
   "fr": "Enregistrer sans noter",
   "en": "Save without rating",
   "it": "Salva senza voto",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:728"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:733"
  },
  {
   "fr": "Enregistré dans votre journal, sans note : vous pourrez la donner plus tard.",
   "en": "Saved to your journal, unrated: you can rate it later.",
   "it": "Salvata nel tuo diario, senza voto: potrai darlo più tardi.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:731"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:736"
+ },
+ {
+  "fr": "L'invitation n'est pas partie : vous pouvez répondre pour {nom}.",
+  "en": "The invitation didn't go through: you can answer for {nom}.",
+  "it": "L'invito non è partito: puoi rispondere per {nom}.",
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:931"
+ },
+ {
+  "fr": "✓ Demandé : {nom} note sur son téléphone.",
+  "en": "✓ Asked: {nom} rates it on their phone.",
+  "it": "✓ Chiesto: {nom} lo vota sul suo telefono.",
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:945"
+ },
+ {
+  "fr": "Lui demander de noter sur son téléphone",
+  "en": "Ask them to rate it on their phone",
+  "it": "Chiedigli di votarlo sul suo telefono",
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:963"
  },
  {
   "fr": "Bouteille défectueuse : le palais de {name} n'a pas été modifié.",
   "en": "Faulty bottle: {name}'s palate was not changed.",
   "it": "Bottiglia difettosa: il palato di {name} non è stato modificato.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2046"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2114"
  },
  {
   "fr": "Envoyée à {name} : elle entrera dans son journal une fois acceptée.",
   "en": "Sent to {name}: it goes into their journal once they accept it.",
   "it": "Inviata a {name}: entrerà nel suo diario una volta accettata.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2067"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2135"
  },
  {
   "fr": "Pas envoyée à {name} : vérifiez la connexion.",
   "en": "Not sent to {name}: check the connection.",
   "it": "Non inviata a {name}: controlla la connessione.",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2070"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2138"
  },
  {
   "fr": "Vous l'avez bu avec un plat ?",
   "en": "Did you have it with food?",
   "it": "L'hai bevuto con un piatto?",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2348"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2416"
  },
  {
   "fr": "Oui, avec un plat",
   "en": "Yes, with food",
   "it": "Sì, con un piatto",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2354"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2422"
  },
  {
   "fr": "Non, seul",
   "en": "No, on its own",
   "it": "No, da solo",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2356"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2424"
  },
  {
   "fr": "Quel plat ? (facultatif)",
   "en": "Which dish? (optional)",
   "it": "Quale piatto? (facoltativo)",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2369"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2437"
  },
  {
   "fr": "L'accord avec « {plat} »",
   "en": "The pairing with \"{plat}\"",
   "it": "L'abbinamento con «{plat}»",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2376"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2444"
  },
  {
   "fr": "Domaine",
   "en": "Producer",
   "it": "Produttore",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2786"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2854"
  },
  {
   "fr": "Cépage",
   "en": "Grape",
   "it": "Vitigno",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2815"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2883"
  },
  {
   "fr": "Prix",
   "en": "Price",
   "it": "Prezzo",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2831"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:2899"
  },
  {
   "fr": "{v1} sélectionné(s)",
   "en": "{v1} selected",
   "it": "{v1} selezionato/i",
-  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3159"
+  "ou": "lib/features/journal/presentation/tasting_questionnaire_sheet.dart:3227"
  },
  {
   "fr": "Le sommelier n'a pas réussi à lire cette carte : sa réponse était incomplète. Vos photos sont gardées : réessayez.",
@@ -18783,181 +18819,187 @@
   "fr": "{label} mis de côté pour plus tard ⏱️",
   "en": "{label} saved for later ⏱️",
   "it": "{label} messo da parte per dopo ⏱️",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:91"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:92"
  },
  {
   "fr": "🍾 Accès accordé à {requesterName} ({v1}) !",
   "en": "🍾 Access granted to {requesterName} ({v1})!",
   "it": "🍾 Accesso concesso a {requesterName} ({v1})!",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:118"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:119"
  },
  {
   "fr": "Sommelier",
   "en": "Sommelier",
   "it": "Sommelier",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:118"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:119"
  },
  {
   "fr": "avec {requesterName}",
   "en": "with {requesterName}",
   "it": "con {requesterName}",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:202"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:203"
  },
  {
   "fr": "🍾 Accès accordé pour {grantedCount} cave(s) à {requesterName} !",
   "en": "🍾 Access to {grantedCount} cellar(s) granted to {requesterName}!",
   "it": "🍾 Accesso a {grantedCount} cantina/e concesso a {requesterName}!",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:394"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:395"
  },
  {
   "fr": "Boîte de réception",
   "en": "Inbox",
   "it": "Posta in arrivo",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:488"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:489"
  },
  {
   "fr": "👥 Demandes d'amis ({activeFriends_length})",
   "en": "👥 Friend requests ({activeFriends_length})",
   "it": "👥 Richieste di amicizia ({activeFriends_length})",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:534"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:535"
  },
  {
   "fr": "🍷 Demandes d'accès à votre Cave ({activeCellar_length})",
   "en": "🍷 Requests to access your cellar ({activeCellar_length})",
   "it": "🍷 Richieste di accesso alla tua cantina ({activeCellar_length})",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:546"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:547"
  },
  {
   "fr": "🔔 Activité récente",
   "en": "🔔 Recent activity",
   "it": "🔔 Attività recente",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:561"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:562"
  },
  {
   "fr": "Tout marquer comme lu",
   "en": "Mark all as read",
   "it": "Segna tutto come letto",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:566"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:567"
  },
  {
   "fr": "Votre boîte de réception est vide",
   "en": "Your inbox is empty",
   "it": "La tua posta in arrivo è vuota",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:592"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:593"
  },
  {
   "fr": "Les demandes d'amis, invitations et partages de cave apparaîtront ici.",
   "en": "Friend requests, invitations and shared cellars will show up here.",
   "it": "Qui compariranno le richieste di amicizia, gli inviti e le condivisioni di cantina.",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:597"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:598"
  },
  {
   "fr": "Afficher les {snoozedCount} élément(s) mis de côté",
   "en": "Show the {snoozedCount} item(s) saved for later",
   "it": "Mostra {snoozedCount} elemento/i messo/i da parte",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:611"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:612"
  },
  {
   "fr": "Souhaite devenir votre ami pour échanger vos goûts et partager vos caves.",
   "en": "Would like to be your friend, to compare tastes and share cellars.",
   "it": "Vorrebbe diventare tuo amico per confrontare i gusti e condividere le cantine.",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:677"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:678"
  },
  {
   "fr": "Garder pour plus tard",
   "en": "Keep for later",
   "it": "Tieni per dopo",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:708"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:709"
  },
  {
   "fr": "Demande de {displayName}",
   "en": "Request from {displayName}",
   "it": "Richiesta di {displayName}",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:709"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:710"
  },
  {
   "fr": "Fermer / Ignorer",
   "en": "Close / ignore",
   "it": "Chiudi / ignora",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:713"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:714"
  },
  {
   "fr": "Accorder l'accès ({v1})",
   "en": "Grant access ({v1})",
   "it": "Concedi l'accesso ({v1})",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:804"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:805"
  },
  {
   "fr": "Demande de cave de {requesterName}",
   "en": "Cellar request from {requesterName}",
   "it": "Richiesta di cantina di {requesterName}",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:827"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:828"
  },
  {
   "fr": "Ajouter à mon journal",
   "en": "Add to my journal",
   "it": "Aggiungi al mio diario",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:910"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:915"
+ },
+ {
+  "fr": "Noter ce vin",
+  "en": "Rate this wine",
+  "it": "Vota questo vino",
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:926"
  },
  {
   "fr": "Marquer comme lu",
   "en": "Mark as read",
   "it": "Segna come letto",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:925"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:939"
  },
  {
   "fr": "Ajoutée à votre journal 🍷",
   "en": "Added to your journal 🍷",
   "it": "Aggiunta al tuo diario 🍷",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:960"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:1000"
  },
  {
   "fr": "Dégustation refusée : elle n'apparaîtra pas dans votre journal.",
   "en": "Tasting declined: it won't appear in your journal.",
   "it": "Degustazione rifiutata: non apparirà nel tuo diario.",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:961"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:1001"
  },
  {
   "fr": "Déjà décidée.",
   "en": "Already decided.",
   "it": "Già decisa.",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:968"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:1008"
  },
  {
   "fr": "Cette dégustation n'existe plus.",
   "en": "This tasting no longer exists.",
   "it": "Questa degustazione non esiste più.",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:970"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:1010"
  },
  {
   "fr": "Pas de réponse du serveur : réessayez dans un instant.",
   "en": "No answer from the server: try again in a moment.",
   "it": "Nessuna risposta dal server: riprova tra un momento.",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:971"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:1011"
  },
  {
   "fr": "À l'instant",
   "en": "Just now",
   "it": "Proprio ora",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:980"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:1020"
  },
  {
   "fr": "Il y a {inMinutes} min",
   "en": "{inMinutes} min ago",
   "it": "{inMinutes} min fa",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:981"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:1021"
  },
  {
   "fr": "Il y a {inHours} h",
   "en": "{inHours} h ago",
   "it": "{inHours} h fa",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:982"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:1022"
  },
  {
   "fr": "Il y a {inDays} j",
   "en": "{inDays} d ago",
   "it": "{inDays} g fa",
-  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:983"
+  "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:1023"
  },
  {
   "fr": "Ajout de bouteille",

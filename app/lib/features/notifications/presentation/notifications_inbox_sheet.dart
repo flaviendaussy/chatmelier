@@ -5,6 +5,7 @@ import '../../friends/domain/cellar_access_request.dart';
 import '../../friends/domain/friend.dart';
 import '../../friends/domain/user_notification.dart';
 import '../../journal/data/degustations_partagees.dart';
+import '../../journal/presentation/external_tasting_dialog.dart';
 import '../../journal/presentation/journal_screen.dart' show tastingLogProvider;
 import '../../auth/data/taste_profile_service.dart' show tasteProfilesListProvider;
 import '../../../shared/widgets/owner_avatar.dart';
@@ -858,8 +859,12 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     } else if (notif.type == 'degustation_a_accepter') {
       iconData = Icons.wine_bar_outlined;
       iconColor = const Color(0xFF8B1E3F);
+    } else if (notif.type == 'invitation_a_noter') {
+      iconData = Icons.rate_review_outlined;
+      iconColor = const Color(0xFF8B1E3F);
     }
     final aDecider = notif.type == 'degustation_a_accepter' && !notif.isRead && notif.data['degustation_id'] != null;
+    final aNoter = notif.type == 'invitation_a_noter' && notif.data['vin'] is Map;
 
     return Card(
       elevation: 0.5,
@@ -912,6 +917,15 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                 ],
               ),
             ],
+            if (aNoter) ...[
+              const SizedBox(height: 6),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
+                onPressed: () => _noterLeVinInvite(notif),
+                icon: const Icon(Icons.edit_outlined, size: 16),
+                label: Text(tr('Noter ce vin', 'Rate this wine')),
+              ),
+            ],
           ],
         ),
         trailing: aDecider
@@ -939,6 +953,32 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
           ],
         ),
       ),
+    );
+  }
+
+  /// L'invitation d'un ami à noter le vin goûté ensemble (V2.4 · R4, #59) : « Noter un vin
+  /// bu dehors », avec le vin, l'ami parmi les convives, et le lieu s'il est connu.
+  Future<void> _noterLeVinInvite(UserNotification notif) async {
+    final vin = Map<String, dynamic>.from(notif.data['vin'] as Map);
+    if (!notif.isRead) {
+      try {
+        await ref.read(friendsRepositoryProvider).markNotificationRead(notif.id);
+      } catch (_) {}
+      refreshFriendsAndNotifications(ref);
+    }
+    if (!mounted) return;
+    final ami = notif.actorName?.trim();
+    final millesime = vin['millesime'];
+    await ExternalTastingDialog.show(
+      context,
+      wineName: vin['nom']?.toString(),
+      producer: vin['producteur']?.toString(),
+      vintage: millesime is num ? millesime.toInt() : int.tryParse('${millesime ?? ''}'),
+      region: vin['region']?.toString(),
+      country: vin['pays']?.toString(),
+      wineType: vin['couleur']?.toString(),
+      coTasters: ami == null || ami.isEmpty ? null : [ami],
+      place: notif.data['lieu']?.toString(),
     );
   }
 

@@ -139,8 +139,26 @@ class UserNotification {
             if (!isRead) tr('L\'ajouter à votre journal ?', 'Add it to your journal?'),
           ].join(' '),
         ),
+      // Un ami goûte un vin avec vous et vous demande de le noter vous-même (V2.4 · R4, #59).
+      'invitation_a_noter' => (
+          titre: tr('Un vin à noter 🍷', 'A wine to rate 🍷'),
+          corps: tr('{qui} goûte {vin} avec vous{lieu} : notez-le à votre tour.', '{qui} is tasting {vin} with you{lieu}: rate it too.', {
+            'qui': qui,
+            'vin': vinInvite,
+            'lieu': data['lieu'] is String && (data['lieu'] as String).isNotEmpty
+                ? tr(' ({lieu})', ' ({lieu})', {'lieu': data['lieu']})
+                : '',
+          }),
+        ),
       _ => (titre: title, corps: body),
     };
+  }
+
+  /// Le vin d'une invitation à noter, tel qu'il s'affiche (« Bardos Reserva 2020 »).
+  String get vinInvite {
+    final v = data['vin'];
+    if (v is! Map) return '';
+    return [v['nom'], v['millesime']].where((x) => x != null && '$x'.trim().isNotEmpty).join(' ');
   }
 
   Map<String, dynamic> toJson() => {

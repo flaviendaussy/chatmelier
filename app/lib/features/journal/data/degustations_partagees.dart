@@ -65,6 +65,34 @@ class DegustationsPartagees {
   Future<void> refuser(String id) async {
     await _supabase.rpc('refuser_degustation', params: {'p_id': id});
   }
+
+  /// Demande à un ami qui a l'app de noter lui-même, sur son téléphone, le vin goûté ensemble
+  /// (V2.4 · R4, retour #59, migration 069) : il reçoit une invitation qui ouvre « Noter un
+  /// vin bu dehors » avec ce vin. Faux : il l'avait déjà reçue il y a moins d'un quart d'heure.
+  Future<bool> inviterANoter({
+    required String amiId,
+    required String nomDuVin,
+    int? millesime,
+    String? producteur,
+    String? couleur,
+    String? region,
+    String? pays,
+    String? lieu,
+  }) async {
+    final r = await _supabase.rpc('inviter_a_noter', params: {
+      'p_ami': amiId,
+      'p_vin': {
+        'nom': nomDuVin,
+        if (millesime != null) 'millesime': millesime,
+        if (producteur != null && producteur.trim().isNotEmpty) 'producteur': producteur.trim(),
+        if (couleur != null && couleur.trim().isNotEmpty) 'couleur': couleur.trim(),
+        if (region != null && region.trim().isNotEmpty) 'region': region.trim(),
+        if (pays != null && pays.trim().isNotEmpty) 'pays': pays.trim(),
+      },
+      if (lieu != null && lieu.trim().isNotEmpty) 'p_lieu': lieu.trim(),
+    });
+    return r != false;
+  }
 }
 
 final degustationsPartageesProvider = Provider<DegustationsPartagees>(

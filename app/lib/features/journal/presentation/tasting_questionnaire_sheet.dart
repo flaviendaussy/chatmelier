@@ -170,6 +170,11 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   final String _tastingId = const Uuid().v4();
   final Set<String> _syncedFriendNames = {};
 
+  /// Les amis qui notent eux-mêmes, sur leur téléphone (V2.4 · R4, #59) : on ne répond plus
+  /// à leur place.
+  final Set<String> _invitesANoter = {};
+  final Set<String> _invitationsEnCours = {};
+
   // Current answering profile index (for multi-profile flow)
   int _currentProfileIndex = 0;
   List<TasteProfile> _selectedProfiles = [];
@@ -899,6 +904,68 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   // ===========================================================================
   // Step 0: Profile Selector ("Qui a dégusté ?")
   // ===========================================================================
+  /// Caro, 07/10 : « comme Flavien a l'app, ça pourrait lui envoyer une notif pour qu'il
+  /// note en même temps sur son tel ». L'ami reçoit le vin à noter (migration 069).
+  Future<void> _inviterANoter(TasteProfile profile) async {
+    final nom = _profileDisplayName(profile);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    setState(() => _invitationsEnCours.add(profile.id));
+    try {
+      await ref.read(degustationsPartageesProvider).inviterANoter(
+            amiId: profile.friendUserId!,
+            nomDuVin: widget.wineName,
+            millesime: widget.vintage,
+            producteur: widget.producer,
+            couleur: widget.wineType,
+            region: widget.region,
+          );
+      if (!mounted) return;
+      setState(() {
+        _invitesANoter.add(profile.id);
+        _selectedProfileIds.remove(profile.id);
+      });
+      AppLogger.info('QUESTIONNAIRE', 'Invitation à noter envoyée à un ami');
+    } catch (e) {
+      AppLogger.warning('QUESTIONNAIRE', 'Invitation à noter non envoyée : $e');
+      messenger?.showSnackBar(SnackBar(
+        content: Text(tr('L\'invitation n\'est pas partie : vous pouvez répondre pour {nom}.',
+            'The invitation didn\'t go through: you can answer for {nom}.', {'nom': nom})),
+      ));
+    } finally {
+      if (mounted) setState(() => _invitationsEnCours.remove(profile.id));
+    }
+  }
+
+  Widget _ligneDInvitation(TasteProfile profile) {
+    final nom = _profileDisplayName(profile);
+    if (_invitesANoter.contains(profile.id)) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: Text(
+          tr('✓ Demandé : {nom} note sur son téléphone.', '✓ Asked: {nom} rates it on their phone.', {'nom': nom}),
+          style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.w600),
+        ),
+      );
+    }
+    final enCours = _invitationsEnCours.contains(profile.id);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          visualDensity: VisualDensity.compact,
+          foregroundColor: const Color(0xFF8B1E3F),
+        ),
+        onPressed: enCours ? null : () => _inviterANoter(profile),
+        icon: enCours
+            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+            : const Icon(Icons.send_to_mobile, size: 16),
+        label: Text(tr('Lui demander de noter sur son téléphone', 'Ask them to rate it on their phone'),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+
   Widget _buildProfileSelector() {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
@@ -1108,6 +1175,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                                 ),
                             ],
                           ),
+                          if (profile.hasApp && !profile.isPrimary) _ligneDInvitation(profile),
                         ],
                       ),
                     ),

@@ -2,6 +2,7 @@ import 'package:chatmelier/features/auth/data/taste_profile_service.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/friends/data/friends_repository.dart';
 import 'package:chatmelier/features/friends/domain/friend.dart';
+import 'package:chatmelier/features/journal/data/degustations_partagees.dart';
 import 'package:chatmelier/features/journal/domain/tasting_questionnaire_result.dart';
 import 'package:chatmelier/features/journal/presentation/tasting_questionnaire_sheet.dart';
 import 'package:chatmelier/l10n/app_localizations.dart';
@@ -39,6 +40,26 @@ class _SansAmis extends Fake implements FriendsRepository {
   Future<List<Friend>> getFriends() async => const [];
 }
 
+/// L'invitation à noter, sans serveur : on garde à qui elle est partie, et pour quel vin.
+class _Partage extends Fake implements DegustationsPartagees {
+  final invitations = <(String, String)>[];
+
+  @override
+  Future<bool> inviterANoter({
+    required String amiId,
+    required String nomDuVin,
+    int? millesime,
+    String? producteur,
+    String? couleur,
+    String? region,
+    String? pays,
+    String? lieu,
+  }) async {
+    invitations.add((amiId, nomDuVin));
+    return true;
+  }
+}
+
 const _moi = TasteProfile(id: 'moi', name: 'Moi', isPrimary: true);
 const _caro = TasteProfile(id: 'caro', name: 'Caro');
 
@@ -48,6 +69,7 @@ Future<_Palais> _ouvrir(
   bool express = false,
   List<TasteProfile> profils = const [_moi],
   List<String>? convives,
+  DegustationsPartagees? partage,
 }) async {
   SharedPreferences.setMockInitialValues({});
   // Large : la police des essais (Ahem) est bien plus large qu'une vraie, et l'écran de
@@ -60,6 +82,7 @@ Future<_Palais> _ouvrir(
     overrides: [
       tasteProfileServiceProvider.overrideWithValue(palais),
       friendsRepositoryProvider.overrideWithValue(_SansAmis()),
+      if (partage != null) degustationsPartageesProvider.overrideWithValue(partage),
       // Sans session : rien ne part au serveur, le questionnaire va jusqu'au bout.
       supabaseProvider.overrideWithValue(SupabaseClient('http://localhost:1', 'cle-de-test',
           authOptions: const AuthClientOptions(autoRefreshToken: false))),
@@ -135,6 +158,22 @@ void main() {
     expect(r.tannins, 0.40);
     expect(r.emojiImpression, 2);
     expect(TastingQuestionnaireResult.emojiIndexForRating(r.noteOutOf10), 2);
+  });
+
+  testWidgets('un ami qui a l\'app note lui-même : on le lui demande, on ne répond plus pour lui (#59)', (tester) async {
+    const flavien = TasteProfile(id: 'flavien', name: 'Flavien', friendUserId: 'u-flavien');
+    final partage = _Partage();
+    final palais = await _ouvrir(tester, type: 'red', profils: const [_moi, flavien], convives: const ['moi', 'flavien'],
+        partage: partage);
+
+    expect(find.text('Commencer (2)'), findsOneWidget);
+    await _toucher(tester, find.text('Lui demander de noter sur son téléphone'));
+
+    expect(partage.invitations.single, ('u-flavien', 'Chablis'));
+    expect(find.text('✓ Demandé : Flavien note sur son téléphone.'), findsOneWidget);
+    // Il note lui-même : il n'est plus parmi ceux à qui l'on répond.
+    expect(find.text('Commencer (1)'), findsOneWidget);
+    expect(palais.recus, isEmpty);
   });
 
   testWidgets('à deux : chacun son tour, chacun ses réponses', (tester) async {

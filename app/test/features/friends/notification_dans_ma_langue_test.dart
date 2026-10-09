@@ -64,5 +64,19 @@ void main() {
     expect(bouchonnee.corpsLu, contains('(3/10)'));
     expect(bouchonnee.corpsLu, contains('votre palais n\'en apprendra rien'));
   });
+
+  test('l\'invitation à noter le vin goûté ensemble (#59)', () {
+    final n = recue('invitation_a_noter', {
+      'vin': {'nom': 'Bardos Reserva', 'millesime': 2020, 'couleur': 'red'},
+      'lieu': 'Chez Paul',
+    }, acteur: 'Caro');
+    Langue.code = 'fr';
+    expect(n.titreLu, 'Un vin à noter 🍷');
+    expect(n.corpsLu, 'Caro goûte Bardos Reserva 2020 avec vous (Chez Paul) : notez-le à votre tour.');
+    Langue.code = 'en';
+    expect(n.corpsLu, 'Caro is tasting Bardos Reserva 2020 with you (Chez Paul): rate it too.');
+    final sansLieu = recue('invitation_a_noter', {'vin': {'nom': 'Morgon'}}, acteur: 'Caro');
+    expect(sansLieu.corpsLu, 'Caro is tasting Morgon with you: rate it too.');
+  });
 }
 

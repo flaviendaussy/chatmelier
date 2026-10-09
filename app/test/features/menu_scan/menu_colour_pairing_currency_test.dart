@@ -4,6 +4,7 @@ import 'package:chatmelier/features/menu_scan/domain/menu_flight_engine.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_table_matcher_engine.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:chatmelier/shared/utils/langue.dart';
 
 MenuWine vin(
   String nom,
@@ -156,7 +157,11 @@ void main() {
       final v = vin('Rioja', 'red', prix: 45, devise: 'GBP').copyWith(
         glassPrices: const [MenuWineGlassPrice(format: '175ml', price: 7.5)],
       );
-      expect(v.prixAffiche(true), '£45 / bt • £7.50 (175ml)');
+      expect(v.prixAffiche(true), '£45 / bt • £7,50 (175ml)');
+      // La virgule en français, le point en anglais.
+      Langue.code = 'en';
+      addTearDown(() => Langue.code = 'fr');
+      expect(v.prixAffiche(false), '£45 / btl • £7.50 (175ml)');
     });
 
     test('une carte relue transmet sa devise à ses vins', () {

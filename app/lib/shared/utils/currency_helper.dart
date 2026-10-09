@@ -1,3 +1,5 @@
+import 'langue.dart';
+
 class CurrencyOption {
   final String code;
   final String symbol;
@@ -63,9 +65,12 @@ class CurrencyHelper {
   static String formatPrice(num? amount, {String? currency, int decimals = 0}) {
     if (amount == null) return '';
     final opt = getOption(currency);
-    final formattedNum = decimals > 0 
-        ? amount.toStringAsFixed(decimals) 
+    var formattedNum = decimals > 0
+        ? amount.toStringAsFixed(decimals)
         : amount.round().toString();
+    // « 24,50 € » en français, en espagnol et en italien ; « 24.50 » en anglais (24.00 €
+    // s'affichait dans l'app en français).
+    if (Langue.code != 'en') formattedNum = formattedNum.replaceAll('.', ',');
 
     if (opt.symbolPrefix) {
       return '${opt.symbol}$formattedNum';

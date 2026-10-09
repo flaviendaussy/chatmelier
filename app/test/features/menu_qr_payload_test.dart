@@ -150,7 +150,7 @@ void main() {
           MenuTableSessionManager.encodeMenuPayload(origine))!;
       expect(relu.currency, 'GBP');
       expect(relu.wines.single.formaterPrix(95), '£95');
-      expect(relu.formaterPrix(12.5), '£12.50');
+      expect(relu.formaterPrix(12.5), '£12,50');
       // Une carte sans devise connue reste sans devise : pas de symbole inventé.
       expect(MenuTableSessionManager.decodeMenuPayload(
           MenuTableSessionManager.encodeMenuPayload(carte([vin('Bandol')])))!.currency, isNull);

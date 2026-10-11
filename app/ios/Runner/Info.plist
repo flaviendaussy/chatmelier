@@ -313,5 +313,7 @@
 			<string>ydx93a7ass.skadnetwork</string>
 		</dict>
 	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
 </dict>
 </plist>

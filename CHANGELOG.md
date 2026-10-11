@@ -2,6 +2,17 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.9.1+82] — 2026-10-11
+
+> iPhone et site seulement : l'app Android reste en 1.9.0+81, dont le code ne change pas.
+
+### 🍷 Ce qui change pour vous
+- **Le lien d'une table s'ouvre aussi dans l'app iPhone**, et dans l'app Android installée depuis le Play Store.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *iPhone* : `Runner.entitlements` (`applinks:chatmelier.github.io`, capacité « Associated Domains » cochée sur l'identifiant le 11/10), `CODE_SIGN_ENTITLEMENTS` des trois configurations de Runner, `FlutterDeepLinkingEnabled` explicite ; `/.well-known/apple-app-site-association` (`729FLBQ9B6.com.chatmelier.chatmelier`, chemins `/table*`).
+- *Android* : `assetlinks.json` porte la clé de signature Play (`D2:E9:18:…`) en plus de la clé d'importation.
+
 ## [v1.9.0+81] — 2026-10-09
 
 > Remplace la 1.8.0+79 (jamais publiée sur le Play Store) : tout ce qu'annonce la 79 y est, avec en plus ce qui suit. Le site web reste en 1.8.1+80 jusqu'à sa prochaine publication (le partage de connexion coupait l'envoi).

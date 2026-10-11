@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "729FLBQ9B6.com.chatmelier.chatmelier"
+        ],
+        "components": [
+          {
+            "/": "/table*",
+            "comment": "Le lien d'une table (QR, partage) : https://chatmelier.github.io/table/?t=CODE"
+          }
+        ]
+      }
+    ]
+  }
+}

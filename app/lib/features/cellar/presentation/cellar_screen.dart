@@ -56,10 +56,6 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
   CellarFilterState _filter = const CellarFilterState();
 
-  /// Un vin bu jusqu'à la dernière bouteille reste en base (son journal, son rachat) mais
-  /// quitte l'étagère : « enlever quand 0 bouteilles » (Caro, 04/10). Un geste le remontre.
-  bool _afficherLesVinsBus = false;
-
   // Tab controller for swipeable Vins vs Spiritueux zones
   TabController? _tabController;
   int _activeTabIndex = 0; // 0 = wines, 1 = spirits (when both exist)
@@ -253,7 +249,11 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     final favIds = ref.watch(favoriteWineIdsProvider);
 
     return bottleList.where((b) {
-      if (b.quantity <= 0 && !_afficherLesVinsBus) return false;
+      // Un vin bu jusqu'à la dernière bouteille reste en base (son journal, son rachat) mais
+      // quitte la cave, sans option pour l'y revoir : « je ne veux jamais voir les vins à 0
+      // bouteilles […] même pas en avoir l'option. c'est pour ça que l'historique existe ! »
+      // (Flavien, 11/10 ; Caro, 04/10).
+      if (b.quantity <= 0) return false;
       final wine = b.wine;
       if (wine == null) return true;
 
@@ -1652,32 +1652,9 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     AppLocalizations? l10n,
   }) {
     final filteredList = _filterBottles(sourceBottles);
-    final vinsBus = sourceBottles.where((b) => b.quantity <= 0).length;
-    final lienDesVinsBus = vinsBus == 0
-        ? null
-        : Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 80, 4),
-              child: TextButton.icon(
-                icon: Icon(_afficherLesVinsBus ? Icons.visibility_off_outlined : Icons.history, size: 16),
-                label: Text(
-                  _afficherLesVinsBus
-                      ? tr('Masquer les vins bus jusqu\'à la dernière bouteille',
-                          'Hide wines drunk down to the last bottle')
-                      : vinsBus == 1
-                          ? tr('1 vin bu jusqu\'à la dernière bouteille, masqué : l\'afficher',
-                              '1 wine drunk down to the last bottle, hidden: show it')
-                          : tr('{n} vins bus jusqu\'à la dernière bouteille, masqués : les afficher',
-                              '{n} wines drunk down to the last bottle, hidden: show them', {'n': vinsBus}),
-                  style: const TextStyle(fontSize: 12),
-                ),
-                onPressed: () => setState(() => _afficherLesVinsBus = !_afficherLesVinsBus),
-              ),
-            ),
-          );
 
-    if (filteredList.isEmpty && lienDesVinsBus != null && sourceBottles.every((b) => b.quantity <= 0)) {
+    // Tout est bu : la cave le dit, et l'historique est au Journal.
+    if (filteredList.isEmpty && sourceBottles.isNotEmpty && sourceBottles.every((b) => b.quantity <= 0)) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1686,7 +1663,11 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
               tr('Toutes ces bouteilles sont bues.', 'All these bottles have been drunk.'),
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
-            lienDesVinsBus,
+            TextButton.icon(
+              icon: const Icon(Icons.menu_book_outlined, size: 16),
+              label: Text(tr('Les retrouver dans le Journal', 'Find them in your Journal')),
+              onPressed: () => context.go('/journal'),
+            ),
           ],
         ),
       );
@@ -1861,9 +1842,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
         notifyCellarChanged(ref, activeCellarId);
         await Future.delayed(const Duration(milliseconds: 200));
       },
-      child: lienDesVinsBus == null
-          ? mainContent
-          : Column(children: [Expanded(child: mainContent), lienDesVinsBus]),
+      child: mainContent,
     );
   }
 

@@ -740,7 +740,8 @@ class _ShelfGridViewSheetState extends ConsumerState<ShelfGridViewSheet> with Si
             orElse: () => furnitures.first,
           );
 
-          final allBottles = bottlesAsync.value ?? [];
+          // Une bouteille bue libère sa place : elle n'est plus sur l'étagère (Flavien, 11/10).
+          final allBottles = [for (final b in bottlesAsync.value ?? <Bottle>[]) if (b.quantity > 0) b];
           // Build occupancy map for current furniture: slotCode -> Bottle
           final Map<String, Bottle> slotOccupants = {};
           for (final b in allBottles) {

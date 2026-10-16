@@ -288,7 +288,7 @@ function texteDeLaReponse(data: any): string {
 // Une réponse de sommelier tient en quelques secondes ; au-delà, on essaie le suivant.
 const DELAI_PAR_MODELE_MS = 25_000
 
-const LIMITES = { question: 1_000, carte: 40_000, profil: 3_000, restaurant: 120 }
+const LIMITES = { question: 1_000, carte: 40_000, profil: 3_000, habitudes: 2_000, restaurant: 120 }
 
 function texte(valeur: unknown, max: number): string {
   return typeof valeur === 'string' ? valeur.trim().slice(0, max) : ''
@@ -303,12 +303,15 @@ function langueDe(code: unknown): Langue {
   return 'en'
 }
 
-function redigerPrompt(langue: Langue, restaurant: string, carte: string, profil: string, question: string): string {
+// Pas d'éloge non mérité (V2.5 · E3) : le 13/10, un vin simple d'une carte d'avion a été
+// présenté comme remarquable. Ce que la personne boit d'habitude (`habitudes`, tiré de son
+// journal) permet de situer un vin à son niveau, en dessous ou au-dessus.
+function redigerPrompt(langue: Langue, restaurant: string, carte: string, profil: string, question: string, habitudes = ''): string {
   if (langue === 'fr') {
     return `Tu es Chatmelier, le maître sommelier du restaurant « ${restaurant} ».
 Voici la carte des vins exacte disponible à table :
 ${carte}
-${profil ? `\nProfil de goût du client :\n${profil}\n` : ''}
+${profil ? `\nProfil de goût du client :\n${profil}\n` : ''}${habitudes ? `\nCe que le client boit d'habitude :\n${habitudes}\n` : ''}
 Question du client :
 « ${question} »
 
@@ -317,13 +320,15 @@ Consignes absolues :
 2. Recommande EXCLUSIVEMENT des vins figurant sur la carte ci-dessus. N'invente aucun vin.
 3. Mentionne toujours le prix (à la bouteille ou au verre) tel qu'affiché sur la carte.
 4. Explique l'accord ou la raison de ton conseil par le caractère du vin (tanins, minéralité, vivacité, boisé).
-5. Sois concis (2 à 3 paragraphes courts au maximum).`
+5. Sois concis (2 à 3 paragraphes courts au maximum).
+6. Pas d'éloge non mérité : un vin simple est simple. Dis-le avec bienveillance et dis à quoi il est bon ; garde « remarquable », « exceptionnel » ou « grand vin » pour les vins qui le sont vraiment.
+7. Si tu sais ce que le client boit d'habitude, situe le vin par rapport à cela (à son niveau, plus simple, ou au-dessus), franchement et sans condescendance.`
   }
   if (langue === 'es') {
     return `Eres Chatmelier, el sumiller jefe del restaurante «${restaurant}».
 Esta es la carta de vinos exacta disponible en la mesa:
 ${carte}
-${profil ? `\nPerfil de gusto del cliente:\n${profil}\n` : ''}
+${profil ? `\nPerfil de gusto del cliente:\n${profil}\n` : ''}${habitudes ? `\nLo que el cliente suele beber:\n${habitudes}\n` : ''}
 El cliente pregunta:
 «${question}»
 
@@ -332,13 +337,15 @@ Reglas absolutas:
 2. Recomienda SOLO vinos de la carta anterior. Nunca inventes un vino que no esté en ella.
 3. Indica siempre el precio (botella o copa) exactamente como aparece en la carta.
 4. Explica el maridaje o el motivo de tu consejo por el carácter del vino (taninos, mineralidad, frescura, madera).
-5. Sé conciso (2 o 3 párrafos cortos como máximo).`
+5. Sé conciso (2 o 3 párrafos cortos como máximo).
+6. Nada de elogios inmerecidos: un vino sencillo es sencillo. Dilo con amabilidad y di para qué es bueno; reserva «notable», «excepcional» o «gran vino» para los vinos que lo son de verdad.
+7. Si sabes lo que el cliente suele beber, sitúa el vino respecto a ello (a su nivel, más sencillo o por encima), con franqueza y sin condescendencia.`
   }
   if (langue === 'it') {
     return `Sei Chatmelier, il sommelier del ristorante «${restaurant}».
 Ecco la carta dei vini esatta disponibile al tavolo:
 ${carte}
-${profil ? `\nProfilo di gusto del cliente:\n${profil}\n` : ''}
+${profil ? `\nProfilo di gusto del cliente:\n${profil}\n` : ''}${habitudes ? `\nCiò che il cliente beve di solito:\n${habitudes}\n` : ''}
 Il cliente chiede:
 «${question}»
 
@@ -347,12 +354,14 @@ Regole assolute:
 2. Consiglia SOLO vini presenti nella carta qui sopra. Non inventare mai un vino che non vi compare.
 3. Indica sempre il prezzo (bottiglia o calice) esattamente come appare sulla carta.
 4. Spiega l'abbinamento o il motivo del tuo consiglio con il carattere del vino (tannini, mineralità, freschezza, legno).
-5. Sii conciso (al massimo 2 o 3 brevi paragrafi).`
+5. Sii conciso (al massimo 2 o 3 brevi paragrafi).
+6. Niente elogi immeritati: un vino semplice è semplice. Dillo con garbo e di' a cosa è adatto; riserva «notevole», «eccezionale» o «grande vino» ai vini che lo sono davvero.
+7. Se sai cosa beve di solito il cliente, colloca il vino rispetto a questo (al suo livello, più semplice o superiore), con franchezza e senza condiscendenza.`
   }
   return `You are Chatmelier, the head sommelier of "${restaurant}".
 Here is the exact wine list available at the table:
 ${carte}
-${profil ? `\nThe guest's taste profile:\n${profil}\n` : ''}
+${profil ? `\nThe guest's taste profile:\n${profil}\n` : ''}${habitudes ? `\nWhat the guest usually drinks:\n${habitudes}\n` : ''}
 The guest asks:
 "${question}"
 
@@ -361,7 +370,9 @@ Absolute rules:
 2. Recommend ONLY wines from the list above. Never invent a wine that is not on it.
 3. Always quote the price (bottle or glass) exactly as shown on the list.
 4. Explain the pairing or the reason for your advice from the wine's character (tannins, minerality, freshness, oak).
-5. Be concise (2 to 3 short paragraphs at most).`
+5. Be concise (2 to 3 short paragraphs at most).
+6. No undeserved praise: a simple wine is simple. Say so kindly and say what it is good for; keep "remarkable", "exceptional" or "great wine" for wines that truly are.
+7. If you know what the guest usually drinks, place the wine against it (at their level, simpler, or a step up), frankly and without condescension.`
 }
 
 serve(async (req) => {
@@ -381,6 +392,7 @@ serve(async (req) => {
     const question = texte(body.question, LIMITES.question)
     const carte = texte(body.carte, LIMITES.carte)
     const profil = texte(body.profil, LIMITES.profil)
+    const habitudes = texte(body.habitudes, LIMITES.habitudes)
     const restaurant = texte(body.restaurantName, LIMITES.restaurant) || 'ce restaurant'
     const langue = langueDe(body.languageCode)
 
@@ -394,7 +406,7 @@ serve(async (req) => {
     const reglage = r && typeof r.modele === 'string'
       ? { modele: r.modele, reflexion: typeof r.reflexion === 'string' ? r.reflexion : REGLAGE_PAR_DEFAUT.reflexion }
       : REGLAGE_PAR_DEFAUT
-    const prompt = redigerPrompt(langue, restaurant, carte, profil, question)
+    const prompt = redigerPrompt(langue, restaurant, carte, profil, question, habitudes)
 
     let appel: AppelReussi
     try {

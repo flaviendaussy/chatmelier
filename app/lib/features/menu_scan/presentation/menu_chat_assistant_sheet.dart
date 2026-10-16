@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/data/taste_profile_service.dart';
+import '../../journal/domain/habitudes_du_palais.dart';
+import '../../journal/presentation/journal_screen.dart';
 import '../data/menu_scan_service.dart';
 import '../domain/menu_wine.dart';
 import '../../../shared/utils/langue.dart';
@@ -93,11 +95,19 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
       final scanService = ref.read(menuScanServiceProvider);
       if (!mounted) return;
       final languageCode = Localizations.localeOf(context).languageCode;
+      // Ce qu'elle boit d'habitude : sans journal joignable, le sommelier répond quand même.
+      var habitudes = '';
+      try {
+        final journal = await ref.read(tastingLogProvider.future).timeout(const Duration(seconds: 3));
+        habitudes = HabitudesDuPalais.resumer(journal, fr: languageCode == 'fr');
+      } catch (_) {}
+      if (!mounted) return;
       final answer = await scanService.askMenuSommelier(
         menu: widget.menu,
         userQuestion: clean,
         userProfile: activeProfile,
         languageCode: languageCode,
+        habitudes: habitudes,
       );
 
       if (mounted) {

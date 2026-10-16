@@ -361,11 +361,15 @@ class MenuScanService {
   }
 
   /// 💬 Contextual Sommelier Chat grounded specifically in this scanned menu
+  ///
+  /// [habitudes] : ce que la personne a bu ces derniers mois (`HabitudesDuPalais`), pour
+  /// que le sommelier situe un vin à son niveau plutôt que d'en faire l'éloge (13/10).
   Future<String> askMenuSommelier({
     required ScannedMenu menu,
     required String userQuestion,
     TasteProfile? userProfile,
     String languageCode = 'fr',
+    String habitudes = '',
   }) async {
     final wineListText = carteLueParLeSommelier(menu, languageCode);
 
@@ -390,6 +394,7 @@ class MenuScanService {
           question: userQuestion,
           carte: wineListText,
           profil: profileContext,
+          habitudes: habitudes,
           languageCode: languageCode,
         ) ??
         injoignable;
@@ -404,6 +409,7 @@ class MenuScanService {
     required String question,
     required String carte,
     required String profil,
+    String habitudes = '',
     required String languageCode,
   }) async {
     final client = _supabaseClient ?? (Supabase.instance.isInitialized ? Supabase.instance.client : null);
@@ -417,6 +423,7 @@ class MenuScanService {
         'question': question,
         'carte': carte,
         'profil': profil,
+        if (habitudes.isNotEmpty) 'habitudes': habitudes,
         'restaurantName': menu.restaurantName,
         'languageCode': languageCode,
       }).timeout(const Duration(seconds: 60));

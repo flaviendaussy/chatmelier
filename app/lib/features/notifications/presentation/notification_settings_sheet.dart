@@ -309,26 +309,15 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
                   onChanged: (val) => notifier.updatePreference(batchMultipleTastingsEnabled: val),
                 ),
 
-                Container(
-                  margin: const EdgeInsets.only(top: 8, bottom: 12),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.check_circle_outline, size: 16, color: Color(0xFF10B981)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          tr('Plafond anti-saturation : Chatmelier bride les alertes proactives à 1 par jour maximum.', 'Cap: Chatmelier sends at most one proactive alert per day.'),
-                          style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
-                        ),
-                      ),
-                    ],
-                  ),
+                // Une option, cochée d'office (11/10) : ce n'était qu'un texte.
+                _buildSwitchTile(
+                  icon: Icons.notifications_paused_outlined,
+                  iconColor: const Color(0xFF10B981),
+                  title: tr('Plafond anti-saturation', 'Notification cap'),
+                  subtitle: tr('Au plus une alerte de Chatmelier par jour. Les messages de vos amis et de vos caves partagées arrivent toujours.',
+                      'At most one Chatmelier alert a day. Messages from friends and shared cellars always come through.'),
+                  value: prefs.plafondAntiSaturation,
+                  onChanged: (val) => notifier.updatePreference(plafondAntiSaturation: val),
                 ),
                 const SizedBox(height: 12),
 

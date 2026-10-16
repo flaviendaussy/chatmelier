@@ -8748,28 +8748,16 @@
   "ou": "lib/features/cellar/presentation/cellar_gap_analyzer_sheet.dart:239"
  },
  {
-  "fr": "Masquer les vins bus jusqu'à la dernière bouteille",
-  "en": "Hide wines drunk down to the last bottle",
-  "it": "Nascondi i vini bevuti fino all'ultima bottiglia",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1666"
- },
- {
-  "fr": "1 vin bu jusqu'à la dernière bouteille, masqué : l'afficher",
-  "en": "1 wine drunk down to the last bottle, hidden: show it",
-  "it": "1 vino bevuto fino all'ultima bottiglia, nascosto: mostralo",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1669"
- },
- {
-  "fr": "{n} vins bus jusqu'à la dernière bouteille, masqués : les afficher",
-  "en": "{n} wines drunk down to the last bottle, hidden: show them",
-  "it": "{n} vini bevuti fino all'ultima bottiglia, nascosti: mostrali",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1671"
- },
- {
   "fr": "Toutes ces bouteilles sont bues.",
   "en": "All these bottles have been drunk.",
   "it": "Tutte queste bottiglie sono state bevute.",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1686"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1663"
+ },
+ {
+  "fr": "Les retrouver dans le Journal",
+  "en": "Find them in your Journal",
+  "it": "Ritrovale nel diario",
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1668"
  },
  {
   "fr": "Non classé",
@@ -8979,49 +8967,49 @@
   "fr": "Aucune bouteille dans cette catégorie",
   "en": "No bottles in this category",
   "it": "Nessuna bottiglia in questa categoria",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1701"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1682"
  },
  {
   "fr": "Aucune bouteille ne correspond à ces critères",
   "en": "No bottles match these criteria",
   "it": "Nessuna bottiglia corrisponde a questi criteri",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1714"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1695"
  },
  {
   "fr": "Effacer les filtres",
   "en": "Clear filters",
   "it": "Cancella i filtri",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1720"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1701"
  },
  {
   "fr": "Coût total estimé : {v1} ({totalBottles} btl • {totalReferences} réf.)",
   "en": "Estimated total value: {v1} ({totalBottles} btl • {totalReferences} ref.)",
   "it": "Costo totale stimato: {v1} ({totalBottles} bott. • {totalReferences} ref.)",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1891"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1870"
  },
  {
   "fr": "{n} groupes",
   "en": "{n} groups",
   "it": "{n} gruppi",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1955"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1934"
  },
  {
   "fr": "{n} groupe",
   "en": "{n} group",
   "it": "{n} gruppo",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1956"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1935"
  },
  {
   "fr": "Tout déplier",
   "en": "Expand all",
   "it": "Espandi tutto",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:2020"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1999"
  },
  {
   "fr": "Tout replier",
   "en": "Collapse all",
   "it": "Comprimi tutto",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:2021"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:2000"
  },
  {
   "fr": "Invitation envoyée à {email}",
@@ -9993,49 +9981,49 @@
   "fr": "{f_name} ({rows} niveaux)",
   "en": "{f_name} ({rows} shelf levels)",
   "it": "{f_name} ({rows} livelli)",
-  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:788"
+  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:789"
  },
  {
   "fr": "{f_name} ({rows} niveau)",
   "en": "{f_name} ({rows} shelf level)",
   "it": "{f_name} ({rows} livello)",
-  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:789"
+  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:790"
  },
  {
   "fr": "Modifier ce meuble",
   "en": "Edit this furniture",
   "it": "Modifica questo mobile",
-  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:807"
+  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:808"
  },
  {
   "fr": "Nouveau meuble",
   "en": "New furniture",
   "it": "Nuovo mobile",
-  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:816"
+  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:817"
  },
  {
   "fr": "Emplacement : {highlightedSlot} ({currentFurniture_name})",
   "en": "Slot: {highlightedSlot} ({currentFurniture_name})",
   "it": "Posto: {highlightedSlot} ({currentFurniture_name})",
-  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:844"
+  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:845"
  },
  {
   "fr": "Touchez un casier pour y ranger \"{v1}\"",
   "en": "Tap a slot to place \"{v1}\"",
   "it": "Tocca un posto per sistemarvi «{v1}»",
-  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:867"
+  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:868"
  },
  {
   "fr": "la bouteille",
   "en": "the bottle",
   "it": "la bottiglia",
-  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:867"
+  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:868"
  },
  {
   "fr": "Champagne",
   "en": "Sparkling",
   "it": "Champagne",
-  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:1074"
+  "ou": "lib/features/cellar/presentation/shelf_grid_view_sheet.dart:1075"
  },
  {
   "fr": "🔔 Le vin est parfaitement aéré et prêt pour la dégustation !",
@@ -18852,16 +18840,22 @@
   "ou": "lib/features/notifications/presentation/notification_settings_sheet.dart:307"
  },
  {
-  "fr": "Plafond anti-saturation : Chatmelier bride les alertes proactives à 1 par jour maximum.",
-  "en": "Cap: Chatmelier sends at most one proactive alert per day.",
-  "it": "Limite: Chatmelier invia al massimo un avviso proattivo al giorno.",
-  "ou": "lib/features/notifications/presentation/notification_settings_sheet.dart:326"
+  "fr": "Plafond anti-saturation",
+  "en": "Notification cap",
+  "it": "Limite anti-saturazione",
+  "ou": "lib/features/notifications/presentation/notification_settings_sheet.dart:316"
+ },
+ {
+  "fr": "Au plus une alerte de Chatmelier par jour. Les messages de vos amis et de vos caves partagées arrivent toujours.",
+  "en": "At most one Chatmelier alert a day. Messages from friends and shared cellars always come through.",
+  "it": "Al massimo un avviso di Chatmelier al giorno. I messaggi dei tuoi amici e delle tue cantine condivise arrivano sempre.",
+  "ou": "lib/features/notifications/presentation/notification_settings_sheet.dart:317"
  },
  {
   "fr": "Envoyer une notification test",
   "en": "Send a test notification",
   "it": "Invia una notifica di prova",
-  "ou": "lib/features/notifications/presentation/notification_settings_sheet.dart:344"
+  "ou": "lib/features/notifications/presentation/notification_settings_sheet.dart:333"
  },
  {
   "fr": "{label} mis de côté pour plus tard ⏱️",

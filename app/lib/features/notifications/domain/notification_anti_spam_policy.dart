@@ -100,15 +100,21 @@ class NotificationAntiSpamPolicy {
     return 'Vous avez dégusté $preview$remaining. Partagez vos impressions en un clin d\'œil !';
   }
 
+  /// Le plafond anti-saturation, quand il est coché : une alerte de Chatmelier par jour.
+  static const plafondParJour = 1;
+
   /// Verifies whether a proactive notification (apogee, weekend suggestion)
-  /// is allowed based on daily limits and cooldown.
+  /// is allowed based on daily limits and cooldown. Sans [plafond] (décoché dans les
+  /// réglages), ni limite ni délai.
   static bool canSendProactiveAlert({
     required DateTime now,
     required DateTime? lastAlertSentAt,
     required int alertsSentToday,
-    int maxAlertsPerDay = 2,
+    bool plafond = true,
+    int maxAlertsPerDay = plafondParJour,
     Duration cooldown = minProactiveCooldown,
   }) {
+    if (!plafond) return true;
     if (alertsSentToday >= maxAlertsPerDay) return false;
     if (lastAlertSentAt != null) {
       final elapsed = now.difference(lastAlertSentAt);

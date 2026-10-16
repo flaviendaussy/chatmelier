@@ -11,7 +11,11 @@ class NotificationPreferences {
   final bool lowStockAlertsEnabled;
   final bool quietHoursEnabled;
   final bool batchMultipleTastingsEnabled;
-  final int maxAlertsPerDay;
+
+  /// Au plus une alerte de Chatmelier par jour (apogée, suggestions) ; les messages des
+  /// amis et des caves partagées passent toujours. Une option, cochée d'office (Flavien,
+  /// 11/10 : « que le plafond anti saturation ne soit qu'une option, pré-sélectionnée »).
+  final bool plafondAntiSaturation;
 
   const NotificationPreferences({
     this.postTastingEnabled = true,
@@ -22,7 +26,7 @@ class NotificationPreferences {
     this.lowStockAlertsEnabled = false,
     this.quietHoursEnabled = true,
     this.batchMultipleTastingsEnabled = true,
-    this.maxAlertsPerDay = 2,
+    this.plafondAntiSaturation = true,
   });
 
   NotificationPreferences copyWith({
@@ -34,7 +38,7 @@ class NotificationPreferences {
     bool? lowStockAlertsEnabled,
     bool? quietHoursEnabled,
     bool? batchMultipleTastingsEnabled,
-    int? maxAlertsPerDay,
+    bool? plafondAntiSaturation,
   }) {
     return NotificationPreferences(
       postTastingEnabled: postTastingEnabled ?? this.postTastingEnabled,
@@ -45,7 +49,7 @@ class NotificationPreferences {
       lowStockAlertsEnabled: lowStockAlertsEnabled ?? this.lowStockAlertsEnabled,
       quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
       batchMultipleTastingsEnabled: batchMultipleTastingsEnabled ?? this.batchMultipleTastingsEnabled,
-      maxAlertsPerDay: maxAlertsPerDay ?? this.maxAlertsPerDay,
+      plafondAntiSaturation: plafondAntiSaturation ?? this.plafondAntiSaturation,
     );
   }
 
@@ -72,7 +76,7 @@ class NotificationPreferencesService {
   static const keyLowStock = '${_keyPrefix}low_stock';
   static const keyQuietHours = '${_keyPrefix}quiet_hours';
   static const keyBatchTastings = '${_keyPrefix}batch_tastings';
-  static const keyMaxAlerts = '${_keyPrefix}max_alerts';
+  static const keyPlafond = '${_keyPrefix}plafond';
   static const keyPermissionPrompted = '${_keyPrefix}permission_prompted';
 
   final SharedPreferences _prefs;
@@ -89,7 +93,7 @@ class NotificationPreferencesService {
       lowStockAlertsEnabled: _prefs.getBool(keyLowStock) ?? false,
       quietHoursEnabled: _prefs.getBool(keyQuietHours) ?? true,
       batchMultipleTastingsEnabled: _prefs.getBool(keyBatchTastings) ?? true,
-      maxAlertsPerDay: _prefs.getInt(keyMaxAlerts) ?? 2,
+      plafondAntiSaturation: _prefs.getBool(keyPlafond) ?? true,
     );
   }
 
@@ -102,7 +106,7 @@ class NotificationPreferencesService {
     await _prefs.setBool(keyLowStock, prefs.lowStockAlertsEnabled);
     await _prefs.setBool(keyQuietHours, prefs.quietHoursEnabled);
     await _prefs.setBool(keyBatchTastings, prefs.batchMultipleTastingsEnabled);
-    await _prefs.setInt(keyMaxAlerts, prefs.maxAlertsPerDay);
+    await _prefs.setBool(keyPlafond, prefs.plafondAntiSaturation);
   }
 
   bool hasPromptedPermission() {
@@ -143,7 +147,7 @@ class NotificationPreferencesNotifier extends StateNotifier<NotificationPreferen
     bool? lowStockAlertsEnabled,
     bool? quietHoursEnabled,
     bool? batchMultipleTastingsEnabled,
-    int? maxAlertsPerDay,
+    bool? plafondAntiSaturation,
   }) async {
     final updated = state.copyWith(
       postTastingEnabled: postTastingEnabled,
@@ -154,7 +158,7 @@ class NotificationPreferencesNotifier extends StateNotifier<NotificationPreferen
       lowStockAlertsEnabled: lowStockAlertsEnabled,
       quietHoursEnabled: quietHoursEnabled,
       batchMultipleTastingsEnabled: batchMultipleTastingsEnabled,
-      maxAlertsPerDay: maxAlertsPerDay,
+      plafondAntiSaturation: plafondAntiSaturation,
     );
     state = updated;
     _prefs ??= await SharedPreferences.getInstance();

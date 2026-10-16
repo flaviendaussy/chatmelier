@@ -170,7 +170,8 @@ void main() {
       // Tap 'Comparaison' (Affinity comparison)
       await tester.tap(find.text('Comparaison'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Compatibilité'), findsOneWidget);
+      // « Moi » est le profil principal : on lui parle (16/10, plus de « Compatibilité Moi & Papa »).
+      expect(find.textContaining('Votre compatibilité avec Papa'), findsOneWidget);
     });
   });
 

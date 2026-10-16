@@ -26,12 +26,22 @@ class ProchaineRegion {
   final String nom;
   final String axe;
 
-  const ProchaineRegion(this.nom, this.axe);
+  /// La bouteille de la cave qui la ferait découvrir, quand il y en a une (16/10).
+  final String? vinDeLaCave;
 
-  String get phrase => tr('Prochaine région à explorer : {region}. Ses vins vous diraient ce que vous pensez {quoi}.',
-      'Next region to explore: {region}. Its wines would tell you how you feel about {quoi}.',
-      {'region': valeurAffichee(nom), 'quoi': TasteFrontierEngine.ceQueJugeLAxe(axe)});
+  const ProchaineRegion(this.nom, this.axe, {this.vinDeLaCave});
+
+  String get phrase => vinDeLaCave != null
+      ? tr('Prochaine région à explorer : {region}, déjà dans votre cave. Ouvrez votre {vin} : il vous dirait ce que vous pensez {quoi}.',
+          'Next region to explore: {region}, already in your cellar. Open your {vin}: it would tell you how you feel about {quoi}.',
+          {'region': valeurAffichee(nom), 'vin': vinDeLaCave, 'quoi': TasteFrontierEngine.ceQueJugeLAxe(axe)})
+      : tr('Prochaine région à explorer : {region}. Ses vins vous diraient ce que vous pensez {quoi}.',
+          'Next region to explore: {region}. Its wines would tell you how you feel about {quoi}.',
+          {'region': valeurAffichee(nom), 'quoi': TasteFrontierEngine.ceQueJugeLAxe(axe)});
 }
+
+/// Une bouteille de la cave qui pourrait faire découvrir son terroir.
+typedef BouteilleAExplorer = ({VinSitue lieu, String nomDuVin, ProfilDeVin profil});
 
 /// Les terroirs d'un palais (V2.3 · J3) : ceux qu'il a goûtés, ceux qui attendent en cave
 /// sans avoir été goûtés, ce qui reste à découvrir — et la prochaine région à explorer,
@@ -62,10 +72,15 @@ class CarteDesTerroirs {
     'body': ['Châteauneuf-du-Pape', 'Amarone', 'Priorat', 'Barossa'],
   };
 
+  /// [aOuvrir] : les bouteilles de la cave prêtes à boire (sans spiritueux). La prochaine
+  /// région vient d'abord de l'une d'elles, d'un terroir jamais goûté, choisie par la
+  /// frontière ; une région hors cave seulement à défaut (« mais est-ce que j'ai un
+  /// Meursault ?? », Flavien, 13/10).
   static CarteDesTerroirs dresser({
     required Iterable<VinSitue> goutes,
     required Iterable<VinSitue> enCave,
     TasteProfile? profil,
+    Iterable<BouteilleAExplorer> aOuvrir = const [],
   }) {
     final dejaGoutes = _terroirs(goutes);
     final clesGoutees = {for (final t in dejaGoutes) _cle(t)};
@@ -81,6 +96,20 @@ class CarteDesTerroirs {
 
     ProchaineRegion? prochaine;
     if (profil != null) {
+      final jamaisGoutees = [
+        for (final b in aOuvrir)
+          if (_terroirs([b.lieu]).firstOrNull case final t? when !clesGoutees.contains(_cle(t))) (b, t),
+      ];
+      final choix = TasteFrontierEngine.choisir<(BouteilleAExplorer, TerroirVu)>(
+        jamaisGoutees,
+        profil,
+        profilDe: (c) => c.$1.profil,
+      );
+      if (choix != null) {
+        prochaine = ProchaineRegion(choix.vin.$2.libelle, choix.axe, vinDeLaCave: choix.vin.$1.nomDuVin);
+      }
+    }
+    if (profil != null && prochaine == null) {
       for (final axe in AngleMortDeLaCave.axesAApprendre(profil)) {
         for (final nom in regionsQuiMontrent[axe] ?? const <String>[]) {
           final id = WineWorld.region(appellation: nom)?.id;

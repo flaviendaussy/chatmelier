@@ -161,7 +161,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final bouteilles = ref.watch(bottlesProvider(ref.watch(currentCellarIdProvider))).valueOrNull ?? const [];
     final pretes = [
       for (final b in bouteilles)
-        if (b.quantity > 0 && b.wine != null && _pretABoire(b.wine!)) b,
+        if (b.quantity > 0 && b.wine != null && !b.wine!.isSpirit && _pretABoire(b.wine!)) b,
     ];
     final frontiere = TasteFrontierEngine.choisir(
       pretes,

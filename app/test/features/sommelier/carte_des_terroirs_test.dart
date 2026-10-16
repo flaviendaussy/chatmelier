@@ -1,5 +1,6 @@
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/sommelier/domain/carte_des_terroirs.dart';
+import 'package:chatmelier/features/sommelier/domain/taste_frontier_engine.dart';
 import 'package:chatmelier/shared/utils/langue.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -69,5 +70,34 @@ void main() {
     const moselle = ProchaineRegion('Moselle', 'acidity');
     Langue.code = 'en';
     expect(moselle.phrase, startsWith('Next region to explore: Mosel.'));
+  });
+
+  test('« mais est-ce que j\'ai un Meursault ?? » : une bouteille de la cave passe avant (13/10)', () {
+    // Un Crozes boisé jamais goûté attend en cave : il éclaire le boisé, l'axe inconnu.
+    final crozes = (
+      lieu: vin('Crozes-Hermitage', appellation: 'Crozes-Hermitage', region: 'Vallée du Rhône'),
+      nomDuVin: 'Domaine Combier Clos des Grives 2019',
+      profil: const ProfilDeVin({'oak': 8.0, 'tannin': 6.0, 'body': 7.0}),
+    );
+    final carte = CarteDesTerroirs.dresser(
+      goutes: const [],
+      enCave: [crozes.lieu],
+      profil: palais,
+      aOuvrir: [crozes],
+    );
+    expect(carte.prochaine?.nom, 'Crozes-Hermitage');
+    expect(carte.prochaine?.vinDeLaCave, 'Domaine Combier Clos des Grives 2019');
+    expect(carte.prochaine?.phrase, contains('déjà dans votre cave'));
+    expect(carte.prochaine?.phrase, contains('Ouvrez votre Domaine Combier Clos des Grives 2019'));
+
+    // Déjà goûté, ce terroir n'est plus « à explorer » : la région hors cave revient.
+    final dejaGoute = CarteDesTerroirs.dresser(
+      goutes: [crozes.lieu],
+      enCave: [crozes.lieu],
+      profil: palais,
+      aOuvrir: [crozes],
+    );
+    expect(dejaGoute.prochaine?.vinDeLaCave, isNull);
+    expect(dejaGoute.prochaine?.nom, 'Rioja');
   });
 }

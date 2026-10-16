@@ -1770,58 +1770,64 @@
   "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:776"
  },
  {
+  "fr": "Votre compatibilité avec {b}",
+  "en": "Your compatibility with {b}",
+  "it": "La tua compatibilità con {b}",
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:784"
+ },
+ {
   "fr": "Compatibilité {a} & {b}",
   "en": "Compatibility {a} & {b}",
   "it": "Compatibilità {a} e {b}",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:782"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:786"
  },
  {
   "fr": "Recommandation Sommelier pour ce duo :",
   "en": "Sommelier Recommendation for this duo:",
   "it": "Il consiglio del sommelier per questa coppia:",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:831"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:835"
  },
  {
   "fr": "Ajouter un proche / invité",
   "en": "Add a friend / guest",
   "it": "Aggiungi una persona cara / un ospite",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:870"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:874"
  },
  {
   "fr": "Prénom / Nom du convive *",
   "en": "Guest Name *",
   "it": "Nome del commensale *",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:872"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:876"
  },
  {
   "fr": "ex: Papa, Maman, Sophie, Dimitri...",
   "en": "e.g. Dad, Mom, Sarah, David...",
   "it": "es.: papà, mamma, Sofia, Dimitri...",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:874"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:878"
  },
  {
   "fr": "Notes ou préférences (optionnel)",
   "en": "Notes or preferences (optional)",
   "it": "Note o preferenze (facoltativo)",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:876"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:880"
  },
  {
   "fr": "ex: Préfère les rouges charpentés et les vins du Sud",
   "en": "e.g. Prefers full-bodied reds and Southern wines",
   "it": "es.: preferisce i rossi strutturati e i vini del Sud",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:878"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:882"
  },
  {
   "fr": "Créer le profil",
   "en": "Create profile",
   "it": "Crea il profilo",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:882"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:886"
  },
  {
   "fr": "Ajouté par l'utilisateur",
   "en": "Added by user",
   "it": "Aggiunto dall'utente",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:930"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:934"
  },
  {
   "fr": "Profils de Goût & Co-Dégustateurs",
@@ -1947,25 +1953,25 @@
   "fr": "Vos terroirs",
   "en": "Your terroirs",
   "it": "I tuoi terroir",
-  "ou": "lib/features/auth/presentation/widgets/carte_des_terroirs_card.dart:92"
+  "ou": "lib/features/auth/presentation/widgets/carte_des_terroirs_card.dart:115"
  },
  {
   "fr": "Goûtés ({n})",
   "en": "Tasted ({n})",
   "it": "Assaggiati ({n})",
-  "ou": "lib/features/auth/presentation/widgets/carte_des_terroirs_card.dart:98"
+  "ou": "lib/features/auth/presentation/widgets/carte_des_terroirs_card.dart:121"
  },
  {
   "fr": "En cave, jamais goûtés ({n})",
   "en": "In the cellar, never tasted ({n})",
   "it": "In cantina, mai assaggiati ({n})",
-  "ou": "lib/features/auth/presentation/widgets/carte_des_terroirs_card.dart:102"
+  "ou": "lib/features/auth/presentation/widgets/carte_des_terroirs_card.dart:125"
  },
  {
   "fr": "{explorees} régions approchées sur {total} : {reste} restent à découvrir.",
   "en": "{explorees} of {total} regions explored: {reste} left to discover.",
   "it": "{explorees} regioni esplorate su {total}: ne restano {reste} da scoprire.",
-  "ou": "lib/features/auth/presentation/widgets/carte_des_terroirs_card.dart:107"
+  "ou": "lib/features/auth/presentation/widgets/carte_des_terroirs_card.dart:130"
  },
  {
   "fr": "Mon palais",
@@ -11958,6 +11964,12 @@
   "ou": "lib/features/config/porte_de_l_age.dart:106"
  },
  {
+  "fr": "Retour gardé sur le téléphone : il partira avec sa capture dès que le réseau revient.",
+  "en": "Feedback saved on this phone: it will be sent with its screenshot as soon as you are back online.",
+  "it": "Segnalazione salvata sul telefono: partirà con la sua schermata appena torni online.",
+  "ou": "lib/features/feedback/presentation/feedback_annotation_sheet.dart:198"
+ },
+ {
   "fr": "Vos retours n'ont pas pu être chargés. Réessayez une fois connecté.",
   "en": "Your reports could not be loaded. Try again once online.",
   "it": "Impossibile caricare le tue segnalazioni. Riprova quando sei connesso.",
@@ -12790,6 +12802,18 @@
   "en": "Aromas: {v1}",
   "it": "Aromi: {v1}",
   "ou": "lib/features/journal/data/degustations_partagees.dart:55"
+ },
+ {
+  "fr": "Ses dégustations récentes, de la plus récente à la plus ancienne :",
+  "en": "Recent tastings, most recent first:",
+  "it": "Le sue degustazioni recenti, dalla più recente alla più vecchia:",
+  "ou": "lib/features/journal/domain/habitudes_du_palais.dart:26"
+ },
+ {
+  "fr": "Note moyenne : {moyenne}/10 sur {n} dégustations.",
+  "en": "Average rating: {moyenne}/10 over {n} tastings.",
+  "it": "Voto medio: {moyenne}/10 su {n} degustazioni.",
+  "ou": "lib/features/journal/domain/habitudes_du_palais.dart:30"
  },
  {
   "fr": "Dégustation guidée. Arômes : {v1}",
@@ -14403,133 +14427,133 @@
   "fr": "fr_FR",
   "en": "en_US",
   "it": "it_IT",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:234"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:236"
  },
  {
   "fr": "Journal de dégustation",
   "en": "Tasting journal",
   "it": "Diario di degustazione",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:251"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:253"
  },
  {
   "fr": "Dégustation Hors-Cave (Restaurant, Amis)",
   "en": "Out-of-Cellar Tasting (Restaurant, Friends)",
   "it": "Degustazione fuori cantina (ristorante, amici)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:256"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:258"
  },
  {
   "fr": "Déguster Hors-Cave",
   "en": "Taste Out-of-Cellar",
   "it": "Degusta fuori cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:265"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:267"
  },
  {
   "fr": "Aucun souvenir de dégustation pour le moment",
   "en": "No tasting memories yet",
   "it": "Ancora nessun ricordo di degustazione",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:286"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:288"
  },
  {
   "fr": "Dégustez et sortez une bouteille de votre cave, notez un vin bu au restaurant ou scannez une carte.",
   "en": "Taste and check out a bottle from your cellar, rate a wine at a restaurant or scan a menu.",
   "it": "Degusta e togli una bottiglia dalla tua cantina, dai un voto a un vino bevuto al ristorante o scansiona una carta.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:288"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:290"
  },
  {
   "fr": "Noter un vin hors-cave (Restaurant, Amis)",
   "en": "Log out-of-cellar wine (Restaurant, Friends)",
   "it": "Vota un vino fuori cantina (ristorante, amici)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:291"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:293"
  },
  {
   "fr": "Rechercher : vin, lieu, invité, plat, note, année...",
   "en": "Search: wine, place, guest, dish, rating, year...",
   "it": "Cerca: vino, luogo, ospite, piatto, voto, anno...",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:331"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:333"
  },
  {
   "fr": "Hors-Cave",
   "en": "Out-of-Cellar",
   "it": "Fuori cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:390"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:392"
  },
  {
   "fr": "Coups de Cœur (≥ 8/10)",
   "en": "Top Rated (≥ 8/10)",
   "it": "Colpi di fulmine (≥ 8/10)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:419"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:421"
  },
  {
   "fr": "Année",
   "en": "Year",
   "it": "Anno",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:451"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:453"
  },
  {
   "fr": "Toutes les années",
   "en": "All years",
   "it": "Tutti gli anni",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:457"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:459"
  },
  {
   "fr": "Aucun souvenir trouvé",
   "en": "No memories found",
   "it": "Nessun ricordo trovato",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:498"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:500"
  },
  {
   "fr": "Aucune dégustation ne correspond aux filtres actuels.",
   "en": "No tastings match current filters.",
   "it": "Nessuna degustazione corrisponde ai filtri attuali.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:504"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:506"
  },
  {
   "fr": "Réinitialiser les filtres",
   "en": "Reset filters",
   "it": "Reimposta i filtri",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:512"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:514"
  },
  {
   "fr": "« {nom} » supprimé du journal.",
   "en": "\"{nom}\" removed from your journal.",
   "it": "«{nom}» eliminato dal diario.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:631"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:635"
  },
  {
   "fr": "Pas de connexion : « {nom} » reviendra au journal. Supprimez-le à nouveau une fois connecté.",
   "en": "No connection: \"{nom}\" will come back to your journal. Delete it again once online.",
   "it": "Nessuna connessione: «{nom}» tornerà nel diario. Eliminalo di nuovo quando sei connesso.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:648"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:652"
  },
  {
   "fr": "🍽️ Hors-Cave",
   "en": "🍽️ Out-of-Cellar",
   "it": "🍽️ Fuori cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:786"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:801"
  },
  {
   "fr": "🍷 Cave",
   "en": "🍷 Cellar",
   "it": "🍷 Cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:798"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:813"
  },
  {
   "fr": "Accord",
   "en": "Pairing",
   "it": "Abbinamento",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:838"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:853"
  },
  {
   "fr": "Fiche complète & arômes",
   "en": "Full details & aromas",
   "it": "Scheda completa e aromi",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:878"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:893"
  },
  {
   "fr": "Quiz sommelier",
   "en": "Sommelier quiz",
   "it": "Quiz del sommelier",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:894"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:909"
  },
  {
   "fr": "• Pyrazines (2-isobutyl-3-méthoxypyrazine) : notes végétales nobles, poivron, bourgeon de cassis.",
@@ -15051,73 +15075,73 @@
   "fr": "janvier",
   "en": "January",
   "it": "gennaio",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:292"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:295"
  },
  {
   "fr": "février",
   "en": "February",
   "it": "febbraio",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:292"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:295"
  },
  {
   "fr": "mars",
   "en": "March",
   "it": "marzo",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:292"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:295"
  },
  {
   "fr": "avril",
   "en": "April",
   "it": "aprile",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:293"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:296"
  },
  {
   "fr": "mai",
   "en": "May",
   "it": "maggio",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:293"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:296"
  },
  {
   "fr": "juin",
   "en": "June",
   "it": "giugno",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:293"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:296"
  },
  {
   "fr": "juillet",
   "en": "July",
   "it": "luglio",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:294"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:297"
  },
  {
   "fr": "août",
   "en": "August",
   "it": "agosto",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:294"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:297"
  },
  {
   "fr": "septembre",
   "en": "September",
   "it": "settembre",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:294"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:297"
  },
  {
   "fr": "octobre",
   "en": "October",
   "it": "ottobre",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:295"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:298"
  },
  {
   "fr": "novembre",
   "en": "November",
   "it": "novembre",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:295"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:298"
  },
  {
   "fr": "décembre",
   "en": "December",
   "it": "dicembre",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:295"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:298"
  },
  {
   "fr": "Vous connaissez ce vin",
@@ -15135,55 +15159,55 @@
   "fr": "Vous en avez en cave, payée {paye} — soit {v1} de moins qu'ici",
   "en": "You have it in your cellar, bought for {paye} — {v1} less than here",
   "it": "Ne hai in cantina, pagato {paye}: {v1} in meno che qui",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:160"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:163"
  },
  {
   "fr": "Vous en avez en cave, payée {paye}",
   "en": "You have it in your cellar, bought for {paye}",
   "it": "Ne hai in cantina, pagato {paye}",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:161"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:164"
  },
  {
   "fr": "Vous en avez {quantite} en cave",
   "en": "You have {quantite} in your cellar",
   "it": "Ne hai {quantite} in cantina",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:167"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:170"
  },
  {
   "fr": "Vous en avez une en cave",
   "en": "You have one in your cellar",
   "it": "Ne hai una in cantina",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:168"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:171"
  },
  {
   "fr": "Déjà dans votre cave",
   "en": "Already in your cellar",
   "it": "Già nella tua cantina",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:172"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:175"
  },
  {
   "fr": "Comblerait un manque",
   "en": "Would fill a gap",
   "it": "Colmerebbe una lacuna",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:193"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:196"
  },
  {
   "fr": "Votre cave est légère sur ce registre — l'occasion de l'essayer avant d'en acheter.",
   "en": "Your cellar is light in this style — a chance to try it before buying any.",
   "it": "La tua cantina è scarsa su questo stile: l'occasione di provarlo prima di comprarne.",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:194"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:197"
  },
  {
   "fr": "Goûté",
   "en": "Tasted",
   "it": "Assaggiato",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:285"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:288"
  },
  {
   "fr": "en {mois} {year}",
   "en": "in {mois} {year}",
   "it": "a {mois} {year}",
-  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:297"
+  "ou": "lib/features/menu_scan/domain/cellar_bridge.dart:300"
  },
  {
   "fr": "Le préféré du comptoir : {vin} ({visages}).",
@@ -15441,313 +15465,313 @@
   "fr": "1. L'Ouverture",
   "en": "1. The Opening",
   "it": "1. L'apertura",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:445"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:452"
  },
  {
   "fr": "2. Le Cœur",
   "en": "2. The Heart",
   "it": "2. Il cuore",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:446"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:453"
  },
  {
   "fr": "3. Le Final",
   "en": "3. The Finale",
   "it": "3. Il finale",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:447"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:454"
  },
  {
   "fr": "1. L'Éveil",
   "en": "1. The Awakening",
   "it": "1. Il risveglio",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:451"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:458"
  },
  {
   "fr": "2. La Montée",
   "en": "2. The Build-up",
   "it": "2. La salita",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:452"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:459"
  },
  {
   "fr": "3. Le Cœur",
   "en": "3. The Heart",
   "it": "3. Il cuore",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:453"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:460"
  },
  {
   "fr": "4. L'Apogée",
   "en": "4. The Peak",
   "it": "4. L'apice",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:454"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:461"
  },
  {
   "fr": "5. Le Final",
   "en": "5. The Finale",
   "it": "5. Il finale",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:455"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:462"
  },
  {
   "fr": "Douceur",
   "en": "Sweetness",
   "it": "Dolcezza",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:471"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:478"
  },
  {
   "fr": "Vivacité",
   "en": "Crispness",
   "it": "Vivacità",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:472"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:479"
  },
  {
   "fr": "Minéralité",
   "en": "Minerality",
   "it": "Mineralità",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:473"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:480"
  },
  {
   "fr": "Charpente",
   "en": "Structure",
   "it": "Struttura",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:474"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:481"
  },
  {
   "fr": "Souplesse",
   "en": "Silkiness",
   "it": "Morbidezza",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:475"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:482"
  },
  {
   "fr": "Ampleur",
   "en": "Fullness",
   "it": "Ampiezza",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:476"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:483"
  },
  {
   "fr": "Légèreté",
   "en": "Lightness",
   "it": "Leggerezza",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:477"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:484"
  },
  {
   "fr": "Boisé",
   "en": "Oak",
   "it": "Legno",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:478"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:485"
  },
  {
   "fr": "Gras",
   "en": "Creaminess",
   "it": "Grassezza",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:479"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:486"
  },
  {
   "fr": "Fruit",
   "en": "Fruit",
   "it": "Frutto",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:480"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:487"
  },
  {
   "fr": "Pour savoir ce que vous pensez {quoi}",
   "en": "To find out how you feel about {quoi}",
   "it": "Per sapere cosa pensi {quoi}",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:171"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:176"
  },
  {
   "fr": "Un style que vous aimez",
   "en": "A style you enjoy",
   "it": "Uno stile che ti piace",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:181"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:186"
  },
  {
   "fr": "Une valeur sûre",
   "en": "A safe bet",
   "it": "Una scelta sicura",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:183"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:188"
  },
  {
   "fr": "Pour mieux vous connaître ({verres})",
   "en": "To know you better ({verres})",
   "it": "Per conoscerti meglio ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:206"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:212"
  },
  {
   "fr": "Aucun vin détecté sur cette carte.",
   "en": "No wine found on this list.",
   "it": "Nessun vino trovato su questa carta.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:208"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:214"
  },
  {
   "fr": "Un verre que vous aimerez, ceux qui m'apprendront le plus sur votre palais, et une valeur sûre — servis du plus léger au plus intense.",
   "en": "A glass you will enjoy, the ones that will teach me most about your palate, and a safe bet — served from the lightest to the most intense.",
   "it": "Un calice che ti piacerà, quelli che mi insegneranno di più sul tuo palato e una scelta sicura, serviti dal più leggero al più intenso.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:209"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:215"
  },
  {
   "fr": "ce restaurant",
   "en": "this restaurant",
   "it": "questo ristorante",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:286"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:292"
  },
  {
   "fr": "Grand Flight 100% Blancs ({verres})",
   "en": "Grand 100% White Flight ({verres})",
   "it": "Grande percorso 100 % bianchi ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:293"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:299"
  },
  {
   "fr": "Flight 100% Blancs ({verres})",
   "en": "100% White Flight ({verres})",
   "it": "Percorso 100 % bianchi ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:294"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:300"
  },
  {
   "fr": "Les blancs de {restName}, du plus vif et minéral au plus ample.",
   "en": "The whites of {restName}, from the crispest and most mineral to the fullest.",
   "it": "I bianchi di {restName}, dal più vivace e minerale al più ampio.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:295"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:301"
  },
  {
   "fr": "Grand Flight 100% Rosés ({verres})",
   "en": "Grand 100% Rosé Flight ({verres})",
   "it": "Grande percorso 100 % rosati ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:314"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:320"
  },
  {
   "fr": "Flight 100% Rosés ({verres})",
   "en": "100% Rosé Flight ({verres})",
   "it": "Percorso 100 % rosati ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:315"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:321"
  },
  {
   "fr": "Les rosés de {restName}, du plus aérien au plus vineux.",
   "en": "The rosés of {restName}, from the most delicate to the most vinous.",
   "it": "I rosati di {restName}, dal più aereo al più vinoso.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:316"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:322"
  },
  {
   "fr": "Grand Flight 100% Rouges ({verres})",
   "en": "Grand 100% Red Flight ({verres})",
   "it": "Grande percorso 100 % rossi ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:336"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:342"
  },
  {
   "fr": "Flight 100% Rouges ({verres})",
   "en": "100% Red Flight ({verres})",
   "it": "Percorso 100 % rossi ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:337"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:343"
  },
  {
   "fr": "Les rouges de {restName}, du plus souple au plus structuré.",
   "en": "The reds of {restName}, from the silkiest to the most structured.",
   "it": "I rossi di {restName}, dal più morbido al più strutturato.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:340"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:346"
  },
  {
   "fr": "Grand Flight de la Carte ({verres})",
   "en": "Grand Flight of the List ({verres})",
   "it": "Grande percorso della carta ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:359"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:365"
  },
  {
   "fr": "Flight Découverte ({verres})",
   "en": "Discovery Flight ({verres})",
   "it": "Percorso scoperta ({verres})",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:360"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:366"
  },
  {
   "fr": "Cinq temps sur la carte de {restName}, du plus vif au plus intense.",
   "en": "Five movements across the list at {restName}, from the crispest to the most intense.",
   "it": "Cinque tempi sulla carta di {restName}, dal più vivace al più intenso.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:362"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:368"
  },
  {
   "fr": "Trois verres de la carte de {restName}, en montant en intensité.",
   "en": "Three glasses from the list at {restName}, rising in intensity.",
   "it": "Tre calici della carta di {restName}, in crescendo di intensità.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:364"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:370"
  },
  {
   "fr": "blancs",
   "en": "whites",
   "it": "bianchi",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:395"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:401"
  },
  {
   "fr": "blanc",
   "en": "white",
   "it": "bianco",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:395"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:401"
  },
  {
   "fr": "rosés",
   "en": "rosés",
   "it": "rosati",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:396"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:402"
  },
  {
   "fr": "rosé",
   "en": "rosé",
   "it": "rosato",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:396"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:402"
  },
  {
   "fr": "rouges",
   "en": "reds",
   "it": "rossi",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:397"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:403"
  },
  {
   "fr": "rouge",
   "en": "red",
   "it": "rosso",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:397"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:403"
  },
  {
   "fr": "Cette carte ne propose aucun {couleur}.",
   "en": "This list has no {couleur}.",
   "it": "Questa carta non propone nessun {couleur}.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:422"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:429"
  },
  {
   "fr": "{recit} La carte ne propose qu'un seul {couleur} : pas de quoi composer un vrai flight.",
   "en": "{recit} The list has only one {couleur}: not enough for a real flight.",
   "it": "{recit} La carta propone un solo {couleur}: non basta per un vero percorso.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:423"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:430"
  },
  {
   "fr": "{recit} La carte ne propose que {verres} {couleur} : le flight en compte {verres}.",
   "en": "{recit} The list has only {verres} {couleur}: the flight has {verres}.",
   "it": "{recit} La carta propone solo {verres} {couleur}: il percorso ne conta {verres}.",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:425"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:432"
  },
  {
   "fr": "1 Verre",
   "en": "1 Glass",
   "it": "1 calice",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:460"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:467"
  },
  {
   "fr": "{n} Verres",
   "en": "{n} Glasses",
   "it": "{n} calici",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:460"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:467"
  },
  {
   "fr": "Équilibre",
   "en": "Balance",
   "it": "Equilibrio",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:482"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:489"
  },
  {
   "fr": "Corps",
   "en": "Body",
   "it": "Corpo",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:501"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:508"
  },
  {
   "fr": "Bois",
   "en": "Oak",
   "it": "Legno",
-  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:503"
+  "ou": "lib/features/menu_scan/domain/menu_flight_engine.dart:510"
  },
  {
   "fr": "le plus charpenté",
@@ -16023,19 +16047,19 @@
   "fr": "le moins cher ({affiche})",
   "en": "the cheapest ({affiche})",
   "it": "il meno caro ({affiche})",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:552"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:554"
  },
  {
   "fr": "le plus cher ({affiche})",
   "en": "the priciest ({affiche})",
   "it": "il più caro ({affiche})",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:553"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:555"
  },
  {
   "fr": "à {affiche}",
   "en": "at {affiche}",
   "it": "a {affiche}",
-  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:555"
+  "ou": "lib/features/menu_scan/domain/menu_table_matcher_engine.dart:557"
  },
  {
   "fr": "Excellent rapport prix/plaisir sur la carte",
@@ -16173,7 +16197,7 @@
   "fr": "bt",
   "en": "btl",
   "it": "bott.",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:411"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:389"
  },
  {
   "fr": "bulles",
@@ -16449,7 +16473,7 @@
   "fr": "Profil à compléter",
   "en": "Complete profile",
   "it": "Profilo da completare",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1737"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1747"
  },
  {
   "fr": "{n} Blanc",
@@ -16779,67 +16803,67 @@
   "fr": "🐟 Quel vin avec du poisson / fruits de mer ?",
   "en": "🐟 Which wine with fish / seafood?",
   "it": "🐟 Quale vino con pesce o frutti di mare?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:46"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:48"
  },
  {
   "fr": "🥩 Quel vin rouge pour une viande rouge savoureuse ?",
   "en": "🥩 Which red wine for savory red meat?",
   "it": "🥩 Quale rosso per una carne rossa saporita?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:47"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:49"
  },
  {
   "fr": "💎 Le meilleur rapport qualité / prix de la carte ?",
   "en": "💎 Best value for money on this list?",
   "it": "💎 Il miglior rapporto qualità/prezzo della carta?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:48"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:50"
  },
  {
   "fr": "🍷 Un vin rouge souple et très peu tannique ?",
   "en": "🍷 A smooth red wine with low tannins?",
   "it": "🍷 Un rosso morbido e pochissimo tannico?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:49"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:51"
  },
  {
   "fr": "🧀 Quel accord parfait avec un plateau de fromages ?",
   "en": "🧀 Best pairing for a cheese board?",
   "it": "🧀 Quale abbinamento perfetto con un tagliere di formaggi?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:50"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:52"
  },
  {
   "fr": "Bonjour ! Je suis votre Sommelier personnel chez \"{restaurantName}\". J'ai analysé les {wines_length} références de cette carte des vins. Que mangez-vous ce soir, ou quelles sont vos envies pour vous guider ?",
   "en": "Hello! I'm your personal Sommelier at \"{restaurantName}\". I have analyzed the {wines_length} wines on this list. What are you dining on tonight, or what are you in the mood for?",
   "it": "Ciao! Sono il tuo sommelier personale da «{restaurantName}». Ho analizzato le {wines_length} referenze di questa carta dei vini. Cosa mangi stasera, o cosa ti va, per orientarti?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:63"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:65"
  },
  {
   "fr": "Désolé, une erreur est survenue : {e}",
   "en": "Sorry, an error occurred: {e}",
   "it": "Spiacente, si è verificato un errore: {e}",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:115"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:125"
  },
  {
   "fr": "Conseil Sommelier sur cette carte",
   "en": "Sommelier Advice on this Wine List",
   "it": "Il consiglio del sommelier su questa carta",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:185"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:195"
  },
  {
   "fr": "{restaurantName} • {wines_length} vins analysés",
   "en": "{restaurantName} • {wines_length} wines analyzed",
   "it": "{restaurantName} • {wines_length} vini analizzati",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:189"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:199"
  },
  {
   "fr": "Le sommelier réfléchit...",
   "en": "Sommelier reflecting...",
   "it": "Il sommelier sta riflettendo...",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:290"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:300"
  },
  {
   "fr": "Ex: Quel vin pour du canard rôti ?",
   "en": "E.g.: Which wine for roasted duck?",
   "it": "Es.: quale vino con un'anatra arrosto?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:310"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:320"
  },
  {
   "fr": "📈 En montant en intensité",
@@ -17523,397 +17547,397 @@
   "fr": "Sans préférences déclarées",
   "en": "No stated preferences",
   "it": "Nessuna preferenza indicata",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:374"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:385"
  },
  {
   "fr": "Convive",
   "en": "Guest",
   "it": "Commensale",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:379"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:390"
  },
  {
   "fr": "Ce que vous mangez (le plus proche)",
   "en": "What you're eating (closest match)",
   "it": "Cosa mangi (il più vicino)",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:405"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:416"
  },
  {
   "fr": "Vous êtes à table sans boire ce soir : les bouteilles se choisissent pour les autres. Si vous changez d'avis, décrivez vos goûts :",
   "en": "You're at the table without drinking tonight: the bottles are chosen for the others. If you change your mind, describe your tastes:",
   "it": "Stasera sei a tavola senza bere: le bottiglie si scelgono per gli altri. Se cambi idea, descrivi i tuoi gusti:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:496"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:507"
  },
  {
   "fr": "Vous êtes à table sans préférences : le classement ne tient pas compte de vos goûts. Décrivez-les quand vous voulez :",
   "en": "You joined without preferences: the ranking ignores your taste. Describe it whenever you like:",
   "it": "Sei a tavola senza preferenze: la classifica non tiene conto dei tuoi gusti. Descrivili quando vuoi:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:503"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:514"
  },
  {
   "fr": "Mettre à jour mes préférences",
   "en": "Update my preferences",
   "it": "Aggiorna le mie preferenze",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:510"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:521"
  },
  {
   "fr": "Vous avez un compte Chatmelier ?",
   "en": "Do you have a Chatmelier account?",
   "it": "Hai un account Chatmelier?",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:521"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:532"
  },
  {
   "fr": "Oui",
   "en": "Yes",
   "it": "Sì",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:531"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:542"
  },
  {
   "fr": "Votre palais Chatmelier sera utilisé ({questionnairesCompleted} dégustations).",
   "en": "Your Chatmelier palate will be used ({questionnairesCompleted} tastings).",
   "it": "Verrà usato il tuo palato Chatmelier ({questionnairesCompleted} degustazioni).",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:559"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:570"
  },
  {
   "fr": "Votre palais",
   "en": "Your palate",
   "it": "Il tuo palato",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:573"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:584"
  },
  {
   "fr": "Rejoindre avec mon palais",
   "en": "Join with my palate",
   "it": "Unisciti con il mio palato",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:592"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:603"
  },
  {
   "fr": "Plutôt décrire mes goûts ici",
   "en": "Describe my tastes here instead",
   "it": "Preferisco descrivere qui i miei gusti",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:600"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:611"
  },
  {
   "fr": "Aucun palais Chatmelier sur cet appareil. Décrivez vos goûts en vingt secondes — c'est facultatif :",
   "en": "No Chatmelier palate on this device. Describe your tastes in twenty seconds — optional:",
   "it": "Nessun palato Chatmelier su questo dispositivo. Descrivi i tuoi gusti in venti secondi (è facoltativo):",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:613"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:624"
  },
  {
   "fr": "Décrivez vos goûts en vingt secondes — c'est facultatif :",
   "en": "Describe your tastes in twenty seconds — optional:",
   "it": "Descrivi i tuoi gusti in venti secondi (è facoltativo):",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:614"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:625"
  },
  {
   "fr": "Valider mes goûts pour la table",
   "en": "Confirm my tastes for the table",
   "it": "Conferma i miei gusti per il tavolo",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:620"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:631"
  },
  {
   "fr": "Cette table a expiré : l'hôte ne vous verra pas. Demandez-lui un nouveau code.",
   "en": "This table has expired: the host won't see you. Ask for a new code.",
   "it": "Questo tavolo è scaduto: chi ospita non ti vedrà. Chiedigli un nuovo codice.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:666"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:677"
  },
  {
   "fr": "Pas de réseau : l'hôte ne vous voit pas encore.",
   "en": "No connection: the host can't see you yet.",
   "it": "Niente rete: chi ospita non ti vede ancora.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:667"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:678"
  },
  {
   "fr": "Table {code}",
   "en": "Table {code}",
   "it": "Tavolo {code}",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:730"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:742"
  },
  {
   "fr": "Rejoignez la table pour voir la carte",
   "en": "Join the table to see the wine list",
   "it": "Unisciti al tavolo per vedere la carta",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:756"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:769"
  },
  {
   "fr": "Votre prénom suffit : la carte arrive dès que vous êtes à table, et vous pourrez décrire vos goûts ensuite.",
   "en": "Your first name is enough: the wine list arrives as soon as you are at the table, and you can describe your tastes afterwards.",
   "it": "Basta il tuo nome: la carta arriva appena sei al tavolo, e potrai descrivere i tuoi gusti dopo.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:762"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:775"
  },
  {
   "fr": "Rejoindre la table",
   "en": "Join the table",
   "it": "Unisciti al tavolo",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:792"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:805"
  },
  {
   "fr": "Carte indisponible",
   "en": "Menu unavailable",
   "it": "Carta non disponibile",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:808"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:822"
  },
  {
   "fr": "Cette carte n'a pas pu être chargée",
   "en": "This menu could not be loaded",
   "it": "Impossibile caricare questa carta",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:820"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:834"
  },
  {
   "fr": "Le lien est incomplet ou a expiré. Demandez à la personne qui a scanné la carte de réafficher son QR code, puis scannez-le à nouveau.",
   "en": "The link is incomplete or has expired. Ask whoever scanned the menu to show their QR code again, then scan it once more.",
   "it": "Il link è incompleto o è scaduto. Chiedi a chi ha scansionato la carta di mostrare di nuovo il suo codice QR, poi scansionalo di nuovo.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:829"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:843"
  },
  {
   "fr": "Menu de Table",
   "en": "Table Menu",
   "it": "La carta del tavolo",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:858"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:874"
  },
  {
   "fr": "Actualiser",
   "en": "Refresh",
   "it": "Aggiorna",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:864"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:880"
  },
  {
   "fr": "Consensus",
   "en": "Consensus",
   "it": "Consenso",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:875"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:891"
  },
  {
   "fr": "Carte des Vins",
   "en": "Wine List",
   "it": "Carta dei vini",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:876"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:892"
  },
  {
   "fr": "Flights",
   "en": "Flights",
   "it": "Percorsi",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:877"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:893"
  },
  {
   "fr": "Accords Mets",
   "en": "Food Match",
   "it": "Abbinamenti",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:878"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:894"
  },
  {
   "fr": "Consensus de Table Multi-Palais",
   "en": "Multi-Palate Table Consensus",
   "it": "Consenso del tavolo tra più palati",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:923"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:939"
  },
  {
   "fr": "Vos préférences à table :",
   "en": "Your palate preferences:",
   "it": "Le tue preferenze a tavola:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:956"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:972"
  },
  {
   "fr": "Rejoindre la table avec vos goûts :",
   "en": "Join the table with your tastes:",
   "it": "Unisciti al tavolo con i tuoi gusti:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:957"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:973"
  },
  {
   "fr": "Convives à table :",
   "en": "Guests at the table:",
   "it": "Commensali al tavolo:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:971"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:987"
  },
  {
   "fr": "Hôte de la table",
   "en": "Table host",
   "it": "Chi ospita",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:990"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1006"
  },
  {
   "fr": "Donner mon avis sur les vins",
   "en": "Give my view on the wines",
   "it": "Dai il mio parere sui vini",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1012"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1028"
  },
  {
   "fr": "Revoir mes {mesAvis_length} avis",
   "en": "Review my {mesAvis_length} views",
   "it": "Rivedi i miei {mesAvis_length} pareri",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1013"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1029"
  },
  {
   "fr": "Aucune correspondance trouvée sur cette carte.",
   "en": "No match found on this list.",
   "it": "Nessuna corrispondenza trovata in questa carta.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1033"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1049"
  },
  {
   "fr": "Chatmelier — Sommelier Intelligent",
   "en": "Chatmelier — Your Smart Sommelier",
   "it": "Chatmelier — Sommelier intelligente",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1065"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1081"
  },
  {
   "fr": "L'app arrive bientôt sur iPhone. D'ici là, gardez votre soirée avec un code de reprise, juste au-dessus.",
   "en": "The iPhone app is coming soon. Until then, keep your evening with a recovery code, just above.",
   "it": "L'app arriva presto su iPhone. Nel frattempo, conserva la tua serata con un codice di recupero, qui sopra.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1072"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1088"
  },
  {
   "fr": "Gardez votre palais, gérez votre cave et découvrez des accords sur mesure dans l'app Android.",
   "en": "Keep your palate, manage your cellar and discover tailored pairings in the Android app.",
   "it": "Conserva il tuo palato, gestisci la tua cantina e scopri abbinamenti su misura nell'app Android.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1073"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1089"
  },
  {
   "fr": "Installer l'app",
   "en": "Install the app",
   "it": "Installa l'app",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1085"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1101"
  },
  {
   "fr": "Rechercher un vin, domaine, appellation...",
   "en": "Search wine, estate, appellation...",
   "it": "Cerca un vino, un produttore, una denominazione...",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1184"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1200"
  },
  {
   "fr": "✨ Bulles",
   "en": "✨ Sparkling",
   "it": "✨ Bollicine",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1218"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1234"
  },
  {
   "fr": "⭐ Pépites & Bons Plans",
   "en": "⭐ Gems & Deals",
   "it": "⭐ Chicche e affari",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1222"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1238"
  },
  {
   "fr": "{n} vins trouvés",
   "en": "{n} wines found",
   "it": "{n} vini trovati",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1242"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1258"
  },
  {
   "fr": "{n} vin trouvé",
   "en": "{n} wine found",
   "it": "{n} vino trovato",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1243"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1259"
  },
  {
   "fr": "Aucun vin ne correspond à ces critères.",
   "en": "No wine matches these filters.",
   "it": "Nessun vino corrisponde a questi criteri.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1252"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1268"
  },
  {
   "fr": "Verre : ",
   "en": "Glass: ",
   "it": "Calice: ",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1277"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1293"
  },
  {
   "fr": "⭐ Pépite",
   "en": "⭐ Gem",
   "it": "⭐ Chicca",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1337"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1353"
  },
  {
   "fr": "🏷️ Bon Plan",
   "en": "🏷️ Deal",
   "it": "🏷️ Affare",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1347"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1363"
  },
  {
   "fr": "Profil sensoriel estimé :",
   "en": "Estimated sensory profile:",
   "it": "Profilo sensoriale stimato:",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1425"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1441"
  },
  {
   "fr": "Corps / Puissance",
   "en": "Body / Power",
   "it": "Corpo / potenza",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1429"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1445"
  },
  {
   "fr": "Tanins & Structure",
   "en": "Tannins & Structure",
   "it": "Tannini e struttura",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1435"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1451"
  },
  {
   "fr": "Minéralité & Tension",
   "en": "Minerality & Tension",
   "it": "Mineralità e tensione",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1437"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1453"
  },
  {
   "fr": "Parcours Dégustation (Flights)",
   "en": "Tasting Flights",
   "it": "Percorsi di degustazione",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1517"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1533"
  },
  {
   "fr": "Une progression œnologique sur-mesure composée sur la carte",
   "en": "A tailored sommelier progression composed from this menu",
   "it": "Una progressione enologica su misura, composta sulla carta",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1521"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1537"
  },
  {
   "fr": "3 Verres (Express)",
   "en": "3 Glasses (Express)",
   "it": "3 calici (express)",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1536"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1552"
  },
  {
   "fr": "5 Verres (Grand Sommelier)",
   "en": "5 Glasses (Grand Sommelier)",
   "it": "5 calici (grande sommelier)",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1549"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1565"
  },
  {
   "fr": "bout.",
   "en": "btl",
   "it": "bott.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1630"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1647"
  },
  {
   "fr": "Accords Mets & Vins",
   "en": "Food & Wine Pairings",
   "it": "Abbinamenti cibo-vino",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1740"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1758"
  },
  {
   "fr": "Trouvez la bouteille idéale de cette carte pour accompagner votre plat",
   "en": "Find the ideal bottle on this menu to accompany your dish",
   "it": "Trova in questa carta la bottiglia ideale per il tuo piatto",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1744"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1762"
  },
  {
   "fr": "Quel plat mangez-vous ? (ex: Côte de bœuf, Saumon, Risotto)",
   "en": "What are you eating? (e.g., Steak, Salmon, Risotto)",
   "it": "Che piatto mangi? (es.: costata, salmone, risotto)",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1759"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1777"
  },
  {
   "fr": "Aucun vin adapté trouvé sur cette carte.",
   "en": "No suitable wine on this list.",
   "it": "Nessun vino adatto in questa carta.",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1810"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1828"
  },
  {
   "fr": "{v1}% Accord",
   "en": "{v1}% match",
   "it": "{v1} % di affinità",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1873"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1891"
  },
  {
   "fr": "Harmonie",
   "en": "match",
   "it": "affinità",
-  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1962"
+  "ou": "lib/features/menu_scan/presentation/menu_table_consensus_guest_screen.dart:1980"
  },
  {
   "fr": "Le matchmaker de la table",
@@ -20058,10 +20082,16 @@
   "ou": "lib/features/sommelier/domain/angle_mort_de_la_cave.dart:141"
  },
  {
+  "fr": "Prochaine région à explorer : {region}, déjà dans votre cave. Ouvrez votre {vin} : il vous dirait ce que vous pensez {quoi}.",
+  "en": "Next region to explore: {region}, already in your cellar. Open your {vin}: it would tell you how you feel about {quoi}.",
+  "it": "Prossima regione da esplorare: {region}, già nella tua cantina. Apri il tuo {vin}: ti direbbe cosa pensi {quoi}.",
+  "ou": "lib/features/sommelier/domain/carte_des_terroirs.dart:35"
+ },
+ {
   "fr": "Prochaine région à explorer : {region}. Ses vins vous diraient ce que vous pensez {quoi}.",
   "en": "Next region to explore: {region}. Its wines would tell you how you feel about {quoi}.",
   "it": "Prossima regione da esplorare: {region}. I suoi vini ti direbbero cosa pensi {quoi}.",
-  "ou": "lib/features/sommelier/domain/carte_des_terroirs.dart:31"
+  "ou": "lib/features/sommelier/domain/carte_des_terroirs.dart:38"
  },
  {
   "fr": "Vous n'aimez pas les tanins fermes : celui-ci risque d'en avoir trop",

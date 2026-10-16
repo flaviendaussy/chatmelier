@@ -489,6 +489,40 @@ class WineTasteRadarCalculator {
     );
   }
 
+  /// « Vous appréciez davantage "Structure & Tanins" que Caro » : l'app parle à la personne,
+  /// jamais d'elle à la troisième personne (« Moi apprécie davantage… », Flavien, 13/10).
+  /// [plus] apprécie l'axe davantage que [moins] ; le profil principal, c'est « vous ».
+  static String _divergence(String code, TasteProfile plus, TasteProfile moins, String axe) {
+    final vous = plus.isPrimary;
+    final queVous = moins.isPrimary;
+    switch (code) {
+      case 'es':
+        if (vous) return 'Aprecias más "$axe" que ${moins.name}';
+        if (queVous) return '${plus.name} aprecia más "$axe" que tú';
+        return '${plus.name} aprecia más "$axe" que ${moins.name}';
+      case 'ca':
+        if (vous) return 'Aprecies més "$axe" que ${moins.name}';
+        if (queVous) return '${plus.name} aprecia més "$axe" que tu';
+        return '${plus.name} aprecia més "$axe" que ${moins.name}';
+      case 'la':
+        if (vous) return 'Tu magis amas "$axe" quam ${moins.name}';
+        if (queVous) return '${plus.name} magis amat "$axe" quam tu';
+        return '${plus.name} magis amat "$axe" quam ${moins.name}';
+      case 'it':
+        if (vous) return 'Ti piace di più «$axe» che a ${moins.name}';
+        if (queVous) return 'A ${plus.name} piace di più «$axe» che a te';
+        return 'A ${plus.name} piace di più «$axe» che a ${moins.name}';
+      case 'en':
+        if (vous) return 'You appreciate "$axe" more than ${moins.name}';
+        if (queVous) return '${plus.name} appreciates "$axe" more than you';
+        return '${plus.name} appreciates "$axe" more than ${moins.name}';
+      default:
+        if (vous) return 'Vous appréciez davantage "$axe" que ${moins.name}';
+        if (queVous) return '${plus.name} apprécie davantage "$axe" que vous';
+        return '${plus.name} apprécie davantage "$axe" que ${moins.name}';
+    }
+  }
+
   /// Calculates the taste affinity score and advice between two taste profiles.
   static TasteAffinityResult compare(TasteProfile p1, TasteProfile p2, [dynamic lang]) {
     final code = WineTasteRadarMetrics._extractLangCode(lang);
@@ -518,43 +552,9 @@ class WineTasteRadarCalculator {
       if (diff <= 1.8 && (l1[i] >= 6.0 || l2[i] >= 6.0)) {
         commonGrounds.add(cleanName);
       } else if (diff >= 3.0) {
-        if (code == 'es') {
-          if (l1[i] > l2[i]) {
-            divergences.add('${p1.name} aprecia más "$cleanName" que ${p2.name}');
-          } else {
-            divergences.add('${p2.name} aprecia más "$cleanName" que ${p1.name}');
-          }
-        } else if (code == 'ca') {
-          if (l1[i] > l2[i]) {
-            divergences.add('${p1.name} aprecia més "$cleanName" que ${p2.name}');
-          } else {
-            divergences.add('${p2.name} aprecia més "$cleanName" que ${p1.name}');
-          }
-        } else if (code == 'la') {
-          if (l1[i] > l2[i]) {
-            divergences.add('${p1.name} magis amat "$cleanName" quam ${p2.name}');
-          } else {
-            divergences.add('${p2.name} magis amat "$cleanName" quam ${p1.name}');
-          }
-        } else if (code == 'it') {
-          if (l1[i] > l2[i]) {
-            divergences.add('A ${p1.name} piace di più «$cleanName» che a ${p2.name}');
-          } else {
-            divergences.add('A ${p2.name} piace di più «$cleanName» che a ${p1.name}');
-          }
-        } else if (code == 'en') {
-          if (l1[i] > l2[i]) {
-            divergences.add('${p1.name} appreciates "$cleanName" more than ${p2.name}');
-          } else {
-            divergences.add('${p2.name} appreciates "$cleanName" more than ${p1.name}');
-          }
-        } else {
-          if (l1[i] > l2[i]) {
-            divergences.add('${p1.name} apprécie davantage "$cleanName" que ${p2.name}');
-          } else {
-            divergences.add('${p2.name} apprécie davantage "$cleanName" que ${p1.name}');
-          }
-        }
+        final plus = l1[i] > l2[i] ? p1 : p2;
+        final moins = identical(plus, p1) ? p2 : p1;
+        divergences.add(_divergence(code, plus, moins, cleanName));
       }
     }
 

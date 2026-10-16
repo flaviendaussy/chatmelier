@@ -5,9 +5,11 @@ import '../../../../shared/providers/cellar_provider.dart';
 import '../../../../shared/utils/langue.dart';
 import '../../../../shared/utils/valeurs_rangees.dart';
 import '../../../cellar/domain/bottle.dart';
+import '../../../cellar/domain/wine.dart';
 import '../../../journal/domain/tasting_entry.dart';
 import '../../../journal/presentation/journal_screen.dart';
 import '../../../sommelier/domain/carte_des_terroirs.dart';
+import '../../../sommelier/domain/taste_frontier_engine.dart';
 import '../../domain/taste_profile.dart';
 
 /// « Vos terroirs » (V2.3 · J3) : les régions goûtées, celles qui attendent en cave sans
@@ -24,16 +26,37 @@ class CarteDesTerroirsCard extends ConsumerWidget {
     final journal = ref.watch(tastingLogProvider).valueOrNull ?? const <TastingEntry>[];
     final bouteilles =
         ref.watch(bottlesProvider(ref.watch(currentCellarIdProvider))).valueOrNull ?? const <Bottle>[];
+    // Les spiritueux n'ont pas de terroir à goûter ici : whisky, vodka, liqueurs, eaux-de-vie
+    // restent hors de la carte (Flavien, 13/10) ; les vins mutés (porto, banyuls) y restent.
+    bool spiritueux(String? type) {
+      final t = (type ?? '').toLowerCase();
+      return t.contains('spirit') || t.contains('spiritueux') || t.contains('liqueur');
+    }
+    final vins = [
+      for (final b in bouteilles)
+        if (b.quantity > 0 && b.wine != null && !b.wine!.isSpirit) b,
+    ];
     final carte = CarteDesTerroirs.dresser(
       goutes: [
-        for (final e in journal) (pays: e.country, region: e.region, appellation: e.appellation, nom: e.wineName),
+        for (final e in journal)
+          if (!spiritueux(e.wineType)) (pays: e.country, region: e.region, appellation: e.appellation, nom: e.wineName),
       ],
       enCave: [
-        for (final b in bouteilles)
-          if (b.quantity > 0 && b.wine != null)
-            (pays: b.wine!.country, region: b.wine!.region, appellation: b.wine!.appellation, nom: b.wine!.name),
+        for (final b in vins)
+          (pays: b.wine!.country, region: b.wine!.region, appellation: b.wine!.appellation, nom: b.wine!.name),
       ],
       profil: profil,
+      // La prochaine région vient d'abord d'une bouteille de la cave, prête à boire.
+      aOuvrir: [
+        for (final b in vins)
+          if (const {DrinkWindowStatus.inPeak, DrinkWindowStatus.drinkSoon, DrinkWindowStatus.pastPeak}
+              .contains(b.wine!.windowStatus))
+            (
+              lieu: (pays: b.wine!.country, region: b.wine!.region, appellation: b.wine!.appellation, nom: b.wine!.name),
+              nomDuVin: '${b.wine!.name}${b.wine!.vintage != null ? ' ${b.wine!.vintage}' : ''}',
+              profil: ProfilDeVin.depuisLaCave(b.wine!),
+            ),
+      ],
     );
     if (carte.goutes.isEmpty && carte.enCave.isEmpty && carte.prochaine == null) return const SizedBox.shrink();
 

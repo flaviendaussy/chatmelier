@@ -779,7 +779,11 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    tr('Compatibilité {a} & {b}', 'Compatibility {a} & {b}', {'a': p1.name, 'b': p2.name}),
+                    // On parle à la personne : « Votre compatibilité avec Caro », pas « Moi & Caro ».
+                    p1.isPrimary || p2.isPrimary
+                        ? tr('Votre compatibilité avec {b}', 'Your compatibility with {b}',
+                            {'b': p1.isPrimary ? p2.name : p1.name})
+                        : tr('Compatibilité {a} & {b}', 'Compatibility {a} & {b}', {'a': p1.name, 'b': p2.name}),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ],

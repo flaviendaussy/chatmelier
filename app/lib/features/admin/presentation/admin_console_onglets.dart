@@ -8,6 +8,7 @@ import '../data/admin_console_service.dart';
 import '../data/admin_personnes_service.dart';
 import '../domain/admin_console.dart';
 import '../domain/capture_de_retour.dart';
+import '../domain/contexte_de_retour.dart';
 import '../domain/admin_personnes.dart';
 import 'admin_onglets.dart';
 
@@ -181,6 +182,17 @@ class _CarteDeRetour extends ConsumerWidget {
     );
   }
 
+  Future<void> _voirLeContexte(BuildContext context, WidgetRef ref) async {
+    final service = ref.read(adminConsoleServiceProvider);
+    await showDialog<void>(
+      context: context,
+      builder: (c) => Dialog(
+        insetPadding: const EdgeInsets.all(12),
+        child: _FenetreDeContexte(charger: () => service.contexteDuRetour(retour.id).timeout(const Duration(seconds: 20))),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final r = retour;
@@ -230,6 +242,12 @@ class _CarteDeRetour extends ConsumerWidget {
                     icon: const Icon(Icons.image_outlined, size: 18),
                     label: Text(r.annotations ? 'Capture annotée' : 'Capture'),
                   ),
+                // L'écran, les derniers pas, le réseau, les journaux d'avant (070).
+                TextButton.icon(
+                  onPressed: () => _voirLeContexte(context, ref),
+                  icon: const Icon(Icons.manage_search, size: 18),
+                  label: const Text('Contexte'),
+                ),
                 TextButton.icon(
                   onPressed: () => _noter(context, ref),
                   icon: const Icon(Icons.edit_note, size: 18),
@@ -878,6 +896,101 @@ class FeuilleDOccurrences extends ConsumerWidget {
 /// La capture d'un retour : signée, téléchargée (30 secondes au plus), puis affichée. Chaque
 /// étape se voit, chaque échec dit sa vraie cause et se réessaie (08/10 : réseau coupé,
 /// fenêtre vide pendant dix minutes).
+/// Le contexte d'un retour : où, après quoi, avec quel réseau, et les journaux d'avant.
+class _FenetreDeContexte extends StatelessWidget {
+  final Future<ContexteDeRetour?> Function() charger;
+  const _FenetreDeContexte({required this.charger});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final gris = theme.colorScheme.onSurfaceVariant;
+    Widget titre(String t) => Padding(
+          padding: const EdgeInsets.only(top: 12, bottom: 4),
+          child: Text(t, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        );
+    Widget ligne(String t, {Color? couleur}) =>
+        SelectableText(t, style: TextStyle(fontSize: 12, height: 1.35, color: couleur));
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+      child: FutureBuilder<ContexteDeRetour?>(
+        future: charger(),
+        builder: (context, s) {
+          if (s.connectionState != ConnectionState.done) {
+            return const Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 12),
+                Text('Lecture du contexte…'),
+              ]),
+            );
+          }
+          if (s.hasError) {
+            final texte = '${s.error}';
+            return Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(texte.contains('PGRST202') || texte.contains('Could not find the function')
+                  ? 'Fonction absente : la migration 070 n\'est pas encore appliquée.'
+                  : _raison(s.error!)),
+            );
+          }
+          final c = s.data;
+          if (c == null) {
+            return const Padding(padding: EdgeInsets.all(24), child: Text('Ce retour n\'existe plus.'));
+          }
+          return ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            children: [
+              Text('Contexte du retour', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              if (c.sansContexte)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: ligne('Retour d\'avant la 1.10 : pas de contexte joint, seulement les journaux.', couleur: gris),
+                ),
+              if (c.ecran != null) ...[titre('Écran'), ligne(c.ecran!)],
+              if (c.reseau != null) ...[titre('Réseau'), ligne(c.reseau!)],
+              if (c.envoyeLe != null) ...[
+                titre('Envoyé plus tard'),
+                ligne('Resté sur le téléphone jusqu\'au ${dateCourte(c.envoyeLe!)} ${heure(c.envoyeLe!)}'),
+              ],
+              if (c.causeCapture != null) ...[titre('Capture'), ligne(c.causeCapture!, couleur: const Color(0xFFC62828))],
+              if (c.langue != null || c.texte != null || c.theme != null) ...[
+                titre('Affichage'),
+                ligne([
+                  if (c.langue != null) 'langue ${c.langue}',
+                  if (c.texte != null) 'texte à ${(c.texte! * 100).round()} %',
+                  if (c.theme != null) 'thème ${c.theme}',
+                ].join(' · ')),
+              ],
+              if (c.fil.isNotEmpty) ...[titre('Derniers pas'), for (final p in c.fil) ligne(p)],
+              if (c.erreurs.isNotEmpty) ...[
+                titre('Avertissements de l\'app'),
+                for (final e in c.erreurs) ligne(e, couleur: const Color(0xFFB26A00)),
+              ],
+              titre('Journaux des trois minutes d\'avant'),
+              if (c.journaux.isEmpty) ligne('Aucun.', couleur: gris),
+              for (final l in c.journaux)
+                ligne('${l.quand == null ? '' : '${heure(l.quand!)} '}${l.niveau} ${l.tag} : ${l.message}',
+                    couleur: l.niveau == 'error'
+                        ? const Color(0xFFC62828)
+                        : l.niveau == 'warning'
+                            ? const Color(0xFFB26A00)
+                            : null),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fermer')),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _FenetreDeCapture extends StatefulWidget {
   final Future<String?> Function() signer;
   const _FenetreDeCapture({required this.signer});

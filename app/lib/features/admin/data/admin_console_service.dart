@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/providers/supabase_provider.dart';
+import '../domain/contexte_de_retour.dart';
 import '../domain/admin_console.dart';
 import '../domain/capture_de_retour.dart';
 import 'admin_metrics_service.dart';
@@ -24,6 +25,12 @@ class AdminConsoleService {
 
   Future<List<RetourSuivi>> retours(int jours) async =>
       _liste(await _client.rpc('admin_retours', params: {'p_jours': jours})).map(RetourSuivi.fromJson).toList();
+
+  /// Le contexte d'un retour et les journaux de la même personne juste avant (070).
+  Future<ContexteDeRetour?> contexteDuRetour(String id) async {
+    final r = await _client.rpc('admin_contexte_du_retour', params: {'p_id': id});
+    return r is Map ? ContexteDeRetour.fromJson(Map<String, dynamic>.from(r)) : null;
+  }
 
   /// [note] nulle : la note reste ; vide : elle s'efface.
   Future<void> suivreRetour(String id, StatutDeRetour statut, {String? note}) => _client.rpc(

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../features/feedback/domain/fil_d_ariane.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import 'garde_des_routes.dart';
@@ -54,9 +56,11 @@ class GoRouterRefreshStream extends ChangeNotifier {
 final routerProvider = Provider<GoRouter>((ref) {
   final supabase = ref.watch(supabaseProvider);
 
-  return GoRouter(
+  final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/login',
+    // Le fil d'Ariane des retours (16/10) : les feuilles et dialogues ouverts.
+    observers: [FilDAriane.racine],
     refreshListenable: GoRouterRefreshStream(supabase.auth.onAuthStateChange),
     redirect: (context, state) {
       final session = supabase.auth.currentSession;
@@ -184,6 +188,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Main app shell with adaptive responsive navigation (Mobile / Tablet / Desktop)
       ShellRoute(
         navigatorKey: shellNavigatorKey,
+        observers: [FilDAriane.coquille],
         builder: (context, state, child) {
           return AdaptiveAppShell(child: child);
         },
@@ -342,4 +347,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+  // Et l'écran affiché, à chaque changement d'adresse.
+  router.routerDelegate.addListener(
+      () => FilDAriane.noterEmplacement(router.routerDelegate.currentConfiguration.uri.toString()));
+  return router;
 });

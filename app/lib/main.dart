@@ -1,3 +1,4 @@
+import 'features/feedback/data/retours_en_attente.dart';
 import 'shared/services/croissance.dart';
 import 'dart:async';
 
@@ -16,6 +17,10 @@ import 'features/auth/data/palais_distant.dart';
 import 'features/monetization/admob_service.dart';
 import 'features/monetization/mesure_des_pubs.dart';
 import 'shared/utils/app_logger.dart';
+
+/// Gardé en vie : il relance l'envoi des retours en attente au retour au premier plan.
+// ignore: unused_element
+AppLifecycleListener? _auPremierPlan;
 
 void main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
@@ -69,6 +74,10 @@ void main() async {
   AppLogger.init(Supabase.instance.client);
   // Ce qui n'a pas pu partir lors de la dernière session (S5) : coûts IA, pubs.
   unawaited(AiCostTrackerService.envoyerEnAttente());
+  // Les retours « secouer pour commenter » restés sans réseau, capture comprise (16/10) :
+  // au lancement, et chaque fois que l'app revient au premier plan.
+  unawaited(RetoursEnAttente.envoyer());
+  _auPremierPlan = AppLifecycleListener(onResume: () => unawaited(RetoursEnAttente.envoyer()));
   unawaited(MesureDesPubs.envoyerEnAttente());
   // Le palais suit le compte (P6) : copie au serveur à chaque sauvegarde, rapatriement sur
   // un appareil vierge — au lancement, et à chaque connexion (nouvel appareil, reprise).

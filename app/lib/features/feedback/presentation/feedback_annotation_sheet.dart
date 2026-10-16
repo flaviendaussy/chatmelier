@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../../../shared/utils/langue.dart';
+import '../data/retours_en_attente.dart';
 
 /// Un trait d'annotation, exprimé **en coordonnées de l'image**, pas de l'écran.
 ///
@@ -34,18 +35,22 @@ class FeedbackStroke {
 class FeedbackAnnotationSheet extends StatefulWidget {
   final Uint8List? screenshotBytes;
 
+  /// L'écran, les derniers pas, le réseau au moment de la secousse (ContexteDuRetour).
+  final Map<String, dynamic> contexte;
+
   const FeedbackAnnotationSheet({
     super.key,
     required this.screenshotBytes,
+    this.contexte = const {},
   });
 
-  static Future<void> show(BuildContext context, {Uint8List? screenshotBytes}) {
+  static Future<void> show(BuildContext context, {Uint8List? screenshotBytes, Map<String, dynamic> contexte = const {}}) {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => FeedbackAnnotationSheet(screenshotBytes: screenshotBytes),
+      builder: (ctx) => FeedbackAnnotationSheet(screenshotBytes: screenshotBytes, contexte: contexte),
     );
   }
 
@@ -164,46 +169,20 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
     setState(() => _isSubmitting = true);
 
     try {
-      final supabase = Supabase.instance.client;
-      String? capture;
-
-      // Render & upload annotated image if present
+      // Le retour et sa capture sont gardés sur le téléphone jusqu'à leur arrivée : sans
+      // réseau, ils partent dès qu'il revient (16/10, une capture annotée perdue). La
+      // capture va dans le bucket PRIVÉ `feedback` (migration 036), sous le dossier de la
+      // personne ; le journal cite son chemin, pas une adresse : il ne donne accès à rien
+      // sans signature. Jamais l'identifiant de la personne dans le message (AppLogger
+      // renseigne `user_id` à part).
       final annotatedBytes = await _renderAnnotatedImage();
-      final userId = supabase.auth.currentUser?.id;
-      if (annotatedBytes != null && userId != null) {
-        // Bucket PRIVÉ (migration 036). Une capture d'écran n'est pas une photo
-        // d'étiquette : elle montre tout ce qu'on avait sous les yeux. Dans `labels`, un
-        // nom aléatoire rendait l'URL indevinable, pas privée — qui l'avait une fois
-        // l'avait pour toujours, y compris après la suppression de la ligne.
-        //
-        // Le dossier reprend l'identifiant de la personne : dans un bucket public c'était
-        // une fuite, ici c'est précisément ce qui permet à la RLS de dire « les siennes,
-        // et rien d'autre ». Ce qui est journalisé est le CHEMIN, pas une URL : il ne
-        // donne accès à rien sans signature.
-        final chemin = '$userId/${const Uuid().v4()}.png';
-        try {
-          await supabase.storage.from('feedback').uploadBinary(
-            chemin,
-            annotatedBytes,
-            fileOptions: const FileOptions(contentType: 'image/png', upsert: true),
-          );
-          capture = chemin;
-        } catch (uploadErr) {
-          debugPrint('Storage upload note: $uploadErr');
-        }
-      }
-
-      // Log to app diagnostic logs for Flavien to inspect
-      // `Testeur: <user_id>` figurait ici en clair. Le message est le champ le plus lu et
-      // le plus copié de la table : y inscrire l'identifiant annulait toute restriction
-      // d'accès posée sur la colonne `user_id`, qu'AppLogger renseigne déjà séparément.
-      AppLogger.info(
-        'USER_FEEDBACK',
-        'Commentaire: ${comment.isNotEmpty ? comment : "Sans commentaire"} '
-            '| Capture: ${capture ?? "aucune"} '
-            '| Annotations: ${_strokes.isNotEmpty ? "oui" : "non"}',
+      final parti = await RetoursEnAttente.deposer(
+        commentaire: comment,
+        annotations: _strokes.isNotEmpty,
+        capture: annotatedBytes,
+        contexte: widget.contexte,
       );
-      await AppLogger.flushToServer();
+      unawaited(AppLogger.flushToServer());
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -214,11 +193,14 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
                 const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(l10n?.feedbackSuccess ?? 'Merci pour votre retour ! 🍷 Le rapport a été transmis.'),
+                  child: Text(parti
+                      ? (l10n?.feedbackSuccess ?? 'Merci pour votre retour ! 🍷 Le rapport a été transmis.')
+                      : tr('Retour gardé sur le téléphone : il partira avec sa capture dès que le réseau revient.',
+                          'Feedback saved on this phone: it will be sent with its screenshot as soon as you are back online.')),
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFF2E7D32),
+            backgroundColor: parti ? const Color(0xFF2E7D32) : const Color(0xFF5D4037),
             duration: const Duration(seconds: 4),
           ),
         );

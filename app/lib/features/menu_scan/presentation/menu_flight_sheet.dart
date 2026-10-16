@@ -430,9 +430,9 @@ class _MenuFlightSheetState extends State<MenuFlightSheet> {
   Widget _buildStepCard(FlightGlassStep step, bool isFr) {
     final wine = step.wine;
     final priceStr = step.glassPrice != null
-        ? '${step.prixEstime ? '≈ ' : ''}${widget.menu.formaterPrix(step.glassPrice!)} / ${trSi(isFr, 'verre', 'glass')}'
+        ? '${step.prixEstime ? '≈ ' : ''}${widget.menu.formaterPrix(step.glassPrice!)} / ${step.service ?? trSi(isFr, 'verre', 'glass')}'
             '${step.prixEstime ? (trSi(isFr, ' (estimé)', ' (est.)')) : ''}'
-        : (wine.bottlePrice != null ? '${widget.menu.formaterPrix(wine.bottlePrice!)} / btl' : '');
+        : (wine.bottlePrice != null ? '${widget.menu.formaterPrix(wine.bottlePrice!)} / ${wine.uniteDuPrix(isFr)}' : '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

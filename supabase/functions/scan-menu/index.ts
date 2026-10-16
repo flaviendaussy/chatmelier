@@ -369,6 +369,7 @@ Each wine object:
 "co": country, in French (France, Italie, Espagne...)
 "g": grape varieties, array of strings (typical ones for the appellation if not printed; [] if the appellation is unknown)
 "b": bottle price as printed (number), or null
+"ml": volume in millilitres of the bottle priced in "b", when the list shows one other than 750 (187 or 200 for a small bottle on a plane or a train, 375 for a half bottle, 500, 1500 for a magnum), else null. A small bottle is a bottle: its price goes in "b" with its "ml", never in "gl"
 "gl": glass prices as [[format, price]], e.g. [["12cl", 8]], or []
 "m": 8 integers from 0 to 10, in this order: tannins (0 for white, rosé, sparkling), acidity, body, fruit, oak, minerality, butteriness, sweetness
 "tg": up to 3 codes among mineral, buttery, tannic, fruity, light, bold, oaky, floral, spicy, fresh, round, savory
@@ -380,7 +381,7 @@ Each wine object:
 "dr": if de is above 0, why, in ${l}, at most 8 words; else ""
 
 Gems are rare. A gem is the bottle a sommelier would point at on THIS list: a cult or hard-to-find cuvée, a producer far above the level of the rest of the list, a mature vintage rarely offered. A famous appellation, a well-known house or a good producer is not enough. Most lists have no gem: mark at most two, unless the list itself is exceptional ("ex": 1), and even then about one wine in ten. When in doubt, 0.
-Bargains are rare too: a bottle priced clearly below what it usually costs on a restaurant list. Never without a printed price. Most lists have none or one: mark at most three.
+Bargains are rare too: a bottle priced clearly below what it usually costs on a restaurant list. Never without a printed price, and never a small or half bottle for being cheap. Most lists have none or one: mark at most three.
 
 Never guess: for a wine you do not know, leave "p", "a", "rg" and "co" null rather than deducing them from the language of the list, a word or a style.
 Do not add any other key. Do not invent wines that are not on the pages.`
@@ -389,6 +390,20 @@ Do not add any other key. Do not invent wines that are not on the pages.`
 function nombre(v: unknown): number | null {
   const n = typeof v === 'number' ? v : typeof v === 'string' ? parseFloat(v.replace(',', '.')) : NaN
   return Number.isFinite(n) ? n : null
+}
+
+// La contenance d'une bouteille qui n'est pas de 75 cl, en millilitres (13/10 : les
+// mignonnettes de 187 ml d'un vol passaient pour des bouteilles, et leur verre pour un
+// cinquième de leur prix). Filet de sécurité : « 1,5 » se lit en litres, « 37,5 » en
+// centilitres ; 75 cl ne se dit pas, c'est la bouteille ordinaire.
+function contenance(v: unknown): number | null {
+  let n = nombre(v)
+  if (n === null || n <= 0) return null
+  if (n < 10) n *= 1000
+  else if (n < 100) n *= 10
+  // 18,75 cl font 187,5 ml : l'étiquette dit « 187 ml ».
+  n = Math.floor(n + 0.01)
+  return n >= 50 && n <= 15000 && n !== 750 ? n : null
 }
 
 // Une pépite ou un bon plan ne veut rien dire s'il est partout (V2.3 · K9 : le banc du 02/10
@@ -447,6 +462,7 @@ function deplier(court: any, langue: Langue): any {
         country: w.co ?? null,
         grapes: Array.isArray(w.g) ? w.g.filter((x: unknown) => typeof x === 'string') : [],
         bottle_price: nombre(w.b),
+        bottle_ml: nombre(w.b) !== null ? contenance(w.ml) : null,
         glass_prices: Array.isArray(w.gl)
           ? w.gl.filter((x: any) => Array.isArray(x) && nombre(x[1]) !== null)
               .map((x: any) => ({ format: String(x[0] ?? ''), price: nombre(x[1]) }))

@@ -303,6 +303,13 @@ class MenuWine {
   /// s'affichait en € (retour du 26/09). Nulle pour les cartes scannées avant le 28/09.
   final String? devise;
 
+  /// La contenance de la bouteille dont [bottlePrice] est le prix, en millilitres, quand
+  /// la carte en indique une autre que 75 cl : 187 ou 200 pour une mignonnette (avion,
+  /// train), 375 pour une demi-bouteille, 1 500 pour un magnum ; nulle sinon. Sans elle,
+  /// une mignonnette d'avion à 8 £ passait pour une bouteille, et son verre pour 1,60 £
+  /// (retour du 13/10, carte du vol BA484).
+  final int? contenanceMl;
+
   const MenuWine({
     required this.id,
     required this.name,
@@ -328,6 +335,7 @@ class MenuWine {
     this.flag,
     this.pontDeCave,
     this.devise,
+    this.contenanceMl,
   });
 
   /// Normalized unique lookup key to prevent re-searching in Gemini
@@ -359,6 +367,33 @@ class MenuWine {
   bool get isRose => !isSparkling && _motsRose.hasMatch(_typeNormalise);
   bool get isRed => !isSparkling && !isRose && _motsRouge.hasMatch(_typeNormalise);
   bool get isWhite => !isSparkling && !isRose && _motsBlanc.hasMatch(_typeNormalise);
+
+  /// Au-delà, une petite bouteille ne se boit plus d'un service : 250 ml, c'est déjà un
+  /// grand verre au Royaume-Uni.
+  static const contenanceDUnService = 250;
+
+  /// Une mignonnette (187 ou 200 ml) se boit d'un service : son prix est celui du verre.
+  bool get estUneMignonnette => contenanceMl != null && contenanceMl! <= contenanceDUnService;
+
+  /// La contenance quand ce n'est pas une bouteille de 75 cl (« 187 ml », « 375 ml »,
+  /// « magnum »), en unités qui se lisent dans toutes les langues ; nulle sinon.
+  String? get contenanceAffichee {
+    final ml = contenanceMl;
+    if (ml == null || ml == 750) return null;
+    if (ml == 1500) return 'magnum';
+    if (ml >= 1000 && ml % 1000 == 0) return '${ml ~/ 1000} l';
+    return '$ml ml';
+  }
+
+  /// Ce que paie le prix de la bouteille : « bt », ou la contenance d'une autre bouteille.
+  String uniteDuPrix([bool? fr]) => contenanceAffichee ?? trSi(fr ?? Langue.estFr, 'bt', 'btl');
+
+  /// Une contenance plausible pour une bouteille de vin, de la mignonnette au
+  /// nabuchodonosor, ou nulle.
+  static int? contenanceDepuis(Object? brut) {
+    final n = brut is num ? brut.round() : int.tryParse('${brut ?? ''}');
+    return n != null && n >= 50 && n <= 15000 ? n : null;
+  }
 
   bool get hasGlassPrice => glassPrices.isNotEmpty;
   double? get primaryGlassPrice => glassPrices.isNotEmpty ? glassPrices.first.price : null;
@@ -408,7 +443,7 @@ class MenuWine {
   String prixAffiche(bool fr) {
     final parts = <String>[];
     if (bottlePrice != null && bottlePrice! > 0) {
-      parts.add('${formaterPrix(bottlePrice!)} / ${trSi(fr, 'bt', 'btl')}');
+      parts.add('${formaterPrix(bottlePrice!)} / ${uniteDuPrix(fr)}');
     }
     if (glassPrices.isNotEmpty) {
       final g = glassPrices.first;
@@ -459,6 +494,7 @@ class MenuWine {
     MenuWineFlag? flag,
     LienAvecMaCave? pontDeCave,
     String? devise,
+    int? contenanceMl,
   }) {
     return MenuWine(
       id: id ?? this.id,
@@ -485,6 +521,7 @@ class MenuWine {
       flag: flag ?? this.flag,
       pontDeCave: pontDeCave ?? this.pontDeCave,
       devise: devise ?? this.devise,
+      contenanceMl: contenanceMl ?? this.contenanceMl,
     );
   }
 
@@ -512,6 +549,7 @@ class MenuWine {
         'estimated_retail_price': estimatedRetailPrice,
         'flag': flag?.toJson(),
         if (devise != null) 'currency': devise,
+        if (contenanceMl != null) 'bottle_ml': contenanceMl,
       };
 
   factory MenuWine.fromJson(Map<String, dynamic> json) {
@@ -546,6 +584,7 @@ class MenuWine {
           ? MenuWineFlag.fromJson(Map<String, dynamic>.from(json['flag'] as Map))
           : null,
       devise: ScannedMenu.normaliserDevise(json['currency']),
+      contenanceMl: contenanceDepuis(json['bottle_ml']),
     );
   }
 }

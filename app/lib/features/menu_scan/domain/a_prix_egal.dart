@@ -53,7 +53,8 @@ class APrixEgal {
   /// Les vins que le sommelier prendrait à prix égal, par identifiant.
   ///
   /// Sur une ardoise, on commande au verre : les vins se comparent au prix du verre, à
-  /// format égal ; ailleurs, au prix de la bouteille. Un vin sans prix ou sans accord calculé
+  /// format égal ; ailleurs, au prix de la bouteille, à contenance égale (une mignonnette
+  /// n'est pas « au même prix » qu'une bouteille de 75 cl). Un vin sans prix ou sans accord calculé
   /// (palais inconnu) n'entre dans aucune comparaison.
   static Map<String, ChoixAPrixEgal> choisir(List<MenuWine> vins, {bool ardoise = false}) {
     final groupes = <String, List<MenuWine>>{};
@@ -65,7 +66,7 @@ class APrixEgal {
       final prix = auVerre ? w.glassPrices.first.price : w.bottlePrice;
       if (prix == null || prix <= 0) continue;
       final cle = '${couleurDe(w)}:'
-          '${auVerre ? 'verre:${w.glassPrices.first.format.trim().toLowerCase()}' : 'bouteille'}:'
+          '${auVerre ? 'verre:${w.glassPrices.first.format.trim().toLowerCase()}' : 'bouteille:${w.contenanceMl ?? 750}'}:'
           '${(prix * 100).round()}';
       (groupes[cle] ??= []).add(w);
       prixDuGroupe[cle] = prix;

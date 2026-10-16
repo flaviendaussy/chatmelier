@@ -219,6 +219,7 @@ class MenuScanService {
         dealReason: dealReason,
         estimatedRetailPrice: estimatedRetailPrice,
         devise: devise,
+        contenanceMl: MenuWine.contenanceDepuis(map['bottle_ml']),
       );
 
       // If user has a taste profile, compute personalized match score!
@@ -292,7 +293,8 @@ class MenuScanService {
   /// Fusionne les lectures page par page d'une même carte.
   ///
   /// Un vin présent sur deux pages — la liste au verre et la liste à la bouteille — n'est
-  /// gardé qu'une fois, avec ses deux prix.
+  /// gardé qu'une fois, avec ses deux prix. Sa demi-bouteille, elle, reste un autre vin de
+  /// la carte : un autre prix pour une autre contenance.
   @visibleForTesting
   static Map<String, dynamic> fusionnerPagesDeCarte(
     List<Map<String, dynamic>> pages, {
@@ -302,7 +304,7 @@ class MenuScanService {
     for (final page in pages) {
       for (final brut in (page['wines'] as List?) ?? const []) {
         final vin = Map<String, dynamic>.from(brut as Map);
-        final cle = [vin['name'], vin['producer'], vin['vintage']]
+        final cle = [vin['name'], vin['producer'], vin['vintage'], vin['bottle_ml']]
             .map((v) => (v ?? '').toString().trim().toLowerCase())
             .join('|');
         final deja = vins[cle];
@@ -310,7 +312,10 @@ class MenuScanService {
           vins[cle] = vin;
           continue;
         }
-        deja['bottle_price'] ??= vin['bottle_price'];
+        if (deja['bottle_price'] == null && vin['bottle_price'] != null) {
+          deja['bottle_price'] = vin['bottle_price'];
+          deja['bottle_ml'] = vin['bottle_ml'];
+        }
         final verres = [...?(deja['glass_prices'] as List?), ...?(vin['glass_prices'] as List?)];
         final formats = <String>{};
         deja['glass_prices'] = [

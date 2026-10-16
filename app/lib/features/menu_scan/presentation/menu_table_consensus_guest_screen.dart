@@ -1643,7 +1643,9 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     final wine = step.wine;
     final priceStr = wine.primaryGlassPrice != null
         ? '${wine.formaterPrix(wine.primaryGlassPrice!)} / ${trSi(isFr, 'verre', 'glass')}'
-        : (wine.bottlePrice != null ? '${wine.formaterPrix(wine.bottlePrice!)} / ${trSi(isFr, 'bout.', 'btl')}' : '');
+        : (wine.bottlePrice != null
+            ? '${wine.formaterPrix(wine.bottlePrice!)} / ${wine.contenanceAffichee ?? trSi(isFr, 'bout.', 'btl')}'
+            : '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

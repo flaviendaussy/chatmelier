@@ -112,7 +112,10 @@ class H(BaseHTTPRequestHandler):
         noter(methode='POST', chemin=self.path, corps=c if 'generateContent' not in self.path else {
             'generationConfig': c.get('generationConfig'), 'tools': c.get('tools'),
             'systeme': ((c.get('systemInstruction') or {}).get('parts') or [{}])[0].get('text', '')[-400:],
-            'tours': [(t.get('role'), len(t['parts'])) for t in c.get('contents', [])]})
+            'tours': [(t.get('role'), len(t['parts'])) for t in c.get('contents', [])],
+            # FAUX_TEXTE=1 : le texte envoyé au modèle, pour relire une consigne.
+            **({'texte': [p.get('text') for t in c.get('contents', []) for p in t.get('parts', []) if p.get('text')]}
+               if os.environ.get('FAUX_TEXTE') else {})})
         if '/rpc/consommer_quota_ia' in self.path:
             if MODE == 'limite':
                 return self.rep({"autorise": False, "raison": "limite", "limite": 3, "anonyme": True, "restant": 0})
@@ -173,6 +176,17 @@ class H(BaseHTTPRequestHandler):
                      "rg": "Loire", "co": "France", "g": ["Melon de Bourgogne"], "b": None, "gl": [["12cl", 7]],
                      "m": [0, 8, 3, 5, 1, 8, 0, 1], "tg": ["mineral", "fresh"], "sc": "Salin et vif.", "fp": ["Huîtres"],
                      "ge": 0, "gr": "", "de": 0, "dr": ""}]}
+                return self.rep({"candidates": [{"content": {"parts": [{"text": json.dumps(res)}]}}],
+                                 "usageMetadata": {"promptTokenCount": 1800, "candidatesTokenCount": 400, "thoughtsTokenCount": 0}})
+            if txt.startswith('You are Chatmelier, a sommelier reading a restaurant wine list') and os.environ.get('FAUX_AVION'):
+                # La carte d'un vol (13/10, BA484) : des mignonnettes, leur contenance écrite
+                # de toutes les façons qu'un modèle peut la rendre.
+                vins = [("Chablis", "w", 8, 187), ("Champagne Brut", "s", 14, 20), ("Rioja Crianza", "r", 8, 18.75),
+                        ("Côtes du Rhône", "r", None, 187), ("Bordeaux Supérieur", "r", 30, 750), ("Malbec", "r", 9, "187ml")]
+                res = {"r": "British Airways", "c": "GBP", "v": [
+                    {"n": n, "p": None, "y": None, "t": t, "a": None, "rg": None, "co": None, "g": [], "b": b, "ml": ml, "gl": [],
+                     "m": [5, 6, 5, 6, 2, 5, 0, 1], "tg": [], "sc": "", "fp": [], "ge": 0, "gr": "", "de": 0, "dr": ""}
+                    for n, t, b, ml in vins]}
                 return self.rep({"candidates": [{"content": {"parts": [{"text": json.dumps(res)}]}}],
                                  "usageMetadata": {"promptTokenCount": 1800, "candidatesTokenCount": 400, "thoughtsTokenCount": 0}})
             if txt.startswith('You are Chatmelier, a sommelier reading a restaurant wine list') and os.environ.get('FAUX_PEPITES'):

@@ -207,7 +207,7 @@ class _MenuWineCompareSheetState extends State<MenuWineCompareSheet> {
                           // Resolve price automatically without format selector
                           String priceLabel = '';
                           if (wine.bottlePrice != null && wine.bottlePrice! > 0) {
-                            priceLabel = '${wine.formaterPrix(wine.bottlePrice!)} / bt';
+                            priceLabel = '${wine.formaterPrix(wine.bottlePrice!)} / ${wine.uniteDuPrix()}';
                           }
                           if (wine.glassPrices.isNotEmpty) {
                             final g = wine.glassPrices.first;

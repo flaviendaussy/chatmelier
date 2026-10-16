@@ -152,8 +152,11 @@ class CellarBridgeEngine {
       // et une carte en livres donneraient un chiffre faux. Carte sans devise connue :
       // on la suppose dans celle de la cave, comme avant.
       final memeDevise = vin.devise == null || vin.devise == c.deviseAchat;
+      // Ni à une autre contenance : une mignonnette à 8 £ n'est pas « moins chère qu'ici »
+      // qu'une bouteille de 75 cl payée 20 £.
+      final memeContenance = vin.contenanceAffichee == null;
       String? detail;
-      if (achat != null && achat > 0 && carte != null && carte > 0 && memeDevise) {
+      if (achat != null && achat > 0 && carte != null && carte > 0 && memeDevise && memeContenance) {
         final ecart = carte - achat;
         final paye = _prix(achat, c.deviseAchat);
         detail = ecart > 0

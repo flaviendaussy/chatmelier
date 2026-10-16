@@ -544,9 +544,11 @@ class RedactionDesRaisons {
   static String placeEnPrix(MenuWine vin, List<MenuWine> tous, bool fr) {
     final p = vin.bottlePrice;
     if (p == null) return '';
-    final affiche = vin.formaterPrix(p);
+    final affiche = [vin.formaterPrix(p), if (vin.contenanceAffichee != null) vin.contenanceAffichee!].join(' / ');
     final prix = tous.map((w) => w.bottlePrice).whereType<double>().toList();
-    if (prix.length == tous.length && prix.length > 1) {
+    // « Le moins cher » ne compare que des bouteilles de même contenance.
+    final memeContenance = tous.every((w) => (w.contenanceMl ?? 750) == (vin.contenanceMl ?? 750));
+    if (prix.length == tous.length && prix.length > 1 && memeContenance) {
       final min = prix.reduce((a, b) => a < b ? a : b);
       final max = prix.reduce((a, b) => a > b ? a : b);
       if (min < max && p == min) return trSi(fr, 'le moins cher ({affiche})', 'the cheapest ({affiche})', {'affiche': affiche});

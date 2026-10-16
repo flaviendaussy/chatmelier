@@ -129,7 +129,12 @@ class ResultatDeTable {
             if (r.menuWine.producer.trim().isNotEmpty) 'producteur': r.menuWine.producer.trim(),
             if (r.menuWine.vintage != null) 'millesime': r.menuWine.vintage,
             'couleur': couleurPourLeJournal(r.menuWine),
-            if (r.menuWine.bottlePrice != null) 'prix': r.menuWine.formaterPrix(r.menuWine.bottlePrice!),
+            // Une mignonnette garde sa contenance : « 8 £ » seul passerait pour une bouteille.
+            if (r.menuWine.bottlePrice != null)
+              'prix': [
+                r.menuWine.formaterPrix(r.menuWine.bottlePrice!),
+                if (r.menuWine.contenanceAffichee != null) r.menuWine.contenanceAffichee!,
+              ].join(' / '),
             'accord': r.harmonyScore.round(),
             'raison': r.consensusRationale,
             if (raisonsTraduites[r.menuWine.cacheKey]?.isNotEmpty ?? false)

@@ -1640,12 +1640,22 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF8B1E3F)),
                         ),
                         if (wine.bottlePrice != null)
-                          Text('${_prix(wine.bottlePrice!)}/${tr('bt', 'btl')}',
+                          Text('${_prix(wine.bottlePrice!)}/${wine.uniteDuPrix()}',
                               style: const TextStyle(fontSize: 11, color: Colors.grey)),
                       ] else ...[
+                        // « 8 £ / 187 ml » : le prix d'une mignonnette n'est pas celui d'une bouteille.
                         if (wine.bottlePrice != null)
-                          Text(
-                            _prix(wine.bottlePrice!),
+                          Text.rich(
+                            TextSpan(
+                              text: _prix(wine.bottlePrice!),
+                              children: [
+                                if (wine.contenanceAffichee != null)
+                                  TextSpan(
+                                    text: ' / ${wine.contenanceAffichee}',
+                                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+                                  ),
+                              ],
+                            ),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,

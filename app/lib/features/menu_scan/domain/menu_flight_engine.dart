@@ -59,10 +59,14 @@ class FlightGlassStep {
   final String tastingNotesSummary;
   final double? glassPrice;
 
-  /// Le prix du verre n'est pas sur la carte : il est estimé (un cinquième de la
-  /// bouteille). L'écran le dit — afficher « 22 £ / verre » pour un vin que le
+  /// Le prix du verre n'est pas sur la carte : il est estimé (un cinquième d'une
+  /// bouteille de 75 cl). L'écran le dit — afficher « 22 £ / verre » pour un vin que le
   /// restaurant ne sert peut-être pas au verre serait affirmer un prix qui n'existe pas.
   final bool prixEstime;
+
+  /// Ce qu'on sert à ce prix quand ce n'est pas un verre : la mignonnette entière
+  /// (« 187 ml »), qui se boit d'un service. Nul pour un verre.
+  final String? service;
 
   const FlightGlassStep({
     required this.stepIndex,
@@ -72,6 +76,7 @@ class FlightGlassStep {
     required this.tastingNotesSummary,
     this.glassPrice,
     this.prixEstime = false,
+    this.service,
   });
 }
 
@@ -199,6 +204,7 @@ class MenuFlightEngine {
           tastingNotesSummary: _note(verres[i].$2.$1, fr),
           glassPrice: _prixDuVerre(verres[i].$2.$1).$1,
           prixEstime: _prixDuVerre(verres[i].$2.$1).$2,
+          service: serviceDe(verres[i].$2.$1),
         ),
     ];
     final total = steps.fold<double>(0.0, (sum, s) => sum + (s.glassPrice ?? 0.0));
@@ -409,6 +415,7 @@ class MenuFlightEngine {
         tastingNotesSummary: _note(w, fr),
         glassPrice: prix,
         prixEstime: estime,
+        service: serviceDe(w),
       ));
     }
 
@@ -576,8 +583,20 @@ class MenuFlightEngine {
       return (w.glassPrices.first.price, false);
     }
     if (w.bottlePrice != null && w.bottlePrice! > 0) {
-      return (double.parse((w.bottlePrice! * 0.20).toStringAsFixed(1)), true);
+      // Une mignonnette d'avion (187 ou 200 ml) est un service, à son prix : son « verre »
+      // ne coûte pas le cinquième de son prix (13/10, carte du vol BA484).
+      if (w.estUneMignonnette) return (w.bottlePrice, false);
+      // Un verre de 15 cl : le cinquième d'une bouteille, les deux cinquièmes d'une demie,
+      // le dixième d'un magnum.
+      final part = 150 / (w.contenanceMl ?? 750);
+      return (double.parse((w.bottlePrice! * part).toStringAsFixed(1)), true);
     }
     return (null, false);
   }
+
+  /// La mignonnette servie entière, quand la carte n'a pas de prix au verre pour ce vin.
+  static String? serviceDe(MenuWine w) =>
+      w.estUneMignonnette && !(w.glassPrices.isNotEmpty && w.glassPrices.first.price > 0)
+          ? w.contenanceAffichee
+          : null;
 }

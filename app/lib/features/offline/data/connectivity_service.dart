@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../presentation/sync_provider.dart';
+import '../../../config/constants.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/providers/cellar_provider.dart';
 
@@ -14,6 +15,35 @@ class ConnectivityService {
   bool _isAutoSyncing = false;
 
   ConnectivityService(this._ref);
+
+  /// Ce que l'app doit joindre : son serveur, d'abord. Le 15/10, Pascal (iPhone, en Wi-Fi)
+  /// voyait « Mode Hors-Ligne » au scan pendant que ses bouteilles partaient en ligne : la
+  /// seule sonde, 1.1.1.1 de Cloudflare, est bloquée sur bien des réseaux (filtres, box,
+  /// entreprises). Toute réponse du serveur, même un refus, dit que le réseau passe ;
+  /// Cloudflare et Google ne sont qu'un second avis.
+  static final List<Uri> sondes = [
+    Uri.parse('${AppConstants.supabaseUrl}/auth/v1/health'),
+    Uri.parse('https://1.1.1.1/cdn-cgi/trace'),
+    Uri.parse('https://www.google.com/generate_204'),
+  ];
+
+  /// Vrai dès qu'une sonde répond, quelle que soit sa réponse ; faux si aucune ne répond
+  /// avant [delai]. Les sondes partent ensemble : hors ligne, on attend une fois [delai].
+  static Future<bool> joignable({Duration delai = const Duration(seconds: 4), http.Client? client}) {
+    final fin = Completer<bool>();
+    final c = client ?? http.Client();
+    var echecs = 0;
+    for (final sonde in sondes) {
+      c.head(sonde).timeout(delai).then((_) {
+        if (!fin.isCompleted) fin.complete(true);
+      }, onError: (_) {
+        if (++echecs == sondes.length && !fin.isCompleted) fin.complete(false);
+      });
+    }
+    return fin.future.whenComplete(() {
+      if (client == null) c.close();
+    });
+  }
 
   void startMonitoring() {
     _check();
@@ -36,11 +66,7 @@ class ConnectivityService {
     _isChecking = true;
 
     try {
-      // Light probe to 1.1.1.1 or Google DNS
-      final response = await http
-          .get(Uri.parse('https://1.1.1.1/cdn-cgi/trace'))
-          .timeout(const Duration(seconds: 4));
-      final online = response.statusCode == 200;
+      final online = await joignable();
 
       if (online) {
         _handleOnline();
@@ -62,6 +88,7 @@ class ConnectivityService {
     _offlineDebounceTimer?.cancel();
     _offlineDebounceTimer = null;
     if (!_ref.read(isOnlineProvider)) {
+      AppLogger.info('CONNECTIVITE', 'De nouveau en ligne');
       _ref.read(isOnlineProvider.notifier).state = true;
     }
     _triggerAutoSyncIfPending();
@@ -77,19 +104,14 @@ class ConnectivityService {
     // Wait 5s before officially dropping into offline mode
     // Prevents false offline triggers when switching apps or on momentary network hiccup
     _offlineDebounceTimer = Timer(const Duration(seconds: 5), () async {
-      try {
-        final response = await http
-            .get(Uri.parse('https://1.1.1.1/cdn-cgi/trace'))
-            .timeout(const Duration(seconds: 3));
-        if (response.statusCode == 200) {
-          _handleOnline();
-          return;
-        }
-      } catch (e) {
-        AppLogger.debug('CONNECTIVITY', 'Repli : $e');
+      if (await joignable(delai: const Duration(seconds: 3))) {
+        _handleOnline();
+        return;
       }
 
-      // Still unreachable after 5 seconds debounce -> officially offline
+      // Toujours rien après 5 secondes : hors ligne, et le journal dit pourquoi (le 15/10,
+      // rien ne permettait de savoir d'où venait le « Mode Hors-Ligne » de Pascal).
+      AppLogger.warning('CONNECTIVITE', 'Hors ligne : ni le serveur, ni Cloudflare, ni Google ne répondent');
       _ref.read(isOnlineProvider.notifier).state = false;
     });
   }

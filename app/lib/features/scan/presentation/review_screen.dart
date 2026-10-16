@@ -184,7 +184,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   Future<ScanResult?> _analyzeImage({bool runPrompts = true}) async {
-    final isOnline = ref.read(isOnlineProvider);
+    // Un « hors ligne » peut dater de quelques secondes : on revérifie avant de le dire.
+    var isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) isOnline = await ref.read(connectivityServiceProvider).checkConnection();
+    if (!mounted) return null;
     if (!isOnline) {
       setState(() {
         _isAnalyzing = false;

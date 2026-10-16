@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../shared/providers/auth_provider.dart';
@@ -134,7 +135,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final rawUser = _usernameController.text.trim().toLowerCase().replaceAll('@', '');
+    final rawUser = UserProfile.normaliserPseudo(_usernameController.text);
     final valErr = UserProfile.validateUsername(rawUser);
     if (valErr != null) {
       setState(() => _usernameError = valErr);
@@ -312,8 +313,12 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                               autocorrect: false,
                               enableSuggestions: false,
                               textInputAction: TextInputAction.next,
+                              // « Pascal l écureuil » s'écrit « pascal_l_ecureuil » à mesure qu'on tape.
+                              inputFormatters: const [FormatDuPseudo()],
                               decoration: InputDecoration(
                                 labelText: tr('Pseudo unique *', 'Unique username *'),
+                                // Le message entier : tronqué, il ne disait pas quoi corriger (15/10).
+                                errorMaxLines: 3,
                                 prefixText: '@ ',
                                 prefixStyle: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
                                 hintText: 'flavien',
@@ -418,5 +423,19 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
         ),
       ),
     );
+  }
+}
+
+/// Le pseudo s'écrit à mesure qu'on tape comme il sera enregistré : minuscules sans
+/// accents, tirets bas à la place des espaces (voir `UserProfile.normaliserPseudo`).
+class FormatDuPseudo extends TextInputFormatter {
+  const FormatDuPseudo();
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final propre = UserProfile.normaliserPseudo(newValue.text, enCours: true);
+    if (propre == newValue.text) return newValue;
+    final curseur = (newValue.selection.end - (newValue.text.length - propre.length)).clamp(0, propre.length);
+    return TextEditingValue(text: propre, selection: TextSelection.collapsed(offset: curseur));
   }
 }

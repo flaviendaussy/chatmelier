@@ -237,7 +237,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final text = (presetText ?? _textController.text).trim();
     if (text.isEmpty || _isLoading) return;
 
-    final isOnline = ref.read(isOnlineProvider);
+    // Un « hors ligne » peut dater de quelques secondes : on revérifie avant de le dire.
+    var isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) isOnline = await ref.read(connectivityServiceProvider).checkConnection();
+    if (!mounted) return;
     if (!isOnline) {
       showModalBottomSheet(
         context: context,

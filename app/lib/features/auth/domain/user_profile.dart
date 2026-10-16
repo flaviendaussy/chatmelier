@@ -1,3 +1,6 @@
+import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/sans_accents.dart';
+
 class UserProfile {
   final String id;
   final String displayName;
@@ -26,20 +29,37 @@ class UserProfile {
   /// - lowercase letters, digits, and underscores only
   static String? validateUsername(String? val) {
     if (val == null || val.trim().isEmpty) {
-      return 'Le pseudo est obligatoire.';
+      return tr('Le pseudo est obligatoire.', 'A username is required.');
     }
     final clean = val.trim().toLowerCase().replaceAll('@', '');
     if (clean.length < 3) {
-      return 'Le pseudo doit comporter au moins 3 caractères.';
+      return tr('Le pseudo doit comporter au moins 3 caractères.', 'Your username needs at least 3 characters.');
     }
     if (clean.length > 30) {
-      return 'Le pseudo ne peut pas dépasser 30 caractères.';
+      return tr('Le pseudo ne peut pas dépasser 30 caractères.', 'Your username can\'t be longer than 30 characters.');
     }
     final regex = RegExp(r'^[a-z0-9_]+$');
     if (!regex.hasMatch(clean)) {
-      return 'Uniquement des lettres, chiffres et tirets bas (_) sans espaces.';
+      return tr('Uniquement des lettres sans accents, des chiffres et des tirets bas (_), sans espaces.',
+          'Only letters without accents, digits and underscores (_), no spaces.');
     }
     return null;
+  }
+
+  /// Ce que la personne tape, ramené aux règles du pseudo : minuscules sans accents, un
+  /// tiret bas à la place des espaces, points, tirets et apostrophes. Le 15/10, Pascal a tapé
+  /// « Pascal l ecureuil », lu un message tronqué (« Uniquement des lettres, chiffres et
+  /// tiret… ») et renoncé : l'app corrige d'elle-même ce qu'elle sait corriger.
+  /// [enCours] : pendant la frappe, le tiret bas final reste (le mot suivant arrive).
+  static String normaliserPseudo(String brut, {bool enCours = false}) {
+    var s = sansAccents(brut).replaceAll('@', '');
+    s = s
+        .replaceAll(RegExp(r"[\s.\-']+"), '_')
+        .replaceAll(RegExp(r'[^a-z0-9_]'), '')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceFirst(RegExp(r'^_+'), '');
+    if (!enCours) s = s.replaceFirst(RegExp(r'_+$'), '');
+    return s.length > 30 ? s.substring(0, 30) : s;
   }
 
   /// Validates that phone number, if provided, must strictly include an international dial code

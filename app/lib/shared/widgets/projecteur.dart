@@ -30,9 +30,12 @@ class Projecteur {
     await Scrollable.ensureVisible(contexteCible,
         duration: const Duration(milliseconds: 450), curve: Curves.easeInOut, alignment: 0.3);
     await Future<void>.delayed(const Duration(milliseconds: 150));
-    final boite = cible.currentContext?.findRenderObject();
-    if (!context.mounted || boite is! RenderBox || !boite.hasSize) return;
-    final overlay = Overlay.of(context, rootOverlay: true);
+    final ici = cible.currentContext;
+    final boite = ici?.findRenderObject();
+    if (ici == null || !ici.mounted || boite is! RenderBox || !boite.hasSize) return;
+    // L'overlay se cherche depuis la cible : le contexte du navigateur racine est au-dessus
+    // de son propre overlay, qu'il ne trouve donc pas (vu sur l'émulateur le 17/10).
+    final overlay = Overlay.of(ici, rootOverlay: true);
     if (!overlay.mounted) return;
     final repere = overlay.context.findRenderObject();
     final zone = (boite.localToGlobal(Offset.zero, ancestor: repere) & boite.size).inflate(6);

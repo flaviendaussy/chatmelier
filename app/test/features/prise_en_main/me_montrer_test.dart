@@ -58,6 +58,25 @@ void main() {
     await fini;
   });
 
+  testWidgets('appelé depuis le navigateur racine, le projecteur trouve quand même l\'overlay (17/10)', (tester) async {
+    // « Me montrer » l'appelle avec le contexte du navigateur racine, qui est au-dessus de
+    // son propre overlay : vu sur l'émulateur, « No Overlay widget found ».
+    final racine = GlobalKey<NavigatorState>();
+    final cible = GlobalKey();
+    await tester.pumpWidget(ProviderScope(
+      child: MaterialApp(
+        navigatorKey: racine,
+        home: Scaffold(body: Center(child: Container(key: cible, width: 100, height: 60, color: Colors.red))),
+      ),
+    ));
+    final fini = Projecteur.eclairer(racine.currentContext!, cible, 'Scanner la carte');
+    await laisserPasser(tester);
+    expect(find.text('Scanner la carte'), findsOneWidget);
+    await tester.tapAt(const Offset(5, 5));
+    await laisserPasser(tester);
+    await fini;
+  });
+
   testWidgets('la démonstration : une cave simulée, on ouvre le Bandol, sa courbe de garde', (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;

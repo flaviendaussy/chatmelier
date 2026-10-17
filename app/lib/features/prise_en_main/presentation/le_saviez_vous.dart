@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/navigator_keys.dart';
+import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
 import '../../feedback/data/shake_feedback_service.dart';
 import '../data/preferences_de_prise_en_main.dart';
@@ -67,7 +68,12 @@ class LeSaviezVous {
       default:
         aller(context, astuce.destination);
         final racine = rootNavigatorKey.currentContext;
-        if (cible != null && racine != null) await Projecteur.eclairer(racine, cible, legende);
+        if (cible == null || racine == null) return;
+        try {
+          await Projecteur.eclairer(racine, cible, legende);
+        } catch (e) {
+          AppLogger.warning('PRISE_EN_MAIN', 'Projecteur de « ${astuce.id} » impossible : $e');
+        }
     }
   }
 

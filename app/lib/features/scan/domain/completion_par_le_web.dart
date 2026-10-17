@@ -39,7 +39,11 @@ class CompletionParLeWeb {
     bool dejaDit(String t) => [...vin, ...origine].any((m) => m.toLowerCase().contains(t.toLowerCase()));
     void ajouter(List<String> ou, String? morceau) {
       final t = (morceau ?? '').trim();
-      if (t.isNotEmpty && !dejaDit(t)) ou.add(t);
+      if (t.isEmpty || dejaDit(t)) return;
+      // Un morceau plus complet remplace celui qu'il contient : « Menudo » puis « Menudo Vino
+      // de Autor » ne donnent pas « Menudo Menudo Vino de Autor » (17/10).
+      ou.removeWhere((m) => t.toLowerCase().contains(m.toLowerCase()));
+      ou.add(t);
     }
 
     ajouter(vin, producteur);
@@ -75,9 +79,7 @@ class CompletionParLeWeb {
   /// confirme.
   static ScanResult fusionner(ScanResult lu, ScanResult web, {List<String> sources = const []}) {
     final sourcee = lu.fromCache || lu.sourcesVerified.isNotEmpty;
-    // Un domaine identique au nom n'a pas été lu : le modèle a recopié le nom faute de voir
-    // le domaine, souvent au dos (« La Rosa Mayor », de Bodegas Valtravieso, 16/10).
-    final domaineLu = _memeTexte(lu.producer, lu.name) ? null : lu.producer;
+    final domaineLu = domaineRecopie(lu.producer, lu.name) ? null : lu.producer;
     bool prendre(bool luVide, bool webPlein) => webPlein && (luVide || !sourcee);
     String? texte(String? l, String? w) => _rempli(l) ? l : (_rempli(w) ? w!.trim() : l);
 
@@ -144,6 +146,14 @@ class CompletionParLeWeb {
 
   static bool _rempli(String? v) => v != null && v.trim().isNotEmpty;
 
-  static bool _memeTexte(String? a, String? b) =>
-      _rempli(a) && _rempli(b) && sansAccents(a!.trim()) == sansAccents(b!.trim());
+  /// Un domaine qui n'est que le nom du vin, ou son début, n'a pas été lu : le modèle a
+  /// recopié la marque faute de voir le domaine, souvent au dos (« La Rosa Mayor », de
+  /// Bodegas Valtravieso ; « Menudo », de Bodegas Luzón, 16/10). Celui des sources le
+  /// remplace ; un vrai domaine lu sur l'étiquette ne bouge pas.
+  static bool domaineRecopie(String? producteur, String nom) {
+    if (!_rempli(producteur) || !_rempli(nom)) return false;
+    final p = sansAccents(producteur!.trim());
+    final n = sansAccents(nom.trim());
+    return p == n || n.startsWith('$p ');
+  }
 }

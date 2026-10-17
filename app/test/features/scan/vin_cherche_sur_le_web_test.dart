@@ -51,6 +51,9 @@ void main() {
     );
     // Un nom court ne suffit pas : « Menudo » est aussi un plat et un groupe.
     expect(CompletionParLeWeb.requete(nom: 'Menudo', producteur: 'Menudo', millesime: 2021, type: 'red'), 'Menudo 2021, red wine');
+    // Vu sur l'émulateur : « Menudo Menudo Vino de Autor ».
+    expect(CompletionParLeWeb.requete(nom: 'Menudo Vino de Autor', producteur: 'Menudo', pays: 'Spain', type: 'red'),
+        'Menudo Vino de Autor, Spain, red wine');
   });
 
   test('le web remplit les vides, et ne touche ni au millésime, ni au degré, ni à ce qui est lu', () {
@@ -73,6 +76,11 @@ void main() {
     // Un vrai domaine lu sur l'étiquette ne bouge pas.
     final lue = lu.copyWith(producer: 'Valtravieso');
     expect(CompletionParLeWeb.fusionner(lue, surLeWeb).producer, 'Valtravieso');
+    // La marque en tête du nom n'est pas le domaine (vu sur l'émulateur, 17/10).
+    const menudo = ScanResult(name: 'Menudo Vino de Autor', producer: 'Menudo', wineType: 'red', country: 'Spain', region: '');
+    const luzon = ScanResult(name: 'Menudo', producer: 'Bodegas Luzón', wineType: 'red', country: 'Spain', region: 'Murcia', appellation: 'Jumilla');
+    expect(CompletionParLeWeb.fusionner(menudo, luzon).producer, 'Bodegas Luzón');
+    expect(CompletionParLeWeb.domaineRecopie('Domaine Leflaive', 'Puligny-Montrachet Les Pucelles'), isFalse);
   });
 
   test('une description devinée cède la place au web ; une description sourcée reste', () {

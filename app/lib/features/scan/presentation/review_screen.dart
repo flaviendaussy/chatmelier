@@ -300,8 +300,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         final f = trouve.fiche;
         _scanResult = f;
         // Un domaine recopié du nom n'avait pas été lu : celui des sources le remplace.
-        final domaineRecopie = _producerCtrl.text.trim().toLowerCase() == _nameCtrl.text.trim().toLowerCase();
-        if (_producerCtrl.text.trim().isEmpty || domaineRecopie) _producerCtrl.text = f.producer ?? _producerCtrl.text;
+        if (_producerCtrl.text.trim().isEmpty || CompletionParLeWeb.domaineRecopie(_producerCtrl.text, _nameCtrl.text)) {
+          _producerCtrl.text = f.producer ?? _producerCtrl.text;
+        }
         if (_countryCtrl.text.trim().isEmpty) _countryCtrl.text = f.country;
         if (_regionCtrl.text.trim().isEmpty) _regionCtrl.text = f.region;
         if (_appellationCtrl.text.trim().isEmpty) _appellationCtrl.text = f.appellation ?? '';
@@ -710,111 +711,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     if (isSpiritOrFortified) return;
 
     if (!mounted) return;
-    final tempVintageCtrl = TextEditingController();
-    final l10n = AppLocalizations.of(context);
-    final isFr = Localizations.localeOf(context).languageCode == 'fr';
-
-    try {
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: Row(
-              children: [
-                const Icon(Icons.calendar_month, color: Color(0xFFD4AF37)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    l10n?.reviewVintageYear ?? 'Millésime / Année',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  trSi(isFr, 'Indiquez ou confirmez l\'année de récolte de cette bouteille :', 'Enter or confirm the harvest year of this bottle:'),
-                  style: const TextStyle(fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: tempVintageCtrl,
-                  keyboardType: TextInputType.number,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    labelText: trSi(isFr, 'Année (ex: 2018, 2020)', 'Year (e.g. 2018, 2020)'),
-                    prefixIcon: const Icon(Icons.date_range),
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                InkWell(
-                  onTap: () {
-                    _vintageCtrl.text = '';
-                    Navigator.pop(ctx);
-                  },
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFD4AF37)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.all_inclusive, size: 18, color: Color(0xFFB8860B)),
-                        const SizedBox(width: 8),
-                        Text(
-                          trSi(isFr, 'C\'est un Non millésimé (NM)', 'Non-vintage (NV)'),
-                          style: const TextStyle(
-                            color: Color(0xFF8B1E3F),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  _vintageCtrl.text = '';
-                  Navigator.pop(ctx);
-                },
-                child: Text(l10n?.reviewNonVintage ?? 'Passer / Non millésimé'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  _vintageCtrl.text = tempVintageCtrl.text.trim();
-                  Navigator.pop(ctx);
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B1E3F),
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(
-                  l10n?.reviewValidate ?? 'Valider',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-    } finally {
-      tempVintageCtrl.dispose();
-    }
+    // Le dialogue garde son propre champ : le contrôleur détruit dès la fermeture, pendant
+    // que le dialogue s'effaçait encore, faisait planter l'écran (17/10, « _dependents.isEmpty »).
+    final choix = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _DialogueDuMillesime(l10n: AppLocalizations.of(context), isFr: Localizations.localeOf(context).languageCode == 'fr'),
+    );
+    if (choix != null && mounted) _vintageCtrl.text = choix;
   }
 
   String _normalizeWineType(String type) {
@@ -1790,7 +1694,6 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     Row(
                       children: [
                         Expanded(
-                          flex: 3,
                           child: TextFormField(
                             controller: _vintageCtrl,
                             keyboardType: TextInputType.number,
@@ -1814,7 +1717,6 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          flex: 3,
                           child: TextFormField(
                             controller: _alcoholPctCtrl,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -1826,41 +1728,41 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 4,
-                          child: DropdownButtonFormField<String>(
-                            initialValue: _wineType,
-                            decoration: InputDecoration(
-                              labelText: trSi(isFr, 'Catégorie', 'Category'),
-                              border: const OutlineInputBorder(),
-                            ),
-                            items: [
-                              DropdownMenuItem(value: 'red', child: Text(l10n?.wineTypeRed ?? 'Rouge 🍷')),
-                              DropdownMenuItem(value: 'white', child: Text(l10n?.wineTypeWhite ?? 'Blanc 🥂')),
-                              DropdownMenuItem(value: 'rosé', child: Text(l10n?.wineTypeRose ?? 'Rosé 🌸')),
-                              DropdownMenuItem(value: 'sparkling', child: Text(l10n?.wineTypeSparkling ?? 'Bulles 🍾')),
-                              DropdownMenuItem(value: 'dessert', child: Text(l10n?.wineTypeDessert ?? 'Moelleux 🍯')),
-                              DropdownMenuItem(value: 'liqueur', child: Text(l10n?.wineTypeLiqueur ?? 'Liqueur 🍯')),
-                              DropdownMenuItem(value: 'spirit', child: Text(l10n?.wineTypeSpirit ?? 'Spiritueux 🥃')),
-                              DropdownMenuItem(value: 'grappa', child: Text(l10n?.wineTypeGrappa ?? 'Grappa 🍇')),
-                              DropdownMenuItem(value: 'eau-de-vie', child: Text(l10n?.wineTypeEauDeVie ?? 'Eau-de-vie 🍐')),
-                              DropdownMenuItem(value: 'whisky', child: Text(l10n?.wineTypeWhisky ?? 'Whisky 🥃')),
-                              DropdownMenuItem(value: 'rhum', child: Text(l10n?.wineTypeRum ?? 'Rhum 🏴‍☠️')),
-                              DropdownMenuItem(value: 'gin', child: Text(l10n?.wineTypeGin ?? 'Gin 🍸')),
-                              DropdownMenuItem(value: 'vodka', child: Text(l10n?.wineTypeVodka ?? 'Vodka 🧊')),
-                              DropdownMenuItem(value: 'tequila', child: Text(l10n?.wineTypeTequila ?? 'Tequila 🌵')),
-                              DropdownMenuItem(value: 'cognac', child: Text(l10n?.wineTypeCognac ?? 'Cognac 🍷')),
-                            ],
-                            onChanged: (val) {
-                              if (val != null) {
-                                setState(() => _wineType = val);
-                                _checkDuplicateInCellar();
-                              }
-                            },
-                          ),
-                        ),
                       ],
+                    ),
+                    // La catégorie sur sa propre ligne : à trois par ligne, le millésime s'affichait
+                    // « 202 » et la catégorie débordait de 104 pixels (vu le 17/10).
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: _wineType,
+                      decoration: InputDecoration(
+                        labelText: trSi(isFr, 'Catégorie', 'Category'),
+                        border: const OutlineInputBorder(),
+                      ),
+                      items: [
+                        DropdownMenuItem(value: 'red', child: Text(l10n?.wineTypeRed ?? 'Rouge 🍷')),
+                        DropdownMenuItem(value: 'white', child: Text(l10n?.wineTypeWhite ?? 'Blanc 🥂')),
+                        DropdownMenuItem(value: 'rosé', child: Text(l10n?.wineTypeRose ?? 'Rosé 🌸')),
+                        DropdownMenuItem(value: 'sparkling', child: Text(l10n?.wineTypeSparkling ?? 'Bulles 🍾')),
+                        DropdownMenuItem(value: 'dessert', child: Text(l10n?.wineTypeDessert ?? 'Moelleux 🍯')),
+                        DropdownMenuItem(value: 'liqueur', child: Text(l10n?.wineTypeLiqueur ?? 'Liqueur 🍯')),
+                        DropdownMenuItem(value: 'spirit', child: Text(l10n?.wineTypeSpirit ?? 'Spiritueux 🥃')),
+                        DropdownMenuItem(value: 'grappa', child: Text(l10n?.wineTypeGrappa ?? 'Grappa 🍇')),
+                        DropdownMenuItem(value: 'eau-de-vie', child: Text(l10n?.wineTypeEauDeVie ?? 'Eau-de-vie 🍐')),
+                        DropdownMenuItem(value: 'whisky', child: Text(l10n?.wineTypeWhisky ?? 'Whisky 🥃')),
+                        DropdownMenuItem(value: 'rhum', child: Text(l10n?.wineTypeRum ?? 'Rhum 🏴‍☠️')),
+                        DropdownMenuItem(value: 'gin', child: Text(l10n?.wineTypeGin ?? 'Gin 🍸')),
+                        DropdownMenuItem(value: 'vodka', child: Text(l10n?.wineTypeVodka ?? 'Vodka 🧊')),
+                        DropdownMenuItem(value: 'tequila', child: Text(l10n?.wineTypeTequila ?? 'Tequila 🌵')),
+                        DropdownMenuItem(value: 'cognac', child: Text(l10n?.wineTypeCognac ?? 'Cognac 🍷')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() => _wineType = val);
+                          _checkDuplicateInCellar();
+                        }
+                      },
                     ),
                     const SizedBox(height: 8),
                     Align(
@@ -2331,3 +2233,113 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
 /// Où en est la recherche sur le web d'un vin que l'étiquette ne suffit pas à trouver.
 enum _RechercheWeb { aucune, enCours, trouve, introuvable }
+
+/// Le millésime à confirmer quand l'étiquette ne l'a pas donné. Rend l'année saisie, « » pour
+/// un non millésimé, ou rien.
+class _DialogueDuMillesime extends StatefulWidget {
+  final AppLocalizations? l10n;
+  final bool isFr;
+
+  const _DialogueDuMillesime({required this.l10n, required this.isFr});
+
+  @override
+  State<_DialogueDuMillesime> createState() => _DialogueDuMillesimeState();
+}
+
+class _DialogueDuMillesimeState extends State<_DialogueDuMillesime> {
+  final _annee = TextEditingController();
+
+  @override
+  void dispose() {
+    _annee.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    final isFr = widget.isFr;
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Row(
+        children: [
+          const Icon(Icons.calendar_month, color: Color(0xFFD4AF37)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              l10n?.reviewVintageYear ?? 'Millésime / Année',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            trSi(isFr, 'Indiquez ou confirmez l\'année de récolte de cette bouteille :', 'Enter or confirm the harvest year of this bottle:'),
+            style: const TextStyle(fontSize: 13),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _annee,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: trSi(isFr, 'Année (ex: 2018, 2020)', 'Year (e.g. 2018, 2020)'),
+              prefixIcon: const Icon(Icons.date_range),
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: () => Navigator.pop(context, ''),
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFD4AF37)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.all_inclusive, size: 18, color: Color(0xFFB8860B)),
+                  const SizedBox(width: 8),
+                  Text(
+                    trSi(isFr, 'C\'est un Non millésimé (NM)', 'Non-vintage (NV)'),
+                    style: const TextStyle(
+                      color: Color(0xFF8B1E3F),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, ''),
+          child: Text(l10n?.reviewNonVintage ?? 'Passer / Non millésimé'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _annee.text.trim()),
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF8B1E3F),
+            foregroundColor: Colors.white,
+          ),
+          child: Text(
+            l10n?.reviewValidate ?? 'Valider',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+}

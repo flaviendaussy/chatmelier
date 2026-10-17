@@ -355,7 +355,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
       'pays': _paysController,
     };
     // Un domaine recopié du nom n'avait pas été lu : il compte pour vide.
-    final domaineRecopie = _producerController.text.trim().toLowerCase() == _nameController.text.trim().toLowerCase();
+    final domaineRecopie = CompletionParLeWeb.domaineRecopie(_producerController.text, _nameController.text);
     final ecrire = FicheDepuisTexte.aEcrire(
       actuels: {
         for (final e in champs.entries) e.key: e.key == 'producteur' && domaineRecopie ? '' : e.value.text,

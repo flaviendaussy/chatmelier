@@ -325,6 +325,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 ),
               ),
               const SizedBox(height: 12),
+              // Une caméra qui ne démarre pas (permission, appareil) ne doit pas fermer la porte
+              // à une photo déjà prise : la galerie, comme sur l'écran d'erreur.
+              TextButton.icon(
+                onPressed: _pickGallery,
+                icon: const Icon(Icons.photo_library_outlined, color: Colors.white70),
+                label: Text(trSi(isFr, 'Choisir dans la galerie', 'Choose from gallery'), style: const TextStyle(color: Colors.white70)),
+              ),
               TextButton.icon(
                 onPressed: _manualEntry,
                 icon: const Icon(Icons.edit, color: Colors.white70),

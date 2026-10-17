@@ -16782,6 +16782,42 @@
   "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1331"
  },
  {
+  "fr": "Votre carte est lue",
+  "en": "Your wine list is ready",
+  "es": "Tu carta está leída",
+  "ou": "lib/features/menu_scan/presentation/explication_de_la_video.dart:44"
+ },
+ {
+  "fr": "Pendant la vidéo, Chatmelier lisait déjà votre carte : vous n'avez pas attendu une seconde de plus.",
+  "en": "While the video played, Chatmelier was already reading your list: you didn't wait a second longer.",
+  "es": "Durante el vídeo, Chatmelier ya estaba leyendo tu carta: no has esperado ni un segundo más.",
+  "ou": "lib/features/menu_scan/presentation/explication_de_la_video.dart:50"
+ },
+ {
+  "fr": "Pourquoi une vidéo ?",
+  "en": "Why a video?",
+  "es": "¿Por qué un vídeo?",
+  "ou": "lib/features/menu_scan/presentation/explication_de_la_video.dart:53"
+ },
+ {
+  "fr": "Lire une carte des vins demande une intelligence artificielle, qui coûte à chaque scan. La vidéo la paie : Chatmelier reste entièrement gratuit, sans aucune fonction bridée.",
+  "en": "Reading a wine list takes artificial intelligence, which costs money on every scan. The video pays for it: Chatmelier stays completely free, with no feature held back.",
+  "es": "Leer una carta de vinos requiere una inteligencia artificial que cuesta dinero en cada escaneo. El vídeo la paga: Chatmelier sigue siendo totalmente gratuito, sin ninguna función recortada.",
+  "ou": "lib/features/menu_scan/presentation/explication_de_la_video.dart:55"
+ },
+ {
+  "fr": "Ne plus montrer",
+  "en": "Don't show again",
+  "es": "No volver a mostrar",
+  "ou": "lib/features/menu_scan/presentation/explication_de_la_video.dart:62"
+ },
+ {
+  "fr": "Voir ma carte",
+  "en": "See my list",
+  "es": "Ver mi carta",
+  "ou": "lib/features/menu_scan/presentation/explication_de_la_video.dart:68"
+ },
+ {
   "fr": "Invité",
   "en": "Guest",
   "es": "Invitado",
@@ -17349,229 +17385,229 @@
   "fr": "Position indisponible : tapez le nom du lieu.",
   "en": "Location unavailable: type the place name.",
   "es": "Ubicación no disponible: escribe el nombre del lugar.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:71"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:72"
  },
  {
   "fr": "Aucun restaurant ni bar trouvé autour de vous : tapez le nom du lieu.",
   "en": "No restaurant or bar found around you: type the place name.",
   "es": "No se ha encontrado ningún restaurante ni bar a tu alrededor: escribe el nombre del lugar.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:90"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:91"
  },
  {
   "fr": "Où êtes-vous ?",
   "en": "Where are you?",
   "es": "¿Dónde estás?",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:149"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:150"
  },
  {
   "fr": "Nom du restaurant ou du bar",
   "en": "Restaurant or bar name",
   "es": "Nombre del restaurante o del bar",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:150"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:151"
  },
  {
   "fr": "Lieux proches",
   "en": "Nearby places",
   "es": "Lugares cercanos",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:160"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:161"
  },
  {
   "fr": "Chatmelier analyse le menu...",
   "en": "Chatmelier is analyzing the menu...",
   "es": "Chatmelier analiza la carta...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:374"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:380"
  },
  {
   "fr": "L'ardoise du bar",
   "en": "The bar's board",
   "es": "La pizarra del bar",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:466"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:472"
  },
  {
   "fr": "Photographiez l'ardoise, en plusieurs fois si elle est grande : les prix au verre passeront en premier.",
   "en": "Photograph the board, in several shots if it is large: glass prices will come first.",
   "es": "Fotografía la pizarra, en varias tomas si es grande: los precios por copa aparecerán primero.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:473"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:479"
  },
  {
   "fr": "Prenez l'ardoise en photo, ou choisissez une photo dans la galerie.",
   "en": "Take a photo of the board, or pick one from the gallery.",
   "es": "Haz una foto de la pizarra o elige una de la galería.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:512"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:518"
  },
  {
   "fr": "Analyser l'ardoise",
   "en": "Analyze the board",
   "es": "Analizar la pizarra",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:709"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:715"
  },
  {
   "fr": "Chatmelier analyse le menu{suffixe}...",
   "en": "Chatmelier is analyzing the menu{suffixe}...",
   "es": "Chatmelier analiza la carta{suffixe}...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:203"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:204"
  },
  {
   "fr": "Déchiffrage optique des cuvées, producteurs et millésimes...",
   "en": "Optical recognition of cuvées, producers and vintages...",
   "es": "Descifrando cuvées, productores y añadas...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:204"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:205"
  },
  {
   "fr": "Chatmelier s'informe sur les domaines et terroirs viticoles...",
   "en": "Chatmelier explores estates and wine terroirs...",
   "es": "Chatmelier se informa sobre los productores y los terruños...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:205"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:206"
  },
  {
   "fr": "Extraction des prix à la bouteille et des formats au verre...",
   "en": "Extracting bottle and by-the-glass pricing...",
   "es": "Extrayendo los precios por botella y por copa...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:206"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:207"
  },
  {
   "fr": "Calcul des profils sensoriels (tanins, minéralité, vivacité)...",
   "en": "Computing sensory profiles (tannins, minerality, acidity)...",
   "es": "Calculando los perfiles sensoriales (taninos, mineralidad, viveza)...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:207"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:208"
  },
  {
   "fr": "Vérification dans la cave de connaissances Chatmelier...",
   "en": "Cross-referencing Chatmelier knowledge cellar...",
   "es": "Comprobando en la bodega de conocimientos de Chatmelier...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:208"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:209"
  },
  {
   "fr": "Génération des accords mets-vins personnalisés...",
   "en": "Generating personalized food & wine pairings...",
   "es": "Generando maridajes personalizados...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:209"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:210"
  },
  {
   "fr": "Finalisation de votre carte des vins enrichie...",
   "en": "Finalizing your enriched wine list...",
   "es": "Terminando tu carta de vinos enriquecida...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:210"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:211"
  },
  {
   "fr": "Erreur lors de la prise de photo : {e}",
   "en": "Error taking photo: {e}",
   "es": "Error al hacer la foto: {e}",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:245"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:246"
  },
  {
   "fr": "Erreur lors de la sélection de photos : {e}",
   "en": "Error selecting photos: {e}",
   "es": "Error al seleccionar las fotos: {e}",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:265"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:266"
  },
  {
   "fr": "Le visionnage de la vidéo est requis pour le scan en mode gratuit.",
   "en": "Watching the video is required for scanning in free mode.",
   "es": "Para escanear en modo gratuito hay que ver el vídeo.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:336"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:337"
  },
  {
   "fr": "Erreur d'analyse du menu : {v1}",
   "en": "Menu analysis failed: {v1}",
   "es": "Error al analizar la carta: {v1}",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:343"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:344"
  },
  {
   "fr": "Pendant la vidéo, Chatmelier a lu votre carte : pas une seconde de perdue.",
   "en": "While the video played, Chatmelier read your menu — no time lost.",
   "es": "Durante el vídeo, Chatmelier ha leído tu carta: ni un segundo perdido.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:359"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:365"
  },
  {
   "fr": "Scanner la Carte des Vins",
   "en": "Scan Wine List",
   "es": "Escanear la carta de vinos",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:418"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:424"
  },
  {
   "fr": "Analyser ({capturedPages_length})",
   "en": "Analyze ({capturedPages_length})",
   "es": "Analizar ({capturedPages_length})",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:426"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:432"
  },
  {
   "fr": "Capture Multi-Pages",
   "en": "Multi-Page Capture",
   "es": "Captura de varias páginas",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:467"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:473"
  },
  {
   "fr": "Prenez toutes les pages de la carte (blancs, rouges, bulles...). Elles seront fusionnées et analysées en une seule fois par l'IA !",
   "en": "Capture all pages of the list (whites, reds, sparkling...). They will be merged and analyzed together by AI!",
   "es": "Fotografía todas las páginas de la carta (blancos, tintos, espumosos...). ¡La IA las unirá y las analizará de una vez!",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:475"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:481"
  },
  {
   "fr": "Aucune page capturée pour le moment",
   "en": "No pages captured yet",
   "es": "Todavía no hay ninguna página capturada",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:504"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:510"
  },
  {
   "fr": "Prenez la première page de la carte des vins avec l'appareil photo ou la galerie.",
   "en": "Capture the first page of the wine list using the camera or gallery.",
   "es": "Fotografía la primera página de la carta de vinos con la cámara o desde la galería.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:514"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:520"
  },
  {
   "fr": "Prendre photo",
   "en": "Take photo",
   "es": "Hacer foto",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:530"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:536"
  },
  {
   "fr": "Prendre une autre page en photo",
   "en": "Take another page photo",
   "es": "Fotografiar otra página",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:568"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:574"
  },
  {
   "fr": "Ajouter depuis la galerie",
   "en": "Add from gallery",
   "es": "Añadir desde la galería",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:576"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:582"
  },
  {
   "fr": "Ajouter une page",
   "en": "Add a page",
   "es": "Añadir una página",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:603"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:609"
  },
  {
   "fr": "Photo ou Galerie",
   "en": "Photo or Gallery",
   "es": "Foto o galería",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:607"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:613"
  },
  {
   "fr": "Analyser la carte ({n} pages)",
   "en": "Analyze wine list ({n} pages)",
   "es": "Analizar la carta ({n} páginas)",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:711"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:717"
  },
  {
   "fr": "Analyser la carte ({n} page)",
   "en": "Analyze wine list ({n} page)",
   "es": "Analizar la carta ({n} página)",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:712"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:718"
  },
  {
   "fr": "Analyse du menu par Chatmelier",
   "en": "Menu analysis by Chatmelier",
   "es": "Análisis de la carta por Chatmelier",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:794"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:800"
  },
  {
   "fr": "Extraction des cuvées, millésimes, prix au verre & bouteille, et profils sensoriels.",
   "en": "Extracting cuvées, vintages, by-the-glass & bottle pricing, and sensory profiles.",
   "es": "Extrayendo cuvées, añadas, precios por copa y por botella, y perfiles sensoriales.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:867"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:873"
  },
  {
   "fr": "Sans préférences déclarées",

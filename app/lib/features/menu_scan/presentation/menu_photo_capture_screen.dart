@@ -19,6 +19,7 @@ import '../domain/carte_du_lieu.dart';
 import '../domain/menu_wine.dart';
 import 'carte_du_lieu_vue.dart';
 import '../../../shared/utils/langue.dart';
+import 'explication_de_la_video.dart';
 
 class MenuPhotoCaptureScreen extends ConsumerStatefulWidget {
   /// L'ardoise d'un bar (V2.3 · J4) plutôt qu'une carte : les prix au verre d'abord.
@@ -353,6 +354,11 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
       final lieu = nom.isEmpty ? null : _lieuDeLaCarte;
       if (lieu != null) unawaited(ref.read(cartesDeLieuxServiceProvider).deposer(carte, lieu));
 
+      // Après une vidéo : pourquoi elle existe, jusqu'à « Ne plus montrer » (13/10).
+      if (videoRegardee) {
+        await ExplicationDeLaVideo.montrerSiBesoin(context);
+        if (!mounted) return;
+      }
       context.pushReplacement('/scan/menu/result', extra: carte);
       if (videoRegardee) {
         messenger.showSnackBar(SnackBar(

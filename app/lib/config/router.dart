@@ -21,6 +21,7 @@ import '../features/scan/presentation/review_screen.dart';
 import '../features/checkout/presentation/checkout_screen.dart';
 import '../features/checkout/presentation/match_confirm_screen.dart';
 import '../features/checkout/presentation/consumption_review_screen.dart';
+import '../features/chat/domain/sujet_de_chat.dart';
 import '../features/chat/presentation/chat_screen.dart';
 import '../features/journal/presentation/journal_screen.dart';
 import '../features/stats/presentation/stats_screen.dart';
@@ -246,6 +247,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/chat',
         builder: (context, state) => ChatScreen(
+          // La fiche d'une bouteille ouvre la conversation de son vin (V2.5 · F4) : ses
+          // paramètres étaient jusqu'ici ignorés, et le chat général s'ouvrait.
+          sujet: SujetDeChat.depuisLAdresse(state.uri.queryParameters),
           questionInitiale: state.extra is String ? state.extra as String : null,
         ),
       ),

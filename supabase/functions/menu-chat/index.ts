@@ -306,6 +306,26 @@ function langueDe(code: unknown): Langue {
 // Pas d'éloge non mérité (V2.5 · E3) : le 13/10, un vin simple d'une carte d'avion a été
 // présenté comme remarquable. Ce que la personne boit d'habitude (`habitudes`, tiré de son
 // journal) permet de situer un vin à son niveau, en dessous ou au-dessus.
+// L'échange en cours sur cette carte (V2.5 · F4) : les derniers tours, que l'app garde avec
+// la carte. « Ça devrait spin une nouvelle instance du Chatmelier dédiée à cet item, avec son
+// propre historique » (Flavien, 13/10). Une app plus ancienne n'envoie rien : la question part
+// seule, comme avant.
+function toursPrecedents(valeur: unknown): { role: string; parts: { text: string }[] }[] {
+  const sortie: { role: string; parts: { text: string }[] }[] = []
+  if (!Array.isArray(valeur)) return sortie
+  for (const m of valeur.slice(-10)) {
+    const role = m?.role === 'assistant' ? 'model' : m?.role === 'user' ? 'user' : null
+    const t = texte(m?.texte, 1_500)
+    if (!role || !t || (sortie.length === 0 && role !== 'user')) continue
+    const precedent = sortie[sortie.length - 1]
+    if (precedent && precedent.role === role) precedent.parts.push({ text: t })
+    else sortie.push({ role, parts: [{ text: t }] })
+  }
+  // La question en cours suit : le dernier tour gardé est celui du sommelier.
+  if (sortie.length > 0 && sortie[sortie.length - 1].role === 'user') sortie.pop()
+  return sortie
+}
+
 function redigerPrompt(langue: Langue, restaurant: string, carte: string, profil: string, question: string, habitudes = ''): string {
   if (langue === 'fr') {
     return `Tu es Chatmelier, le maître sommelier du restaurant « ${restaurant} ».
@@ -411,7 +431,7 @@ serve(async (req) => {
     let appel: AppelReussi
     try {
       appel = await appelerGemini(apiKey, reglage, (niveau) => ({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        contents: [...toursPrecedents(body.historique), { role: 'user', parts: [{ text: prompt }] }],
         ...(niveau ? { generationConfig: { thinkingConfig: { thinkingLevel: niveau } } } : {}),
       }), DELAI_PAR_MODELE_MS, (data) => texteDeLaReponse(data).trim().length > 0)
     } catch (e) {

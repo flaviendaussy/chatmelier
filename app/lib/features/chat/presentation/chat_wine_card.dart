@@ -15,6 +15,10 @@ class ChatWineCardData {
   final String? location;
   final String? reason;
 
+  /// Une bouteille que le sommelier a nommée sans en poser la carte (V2.5 · F5) : elle
+  /// n'est pas forcément recommandée (« votre rioja irait mal ici »), juste dans la cave.
+  final bool citee;
+
   const ChatWineCardData({
     this.id,
     required this.name,
@@ -25,6 +29,7 @@ class ChatWineCardData {
     this.wineType = 'red',
     this.location,
     this.reason,
+    this.citee = false,
   });
 
   factory ChatWineCardData.fromJson(Map<String, dynamic> json) {
@@ -38,6 +43,7 @@ class ChatWineCardData {
       wineType: json['wine_type']?.toString() ?? json['color']?.toString() ?? 'red',
       location: json['location']?.toString() ?? json['rack']?.toString(),
       reason: json['reason']?.toString(),
+      citee: json['citee'] == true,
     );
   }
 }
@@ -50,8 +56,8 @@ class ChatWineCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isFr = Localizations.localeOf(context).languageCode == 'fr';
-    final vintageStr = data.vintage != null ? '${data.vintage}' : (trSi(isFr, 'NM', 'NV'));
+    // Un millésime inconnu n'est pas un « non millésimé » : on n'écrit rien.
+    final vintageStr = data.vintage != null ? ' (${data.vintage})' : '';
     final hasBottleId = data.id != null && data.id!.isNotEmpty;
 
     return Container(
@@ -83,7 +89,7 @@ class ChatWineCard extends StatelessWidget {
                 const Icon(Icons.stars_rounded, color: Color(0xFF8B1E3F), size: 18),
                 const SizedBox(width: 6),
                 Text(
-                  'Recommandation Chatmelier',
+                  data.citee ? tr('Dans votre cave', 'In your cellar') : tr('Recommandation Chatmelier', 'Chatmelier pick'),
                   style: theme.textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF8B1E3F),
@@ -118,7 +124,7 @@ class ChatWineCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${data.name} ($vintageStr)',
+                            '${data.name}$vintageStr',
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -162,7 +168,7 @@ class ChatWineCard extends StatelessWidget {
                         const Icon(Icons.inventory_2_outlined, size: 14, color: Colors.amber),
                         const SizedBox(width: 6),
                         Text(
-                          'Emplacement : ${data.location}',
+                          tr('Emplacement : {lieu}', 'Location: {lieu}', {'lieu': data.location}),
                           style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -191,7 +197,7 @@ class ChatWineCard extends StatelessWidget {
                     // Service & Decanting Sheet
                     IconButton.outlined(
                       icon: const Icon(Icons.thermostat_outlined, size: 18, color: Colors.amber),
-                      tooltip: 'Température & Carafage',
+                      tooltip: tr('Température & carafage', 'Temperature & decanting'),
                       onPressed: () => _showServiceModal(context),
                     ),
                     const SizedBox(width: 8),
@@ -204,7 +210,7 @@ class ChatWineCard extends StatelessWidget {
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           ),
-                          child: const Text('Voir la fiche', style: TextStyle(fontSize: 12)),
+                          child: Text(tr('Voir la fiche', 'See the bottle'), style: const TextStyle(fontSize: 12)),
                         ),
                       ),
                     if (hasBottleId) const SizedBox(width: 8),
@@ -216,7 +222,8 @@ class ChatWineCard extends StatelessWidget {
                             ? () => context.push('/checkout?bottleId=${data.id}')
                             : () => context.push('/checkout'),
                         icon: const Icon(Icons.wine_bar, size: 14, color: Colors.white),
-                        label: const Text('Sortir', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
+                        label: Text(tr('Sortir', 'Take out'),
+                            style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFF8B1E3F),
                           foregroundColor: Colors.white,

@@ -2505,6 +2505,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                           path: '/chat',
                           queryParameters: {
                             'bottleId': bottleObj.id,
+                            'wineId': wine.id,
                             'wineName': wine.name,
                             'vintage': vStr,
                             'producer': wine.producer ?? '',

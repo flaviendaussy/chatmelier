@@ -13,7 +13,9 @@ import '../../offline/data/offline_storage_service.dart';
 import '../../offline/presentation/sync_provider.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../friends/data/friends_repository.dart';
+import '../domain/bouteilles_citees.dart';
 import '../domain/chat_message.dart';
+import '../domain/sujet_de_chat.dart';
 import '../domain/cellar_macro_summary.dart';
 import '../domain/cellar_rag_retriever.dart';
 
@@ -63,11 +65,16 @@ class ChatService {
     return cleaned;
   }
 
+  /// Sans la colonne `sujet` (migration 071 pas encore appliquée), une conversation dédiée
+  /// à un vin n'est pas gardée : mieux vaut qu'elle se perde que de se mêler au chat général.
+  static bool _colonneSujetAbsente(Object e) => e.toString().contains('sujet');
+
   Future<_ChatContext> _preparePromptContext(
     String message,
     String? cellarId,
-    String languageCode,
-  ) async {
+    String languageCode, {
+    SujetDeChat? sujet,
+  }) async {
     final user = _client.auth.currentUser;
 
     // Resolve fallback cellar if null or empty
@@ -97,35 +104,10 @@ class ChatService {
       }
     }
 
-    // 2. Fetch past conversation history (last 10 messages)
-    List<Map<String, dynamic>> history = [];
+    // 2. Save user message in database (if authenticated). L'historique, lui, est relu par
+    // la fonction `chat`, sujet par sujet.
     if (resolvedCellarId != null && resolvedCellarId.isNotEmpty && user != null) {
-      try {
-        final histRes = await _client
-            .from('chat_messages')
-            .select('role, content')
-            .eq('cellar_id', resolvedCellarId)
-            .eq('user_id', user.id)
-            .order('created_at', ascending: false)
-            .limit(10);
-        history = List<Map<String, dynamic>>.from(histRes).reversed.toList();
-      } catch (e) {
-        debugPrint('Error fetching history: $e');
-      }
-    }
-
-    // 3. Save user message in database (if authenticated)
-    if (resolvedCellarId != null && resolvedCellarId.isNotEmpty && user != null) {
-      try {
-        await _client.from('chat_messages').insert({
-          'cellar_id': resolvedCellarId,
-          'user_id': user.id,
-          'role': 'user',
-          'content': message,
-        });
-      } catch (e) {
-        debugPrint('Error saving user message: $e');
-      }
+      await _enregistrer(resolvedCellarId, user.id, 'user', message, sujet);
     }
 
     // 4. Generate high-density Macro Summary (Metadata on proportions) + RAG candidate retrieval
@@ -198,6 +180,8 @@ class ChatService {
     // n'envoie que des données : la cave résumée, les bouteilles choisies pour la question,
     // les palais, les amis et les dernières dégustations.
     final contexte = [
+      // Le vin d'où la conversation est ouverte, en tête : le sommelier en parle d'abord.
+      if (sujet != null) sujet.contexte(cellarBottles),
       macroSummary,
       ragResult.formattedContext,
       'TASTE PROFILES OF THE USER AND CO-TASTERS:\n$profilesContext',
@@ -209,9 +193,28 @@ class ChatService {
       user: user,
       resolvedCellarId: resolvedCellarId,
       cellarBottles: cellarBottles,
-      history: history,
+      sujet: sujet,
       contexte: contexte.length > 12000 ? contexte.substring(0, 12000) : contexte,
     );
+  }
+
+  /// Un message de la conversation, rangé sous son sujet.
+  Future<void> _enregistrer(String cellarId, String userId, String role, String contenu, SujetDeChat? sujet) async {
+    try {
+      await _client.from('chat_messages').insert({
+        'cellar_id': cellarId,
+        'user_id': userId,
+        'role': role,
+        'content': contenu,
+        if (sujet != null) 'sujet': sujet.cle,
+      });
+    } catch (e) {
+      AppLogger.warning(
+          'CHAT_AI',
+          sujet != null && _colonneSujetAbsente(e)
+              ? 'Conversation dédiée non gardée : migration 071 absente'
+              : 'Message non enregistré : $e');
+    }
   }
 
   /// Pose la question au sommelier du serveur. Sans lui (réseau, panne, limite du jour), la
@@ -222,6 +225,7 @@ class ChatService {
       'cellarId': ctx.resolvedCellarId ?? '',
       'contexte': ctx.contexte,
       'langue': languageCode,
+      if (ctx.sujet != null) 'sujet': ctx.sujet!.cle,
     });
     final reply = r.ok ? (r.donnees!['reply']?.toString() ?? '') : '';
     if (reply.isNotEmpty) return reply;
@@ -233,24 +237,20 @@ class ChatService {
 
   Future<void> _enregistrerLaReponse(_ChatContext ctx, String reply) async {
     if (ctx.resolvedCellarId == null || ctx.resolvedCellarId!.isEmpty || ctx.user == null || reply.isEmpty) return;
-    try {
-      await _client.from('chat_messages').insert({
-        'cellar_id': ctx.resolvedCellarId,
-        'user_id': ctx.user!.id,
-        'role': 'assistant',
-        'content': reply,
-      });
-    } catch (e) {
-      AppLogger.warning('CHAT_AI', 'Réponse non enregistrée : $e');
-    }
+    await _enregistrer(ctx.resolvedCellarId!, ctx.user!.id, 'assistant', reply, ctx.sujet);
   }
 
-  Future<String> sendMessage(String message, String? cellarId, {String languageCode = 'fr'}) async {
+  /// La réponse nettoyée, et la carte de chaque bouteille de la cave qu'elle nomme sans
+  /// la poser (V2.5 · F5 : « tu me parles de "cette rioja" […] il manque la carte »).
+  String _reponseFinale(String brute, _ChatContext ctx) =>
+      BouteillesCitees.avecLeursCartes(sanitizeCustomerFacingText(brute), ctx.cellarBottles);
+
+  Future<String> sendMessage(String message, String? cellarId, {String languageCode = 'fr', SujetDeChat? sujet}) async {
     final debut = DateTime.now();
     // La question elle-même n'est pas journalisée : c'est une donnée personnelle (V2.3 · B4).
     AppLogger.info('CHAT_AI', 'Question au sommelier (${message.length} caractères)');
-    final ctx = await _preparePromptContext(message, cellarId, languageCode);
-    final reply = sanitizeCustomerFacingText(await _demander(message, ctx, languageCode));
+    final ctx = await _preparePromptContext(message, cellarId, languageCode, sujet: sujet);
+    final reply = _reponseFinale(await _demander(message, ctx, languageCode), ctx);
     AppLogger.info('CHAT_AI', 'Réponse en ${DateTime.now().difference(debut).inMilliseconds} ms');
     await _enregistrerLaReponse(ctx, reply);
     return reply;
@@ -262,11 +262,12 @@ class ChatService {
     String message,
     String? cellarId, {
     String languageCode = 'fr',
+    SujetDeChat? sujet,
   }) async* {
     final debut = DateTime.now();
     AppLogger.info('CHAT_AI', 'Question au sommelier (${message.length} caractères)');
-    final ctx = await _preparePromptContext(message, cellarId, languageCode);
-    final reply = sanitizeCustomerFacingText(await _demander(message, ctx, languageCode));
+    final ctx = await _preparePromptContext(message, cellarId, languageCode, sujet: sujet);
+    final reply = _reponseFinale(await _demander(message, ctx, languageCode), ctx);
     AppLogger.info('CHAT_AI', 'Réponse en ${DateTime.now().difference(debut).inMilliseconds} ms');
     final mots = reply.split(' ');
     for (var i = 0; i < mots.length; i++) {
@@ -362,33 +363,40 @@ class ChatService {
   /// Ce n'est pas qu'un nettoyage d'affichage : les dix derniers messages sont réinjectés
   /// dans chaque requête (voir `_buildContext`). Tant qu'ils existent, l'IA continue de
   /// répondre à la lumière d'une conversation qu'on croyait effacée.
-  Future<void> clearChatHistory(String cellarId) async {
+  ///
+  /// Une conversation à la fois : effacer celle d'un vin laisse le chat général, et
+  /// inversement. Jusqu'à la migration 071, aucune règle ne permettait de supprimer ses
+  /// messages : « Effacer » ne supprimait rien, et le sommelier relisait la conversation.
+  Future<void> clearChatHistory(String cellarId, {SujetDeChat? sujet}) async {
     final user = _client.auth.currentUser;
     if (user == null) return;
-    await _client
-        .from('chat_messages')
-        .delete()
-        .eq('cellar_id', cellarId)
-        .eq('user_id', user.id);
-    AppLogger.info('CHAT_AI', 'Conversation effacée pour la cave $cellarId');
+    var requete = _client.from('chat_messages').delete().eq('cellar_id', cellarId).eq('user_id', user.id);
+    requete = sujet != null ? requete.eq('sujet', sujet.cle) : requete.isFilter('sujet', null);
+    final effaces = await requete.select('id');
+    AppLogger.info('CHAT_AI', 'Conversation effacée (${(effaces as List).length} messages)${sujet != null ? ' sur un vin' : ''}');
   }
 
-  Future<List<ChatMessage>> getChatHistory(String cellarId) async {
+  Future<List<ChatMessage>> getChatHistory(String cellarId, {SujetDeChat? sujet}) async {
     final user = _client.auth.currentUser;
     if (user == null) return [];
 
-    try {
-      final res = await _client
-          .from('chat_messages')
-          .select()
-          .eq('cellar_id', cellarId)
-          .eq('user_id', user.id)
-          .order('created_at', ascending: true);
+    Future<List<ChatMessage>> lire(bool parSujet) async {
+      var requete = _client.from('chat_messages').select().eq('cellar_id', cellarId).eq('user_id', user.id);
+      if (parSujet) requete = sujet != null ? requete.eq('sujet', sujet.cle) : requete.isFilter('sujet', null);
+      final res = await requete.order('created_at', ascending: true);
+      return (res as List<dynamic>).map((j) => ChatMessage.fromJson(j as Map<String, dynamic>)).toList();
+    }
 
-      return (res as List<dynamic>)
-          .map((j) => ChatMessage.fromJson(j as Map<String, dynamic>))
-          .toList();
+    try {
+      return await lire(true);
     } catch (e) {
+      // Sans la colonne `sujet` : le chat général relit tout, comme avant ; un chat dédié
+      // part de zéro.
+      if (sujet == null && _colonneSujetAbsente(e)) {
+        try {
+          return await lire(false);
+        } catch (_) {}
+      }
       debugPrint('Error getting chat history: $e');
       return [];
     }
@@ -399,14 +407,14 @@ class _ChatContext {
   final User? user;
   final String? resolvedCellarId;
   final List<Bottle> cellarBottles;
-  final List<Map<String, dynamic>> history;
+  final SujetDeChat? sujet;
   final String contexte;
 
   _ChatContext({
     required this.user,
     required this.resolvedCellarId,
     required this.cellarBottles,
-    required this.history,
+    required this.sujet,
     required this.contexte,
   });
 }

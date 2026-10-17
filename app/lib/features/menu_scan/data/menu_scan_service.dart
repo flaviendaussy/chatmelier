@@ -370,6 +370,7 @@ class MenuScanService {
     TasteProfile? userProfile,
     String languageCode = 'fr',
     String habitudes = '',
+    List<({String role, String texte})> historique = const [],
   }) async {
     final wineListText = carteLueParLeSommelier(menu, languageCode);
 
@@ -395,6 +396,7 @@ class MenuScanService {
           carte: wineListText,
           profil: profileContext,
           habitudes: habitudes,
+          historique: historique,
           languageCode: languageCode,
         ) ??
         injoignable;
@@ -410,6 +412,7 @@ class MenuScanService {
     required String carte,
     required String profil,
     String habitudes = '',
+    List<({String role, String texte})> historique = const [],
     required String languageCode,
   }) async {
     final client = _supabaseClient ?? (Supabase.instance.isInitialized ? Supabase.instance.client : null);
@@ -424,6 +427,12 @@ class MenuScanService {
         'carte': carte,
         'profil': profil,
         if (habitudes.isNotEmpty) 'habitudes': habitudes,
+        // L'échange en cours sur cette carte (V2.5 · F4) : le sommelier s'en souvient.
+        if (historique.isNotEmpty)
+          'historique': [
+            for (final m in historique.length > 10 ? historique.sublist(historique.length - 10) : historique)
+              {'role': m.role, 'texte': m.texte},
+          ],
         'restaurantName': menu.restaurantName,
         'languageCode': languageCode,
       }).timeout(const Duration(seconds: 60));

@@ -149,7 +149,10 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  _ParsedContent _parseMessage(String raw) {
+  /// Les cartes de vin d'un message, telles que la bulle les affiche.
+  static List<ChatWineCardData> cartesDe(String raw) => _parseMessage(raw).wineCards;
+
+  static _ParsedContent _parseMessage(String raw) {
     final List<ChatWineCardData> wineCards = [];
 
     Map<String, dynamic>? tryParseCardJson(String rawJson) {

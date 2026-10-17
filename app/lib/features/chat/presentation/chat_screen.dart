@@ -7,6 +7,7 @@ import '../../auth/data/taste_profile_service.dart';
 import '../../auth/presentation/taste_profiles_dialog.dart';
 import '../data/chat_service.dart';
 import '../domain/chat_message.dart';
+import '../domain/sujet_de_chat.dart';
 import 'chat_bubble.dart';
 import 'chatmelier_thinking_indicator.dart';
 import '../../offline/presentation/chatmelier_offline_antenna_widget.dart';
@@ -15,12 +16,9 @@ import '../../offline/data/connectivity_service.dart';
 import '../../../shared/utils/langue.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  final String? bottleId;
-  final String? wineName;
-  final String? vintage;
-  final String? producer;
-  final String? region;
-  final String? wineType;
+  /// Le vin d'où la conversation est ouverte (V2.5 · F4) : sa propre conversation, son
+  /// accueil, son bandeau. Nul pour le chat général.
+  final SujetDeChat? sujet;
 
   /// Une question à poser dès l'ouverture (« demander au sommelier » depuis une autre
   /// feuille).
@@ -28,12 +26,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 
   const ChatScreen({
     super.key,
-    this.bottleId,
-    this.wineName,
-    this.vintage,
-    this.producer,
-    this.region,
-    this.wineType,
+    this.sujet,
     this.questionInitiale,
   });
 
@@ -85,18 +78,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// Le message d'ouverture, celui qu'on revoit aussi après avoir effacé la conversation.
   void _ajouterMessageAccueil() {
     if (_messages.isEmpty) {
-      final isFr = Localizations.localeOf(context).languageCode == 'fr';
-      if (widget.wineName != null && widget.wineName!.isNotEmpty) {
-        final parts = [
-          if (widget.producer != null && widget.producer!.isNotEmpty) widget.producer!,
-          widget.wineName!,
-          if (widget.vintage != null && widget.vintage!.isNotEmpty) widget.vintage!,
-        ];
-        final wineTitle = parts.join(' ');
+      final sujet = widget.sujet;
+      if (sujet != null) {
         _messages.add(ChatMessage(
           id: 'bottle_welcome',
           role: 'assistant',
-          content: trSi(isFr, 'Bonjour ! Je suis prêt à vous conseiller sur ce {wineTitle} 🍷. Que souhaitez-vous savoir ? Ses accords mets-vins idéaux, son potentiel de garde, son temps de carafage ou son terroir ?', 'Hello! I am ready to advise you on this {wineTitle} 🍷. What would you like to know? Ideal food pairings, aging potential, decanting time, or its terroir?', {'wineTitle': wineTitle}),
+          content: sujet.accueil,
           createdAt: DateTime.now(),
         ));
       } else {
@@ -150,7 +137,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final cellarId = ref.read(currentCellarIdProvider);
     if (cellarId == null) return;
     try {
-      await ref.read(chatServiceProvider).clearChatHistory(cellarId);
+      await ref.read(chatServiceProvider).clearChatHistory(cellarId, sujet: widget.sujet);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -186,7 +173,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (cellarId == null) return;
     try {
       final service = ref.read(chatServiceProvider);
-      final history = await service.getChatHistory(cellarId);
+      final history = await service.getChatHistory(cellarId, sujet: widget.sujet);
       if (history.isNotEmpty && mounted) {
         setState(() {
           _messages.clear();
@@ -307,7 +294,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final langCode = Localizations.localeOf(context).languageCode;
 
     try {
-      final stream = service.sendMessageStream(text, cellarId, languageCode: langCode);
+      final stream = service.sendMessageStream(text, cellarId, languageCode: langCode, sujet: widget.sujet);
       await for (final chunk in stream) {
         if (!mounted) break;
         // Smooth typewriter pacing so user can naturally read AI stream
@@ -380,7 +367,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final isFrTitle = Localizations.localeOf(context).languageCode == 'fr';
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n?.chatTitle ?? 'Chatmelier IA'),
+        title: widget.sujet == null
+            ? Text(l10n?.chatTitle ?? 'Chatmelier IA')
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Chatmelier'),
+                  Text(widget.sujet!.titre,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500)),
+                ],
+              ),
         actions: [
           IconButton(
             icon: const Icon(Icons.people_outline, color: Color(0xFFD4AF37)),
@@ -432,6 +430,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Column(
       children: [
+        if (widget.sujet != null) _bandeauDuSujet(widget.sujet!),
         if (!isOnline)
           Container(
             color: Colors.amber.shade900.withValues(alpha: 0.9),
@@ -499,17 +498,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            children: [
-              if (duoChipText != null) _buildChip(duoChipText),
-              _buildChip(
-                  l10n?.chatChipTonight ?? '🍾 Que devrais-je boire ce soir ?'),
-              _buildChip(l10n?.chatChipSteak ??
-                  '🥩 Quel vin servir avec une viande rouge ?'),
-              _buildChip(l10n?.chatChipSeafood ??
-                  '🐟 Quel blanc ouvrir pour un poisson ?'),
-              _buildChip(l10n?.chatChipPeak ??
-                  '⏰ Quelles bouteilles sont à leur apogée ?'),
-            ],
+            children: widget.sujet != null
+                ? [
+                    // Les questions qu'on pose d'un vin précis (V2.5 · F4).
+                    _buildChip(tr('⏰ Quand l\'ouvrir ?', '⏰ When should I open it?')),
+                    _buildChip(tr('🍽️ Avec quel plat ?', '🍽️ What should I eat with it?')),
+                    _buildChip(tr('🌡️ Comment le servir ?', '🌡️ How should I serve it?')),
+                    _buildChip(tr('🗺️ Que raconte son terroir ?', '🗺️ What does its terroir say?')),
+                  ]
+                : [
+                    if (duoChipText != null) _buildChip(duoChipText),
+                    _buildChip(l10n?.chatChipTonight ?? '🍾 Que devrais-je boire ce soir ?'),
+                    _buildChip(l10n?.chatChipSteak ?? '🥩 Quel vin servir avec une viande rouge ?'),
+                    _buildChip(l10n?.chatChipSeafood ?? '🐟 Quel blanc ouvrir pour un poisson ?'),
+                    _buildChip(l10n?.chatChipPeak ?? '⏰ Quelles bouteilles sont à leur apogée ?'),
+                  ],
           ),
         ),
         const Divider(height: 1),
@@ -530,6 +533,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           flex: 6,
           child: Column(
             children: [
+              if (widget.sujet != null) _bandeauDuSujet(widget.sujet!),
               if (!isOnline)
                 Container(
                   color: Colors.amber.shade900.withValues(alpha: 0.9),
@@ -604,6 +608,45 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           child: _buildContextSidebar(),
         ),
       ],
+    );
+  }
+
+  /// Le vin de la conversation, en tête : on n'est pas dans le chat général (Flavien, 13/10 :
+  /// « une interface qui rappelle en partie l'item »).
+  Widget _bandeauDuSujet(SujetDeChat sujet) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      key: const ValueKey('bandeau-du-sujet'),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF8B1E3F).withValues(alpha: isDark ? 0.25 : 0.08),
+        border: Border(bottom: BorderSide(color: const Color(0xFF8B1E3F).withValues(alpha: 0.25))),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(sujet.titre,
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(
+                  [
+                    if (sujet.sousTitre != null) sujet.sousTitre!,
+                    tr('Conversation propre à ce vin', 'A conversation just for this wine'),
+                  ].join(' · '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, color: isDark ? Colors.white60 : Colors.black54),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

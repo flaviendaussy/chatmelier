@@ -258,6 +258,32 @@ CREATE TABLE IF NOT EXISTS public.table_sessions (
 );
 ALTER TABLE public.table_sessions ENABLE ROW LEVEL SECURITY;
 
+-- Les conversations avec le sommelier, telles qu'en production le 17/10 (lues dans
+-- pg_catalog) : lecture de ses seuls messages, écriture dans une cave dont on est membre,
+-- aucune règle de suppression.
+CREATE OR REPLACE FUNCTION public.is_cellar_member(p_cellar_id uuid, p_user_id uuid DEFAULT auth.uid())
+ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER AS $function$
+  SELECT EXISTS (SELECT 1 FROM cellar_members WHERE cellar_id = p_cellar_id AND user_id = p_user_id);
+$function$;
+CREATE TABLE IF NOT EXISTS public.chat_messages (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  cellar_id             UUID NOT NULL REFERENCES public.cellars(id) ON DELETE CASCADE,
+  user_id               UUID NOT NULL REFERENCES public.profiles(id),
+  role                  TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+  content               TEXT NOT NULL,
+  referenced_bottle_ids JSONB DEFAULT '[]'::jsonb,
+  created_at            TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS chat_messages_cellar_id_idx ON public.chat_messages(cellar_id);
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can only view their own chat messages." ON public.chat_messages;
+CREATE POLICY "Users can only view their own chat messages." ON public.chat_messages
+  FOR SELECT USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "Users can insert their own chat messages." ON public.chat_messages;
+CREATE POLICY "Users can insert their own chat messages." ON public.chat_messages
+  FOR INSERT WITH CHECK ((user_id = auth.uid()) AND ((cellar_id IS NULL) OR is_cellar_member(cellar_id, auth.uid())));
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.chat_messages TO authenticated, service_role;
+
 -- Le stockage de Supabase, réduit à ce que lisent les règles (064) : `storage.objects`
 -- et `storage.foldername`, tels que Supabase les définit.
 CREATE SCHEMA IF NOT EXISTS storage;

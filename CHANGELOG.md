@@ -28,7 +28,7 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - *Fonctions à redéployer* : `scan-menu` (contenance `bottle_ml`), `menu-chat` et `chat` (consignes contre les éloges, habitudes de la personne), `scan-label` (étapes rendues et journalisées, réponse illisible comptée, origine complétée par la recherche). L'app fonctionne avec les versions déployées : ce qui dépend des redéploiements s'active à leur arrivée.
 - *Connectivité* : sondes serveur (`/auth/v1/health`), Cloudflare et Google en parallèle ; passage hors ligne journalisé (`CONNECTIVITE`).
 - *Recherche web au scan* : `CompletionParLeWeb` (vides seulement, domaine recopié du nom compté comme vide, autre vin écarté), journal `SCAN_WEB`.
-- *Traductions* : espagnol et italien à jour (3 713 phrases).
+- *Traductions* : espagnol et italien à jour (3 710 phrases).
 
 ## [v1.9.1+82] — 2026-10-11
 

@@ -9462,6 +9462,30 @@
   "ou": "lib/features/cellar/presentation/cellar_switcher_sheet.dart:526"
  },
  {
+  "fr": "Cave « {nom} » créée",
+  "en": "Cellar “{nom}” created",
+  "es": "Bodega «{nom}» creada",
+  "ou": "lib/features/cellar/presentation/create_cellar_dialog.dart:167"
+ },
+ {
+  "fr": "La partager avec quelqu'un ? Votre conjoint, un ami : vous choisissez s'il peut seulement la consulter ou aussi y ajouter des bouteilles.",
+  "en": "Share it with someone? Your partner, a friend: you choose whether they can only browse it or also add bottles.",
+  "es": "¿Compartirla con alguien? Tu pareja, un amigo: tú eliges si solo puede consultarla o también añadir botellas.",
+  "ou": "lib/features/cellar/presentation/create_cellar_dialog.dart:176"
+ },
+ {
+  "fr": "Vous pourrez toujours le faire plus tard : touchez le nom de la cave en haut de l'écran, puis ⋮ → Partages & Accès.",
+  "en": "You can always do it later: tap the cellar name at the top of the screen, then ⋮ → Sharing & Access.",
+  "es": "Siempre podrás hacerlo más tarde: toca el nombre de la bodega arriba de la pantalla y luego ⋮ → Uso compartido y accesos.",
+  "ou": "lib/features/cellar/presentation/create_cellar_dialog.dart:180"
+ },
+ {
+  "fr": "Partager",
+  "en": "Share",
+  "es": "Compartir",
+  "ou": "lib/features/cellar/presentation/create_cellar_dialog.dart:194"
+ },
+ {
   "fr": "🗑️ Bouteille supprimée définitivement de la cave.",
   "en": "🗑️ Bottle permanently deleted from the cellar.",
   "es": "🗑️ Botella eliminada definitivamente de la bodega.",
@@ -12268,12 +12292,6 @@
   "en": "Share it by text, WhatsApp or email",
   "es": "Compártelo por SMS, WhatsApp o correo",
   "ou": "lib/features/friends/presentation/contact_invite_sheet.dart:236"
- },
- {
-  "fr": "Partager",
-  "en": "Share",
-  "es": "Compartir",
-  "ou": "lib/features/friends/presentation/contact_invite_sheet.dart:247"
  },
  {
   "fr": "🍷 Déjà inscrits sur Chatmelier :",

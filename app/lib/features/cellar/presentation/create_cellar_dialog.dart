@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../shared/utils/langue.dart';
+import '../domain/cellar.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/services/cellar_location_service.dart';
 import '../../../l10n/app_localizations.dart';
@@ -23,6 +26,11 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
 
   int _radiusMeters = 300;
   bool _isCreating = false;
+
+  /// La cave tout juste créée : le dialogue propose alors de la partager (16/10 : « il
+  /// faudrait leur demander s'ils veulent la partager avec quelqu'un, et leur dire qu'ils
+  /// peuvent quand même le faire après »).
+  Cellar? _creee;
   bool _isLocatingGps = false;
   bool _isDetectingWifi = false;
 
@@ -130,13 +138,10 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
       ref.invalidate(bottlesProvider(newCellar.id));
 
       if (mounted) {
-        Navigator.of(context).pop(newCellar);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n?.cellarCreatedSuccess(newCellar.name) ?? '✨ Cave "${newCellar.name}" créée avec succès !'),
-            backgroundColor: const Color(0xFF2E7D32),
-          ),
-        );
+        setState(() {
+          _isCreating = false;
+          _creee = newCellar;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -151,9 +156,56 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
     }
   }
 
+  /// Partager la cave tout de suite, ou plus tard depuis son menu.
+  Widget _proposerLePartage(Cellar cave) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          const Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(tr('Cave « {nom} » créée', 'Cellar “{nom}” created', {'nom': cave.name}),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(tr('La partager avec quelqu\'un ? Votre conjoint, un ami : vous choisissez s\'il peut seulement la consulter ou aussi y ajouter des bouteilles.',
+              'Share it with someone? Your partner, a friend: you choose whether they can only browse it or also add bottles.')),
+          const SizedBox(height: 12),
+          Text(
+            tr('Vous pourrez toujours le faire plus tard : touchez le nom de la cave en haut de l\'écran, puis ⋮ → Partages & Accès.',
+                'You can always do it later: tap the cellar name at the top of the screen, then ⋮ → Sharing & Access.'),
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(cave),
+          child: Text(tr('Plus tard', 'Later')),
+        ),
+        FilledButton.icon(
+          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
+          icon: const Icon(Icons.share_outlined, size: 18),
+          label: Text(tr('Partager', 'Share')),
+          onPressed: () {
+            final routeur = GoRouter.of(context);
+            Navigator.of(context).pop(cave);
+            routeur.push('/sharing/${cave.id}?name=${Uri.encodeComponent(cave.name)}');
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    if (_creee != null) return _proposerLePartage(_creee!);
     return AlertDialog(
       title: Row(
         children: [
@@ -261,7 +313,9 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
                 const SizedBox(height: 8),
 
                 // Detection Radius
+                // isExpanded : le libellé du rayon débordait de 20 pixels (vu le 17/10).
                 DropdownButtonFormField<int>(
+                  isExpanded: true,
                   initialValue: _radiusMeters,
                   decoration: InputDecoration(
                     labelText: l10n?.cellarRadiusLabel ?? 'Rayon de détection GPS',

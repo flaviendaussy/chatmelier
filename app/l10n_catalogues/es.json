@@ -2085,133 +2085,151 @@
   "fr": "Ce soir",
   "en": "Tonight",
   "es": "Esta noche",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:37"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:38"
  },
  {
   "fr": "Au restaurant ou à la maison : choisissons ensemble.",
   "en": "Out or at home: let's choose together.",
   "es": "En el restaurante o en casa: elijamos juntos.",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:44"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:45"
  },
  {
   "fr": "Au restaurant",
   "en": "Eating out",
   "es": "En el restaurante",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:49"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:50"
  },
  {
   "fr": "Scanner la carte des vins",
   "en": "Scan the wine list",
   "es": "Escanear la carta de vinos",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:52"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:53"
  },
  {
   "fr": "Les vins qui vous iront, et ceux de toute la table",
   "en": "The wines that suit you, and the whole table",
   "es": "Los vinos que te irán bien, y los de toda la mesa",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:53"
- },
- {
-  "fr": "Rouvrir « {restaurantName} »",
-  "en": "Reopen “{restaurantName}”",
-  "es": "Volver a abrir «{restaurantName}»",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:62"
- },
- {
-  "fr": "{wines_length} vins · {age} · sans rescanner",
-  "en": "{wines_length} wines · {age} · no rescan needed",
-  "es": "{wines_length} vinos · {age} · sin volver a escanear",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:63"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:54"
  },
  {
   "fr": "Les cartes autour de moi",
   "en": "Menus around me",
   "es": "Las cartas a mi alrededor",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:73"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:69"
  },
  {
   "fr": "Déjà scannées par d'autres membres : sans rescanner",
   "en": "Already scanned by other members: no rescan needed",
   "es": "Ya escaneadas por otros miembros: sin volver a escanear",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:74"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:70"
  },
  {
   "fr": "Rejoindre une table",
   "en": "Join a table",
   "es": "Unirse a una mesa",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:88"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:84"
  },
  {
   "fr": "Avec son code",
   "en": "With its code",
   "es": "Con su código",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:89"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:85"
  },
  {
   "fr": "Noter un vin bu dehors",
   "en": "Rate a wine had out",
   "es": "Anotar un vino tomado fuera",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:98"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:94"
  },
  {
   "fr": "Restaurant, amis",
   "en": "Restaurant, friends",
   "es": "Restaurante, amigos",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:99"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:95"
  },
  {
   "fr": "Au bar",
   "en": "At the bar",
   "es": "En el bar",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:108"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:104"
  },
  {
   "fr": "Scanner l'ardoise",
   "en": "Scan the board",
   "es": "Escanear la pizarra",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:112"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:108"
  },
  {
   "fr": "Les vins au verre, et un parcours qui vous apprend quelque chose",
   "en": "Wines by the glass, and a flight that teaches you something",
   "es": "Los vinos por copa, y un recorrido que te enseña algo",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:113"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:109"
  },
  {
   "fr": "À la maison",
   "en": "At home",
   "es": "En casa",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:120"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:116"
  },
  {
   "fr": "Ouvrir une bouteille",
   "en": "Open a bottle",
   "es": "Abrir una botella",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:126"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:122"
  },
  {
   "fr": "De ma cave",
   "en": "From my cellar",
   "es": "De mi bodega",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:127"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:123"
  },
  {
   "fr": "Quel vin pour mon plat ?",
   "en": "Which wine for my dish?",
   "es": "¿Qué vino para mi plato?",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:136"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:132"
  },
  {
   "fr": "Dans ma cave",
   "en": "From my cellar",
   "es": "En mi bodega",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:137"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:133"
  },
  {
   "fr": "Ma cave",
   "en": "My cellar",
   "es": "Mi bodega",
-  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:152"
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:148"
+ },
+ {
+  "fr": "{wines_length} vins · {age} · sans rescanner",
+  "en": "{wines_length} wines · {age} · no rescan needed",
+  "es": "{wines_length} vinos · {age} · sin volver a escanear",
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:246"
+ },
+ {
+  "fr": "Rouvrir « {restaurantName} »",
+  "en": "Reopen “{restaurantName}”",
+  "es": "Volver a abrir «{restaurantName}»",
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:258"
+ },
+ {
+  "fr": "Rouvrir une carte récente",
+  "en": "Reopen a recent list",
+  "es": "Volver a abrir una carta reciente",
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:265"
+ },
+ {
+  "fr": "Rouvrir une carte récente ({n})",
+  "en": "Reopen a recent list ({n})",
+  "es": "Volver a abrir una carta reciente ({n})",
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:284"
+ },
+ {
+  "fr": "La dernière : « {restaurantName} », {age}",
+  "en": "Latest: “{restaurantName}”, {age}",
+  "es": "La última: «{restaurantName}», {age}",
+  "ou": "lib/features/ce_soir/presentation/ce_soir_screen.dart:285"
  },
  {
   "fr": "Export de la cave « {cave} » ({n} références) - Chatmelier",

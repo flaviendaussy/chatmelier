@@ -83,6 +83,53 @@ void main() {
     expect(ouvert, '/scan/menu');
   });
 
+  testWidgets('plusieurs cartes passées : une seule ligne, et leur liste déroulante (11/10)', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    ScannedMenu carte(String id, String nom, int jour) => ScannedMenu(
+          id: id,
+          restaurantName: nom,
+          scannedAt: DateTime(2026, 10, jour),
+          pagePhotoPaths: const [],
+          wines: const [MenuWine(id: '1', name: 'Barolo', producer: 'Vietti', wineType: 'red')],
+        );
+    SharedPreferences.setMockInitialValues({
+      'chatmelier_recent_menus_v1': jsonEncode([
+        carte('a', 'BA484', 13).toJson(),
+        carte('b', 'The Kitchin', 10).toJson(),
+        carte('c', 'Le Petit Zinc', 8).toJson(),
+      ]),
+    });
+    Object? ouverte;
+    final routeur = GoRouter(routes: [
+      GoRoute(path: '/', builder: (_, __) => const CeSoirScreen()),
+      GoRoute(path: '/scan/menu/result', builder: (_, etat) {
+        ouverte = etat.extra;
+        return const Scaffold(body: Text('Carte'));
+      }),
+    ]);
+    await tester.pumpWidget(ProviderScope(
+      child: MaterialApp.router(
+        locale: const Locale('fr'),
+        localizationsDelegates: kAppLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: routeur,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rouvrir une carte récente (3)'), findsOneWidget);
+    expect(find.textContaining('Rouvrir « '), findsNothing, reason: 'plus une ligne par carte');
+    await tester.tap(find.text('Rouvrir une carte récente (3)'));
+    await tester.pumpAndSettle();
+    expect(find.text('The Kitchin'), findsOneWidget);
+    expect(find.text('Le Petit Zinc'), findsOneWidget);
+    await tester.tap(find.text('The Kitchin'));
+    await tester.pumpAndSettle();
+    expect((ouverte as ScannedMenu).restaurantName, 'The Kitchin');
+  });
+
   testWidgets('au bar : scanner l\'ardoise ouvre la capture en mode ardoise', (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;

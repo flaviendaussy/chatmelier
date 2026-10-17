@@ -9,6 +9,7 @@ import '../../cellar/presentation/cellar_food_pairing_sheet.dart';
 import '../../journal/presentation/external_tasting_dialog.dart';
 import '../../menu_scan/data/recent_menus_store.dart';
 import '../../menu_scan/domain/carte_du_lieu.dart';
+import '../../menu_scan/domain/menu_wine.dart';
 import '../../menu_scan/presentation/carte_du_lieu_vue.dart';
 import '../../menu_scan/presentation/join_table_sheet.dart';
 
@@ -54,16 +55,11 @@ class CeSoirScreen extends ConsumerWidget {
             couleur: _bordeaux,
             onTap: () => context.push('/scan/menu'),
           ),
-          for (final carte in recentes.take(RecentMenusStore.maximum)) ...[
+          if (recentes.isNotEmpty) ...[
             const SizedBox(height: 8),
-            _Ligne(
-              icone: Icons.history_rounded,
-              couleur: Colors.teal.shade700,
-              titre: tr('Rouvrir « {restaurantName} »', 'Reopen “{restaurantName}”', {'restaurantName': carte.restaurantName}),
-              sousTitre: tr('{wines_length} vins · {age} · sans rescanner', '{wines_length} wines · {age} · no rescan needed',
-                  {'wines_length': carte.wines.length, 'age': CarteDuLieu.age(carte.scannedAt)}),
+            _CartesRecentes(
+              cartes: recentes.take(RecentMenusStore.maximum).toList(),
               fond: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
-              onTap: () => context.push('/scan/menu/result', extra: carte),
             ),
           ],
           const SizedBox(height: 8),
@@ -238,13 +234,73 @@ class _GrandeAction extends StatelessWidget {
   }
 }
 
+/// Les cartes rouvrables en une seule ligne, et leur liste déroulante (11/10 : « ça devrait
+/// être une liste en drop-down des cartes passées. comme ça on pourrait avoir l'intégralité
+/// de "ce soir" sans avoir à scroller »). Une seule carte se rouvre d'un geste.
+class _CartesRecentes extends StatelessWidget {
+  final List<ScannedMenu> cartes;
+  final Color fond;
+
+  const _CartesRecentes({required this.cartes, required this.fond});
+
+  static String _detail(ScannedMenu c) => tr('{wines_length} vins · {age} · sans rescanner',
+      '{wines_length} wines · {age} · no rescan needed', {'wines_length': c.wines.length, 'age': CarteDuLieu.age(c.scannedAt)});
+
+  @override
+  Widget build(BuildContext context) {
+    final couleur = Colors.teal.shade700;
+    final derniere = cartes.first;
+    void ouvrir(ScannedMenu c) => context.push('/scan/menu/result', extra: c);
+    if (cartes.length == 1) {
+      return _Ligne(
+        icone: Icons.history_rounded,
+        couleur: couleur,
+        titre: tr('Rouvrir « {restaurantName} »', 'Reopen “{restaurantName}”', {'restaurantName': derniere.restaurantName}),
+        sousTitre: _detail(derniere),
+        fond: fond,
+        onTap: () => ouvrir(derniere),
+      );
+    }
+    return PopupMenuButton<ScannedMenu>(
+      tooltip: tr('Rouvrir une carte récente', 'Reopen a recent list'),
+      position: PopupMenuPosition.under,
+      onSelected: ouvrir,
+      itemBuilder: (_) => [
+        for (final c in cartes)
+          PopupMenuItem(
+            value: c,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              leading: Icon(Icons.history_rounded, color: couleur),
+              title: Text(c.restaurantName, maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: Text(_detail(c)),
+            ),
+          ),
+      ],
+      child: _Ligne(
+        icone: Icons.history_rounded,
+        couleur: couleur,
+        titre: tr('Rouvrir une carte récente ({n})', 'Reopen a recent list ({n})', {'n': cartes.length}),
+        sousTitre: tr('La dernière : « {restaurantName} », {age}', 'Latest: “{restaurantName}”, {age}',
+            {'restaurantName': derniere.restaurantName, 'age': CarteDuLieu.age(derniere.scannedAt)}),
+        fond: fond,
+        fin: Icons.arrow_drop_down,
+      ),
+    );
+  }
+}
+
 class _Ligne extends StatelessWidget {
   final IconData icone;
   final Color couleur;
   final String titre;
   final String sousTitre;
   final Color fond;
-  final VoidCallback onTap;
+
+  /// Nul quand la ligne ouvre une liste déroulante, qui reçoit alors le geste.
+  final VoidCallback? onTap;
+  final IconData fin;
 
   const _Ligne({
     required this.icone,
@@ -252,7 +308,8 @@ class _Ligne extends StatelessWidget {
     required this.titre,
     required this.sousTitre,
     required this.fond,
-    required this.onTap,
+    this.onTap,
+    this.fin = Icons.chevron_right,
   });
 
   @override
@@ -281,7 +338,7 @@ class _Ligne extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, size: 18),
+              Icon(fin, size: 18),
             ],
           ),
         ),

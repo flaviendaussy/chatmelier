@@ -3030,7 +3030,7 @@ const Map<String, String> catalogueIt = {
   'Profil Blancs (Beurré, Minéralité, Vivacité, Douceur...)': 'Profilo bianchi (burroso, mineralità, vivacità, dolcezza...)',
   'Profil Rouges (Tannins, Puissance, Baies, Élevage...)': 'Profilo rossi (tannini, potenza, bacche, affinamento...)',
   'Rouges ({reds_length})': 'Rossi ({reds_length})',
-  'Blancs & Bulles ({whites_length})': 'Bianchi e bollicine ({whites_length})',
+  'Autres ({n})': 'Altri ({n})',
   'Aucun vin sélectionné dans cette couleur.': 'Nessun vino selezionato di questo colore.',
   'Axes Blancs : Minéralité • Vivacité • Fleurs • Beurré & Rondeur • Boisé • Douceur • Puissance': 'Assi dei bianchi: mineralità • vivacità • fiori • burroso e rotondità • legno • dolcezza • potenza',
   'Axes Rouges : Tannins • Puissance • Acidité • Baies • Élevage • Minéralité • Persistance': 'Assi dei rossi: tannini • potenza • acidità • bacche • affinamento • mineralità • persistenza',

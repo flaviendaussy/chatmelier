@@ -3030,7 +3030,7 @@ const Map<String, String> catalogueEs = {
   'Profil Blancs (Beurré, Minéralité, Vivacité, Douceur...)': 'Perfil de blancos (mantecoso, mineralidad, viveza, dulzor...)',
   'Profil Rouges (Tannins, Puissance, Baies, Élevage...)': 'Perfil de tintos (taninos, potencia, bayas, crianza...)',
   'Rouges ({reds_length})': 'Tintos ({reds_length})',
-  'Blancs & Bulles ({whites_length})': 'Blancos y espumosos ({whites_length})',
+  'Autres ({n})': 'Otros ({n})',
   'Aucun vin sélectionné dans cette couleur.': 'No hay ningún vino seleccionado de este color.',
   'Axes Blancs : Minéralité • Vivacité • Fleurs • Beurré & Rondeur • Boisé • Douceur • Puissance': 'Ejes de blancos: mineralidad • viveza • flores • mantecoso y redondez • madera • dulzor • potencia',
   'Axes Rouges : Tannins • Puissance • Acidité • Baies • Élevage • Minéralité • Persistance': 'Ejes de tintos: taninos • potencia • acidez • bayas • crianza • mineralidad • persistencia',

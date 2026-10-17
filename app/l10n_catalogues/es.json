@@ -18153,49 +18153,49 @@
   "fr": "Comparateur Spider Radar",
   "en": "Spider Radar Comparator",
   "es": "Comparador en radar",
-  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:119"
+  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:107"
  },
  {
   "fr": "Profil Blancs (Beurré, Minéralité, Vivacité, Douceur...)",
   "en": "White Profile (Buttery, Minerality, Crispness, Sweetness...)",
   "es": "Perfil de blancos (mantecoso, mineralidad, viveza, dulzor...)",
-  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:124"
+  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:112"
  },
  {
   "fr": "Profil Rouges (Tannins, Puissance, Baies, Élevage...)",
   "en": "Red Profile (Tannins, Power, Berries, Oak aging...)",
   "es": "Perfil de tintos (taninos, potencia, bayas, crianza...)",
-  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:125"
+  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:113"
  },
  {
   "fr": "Rouges ({reds_length})",
   "en": "Reds ({reds_length})",
   "es": "Tintos ({reds_length})",
-  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:147"
+  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:134"
  },
  {
-  "fr": "Blancs & Bulles ({whites_length})",
-  "en": "Whites & Sparkling ({whites_length})",
-  "es": "Blancos y espumosos ({whites_length})",
-  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:152"
+  "fr": "Autres ({n})",
+  "en": "Others ({n})",
+  "es": "Otros ({n})",
+  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:139"
  },
  {
   "fr": "Aucun vin sélectionné dans cette couleur.",
   "en": "No wine selected in this style.",
   "es": "No hay ningún vino seleccionado de este color.",
-  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:169"
+  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:173"
  },
  {
   "fr": "Axes Blancs : Minéralité • Vivacité • Fleurs • Beurré & Rondeur • Boisé • Douceur • Puissance",
   "en": "White Axes: Minerality • Crispness • Floral • Buttery & Round • Oak • Sweetness • Body",
   "es": "Ejes de blancos: mineralidad • viveza • flores • mantecoso y redondez • madera • dulzor • potencia",
-  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:193"
+  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:202"
  },
  {
   "fr": "Axes Rouges : Tannins • Puissance • Acidité • Baies • Élevage • Minéralité • Persistance",
   "en": "Red Axes: Tannins • Body • Acidity • Berries • Oak Aging • Minerality • Finish",
   "es": "Ejes de tintos: taninos • potencia • acidez • bayas • crianza • mineralidad • persistencia",
-  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:194"
+  "ou": "lib/features/menu_scan/presentation/menu_wine_compare_sheet.dart:203"
  },
  {
   "fr": "La note n'a pas pu être enregistrée : réessayez.",

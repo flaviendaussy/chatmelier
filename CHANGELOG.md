@@ -2,6 +2,34 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.10.0+83] — 2026-10-17
+
+> Les retours du 11 au 17/10 (Flavien, Pascal), et les deux vins introuvables du 16/10 au soir.
+
+### 🍷 Ce qui change pour vous
+- **Un vin que l'étiquette ne suffit pas à trouver est cherché sur le web** : quand la fiche reste sans région ni cépages, Chatmelier cherche le vin sur Google à partir de ce que dit l'étiquette, et ne complète que ce qui manque (« Trouvé sur le web : appellation, région, cépages… »). Vérifié avec La Rosa Mayor 2019 (Ribera del Duero) et Menudo 2021 (Bodegas Luzón, Jumilla). Les cépages lus au scan sont enfin enregistrés dans la cave.
+- **« Me montrer » montre la chose** : pour l'apogée, une cave de démonstration s'ouvre, une bouteille aussi, et sa courbe de garde s'éclaire ; pour les autres astuces, l'élément dont elles parlent s'éclaire à l'écran.
+- **Vos retours se suffisent** : sans réseau, la capture attend sur le téléphone et part avec son retour dès que le réseau revient ; chaque retour dit d'où il vient (écran, derniers pas, réseau).
+- **Les mignonnettes d'avion** : « 8 £ / 187 ml », et dans un parcours une mignonnette est un service à son prix (plus de verre estimé au cinquième).
+- **Le sommelier ne flatte plus** : un vin simple est dit simple, et situé par rapport à ce que vous buvez d'habitude.
+- **On vous vouvoie au radar** : « Vous appréciez davantage… que Caro », « Votre compatibilité avec Caro ».
+- **Vos terroirs** : la prochaine région à explorer vient d'abord d'une bouteille de votre cave jamais goûtée (« Ouvrez votre Pol Roger… ») ; plus de spiritueux parmi les goûts ; une cuvée n'est plus un terroir (« Bandol », pas « Bandol Pour Lulu »).
+- **La cave** : plus jamais de vin à 0 bouteille, ni d'option pour les revoir (le Journal garde l'historique) ; une cave tout juste créée se propose au partage.
+- **Ce soir** : les cartes passées tiennent en une ligne et une liste déroulante.
+- **Le comparatif d'une carte** : la couleur de chaque vin, et l'on glisse des rouges aux autres.
+- **La pub du scan de carte expliquée**, jusqu'à « Ne plus montrer » ; le **plafond de notifications** devient un interrupteur, coché d'office.
+- **« Hors ligne » à tort** : le réseau se vérifie d'abord auprès du serveur de l'app (un réseau Wi-Fi qui bloquait une sonde vous disait hors ligne) ; l'écran hors ligne montre le Chatmelier animé.
+- **Le pseudo** s'écrit comme il sera enregistré (« pascal_l_ecureuil »), message d'erreur entier et traduit.
+- **Plus fluide** : les vignettes de la cave se décodent à leur taille, la cave ne se réenregistre plus à l'identique à chaque chargement, et l'app s'ouvre sans attendre la pub.
+- Corrigé en chemin : le millésime coupé (« 202 ») et le dialogue du millésime qui plantait au scan, la galerie quand la caméra ne démarre pas, le rayon GPS qui débordait à la création d'une cave.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Migration 070* : `admin_contexte_du_retour` (contexte d'un retour et journaux des trois minutes d'avant, pour l'administrateur).
+- *Fonctions à redéployer* : `scan-menu` (contenance `bottle_ml`), `menu-chat` et `chat` (consignes contre les éloges, habitudes de la personne), `scan-label` (étapes rendues et journalisées, réponse illisible comptée, origine complétée par la recherche). L'app fonctionne avec les versions déployées : ce qui dépend des redéploiements s'active à leur arrivée.
+- *Connectivité* : sondes serveur (`/auth/v1/health`), Cloudflare et Google en parallèle ; passage hors ligne journalisé (`CONNECTIVITE`).
+- *Recherche web au scan* : `CompletionParLeWeb` (vides seulement, domaine recopié du nom compté comme vide, autre vin écarté), journal `SCAN_WEB`.
+- *Traductions* : espagnol et italien à jour (3 713 phrases).
+
 ## [v1.9.1+82] — 2026-10-11
 
 > iPhone et site seulement : l'app Android reste en 1.9.0+81, dont le code ne change pas.

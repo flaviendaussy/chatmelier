@@ -17,6 +17,7 @@ import '../../cellar/domain/bottle.dart';
 import '../../cellar/domain/bottle_size.dart';
 import '../../cellar/domain/wine_service_advisor.dart';
 import '../data/scan_service.dart';
+import '../domain/completion_par_le_web.dart';
 import '../domain/scan_result.dart';
 import '../../journal/presentation/external_tasting_dialog.dart';
 import '../../../shared/widgets/chatmelier_loader.dart';
@@ -62,6 +63,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   bool _isAnalyzing = false;
   ScanResult? _scanResult;
   String? _analysisError;
+
+  /// Le vin cherché sur le web quand l'étiquette ne suffit pas (17/10).
+  _RechercheWeb _rechercheWeb = _RechercheWeb.aucune;
+  List<String> _sourcesWeb = const [];
+  List<String> _completesWeb = const [];
 
   Bottle? _duplicateBottle;
   bool _dismissDuplicate = false;
@@ -227,7 +233,12 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           // not user's personal bottle notes (_notesCtrl.text remains clean for user input).
           // Le prix d'achat n'est pas la valeur de marché : on ne le préremplit plus avec
           // une estimation (30/09). La personne saisit ce qu'elle a payé.
+          _rechercheWeb = _RechercheWeb.aucune;
         });
+
+        // Un vin que l'étiquette ne suffit pas à trouver : on le cherche sur le web pendant
+        // que la personne confirme le millésime (« quand je vais sur Google, je le trouve !! »).
+        if (CompletionParLeWeb.aCompleter(result)) unawaited(_chercherSurLeWeb());
 
         if (runPrompts) {
           await _runPostAnalysisPrompts(result);
@@ -248,6 +259,145 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       }
     }
   }
+
+  /// Ce que la fiche dit en ce moment : la lecture de l'étiquette, corrigée par la personne.
+  ScanResult _ficheDuFormulaire() {
+    final base = _scanResult ?? const ScanResult(name: '', wineType: '', country: '', region: '');
+    return base.copyWith(
+      name: _nameCtrl.text.trim(),
+      producer: _producerCtrl.text.trim(),
+      vintage: int.tryParse(_vintageCtrl.text.trim()),
+      country: _countryCtrl.text.trim(),
+      region: _regionCtrl.text.trim(),
+      appellation: _appellationCtrl.text.trim(),
+    );
+  }
+
+  /// Cherche le vin sur le web et ne complète que ce qui est vide : ce que l'étiquette a lu,
+  /// ou ce que la personne a corrigé, ne bouge pas.
+  Future<void> _chercherSurLeWeb() async {
+    if (_rechercheWeb == _RechercheWeb.enCours) return;
+    final lu = _ficheDuFormulaire();
+    final requete = CompletionParLeWeb.requete(
+      nom: lu.name,
+      producteur: lu.producer,
+      cuvee: lu.cuveeParcel,
+      millesime: lu.vintage,
+      appellation: lu.appellation,
+      region: lu.region,
+      pays: lu.country,
+      type: _wineType,
+    );
+    setState(() => _rechercheWeb = _RechercheWeb.enCours);
+    try {
+      final trouve = await ScanService(ref.read(supabaseProvider)).chercherSurLeWeb(lu, requete: requete);
+      if (!mounted) return;
+      setState(() {
+        if (trouve == null) {
+          _rechercheWeb = _RechercheWeb.introuvable;
+          return;
+        }
+        final f = trouve.fiche;
+        _scanResult = f;
+        // Un domaine recopié du nom n'avait pas été lu : celui des sources le remplace.
+        final domaineRecopie = _producerCtrl.text.trim().toLowerCase() == _nameCtrl.text.trim().toLowerCase();
+        if (_producerCtrl.text.trim().isEmpty || domaineRecopie) _producerCtrl.text = f.producer ?? _producerCtrl.text;
+        if (_countryCtrl.text.trim().isEmpty) _countryCtrl.text = f.country;
+        if (_regionCtrl.text.trim().isEmpty) _regionCtrl.text = f.region;
+        if (_appellationCtrl.text.trim().isEmpty) _appellationCtrl.text = f.appellation ?? '';
+        _sourcesWeb = trouve.sources;
+        _completesWeb = trouve.completes;
+        _rechercheWeb = _RechercheWeb.trouve;
+      });
+    } catch (e) {
+      AppLogger.warning('SCAN_WEB', 'Recherche sur le web interrompue : $e');
+      if (mounted) setState(() => _rechercheWeb = _RechercheWeb.introuvable);
+    }
+  }
+
+  /// Ce que la recherche sur le web a fait, sous le bandeau du scan.
+  Widget _bandeauDeRechercheWeb(ThemeData theme) {
+    final (icone, titre, detail) = switch (_rechercheWeb) {
+      _RechercheWeb.enCours => (
+          Icons.travel_explore,
+          tr('Chatmelier cherche ce vin sur le web…', 'Chatmelier is looking this wine up on the web…'),
+          tr('L\'étiquette ne dit pas tout : région, cépages et garde arrivent dans un instant.',
+              'The label doesn\'t say everything: region, grapes and ageing are on their way.'),
+        ),
+      _RechercheWeb.trouve => (
+          Icons.verified_outlined,
+          _completesWeb.isEmpty
+              ? tr('Trouvé sur le web : rien à ajouter', 'Found on the web: nothing to add')
+              : tr('Trouvé sur le web : {champs} complétés', 'Found on the web: {champs} filled in',
+                  {'champs': _completesWeb.map(_nomDuChamp).join(', ')}),
+          _sourcesWeb.isEmpty
+              ? tr('Ce que l\'étiquette dit n\'a pas changé.', 'What the label says is unchanged.')
+              : tr('Sources : {sources}', 'Sources: {sources}', {'sources': _sourcesWeb.take(3).join(', ')}),
+        ),
+      _RechercheWeb.introuvable => (
+          Icons.search_off,
+          tr('Introuvable sur le web pour l\'instant', 'Not found on the web for now'),
+          tr('Corrigez le nom ou le domaine si besoin, puis cherchez à nouveau ; ou complétez ce que vous savez.',
+              'Fix the name or the estate if needed and search again, or fill in what you know.'),
+        ),
+      _RechercheWeb.aucune => (
+          Icons.travel_explore,
+          tr('Cette fiche est incomplète', 'This wine sheet is incomplete'),
+          tr('Chatmelier peut chercher ce vin sur le web.', 'Chatmelier can look this wine up on the web.'),
+        ),
+    };
+    final couleur = theme.colorScheme.primary;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: couleur.withAlpha(14),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: couleur.withAlpha(50)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _rechercheWeb == _RechercheWeb.enCours
+              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
+              : Icon(icone, color: couleur, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(titre, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: couleur)),
+                const SizedBox(height: 2),
+                Text(detail, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
+                if (_rechercheWeb == _RechercheWeb.introuvable || _rechercheWeb == _RechercheWeb.aucune)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.search, size: 16),
+                      label: Text(_rechercheWeb == _RechercheWeb.aucune
+                          ? tr('Chercher ce vin sur le web', 'Look this wine up on the web')
+                          : tr('Chercher à nouveau', 'Search again')),
+                      onPressed: _chercherSurLeWeb,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _nomDuChamp(String champ) => switch (champ) {
+        'appellation' => tr('appellation', 'appellation'),
+        'region' => tr('région', 'region'),
+        'pays' => tr('pays', 'country'),
+        'domaine' => tr('domaine', 'estate'),
+        'cepages' => tr('cépages', 'grapes'),
+        'notes' => tr('description', 'description'),
+        'garde' => tr('garde', 'ageing'),
+        _ => champ,
+      };
 
   Future<void> _runPostAnalysisPrompts(ScanResult result) async {
     if (!mounted) return;
@@ -848,6 +998,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         tastingNotes: _scanResult?.tastingNotes,
         aiSummary: _scanResult?.summary,
         foodPairings: _scanResult?.foodPairings,
+        grapes: _scanResult?.grapes,
         idealDrinkingStart: drinkStart,
         idealDrinkingEnd: drinkEnd,
         peakDrinkingStart: peakStart,
@@ -1480,6 +1631,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   ],
                 ),
               ),
+
+            // Le vin cherché sur le web, quand l'étiquette ne suffit pas (17/10).
+            if (_scanResult != null &&
+                (_rechercheWeb != _RechercheWeb.aucune || CompletionParLeWeb.aCompleter(_ficheDuFormulaire())))
+              _bandeauDeRechercheWeb(theme),
 
             // Explicit Scan Error & Retry Banner
             if (_analysisError != null)
@@ -2172,3 +2328,6 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     );
   }
 }
+
+/// Où en est la recherche sur le web d'un vin que l'étiquette ne suffit pas à trouver.
+enum _RechercheWeb { aucune, enCours, trouve, introuvable }

@@ -436,6 +436,7 @@ class CellarRepository {
     String? tastingNotes,
     String? aiSummary,
     List<String>? foodPairings,
+    List<Grape>? grapes,
     int? idealDrinkingStart,
     int? idealDrinkingEnd,
     int? peakDrinkingStart,
@@ -470,6 +471,9 @@ class CellarRepository {
         if (tastingNotes != null) 'tasting_notes': tastingNotes,
         if (aiSummary != null) 'ai_summary': aiSummary,
         if (foodPairings != null) 'ai_food_pairings': foodPairings,
+        // Les cépages lus au scan : ils n'étaient jamais enregistrés, et un vin ajouté depuis
+        // une étiquette entrait en cave sans cépage (relevé le 17/10).
+        if (grapes != null && grapes.isNotEmpty) 'grapes': grapes.map((g) => g.toJson()).toList(),
         if (idealDrinkingStart != null) 'ideal_drinking_start': idealDrinkingStart,
         if (idealDrinkingEnd != null) 'ideal_drinking_end': idealDrinkingEnd,
         if (peakDrinkingStart != null) 'peak_drinking_start': peakDrinkingStart,

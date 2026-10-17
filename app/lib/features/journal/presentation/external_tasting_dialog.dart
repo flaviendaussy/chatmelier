@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -11,6 +13,7 @@ import '../../../shared/services/nearby_places_service.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/widgets/bottle_image_view.dart';
 import '../../scan/data/scan_service.dart';
+import '../../scan/domain/completion_par_le_web.dart';
 import '../../../shared/utils/langue.dart';
 import '../../scan/domain/scan_result.dart';
 import '../domain/fiche_depuis_texte.dart';
@@ -295,6 +298,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               backgroundColor: const Color(0xFF2E7D32),
             ),
           );
+          // La photo ne dit pas d'où vient le vin : on le cherche sur le web (17/10).
+          if (CompletionParLeWeb.aCompleter(result)) unawaited(_completerParLeWeb(scanService, result));
         }
       } catch (scanErr) {
         AppLogger.warning('EXTERNAL_TASTING', 'AI photo scan error: $scanErr');
@@ -320,6 +325,60 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
       if (mounted) setState(() => _isScanningPhoto = false);
       debugPrint('Error picking photo: $e');
     }
+  }
+
+  /// Le vin de la photo cherché sur le web : seuls les champs vides se remplissent, marqués
+  /// « à vérifier » comme ceux trouvés par le nom ; ce que l'étiquette a lu ne bouge pas.
+  Future<void> _completerParLeWeb(ScanService scanService, ScanResult lu) async {
+    final ({ScanResult fiche, List<String> sources, List<String> completes})? trouve;
+    try {
+      trouve = await scanService.chercherSurLeWeb(lu,
+          requete: CompletionParLeWeb.requete(
+            nom: lu.name,
+            producteur: lu.producer,
+            cuvee: lu.cuveeParcel,
+            millesime: lu.vintage,
+            appellation: lu.appellation,
+            region: lu.region,
+            pays: lu.country,
+            type: lu.wineType,
+          ));
+    } catch (e) {
+      AppLogger.warning('SCAN_WEB', 'Recherche sur le web interrompue : $e');
+      return;
+    }
+    if (trouve == null || !mounted) return;
+    final f = trouve.fiche;
+    final champs = {
+      'producteur': _producerController,
+      'region': _regionController,
+      'pays': _paysController,
+    };
+    // Un domaine recopié du nom n'avait pas été lu : il compte pour vide.
+    final domaineRecopie = _producerController.text.trim().toLowerCase() == _nameController.text.trim().toLowerCase();
+    final ecrire = FicheDepuisTexte.aEcrire(
+      actuels: {
+        for (final e in champs.entries) e.key: e.key == 'producteur' && domaineRecopie ? '' : e.value.text,
+      },
+      proposes: {
+        'producteur': f.producer,
+        'region': (f.appellation?.isNotEmpty ?? false) ? f.appellation : f.region,
+        'pays': f.country,
+      },
+      etiquetteLue: true,
+      remplisParLeTexte: _remplisParLeTexte,
+    );
+    setState(() {
+      for (final e in ecrire.entries) {
+        champs[e.key]!.text = e.value;
+      }
+      if ((_notesDuSommelier ?? '').isEmpty && (f.tastingNotes?.isNotEmpty ?? false)) _notesDuSommelier = f.tastingNotes;
+      _remplisParLeTexte = {
+        ..._remplisParLeTexte,
+        for (final e in ecrire.entries)
+          if (e.value.isNotEmpty) e.key,
+      };
+    });
   }
 
   Future<void> _quickAnalyzeFromText() async {

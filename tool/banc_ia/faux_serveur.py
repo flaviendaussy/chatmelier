@@ -222,9 +222,21 @@ class H(BaseHTTPRequestHandler):
                 return self.rep({"candidates": [{"content": {"parts": [{"text": '```json\n' + json.dumps(res) + '\n```'}]},
                                                  "groundingMetadata": {"webSearchQueries": ["S de Siroua vin"]}}],
                                  "usageMetadata": {"promptTokenCount": 300, "candidatesTokenCount": 20, "thoughtsTokenCount": 0}})
-            if txt.startswith('Read this wine bottle label'):
+            if txt.startswith('Read this wine bottle label') and os.environ.get('FAUX_ETIQUETTE_PAUVRE'):
+                # Une étiquette qui ne dit pas d'où vient le vin (16/10, « La Rosa Mayor » 2019).
+                res = {"producer": "La Rosa Mayor", "name": "La Rosa Mayor", "vintage": 2019, "wine_type": "red",
+                       "country": "Spain", "region": None, "appellation": None}
+            elif txt.startswith('Read this wine bottle label'):
                 res = {"producer": "Domaine de Terrebrune", "name": "Bandol Rouge", "vintage": 2019, "wine_type": "red",
                        "country": "France", "region": "Provence", "appellation": "Bandol"}
+            elif os.environ.get('FAUX_DESCRIPTION_ILLISIBLE'):
+                cand = {"content": {"parts": [{"text": "Je n'ai pas trouvé d'informations fiables sur ce vin."}]}}
+                return self.rep({"candidates": [cand], "usageMetadata": {"promptTokenCount": 380, "candidatesTokenCount": 30}})
+            elif os.environ.get('FAUX_ETIQUETTE_PAUVRE'):
+                # Ce que les sources disent de ce vin : son origine, et un autre domaine que l'étiquette.
+                res = {"producer": "Bodega Ejemplo", "appellation": "Ribera del Duero", "region": "Castilla y León", "country": "Espagne",
+                       "tasting_notes": "Cerise noire, réglisse, tanins fermes.", "grapes": [{"name": "Tempranillo", "pct": 100}],
+                       "peak_drinking_start": 2023, "ideal_drinking_start": 2022, "sources_verified": ["vinosdeespana.com"]}
             else:
                 res = {"tasting_notes": "Mourvèdre dominant : cuir, garrigue, fruits noirs, tanins serrés.",
                        "grapes": [{"name": "Mourvèdre", "pct": 85}, {"name": "Grenache", "pct": 10}, {"name": "Cinsault", "pct": 5}],

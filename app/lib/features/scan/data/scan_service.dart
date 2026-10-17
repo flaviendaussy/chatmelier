@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/services/fonctions_ia.dart';
+import '../domain/completion_par_le_web.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
 import '../../auth/data/ai_cost_tracker_service.dart';
@@ -112,7 +113,18 @@ class ScanService {
       'mimeType': mimeType,
       'languageCode': languageCode,
     }, delai: const Duration(seconds: 60));
-    if (r.ok) return ScanResult.fromJson(r.donnees!);
+    if (r.ok) {
+      final resultat = ScanResult.fromJson(r.donnees!);
+      // Ce que l'étiquette a donné et ce que chaque étape du serveur a fait (17/10) : le 16/10,
+      // deux vins sont revenus presque vides sans que rien ne dise pourquoi.
+      final etapes = r.donnees!['etapes'];
+      AppLogger.info('SCAN_AI', 'Étiquette : « ${resultat.name} »'
+          '${resultat.producer != null ? ', ${resultat.producer}' : ''}${resultat.vintage != null ? ', ${resultat.vintage}' : ''}'
+          ' — ${etapes is Map ? etapes.entries.map((e) => '${e.key} : ${e.value}').join(', ') : 'étapes non rendues par le serveur'}'
+          ' — origine : ${[resultat.appellation, resultat.region, resultat.country].where((v) => (v ?? '').isNotEmpty).join(', ')}'
+          ', ${resultat.grapes.length} cépage(s)');
+      return resultat;
+    }
     if (r.limiteAtteinte) throw Exception(r.messageDeLimite());
     throw Exception(tr(
         'Analyse de l\'étiquette impossible. Vérifiez votre connexion ou saisissez les informations manuellement.',
@@ -533,6 +545,48 @@ class ScanService {
 
   /// Le serveur a répondu qu'il ne reconnaissait pas ce vin avec certitude.
   static bool nonReconnu(Map brut) => brut['reconnu'] == false;
+
+  /// Cherche sur le web un vin que l'étiquette n'a pas suffi à trouver (17/10) : la
+  /// recherche Google de `vin_depuis_texte`, à partir de ce que l'étiquette dit
+  /// ([CompletionParLeWeb.requete]). Rend la fiche complétée — ce que l'étiquette a lu ne
+  /// bouge pas — et les adresses des sources ; nul si le web ne confirme pas ce vin, ou
+  /// s'il répond pour un autre. Chaque issue s'écrit au journal, avec ce qui a été cherché.
+  Future<({ScanResult fiche, List<String> sources, List<String> completes})?> chercherSurLeWeb(
+    ScanResult lu, {
+    required String requete,
+  }) async {
+    final debut = DateTime.now();
+    final r = await _ia.appeler('taches-ia', {
+      'tache': 'vin_depuis_texte',
+      'texte': requete,
+      'langue': Langue.code,
+    }, delai: const Duration(seconds: 45));
+    final duree = DateTime.now().difference(debut).inMilliseconds;
+    final brut = r.ok ? r.donnees!['resultat'] : null;
+    if (brut is! Map || nonReconnu(brut)) {
+      AppLogger.info('SCAN_WEB',
+          'Introuvable sur le web en $duree ms : « $requete »${r.ok ? '' : ' (${r.erreur ?? 'pas de réponse'})'}');
+      return null;
+    }
+    final web = ScanResult.fromJson(Map<String, dynamic>.from(brut));
+    if (!CompletionParLeWeb.memeVin(lu, web)) {
+      AppLogger.warning('SCAN_WEB', 'Le web répond pour un autre vin (« ${web.name} », ${web.producer ?? '?'}) : '
+          '« $requete » laissé tel quel');
+      return null;
+    }
+    // Les sources par leur nom (« vinosdeespana.com ») : leurs adresses sont des renvois
+    // de Google, illisibles et éphémères.
+    final sources = <String>{
+      for (final s in (r.donnees!['sources'] as List?) ?? const [])
+        if (s is Map && '${s['titre'] ?? ''}'.trim().isNotEmpty) '${s['titre']}'.trim()
+        else if (s is Map && s['url'] is String) s['url'] as String,
+    }.toList();
+    final fiche = CompletionParLeWeb.fusionner(lu, web, sources: sources);
+    final completes = CompletionParLeWeb.champsCompletes(lu, fiche);
+    AppLogger.info('SCAN_WEB', 'Trouvé sur le web en $duree ms : « $requete » → '
+        '${completes.isEmpty ? 'rien de plus' : completes.join(', ')} (${sources.length} source(s))');
+    return (fiche: fiche, sources: sources, completes: completes);
+  }
 }
 
 /// Le texte ne suffit pas à reconnaître le vin avec certitude (V2.4 · R1).

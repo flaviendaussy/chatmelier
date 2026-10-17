@@ -211,6 +211,9 @@ class H(BaseHTTPRequestHandler):
                      "rg": "Bourgogne", "co": "France", "g": ["Chardonnay"], "b": "54,5", "gl": [["12cl", 11]],
                      "m": [3, 8, 5, 5, 1, 9, 1, 1], "tg": ["mineral", "fresh"], "sc": "Tendu et salin, pour les huîtres.",
                      "fp": ["Huîtres", "Sole meunière", "Comté"], "ge": 0, "gr": "", "de": 1, "dr": "Premier cru sous 60 €"}]}
+                # FAUX_LIEU : le lieu que le modèle dit reconnaître sur la carte (V2.5 · F9).
+                if os.environ.get('FAUX_LIEU'):
+                    res["lr"] = os.environ['FAUX_LIEU']
                 return self.rep({"candidates": [{"content": {"parts": [{"text": json.dumps(res)}]}}],
                                  "usageMetadata": {"promptTokenCount": 3251, "candidatesTokenCount": 900, "thoughtsTokenCount": 0}})
             if ('sommelier' in txt or 'sumiller' in txt) and ('Question du client' in txt or 'The guest asks' in txt or 'El cliente pregunta' in txt):

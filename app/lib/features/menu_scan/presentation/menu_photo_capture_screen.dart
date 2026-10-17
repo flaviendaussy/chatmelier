@@ -347,6 +347,13 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
         return;
       }
 
+      // Le lieu proche que la carte nomme (V2.5 · F9) : comme si on l'avait choisi, sous son
+      // nom, et la carte se partage sous lui. Le nom reste modifiable sur la carte.
+      if (_restaurantController.text.trim().isEmpty) {
+        final reconnu = _lieuxProches.where((l) => l.name == menu.restaurantName).firstOrNull;
+        if (reconnu != null) _choisirLeLieu(reconnu);
+      }
+
       // Le lieu dit par la personne l'emporte sur le nom lu sur la carte ; la carte est
       // partagée sous ce lieu, sans attendre (V2.3 · K6).
       final nom = _restaurantController.text.trim();
@@ -396,6 +403,9 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
         userTasteProfile: activeProfile,
         languageCode: currentLang,
         ardoise: widget.ardoise,
+        // Sans lieu dit par la personne, ceux d'alentour : la carte dira peut-être duquel
+        // elle vient (V2.5 · F9). Les noms seulement, jamais la position.
+        lieuxProches: restName == null ? [for (final l in _lieuxProches) l.name] : const [],
         onStepUpdate: (step) {
           if (mounted) {
             setState(() => _currentStatusStep = step);

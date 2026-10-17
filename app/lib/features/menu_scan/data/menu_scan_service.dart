@@ -69,6 +69,9 @@ class MenuScanService {
     void Function(String step)? onStepUpdate,
     // L'ardoise d'un bar (V2.3 · J4) : le serveur lit les prix au verre en priorité.
     bool ardoise = false,
+    // Les noms des lieux proches, jamais la position (V2.5 · F9) : la carte dit-elle d'où
+    // elle vient ?
+    List<String> lieuxProches = const [],
   }) async {
     final startTime = DateTime.now();
     AppLogger.info('MENU_SCAN', 'Starting multi-page restaurant menu analysis (${imagePaths.length} pages, lang=$languageCode)');
@@ -118,7 +121,8 @@ class MenuScanService {
     onStepUpdate?.call(isEn ? 'Analyzing wine list via Chatmelier Cloud...' : 'Analyse de la carte des vins via le Cloud Chatmelier...');
     _coupureVue = false;
     _causeServeur = null;
-    parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn, ardoise: ardoise);
+    parsedJson = await _analyserPagesEnParallele(parts, languageCode, restaurantNameHint, onStepUpdate, isEn,
+        ardoise: ardoise, lieuxProches: lieuxProches);
     usedModel = parsedJson?['modele'] as String?;
 
     if (parsedJson == null) {
@@ -144,7 +148,12 @@ class MenuScanService {
 
     onStepUpdate?.call('Vérification dans la cave de connaissances Chatmelier...');
 
-    final detectedRestaurant = (parsedJson['restaurant_name'] as String?) ?? restaurantNameHint ?? 'Restaurant';
+    // Le lieu proche dont la carte porte le nom l'emporte : c'est le nom du lieu, tel que la
+    // carte des lieux l'écrit, et la carte se partage sous lui (V2.5 · F9).
+    final detectedRestaurant = (parsedJson['lieu_reconnu'] as String?) ??
+        (parsedJson['restaurant_name'] as String?) ??
+        restaurantNameHint ??
+        'Restaurant';
     final devise = ScannedMenu.normaliserDevise(parsedJson['currency']);
     final pagesNonLues = (parsedJson['pages_non_lues'] as num?)?.toInt() ?? 0;
     final rawWinesList = (parsedJson['wines'] as List?) ?? [];
@@ -269,15 +278,17 @@ class MenuScanService {
     void Function(String step)? onStepUpdate,
     bool isEn, {
     bool ardoise = false,
+    List<String> lieuxProches = const [],
   }) async {
     final pages = parts.where((p) => p['inlineData'] != null).toList();
     if (pages.length <= 1) {
-      return _invokeEdgeFunction(pages, languageCode, restaurantNameHint, ardoise: ardoise);
+      return _invokeEdgeFunction(pages, languageCode, restaurantNameHint, ardoise: ardoise, lieuxProches: lieuxProches);
     }
 
     var lues = 0;
     final resultats = await Future.wait(pages.map((page) async {
-      final r = await _invokeEdgeFunction([page], languageCode, restaurantNameHint, ardoise: ardoise);
+      final r = await _invokeEdgeFunction([page], languageCode, restaurantNameHint,
+          ardoise: ardoise, lieuxProches: lieuxProches);
       lues++;
       onStepUpdate?.call(isEn
           ? 'Page $lues of ${pages.length} read…'
@@ -333,6 +344,7 @@ class MenuScanService {
 
     return {
       'restaurant_name': premier('restaurant_name'),
+      'lieu_reconnu': premier('lieu_reconnu'),
       'currency': premier('currency'),
       'modele': premier('modele'),
       'wines': vins.values.toList(),
@@ -471,6 +483,7 @@ class MenuScanService {
     String languageCode,
     String? restaurantNameHint, {
     bool ardoise = false,
+    List<String> lieuxProches = const [],
   }) async {
     final client = _supabaseClient ?? (Supabase.instance.isInitialized ? Supabase.instance.client : null);
     if (client == null) {
@@ -499,6 +512,7 @@ class MenuScanService {
         'languageCode': languageCode,
         'restaurantNameHint': restaurantNameHint,
         if (ardoise) 'mode': 'ardoise',
+        if (lieuxProches.isNotEmpty) 'lieux_proches': lieuxProches.take(8).toList(),
       };
       // 150 s : la limite de durée d'une fonction edge. Abandonner avant ne fait rien
       // gagner — le serveur va au bout et facture l'appel quand même (18/09, 25/09).

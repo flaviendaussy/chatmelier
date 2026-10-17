@@ -339,7 +339,7 @@ function modeDe(v: unknown): Mode {
   return String(v ?? '').toLowerCase() === 'ardoise' ? 'ardoise' : 'carte'
 }
 
-function consigne(langue: Langue, mode: Mode = 'carte'): string {
+function consigne(langue: Langue, mode: Mode = 'carte', lieux: string[] = []): string {
   const l = NOMS_DE_LANGUE[langue]
   // Le mot qui suit le prix à l'écran (« 7 €/verre ») : dans la langue de la personne.
   const verre = langue === 'fr' ? 'verre' : langue === 'es' ? 'copa' : langue === 'it' ? 'calice' : 'glass'
@@ -354,7 +354,8 @@ You are given one or several photos of the pages of the wine list. Extract EVERY
 `
   return `${ouverture}
 Return STRICTLY one JSON object, with these short keys:
-{"r": restaurant name if printed on the pages, else null,
+{"r": restaurant name if printed on the pages, else null,${lieux.length > 0 ? `
+ "lr": the exact name from NEARBY PLACES that the pages print (in a header, a logo, a footer or an address), else null,` : ''}
  "c": ISO 4217 code of the prices ("EUR", "GBP", "USD", "CHF"...) from the symbols on the list, or from its country and language; null only if no price is shown,
  "ex": 1 if the list itself is exceptional (deep in cult, rare or mature bottles), else 0,
  "v": [one object per wine]}
@@ -383,8 +384,25 @@ Each wine object:
 Gems are rare. A gem is the bottle a sommelier would point at on THIS list: a cult or hard-to-find cuvée, a producer far above the level of the rest of the list, a mature vintage rarely offered. A famous appellation, a well-known house or a good producer is not enough. Most lists have no gem: mark at most two, unless the list itself is exceptional ("ex": 1), and even then about one wine in ten. When in doubt, 0.
 Bargains are rare too: a bottle priced clearly below what it usually costs on a restaurant list. Never without a printed price, and never a small or half bottle for being cheap. Most lists have none or one: mark at most three.
 
-Never guess: for a wine you do not know, leave "p", "a", "rg" and "co" null rather than deducing them from the language of the list, a word or a style.
+Never guess: for a wine you do not know, leave "p", "a", "rg" and "co" null rather than deducing them from the language of the list, a word or a style.${lieux.length > 0 ? `
+NEARBY PLACES (names from a map, not read on the list): ${lieux.map((n) => JSON.stringify(n)).join(', ')}. Choose one for "lr" only if the pages clearly print its name; never because it seems likely.` : ''}
 Do not add any other key. Do not invent wines that are not on the pages.`
+}
+
+// Les noms des lieux proches (V2.5 · F9), jamais la position : la carte dit-elle d'où elle
+// vient ? « donne aussi à gemini la liste des lieux proches […] afin de voir s'il est certain
+// que la carte vient de l'un d'entre eux, pour pouvoir donner un titre à la carte »
+// (Flavien, 15/10).
+function lieuxProches(v: unknown): string[] {
+  if (!Array.isArray(v)) return []
+  return v.filter((n) => typeof n === 'string' && n.trim()).map((n: string) => n.trim().slice(0, 80)).slice(0, 8)
+}
+
+// Le lieu que le modèle reconnaît sur la carte, s'il est l'un de ceux qu'on lui a donnés.
+function lieuReconnu(lr: unknown, lieux: string[]): string | null {
+  if (typeof lr !== 'string' || !lr.trim()) return null
+  const cherche = lr.trim().toLowerCase()
+  return lieux.find((n) => n.toLowerCase() === cherche) ?? null
 }
 
 function nombre(v: unknown): number | null {
@@ -434,7 +452,7 @@ function plafondDesBonsPlans(nombreDeVins: number): number {
   return nombreDeVins < 12 ? 2 : 3
 }
 
-function deplier(court: any, langue: Langue): any {
+function deplier(court: any, langue: Langue, lieux: string[] = []): any {
   // Le modèle a répondu dans l'ancien format : on le rend tel quel.
   if (court && Array.isArray(court.wines)) return court
   const vins = (Array.isArray(court?.v) ? court.v : []).filter((w: any) => w && typeof w.n === 'string' && w.n.trim())
@@ -445,6 +463,7 @@ function deplier(court: any, langue: Langue): any {
     plafondDesBonsPlans(vins.length))
   return {
     restaurant_name: typeof court?.r === 'string' && court.r.trim() ? court.r.trim() : null,
+    lieu_reconnu: lieuReconnu(court?.lr, lieux),
     currency: typeof court?.c === 'string' && /^[A-Z]{3}$/.test(court.c) ? court.c : null,
     wines: vins.map((w: any, i: number) => {
       const m = Array.isArray(w.m) ? w.m.map((x: unknown) => Math.max(0, Math.min(10, nombre(x) ?? 5))) : []
@@ -508,6 +527,7 @@ serve(async (req) => {
     const body = await req.json()
     const { imageBase64, imagesBase64, mimeType = 'image/jpeg', languageCode = 'fr' } = body
     const mode = modeDe(body.mode)
+    const lieux = lieuxProches(body.lieux_proches)
 
     const imageParts: any[] = []
     if (Array.isArray(imagesBase64) && imagesBase64.length > 0) {
@@ -528,7 +548,7 @@ serve(async (req) => {
       : REGLAGE_PAR_DEFAUT
 
     const langue = langueDe(languageCode)
-    const contents = [{ role: 'user', parts: [...imageParts, { text: consigne(langue, mode) }] }]
+    const contents = [{ role: 'user', parts: [...imageParts, { text: consigne(langue, mode, lieux) }] }]
     const appel = await appelerGemini(apiKey, reglage, (niveau) => ({
       contents,
       generationConfig: {
@@ -546,7 +566,7 @@ serve(async (req) => {
     // `modele`, `usageMetadata` et `couts` : le client journalise quel modèle a lu la carte et
     // comptabilise le coût réel de l'appel.
     return reponse({
-      ...deplier(resultat, langue),
+      ...deplier(resultat, langue, lieux),
       mode,
       modele,
       usageMetadata: usage,

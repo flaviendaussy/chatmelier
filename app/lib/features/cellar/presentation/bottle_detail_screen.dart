@@ -6,7 +6,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../../../shared/utils/langue.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/supabase_provider.dart';
+import '../../../shared/services/fonctions_ia.dart';
+import '../data/cote_a_la_demande.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/utils/currency_helper.dart';
 import '../../../shared/widgets/wine_type_badge.dart';
@@ -62,10 +65,29 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         : tr('Cote relevée sur {site} le {date}', 'Price found on {site} on {date}', {'site': site, 'date': jour});
   }
 
+  /// La cote de ce vin, cherchée en ligne et sourcée (V2.5 · F8) : « toucher la valeur (ou
+  /// « Non cotée ») lance une recherche Google sourcée pour ce vin ». Jamais de prix sans
+  /// page source ; trouvée, elle s'affiche avec son site.
+  Future<void> _chercherLaCote(String wineId) async {
+    setState(() => _coteEnCours = true);
+    final service = CoteALaDemande(FonctionsIa(ref.read(supabaseProvider),
+        assurerUneSession: ref.read(authRepositoryProvider).assurerUneSession));
+    final resultat = await service.chercher(wineId);
+    if (!mounted) return;
+    setState(() => _coteEnCours = false);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(resultat.message)));
+    if (!resultat.trouvee) return;
+    await _loadBottleDetails();
+    final currentCellar = ref.read(currentCellarIdProvider);
+    notifyCellarChanged(ref, currentCellar);
+    if (currentCellar != null) ref.invalidate(bottlesProvider(currentCellar));
+  }
+
   Map<String, dynamic>? _bottleData;
   String? _labelPhotoUrl;
   bool _isLoading = true;
   bool _isEnriching = false;
+  bool _coteEnCours = false;
   String? _error;
 
   final _apogeeKey = GlobalKey();
@@ -2188,6 +2210,25 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                               style: theme.textTheme.bodySmall?.copyWith(
                                 fontSize: 11,
                                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
+                              ),
+                            ),
+                            // Une recherche sourcée, à la demande (V2.5 · F8).
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton.icon(
+                                key: const ValueKey('chercher-la-cote'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: const Color(0xFF2E7D32),
+                                  padding: EdgeInsets.zero,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                onPressed: _coteEnCours ? null : () => _chercherLaCote(wine.id),
+                                icon: _coteEnCours
+                                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                                    : const Icon(Icons.travel_explore, size: 18),
+                                label: Text(_coteEnCours
+                                    ? tr('Recherche en cours…', 'Searching…')
+                                    : tr('Chercher sa cote en ligne', 'Look up its market price')),
                               ),
                             ),
                           ],

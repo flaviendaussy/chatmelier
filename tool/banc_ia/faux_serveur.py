@@ -85,6 +85,10 @@ class H(BaseHTTPRequestHandler):
                               "wines": {"name": "Bandol Rouge", "producer": "Domaine de Terrebrune", "vintage": 2019,
                                         "wine_type": "red", "region": "Provence", "appellation": "Bandol",
                                         "ideal_drinking_start": 2024, "ideal_drinking_end": 2040}}])
+        if '/rest/v1/wines' in self.path and 'select=name' in self.path:
+            # La fiche d'un vin dont on demande la cote (V2.5 · F8), comme maybeSingle l'attend.
+            return self.rep({"name": "Bandol Rouge", "producer": "Domaine de Terrebrune", "cuvee_parcel": None, "vintage": 2019}
+                            if os.environ.get('FAUX_COTE') else None)
         if '/rest/v1/app_config' in self.path:
             if MODE == 'banc' and 'cle=eq.modeles_ia' in self.path:
                 return self.rep({"valeur": json.loads(os.environ.get('FAUX_MODELES_IA', '{}'))})
@@ -160,6 +164,15 @@ class H(BaseHTTPRequestHandler):
                                                                        "groundingChunks": [{"web": {"uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc", "title": "terrebrune.fr"}},
                                                                                            {"web": {"uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/def", "title": "vinsdebandol.com"}}]}}],
                                  "usageMetadata": {"promptTokenCount": 400, "candidatesTokenCount": 220, "thoughtsTokenCount": 60}})
+            if txt.startswith('Search current merchant or auction listings'):
+                # La cote d'un vin (V2.5 · F8) : FAUX_COTE=sourcee donne un prix et sa page, sinon
+                # le modèle dit n'avoir rien trouvé.
+                trouve = os.environ.get('FAUX_COTE') == 'sourcee'
+                res = ({"current_market_value": 42, "currency": "EUR", "source_url": "https://www.idealwine.com/terrebrune-2019"}
+                       if trouve else {"current_market_value": None, "currency": "EUR", "source_url": None})
+                return self.rep({"candidates": [{"content": {"parts": [{"text": json.dumps(res)}]},
+                                                 "groundingMetadata": {"webSearchQueries": ["Terrebrune Bandol 2019 prix"]}}],
+                                 "usageMetadata": {"promptTokenCount": 180, "candidatesTokenCount": 40}})
             if txt.startswith('Translate this wine description'):
                 # Une fiche traduite (V2.4 · R6) : autant d'accords qu'envoyés.
                 res = {"notes": "Rubis profond aux reflets grenat ; cerise noire et prune.",

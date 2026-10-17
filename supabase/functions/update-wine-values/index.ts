@@ -217,10 +217,125 @@ function texteDeLaReponse(data: any): string {
 }
 // <<< Modèles Gemini <<<
 
+function json(corps: unknown, statut = 200): Response {
+  return new Response(JSON.stringify(corps), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: statut })
+}
+
+type Cote = { valeur: number; devise: string; source: string } | null
+type Recherche = { cote: Cote; appel: AppelReussi | null; requetes: number }
+
+async function reglageDesCotes(supabase: any): Promise<Reglage> {
+  try {
+    const { data } = await supabase.from('app_config').select('valeur').eq('cle', 'modeles_ia').maybeSingle()
+    const r = data?.valeur?.valeurs_marche
+    if (r && typeof r.modele === 'string') return { modele: r.modele, reflexion: typeof r.reflexion === 'string' ? r.reflexion : REGLAGE_PAR_DEFAUT.reflexion }
+  } catch (_) { /* réglage par défaut */ }
+  return REGLAGE_PAR_DEFAUT
+}
+
+// Une cote n'a de valeur que sourcée (V2.3 · B3). Jusqu'au 30/09, ce prompt demandait au
+// modèle de « chercher les annonces du marché » sans lui donner d'outil de recherche : il
+// inventait un prix, enregistré comme la valeur de la bouteille. La recherche Google est
+// active, et une valeur sans page source ni recherche effective n'est pas retenue.
+async function chercherLaCote(
+  apiKey: string,
+  reglage: Reglage,
+  vin: { producer?: string | null; wine_name?: string | null; cuvee_parcel?: string | null; vintage?: number | null },
+): Promise<Recherche> {
+  const prompt = `Search current merchant or auction listings for this wine:
+Estate / Producer: ${vin.producer || 'Unknown'}
+Wine: ${vin.wine_name}
+Cuvée/Parcel: ${vin.cuvee_parcel || 'not stated'}
+Vintage: ${vin.vintage || 'not stated'}
+
+Return strictly a JSON object, and nothing else:
+{"current_market_value": number | null, "currency": "EUR", "source_url": string | null}
+"source_url" is the page where you found the price. If you found no listing, return nulls: never estimate.`
+
+  let appel: AppelReussi
+  try {
+    appel = await appelerGemini(apiKey, reglage, (niveau) => ({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      tools: [{ google_search: {} }],
+      ...(niveau ? { generationConfig: { thinkingConfig: { thinkingLevel: niveau } } } : {}),
+    }), 40_000)
+  } catch (_) {
+    return { cote: null, appel: null, requetes: 0 }
+  }
+  const candidat = appel.data.candidates?.[0]
+  const recherches = candidat?.groundingMetadata?.webSearchQueries
+  const requetes = Array.isArray(recherches) ? recherches.length : 0
+  let texte = (candidat?.content?.parts ?? []).filter((p: any) => !p.thought).map((p: any) => p.text ?? '').join('')
+  if (texte.includes('```')) texte = texte.split('```json').pop()!.split('```')[0]
+  let valData: any = {}
+  try { valData = JSON.parse(texte.slice(texte.indexOf('{'), texte.lastIndexOf('}') + 1)) } catch (_) { /* illisible */ }
+  const valeur = Number(valData.current_market_value)
+  const source = typeof valData.source_url === 'string' && /^https?:\/\//.test(valData.source_url) ? valData.source_url : null
+  if (requetes === 0 || !source || !Number.isFinite(valeur) || valeur <= 0) return { cote: null, appel, requetes }
+  const devise = typeof valData.currency === 'string' && /^[A-Z]{3}$/.test(valData.currency) ? valData.currency : 'EUR'
+  return { cote: { valeur, devise, source }, appel, requetes }
+}
+
+async function enregistrerLaCote(supabase: any, wineId: string, cote: NonNullable<Cote>): Promise<void> {
+  await supabase.rpc('record_wine_valuation', {
+    p_wine_id: wineId,
+    p_new_value: cote.valeur,
+    p_currency: cote.devise,
+    p_source: cote.source,
+  })
+  const { data: fiche } = await supabase.from('wines').select('external_links').eq('id', wineId).maybeSingle()
+  await supabase.from('wines')
+    .update({ external_links: { ...(fiche?.external_links ?? {}), valeur_source: cote.source } })
+    .eq('id', wineId)
+}
+
+// Un vin, à la demande (V2.5 · F8) : « toucher la valeur (ou « Non cotée ») lance une
+// recherche Google sourcée pour ce vin ». Il faut une session, ce vin dans l'une de ses
+// caves (les règles de lecture des bouteilles en décident), et le quota du jour (« cote ») :
+// chaque recherche coûte. Jamais de valeur sans source.
+async function coteDUnVin(req: Request): Promise<Response> {
+  const body = await req.json().catch(() => ({}))
+  const wineId = typeof body?.wine_id === 'string' && /^[0-9a-f-]{36}$/i.test(body.wine_id) ? body.wine_id : null
+  if (!wineId) return json({ error: 'wine_id manquant' }, 400)
+
+  const url = Deno.env.get('SUPABASE_URL') ?? ''
+  const personne = createClient(url, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+    global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } },
+  })
+  const { data: { user } } = await personne.auth.getUser()
+  if (!user) return json({ error: 'Unauthorized' }, 401)
+  const { data: bouteilles } = await personne.from('bottles').select('id').eq('wine_id', wineId).limit(1)
+  if (!bouteilles || bouteilles.length === 0) return json({ error: 'vin_inaccessible' }, 403)
+  try {
+    const { data, error } = await personne.rpc('consommer_quota_ia', { p_fonction: 'cote' })
+    if (!error && data && data.autorise === false && data.raison === 'limite') {
+      return json({ error: 'limite_du_jour', limite: data.limite, anonyme: data.anonyme === true }, 429)
+    }
+  } catch (_) { /* migration 052 absente : pas de quota */ }
+
+  const apiKey = Deno.env.get('GEMINI_API_KEY')
+  if (!apiKey) return json({ error: 'GEMINI_API_KEY is not configured' }, 500)
+  const serveur = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')
+  const { data: vin } = await serveur.from('wines').select('name, producer, cuvee_parcel, vintage').eq('id', wineId).maybeSingle()
+  if (!vin) return json({ error: 'vin_introuvable' }, 404)
+
+  const { cote, appel, requetes } = await chercherLaCote(apiKey, await reglageDesCotes(serveur), {
+    producer: vin.producer, wine_name: vin.name, cuvee_parcel: vin.cuvee_parcel, vintage: vin.vintage,
+  })
+  const couts = appel
+    ? [{ fonction: 'cote_a_la_demande', modele: appel.modele, usageMetadata: appel.data.usageMetadata ?? null, recherche: requetes > 0, requetes, reflexion: appel.reflexion }]
+    : []
+  if (!cote) return json({ cote: null, raison: 'aucune cote sourcée', couts })
+  await enregistrerLaCote(serveur, wineId, cote)
+  return json({ cote, couts })
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
+    // Sans le secret de la tâche planifiée : une personne qui demande la cote d'un vin.
+    if (!req.headers.get('x-cron-secret')) return await coteDUnVin(req)
     const cronSecret = req.headers.get('x-cron-secret')
     if (cronSecret !== Deno.env.get('CRON_SECRET')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -256,69 +371,24 @@ serve(async (req) => {
     const apiKey = Deno.env.get('GEMINI_API_KEY')
     if (!apiKey) throw new Error("GEMINI_API_KEY is not configured")
 
-    // Une cote n'a de valeur que sourcée (V2.3 · B3). Jusqu'au 30/09, ce prompt demandait au
-    // modèle de « chercher les annonces du marché » sans lui donner d'outil de recherche : il
-    // inventait un prix, enregistré comme la valeur de la bouteille. Désormais la recherche
-    // Google est active, et une valeur sans page source n'est pas enregistrée.
-    let reglage = REGLAGE_PAR_DEFAUT
-    try {
-      const { data } = await supabase.from('app_config').select('valeur').eq('cle', 'modeles_ia').maybeSingle()
-      const r = data?.valeur?.valeurs_marche
-      if (r && typeof r.modele === 'string') reglage = { modele: r.modele, reflexion: typeof r.reflexion === 'string' ? r.reflexion : reglage.reflexion }
-    } catch (_) { /* réglage par défaut */ }
+    const reglage = await reglageDesCotes(supabase)
     const results = []
     const ignores = []
 
     for (const wine of winesToUpdate.slice(0, 10)) {
-      const prompt = `Search current merchant or auction listings for this wine:
-Estate / Producer: ${wine.producer || 'Unknown'}
-Wine: ${wine.wine_name}
-Cuvée/Parcel: ${wine.cuvee_parcel || 'not stated'}
-Vintage: ${wine.vintage || 'not stated'}
-
-Return strictly a JSON object, and nothing else:
-{"current_market_value": number | null, "currency": "EUR", "source_url": string | null}
-"source_url" is the page where you found the price. If you found no listing, return nulls: never estimate.`
-
-      let valRes: any
-      try {
-        valRes = (await appelerGemini(apiKey, reglage, (niveau) => ({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          tools: [{ google_search: {} }],
-          ...(niveau ? { generationConfig: { thinkingConfig: { thinkingLevel: niveau } } } : {}),
-        }), 40_000)).data
-      } catch (_) {
-        continue
-      }
-      const candidat = valRes.candidates?.[0]
-      const recherches = candidat?.groundingMetadata?.webSearchQueries
-      let texte = (candidat?.content?.parts ?? []).filter((p: any) => !p.thought).map((p: any) => p.text ?? '').join('')
-      if (texte.includes('```')) texte = texte.split('```json').pop()!.split('```')[0]
-      let valData: any = {}
-      try { valData = JSON.parse(texte.slice(texte.indexOf('{'), texte.lastIndexOf('}') + 1)) } catch (_) { /* illisible */ }
-      const valeur = Number(valData.current_market_value)
-      const source = typeof valData.source_url === 'string' && /^https?:\/\//.test(valData.source_url) ? valData.source_url : null
-      if (!Array.isArray(recherches) || recherches.length === 0 || !source || !Number.isFinite(valeur) || valeur <= 0) {
+      const { cote } = await chercherLaCote(apiKey, reglage, wine)
+      if (!cote) {
         ignores.push({ wine_id: wine.wine_id, name: wine.wine_name, raison: 'aucune cote sourcée' })
         continue
       }
-      await supabase.rpc('record_wine_valuation', {
-        p_wine_id: wine.wine_id,
-        p_new_value: valeur,
-        p_currency: valData.currency || 'EUR',
-        p_source: source,
-      })
-      const { data: fiche } = await supabase.from('wines').select('external_links').eq('id', wine.wine_id).maybeSingle()
-      await supabase.from('wines')
-        .update({ external_links: { ...(fiche?.external_links ?? {}), valeur_source: source } })
-        .eq('id', wine.wine_id)
+      await enregistrerLaCote(supabase, wine.wine_id, cote)
       results.push({
         wine_id: wine.wine_id,
         name: wine.wine_name,
         vintage: wine.vintage,
         old_value: wine.estimated_market_value,
-        new_value: valeur,
-        source,
+        new_value: cote.valeur,
+        source: cote.source,
       })
     }
 

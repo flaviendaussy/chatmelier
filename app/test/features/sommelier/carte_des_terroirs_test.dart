@@ -1,4 +1,5 @@
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
+import 'package:chatmelier/features/cellar/domain/wine_world/wine_world.dart';
 import 'package:chatmelier/features/sommelier/domain/carte_des_terroirs.dart';
 import 'package:chatmelier/features/sommelier/domain/taste_frontier_engine.dart';
 import 'package:chatmelier/shared/utils/langue.dart';
@@ -99,5 +100,16 @@ void main() {
     );
     expect(dejaGoute.prochaine?.vinDeLaCave, isNull);
     expect(dejaGoute.prochaine?.nom, 'Rioja');
+  });
+
+  test('la cuvée n\'est pas un terroir : « Bandol », pas « Bandol Pour Lulu » (17/10)', () {
+    final carte = CarteDesTerroirs.dresser(
+      goutes: [vin('Bandol Pour Lulu'), vin('Côte-Rôtie Fructus Voluptas')],
+      enCave: const [],
+    );
+    expect(carte.goutes.map((t) => t.libelle), containsAll(['Bandol', 'Côte-Rôtie']));
+    expect(carte.goutes.map((t) => t.libelle).join(' '), isNot(contains('Lulu')));
+    expect(WineWorld.appellationLueDans('Châteauneuf-du-Pape Vieilles Vignes', pays: 'France'), 'Châteauneuf-du-Pape');
+    expect(WineWorld.appellationLueDans('Mon Petit Vin', pays: 'France'), isNull);
   });
 }

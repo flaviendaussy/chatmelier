@@ -144,9 +144,11 @@ class CarteDesTerroirs {
     final vus = <String, TerroirVu>{};
     for (final v in vins) {
       final region = (v.region ?? '').trim();
+      // Sans appellation sur la fiche, celle que le nom porte, et elle seule : « Bandol », pas
+      // « Bandol Pour Lulu » (17/10).
       var appellation = (v.appellation ?? '').trim().isNotEmpty
           ? v.appellation!.trim()
-          : (WineWorld.appellationDansLeNom(v.nom, pays: v.pays) ? v.nom!.trim() : '');
+          : (WineWorld.appellationLueDans(v.nom, pays: v.pays) ?? '');
       // Une mention sans lieu laisse parler la région, quand la fiche en donne une.
       if (_sansLieu.contains(sansAccents(appellation))) appellation = '';
       final libelle = appellation.isNotEmpty ? appellation : region;

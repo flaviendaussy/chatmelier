@@ -89,6 +89,34 @@ class WineWorld {
     return r != null && memePays(r.pays, pays);
   }
 
+  /// L'appellation telle que le nom l'écrit, et elle seule : « Côte-Rôtie » dans
+  /// « Côte-Rôtie Fructus Voluptas », « Bandol » dans « Bandol Pour Lulu » (17/10 : la cuvée
+  /// passait pour un terroir). Mot à mot, dans le pays du vin ; un cépage qui sert d'alias
+  /// (« Albariño ») n'est pas une appellation. Nulle si le nom n'en porte aucune.
+  static String? appellationLueDans(String? nom, {String? pays}) {
+    final r = region(appellation: nom);
+    if (nom == null || r == null || !memePays(r.pays, pays)) return null;
+    final mots = RegExp(r"[\p{L}\p{N}']+", unicode: true).allMatches(nom).toList();
+    final normes = [for (final m in mots) _norm(m.group(0))];
+    final cepages = {for (final c in r.cepages) _norm(c)};
+    String? lue;
+    for (final alias in r.alias) {
+      final cible = _norm(alias);
+      if (cible.isEmpty || cepages.contains(cible)) continue;
+      final morceaux = cible.split(' ');
+      for (var i = 0; i + morceaux.length <= normes.length; i++) {
+        var pareil = true;
+        for (var j = 0; j < morceaux.length && pareil; j++) {
+          pareil = normes[i + j] == morceaux[j];
+        }
+        if (!pareil) continue;
+        final texte = nom.substring(mots[i].start, mots[i + morceaux.length - 1].end);
+        if (lue == null || texte.length > lue.length) lue = texte;
+      }
+    }
+    return lue;
+  }
+
   /// Deux noms du même pays, en français, en anglais ou en espagnol. Un pays inconnu
   /// ou absent ne contredit rien.
   static bool memePays(String? a, String? b) {

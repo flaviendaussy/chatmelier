@@ -36,8 +36,34 @@ void main() {
       expect(advice.minTemp, 17);
       expect(advice.maxTemp, 18);
       expect(advice.carafeMinutes, 0);
-      expect(advice.carafeLabel, contains('Pas de caravage'));
-      expect(advice.decantingAdvice, contains('Éviter le caravage'));
+      expect(advice.carafeLabel, contains('Pas de carafage'));
+      expect(advice.decantingAdvice, contains('Éviter le carafage'));
+    });
+
+    // 16/10, Flavien, sur un crozes-hermitage 2024 de Combier : « vérifie s'il faut vraiment
+    // le carafer 2h ». « hermitage » est dans « crozes-hermitage » : il était carafé comme un
+    // hermitage, et tout rouge du Rhône de moins de huit ans avec lui.
+    test('le temps de carafe suit la garde de l\'appellation, pas la seule région', () {
+      final annee = DateTime.now().year;
+      WineServiceAdvice conseil(String appellation, String producteur, int age) => WineServiceAdvisor.computeAdvice(
+            wineType: 'red',
+            vintage: annee - age,
+            region: 'Vallée du Rhône',
+            appellation: appellation,
+            producer: producteur,
+            wineName: appellation,
+          );
+      // Un crozes jeune, avant son apogée : une heure.
+      final crozes = conseil('Crozes-Hermitage', 'Domaine Combier', 2);
+      expect(crozes.carafeMinutes, 60);
+      expect(crozes.carafeLabel, '1h en carafe');
+      expect(crozes.decantingAdvice, isNot(contains('2 heures')));
+      // Un côtes-du-rhône de deux ans, fait pour être bu jeune : une aération.
+      expect(conseil('Côtes du Rhône', 'Domaine Jamet', 2).carafeMinutes, 30);
+      // Un hermitage de trois ans, grand vin de garde encore fermé : deux heures.
+      expect(conseil('Hermitage', 'Jean-Louis Chave', 3).carafeMinutes, 120);
+      // Et le mot juste : un carafage, pas un « caravage ».
+      expect(conseil('Hermitage', 'Jean-Louis Chave', 3).decantingAdvice, startsWith('Carafage'));
     });
 
     test('Delicate Burgundy Pinot Noir should recommend balloon glass and 14-16°C', () {

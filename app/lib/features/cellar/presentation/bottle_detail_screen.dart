@@ -1425,7 +1425,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    // Temps de Caravage
+                                    // Temps de carafage
                                     Expanded(
                                       child: Container(
                                         padding: const EdgeInsets.all(12),

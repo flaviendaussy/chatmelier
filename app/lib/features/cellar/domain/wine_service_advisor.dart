@@ -102,34 +102,69 @@ class WineServiceAdvisor {
             maxTemp: 18,
             tempLabel: '17°C - 18°C',
             carafeMinutes: 0,
-            carafeLabel: trSi(isFr, 'Pas de caravage', 'No decanting needed'),
-            decantingAdvice: trSi(isFr, 'Débouchage délicat 30-45 min avant le service. Éviter le caravage pour ne pas épuiser ses arômes tertiaires fragiles.', 'Delicate uncorking 30-45 min before service. Avoid decanting to preserve fragile tertiary aromas.'),
+            carafeLabel: trSi(isFr, 'Pas de carafage', 'No decanting needed'),
+            decantingAdvice: trSi(isFr, 'Débouchage délicat 30-45 min avant le service. Éviter le carafage pour ne pas épuiser ses arômes tertiaires fragiles.', 'Delicate uncorking 30-45 min before service. Avoid decanting to preserve fragile tertiary aromas.'),
             glasswareType: trSi(isFr, 'Grand verre Bordeaux / Verre tulipe généreux', 'Large Bordeaux glass / Generous tulip glass'),
             detailedTip: trSi(isFr, 'Un grand vin ancien a besoin de douceur. Versez lentement en laissant le dépôt au fond de la bouteille.', 'A great mature wine requires gentleness. Pour slowly, leaving the fine sediment in the bottle.'),
           );
-        } else if (age != null && age >= 8) {
-          return WineServiceAdvice(
-            minTemp: 16,
-            maxTemp: 18,
-            tempLabel: '16°C - 18°C',
-            carafeMinutes: 45,
-            carafeLabel: trSi(isFr, '45 min en carafe', '45 min in decanter'),
-            decantingAdvice: trSi(isFr, 'Caravage doux 45 minutes avant le service pour épanouir le bouquet sans brutaliser la texture soyeuse.', 'Gentle decanting 45 minutes before service to unfurl the bouquet without jarring its silky texture.'),
-            glasswareType: trSi(isFr, 'Verre Bordeaux ample', 'Broad Bordeaux glass'),
-            detailedTip: trSi(isFr, 'Laissez respirer à température ambiante fraîche (16-17°C).', 'Let it breathe at a cool room temperature (16-17°C).'),
-          );
-        } else {
+        }
+
+        // Le temps de carafe suit la garde de l'appellation, pas la seule région. Le 16/10,
+        // Flavien : « vérifie s'il faut vraiment le carafer 2h » — un crozes-hermitage 2024
+        // de Combier, pris pour un hermitage (« hermitage » est dans « crozes-hermitage ») et
+        // carafé comme lui, comme tout rouge du Rhône ou de Bordeaux de moins de huit ans.
+        // Deux heures pour un grand vin de garde encore jeune ; une heure pour un vin de
+        // garde moyenne avant son apogée ; une aération pour un vin fait pour être bu jeune.
+        final garde = AgingReference.chercher(region: region, appellation: appellation, type: wineType)?.pourRang(
+            AgingReference.rangDe(nom: wineName, appellation: appellation, producteur: producer));
+        final avantLApogee = age == null || garde == null || age < garde.picDebut;
+        final longue = (garde?.fin ?? 0) >= 15;
+        if (longue && avantLApogee) {
           return WineServiceAdvice(
             minTemp: 16,
             maxTemp: 17,
             tempLabel: '16°C - 17°C',
             carafeMinutes: 120,
             carafeLabel: trSi(isFr, '2h en carafe évasée', '2h in wide-bottom decanter'),
-            decantingAdvice: trSi(isFr, 'Caravage vigoureux 2 heures avant le repas dans une carafe à large base pour aérer et assouplir les tanins encore serrés.', 'Vigorous decanting 2 hours before the meal in a broad-base decanter to aerate and soften tight tannins.'),
+            decantingAdvice: trSi(isFr, 'Carafage vigoureux 2 heures avant le repas dans une carafe à large base pour aérer et assouplir des tanins encore serrés.', 'Vigorous decanting 2 hours before the meal in a broad-base decanter to aerate and soften tight tannins.'),
             glasswareType: trSi(isFr, 'Verre Bordeaux grand format', 'Large-format Bordeaux glass'),
             detailedTip: trSi(isFr, 'L\'oxygénation intensive va réveiller les arômes de fruits noirs et fondre la trame tannique.', 'Intensive aeration awakens dark fruit aromas and melts the youthful tannic structure.'),
           );
         }
+        if (longue || (age != null && age >= 8)) {
+          return WineServiceAdvice(
+            minTemp: 16,
+            maxTemp: 18,
+            tempLabel: '16°C - 18°C',
+            carafeMinutes: 45,
+            carafeLabel: trSi(isFr, '45 min en carafe', '45 min in decanter'),
+            decantingAdvice: trSi(isFr, 'Carafage doux 45 minutes avant le service pour épanouir le bouquet sans brutaliser la texture soyeuse.', 'Gentle decanting 45 minutes before service to unfurl the bouquet without jarring its silky texture.'),
+            glasswareType: trSi(isFr, 'Verre Bordeaux ample', 'Broad Bordeaux glass'),
+            detailedTip: trSi(isFr, 'Laissez respirer à température ambiante fraîche (16-17°C).', 'Let it breathe at a cool room temperature (16-17°C).'),
+          );
+        }
+        if ((garde?.fin ?? 0) >= 8 && avantLApogee) {
+          return WineServiceAdvice(
+            minTemp: 16,
+            maxTemp: 17,
+            tempLabel: '16°C - 17°C',
+            carafeMinutes: 60,
+            carafeLabel: trSi(isFr, '1h en carafe', '1h in decanter'),
+            decantingAdvice: trSi(isFr, 'Carafage 1 heure avant le service : assez pour ouvrir le fruit et arrondir des tanins encore jeunes.', 'Decant 1 hour before serving: enough to open up the fruit and round out still-young tannins.'),
+            glasswareType: trSi(isFr, 'Verre Bordeaux ample', 'Broad Bordeaux glass'),
+            detailedTip: trSi(isFr, 'Goûtez-le à l\'ouverture, puis après une heure : le fruit s\'ouvre et la finale s\'arrondit.', 'Taste it when opened, then after an hour: the fruit opens up and the finish rounds out.'),
+          );
+        }
+        return WineServiceAdvice(
+          minTemp: 15,
+          maxTemp: 17,
+          tempLabel: '15°C - 17°C',
+          carafeMinutes: 30,
+          carafeLabel: trSi(isFr, '30 min d\'aération', '30 min aeration'),
+          decantingAdvice: trSi(isFr, 'Une aération de 30 minutes, en carafe ou simplement dans le verre : un vin jeune et fruité n\'en demande pas plus.', 'Thirty minutes of air, in a decanter or simply in the glass: a young, fruity wine needs no more.'),
+          glasswareType: trSi(isFr, 'Verre à vin rouge standard ou tulipe', 'Standard red wine or tulip glass'),
+          detailedTip: trSi(isFr, 'Servir légèrement rafraîchi pour sublimer l\'équilibre.', 'Serve slightly cool to enhance balance and freshness.'),
+        );
       }
 
       final isDelicateRed = reg.contains('bourgogne') ||

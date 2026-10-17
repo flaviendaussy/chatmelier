@@ -431,7 +431,9 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
 
   void _addGuestDialog() {
     final fr = _isFr;
-    final nameCtrl = TextEditingController(text: '${trSi(fr, 'Convive', 'Guest')} ${_tableGuests.length + 1}');
+    // La case est vide ; laissée vide, « Convive 3 » (ce que dit l'exemple).
+    final parDefaut = '${trSi(fr, 'Convive', 'Guest')} ${_tableGuests.length + 1}';
+    final nameCtrl = TextEditingController();
     String selectedArchetype = 'equilibre';
 
     showDialog(
@@ -450,6 +452,8 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: trSi(fr, 'Prénom du convive', 'Guest\'s first name'),
+                  hintText: parDefaut,
+                  hintStyle: const TextStyle(color: Colors.white38),
                   labelStyle: const TextStyle(color: Color(0xFFD4AF37)),
                   enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
                 ),
@@ -489,7 +493,7 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
               onPressed: () {
-                final name = nameCtrl.text.trim().isEmpty ? (trSi(fr, 'Convive', 'Guest')) : nameCtrl.text.trim();
+                final name = nameCtrl.text.trim().isEmpty ? parDefaut : nameCtrl.text.trim();
                 GuestProfile newGuest;
 
                 if (selectedArchetype == 'puissant') {

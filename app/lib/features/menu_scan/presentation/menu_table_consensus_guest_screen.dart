@@ -12,6 +12,7 @@ import '../../../shared/utils/app_logger.dart';
 import '../data/table_session_service.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../auth/domain/taste_profile.dart';
+import '../../auth/domain/user_profile.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import 'palais_express.dart';
 import 'table_matchmaker_sheet.dart';
@@ -125,17 +126,19 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
   @override
   void initState() {
     super.initState();
-    _nameCtrl = TextEditingController(text: 'Invité');
-    // Ouvert dans l'app par le lien d'une table (#25), avec un compte : son prénom plutôt
-    // qu'« Invité ».
+    // Une case vide plutôt qu'« Invité » à effacer d'abord (17/10) ; laissée vide, la place
+    // s'appelle « Convive ».
+    _nameCtrl = TextEditingController();
+    // Ouvert dans l'app par le lien d'une table (#25), avec un compte : le nom qu'on a déjà
+    // donné à Chatmelier.
     try {
       final compte = ref.read(currentUserProvider);
       final nomDuCompte = (compte == null || compte.isAnonymous)
           ? null
           : (compte.userMetadata?['display_name'] as String?)?.trim();
-      if (nomDuCompte != null && nomDuCompte.isNotEmpty) _nameCtrl.text = nomDuCompte;
+      if (!UserProfile.estUnNomParDefaut(nomDuCompte)) _nameCtrl.text = nomDuCompte!;
     } catch (_) {
-      // Sans session lisible (page web, essais) : « Invité ».
+      // Sans session lisible (page web, essais) : la case reste vide.
     }
     _loadMenu();
     if (widget.dejaAssis) _hasJoined = true;
@@ -167,10 +170,6 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     if (isFr != _isFr) {
       _isFr = isFr;
-      // Le prénom proposé suit la langue, tant que l'invité n'en a pas choisi un.
-      if (!_hasJoined && const {'Invité', 'Guest', 'Invitado'}.contains(_nameCtrl.text)) {
-        _nameCtrl.text = trSi(isFr, 'Invité', 'Guest');
-      }
       _recalculateConsensus();
     }
   }

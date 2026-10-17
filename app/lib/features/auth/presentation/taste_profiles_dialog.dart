@@ -78,7 +78,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      tr('Le Chatmelier personnalise ses conseils pour vous et vos proches (ex: Caro)', 'Chatmelier personalizes advice for you and your guests (e.g. Caro)'),
+                      tr('Le Chatmelier personnalise ses conseils pour vous et vos proches', 'Chatmelier tailors its advice to you and the people you drink with'),
                       style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                     ),
                   ],
@@ -275,7 +275,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               icon: const Icon(Icons.person_add_alt_1),
-              label: Text(tr('Ajouter un profil (ex: Caro, Invité)', 'Add a profile (e.g. Caro, Guest)'), style: const TextStyle(fontWeight: FontWeight.bold)),
+              label: Text(tr('Ajouter un profil', 'Add a profile'), style: const TextStyle(fontWeight: FontWeight.bold)),
               onPressed: () => _showEditProfileSheet(null),
             ),
           ),
@@ -318,7 +318,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: InputDecoration(labelText: tr('Prénom / Nom *', 'First / Last Name *'), hintText: tr('ex: Caro', 'e.g. Caro')),
+                  decoration: InputDecoration(labelText: tr('Prénom / Nom *', 'First / Last Name *'), hintText: tr('ex. Papa, Maman…', 'e.g. Dad, Mom…')),
                 ),
                 const SizedBox(height: 10),
                 TextField(

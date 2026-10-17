@@ -151,7 +151,7 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
                   TextField(
                     controller: notesCtrl,
                     decoration: InputDecoration(
-                      hintText: tr('Ex: Conseillé par Pierre, spécialité Champagne...', 'E.g. recommended by Pierre, Champagne specialist...'),
+                      hintText: tr('Ex. : de bons conseils, spécialiste du champagne…', 'E.g. great advice, Champagne specialist…'),
                       filled: true,
                       fillColor: isDark ? Colors.white10 : Colors.grey.shade50,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),

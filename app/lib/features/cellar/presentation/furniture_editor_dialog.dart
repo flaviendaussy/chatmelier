@@ -50,7 +50,8 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
   void initState() {
     super.initState();
     final init = widget.initialFurniture;
-    _nameController = TextEditingController(text: init?.name ?? 'Casier principal');
+    // Le nom est demandé (« Requis ») : pas de « Casier principal » à effacer d'abord.
+    _nameController = TextEditingController(text: init?.name ?? '');
     _shapeType = init?.shapeType ?? 'rectangle';
     _columns = init?.columns ?? 6;
     _rows = init?.rows ?? 6;

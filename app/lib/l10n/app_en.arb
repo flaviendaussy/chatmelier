@@ -450,10 +450,10 @@
   "cellarCreateTitle": "Create a new cellar",
   "cellarManageTitle": "Manage cellar",
   "cellarNameLabel": "Cellar name *",
-  "cellarNameHint": "e.g., London Cellar, Vosges Cellar",
+  "cellarNameHint": "e.g., Main cellar, Country house",
   "cellarNameRequired": "Please enter a name",
   "cellarLocationLabel": "Location / City (optional)",
-  "cellarLocationHint": "e.g., London (UK), Beaune (FR)",
+  "cellarLocationHint": "e.g., Paris, Beaune",
   "cellarNicknameLabel": "Nickname / Room (optional)",
   "cellarNicknameHint": "e.g., Basement, Main wine cooler",
   "cellarDescriptionLabel": "Description (optional)",
@@ -940,7 +940,7 @@
       }
     }
   },
-  "tastingDictateInputHint": "E.g.: Bernard loved it, 8.5/10 with undergrowth and blackcurrant notes. Caro gave 7/10 finding the wine slightly acidic...",
+  "tastingDictateInputHint": "E.g.: Dad loved it, 8.5/10, with forest-floor and blackcurrant notes. Mom gave it 7/10, finding it a little sharp…",
   "tastingDictateAnalyzing": "Analyzing...",
   "tastingDictateAnalyzeAndApply": "Analyze & Apply to Sheets ✨",
   "tastingFormatExpress": "Express Format (1 page) ⚡",
@@ -981,7 +981,7 @@
   "externalTastingOtherPlace": "At a friend's / Another place...",
   "externalTastingNoPlaceFound": "No restaurant detected in the immediate vicinity.",
   "externalTastingPlaceLabel": "Whose place or where are you? *",
-  "externalTastingPlaceHint": "e.g. Dimitri's place, My parents', Country house...",
+  "externalTastingPlaceHint": "e.g. A friend's place, My parents', Country house…",
   "externalTastingRememberPlace": "Remember \"{place}\" at this GPS position for your next visits",
   "@externalTastingRememberPlace": {
     "placeholders": {

@@ -232,7 +232,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
                   controller: _nameController,
                   decoration: InputDecoration(
                     labelText: l10n?.cellarNameLabel ?? 'Nom de la cave *',
-                    hintText: l10n?.cellarNameHint ?? 'ex: Cave de Londres, Cave des Vosges',
+                    hintText: l10n?.cellarNameHint ?? 'ex : Cave principale, Maison de campagne',
                     prefixIcon: const Icon(Icons.wine_bar),
                     border: const OutlineInputBorder(),
                   ),
@@ -244,7 +244,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
                   controller: _locationController,
                   decoration: InputDecoration(
                     labelText: l10n?.cellarLocationLabel ?? 'Lieu / Ville (optionnel)',
-                    hintText: l10n?.cellarLocationHint ?? 'ex: Londres (UK), Vosges (FR)',
+                    hintText: l10n?.cellarLocationHint ?? 'ex : Paris, Beaune',
                     prefixIcon: const Icon(Icons.location_on_outlined),
                     border: const OutlineInputBorder(),
                   ),

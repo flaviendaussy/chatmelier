@@ -82,7 +82,9 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
   }
 
   void _addQuickGuestDialog() {
-    final nameCtrl = TextEditingController(text: tr('Invité {v1}', 'Guest {v1}', {'v1': _selectedGuests.length + 1}));
+    // La case est vide ; laissée vide, « Invité 2 » (ce que dit l'exemple).
+    final parDefaut = tr('Invité {v1}', 'Guest {v1}', {'v1': _selectedGuests.length + 1});
+    final nameCtrl = TextEditingController();
     String selectedStyle = 'equilibre';
 
     showDialog(
@@ -100,6 +102,8 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: tr('Prénom ou surnom', 'First name or nickname'),
+                  hintText: parDefaut,
+                  hintStyle: const TextStyle(color: Colors.white38),
                   labelStyle: const TextStyle(color: Color(0xFFD4AF37)),
                   enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
                 ),
@@ -133,7 +137,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
               onPressed: () {
-                final name = nameCtrl.text.trim().isEmpty ? tr('Invité', 'Guest') : nameCtrl.text.trim();
+                final name = nameCtrl.text.trim().isEmpty ? parDefaut : nameCtrl.text.trim();
                 TasteProfile? tp;
                 List<String> disliked = [];
 

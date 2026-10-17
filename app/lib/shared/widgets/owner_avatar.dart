@@ -22,9 +22,9 @@ class OwnerAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveRadius = radius ?? (size / 2);
-    final initial = (displayName != null && displayName!.isNotEmpty)
-        ? displayName![0].toUpperCase()
-        : 'U';
+    // Sans nom, une silhouette : « U » (pour « User ») n'était l'initiale de personne (17/10).
+    final nom = displayName?.trim();
+    final initiale = (nom != null && nom.isNotEmpty) ? nom[0].toUpperCase() : null;
 
     // `meta://?u=…&avatar=…` : le pseudo et la photo rangés ensemble (AvatarEtPseudo).
     final image = AvatarEtPseudo.image(avatarUrl);
@@ -60,17 +60,20 @@ class OwnerAvatar extends StatelessWidget {
       }
     }
 
+    final encre = Theme.of(context).colorScheme.onPrimaryContainer;
     return CircleAvatar(
       radius: effectiveRadius,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      child: Text(
-        initial,
-        style: TextStyle(
-          fontSize: effectiveRadius * 0.9,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
-        ),
-      ),
+      child: initiale == null
+          ? Icon(Icons.person, size: effectiveRadius * 1.2, color: encre)
+          : Text(
+              initiale,
+              style: TextStyle(
+                fontSize: effectiveRadius * 0.9,
+                fontWeight: FontWeight.bold,
+                color: encre,
+              ),
+            ),
     );
   }
 }

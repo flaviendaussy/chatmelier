@@ -1761,7 +1761,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellarNameHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g., London Cellar, Vosges Cellar'**
+  /// **'e.g., Main cellar, Country house'**
   String get cellarNameHint;
 
   /// No description provided for @cellarNameRequired.
@@ -1779,7 +1779,7 @@ abstract class AppLocalizations {
   /// No description provided for @cellarLocationHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g., London (UK), Beaune (FR)'**
+  /// **'e.g., Paris, Beaune'**
   String get cellarLocationHint;
 
   /// No description provided for @cellarNicknameLabel.
@@ -3393,7 +3393,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingDictateInputHint.
   ///
   /// In en, this message translates to:
-  /// **'E.g.: Bernard loved it, 8.5/10 with undergrowth and blackcurrant notes. Caro gave 7/10 finding the wine slightly acidic...'**
+  /// **'E.g.: Dad loved it, 8.5/10, with forest-floor and blackcurrant notes. Mom gave it 7/10, finding it a little sharp…'**
   String get tastingDictateInputHint;
 
   /// No description provided for @tastingDictateAnalyzing.
@@ -3597,7 +3597,7 @@ abstract class AppLocalizations {
   /// No description provided for @externalTastingPlaceHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g. Dimitri\'s place, My parents\', Country house...'**
+  /// **'e.g. A friend\'s place, My parents\', Country house…'**
   String get externalTastingPlaceHint;
 
   /// No description provided for @externalTastingRememberPlace.

@@ -104,7 +104,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
           autofocus: true,
           textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(
-            hintText: trSi(isFr, 'Chez Paul, Le Comptoir…', 'At Paul\'s, Le Comptoir…'),
+            hintText: trSi(isFr, 'Chez des amis, Le Comptoir…', 'At a friend\'s, Le Comptoir…'),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
           onSubmitted: (v) => Navigator.pop(ctx, v.trim()),

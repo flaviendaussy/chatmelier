@@ -62,6 +62,14 @@ class UserProfile {
     return s.length > 30 ? s.substring(0, 30) : s;
   }
 
+  /// Vide, ou l'un des noms que l'app écrit faute de mieux (« User » quand un profil
+  /// sans nom est enregistré, « Amateur de Vin » à l'affichage) : rien que la personne ait
+  /// choisi, donc rien à remettre dans une case.
+  static bool estUnNomParDefaut(String? nom) {
+    final n = nom?.trim().toLowerCase();
+    return n == null || n.isEmpty || const {'user', 'utilisateur', 'amateur de vin', 'wine lover'}.contains(n);
+  }
+
   /// Validates that phone number, if provided, must strictly include an international dial code
   static String? validatePhoneNumber(String? val) {
     if (val == null || val.trim().isEmpty) return null; // Optional if empty

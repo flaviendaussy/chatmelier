@@ -82,7 +82,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
   late String _currency;
   late TextEditingController _estimatedValueCtrl;
   late TextEditingController _purchaseLocationCtrl;
-  late String _sourceType;
+  String? _sourceType;
   String? _sourceDetails;
   late TextEditingController _rackCtrl;
   late TextEditingController _shelfCtrl;
@@ -144,7 +144,8 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
       text: w.estimatedMarketValue != null ? w.estimatedMarketValue!.toStringAsFixed(2) : '',
     );
     _purchaseLocationCtrl = TextEditingController(text: b.purchaseLocation ?? '');
-    _sourceType = b.sourceType ?? (b.purchaseLocation != null && b.purchaseLocation!.isNotEmpty ? 'merchant' : 'estate');
+    // Pas de provenance devinée : sans réponse, la fiche montre le lieu d'achat, ou rien.
+    _sourceType = b.sourceType;
     _sourceDetails = b.sourceDetails ?? b.purchaseLocation;
     _rackCtrl = TextEditingController(text: b.rack ?? '');
     _shelfCtrl = TextEditingController(text: b.shelf ?? '');

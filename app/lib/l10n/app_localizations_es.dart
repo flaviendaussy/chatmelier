@@ -1988,7 +1988,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get externalTastingPlaceHint =>
-      'Ej.: Casa de Dimitri, Casa de mis padres, Casa de campo...';
+      'Ej.: Casa de unos amigos, Casa de mis padres, Casa de campo…';
 
   @override
   String externalTastingRememberPlace(String place) {

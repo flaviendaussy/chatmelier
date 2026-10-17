@@ -2026,7 +2026,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       controller: _purchaseLocationCtrl,
                       decoration: InputDecoration(
                         labelText: trSi(isFr, 'Circonstances de l\'achat (texte libre)', 'Purchase notes (optional)'),
-                        hintText: trSi(isFr, 'ex: Acheté en vacances au Chili avec Caro...', 'e.g. Bought on vacation in Chile with Caro...'),
+                        hintText: trSi(isFr, 'ex. : acheté en vacances au Chili…', 'e.g. bought on holiday in Chile…'),
                         prefixIcon: const Icon(Icons.flight_takeoff_outlined),
                         border: const OutlineInputBorder(),
                       ),

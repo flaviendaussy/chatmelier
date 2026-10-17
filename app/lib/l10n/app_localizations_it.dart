@@ -1990,7 +1990,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get externalTastingPlaceHint =>
-      'Es.: Da Dimitri, Dai miei genitori, Casa in campagna...';
+      'Es.: Da amici, Dai miei genitori, Casa in campagna…';
 
   @override
   String externalTastingRememberPlace(String place) {

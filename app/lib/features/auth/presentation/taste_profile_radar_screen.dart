@@ -890,7 +890,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
 
     final nameLabel = tr('Prénom / Nom du convive *', 'Guest Name *');
 
-    final nameHint = tr('ex: Papa, Maman, Sophie, Dimitri...', 'e.g. Dad, Mom, Sarah, David...');
+    final nameHint = tr('ex. Papa, Maman…', 'e.g. Dad, Mom…');
 
     final notesLabel = tr('Notes ou préférences (optionnel)', 'Notes or preferences (optional)');
 

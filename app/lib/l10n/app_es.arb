@@ -636,7 +636,7 @@
   "externalTastingOtherPlace": "En casa de un amigo / Otro lugar...",
   "externalTastingNoPlaceFound": "No se ha detectado ningún restaurante en las inmediaciones.",
   "externalTastingPlaceLabel": "¿En casa de quién o dónde estás? *",
-  "externalTastingPlaceHint": "Ej.: Casa de Dimitri, Casa de mis padres, Casa de campo...",
+  "externalTastingPlaceHint": "Ej.: Casa de unos amigos, Casa de mis padres, Casa de campo…",
   "externalTastingRememberPlace": "Memorizar \"{place}\" en esta posición GPS para tus próximas visitas",
   "externalTastingDefaultPlace": "En el restaurante",
   "externalTastingAiIdentifyTitle": "Identificar con IA (bar, restaurante, pizarra)",

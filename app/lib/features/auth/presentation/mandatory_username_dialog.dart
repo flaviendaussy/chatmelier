@@ -114,15 +114,13 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
   @override
   void initState() {
     super.initState();
+    // Rien dans les cases que la personne n'ait écrit elle-même. Gandalf, 17/10 : « if i
+    // cancel the default name your personal name shows up » — on lui proposait « Wine
+    // lover » (et le pseudo « wine_lover »), et l'exemple qui apparaissait une fois la case
+    // vidée était « flavien ». Seul revient le nom tapé à l'inscription.
     final user = ref.read(currentUserProvider);
-    final initialName = user?.userMetadata?['display_name'] as String? ?? tr('Amateur de Vin', 'Wine lover');
-    _displayNameController.text = initialName;
-
-    // Suggest handle from display name
-    final cleanSuggested = initialName.toLowerCase().replaceAll(' ', '_').replaceAll(RegExp(r'[^a-z0-9_]'), '');
-    if (cleanSuggested.length >= 3) {
-      _usernameController.text = cleanSuggested;
-    }
+    final nomTape = (user?.userMetadata?['display_name'] as String?)?.trim();
+    if (!UserProfile.estUnNomParDefaut(nomTape)) _displayNameController.text = nomTape!;
   }
 
   @override
@@ -321,7 +319,8 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                                 errorMaxLines: 3,
                                 prefixText: '@ ',
                                 prefixStyle: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F)),
-                                hintText: 'flavien',
+                                // La forme d'un pseudo, sans être le nom de quelqu'un.
+                                hintText: tr('amateur_de_syrah', 'syrah_fan'),
                                 errorText: _usernameError,
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -339,7 +338,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
                               textInputAction: TextInputAction.next,
                               decoration: InputDecoration(
                                 labelText: tr('Nom d\'affichage', 'Display name'),
-                                hintText: tr('Camille D.', 'Alex D.'),
+                                hintText: tr('Votre prénom, ou un surnom', 'Your first name, or a nickname'),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                               ),

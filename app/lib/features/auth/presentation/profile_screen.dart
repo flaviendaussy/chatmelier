@@ -547,7 +547,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _editDisplayName() async {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
-    final ctrl = TextEditingController(text: _displayName);
+    // « User », mis faute de nom, n'est pas un nom à corriger : la case reste vide.
+    final ctrl = TextEditingController(text: UserProfile.estUnNomParDefaut(_displayName) ? '' : _displayName);
     final result = await showDialog<String?>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -563,7 +564,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           controller: ctrl,
           decoration: InputDecoration(
             labelText: trSi(isFr, 'Votre nom ou prénom', 'Your first or last name'),
-            hintText: trSi(isFr, 'ex: Flavien', 'e.g. Flavien'),
+            // Plus de « ex: Flavien » : le prénom d'un autre n'a rien à faire dans la case (Gandalf, 17/10).
+            hintText: trSi(isFr, 'Votre prénom, ou un surnom', 'Your first name, or a nickname'),
             border: const OutlineInputBorder(),
           ),
         ),
@@ -950,6 +952,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         OwnerAvatar(
                           userId: user?.id ?? '',
                           avatarUrl: _avatarUrl,
+                          // Son initiale, ou une silhouette tant qu'aucun nom n'est choisi.
+                          displayName: UserProfile.estUnNomParDefaut(resolvedDisplayName) ? null : resolvedDisplayName,
                           radius: 24,
                         ),
                         if (user != null)

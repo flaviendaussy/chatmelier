@@ -251,7 +251,7 @@ class BottleContextSheet extends ConsumerWidget {
                     child: const Icon(Icons.drive_file_move_outline, color: Colors.blue, size: 20),
                   ),
                   title: Text(trSi(isFr, 'Déplacer vers une autre cave', 'Move to another cellar'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(trSi(isFr, 'Transférer tout ou partie du stock (ex: vers Vosges, Londres...)', 'Transfer all or part of the stock to another cellar')),
+                  subtitle: Text(trSi(isFr, 'Transférer tout ou partie du stock vers une autre cave', 'Transfer all or part of the stock to another cellar')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.of(context).pop();

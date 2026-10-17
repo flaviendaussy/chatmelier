@@ -923,7 +923,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cellarNameLabel => 'Cellar name *';
 
   @override
-  String get cellarNameHint => 'e.g., London Cellar, Vosges Cellar';
+  String get cellarNameHint => 'e.g., Main cellar, Country house';
 
   @override
   String get cellarNameRequired => 'Please enter a name';
@@ -932,7 +932,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cellarLocationLabel => 'Location / City (optional)';
 
   @override
-  String get cellarLocationHint => 'e.g., London (UK), Beaune (FR)';
+  String get cellarLocationHint => 'e.g., Paris, Beaune';
 
   @override
   String get cellarNicknameLabel => 'Nickname / Room (optional)';
@@ -1860,7 +1860,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tastingDictateInputHint =>
-      'E.g.: Bernard loved it, 8.5/10 with undergrowth and blackcurrant notes. Caro gave 7/10 finding the wine slightly acidic...';
+      'E.g.: Dad loved it, 8.5/10, with forest-floor and blackcurrant notes. Mom gave it 7/10, finding it a little sharp…';
 
   @override
   String get tastingDictateAnalyzing => 'Analyzing...';
@@ -1974,7 +1974,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get externalTastingPlaceHint =>
-      'e.g. Dimitri\'s place, My parents\', Country house...';
+      'e.g. A friend\'s place, My parents\', Country house…';
 
   @override
   String externalTastingRememberPlace(String place) {

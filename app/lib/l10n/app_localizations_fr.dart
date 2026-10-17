@@ -927,7 +927,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cellarNameLabel => 'Nom de la cave *';
 
   @override
-  String get cellarNameHint => 'ex : Cave de Londres, Cave des Vosges';
+  String get cellarNameHint => 'ex : Cave principale, Maison de campagne';
 
   @override
   String get cellarNameRequired => 'Veuillez saisir un nom';
@@ -936,7 +936,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cellarLocationLabel => 'Lieu / Ville (optionnel)';
 
   @override
-  String get cellarLocationHint => 'ex : Londres (UK), Vosges (FR)';
+  String get cellarLocationHint => 'ex : Paris, Beaune';
 
   @override
   String get cellarNicknameLabel => 'Surnom / Pièce (optionnel)';
@@ -1869,7 +1869,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tastingDictateInputHint =>
-      'Ex : Bernard a adoré, 8.5/10 avec des notes de sous-bois et de cassis. Caro a mis 7/10 en trouvant le vin un peu acide...';
+      'Ex : Papa a adoré, 8,5/10, des notes de sous-bois et de cassis. Maman a mis 7/10, le trouvant un peu acide…';
 
   @override
   String get tastingDictateAnalyzing => 'Analyse en cours...';
@@ -1983,7 +1983,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get externalTastingPlaceHint =>
-      'Ex: Chez Dimitri, Chez mes parents, Maison de campagne...';
+      'Ex : Chez des amis, Chez mes parents, Maison de campagne…';
 
   @override
   String externalTastingRememberPlace(String place) {

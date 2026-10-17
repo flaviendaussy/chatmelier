@@ -234,7 +234,11 @@ class _CarteDeRetour extends ConsumerWidget {
               const SizedBox(height: 6),
               Text('Note : ${r.note}', style: TextStyle(fontSize: 12, color: gris, fontStyle: FontStyle.italic)),
             ],
-            Row(
+            // Sur un téléphone, les quatre gestes ne tiennent pas sur une ligne depuis
+            // l'arrivée de « Contexte » (débordement de 61 pixels, vu le 17/10) : ils passent à
+            // la ligne.
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 if (r.capture != null)
                   TextButton.icon(
@@ -253,7 +257,6 @@ class _CarteDeRetour extends ConsumerWidget {
                   icon: const Icon(Icons.edit_note, size: 18),
                   label: const Text('Note'),
                 ),
-                const Spacer(),
                 PopupMenuButton<StatutDeRetour>(
                   tooltip: 'Changer le statut',
                   onSelected: (s) => _changer(context, ref, s),

@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:chatmelier/features/prise_en_main/data/preferences_de_prise_en_main.dart';
 import 'package:chatmelier/features/prise_en_main/presentation/guide_de_prise_en_main.dart';
+import 'package:chatmelier/features/prise_en_main/presentation/demonstration_apogee.dart';
+import 'package:chatmelier/shared/widgets/gaussian_drinking_curve.dart';
 
 void main() {
   Future<void> ouvrirLeGuide(WidgetTester tester) async {
@@ -41,9 +43,13 @@ void main() {
     // Le bouton attend le geste.
     final suivant = find.widgetWithText(FilledButton, 'Faites le geste ci-dessus');
     expect(tester.widget<FilledButton>(suivant).onPressed, isNull);
-    await tester.tap(find.text('Bandol rouge 2019'));
+    // Le millésime suit l'année : le Bandol reste « en garde » (17/10).
+    final bandol = DemonstrationApogee.bandol.wine!;
+    await tester.tap(find.text('Bandol rouge ${bandol.vintage}'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('à partir de 2028'), findsOneWidget);
+    final f = GaussianDrinkingCurve.fenetreDe(bandol);
+    expect(find.textContaining('de ${f.peakStart} à ${f.peakEnd}'), findsOneWidget,
+        reason: 'le guide dit ce que la courbe de garde dessine');
     await tester.tap(find.text('Suivant'));
     await tester.pumpAndSettle();
     expect(find.text('Ajouter une bouteille'), findsOneWidget);

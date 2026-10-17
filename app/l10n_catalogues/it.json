@@ -19368,328 +19368,310 @@
   "ou": "lib/features/prise_en_main/domain/astuces.dart:102"
  },
  {
-  "fr": "Dans votre cave, chaque bouteille a sa jauge. Ouvrons ce Bandol rouge 2019 pour voir sa courbe de garde.",
-  "en": "In your cellar, every bottle has its gauge. Let's open this 2019 red Bandol to see its ageing curve.",
-  "it": "Nella tua cantina, ogni bottiglia ha il suo indicatore. Apriamo questo Bandol rosso 2019 per vedere la sua curva di invecchiamento.",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:80"
+  "fr": "Dans votre cave, chaque bouteille a sa jauge. Ouvrons ce Bandol rouge {annee} pour voir sa courbe de garde.",
+  "en": "In your cellar, every bottle has its gauge. Let's open this {annee} red Bandol to see its ageing curve.",
+  "it": "Nella tua cantina, ogni bottiglia ha il suo indicatore. Apriamo questo Bandol rosso {annee} per vedere la sua curva di invecchiamento.",
+  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:89"
  },
  {
   "fr": "Cave de démonstration",
   "en": "Demo cellar",
   "it": "Cantina dimostrativa",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:96"
+  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:106"
  },
  {
   "fr": "La courbe de garde : ce vin s'ouvre à partir de {debut}, il est à son apogée de {pic1} à {pic2}, puis décline jusqu'en {fin}. Sous chaque bouteille de votre cave, une jauge le résume.",
   "en": "The ageing curve: this wine opens from {debut}, peaks from {pic1} to {pic2}, then declines until {fin}. Under each bottle in your cellar, a gauge sums it up.",
   "it": "La curva di invecchiamento: questo vino si apre a partire dal {debut}, è al suo apice dal {pic1} al {pic2}, poi declina fino al {fin}. Sotto ogni bottiglia della tua cantina, un indicatore lo riassume.",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:147"
+  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:157"
  },
  {
   "fr": "Appellation",
   "en": "Appellation",
   "it": "Denominazione",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:194"
+  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:204"
  },
  {
   "fr": "Couleur",
   "en": "Colour",
   "it": "Colore",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:197"
+  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:207"
  },
  {
   "fr": "Un Bandol rouge, c'est d'abord le mourvèdre : fruits noirs, garrigue, et des tanins serrés qui s'assouplissent avec les années.",
   "en": "A red Bandol is Mourvèdre first: dark fruit, garrigue, and firm tannins that soften over the years.",
   "it": "Un Bandol rosso è prima di tutto mourvèdre: frutti neri, macchia mediterranea e tannini serrati che si ammorbidiscono con gli anni.",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:200"
+  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:210"
  },
  {
   "fr": "Quand l'ouvrir ?",
   "en": "When to open it?",
   "it": "Quando aprirlo?",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:204"
+  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:214"
  },
  {
   "fr": "Terminer la démonstration",
   "en": "End the demo",
   "it": "Termina la dimostrazione",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:213"
+  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:223"
  },
  {
   "fr": "Démonstration : ces bouteilles ne sont pas dans votre cave, et rien n'est enregistré.",
   "en": "Demo: these bottles aren't in your cellar, and nothing is saved.",
   "it": "Dimostrazione: queste bottiglie non sono nella tua cantina e non viene salvato nulla.",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:256"
+  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:266"
  },
  {
   "fr": "Passer",
   "en": "Skip",
   "it": "Salta",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:94"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:98"
  },
  {
   "fr": "Commencer",
   "en": "Start",
   "it": "Inizia",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:128"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:132"
  },
  {
   "fr": "C'est parti",
   "en": "Let's go",
   "it": "Si parte",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:130"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:134"
  },
  {
   "fr": "Suivant",
   "en": "Next",
   "it": "Avanti",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:132"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:136"
  },
  {
   "fr": "Faites le geste ci-dessus",
   "en": "Try the gesture above",
   "it": "Fai il gesto qui sopra",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:133"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:137"
  },
  {
   "fr": "Bienvenue dans Chatmelier",
   "en": "Welcome to Chatmelier",
   "it": "Benvenuto in Chatmelier",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:148"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:152"
  },
  {
   "fr": "Il vous aide à choisir un vin, au restaurant comme à la maison, et à ouvrir vos bouteilles au bon moment. Voyons comment, en une minute.",
   "en": "It helps you choose a wine, out or at home, and open your bottles at the right time. Let's see how, in one minute.",
   "it": "Ti aiuta a scegliere un vino, al ristorante come a casa, e ad aprire le tue bottiglie al momento giusto. Vediamo come, in un minuto.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:149"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:153"
  },
  {
   "fr": "Votre cave",
   "en": "Your cellar",
   "it": "La tua cantina",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:156"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:160"
  },
  {
   "fr": "Touchez une bouteille : sa jauge dit quand l'ouvrir.",
   "en": "Tap a bottle: its gauge tells you when to open it.",
   "it": "Tocca una bottiglia: il suo indicatore dice quando aprirla.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:157"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:161"
  },
  {
   "fr": "Champagne brut",
   "en": "Champagne brut",
   "it": "Champagne brut",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:161"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:165"
  },
  {
   "fr": "Prêt à boire",
   "en": "Ready to drink",
   "it": "Pronto da bere",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:161"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:165"
  },
  {
   "fr": "Prêt à boire : un champagne sans millésime se boit dans les deux ou trois ans.",
   "en": "Ready to drink: a non-vintage champagne is best within two or three years.",
   "it": "Pronto da bere: uno champagne senza annata si beve entro due o tre anni.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:163"
- },
- {
-  "fr": "Bandol rouge 2019",
-  "en": "Bandol red 2019",
-  "it": "Bandol rosso 2019",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:165"
- },
- {
-  "fr": "En garde : un Bandol rouge s'ouvre plutôt à partir de 2028.",
-  "en": "Keep for now: a red Bandol is better opened from 2028.",
-  "it": "Da conservare: un Bandol rosso si apre meglio dal 2028.",
   "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:167"
  },
  {
-  "fr": "Beaujolais-Villages 2021",
-  "en": "Beaujolais-Villages 2021",
-  "it": "Beaujolais-Villages 2021",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:169"
+  "fr": "En garde : ce Bandol rouge donnera le meilleur de lui-même de {pic1} à {pic2}.",
+  "en": "Keep for now: this red Bandol will be at its best from {pic1} to {pic2}.",
+  "it": "Da conservare: questo Bandol rosso darà il meglio di sé dal {pic1} al {pic2}.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:172"
  },
  {
-  "fr": "À boire cette année",
-  "en": "Drink this year",
-  "it": "Da bere quest'anno",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:170"
- },
- {
-  "fr": "À boire cette année : un Beaujolais-Villages se boit jeune, pour son fruit.",
-  "en": "Drink this year: a Beaujolais-Villages is drunk young, for its fruit.",
-  "it": "Da bere quest'anno: un Beaujolais-Villages si beve giovane, per il suo frutto.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:171"
+  "fr": "À boire vite : un Beaujolais-Villages se boit jeune, pour son fruit ; celui-ci est à boire avant {fin}.",
+  "en": "Drink soon: a Beaujolais-Villages is drunk young, for its fruit; this one should be drunk before {fin}.",
+  "it": "Da bere presto: un Beaujolais-Villages si beve giovane, per il suo frutto; questo va bevuto prima del {fin}.",
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:177"
  },
  {
   "fr": "Ajouter une bouteille",
   "en": "Add a bottle",
   "it": "Aggiungi una bottiglia",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:179"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:187"
  },
  {
   "fr": "Touchez le bouton +. Dans l'app, il ouvre l'appareil photo : Chatmelier lit l'étiquette et remplit la fiche.",
   "en": "Tap the + button. In the app it opens the camera: Chatmelier reads the label and fills in the details.",
   "it": "Tocca il pulsante +. Nell'app apre la fotocamera: Chatmelier legge l'etichetta e compila la scheda.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:180"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:188"
  },
  {
   "fr": "Ici, l'appareil photo s'ouvrirait. Rien n'est enregistré pendant ce guide.",
   "en": "This is where the camera would open. Nothing is saved during this guide.",
   "it": "Qui si aprirebbe la fotocamera. Durante questa guida non viene salvato nulla.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:193"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:201"
  },
  {
   "fr": "Photographiez la carte des vins : Chatmelier classe chaque vin selon vos goûts. Touchez celui qui vous tente.",
   "en": "Take a photo of the wine list: Chatmelier ranks each wine for your taste. Tap the one you fancy.",
   "it": "Fotografa la carta dei vini: Chatmelier ordina ogni vino secondo i tuoi gusti. Tocca quello che ti ispira.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:205"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:213"
  },
  {
   "fr": "⚖️ À prix égal, je prendrais celui-ci",
   "en": "⚖️ At the same price, I'd pick this one",
   "it": "⚖️ A parità di prezzo, sceglierei questo",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:213"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:221"
  },
  {
   "fr": "Noter un verre",
   "en": "Rate a glass",
   "it": "Annotare un calice",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:220"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:228"
  },
  {
   "fr": "Après un vin, notez-le d'un geste : votre palais apprend, et les conseils vous ressemblent de plus en plus.",
   "en": "After a wine, rate it in one tap: your palate learns, and the advice fits you better and better.",
   "it": "Dopo un vino, annotalo con un gesto: il tuo palato impara, e i consigli ti somigliano sempre di più.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:221"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:229"
  },
  {
   "fr": "Noté ! Pour de faux : ce guide n'écrit rien dans votre journal.",
   "en": "Rated! Only pretend: this guide writes nothing to your journal.",
   "it": "Annotato! Per finta: questa guida non scrive nulla nel tuo diario.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:236"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:244"
  },
  {
   "fr": "Une question ?",
   "en": "A question?",
   "it": "Una domanda?",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:256"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:264"
  },
  {
   "fr": "La bulle, en haut de chaque écran, ouvre le sommelier. Touchez-la.",
   "en": "The bubble at the top of every screen opens the sommelier. Tap it.",
   "it": "La bolla, in alto in ogni schermata, apre il sommelier. Toccala.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:257"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:265"
  },
  {
   "fr": "« Que boire avec un poulet rôti ? » — « Un blanc ample, comme un Meursault, ou un rouge léger, comme un Fleurie. »",
   "en": "“What goes with roast chicken?” — “A rich white, like a Meursault, or a light red, like a Fleurie.”",
   "it": "«Cosa bere con un pollo arrosto?» — «Un bianco ampio, come un Meursault, o un rosso leggero, come un Fleurie.»",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:268"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:276"
  },
  {
   "fr": "C'est parti !",
   "en": "You're all set!",
   "it": "Si parte!",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:279"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:287"
  },
  {
   "fr": "Vous retrouverez ce guide dans Profil → Réglages. Une astuce vous attendra parfois à l'ouverture : un geste suffit pour les couper.",
   "en": "You'll find this guide again in Profile → Settings. A tip will sometimes greet you when the app opens: one tap turns them off.",
   "it": "Ritroverai questa guida in Profilo → Impostazioni. A volte ti aspetterà un consiglio all'apertura: basta un gesto per disattivarli.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:280"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:288"
  },
  {
   "fr": "« À prix égal, je prendrais celui-ci » : plus proche de vos goûts que le Morgon, au même prix.",
   "en": "“At the same price, I'd pick this one”: closer to your taste than the Morgon, for the same price.",
   "it": "«A parità di prezzo, sceglierei questo»: più vicino ai tuoi gusti del Morgon, allo stesso prezzo.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:374"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:391"
  },
  {
   "fr": "{n} % pour vous : la part de vos goûts que ce vin coche. Plus vous notez, plus ce chiffre est juste.",
   "en": "{n}% for you: how much of your taste this wine ticks. The more you rate, the more accurate it gets.",
   "it": "{n}% per te: la parte dei tuoi gusti che questo vino soddisfa. Più annoti, più la cifra è precisa.",
-  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:376"
+  "ou": "lib/features/prise_en_main/presentation/guide_de_prise_en_main.dart:393"
  },
  {
   "fr": "Photographiez la carte du restaurant : quand deux vins ont le même prix, ⚖️ vous dit lequel prendre.",
   "en": "Take a photo of the wine list: when two wines cost the same, ⚖️ tells you which one to pick.",
   "it": "Fotografa la carta del ristorante: quando due vini costano uguale, ⚖️ ti dice quale prendere.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:34"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:35"
  },
  {
   "fr": "Scannez la carte, puis « Choisir en groupe » : chacun vote sur son téléphone, même sans l'app.",
   "en": "Scan the list, then “Choose as a group”: everyone votes on their own phone, even without the app.",
   "it": "Scansiona la carta, poi «Scegli in gruppo»: ognuno vota dal proprio telefono, anche senza l'app.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:39"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:40"
  },
  {
   "fr": "Ici, un vin bu chez des amis ou au restaurant entre dans votre journal, sans toucher à votre cave.",
   "en": "Here, a wine had at friends' or at a restaurant goes into your journal, without touching your cellar.",
   "it": "Qui, un vino bevuto da amici o al ristorante entra nel tuo diario, senza toccare la tua cantina.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:44"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:45"
  },
  {
   "fr": "Dites ce que vous cuisinez : Chatmelier choisit parmi vos propres bouteilles.",
   "en": "Say what you're cooking: Chatmelier picks from your own bottles.",
   "it": "Di' cosa cucini: Chatmelier sceglie tra le tue bottiglie.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:49"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:50"
  },
  {
   "fr": "Votre palais : trait plein, ce que l'app a observé ; pointillés, ce qu'elle devine encore.",
   "en": "Your palate: solid line, what the app has observed; dotted, what it still guesses.",
   "it": "Il tuo palato: linea continua, ciò che l'app ha osservato; tratteggiata, ciò che ancora intuisce.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:54"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:55"
  },
  {
   "fr": "💡 Le saviez-vous ?",
   "en": "💡 Did you know?",
   "it": "💡 Lo sapevi?",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:108"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:114"
  },
  {
   "fr": "Me montrer",
   "en": "Show me",
   "it": "Mostramelo",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:126"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:132"
  },
  {
   "fr": "Ne plus afficher ces astuces",
   "en": "Don't show these tips again",
   "it": "Non mostrare più questi consigli",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:133"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:139"
  },
  {
   "fr": "Astuces coupées. Profil → Réglages pour les remettre.",
   "en": "Tips turned off. Profile → Settings to bring them back.",
   "it": "Consigli disattivati. Profilo → Impostazioni per riattivarli.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:139"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:145"
  },
  {
   "fr": "Revoir la prise en main",
   "en": "See the walkthrough again",
   "it": "Rivedi la guida iniziale",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:237"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:243"
  },
  {
   "fr": "Une minute, sur de fausses bouteilles",
   "en": "One minute, on pretend bottles",
   "it": "Un minuto, con bottiglie per finta",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:239"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:245"
  },
  {
   "fr": "« Le saviez-vous ? » à l'ouverture",
   "en": "“Did you know?” when opening",
   "it": "«Lo sapevi?» all'apertura",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:247"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:253"
  },
  {
   "fr": "Une astuce sur une fonction de l'app, à chaque lancement",
   "en": "A tip about one feature of the app, each time it starts",
   "it": "Un consiglio su una funzione dell'app, a ogni avvio",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:249"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:255"
  },
  {
   "fr": "Analyse de l'étiquette impossible. Vérifiez votre connexion ou saisissez les informations manuellement.",
@@ -22269,7 +22251,7 @@
   "fr": "Touchez l'écran pour continuer",
   "en": "Tap the screen to continue",
   "it": "Tocca lo schermo per continuare",
-  "ou": "lib/shared/widgets/projecteur.dart:100"
+  "ou": "lib/shared/widgets/projecteur.dart:103"
  },
  {
   "fr": "Scellée (100%)",

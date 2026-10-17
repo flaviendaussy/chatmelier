@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/prise_en_main/presentation/demonstration_apogee.dart';
 import 'package:chatmelier/shared/widgets/bottle_card.dart';
 import 'package:chatmelier/shared/widgets/gaussian_drinking_curve.dart';
@@ -96,13 +97,17 @@ void main() {
     expect(find.byType(DemonstrationApogee), findsNothing, reason: 'la démonstration se referme entière');
   });
 
-  test('la légende dit ce que la courbe dessine, et c\'est plausible pour un Bandol rouge 2019', () {
+  test('la légende dit ce que la courbe dessine, et c\'est plausible pour un Bandol rouge', () {
     final vin = DemonstrationApogee.bandol.wine!;
     final f = GaussianDrinkingCurve.fenetreDe(vin);
     expect(f.drinkStart <= f.peakStart && f.peakStart <= f.peakEnd && f.peakEnd <= f.drinkEnd, isTrue);
-    // Un Bandol rouge est un vin de garde : pas d'apogée avant cinq ans, ni après trente.
-    expect(f.peakStart, greaterThanOrEqualTo(2024));
-    expect(f.peakEnd, lessThanOrEqualTo(2049));
+    // Un Bandol rouge est un vin de garde : pas d'apogée avant cinq ans, ni passé trente.
+    expect(f.peakStart - vin.vintage!, greaterThanOrEqualTo(5));
+    expect(f.peakEnd - vin.vintage!, lessThanOrEqualTo(30));
+    // Ce que le guide dit des deux bouteilles reste vrai d'année en année : l'une en garde,
+    // l'autre à boire vite.
+    expect(vin.windowStatus, DrinkWindowStatus.aging);
+    expect(DemonstrationApogee.beaujolais.wine!.windowStatus, DrinkWindowStatus.drinkSoon);
     final legende = FicheDeDemonstration.legende(vin);
     expect(legende, contains('${f.peakStart}'));
     expect(legende, contains('${f.peakEnd}'));

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/gaussian_drinking_curve.dart';
+import '../../cellar/domain/wine.dart';
+import '../../cellar/domain/wine_service_advisor.dart';
+import 'demonstration_apogee.dart';
 import '../data/preferences_de_prise_en_main.dart';
 
 /// La prise en main (R10, demandée le 08/10) : une minute pour voir l'app, en faisant les
@@ -162,14 +166,18 @@ class _GuideDePriseEnMainState extends State<GuideDePriseEnMain> {
                     const Color(0xFF2E7D32), 0.55,
                     tr('Prêt à boire : un champagne sans millésime se boit dans les deux ou trois ans.',
                         'Ready to drink: a non-vintage champagne is best within two or three years.')),
-                _bouteille(theme, 1, tr('Bandol rouge 2019', 'Bandol red 2019'), tr('En garde', 'Keep for now'),
-                    const Color(0xFF1E88E5), 0.2,
-                    tr('En garde : un Bandol rouge s\'ouvre plutôt à partir de 2028.',
-                        'Keep for now: a red Bandol is better opened from 2028.')),
-                _bouteille(theme, 2, tr('Beaujolais-Villages 2021', 'Beaujolais-Villages 2021'),
-                    tr('À boire cette année', 'Drink this year'), const Color(0xFFEF6C00), 0.85,
-                    tr('À boire cette année : un Beaujolais-Villages se boit jeune, pour son fruit.',
-                        'Drink this year: a Beaujolais-Villages is drunk young, for its fruit.')),
+                // Les mêmes bouteilles que la démonstration de l'apogée, lues par la même courbe :
+                // ce que le guide en dit ne vieillit pas et ne la contredit pas (17/10).
+                _bouteilleDeLaCourbe(theme, 1, DemonstrationApogee.bandol.wine!, tr('En garde', 'Keep for now'),
+                    const Color(0xFF1E88E5), (f) => tr(
+                        'En garde : ce Bandol rouge donnera le meilleur de lui-même de {pic1} à {pic2}.',
+                        'Keep for now: this red Bandol will be at its best from {pic1} to {pic2}.',
+                        {'pic1': f.peakStart, 'pic2': f.peakEnd})),
+                _bouteilleDeLaCourbe(theme, 2, DemonstrationApogee.beaujolais.wine!, tr('À boire vite', 'Drink soon'),
+                    const Color(0xFFEF6C00), (f) => tr(
+                        'À boire vite : un Beaujolais-Villages se boit jeune, pour son fruit ; celui-ci est à boire avant {fin}.',
+                        'Drink soon: a Beaujolais-Villages is drunk young, for its fruit; this one should be drunk before {fin}.',
+                        {'fin': f.drinkEnd})),
               ],
             ),
           ),
@@ -308,6 +316,15 @@ class _GuideDePriseEnMainState extends State<GuideDePriseEnMain> {
         ),
         child: child,
       );
+
+  /// Une bouteille dont l'état, le curseur et l'explication viennent de sa courbe de garde.
+  Widget _bouteilleDeLaCourbe(ThemeData theme, int i, Wine vin, String etat, Color couleur,
+      String Function(WineDrinkingWindowData) explication) {
+    final f = GaussianDrinkingCurve.fenetreDe(vin);
+    final duree = (f.drinkEnd - f.drinkStart).clamp(1, 100);
+    final curseur = ((DateTime.now().year - f.drinkStart) / duree).clamp(0.02, 0.98).toDouble();
+    return _bouteille(theme, i, '${vin.name} ${vin.vintage}', etat, couleur, curseur, explication(f));
+  }
 
   Widget _bouteille(ThemeData theme, int i, String nom, String etat, Color couleur, double curseur, String explication) {
     final choisie = _choix == i;

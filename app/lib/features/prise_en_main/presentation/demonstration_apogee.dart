@@ -21,18 +21,27 @@ class DemonstrationApogee extends StatefulWidget {
   const DemonstrationApogee({super.key, this.pasAPas = false});
 
   /// Les bouteilles de la démonstration, les mêmes que celles du guide de prise en main.
+  ///
+  /// Des millésimes relatifs à l'année en cours : un champagne prêt à boire, un Bandol rouge
+  /// en garde (quatre ans : son apogée viendra), un Beaujolais-Villages à boire vite (cinq
+  /// ans). Écrits en dur, ils vieillissaient : le guide disait d'un Bandol 2019 « en garde,
+  /// plutôt à partir de 2028 » quand la courbe le donnait à son apogée dès 2025 (17/10).
   static final bouteilles = <Bottle>[
     _bouteille(
         'demo-champagne', 'Champagne brut', 'Maison de démonstration', null, 'sparkling', 'Champagne', 'Champagne'),
-    _bouteille('demo-bandol', 'Bandol rouge', 'Domaine de démonstration', 2019, 'red', 'Provence', 'Bandol',
+    _bouteille('demo-bandol', 'Bandol rouge', 'Domaine de démonstration', DateTime.now().year - 4, 'red', 'Provence',
+        'Bandol',
         cepages: const [Grape(name: 'Mourvèdre'), Grape(name: 'Grenache'), Grape(name: 'Cinsault')]),
-    _bouteille('demo-beaujolais', 'Beaujolais-Villages', 'Domaine de démonstration', 2021, 'red', 'Beaujolais',
-        'Beaujolais-Villages',
+    _bouteille('demo-beaujolais', 'Beaujolais-Villages', 'Domaine de démonstration', DateTime.now().year - 5, 'red',
+        'Beaujolais', 'Beaujolais-Villages',
         cepages: const [Grape(name: 'Gamay')]),
   ];
 
   /// La bouteille qu'on ouvre : un rouge de garde, dont la courbe a de quoi montrer.
   static Bottle get bandol => bouteilles[1];
+
+  /// Le Beaujolais-Villages de la démonstration.
+  static Bottle get beaujolais => bouteilles[2];
 
   static Bottle _bouteille(
           String id, String nom, String domaine, int? millesime, String type, String region, String appellation,
@@ -77,8 +86,9 @@ class _DemonstrationApogeeState extends State<DemonstrationApogee> {
     await Projecteur.eclairer(
         context,
         _carteDuBandol,
-        tr('Dans votre cave, chaque bouteille a sa jauge. Ouvrons ce Bandol rouge 2019 pour voir sa courbe de garde.',
-            'In your cellar, every bottle has its gauge. Let\'s open this 2019 red Bandol to see its ageing curve.'));
+        tr('Dans votre cave, chaque bouteille a sa jauge. Ouvrons ce Bandol rouge {annee} pour voir sa courbe de garde.',
+            'In your cellar, every bottle has its gauge. Let\'s open this {annee} red Bandol to see its ageing curve.',
+            {'annee': DemonstrationApogee.bandol.wine!.vintage}));
     if (mounted) await _ouvrirLaFiche();
   }
 

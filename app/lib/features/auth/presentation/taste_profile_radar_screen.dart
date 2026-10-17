@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/taste_profile_service.dart';
 import '../domain/taste_profile.dart';
 import '../domain/wine_taste_radar.dart';
+import 'widgets/bouteilles_qui_apprendraient.dart';
 import 'widgets/radar_legende.dart';
 import 'widgets/wine_taste_radar_chart.dart';
 import '../../../l10n/app_localizations.dart';
@@ -156,7 +157,12 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
           }
 
           _compareProfileId1 ??= profiles.first.id;
-          _compareProfileId2 ??= profiles.length > 1 ? profiles[1].id : profiles.first.id;
+          // Le second palais se choisit quand il y en a un autre : les amis arrivent après
+          // les profils locaux, et le comparatif restait figé sur « Moi » face à « Moi »
+          // (« 99 % d'affinité, votre compatibilité avec Moi », 17/10).
+          if (_compareProfileId2 == null || _compareProfileId2 == _compareProfileId1) {
+            _compareProfileId2 = profiles.firstWhere((p) => p.id != _compareProfileId1, orElse: () => profiles.first).id;
+          }
 
           return Column(
             children: [
@@ -350,6 +356,12 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
         const SizedBox(height: 6),
         LegendeDuRadar(color: kRadarPalette[profiles.indexOf(currentProfile) % kRadarPalette.length]),
         const SizedBox(height: 20),
+
+        // Les bouteilles de la cave qui trancheraient ce que le radar devine (V2.5 · F3).
+        BouteillesQuiApprendraient(
+          profil: currentProfile,
+          couleur: kRadarPalette[profiles.indexOf(currentProfile) % kRadarPalette.length],
+        ),
 
         // Metrics Breakdown Grid (8 dimensions)
         Builder(
@@ -848,6 +860,9 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        // L'axe que ni l'un ni l'autre n'a encore montré, et la bouteille qui le trancherait (F2).
+        PourVousConnaitreTousLesDeux(a: p1, b: p2),
       ],
     );
   }

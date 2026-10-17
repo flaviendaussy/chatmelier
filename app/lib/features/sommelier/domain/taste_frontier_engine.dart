@@ -150,6 +150,59 @@ class TasteFrontierEngine {
     return false;
   }
 
+  /// Les axes que le moteur sait trancher, dans l'ordre du radar.
+  static const axesJugeables = ['tannin', 'body', 'oak', 'acidity', 'minerality'];
+
+  /// Assez net pour trancher un axe : 7 sur 10 au moins (ou 1 au plus sur les axes qui
+  /// vont d'un pôle à l'autre).
+  static const double netteteMinimale = 0.4;
+
+  /// Axe par axe, la bouteille qui trancherait le mieux ce que [profils] ignorent encore :
+  /// un palais seul (« les bouteilles de votre cave qui m'apprendraient le plus », V2.5 ·
+  /// F3), ou deux à la fois (« pour mieux vous connaître tous les deux », F2).
+  ///
+  /// Le 11/10, Flavien : « ça serait bien de pouvoir savoir vite quelles bouteilles en cave
+  /// pourraient améliorer les axes encore inconnus ». Seuls les axes encore devinés pour
+  /// l'un au moins des palais ; seulement un vin net sur cet axe ; jamais un vin qui heurte
+  /// une aversion de l'un d'eux. Les axes ignorés de tous d'abord, puis les moins connus.
+  static List<AxeAApprendre<T>> parAxe<T>(
+    List<T> candidats,
+    List<TasteProfile> profils, {
+    required ProfilDeVin Function(T) profilDe,
+  }) {
+    if (profils.isEmpty) return const [];
+    final profilsDesVins = [for (final c in candidats) (c, profilDe(c))];
+    final sortie = <AxeAApprendre<T>>[];
+    for (final axe in axesJugeables) {
+      final ignorants = [for (final p in profils) if (p.axisConfidence(axe) < seuilObserve) p];
+      if (ignorants.isEmpty) continue;
+      (T, double)? meilleur;
+      for (final (c, vin) in profilsDesVins) {
+        final v = vin.axes[axe];
+        if (v == null) continue;
+        final n = nettete(v, axe: axe);
+        if (n < netteteMinimale) continue;
+        if (profils.any((p) => _heurteUneAversion(vin, p))) continue;
+        if (meilleur == null || n > nettete(meilleur.$2, axe: axe)) meilleur = (c, v);
+      }
+      if (meilleur == null) continue;
+      sortie.add(AxeAApprendre(
+        axe: axe,
+        ignorants: ignorants,
+        ignorance: profils.fold(0.0, (s, p) => s + (1 - p.axisConfidence(axe))),
+        bouteille: meilleur.$1,
+        valeurDuVin: meilleur.$2,
+      ));
+    }
+    sortie.sort((a, b) => a.ignorants.length != b.ignorants.length
+        ? b.ignorants.length.compareTo(a.ignorants.length)
+        : b.ignorance.compareTo(a.ignorance));
+    return sortie;
+  }
+
+  /// Comment le vin montre l'axe : « très charpenté », « nettement boisé »…
+  static String commentLeVinLeMontre(String axe, double valeur) => _commentLeVinLeMontre(axe, valeur, Langue.estFr);
+
   /// Une bouteille de la cave : « ouvrez votre… ». Elle est prête à boire (l'appelant ne
   /// propose jamais une bouteille en garde).
   static String phraseCave(SuggestionDeFrontiere<Object?> s, String nomDuVin, bool fr) {
@@ -229,6 +282,12 @@ class ProfilDeVin {
   /// on ignore les cépages ne dit rien de ses tanins.
   factory ProfilDeVin.depuisLaCave(Wine w) {
     final type = w.type.toLowerCase();
+    // Un vin muté ou moelleux ne dit rien d'un palais de vins secs : un porto est « ample »
+    // par son alcool et son sucre, pas par ce qu'on aime d'un rouge. Le radar proposait le
+    // Velhotes 10 ans pour apprendre « ce que vous pensez des vins amples » (17/10).
+    if (w.tracksFillLevel || RegExp(r'dessert|moelleux|liquoreux|sweet|dulce|dolce').hasMatch(type)) {
+      return const ProfilDeVin({}, estime: true);
+    }
     final rouge = type.contains('rouge') || type.contains('red');
     final bulles = type.contains('effervescent') || type.contains('sparkling') || type.contains('champagne');
     final blanc = type.contains('blanc') || type.contains('white');
@@ -270,6 +329,30 @@ class ProfilDeVin {
     }
     return ProfilDeVin(axes, estime: true);
   }
+}
+
+/// Un axe encore deviné, et la bouteille qui le trancherait.
+class AxeAApprendre<T> {
+  /// Clé de `TasteProfile.axisKeys`.
+  final String axe;
+
+  /// Les palais qui l'ignorent encore (confiance sous `seuilObserve`).
+  final List<TasteProfile> ignorants;
+
+  /// Ce qui reste à apprendre, tous palais confondus : Σ (1 − confiance).
+  final double ignorance;
+  final T bouteille;
+
+  /// La valeur du vin sur cet axe, sur 10.
+  final double valeurDuVin;
+
+  const AxeAApprendre({
+    required this.axe,
+    required this.ignorants,
+    required this.ignorance,
+    required this.bouteille,
+    required this.valeurDuVin,
+  });
 }
 
 class SuggestionDeFrontiere<T> {

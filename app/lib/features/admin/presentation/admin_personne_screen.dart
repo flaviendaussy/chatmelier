@@ -77,6 +77,8 @@ class _EnTete extends StatelessWidget {
               Compteur(icone: Icons.menu_book_outlined, valeur: p.scansCarte, libelle: 'cartes'),
               Compteur(icone: Icons.chat_bubble_outline, valeur: p.messages, libelle: 'questions'),
               Compteur(icone: Icons.groups_outlined, valeur: p.tables, libelle: 'tables'),
+              Compteur(icone: Icons.search, valeur: p.recherches, libelle: 'vins cherchés'),
+              Compteur(icone: Icons.login, valeur: p.ouvertures, libelle: 'ouvertures'),
               Compteur(icone: Icons.error_outline, valeur: p.erreurs, libelle: 'erreurs', alerte: p.erreurs > 0),
             ],
           ),
@@ -102,6 +104,13 @@ class _Fil extends ConsumerWidget {
     'usage': (Icons.touch_app_outlined, Color(0xFF546E7A)),
     'erreur': (Icons.error_outline, Color(0xFFC62828)),
     'alerte': (Icons.warning_amber_rounded, Color(0xFFEF6C00)),
+    // Tout ce que fait la personne, pas seulement ce qu'elle enregistre (072).
+    'ouverture': (Icons.login, Color(0xFF546E7A)),
+    'recherche': (Icons.search, Color(0xFF5E35B1)),
+    'connexion': (Icons.person_outline, Color(0xFF546E7A)),
+    'lieu': (Icons.place_outlined, Color(0xFF00897B)),
+    'reseau': (Icons.wifi_off, Color(0xFF546E7A)),
+    'geste': (Icons.touch_app_outlined, Color(0xFF546E7A)),
   };
 
   @override

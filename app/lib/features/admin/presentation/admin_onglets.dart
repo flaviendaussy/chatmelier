@@ -232,6 +232,7 @@ class _LignePersonne extends StatelessWidget {
             'aucune activité encore${p.arriveLe != null ? ' (arrivé ${ilYA(p.arriveLe)})' : ''}',
           if (p.plateforme != null) p.plateforme!,
           if (p.version != null) p.version!,
+          if (p.ouvertures > 0) '${p.ouvertures} ouvertures',
           if (p.gestes > 0)
             [
               if (p.degustations > 0) '${p.degustations} dég.',
@@ -240,6 +241,7 @@ class _LignePersonne extends StatelessWidget {
               if (p.scansEtiquette > 0) '${p.scansEtiquette} étiq.',
               if (p.messages > 0) '${p.messages} questions',
               if (p.tables > 0) '${p.tables} tables',
+              if (p.recherches > 0) '${p.recherches} vins cherchés',
             ].join(', '),
         ].join(' · '),
         style: const TextStyle(fontSize: 12),

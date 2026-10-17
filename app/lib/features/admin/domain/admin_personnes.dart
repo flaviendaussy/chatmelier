@@ -25,6 +25,11 @@ class Personne {
   final int tables;
   final int erreurs;
 
+  /// Les ouvertures de l'app et les vins cherchés par leur nom (072) : une personne qui
+  /// ouvre l'app et cherche sans rien enregistrer n'avait aucun geste.
+  final int ouvertures;
+  final int recherches;
+
   const Personne({
     required this.userId,
     required this.prenom,
@@ -40,9 +45,11 @@ class Personne {
     this.messages = 0,
     this.tables = 0,
     this.erreurs = 0,
+    this.ouvertures = 0,
+    this.recherches = 0,
   });
 
-  int get gestes => degustations + bouteilles + scansEtiquette + scansCarte + messages + tables;
+  int get gestes => degustations + bouteilles + scansEtiquette + scansCarte + messages + tables + recherches;
 
   factory Personne.fromJson(Map<String, dynamic> j) => Personne(
         userId: _texte(j['user_id']),
@@ -59,6 +66,8 @@ class Personne {
         messages: _entier(j['messages']),
         tables: _entier(j['tables']),
         erreurs: _entier(j['erreurs']),
+        ouvertures: _entier(j['ouvertures']),
+        recherches: _entier(j['recherches']),
       );
 }
 

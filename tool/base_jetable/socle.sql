@@ -129,6 +129,13 @@ CREATE TABLE IF NOT EXISTS public.bottles (
   quantity  INTEGER NOT NULL DEFAULT 1,
   status    TEXT NOT NULL DEFAULT 'in_cellar'
 );
+-- Les colonnes de production que lit la console (pg_attribute, 17/10).
+ALTER TABLE public.bottles
+  ADD COLUMN IF NOT EXISTS added_by    UUID,
+  ADD COLUMN IF NOT EXISTS owner_id    UUID,
+  ADD COLUMN IF NOT EXISTS source_type TEXT,
+  ADD COLUMN IF NOT EXISTS gifted_at   TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS created_at  TIMESTAMPTZ DEFAULT now();
 CREATE TABLE IF NOT EXISTS public.tasting_log (
   id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id   UUID REFERENCES public.profiles(id) ON DELETE CASCADE,

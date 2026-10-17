@@ -40,6 +40,7 @@ import '../../sommelier/presentation/thermal_aeration_calculator_sheet.dart';
 import '../../sommelier/presentation/sommelier_storyteller_dialog.dart';
 import 'aging_simulator_sheet.dart';
 import 'widgets/fiche_dans_ma_langue.dart';
+import '../../../shared/widgets/libere_a_la_fermeture.dart';
 
 class BottleDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -833,68 +834,70 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
 
     await showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDlgState) => AlertDialog(
-          title: Text(trSi(isFr, 'Modifier Prix & Devise', 'Edit Price & Currency')),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: priceCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: trSi(isFr, 'Prix d\'achat unitaire', 'Unit purchase price'),
-                  prefixText: '${CurrencyHelper.getSymbol(currentCurrency)} ',
-                  border: const OutlineInputBorder(),
+      builder: (ctx) => LibereALaFermeture(
+        controleurs: [priceCtrl],
+        child: StatefulBuilder(
+          builder: (context, setDlgState) => AlertDialog(
+            title: Text(trSi(isFr, 'Modifier Prix & Devise', 'Edit Price & Currency')),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: priceCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: trSi(isFr, 'Prix d\'achat unitaire', 'Unit purchase price'),
+                    prefixText: '${CurrencyHelper.getSymbol(currentCurrency)} ',
+                    border: const OutlineInputBorder(),
+                  ),
                 ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  initialValue: currentCurrency,
+                  decoration: InputDecoration(
+                    labelText: trSi(isFr, 'Devise d\'achat', 'Purchase currency'),
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: CurrencyHelper.supportedCurrencies.map((c) {
+                    return DropdownMenuItem<String>(
+                      value: c.code,
+                      child: Text('${c.code} (${c.symbol}) - ${c.name}'),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) setDlgState(() => currentCurrency = val);
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(trSi(isFr, 'Annuler', 'Cancel')),
               ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: currentCurrency,
-                decoration: InputDecoration(
-                  labelText: trSi(isFr, 'Devise d\'achat', 'Purchase currency'),
-                  border: const OutlineInputBorder(),
-                ),
-                items: CurrencyHelper.supportedCurrencies.map((c) {
-                  return DropdownMenuItem<String>(
-                    value: c.code,
-                    child: Text('${c.code} (${c.symbol}) - ${c.name}'),
+              FilledButton(
+                onPressed: () async {
+                  final newPrice = double.tryParse(priceCtrl.text.trim().replaceAll(',', '.'));
+                  final repo = ref.read(cellarRepositoryProvider);
+                  await repo.updateBottle(
+                    widget.id,
+                    purchasePrice: newPrice,
+                    currency: currentCurrency,
                   );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) setDlgState(() => currentCurrency = val);
+                  final cellarId = _bottleData!['cellar_id'] as String?;
+                  notifyCellarChanged(ref, cellarId);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (mounted) {
+                    _loadBottleDetails();
+                  }
                 },
+                child: Text(trSi(isFr, 'Enregistrer', 'Save')),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(trSi(isFr, 'Annuler', 'Cancel')),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final newPrice = double.tryParse(priceCtrl.text.trim().replaceAll(',', '.'));
-                final repo = ref.read(cellarRepositoryProvider);
-                await repo.updateBottle(
-                  widget.id,
-                  purchasePrice: newPrice,
-                  currency: currentCurrency,
-                );
-                final cellarId = _bottleData!['cellar_id'] as String?;
-                notifyCellarChanged(ref, cellarId);
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (mounted) {
-                  _loadBottleDetails();
-                }
-              },
-              child: Text(trSi(isFr, 'Enregistrer', 'Save')),
-            ),
-          ],
         ),
       ),
     );
-    priceCtrl.dispose();
   }
 
   @override

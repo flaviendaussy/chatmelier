@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/wine_merchant_service.dart';
 import '../domain/wine_merchant.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/libere_a_la_fermeture.dart';
 
 class WineMerchantSearchDialog extends ConsumerStatefulWidget {
   const WineMerchantSearchDialog({super.key});
@@ -70,14 +71,15 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
 
   Future<void> _confirmAndSaveMerchant(WineMerchant candidate) async {
     final notesCtrl = TextEditingController(text: candidate.notes ?? '');
-    try {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) {
-          final theme = Theme.of(ctx);
-          final isDark = theme.brightness == Brightness.dark;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        final isDark = theme.brightness == Brightness.dark;
 
-          return AlertDialog(
+        return LibereALaFermeture(
+          controleurs: [notesCtrl],
+          child: AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             title: Row(
               children: [
@@ -174,21 +176,19 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
                 onPressed: () => Navigator.of(ctx).pop(true),
               ),
             ],
-          );
-        },
-      );
+          ),
+        );
+      },
+    );
 
-      if (confirmed == true && mounted) {
-        final finalMerchant = candidate.copyWith(notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null);
-        final service = ref.read(wineMerchantServiceProvider);
-        await service.saveMerchant(finalMerchant);
-        ref.invalidate(wineMerchantsProvider);
-        if (mounted) {
-          Navigator.of(context).pop(finalMerchant);
-        }
+    if (confirmed == true && mounted) {
+      final finalMerchant = candidate.copyWith(notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null);
+      final service = ref.read(wineMerchantServiceProvider);
+      await service.saveMerchant(finalMerchant);
+      ref.invalidate(wineMerchantsProvider);
+      if (mounted) {
+        Navigator.of(context).pop(finalMerchant);
       }
-    } finally {
-      notesCtrl.dispose();
     }
   }
 

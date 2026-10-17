@@ -25,6 +25,7 @@ import 'journal_screen.dart';
 import '../domain/tasting_questionnaire_result.dart';
 import 'tasting_questionnaire_sheet.dart';
 import '../data/degustation_rapide.dart';
+import '../../../shared/widgets/libere_a_la_fermeture.dart';
 
 class ExternalTastingDialog extends ConsumerStatefulWidget {
   final String? initialWineName;
@@ -129,10 +130,11 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   Future<void> _showAddCompanionDialog() async {
     final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController();
-    try {
-      final newName = await showDialog<String>(
-        context: context,
-        builder: (ctx) => AlertDialog(
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => LibereALaFermeture(
+        controleurs: [nameCtrl],
+        child: AlertDialog(
           title: Row(
             children: [
               const Icon(Icons.person_add, color: Color(0xFF8B1E3F)),
@@ -175,22 +177,20 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             ),
           ],
         ),
-      );
+      ),
+    );
 
-      if (newName != null && newName.isNotEmpty) {
-        final service = ref.read(tasteProfileServiceProvider);
-        await service.addOrGetProfileByName(newName);
-        final fresh = await service.getProfiles();
-        ref.invalidate(tasteProfilesListProvider);
-        if (mounted) {
-          setState(() {
-            _companionProfiles = fresh;
-            _selectedCoTasters.add(newName);
-          });
-        }
+    if (newName != null && newName.isNotEmpty) {
+      final service = ref.read(tasteProfileServiceProvider);
+      await service.addOrGetProfileByName(newName);
+      final fresh = await service.getProfiles();
+      ref.invalidate(tasteProfilesListProvider);
+      if (mounted) {
+        setState(() {
+          _companionProfiles = fresh;
+          _selectedCoTasters.add(newName);
+        });
       }
-    } finally {
-      nameCtrl.dispose();
     }
   }
 

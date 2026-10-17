@@ -10,6 +10,7 @@ import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
 import '../../menu_scan/presentation/join_table_sheet.dart';
 import 'reprise_de_soiree_sheet.dart';
+import '../../../shared/widgets/libere_a_la_fermeture.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   /// La route à rejoindre une fois connecté : la table d'un lien ouvert dans l'app (R2).
@@ -197,93 +198,95 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
 
     await showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        icon: const Icon(Icons.lock_reset, color: Color(0xFF8B1E3F), size: 40),
-        title: Text(tr('Mot de passe oublié ?', 'Forgot your password?'), textAlign: TextAlign.center),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              tr('Renseignez votre email pour recevoir un lien direct de connexion (sans mot de passe) ou un lien de réinitialisation :', 'Enter your email to get a direct sign-in link (no password needed) or a reset link:'),
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: tr('Adresse email', 'Email address'),
-                prefixIcon: const Icon(Icons.email_outlined),
-                border: const OutlineInputBorder(),
+      builder: (dialogCtx) => LibereALaFermeture(
+        controleurs: [emailController],
+        child: AlertDialog(
+          icon: const Icon(Icons.lock_reset, color: Color(0xFF8B1E3F), size: 40),
+          title: Text(tr('Mot de passe oublié ?', 'Forgot your password?'), textAlign: TextAlign.center),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                tr('Renseignez votre email pour recevoir un lien direct de connexion (sans mot de passe) ou un lien de réinitialisation :', 'Enter your email to get a direct sign-in link (no password needed) or a reset link:'),
+                style: const TextStyle(fontSize: 14),
               ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: tr('Adresse email', 'Email address'),
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actionsOverflowButtonSpacing: 8,
+          actions: [
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                foregroundColor: Colors.white,
+              ),
+              icon: const Icon(Icons.mark_email_read_outlined, size: 18),
+              label: Text(tr('Lien direct par email (Recommandé)', 'Direct link by email (recommended)')),
+              onPressed: () async {
+                final targetEmail = emailController.text.trim();
+                if (targetEmail.isEmpty || !targetEmail.contains('@')) {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(tr('Veuillez renseigner une adresse email valide.', 'Please enter a valid email address.'))),
+                  );
+                  return;
+                }
+                Navigator.of(dialogCtx).pop();
+                _emailCtrl.text = targetEmail;
+                _tabController.animateTo(0);
+                await _sendMagicLink();
+              },
+            ),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.send_outlined, size: 18),
+              label: Text(tr('Réinitialiser le mot de passe', 'Reset password')),
+              onPressed: () async {
+                final targetEmail = emailController.text.trim();
+                if (targetEmail.isEmpty || !targetEmail.contains('@')) {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(tr('Veuillez renseigner une adresse email valide.', 'Please enter a valid email address.'))),
+                  );
+                  return;
+                }
+                Navigator.of(dialogCtx).pop();
+                try {
+                  final repo = ref.read(authRepositoryProvider);
+                  await repo.resetPasswordForEmail(targetEmail);
+                  if (mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(tr('✉️ Email de réinitialisation envoyé à {targetEmail} (vérifiez vos courriers indésirables / spams)', '✉️ Reset email sent to {targetEmail} (check your junk / spam folder)', {'targetEmail': targetEmail})),
+                        backgroundColor: const Color(0xFF10B981),
+                        duration: const Duration(seconds: 7),
+                      ),
+                    );
+                  }
+                } catch (err) {
+                  if (mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(tr('Erreur : {err}', 'Error: {err}', {'err': err})), backgroundColor: Colors.redAccent),
+                    );
+                  }
+                }
+              },
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: Text(tr('Annuler', 'Cancel')),
             ),
           ],
         ),
-        actionsOverflowButtonSpacing: 8,
-        actions: [
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
-              foregroundColor: Colors.white,
-            ),
-            icon: const Icon(Icons.mark_email_read_outlined, size: 18),
-            label: Text(tr('Lien direct par email (Recommandé)', 'Direct link by email (recommended)')),
-            onPressed: () async {
-              final targetEmail = emailController.text.trim();
-              if (targetEmail.isEmpty || !targetEmail.contains('@')) {
-                messenger.showSnackBar(
-                  SnackBar(content: Text(tr('Veuillez renseigner une adresse email valide.', 'Please enter a valid email address.'))),
-                );
-                return;
-              }
-              Navigator.of(dialogCtx).pop();
-              _emailCtrl.text = targetEmail;
-              _tabController.animateTo(0);
-              await _sendMagicLink();
-            },
-          ),
-          OutlinedButton.icon(
-            icon: const Icon(Icons.send_outlined, size: 18),
-            label: Text(tr('Réinitialiser le mot de passe', 'Reset password')),
-            onPressed: () async {
-              final targetEmail = emailController.text.trim();
-              if (targetEmail.isEmpty || !targetEmail.contains('@')) {
-                messenger.showSnackBar(
-                  SnackBar(content: Text(tr('Veuillez renseigner une adresse email valide.', 'Please enter a valid email address.'))),
-                );
-                return;
-              }
-              Navigator.of(dialogCtx).pop();
-              try {
-                final repo = ref.read(authRepositoryProvider);
-                await repo.resetPasswordForEmail(targetEmail);
-                if (mounted) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(tr('✉️ Email de réinitialisation envoyé à {targetEmail} (vérifiez vos courriers indésirables / spams)', '✉️ Reset email sent to {targetEmail} (check your junk / spam folder)', {'targetEmail': targetEmail})),
-                      backgroundColor: const Color(0xFF10B981),
-                      duration: const Duration(seconds: 7),
-                    ),
-                  );
-                }
-              } catch (err) {
-                if (mounted) {
-                  messenger.showSnackBar(
-                    SnackBar(content: Text(tr('Erreur : {err}', 'Error: {err}', {'err': err})), backgroundColor: Colors.redAccent),
-                  );
-                }
-              }
-            },
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: Text(tr('Annuler', 'Cancel')),
-          ),
-        ],
       ),
     );
-    emailController.dispose();
   }
 
   Future<void> _googleLogin() async {

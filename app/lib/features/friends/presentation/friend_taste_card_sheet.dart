@@ -11,6 +11,7 @@ import '../../auth/domain/wine_taste_radar.dart';
 import '../../auth/presentation/widgets/radar_legende.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/libere_a_la_fermeture.dart';
 
 class FriendTasteCardSheet extends ConsumerStatefulWidget {
   final Friend friend;
@@ -40,111 +41,113 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
 
     await showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (dialogCtx, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: [
-              const Text('🍷 ', style: TextStyle(fontSize: 22)),
-              Expanded(
-                child: Text(
-                  tr('Demander l\'accès à la cave', 'Ask for cellar access'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (ctx) => LibereALaFermeture(
+        controleurs: [messageCtrl],
+        child: StatefulBuilder(
+          builder: (dialogCtx, setDialogState) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
               children: [
-                Text(
-                  tr('Vous pouvez demander à {displayName} l\'accès à sa cave à vin. Une notification lui sera envoyée.', 'You can ask {displayName} for access to their wine cellar. They\'ll get a notification.', {'displayName': widget.friend.displayName}),
-                  style: const TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-                const SizedBox(height: 16),
-                Text(tr('Niveau d\'accès souhaité :', 'Access you\'d like:'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                const SizedBox(height: 8),
-                RadioListTile<String>(
-                  value: 'viewer',
-                  groupValue: selectedRole,
-                  title: Text(tr('👁️ Consultation (Lecture seule)', '👁️ View only'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                  subtitle: Text(tr('Voir les bouteilles, emplacements et apogées.', 'See bottles, where they are, and when they peak.'), style: const TextStyle(fontSize: 11)),
-                  onChanged: (val) => setDialogState(() => selectedRole = val!),
-                  activeColor: const Color(0xFF8B1E3F),
-                  contentPadding: EdgeInsets.zero,
-                ),
-                RadioListTile<String>(
-                  value: 'editor',
-                  groupValue: selectedRole,
-                  title: Text(tr('✍️ Sommelier délégué (Écriture)', '✍️ Deputy sommelier (write)'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                  subtitle: Text(tr('Ajouter, modifier ou consommer des bouteilles.', 'Add, edit or drink bottles.'), style: const TextStyle(fontSize: 11)),
-                  onChanged: (val) => setDialogState(() => selectedRole = val!),
-                  activeColor: const Color(0xFF8B1E3F),
-                  contentPadding: EdgeInsets.zero,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: messageCtrl,
-                  decoration: InputDecoration(
-                    labelText: tr('Message facultatif', 'Message (optional)'),
-                    hintText: tr('Ex: "Pour qu\'on gère nos bouteilles en commun !"', 'E.g. "So we can manage our bottles together!"'),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                const Text('🍷 ', style: TextStyle(fontSize: 22)),
+                Expanded(
+                  child: Text(
+                    tr('Demander l\'accès à la cave', 'Ask for cellar access'),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  maxLines: 2,
                 ),
               ],
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(tr('Annuler', 'Cancel')),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B1E3F),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tr('Vous pouvez demander à {displayName} l\'accès à sa cave à vin. Une notification lui sera envoyée.', 'You can ask {displayName} for access to their wine cellar. They\'ll get a notification.', {'displayName': widget.friend.displayName}),
+                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(tr('Niveau d\'accès souhaité :', 'Access you\'d like:'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  RadioListTile<String>(
+                    value: 'viewer',
+                    groupValue: selectedRole,
+                    title: Text(tr('👁️ Consultation (Lecture seule)', '👁️ View only'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    subtitle: Text(tr('Voir les bouteilles, emplacements et apogées.', 'See bottles, where they are, and when they peak.'), style: const TextStyle(fontSize: 11)),
+                    onChanged: (val) => setDialogState(() => selectedRole = val!),
+                    activeColor: const Color(0xFF8B1E3F),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  RadioListTile<String>(
+                    value: 'editor',
+                    groupValue: selectedRole,
+                    title: Text(tr('✍️ Sommelier délégué (Écriture)', '✍️ Deputy sommelier (write)'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    subtitle: Text(tr('Ajouter, modifier ou consommer des bouteilles.', 'Add, edit or drink bottles.'), style: const TextStyle(fontSize: 11)),
+                    onChanged: (val) => setDialogState(() => selectedRole = val!),
+                    activeColor: const Color(0xFF8B1E3F),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: messageCtrl,
+                    decoration: InputDecoration(
+                      labelText: tr('Message facultatif', 'Message (optional)'),
+                      hintText: tr('Ex: "Pour qu\'on gère nos bouteilles en commun !"', 'E.g. "So we can manage our bottles together!"'),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    maxLines: 2,
+                  ),
+                ],
               ),
-              onPressed: () async {
-                Navigator.pop(ctx);
-                setState(() => _isActionLoading = true);
-                try {
-                  final repo = ref.read(friendsRepositoryProvider);
-                  await repo.requestCellarAccess(
-                    cellarId: widget.friend.friendCellarId,
-                    ownerId: widget.friend.friendUserId,
-                    requestedRole: selectedRole,
-                    message: messageCtrl.text.trim().isNotEmpty ? messageCtrl.text.trim() : null,
-                  );
-                  if (mounted) {
-                    messenger.showSnackBar(
-                      SnackBar(
-                        content: Text(tr('📬 Demande envoyée à {displayName} !', '📬 Request sent to {displayName}!', {'displayName': widget.friend.displayName})),
-                        backgroundColor: const Color(0xFF10B981),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    messenger.showSnackBar(
-                      SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
-                    );
-                  }
-                } finally {
-                  if (mounted) setState(() => _isActionLoading = false);
-                }
-              },
-              child: Text(tr('Envoyer la demande', 'Send request'), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
-          ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(tr('Annuler', 'Cancel')),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B1E3F),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  setState(() => _isActionLoading = true);
+                  try {
+                    final repo = ref.read(friendsRepositoryProvider);
+                    await repo.requestCellarAccess(
+                      cellarId: widget.friend.friendCellarId,
+                      ownerId: widget.friend.friendUserId,
+                      requestedRole: selectedRole,
+                      message: messageCtrl.text.trim().isNotEmpty ? messageCtrl.text.trim() : null,
+                    );
+                    if (mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(tr('📬 Demande envoyée à {displayName} !', '📬 Request sent to {displayName}!', {'displayName': widget.friend.displayName})),
+                          backgroundColor: const Color(0xFF10B981),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(content: Text(tr('Erreur: {e}', 'Error: {e}', {'e': e})), backgroundColor: Colors.redAccent),
+                      );
+                    }
+                  } finally {
+                    if (mounted) setState(() => _isActionLoading = false);
+                  }
+                },
+                child: Text(tr('Envoyer la demande', 'Send request'), style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
         ),
       ),
     );
-    messageCtrl.dispose();
   }
 
   Future<void> _showGrantMyCellarDialog() async {

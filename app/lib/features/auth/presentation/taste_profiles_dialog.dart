@@ -6,6 +6,7 @@ import 'taste_profile_radar_screen.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
+import '../../../shared/widgets/libere_a_la_fermeture.dart';
 
 class TasteProfilesDialog extends ConsumerStatefulWidget {
   const TasteProfilesDialog({super.key});
@@ -307,10 +308,11 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
     final grapesCtrl = TextEditingController(text: existing?.favoriteGrapes.join(', ') ?? '');
     final dislikesCtrl = TextEditingController(text: existing?.dislikedCharacteristics.join(', ') ?? '');
 
-    try {
-      await showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
+    await showDialog(
+      context: context,
+      builder: (ctx) => LibereALaFermeture(
+        controleurs: [nameCtrl, notesCtrl, typesCtrl, regionsCtrl, grapesCtrl, dislikesCtrl],
+        child: AlertDialog(
           title: Text(existing == null ? tr('Nouveau profil', 'New profile') : '${tr("Modifier", "Edit")} ${existing.name}'),
           content: SingleChildScrollView(
             child: Column(
@@ -411,14 +413,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
             ),
           ],
         ),
-      );
-    } finally {
-      nameCtrl.dispose();
-      notesCtrl.dispose();
-      typesCtrl.dispose();
-      regionsCtrl.dispose();
-      grapesCtrl.dispose();
-      dislikesCtrl.dispose();
-    }
+      ),
+    );
   }
 }

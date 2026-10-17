@@ -119,12 +119,16 @@ void main() async {
     return true;
   };
 
-  // Initialize Google Mobile Ads (AdMob) on supported mobile devices
-  try {
-    await AdMobService().initialize();
-  } catch (e) {
-    AppLogger.warning('ADMOB_INIT', 'Failed to initialize AdMob SDK: $e', e);
-  }
+  // La pub ne retarde plus l'ouverture (V2.5 · E7) : son initialisation (consentement, puis
+  // le SDK) faisait attendre jusqu'à trois secondes avant le premier écran, et occupait le
+  // fil principal d'Android (vu le 17/10 : 222 images perdues au démarrage, 15 s avant la
+  // première image sur l'émulateur). Elle part après la première image ; une pub demandée
+  // avant qu'elle soit prête est simplement sautée.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(AdMobService().initialize().catchError((Object e) {
+      AppLogger.warning('ADMOB_INIT', 'Failed to initialize AdMob SDK: $e', e);
+    }));
+  });
 
   runApp(
     ProviderScope(

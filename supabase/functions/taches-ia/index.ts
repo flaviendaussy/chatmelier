@@ -577,13 +577,10 @@ function sourcesDeLaRecherche(data: any): { titre: string; url: string }[] {
 // app_config.voix_naturelle n'est pas vrai (console, après mesure) ; l'app lit alors avec
 // la voix du téléphone. Le modèle : app_config.modeles_ia.voix.modele (nom exact), sinon
 // le plus récent Flash TTS publié par Google.
+// Le modèle ne reçoit que le texte à lire. Une consigne de ton placée devant (« Lis ce
+// texte à voix haute, d'un ton chaleureux… ») était parfois lue avec le reste : Flavien
+// l'a entendue au début du récit (16/10, « évidemment il ne faut pas le prononcer »).
 const VOIX = 'Charon'
-const CONSIGNE_DE_VOIX: Record<Langue, string> = {
-  fr: 'Lis ce texte à voix haute, d\'un ton chaleureux et posé, comme un sommelier qui raconte une bouteille à des amis :',
-  en: 'Read this aloud in a warm, unhurried voice, like a sommelier telling friends the story of a bottle:',
-  es: 'Lee este texto en voz alta, con un tono cálido y pausado, como un sumiller que cuenta la historia de una botella a unos amigos:',
-  it: 'Leggi questo testo ad alta voce, con un tono caldo e pacato, come un sommelier che racconta una bottiglia agli amici:',
-}
 
 async function modelesDeVoix(apiKey: string, regle: unknown): Promise<string[]> {
   if (typeof regle === 'string' && /^gemini-[a-z0-9.-]{3,60}$/.test(regle)) return [regle]
@@ -658,7 +655,6 @@ async function lireAVoixHaute(supabase: any, apiKey: string, corps: any): Promis
     }
   } catch (_) { /* migration 052 absente : pas de quota */ }
 
-  const langue = langueDe(corps.langue)
   let derniere = ''
   for (const modele of await modelesDeVoix(apiKey, regle)) {
     try {
@@ -666,7 +662,7 @@ async function lireAVoixHaute(supabase: any, apiKey: string, corps: any): Promis
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: `${CONSIGNE_DE_VOIX[langue]}\n\n${aLire}` }] }],
+          contents: [{ role: 'user', parts: [{ text: aLire }] }],
           generationConfig: {
             responseModalities: ['AUDIO'],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOIX } } },

@@ -43,6 +43,7 @@ import '../../../shared/widgets/onglets.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
 import 'widgets/carte_des_terroirs_card.dart';
 import '../../prise_en_main/presentation/le_saviez_vous.dart';
+import '../../prise_en_main/presentation/cibles_du_projecteur.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -1100,8 +1101,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
-        // 🕸️ HERO SPIDER CHART DES GOÛTS (RADAR)
+        // 🕸️ HERO SPIDER CHART DES GOÛTS (RADAR) — éclairé par « Me montrer » (E6).
         Card(
+          key: CiblesDuProjecteur.radarDuPalais,
           elevation: 2,
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           shape: RoundedRectangleBorder(

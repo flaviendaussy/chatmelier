@@ -12,6 +12,7 @@ import '../../menu_scan/domain/carte_du_lieu.dart';
 import '../../menu_scan/domain/menu_wine.dart';
 import '../../menu_scan/presentation/carte_du_lieu_vue.dart';
 import '../../menu_scan/presentation/join_table_sheet.dart';
+import '../../prise_en_main/presentation/cibles_du_projecteur.dart';
 
 /// L'onglet « Ce soir » (V2.3 · E1) : ce qu'on fait d'un vin ce soir, au restaurant ou à
 /// la maison.
@@ -38,106 +39,112 @@ class CeSoirScreen extends ConsumerWidget {
         title: Text(tr('Ce soir', 'Tonight')),
         actions: const [BoutonSommelier()],
       ),
-      body: ListView(
+      // Une colonne plutôt qu'une liste paresseuse : l'écran est court, et « Me montrer » doit
+      // pouvoir éclairer une tuile du bas, qu'une liste ne construit qu'en y arrivant (E6).
+      body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-        children: [
-          Text(
-            tr('Au restaurant ou à la maison : choisissons ensemble.', 'Out or at home: let\'s choose together.'),
-            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 16),
-
-          _Titre(tr('Au restaurant', 'Eating out')),
-          _GrandeAction(
-            icone: Icons.document_scanner_outlined,
-            titre: tr('Scanner la carte des vins', 'Scan the wine list'),
-            sousTitre: tr('Les vins qui vous iront, et ceux de toute la table', 'The wines that suit you, and the whole table'),
-            couleur: _bordeaux,
-            onTap: () => context.push('/scan/menu'),
-          ),
-          if (recentes.isNotEmpty) ...[
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              tr('Au restaurant ou à la maison : choisissons ensemble.', 'Out or at home: let\'s choose together.'),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 16),
+            _Titre(tr('Au restaurant', 'Eating out')),
+            _GrandeAction(
+              key: CiblesDuProjecteur.scannerLaCarte,
+              icone: Icons.document_scanner_outlined,
+              titre: tr('Scanner la carte des vins', 'Scan the wine list'),
+              sousTitre: tr(
+                  'Les vins qui vous iront, et ceux de toute la table', 'The wines that suit you, and the whole table'),
+              couleur: _bordeaux,
+              onTap: () => context.push('/scan/menu'),
+            ),
+            if (recentes.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _CartesRecentes(
+                cartes: recentes.take(RecentMenusStore.maximum).toList(),
+                fond: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
+              ),
+            ],
             const SizedBox(height: 8),
-            _CartesRecentes(
-              cartes: recentes.take(RecentMenusStore.maximum).toList(),
+            _Ligne(
+              icone: Icons.near_me_outlined,
+              couleur: Colors.teal.shade700,
+              titre: tr('Les cartes autour de moi', 'Menus around me'),
+              sousTitre: tr('Déjà scannées par d\'autres membres : sans rescanner',
+                  'Already scanned by other members: no rescan needed'),
               fond: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
+              onTap: () async {
+                final choisie = await CartesAutourDeMoiSheet.show(context);
+                if (choisie != null && context.mounted) await ouvrirLaCarteDuLieu(context, ref, choisie);
+              },
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _Tuile(
+                    icone: Icons.groups_rounded,
+                    titre: tr('Rejoindre une table', 'Join a table'),
+                    sousTitre: tr('Avec son code', 'With its code'),
+                    couleur: const Color(0xFF6A4C93),
+                    onTap: () => JoinTableSheet.show(context),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _Tuile(
+                    key: CiblesDuProjecteur.vinBuDehors,
+                    icone: Icons.restaurant,
+                    titre: tr('Noter un vin bu dehors', 'Rate a wine had out'),
+                    sousTitre: tr('Restaurant, amis', 'Restaurant, friends'),
+                    couleur: Colors.orange.shade800,
+                    onTap: () => ExternalTastingDialog.show(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 22),
+            _Titre(tr('Au bar', 'At the bar')),
+            _Ligne(
+              icone: Icons.local_bar_outlined,
+              couleur: const Color(0xFF6A4C93),
+              titre: tr('Scanner l\'ardoise', 'Scan the board'),
+              sousTitre: tr('Les vins au verre, et un parcours qui vous apprend quelque chose',
+                  'Wines by the glass, and a flight that teaches you something'),
+              fond: isDark ? const Color(0xFF241D30) : const Color(0xFFF0EAF7),
+              onTap: () => context.push('/scan/menu?mode=ardoise'),
+            ),
+            const SizedBox(height: 22),
+            _Titre(tr('À la maison', 'At home')),
+            Row(
+              children: [
+                Expanded(
+                  child: _Tuile(
+                    icone: Icons.inventory_2_outlined,
+                    titre: tr('Ouvrir une bouteille', 'Open a bottle'),
+                    sousTitre: tr('De ma cave', 'From my cellar'),
+                    couleur: _bordeaux,
+                    onTap: () => context.push('/checkout'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _Tuile(
+                    key: CiblesDuProjecteur.platALaMaison,
+                    icone: Icons.dinner_dining_outlined,
+                    titre: tr('Quel vin pour mon plat ?', 'Which wine for my dish?'),
+                    sousTitre: tr('Dans ma cave', 'From my cellar'),
+                    couleur: _or,
+                    onTap: () => _accordDeMaCave(context, ref),
+                  ),
+                ),
+              ],
             ),
           ],
-          const SizedBox(height: 8),
-          _Ligne(
-            icone: Icons.near_me_outlined,
-            couleur: Colors.teal.shade700,
-            titre: tr('Les cartes autour de moi', 'Menus around me'),
-            sousTitre: tr('Déjà scannées par d\'autres membres : sans rescanner',
-                'Already scanned by other members: no rescan needed'),
-            fond: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
-            onTap: () async {
-              final choisie = await CartesAutourDeMoiSheet.show(context);
-              if (choisie != null && context.mounted) await ouvrirLaCarteDuLieu(context, ref, choisie);
-            },
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _Tuile(
-                  icone: Icons.groups_rounded,
-                  titre: tr('Rejoindre une table', 'Join a table'),
-                  sousTitre: tr('Avec son code', 'With its code'),
-                  couleur: const Color(0xFF6A4C93),
-                  onTap: () => JoinTableSheet.show(context),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _Tuile(
-                  icone: Icons.restaurant,
-                  titre: tr('Noter un vin bu dehors', 'Rate a wine had out'),
-                  sousTitre: tr('Restaurant, amis', 'Restaurant, friends'),
-                  couleur: Colors.orange.shade800,
-                  onTap: () => ExternalTastingDialog.show(context),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 22),
-          _Titre(tr('Au bar', 'At the bar')),
-          _Ligne(
-            icone: Icons.local_bar_outlined,
-            couleur: const Color(0xFF6A4C93),
-            titre: tr('Scanner l\'ardoise', 'Scan the board'),
-            sousTitre: tr('Les vins au verre, et un parcours qui vous apprend quelque chose',
-                'Wines by the glass, and a flight that teaches you something'),
-            fond: isDark ? const Color(0xFF241D30) : const Color(0xFFF0EAF7),
-            onTap: () => context.push('/scan/menu?mode=ardoise'),
-          ),
-
-          const SizedBox(height: 22),
-          _Titre(tr('À la maison', 'At home')),
-          Row(
-            children: [
-              Expanded(
-                child: _Tuile(
-                  icone: Icons.inventory_2_outlined,
-                  titre: tr('Ouvrir une bouteille', 'Open a bottle'),
-                  sousTitre: tr('De ma cave', 'From my cellar'),
-                  couleur: _bordeaux,
-                  onTap: () => context.push('/checkout'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _Tuile(
-                  icone: Icons.dinner_dining_outlined,
-                  titre: tr('Quel vin pour mon plat ?', 'Which wine for my dish?'),
-                  sousTitre: tr('Dans ma cave', 'From my cellar'),
-                  couleur: _or,
-                  onTap: () => _accordDeMaCave(context, ref),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -186,6 +193,7 @@ class _GrandeAction extends StatelessWidget {
   final VoidCallback onTap;
 
   const _GrandeAction({
+    super.key,
     required this.icone,
     required this.titre,
     required this.sousTitre,
@@ -218,8 +226,7 @@ class _GrandeAction extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(titre,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(titre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 2),
                     Text(sousTitre, style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12.5)),
                   ],
@@ -243,8 +250,10 @@ class _CartesRecentes extends StatelessWidget {
 
   const _CartesRecentes({required this.cartes, required this.fond});
 
-  static String _detail(ScannedMenu c) => tr('{wines_length} vins · {age} · sans rescanner',
-      '{wines_length} wines · {age} · no rescan needed', {'wines_length': c.wines.length, 'age': CarteDuLieu.age(c.scannedAt)});
+  static String _detail(ScannedMenu c) => tr(
+      '{wines_length} vins · {age} · sans rescanner',
+      '{wines_length} wines · {age} · no rescan needed',
+      {'wines_length': c.wines.length, 'age': CarteDuLieu.age(c.scannedAt)});
 
   @override
   Widget build(BuildContext context) {
@@ -255,7 +264,8 @@ class _CartesRecentes extends StatelessWidget {
       return _Ligne(
         icone: Icons.history_rounded,
         couleur: couleur,
-        titre: tr('Rouvrir « {restaurantName} »', 'Reopen “{restaurantName}”', {'restaurantName': derniere.restaurantName}),
+        titre: tr(
+            'Rouvrir « {restaurantName} »', 'Reopen “{restaurantName}”', {'restaurantName': derniere.restaurantName}),
         sousTitre: _detail(derniere),
         fond: fond,
         onTap: () => ouvrir(derniere),
@@ -355,6 +365,7 @@ class _Tuile extends StatelessWidget {
   final VoidCallback onTap;
 
   const _Tuile({
+    super.key,
     required this.icone,
     required this.titre,
     required this.sousTitre,

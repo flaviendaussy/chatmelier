@@ -12,6 +12,7 @@ import '../features/auth/presentation/profile_screen.dart';
 import '../features/cellar/presentation/cellar_screen.dart';
 import '../features/cellar/presentation/bottle_detail_screen.dart';
 import '../features/cellar/presentation/cellar_sharing_screen.dart';
+import '../features/prise_en_main/presentation/demonstration_apogee.dart';
 import '../features/cellar/presentation/pending_invites_screen.dart';
 import '../features/cellar/presentation/excel_import_screen.dart';
 import '../features/cellar/domain/bottle.dart';
@@ -250,6 +251,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Full-screen routes (outside shell)
+      // « Me montrer » de l'apogée, sur une cave de démonstration (V2.5 · E6).
+      GoRoute(
+        path: '/demo/apogee',
+        builder: (context, state) => const DemonstrationApogee(),
+      ),
       GoRoute(
         path: '/cellar/import-excel',
         builder: (context, state) {

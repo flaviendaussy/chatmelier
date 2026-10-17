@@ -14,6 +14,24 @@ class GaussianDrinkingCurve extends StatelessWidget {
     this.height = 200,
   });
 
+  /// La fenêtre que la courbe dessine : la démonstration de l'apogée (E6) en tire sa
+  /// légende, pour qu'elle dise exactement ce que la courbe montre.
+  static WineDrinkingWindowData fenetreDe(Wine wine) => WineOenologyAdvisor.computeDrinkingWindow(
+        wineType: wine.type,
+        vintage: wine.vintage,
+        country: wine.country,
+        producer: wine.producer,
+        grapes: wine.grapes.map((g) => g.name).toList(),
+        region: wine.region,
+        appellation: wine.appellation,
+        classification: wine.classification,
+        wineName: wine.name,
+        explicitDrinkStart: wine.drinkStart,
+        explicitDrinkEnd: wine.drinkEnd,
+        explicitPeakStart: wine.peakStart,
+        explicitPeakEnd: wine.peakEnd,
+      );
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -27,21 +45,7 @@ class GaussianDrinkingCurve extends StatelessWidget {
 
     final currentYear = DateTime.now().year;
 
-    final window = WineOenologyAdvisor.computeDrinkingWindow(
-      wineType: wine.type,
-      vintage: wine.vintage,
-      country: wine.country,
-      producer: wine.producer,
-      grapes: wine.grapes.map((g) => g.name).toList(),
-      region: wine.region,
-      appellation: wine.appellation,
-      classification: wine.classification,
-      wineName: wine.name,
-      explicitDrinkStart: wine.drinkStart,
-      explicitDrinkEnd: wine.drinkEnd,
-      explicitPeakStart: wine.peakStart,
-      explicitPeakEnd: wine.peakEnd,
-    );
+    final window = fenetreDe(wine);
 
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final vintage = window.vintage;

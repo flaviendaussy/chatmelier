@@ -8,7 +8,10 @@ import '../../../config/navigator_keys.dart';
 import '../../../shared/utils/langue.dart';
 import '../../feedback/data/shake_feedback_service.dart';
 import '../data/preferences_de_prise_en_main.dart';
+import '../../../shared/widgets/projecteur.dart';
+import '../../cellar/presentation/cellar_export_dialog.dart';
 import '../domain/astuces.dart';
+import 'cibles_du_projecteur.dart';
 import 'guide_de_prise_en_main.dart';
 
 /// « Le saviez-vous ? » (R10) : à l'ouverture de l'app, une fonction expliquée en deux
@@ -20,6 +23,53 @@ class LeSaviezVous {
         showDragHandle: true,
         builder: (c) => _Feuille(astuce: astuce, parent: context),
       );
+
+  /// « Me montrer » montre la chose (V2.5 · E6) : l'apogée sur une cave de démonstration ;
+  /// ailleurs, l'élément dont parle l'astuce, sous un projecteur. Le 16/10, « Me montrer »
+  /// ouvrait seulement l'onglet, et la personne cherchait seule.
+  static Future<void> montrerLaChose(BuildContext context, Astuce astuce) async {
+    final (cible, legende) = switch (astuce.id) {
+      'a_prix_egal' => (
+          CiblesDuProjecteur.scannerLaCarte,
+          tr('Photographiez la carte du restaurant : quand deux vins ont le même prix, ⚖️ vous dit lequel prendre.',
+              'Take a photo of the wine list: when two wines cost the same, ⚖️ tells you which one to pick.'),
+        ),
+      'table' => (
+          CiblesDuProjecteur.scannerLaCarte,
+          tr('Scannez la carte, puis « Choisir en groupe » : chacun vote sur son téléphone, même sans l\'app.',
+              'Scan the list, then “Choose as a group”: everyone votes on their own phone, even without the app.'),
+        ),
+      'vin_dehors' => (
+          CiblesDuProjecteur.vinBuDehors,
+          tr('Ici, un vin bu chez des amis ou au restaurant entre dans votre journal, sans toucher à votre cave.',
+              'Here, a wine had at friends\' or at a restaurant goes into your journal, without touching your cellar.'),
+        ),
+      'plat' => (
+          CiblesDuProjecteur.platALaMaison,
+          tr('Dites ce que vous cuisinez : Chatmelier choisit parmi vos propres bouteilles.',
+              'Say what you\'re cooking: Chatmelier picks from your own bottles.'),
+        ),
+      'palais' => (
+          CiblesDuProjecteur.radarDuPalais,
+          tr('Votre palais : trait plein, ce que l\'app a observé ; pointillés, ce qu\'elle devine encore.',
+              'Your palate: solid line, what the app has observed; dotted, what it still guesses.'),
+        ),
+      _ => (null, ''),
+    };
+    switch (astuce.id) {
+      case 'jauge':
+        context.push('/demo/apogee');
+      case 'export':
+        // La chose elle-même : la fenêtre d'export de la cave.
+        context.go('/profile');
+        final racine = rootNavigatorKey.currentContext;
+        if (racine != null && racine.mounted) await CellarExportDialog.show(racine, tr('Ma cave', 'My cellar'));
+      default:
+        aller(context, astuce.destination);
+        final racine = rootNavigatorKey.currentContext;
+        if (cible != null && racine != null) await Projecteur.eclairer(racine, cible, legende);
+    }
+  }
 
   /// Où « Me montrer » emmène.
   static void aller(BuildContext context, Destination d) {
@@ -71,7 +121,7 @@ class _Feuille extends StatelessWidget {
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
                   onPressed: () {
                     Navigator.pop(context);
-                    if (parent.mounted) LeSaviezVous.aller(parent, astuce.destination);
+                    if (parent.mounted) LeSaviezVous.montrerLaChose(parent, astuce);
                   },
                   child: Text(tr('Me montrer', 'Show me')),
                 ),

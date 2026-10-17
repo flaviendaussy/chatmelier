@@ -133,7 +133,15 @@ class OfflineStorageService {
         'created_at': c.createdAt.toIso8601String(),
       }).toList(),
     );
-    await _prefs.setString(_kCellarsCacheKey, raw);
+    await _ecrireSiChange(_kCellarsCacheKey, raw);
+  }
+
+  /// N'écrit que ce qui a changé (V2.5 · E7). Sur Android, chaque écriture réécrit tout le
+  /// fichier des préférences (450 Ko le 17/10 : la cave seule en pèse 170) ; la cave, son
+  /// journal et ses caves se réenregistraient à chaque rechargement, identiques.
+  Future<void> _ecrireSiChange(String cle, String valeur) async {
+    if (_prefs.getString(cle) == valeur) return;
+    await _prefs.setString(cle, valeur);
   }
 
   // ---------------------------------------------------------------------------
@@ -153,7 +161,7 @@ class OfflineStorageService {
 
   Future<void> saveCachedBottles(String cellarId, List<Bottle> bottles) async {
     final raw = jsonEncode(bottles.map((b) => b.toJson()).toList());
-    await _prefs.setString('$_kBottlesPrefix$cellarId', raw);
+    await _ecrireSiChange('$_kBottlesPrefix$cellarId', raw);
   }
 
   /// Apply offline modification directly to cached bottles
@@ -313,7 +321,7 @@ class OfflineStorageService {
 
   Future<void> saveCachedTastings(List<Map<String, dynamic>> tastings) async {
     final raw = jsonEncode(tastings);
-    await _prefs.setString(_kTastingsCacheKey, raw);
+    await _ecrireSiChange(_kTastingsCacheKey, raw);
   }
 
   /// Marque une degustation fabriquee localement, qui n'a pas encore atteint le serveur.

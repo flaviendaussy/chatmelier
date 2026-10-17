@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:convert';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -86,9 +87,21 @@ class BottleImageView extends StatelessWidget {
     );
   }
 
+  /// La largeur de décodage : celle de l'affichage, en pixels de l'écran, avec une marge pour
+  /// qu'un cadrage « cover » reste net (V2.5 · E7). Une photo d'étiquette de 2 000 pixels
+  /// décodée entière pour une vignette de 180 faisait saccader la cave (retour du 15/10) ;
+  /// rien n'en bornait la taille.
+  int? _decodage(BuildContext context) {
+    final cote = math.max(width, height);
+    if (!cote.isFinite || cote <= 0) return null;
+    final densite = MediaQuery.maybeDevicePixelRatioOf(context) ?? 2.0;
+    return (cote * densite * 1.25).round().clamp(48, 1600);
+  }
+
   @override
   Widget build(BuildContext context) {
     final raw = imagePath?.trim();
+    final decodage = _decodage(context);
     if (raw == null || raw.isEmpty) {
       return _buildFallback(context);
     }
@@ -103,6 +116,7 @@ class BottleImageView extends StatelessWidget {
                 width: width,
                 height: height,
                 fit: fit,
+                cacheWidth: decodage,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return Container(
@@ -127,6 +141,7 @@ class BottleImageView extends StatelessWidget {
                 width: width,
                 height: height,
                 fit: fit,
+                memCacheWidth: decodage,
                 placeholder: (context, url) => Container(
                   width: width,
                   height: height,
@@ -157,6 +172,7 @@ class BottleImageView extends StatelessWidget {
             width: width,
             height: height,
             fit: fit,
+            cacheWidth: decodage,
             errorBuilder: (_, __, ___) => _buildFallback(context),
           ),
         );
@@ -174,30 +190,27 @@ class BottleImageView extends StatelessWidget {
           width: width,
           height: height,
           fit: fit,
+          cacheWidth: decodage,
           errorBuilder: (_, __, ___) => _buildFallback(context),
         ),
       );
     }
 
-    // 4. Local File System Path (on non-web platforms)
+    // 4. Local File System Path (on non-web platforms). Pas de `existsSync` ici : un accès
+    // disque synchrone à chaque construction de chaque carte, sur le fil de l'interface (E7).
+    // Un fichier absent tombe dans `errorBuilder`, qui rend la même vignette de repli.
     if (!kIsWeb) {
-      try {
-        final file = File(raw);
-        if (file.existsSync()) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(borderRadius),
-            child: Image.file(
-              file,
-              width: width,
-              height: height,
-              fit: fit,
-              errorBuilder: (_, __, ___) => _buildFallback(context),
-            ),
-          );
-        }
-      } catch (_) {
-        // Fall through to fallback
-      }
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: Image.file(
+          File(raw),
+          width: width,
+          height: height,
+          fit: fit,
+          cacheWidth: decodage,
+          errorBuilder: (_, __, ___) => _buildFallback(context),
+        ),
+      );
     }
 
     // Fallback if none of the above succeeded

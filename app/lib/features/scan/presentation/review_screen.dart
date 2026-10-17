@@ -332,7 +332,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               : tr('Trouvé sur le web : {champs} complétés', 'Found on the web: {champs} filled in',
                   {'champs': _completesWeb.map(_nomDuChamp).join(', ')}),
           _sourcesWeb.isEmpty
-              ? tr('Ce que l\'étiquette dit n\'a pas changé.', 'What the label says is unchanged.')
+              ? tr('Trouvé par une recherche Google : vérifiez avant d\'enregistrer.', 'Found through a Google search: check before saving.')
               : tr('Sources : {sources}', 'Sources: {sources}', {'sources': _sourcesWeb.take(3).join(', ')}),
         ),
       _RechercheWeb.introuvable => (

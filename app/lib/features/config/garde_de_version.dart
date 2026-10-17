@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../shared/providers/supabase_provider.dart';
@@ -70,20 +71,178 @@ final exigenceDeVersionProvider = FutureProvider<ExigenceDeVersion?>((ref) async
   // Le web se sert toujours de la dernière version publiée.
   if (kIsWeb) return null;
   try {
-    final ligne = await ref
-        .read(supabaseProvider)
-        .from('app_config')
-        .select('valeur')
-        .eq('cle', 'version_minimale_test')
-        .maybeSingle()
-        .timeout(const Duration(seconds: 6));
-    return ExigenceDeVersion.depuis(ligne?['valeur']);
+    return await _lireLaVersion(ref, 'version_minimale_test');
   } catch (e) {
     // Hors ligne, ou table absente : on ne bloque personne pour une vérification ratée.
     AppLogger.warning('VERSION', 'Version minimale illisible: $e');
     return null;
   }
 });
+
+/// La version que l'app propose d'installer, sans rien bloquer (`app_config.version_disponible`,
+/// migration 072). Même forme que la version exigée : `build` et `lien` pour Android,
+/// `build_ios` et `lien_ios` pour l'iPhone, et un `message` facultatif (les nouveautés).
+final versionDisponibleProvider = FutureProvider<ExigenceDeVersion?>((ref) async {
+  if (kIsWeb) return null;
+  try {
+    return await _lireLaVersion(ref, 'version_disponible');
+  } catch (e) {
+    AppLogger.info('VERSION', 'Version disponible illisible : $e');
+    return null;
+  }
+});
+
+Future<ExigenceDeVersion?> _lireLaVersion(Ref ref, String cle) async {
+  final ligne = await ref
+      .read(supabaseProvider)
+      .from('app_config')
+      .select('valeur')
+      .eq('cle', cle)
+      .maybeSingle()
+      .timeout(const Duration(seconds: 6));
+  return ExigenceDeVersion.depuis(ligne?['valeur']);
+}
+
+/// « Une nouvelle version est disponible », sans bloquer (V2.5, 17/10).
+///
+/// Flavien : « est-ce que tu peux implémenter maintenant le prompt qui prévient qu'une
+/// nouvelle version est dispo ? jld semble en utiliser une vieille » — la 74, deux semaines
+/// après la 81. Une fois par jour au plus, jusqu'à la mise à jour ; jamais pour un build de
+/// développement ; sur l'iPhone, seulement si une version iPhone est annoncée.
+class PropositionDeMiseAJour {
+  static const cle = 'maj_proposee';
+
+  static String _marque(int build, DateTime jour) => '$build|${jour.year}-${jour.month}-${jour.day}';
+
+  /// Faut-il la proposer ? Une version plus récente est disponible sur cette plateforme, et
+  /// on ne l'a pas déjà proposée aujourd'hui.
+  static bool aProposer(
+    String versionInstallee,
+    ExigenceDeVersion? disponible, {
+    required bool iphone,
+    required DateTime maintenant,
+    String? dejaProposee,
+  }) {
+    if (!doitMettreAJour(versionInstallee, disponible, iphone: iphone)) return false;
+    return dejaProposee != _marque(disponible!.exigePour(iphone: iphone)!, maintenant);
+  }
+
+  /// La propose si besoin ; vrai si elle s'est affichée.
+  static Future<bool> montrerSiBesoin(
+    BuildContext context,
+    ExigenceDeVersion? disponible, {
+    String versionInstallee = versionApp,
+    bool? iphone,
+    DateTime? maintenant,
+  }) async {
+    final surUnIphone = iphone ?? surIphone;
+    final jour = maintenant ?? DateTime.now();
+    final prefs = await SharedPreferences.getInstance();
+    if (!aProposer(versionInstallee, disponible,
+        iphone: surUnIphone, maintenant: jour, dejaProposee: prefs.getString(cle))) {
+      return false;
+    }
+    if (!context.mounted) return false;
+    final build = disponible!.exigePour(iphone: surUnIphone)!;
+    await prefs.setString(cle, _marque(build, jour));
+    AppLogger.info('VERSION', 'Mise à jour proposée : installée $versionInstallee, disponible build $build');
+    if (!context.mounted) return false;
+    final accepte = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FeuilleDeMiseAJour(
+        disponible: disponible,
+        versionInstallee: versionInstallee,
+        iphone: surUnIphone,
+      ),
+    );
+    AppLogger.info('VERSION', accepte == true ? 'Mise à jour : vers le magasin' : 'Mise à jour : plus tard');
+    if (accepte == true) {
+      await launchUrl(Uri.parse(disponible.lienPour(iphone: surUnIphone)), mode: LaunchMode.externalApplication);
+    }
+    return true;
+  }
+}
+
+/// La feuille « Une nouvelle version est disponible ». Rend vrai pour mettre à jour.
+class FeuilleDeMiseAJour extends StatelessWidget {
+  final ExigenceDeVersion disponible;
+  final String versionInstallee;
+  final bool iphone;
+
+  const FeuilleDeMiseAJour({super.key, required this.disponible, required this.versionInstallee, required this.iphone});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final message = (disponible.message ?? '').trim();
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1C1724) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(22, 14, 22, 18),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Icon(Icons.system_update, color: Color(0xFF8B1E3F), size: 26),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(tr('Une nouvelle version est disponible', 'A new version is available'),
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              message.isNotEmpty
+                  ? message
+                  : tr('Chatmelier a changé depuis votre version : la mise à jour apporte les dernières nouveautés et corrections.',
+                      'Chatmelier has changed since your version: the update brings the latest features and fixes.'),
+              style: const TextStyle(fontSize: 14, height: 1.4),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              tr('Installée : {installee} · disponible : build {build}', 'Installed: {installee} · available: build {build}',
+                  {'installee': versionInstallee, 'build': disponible.exigePour(iphone: iphone)}),
+              style: TextStyle(fontSize: 11.5, color: isDark ? Colors.white54 : Colors.black45),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(tr('Plus tard', 'Later')),
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
+                  onPressed: () => Navigator.of(context).pop(true),
+                  icon: Icon(iphone ? Icons.flight_takeoff : Icons.shop, size: 18),
+                  label: Text(iphone ? tr('Ouvrir TestFlight', 'Open TestFlight') : tr('Mettre à jour', 'Update')),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 /// Bloque l'app si sa version est plus ancienne que celle exigée pendant la phase de test.
 class GardeDeVersion extends ConsumerWidget {

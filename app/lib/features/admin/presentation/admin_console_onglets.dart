@@ -332,6 +332,7 @@ class OngletReglages extends ConsumerWidget {
               ...modeles.keys.where((t) => !TachesIa.libelles.containsKey(t)),
             ];
             final version = r.valeur('version_minimale_test');
+            final proposee = r.valeur('version_disponible');
             final ecpm = r.valeur('ecpm_eur_estime');
             final quotas = r.valeur('quotas_ia');
 
@@ -400,6 +401,32 @@ class OngletReglages extends ConsumerWidget {
                       if (nouvelle == null || !context.mounted) return;
                       await _appliquer(context, ref, 'version_minimale_test', version, nouvelle,
                           consequence: 'Les apps plus anciennes s\'arrêtent sur un écran de mise à jour obligatoire.');
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // Proposer sans bloquer (072) : lu par l'app à partir de la 84.
+                  const _Titre('Version proposée'),
+                  ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(proposee is Map && (proposee['build'] ?? 0) != 0
+                        ? [
+                            'Android : build ${proposee['build']}',
+                            if (proposee['build_ios'] != null) 'iPhone : build ${proposee['build_ios']}',
+                          ].join(' · ')
+                        : 'Rien à proposer'),
+                    subtitle: Text(
+                        proposee is Map && '${proposee['message'] ?? ''}'.isNotEmpty
+                            ? '${proposee['message']}'
+                            : 'Proposée une fois par jour, sans bloquer, aux apps plus anciennes (84 et suivantes).',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis),
+                    trailing: const Icon(Icons.edit, size: 20),
+                    onTap: () async {
+                      final nouvelle = await _EditeurDeVersion.ouvrir(context, ref, proposee, proposee: true);
+                      if (nouvelle == null || !context.mounted) return;
+                      await _appliquer(context, ref, 'version_disponible', proposee, nouvelle,
+                          consequence: 'Les apps plus anciennes (84 et suivantes) proposent la mise à jour une fois par jour, sans bloquer.');
                     },
                   ),
                   const SizedBox(height: 16),
@@ -602,10 +629,15 @@ class _EditeurDeModeleState extends State<_EditeurDeModele> {
 /// La version minimale : le build exigé et le message, avec qui devra mettre à jour.
 class _EditeurDeVersion extends ConsumerStatefulWidget {
   final Object? actuelle;
-  const _EditeurDeVersion({this.actuelle});
 
-  static Future<Map<String, dynamic>?> ouvrir(BuildContext context, WidgetRef ref, Object? actuelle) =>
-      showDialog<Map<String, dynamic>>(context: context, builder: (_) => _EditeurDeVersion(actuelle: actuelle));
+  /// La version proposée (072) plutôt que la version exigée : mêmes champs, rien de bloqué.
+  final bool proposee;
+  const _EditeurDeVersion({this.actuelle, this.proposee = false});
+
+  static Future<Map<String, dynamic>?> ouvrir(BuildContext context, WidgetRef ref, Object? actuelle,
+          {bool proposee = false}) =>
+      showDialog<Map<String, dynamic>>(
+          context: context, builder: (_) => _EditeurDeVersion(actuelle: actuelle, proposee: proposee));
 
   @override
   ConsumerState<_EditeurDeVersion> createState() => _EditeurDeVersionState();
@@ -641,8 +673,9 @@ class _EditeurDeVersionState extends ConsumerState<_EditeurDeVersion> {
               : (build != null && build > 0 && (v.build ?? 0) < build))
             v,
     ];
+    final proposee = widget.proposee;
     return AlertDialog(
-      title: const Text('Version minimale'),
+      title: Text(proposee ? 'Version proposée' : 'Version minimale'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -652,8 +685,9 @@ class _EditeurDeVersionState extends ConsumerState<_EditeurDeVersion> {
               controller: _build,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                  labelText: 'Build exigé sur Android (0 : aucune exigence)', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: proposee ? 'Build proposé sur Android (0 : rien à proposer)' : 'Build exigé sur Android (0 : aucune exigence)',
+                  border: const OutlineInputBorder()),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 10),
@@ -661,10 +695,10 @@ class _EditeurDeVersionState extends ConsumerState<_EditeurDeVersion> {
               controller: _buildIos,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                labelText: 'Build exigé sur iPhone (vide : aucune exigence)',
+              decoration: InputDecoration(
+                labelText: proposee ? 'Build proposé sur iPhone (vide : rien à proposer)' : 'Build exigé sur iPhone (vide : aucune exigence)',
                 helperText: 'Seulement une fois ce build ouvert aux testeurs sur TestFlight.',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -672,15 +706,18 @@ class _EditeurDeVersionState extends ConsumerState<_EditeurDeVersion> {
             TextField(
               controller: _message,
               maxLines: 3,
-              decoration: const InputDecoration(labelText: 'Message', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: proposee ? 'Les nouveautés (facultatif)' : 'Message', border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 10),
             Text(
               build == null || build == 0
-                  ? 'Personne n\'est bloqué.'
+                  ? (proposee ? 'Rien n\'est proposé.' : 'Personne n\'est bloqué.')
                   : enRetard.isEmpty
                       ? 'Personne n\'est en retard sur la période.'
-                      : 'Devront mettre à jour : ${enRetard.map((v) => '${v.qui} (${v.plateforme} ${v.version})').join(', ')}.',
+                      : '${proposee ? 'Se verront proposer la mise à jour' : 'Devront mettre à jour'} : '
+                          '${enRetard.map((v) => '${v.qui} (${v.plateforme} ${v.version})').join(', ')}'
+                          '${proposee ? ' — à partir de la 84 ; les versions plus anciennes ne savent que la mise à jour obligatoire' : ''}.',
               style: const TextStyle(fontSize: 12.5),
             ),
           ],

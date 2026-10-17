@@ -2,9 +2,11 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/navigator_keys.dart';
+import '../../config/garde_de_version.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
 import '../../feedback/data/shake_feedback_service.dart';
@@ -154,9 +156,9 @@ class _Feuille extends StatelessWidget {
   }
 }
 
-/// À l'ouverture de l'app : le guide la première fois, ensuite une astuce. Une fois par
-/// lancement, sur l'app installée seulement (le web sert les invités d'une table), jamais
-/// par-dessus un scan ou une autre fenêtre.
+/// À l'ouverture de l'app : le guide la première fois, ensuite une nouvelle version s'il y en
+/// a une, sinon une astuce. Une fenêtre par lancement, sur l'app installée seulement (le web
+/// sert les invités d'une table), jamais par-dessus un scan ou une autre fenêtre.
 class PriseEnMainAuDemarrage extends StatefulWidget {
   final Widget child;
   const PriseEnMainAuDemarrage({super.key, required this.child});
@@ -203,11 +205,26 @@ class _PriseEnMainAuDemarrageState extends State<PriseEnMainAuDemarrage> {
       if (mounted && _rienDOuvert) await GuideDePriseEnMain.ouvrir(context);
       return; // le jour du guide, pas d'astuce
     }
-    if (!await PreferencesDePriseEnMain.astucesActives()) return;
+    final disponible = await _versionDisponible();
     await Future<void>.delayed(const Duration(seconds: 2));
+    if (!mounted || !_rienDOuvert || !_surUnOnglet) return;
+    // Une nouvelle version passe avant l'astuce, même quand les astuces sont coupées.
+    if (await PropositionDeMiseAJour.montrerSiBesoin(context, disponible)) return;
+    if (!await PreferencesDePriseEnMain.astucesActives()) return;
     if (!mounted || !_rienDOuvert || !_surUnOnglet) return;
     final astuce = await PreferencesDePriseEnMain.prochaineAstuce();
     if (mounted && _rienDOuvert && _surUnOnglet) await LeSaviezVous.montrer(context, astuce);
+  }
+
+  /// La version proposée, sans attendre plus de huit secondes : hors ligne, l'astuce passe.
+  Future<ExigenceDeVersion?> _versionDisponible() async {
+    try {
+      return await ProviderScope.containerOf(context, listen: false)
+          .read(versionDisponibleProvider.future)
+          .timeout(const Duration(seconds: 8));
+    } catch (_) {
+      return null;
+    }
   }
 
   @override

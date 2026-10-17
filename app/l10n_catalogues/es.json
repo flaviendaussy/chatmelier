@@ -2460,6 +2460,24 @@
   "ou": "lib/features/cellar/data/cellar_export_service.dart:156"
  },
  {
+  "fr": "La recherche n'a pas abouti. Réessayez plus tard.",
+  "en": "The search didn't go through. Please try again later.",
+  "es": "La búsqueda no ha dado resultado. Inténtalo más tarde.",
+  "ou": "lib/features/cellar/data/cote_a_la_demande.dart:35"
+ },
+ {
+  "fr": "Aucune cote trouvée avec une source vérifiable : Chatmelier n'invente pas de prix.",
+  "en": "No market price found with a verifiable source: Chatmelier doesn't make prices up.",
+  "es": "No se ha encontrado ninguna cotización con una fuente verificable: Chatmelier no se inventa precios.",
+  "ou": "lib/features/cellar/data/cote_a_la_demande.dart:43"
+ },
+ {
+  "fr": "Cote trouvée : {prix}, relevée sur {site}.",
+  "en": "Market price found: {prix}, from {site}.",
+  "es": "Cotización encontrada: {prix}, en {site}.",
+  "ou": "lib/features/cellar/data/cote_a_la_demande.dart:50"
+ },
+ {
   "fr": "Meuble détecté",
   "en": "Detected furniture",
   "es": "Mueble detectado",
@@ -12102,40 +12120,58 @@
   "ou": "lib/features/checkout/presentation/gift_exit_sheet.dart:269"
  },
  {
-  "fr": "Une mise à jour est nécessaire",
-  "en": "An update is required",
-  "es": "Hace falta una actualización",
-  "ou": "lib/features/config/garde_de_version.dart:124"
+  "fr": "Une nouvelle version est disponible",
+  "en": "A new version is available",
+  "es": "Hay una nueva versión disponible",
+  "ou": "lib/features/config/garde_de_version.dart:205"
  },
  {
-  "fr": "Pendant la phase de test, tout le monde utilise la même version.",
-  "en": "During the test phase, everyone uses the same version.",
-  "es": "Durante la fase de pruebas, todo el mundo usa la misma versión.",
-  "ou": "lib/features/config/garde_de_version.dart:131"
+  "fr": "Chatmelier a changé depuis votre version : la mise à jour apporte les dernières nouveautés et corrections.",
+  "en": "Chatmelier has changed since your version: the update brings the latest features and fixes.",
+  "es": "Chatmelier ha cambiado desde tu versión: la actualización trae las últimas novedades y correcciones.",
+  "ou": "lib/features/config/garde_de_version.dart:214"
  },
  {
-  "fr": "Obligatoire uniquement pendant la phase de test.",
-  "en": "Required during the test phase only.",
-  "es": "Obligatoria solo durante la fase de pruebas.",
-  "ou": "lib/features/config/garde_de_version.dart:136"
+  "fr": "Installée : {installee} · disponible : build {build}",
+  "en": "Installed: {installee} · available: build {build}",
+  "es": "Instalada: {installee} · disponible: build {build}",
+  "ou": "lib/features/config/garde_de_version.dart:220"
  },
  {
   "fr": "Ouvrir TestFlight",
   "en": "Open TestFlight",
   "es": "Abrir TestFlight",
-  "ou": "lib/features/config/garde_de_version.dart:146"
+  "ou": "lib/features/config/garde_de_version.dart:236"
  },
  {
   "fr": "Mettre à jour",
   "en": "Update",
   "es": "Actualizar",
-  "ou": "lib/features/config/garde_de_version.dart:146"
+  "ou": "lib/features/config/garde_de_version.dart:236"
+ },
+ {
+  "fr": "Une mise à jour est nécessaire",
+  "en": "An update is required",
+  "es": "Hace falta una actualización",
+  "ou": "lib/features/config/garde_de_version.dart:283"
+ },
+ {
+  "fr": "Pendant la phase de test, tout le monde utilise la même version.",
+  "en": "During the test phase, everyone uses the same version.",
+  "es": "Durante la fase de pruebas, todo el mundo usa la misma versión.",
+  "ou": "lib/features/config/garde_de_version.dart:290"
+ },
+ {
+  "fr": "Obligatoire uniquement pendant la phase de test.",
+  "en": "Required during the test phase only.",
+  "es": "Obligatoria solo durante la fase de pruebas.",
+  "ou": "lib/features/config/garde_de_version.dart:295"
  },
  {
   "fr": "Installée : {versionInstallee} · requise : build {build}",
   "en": "Installed: {versionInstallee} · required: build {build}",
   "es": "Instalada: {versionInstallee} · requerida: build {build}",
-  "ou": "lib/features/config/garde_de_version.dart:150"
+  "ou": "lib/features/config/garde_de_version.dart:309"
  },
  {
   "fr": "À bientôt",
@@ -20157,79 +20193,79 @@
   "fr": "Photographiez la carte du restaurant : quand deux vins ont le même prix, ⚖️ vous dit lequel prendre.",
   "en": "Take a photo of the wine list: when two wines cost the same, ⚖️ tells you which one to pick.",
   "es": "Fotografía la carta del restaurante: cuando dos vinos cuestan lo mismo, ⚖️ te dice cuál elegir.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:35"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:37"
  },
  {
   "fr": "Scannez la carte, puis « Choisir en groupe » : chacun vote sur son téléphone, même sans l'app.",
   "en": "Scan the list, then “Choose as a group”: everyone votes on their own phone, even without the app.",
   "es": "Escanea la carta y luego «Elegir en grupo»: cada uno vota desde su teléfono, incluso sin la app.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:40"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:42"
  },
  {
   "fr": "Ici, un vin bu chez des amis ou au restaurant entre dans votre journal, sans toucher à votre cave.",
   "en": "Here, a wine had at friends' or at a restaurant goes into your journal, without touching your cellar.",
   "es": "Aquí, un vino tomado en casa de amigos o en un restaurante entra en tu diario, sin tocar tu bodega.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:45"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:47"
  },
  {
   "fr": "Dites ce que vous cuisinez : Chatmelier choisit parmi vos propres bouteilles.",
   "en": "Say what you're cooking: Chatmelier picks from your own bottles.",
   "es": "Di lo que vas a cocinar: Chatmelier elige entre tus propias botellas.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:50"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:52"
  },
  {
   "fr": "Votre palais : trait plein, ce que l'app a observé ; pointillés, ce qu'elle devine encore.",
   "en": "Your palate: solid line, what the app has observed; dotted, what it still guesses.",
   "es": "Tu paladar: línea continua, lo que la app ha observado; punteada, lo que aún intuye.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:55"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:57"
  },
  {
   "fr": "💡 Le saviez-vous ?",
   "en": "💡 Did you know?",
   "es": "💡 ¿Sabías que…?",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:114"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:116"
  },
  {
   "fr": "Me montrer",
   "en": "Show me",
   "es": "Enséñamelo",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:132"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:134"
  },
  {
   "fr": "Ne plus afficher ces astuces",
   "en": "Don't show these tips again",
   "es": "No volver a mostrar estos consejos",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:139"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:141"
  },
  {
   "fr": "Astuces coupées. Profil → Réglages pour les remettre.",
   "en": "Tips turned off. Profile → Settings to bring them back.",
   "es": "Consejos desactivados. Perfil → Ajustes para volver a activarlos.",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:145"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:147"
  },
  {
   "fr": "Revoir la prise en main",
   "en": "See the walkthrough again",
   "es": "Volver a ver la guía de inicio",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:243"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:260"
  },
  {
   "fr": "Une minute, sur de fausses bouteilles",
   "en": "One minute, on pretend bottles",
   "es": "Un minuto, con botellas de mentira",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:245"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:262"
  },
  {
   "fr": "« Le saviez-vous ? » à l'ouverture",
   "en": "“Did you know?” when opening",
   "es": "«¿Sabías que…?» al abrir la app",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:253"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:270"
  },
  {
   "fr": "Une astuce sur une fonction de l'app, à chaque lancement",
   "en": "A tip about one feature of the app, each time it starts",
   "es": "Un consejo sobre una función de la app, en cada inicio",
-  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:255"
+  "ou": "lib/features/prise_en_main/presentation/le_saviez_vous.dart:272"
  },
  {
   "fr": "Analyse de l'étiquette impossible. Vérifiez votre connexion ou saisissez les informations manuellement.",

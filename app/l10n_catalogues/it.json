@@ -1677,181 +1677,181 @@
   "fr": "Retirer {name} ?",
   "en": "Remove {name}?",
   "it": "Rimuovere {name}?",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:99"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:100"
  },
  {
   "fr": "Son profil de goût disparaît de vos listes. Les dégustations déjà notées restent dans votre journal.",
   "en": "Their taste profile disappears from your lists. Tastings already rated stay in your journal.",
   "it": "Il suo profilo di gusto scompare dalle tue liste. Le degustazioni già annotate restano nel tuo diario.",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:100"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:101"
  },
  {
   "fr": "Retirer",
   "en": "Remove",
   "it": "Togli",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:104"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:105"
  },
  {
   "fr": "Aucun profil de goût disponible.",
   "en": "No taste profiles available.",
   "it": "Nessun profilo di gusto disponibile.",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:143"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:144"
  },
  {
   "fr": "Spider Chart des Goûts 🕸️🍷",
   "en": "Spider Chart of Tastes 🕸️🍷",
   "it": "Radar dei gusti 🕸️🍷",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:196"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:202"
  },
  {
   "fr": "Profils gustatifs de vous et vos invités",
   "en": "Taste profiles of you and your guests",
   "it": "I profili di gusto tuoi e dei tuoi ospiti",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:200"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:206"
  },
  {
   "fr": "Ajouter un invité / proche",
   "en": "Add a guest / friend",
   "it": "Aggiungi un ospite / una persona cara",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:208"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:214"
  },
  {
   "fr": "Individuel",
   "en": "Individual",
   "it": "Singolo",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:228"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:234"
  },
  {
   "fr": "Overlay",
   "en": "Overlay",
   "it": "Sovrapposizione",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:233"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:239"
  },
  {
   "fr": "Comparaison",
   "en": "Comparison",
   "it": "Confronto",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:238"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:244"
  },
  {
   "fr": "Retirer {name} de mes profils",
   "en": "Remove {name} from my profiles",
   "it": "Rimuovi {name} dai miei profili",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:330"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:336"
  },
  {
   "fr": "Détail des 8 Dimensions Gustatives",
   "en": "8 Taste Dimensions Breakdown",
   "it": "Dettaglio delle 8 Dimensioni Gustative",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:358"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:370"
  },
  {
   "fr": "Préférences de {nom}",
   "en": "Preferences of {nom}",
   "it": "Preferenze di {nom}",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:411"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:423"
  },
  {
   "fr": "Évite : {liste}",
   "en": "Avoids: {liste}",
   "it": "Evita: {liste}",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:429"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:441"
  },
  {
   "fr": "Convives affichés ({n}/{total})",
   "en": "Guests shown ({n}/{total})",
   "it": "Commensali mostrati ({n}/{total})",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:545"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:557"
  },
  {
   "fr": "Tout cocher / décocher",
   "en": "Toggle all",
   "it": "Seleziona / deseleziona tutto",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:561"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:573"
  },
  {
   "fr": "Astuce Sommelier : Les zones où les polygones se chevauchent représentent le profil de vin idéal qui plaira à toute la table.",
   "en": "Sommelier Tip: Overlapping polygon zones represent the ideal wine profile that will please everyone at the table.",
   "it": "Consiglio del sommelier: le zone in cui i poligoni si sovrappongono rappresentano il vino ideale che piacerà a tutto il tavolo.",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:618"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:630"
  },
  {
   "fr": "Ajoutez au moins 2 convives pour comparer leurs profils gustatifs",
   "en": "Add at least 2 guests to compare their taste profiles",
   "it": "Aggiungi almeno 2 commensali per confrontare i loro profili di gusto",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:642"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:654"
  },
  {
   "fr": "Ajouter un invité (ex: Papa, Maman...)",
   "en": "Add a guest (e.g. Dad, Mom...)",
   "it": "Aggiungi un ospite (es.: papà, mamma...)",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:651"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:663"
  },
  {
   "fr": "{pct} % d'affinité",
   "en": "{pct}% affinity",
   "it": "{pct}% di affinità",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:776"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:788"
  },
  {
   "fr": "Votre compatibilité avec {b}",
   "en": "Your compatibility with {b}",
   "it": "La tua compatibilità con {b}",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:784"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:796"
  },
  {
   "fr": "Compatibilité {a} & {b}",
   "en": "Compatibility {a} & {b}",
   "it": "Compatibilità {a} e {b}",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:786"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:798"
  },
  {
   "fr": "Recommandation Sommelier pour ce duo :",
   "en": "Sommelier Recommendation for this duo:",
   "it": "Il consiglio del sommelier per questa coppia:",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:835"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:847"
  },
  {
   "fr": "Ajouter un proche / invité",
   "en": "Add a friend / guest",
   "it": "Aggiungi una persona cara / un ospite",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:874"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:889"
  },
  {
   "fr": "Prénom / Nom du convive *",
   "en": "Guest Name *",
   "it": "Nome del commensale *",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:876"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:891"
  },
  {
   "fr": "ex: Papa, Maman, Sophie, Dimitri...",
   "en": "e.g. Dad, Mom, Sarah, David...",
   "it": "es.: papà, mamma, Sofia, Dimitri...",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:878"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:893"
  },
  {
   "fr": "Notes ou préférences (optionnel)",
   "en": "Notes or preferences (optional)",
   "it": "Note o preferenze (facoltativo)",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:880"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:895"
  },
  {
   "fr": "ex: Préfère les rouges charpentés et les vins du Sud",
   "en": "e.g. Prefers full-bodied reds and Southern wines",
   "it": "es.: preferisce i rossi strutturati e i vini del Sud",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:882"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:897"
  },
  {
   "fr": "Créer le profil",
   "en": "Create profile",
   "it": "Crea il profilo",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:886"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:901"
  },
  {
   "fr": "Ajouté par l'utilisateur",
   "en": "Added by user",
   "it": "Aggiunto dall'utente",
-  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:934"
+  "ou": "lib/features/auth/presentation/taste_profile_radar_screen.dart:949"
  },
  {
   "fr": "Profils de Goût & Co-Dégustateurs",
@@ -1972,6 +1972,96 @@
   "en": "e.g. Loves fresh and fruity wines for aperitif...",
   "it": "es.: ama i vini freschi e fruttati per l'aperitivo...",
   "ou": "lib/features/auth/presentation/taste_profiles_dialog.dart:361"
+ },
+ {
+  "fr": "🧭 Les bouteilles de votre cave qui m'apprendraient le plus",
+  "en": "🧭 The bottles in your cellar that would teach me the most",
+  "it": "🧭 Le bottiglie della tua cantina che mi insegnerebbero di più",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:71"
+ },
+ {
+  "fr": "🧭 Les bouteilles de votre cave qui m'apprendraient le plus sur {nom}",
+  "en": "🧭 The bottles in your cellar that would teach me the most about {nom}",
+  "it": "🧭 Le bottiglie della tua cantina che mi insegnerebbero di più su {nom}",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:73"
+ },
+ {
+  "fr": "Axe par axe, ce que je devine encore, et la bouteille prête à boire qui le trancherait.",
+  "en": "Axis by axis, what I'm still guessing, and the ready-to-drink bottle that would settle it.",
+  "it": "Asse per asse, ciò che sto ancora indovinando e la bottiglia pronta da bere che lo chiarirebbe.",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:81"
+ },
+ {
+  "fr": "Votre {vin}, {comment}",
+  "en": "Your {vin}, {comment}",
+  "it": "Il tuo {vin}, {comment}",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:112"
+ },
+ {
+  "fr": "jamais goûté",
+  "en": "never tasted",
+  "it": "mai assaggiato",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:134"
+ },
+ {
+  "fr": "deviné · 1 dégustation",
+  "en": "a guess · 1 tasting",
+  "it": "ipotesi · 1 degustazione",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:135"
+ },
+ {
+  "fr": "deviné · {n} dégustations",
+  "en": "a guess · {n} tastings",
+  "it": "ipotesi · {n} degustazioni",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:136"
+ },
+ {
+  "fr": "🧭 Pour mieux vous connaître tous les deux",
+  "en": "🧭 To get to know you both better",
+  "it": "🧭 Per conoscervi meglio entrambi",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:170"
+ },
+ {
+  "fr": "🧭 Pour mieux vous connaître",
+  "en": "🧭 To get to know you better",
+  "it": "🧭 Per conoscerti meglio",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:171"
+ },
+ {
+  "fr": "Je ne sais pas encore ce que {nom} et vous pensez {quoi}.",
+  "en": "I don't know yet how you and {nom} feel about {quoi}.",
+  "it": "Non so ancora cosa pensate tu e {nom} {quoi}.",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:198"
+ },
+ {
+  "fr": "Je ne sais pas encore ce que {a} et {b} pensent {quoi}.",
+  "en": "I don't know yet how {a} and {b} feel about {quoi}.",
+  "it": "Non so ancora cosa pensano {a} e {b} {quoi}.",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:200"
+ },
+ {
+  "fr": "Votre {vin}, {comment} et prêt à boire, me le dirait pour vous deux.",
+  "en": "Your {vin}, {comment} and ready to drink, would tell me for both of you.",
+  "it": "Il tuo {vin}, {comment} e pronto da bere, me lo direbbe per entrambi.",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:202"
+ },
+ {
+  "fr": "Je ne sais pas encore ce que vous pensez {quoi}.",
+  "en": "I don't know yet how you feel about {quoi}.",
+  "it": "Non so ancora cosa pensi {quoi}.",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:206"
+ },
+ {
+  "fr": "Je ne sais pas encore ce que {nom} pense {quoi}.",
+  "en": "I don't know yet how {nom} feels about {quoi}.",
+  "it": "Non so ancora cosa pensa {nom} {quoi}.",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:207"
+ },
+ {
+  "fr": "Votre {vin}, {comment} et prêt à boire, me le dirait.",
+  "en": "Your {vin}, {comment} and ready to drink, would tell me.",
+  "it": "Il tuo {vin}, {comment} e pronto da bere, me lo direbbe.",
+  "ou": "lib/features/auth/presentation/widgets/bouteilles_qui_apprendraient.dart:209"
  },
  {
   "fr": "Vos terroirs",
@@ -6495,139 +6585,139 @@
   "fr": "{mois} mois",
   "en": "{mois} months",
   "it": "{mois} mesi",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:285"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:320"
  },
  {
   "fr": "{mois} mois en {nom}",
   "en": "{mois} months in {nom}",
   "it": "{mois} mesi in {nom}",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:287"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:322"
  },
  {
   "fr": "cuve inox",
   "en": "stainless steel tank",
   "it": "vasca d'acciaio inox",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:291"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:326"
  },
  {
   "fr": "cuve béton",
   "en": "concrete tank",
   "it": "vasca di cemento",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:292"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:327"
  },
  {
   "fr": "barrique de chêne",
   "en": "oak barrel",
   "it": "barrique di rovere",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:293"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:328"
  },
  {
   "fr": "foudre de chêne",
   "en": "large oak cask",
   "it": "botte grande di rovere",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:294"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:329"
  },
  {
   "fr": "amphore",
   "en": "amphora",
   "it": "anfora",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:295"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:330"
  },
  {
   "fr": "œuf béton",
   "en": "concrete egg",
   "it": "uovo di cemento",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:296"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:331"
  },
  {
   "fr": "bouteille (sur lattes)",
   "en": "bottle (on laths)",
   "it": "bottiglia (sur lattes)",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:297"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:332"
  },
  {
   "fr": "Sans millésime — à boire dans les {fin} ans",
   "en": "No vintage — drink within {fin} years",
   "it": "Senza annata — da bere entro {fin} anni",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:463"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:498"
  },
  {
   "fr": "{debut} à {fin} ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "{debut} to {fin} years (peak: {pStart} - {pEnd})",
   "it": "Da {debut} a {fin} anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:464"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:499"
  },
  {
   "fr": "{minYears} à {maxYears} ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "{minYears} to {maxYears} years (peak: {pStart} - {pEnd})",
   "it": "Da {minYears} a {maxYears} anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:494"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:529"
  },
  {
   "fr": "20 à 40 ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "20 to 40 years (peak: {pStart} - {pEnd})",
   "it": "Da 20 a 40 anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:532"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:567"
  },
  {
   "fr": "10 à 20 ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "10 to 20 years (peak: {pStart} - {pEnd})",
   "it": "Da 10 a 20 anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:546"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:581"
  },
  {
   "fr": "10 à 25 ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "10 to 25 years (peak: {pStart} - {pEnd})",
   "it": "Da 10 a 25 anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:570"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:605"
  },
  {
   "fr": "5 à 12 ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "5 to 12 years (peak: {pStart} - {pEnd})",
   "it": "Da 5 a 12 anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:584"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:619"
  },
  {
   "fr": "15 à 30 ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "15 to 30 years (peak: {pStart} - {pEnd})",
   "it": "Da 15 a 30 anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:610"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:645"
  },
  {
   "fr": "8 à 15 ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "8 to 15 years (peak: {pStart} - {pEnd})",
   "it": "Da 8 a 15 anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:624"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:659"
  },
  {
   "fr": "12 à 25 ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "12 to 25 years (peak: {pStart} - {pEnd})",
   "it": "Da 12 a 25 anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:647"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:682"
  },
  {
   "fr": "3 à 7 ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "3 to 7 years (peak: {pStart} - {pEnd})",
   "it": "Da 3 a 7 anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:667"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:702"
  },
  {
   "fr": "5 à 15 ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "5 to 15 years (peak: {pStart} - {pEnd})",
   "it": "Da 5 a 15 anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:684"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:719"
  },
  {
   "fr": "2 à 3 ans (Fraîcheur optimale : {v} - {v1})",
   "en": "2 to 3 years (freshest: {v} - {v1})",
   "it": "Da 2 a 3 anni (freschezza ottimale: {v} - {v1})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:732"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:767"
  },
  {
   "fr": "3 à 6 ans (Apogée optimale : {pStart} - {pEnd})",
   "en": "3 to 6 years (peak: {pStart} - {pEnd})",
   "it": "Da 3 a 6 anni (apice ottimale: {pStart} - {pEnd})",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:746"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:781"
  },
  {
   "fr": "Service direct au verre",
@@ -6654,15 +6744,15 @@
   "ou": "lib/features/cellar/domain/wine_service_advisor.dart:70"
  },
  {
-  "fr": "Pas de caravage",
+  "fr": "Pas de carafage",
   "en": "No decanting needed",
   "it": "Niente decantazione",
   "ou": "lib/features/cellar/domain/wine_service_advisor.dart:105"
  },
  {
-  "fr": "Débouchage délicat 30-45 min avant le service. Éviter le caravage pour ne pas épuiser ses arômes tertiaires fragiles.",
+  "fr": "Débouchage délicat 30-45 min avant le service. Éviter le carafage pour ne pas épuiser ses arômes tertiaires fragiles.",
   "en": "Delicate uncorking 30-45 min before service. Avoid decanting to preserve fragile tertiary aromas.",
-  "it": "Stappare con delicatezza 30-45 minuti prima del servizio. Evitare la decantazione per non esaurire i fragili aromi terziari.",
+  "it": "Stappare con delicatezza 30-45 min prima del servizio. Evita la decantazione per non esaurire i fragili aromi terziari.",
   "ou": "lib/features/cellar/domain/wine_service_advisor.dart:106"
  },
  {
@@ -6678,256 +6768,280 @@
   "ou": "lib/features/cellar/domain/wine_service_advisor.dart:108"
  },
  {
-  "fr": "45 min en carafe",
-  "en": "45 min in decanter",
-  "it": "45 min in decanter",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:116"
- },
- {
-  "fr": "Caravage doux 45 minutes avant le service pour épanouir le bouquet sans brutaliser la texture soyeuse.",
-  "en": "Gentle decanting 45 minutes before service to unfurl the bouquet without jarring its silky texture.",
-  "it": "Decantazione dolce 45 minuti prima del servizio, per aprire il bouquet senza maltrattare la texture setosa.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:117"
- },
- {
-  "fr": "Verre Bordeaux ample",
-  "en": "Broad Bordeaux glass",
-  "it": "Calice da Bordeaux ampio",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:118"
- },
- {
-  "fr": "Laissez respirer à température ambiante fraîche (16-17°C).",
-  "en": "Let it breathe at a cool room temperature (16-17°C).",
-  "it": "Lascialo respirare a una temperatura ambiente fresca (16-17 °C).",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:119"
- },
- {
   "fr": "2h en carafe évasée",
   "en": "2h in wide-bottom decanter",
   "it": "2 h in decanter largo",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:127"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:128"
  },
  {
-  "fr": "Caravage vigoureux 2 heures avant le repas dans une carafe à large base pour aérer et assouplir les tanins encore serrés.",
+  "fr": "Carafage vigoureux 2 heures avant le repas dans une carafe à large base pour aérer et assouplir des tanins encore serrés.",
   "en": "Vigorous decanting 2 hours before the meal in a broad-base decanter to aerate and soften tight tannins.",
-  "it": "Decantazione energica 2 ore prima del pasto, in un decanter a base larga, per ossigenare e ammorbidire i tannini ancora serrati.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:128"
+  "it": "Decantazione energica 2 ore prima del pasto, in un decanter a base larga, per ossigenare e ammorbidire tannini ancora serrati.",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:129"
  },
  {
   "fr": "Verre Bordeaux grand format",
   "en": "Large-format Bordeaux glass",
   "it": "Calice da Bordeaux grande",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:129"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:130"
  },
  {
   "fr": "L'oxygénation intensive va réveiller les arômes de fruits noirs et fondre la trame tannique.",
   "en": "Intensive aeration awakens dark fruit aromas and melts the youthful tannic structure.",
   "it": "L'ossigenazione intensa risveglierà gli aromi di frutti neri e scioglierà la trama tannica.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:130"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:131"
  },
  {
-  "fr": "Ouvrir 30 min avant sans carafer. Le Pinot Noir âgé révèle sa complexité directement dans un grand calice.",
-  "en": "Open 30 min ahead without decanting. Mature Pinot Noir reveals its complexity directly in a large bowl glass.",
-  "it": "Aprire 30 minuti prima, senza decantare. Il Pinot Noir maturo rivela la sua complessità direttamente in un grande calice.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:154"
+  "fr": "45 min en carafe",
+  "en": "45 min in decanter",
+  "it": "45 min in decanter",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:140"
  },
  {
-  "fr": "Grand verre Bourgogne (forme ballon)",
-  "en": "Large Burgundy glass (balloon bowl)",
-  "it": "Grande calice da Borgogna (forma ballon)",
+  "fr": "Carafage doux 45 minutes avant le service pour épanouir le bouquet sans brutaliser la texture soyeuse.",
+  "en": "Gentle decanting 45 minutes before service to unfurl the bouquet without jarring its silky texture.",
+  "it": "Decantazione delicata 45 minuti prima del servizio per aprire il bouquet senza maltrattare la trama setosa.",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:141"
+ },
+ {
+  "fr": "Verre Bordeaux ample",
+  "en": "Broad Bordeaux glass",
+  "it": "Calice da Bordeaux ampio",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:142"
+ },
+ {
+  "fr": "Laissez respirer à température ambiante fraîche (16-17°C).",
+  "en": "Let it breathe at a cool room temperature (16-17°C).",
+  "it": "Lascialo respirare a una temperatura ambiente fresca (16-17 °C).",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:143"
+ },
+ {
+  "fr": "1h en carafe",
+  "en": "1h in decanter",
+  "it": "1 h in decanter",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:152"
+ },
+ {
+  "fr": "Carafage 1 heure avant le service : assez pour ouvrir le fruit et arrondir des tanins encore jeunes.",
+  "en": "Decant 1 hour before serving: enough to open up the fruit and round out still-young tannins.",
+  "it": "Decanta 1 ora prima del servizio: quanto basta per aprire il frutto e arrotondare tannini ancora giovani.",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:153"
+ },
+ {
+  "fr": "Goûtez-le à l'ouverture, puis après une heure : le fruit s'ouvre et la finale s'arrondit.",
+  "en": "Taste it when opened, then after an hour: the fruit opens up and the finish rounds out.",
+  "it": "Assaggialo all'apertura e poi dopo un'ora: il frutto si apre e il finale si arrotonda.",
   "ou": "lib/features/cellar/domain/wine_service_advisor.dart:155"
- },
- {
-  "fr": "La délicatesse du sous-bois et de la truffe s'exprime pleinement sans passage en carafe.",
-  "en": "Delicate forest floor and truffle notes express themselves best without decanting.",
-  "it": "La delicatezza del sottobosco e del tartufo si esprime pienamente senza passare in decanter.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:156"
  },
  {
   "fr": "30 min d'aération",
   "en": "30 min aeration",
   "it": "30 min di ossigenazione",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:163"
+ },
+ {
+  "fr": "Une aération de 30 minutes, en carafe ou simplement dans le verre : un vin jeune et fruité n'en demande pas plus.",
+  "en": "Thirty minutes of air, in a decanter or simply in the glass: a young, fruity wine needs no more.",
+  "it": "Trenta minuti di ossigenazione, in decanter o semplicemente nel bicchiere: un vino giovane e fruttato non chiede di più.",
   "ou": "lib/features/cellar/domain/wine_service_advisor.dart:164"
- },
- {
-  "fr": "Aération douce 30 minutes en bouteille ou carafe étroite pour libérer la pureté du fruit rouge.",
-  "en": "Gentle aeration 30 minutes in bottle or slender decanter to release vibrant red fruit purity.",
-  "it": "Ossigenazione dolce di 30 minuti in bottiglia o in un decanter stretto, per liberare la purezza del frutto rosso.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:165"
- },
- {
-  "fr": "Verre Bourgogne ballon",
-  "en": "Burgundy balloon glass",
-  "it": "Calice ballon da Borgogna",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:166"
- },
- {
-  "fr": "Température idéale légèrement fraîche pour préserver l'éclat et la tension aromatique.",
-  "en": "Ideal slightly cool temperature to preserve brightness and aromatic tension.",
-  "it": "Temperatura ideale leggermente fresca, per preservare brillantezza e tensione aromatica.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:167"
- },
- {
-  "fr": "Ouvrir 45 min à 1h avant la dégustation.",
-  "en": "Uncork 45 min to 1 hour before serving.",
-  "it": "Aprire da 45 minuti a 1 ora prima della degustazione.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:178"
  },
  {
   "fr": "Verre à vin rouge standard ou tulipe",
   "en": "Standard red wine or tulip glass",
   "it": "Calice da vino rosso standard o a tulipano",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:179"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:165"
  },
  {
   "fr": "Servir légèrement rafraîchi pour sublimer l'équilibre.",
   "en": "Serve slightly cool to enhance balance and freshness.",
   "it": "Servire leggermente fresco per esaltarne l'equilibrio.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:180"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:166"
+ },
+ {
+  "fr": "Ouvrir 30 min avant sans carafer. Le Pinot Noir âgé révèle sa complexité directement dans un grand calice.",
+  "en": "Open 30 min ahead without decanting. Mature Pinot Noir reveals its complexity directly in a large bowl glass.",
+  "it": "Aprire 30 minuti prima, senza decantare. Il Pinot Noir maturo rivela la sua complessità direttamente in un grande calice.",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:189"
+ },
+ {
+  "fr": "Grand verre Bourgogne (forme ballon)",
+  "en": "Large Burgundy glass (balloon bowl)",
+  "it": "Grande calice da Borgogna (forma ballon)",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:190"
+ },
+ {
+  "fr": "La délicatesse du sous-bois et de la truffe s'exprime pleinement sans passage en carafe.",
+  "en": "Delicate forest floor and truffle notes express themselves best without decanting.",
+  "it": "La delicatezza del sottobosco e del tartufo si esprime pienamente senza passare in decanter.",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:191"
+ },
+ {
+  "fr": "Aération douce 30 minutes en bouteille ou carafe étroite pour libérer la pureté du fruit rouge.",
+  "en": "Gentle aeration 30 minutes in bottle or slender decanter to release vibrant red fruit purity.",
+  "it": "Ossigenazione dolce di 30 minuti in bottiglia o in un decanter stretto, per liberare la purezza del frutto rosso.",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:200"
+ },
+ {
+  "fr": "Verre Bourgogne ballon",
+  "en": "Burgundy balloon glass",
+  "it": "Calice ballon da Borgogna",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:201"
+ },
+ {
+  "fr": "Température idéale légèrement fraîche pour préserver l'éclat et la tension aromatique.",
+  "en": "Ideal slightly cool temperature to preserve brightness and aromatic tension.",
+  "it": "Temperatura ideale leggermente fresca, per preservare brillantezza e tensione aromatica.",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:202"
+ },
+ {
+  "fr": "Ouvrir 45 min à 1h avant la dégustation.",
+  "en": "Uncork 45 min to 1 hour before serving.",
+  "it": "Aprire da 45 minuti a 1 ora prima della degustazione.",
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:213"
  },
  {
   "fr": "30 min en carafe fraîche",
   "en": "30 min in chilled decanter",
   "it": "30 min in decanter fresco",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:204"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:239"
  },
  {
   "fr": "Un passage en carafe fraîche 30 minutes libère les notes de noisette, brioche et fruits mûrs.",
   "en": "Decanting 30 minutes in a chilled decanter releases notes of hazelnut, brioche, and ripe orchard fruit.",
   "it": "Un passaggio di 30 minuti in un decanter fresco libera le note di nocciola, brioche e frutta matura.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:205"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:240"
  },
  {
   "fr": "Verre grand blanc / Bourgogne blanc",
   "en": "Large white wine / White Burgundy glass",
   "it": "Calice da grande bianco / da Borgogna bianco",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:206"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:241"
  },
  {
   "fr": "Ne servez jamais un grand blanc glacé, le froid anesthésie sa minéralité et sa rondeur.",
   "en": "Never serve a great white ice cold; excessive chill numbs minerality and roundness.",
   "it": "Non servire mai un grande bianco ghiacciato: il freddo anestetizza la sua mineralità e la sua rotondità.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:207"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:242"
  },
  {
   "fr": "Service direct frais",
   "en": "Direct chilled service",
   "it": "Servizio diretto, fresco",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:216"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:251"
  },
  {
   "fr": "Déboucher à la minute et maintenir au seau frais.",
   "en": "Uncork upon serving and keep cool in an ice bucket.",
   "it": "Stappare al momento e tenere nel secchiello.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:217"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:252"
  },
  {
   "fr": "Verre à blanc élancé",
   "en": "Slender white wine glass",
   "it": "Calice da bianco slanciato",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:218"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:253"
  },
  {
   "fr": "Une belle fraîcheur fait ressortir les notes d'agrumes et la vivacité minérale.",
   "en": "Crisp coolness highlights citrus zest and mineral vitality.",
   "it": "Una bella freschezza fa risaltare le note agrumate e la vivacità minerale.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:219"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:254"
  },
  {
   "fr": "Service immédiat au seau",
   "en": "Immediate service from ice bucket",
   "it": "Servizio immediato dal secchiello",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:230"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:265"
  },
  {
   "fr": "Servir frais dans un verre tulipe pour laisser les bulles fines s'exprimer sans perdre leur effervescence.",
   "en": "Serve chilled in a tulip glass to allow fine bubbles to breathe without flattening effervescence.",
   "it": "Servire fresco in un calice a tulipano, perché le bollicine fini si esprimano senza perdere la loro effervescenza.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:231"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:266"
  },
  {
   "fr": "Verre tulipe à Champagne (éviter les flûtes trop étroites ou coupes)",
   "en": "Champagne tulip glass (avoid overly narrow flutes or saucers)",
   "it": "Calice a tulipano da Champagne (evita le flûte troppo strette e le coppe)",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:232"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:267"
  },
  {
   "fr": "Pour un grand millésimé vineux, servez plutôt à 10-11°C pour révéler toute son ampleur.",
   "en": "For a rich vintage Champagne, serve slightly warmer at 10-11°C to unlock full complexity.",
   "it": "Per un grande millesimato vinoso, servilo piuttosto a 10-11 °C per rivelarne tutta l'ampiezza.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:233"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:268"
  },
  {
   "fr": "Service direct",
   "en": "Direct chilled service",
   "it": "Servizio diretto",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:244"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:279"
  },
  {
   "fr": "Servir bien frais directement au seau à glace.",
   "en": "Serve well chilled directly from the wine bucket.",
   "it": "Servire ben fresco, direttamente dal secchiello del ghiaccio.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:245"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:280"
  },
  {
   "fr": "Verre à vin blanc universel",
   "en": "Universal white wine glass",
   "it": "Calice da vino bianco universale",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:246"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:281"
  },
  {
   "fr": "Idéal pour préserver le croquant du fruit et la vivacité florale.",
   "en": "Ideal to preserve crisp berry fruit and floral brightness.",
   "it": "Ideale per preservare la croccantezza del frutto e la vivacità floreale.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:247"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:282"
  },
  {
   "fr": "15 min d'aération fraîche",
   "en": "15 min cool aeration",
   "it": "15 min di ossigenazione al fresco",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:258"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:293"
  },
  {
   "fr": "Servir très frais. Le froid compense la richesse en sucres et sublime la fraîcheur acidulée.",
   "en": "Serve very cold. Chill balances residual sweetness and brings forward refreshing acidity.",
   "it": "Servire molto fresco. Il freddo compensa la ricchezza di zuccheri ed esalta la freschezza acidula.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:259"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:294"
  },
  {
   "fr": "Petit verre tulipe ou verre à digestif",
   "en": "Small tulip or dessert wine glass",
   "it": "Piccolo calice a tulipano o bicchiere da digestivo",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:260"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:295"
  },
  {
   "fr": "Laissez le vin tempérer lentement dans le verre pour libérer les arômes de miel, d'abricot et d'épices.",
   "en": "Let wine warm gently in the glass to release intoxicating aromas of honey, candied apricot, and saffron.",
   "it": "Lascia che il vino si scaldi lentamente nel bicchiere per liberare gli aromi di miele, albicocca e spezie.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:261"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:296"
  },
  {
   "fr": "30 min de repos",
   "en": "30 min rest",
   "it": "30 min di riposo",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:270"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:305"
  },
  {
   "fr": "Ouvrir 30 minutes avant le service.",
   "en": "Uncork 30 minutes before serving.",
   "it": "Aprire 30 minuti prima del servizio.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:271"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:306"
  },
  {
   "fr": "Verre à vin universel",
   "en": "Universal wine glass",
   "it": "Calice da vino universale",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:272"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:307"
  },
  {
   "fr": "Servir à température de cave fraîche.",
   "en": "Serve at cool cellar temperature.",
   "it": "Servire a temperatura di cantina fresca.",
-  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:273"
+  "ou": "lib/features/cellar/domain/wine_service_advisor.dart:308"
  },
  {
   "fr": "Ce vin dans quelques années",
@@ -8769,265 +8883,265 @@
   "fr": "Toutes ces bouteilles sont bues.",
   "en": "All these bottles have been drunk.",
   "it": "Tutte queste bottiglie sono state bevute.",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1663"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1668"
  },
  {
   "fr": "Les retrouver dans le Journal",
   "en": "Find them in your Journal",
   "it": "Ritrovale nel diario",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1668"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1673"
  },
  {
   "fr": "Non classé",
   "en": "Unassigned",
   "it": "Non classificato",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:445"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:455"
  },
  {
   "fr": "Meuble",
   "en": "Furniture",
   "it": "Mobile",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:448"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:458"
  },
  {
   "fr": "Étagère {v1}",
   "en": "Shelf {v1}",
   "it": "Scaffale {v1}",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:459"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:469"
  },
  {
   "fr": "📍 Casier {rack}",
   "en": "📍 Rack {rack}",
   "it": "📍 Portabottiglie {rack}",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:477"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:487"
  },
  {
   "fr": " • Tablette {shelf}",
   "en": " • Shelf {shelf}",
   "it": " • Ripiano {shelf}",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:479"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:489"
  },
  {
   "fr": "📍 Tablette {shelf}",
   "en": "📍 Shelf {shelf}",
   "it": "📍 Ripiano {shelf}",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:482"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:492"
  },
  {
   "fr": "{n} bouteilles trouvées",
   "en": "{n} bottles found",
   "it": "{n} bottiglie trovate",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:512"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:522"
  },
  {
   "fr": "{n} bouteille trouvée",
   "en": "{n} bottle found",
   "it": "{n} bottiglia trovata",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:512"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:522"
  },
  {
   "fr": "{n} références",
   "en": "{n} references",
   "it": "{n} referenze",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:513"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:523"
  },
  {
   "fr": "{n} référence",
   "en": "{n} reference",
   "it": "{n} referenza",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:513"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:523"
  },
  {
   "fr": "Créer une cave",
   "en": "Create a cellar",
   "it": "Crea una cantina",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:579"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:584"
  },
  {
   "fr": "Meubles & Rayonnages (Mode Shelves)",
   "en": "Furniture & Shelves (Shelf View)",
   "it": "Mobili e scaffalature (vista scaffali)",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:702"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:707"
  },
  {
   "fr": "Mode d'affichage (Grille / Liste)",
   "en": "View mode (Grid / List)",
   "it": "Modalità di visualizzazione (griglia / elenco)",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:719"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:724"
  },
  {
   "fr": "Grille",
   "en": "Grid",
   "it": "Griglia",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:729"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:734"
  },
  {
   "fr": "Liste",
   "en": "List",
   "it": "Elenco",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:739"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:744"
  },
  {
   "fr": "Rechercher un millésime, domaine, appellation...",
   "en": "Search vintage, estate, appellation...",
   "it": "Cerca un'annata, un produttore, una denominazione...",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:780"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:785"
  },
  {
   "fr": "Vos caves n'ont pas pu être chargées. Vérifiez la connexion.",
   "en": "Your cellars could not be loaded. Check your connection.",
   "it": "Non è stato possibile caricare le tue cantine. Controlla la connessione.",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:813"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:818"
  },
  {
   "fr": "Réessayer",
   "en": "Try again",
   "it": "Riprova",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:820"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:825"
  },
  {
   "fr": "Bienvenue sur Chatmelier 🍷",
   "en": "Welcome to Chatmelier 🍷",
   "it": "Benvenuto su Chatmelier 🍷",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:847"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:852"
  },
  {
   "fr": "Pour commencer à gérer vos bouteilles, créez votre première cave à vin personnalisée.",
   "en": "To start managing your bottles, create your first custom wine cellar.",
   "it": "Per iniziare a gestire le tue bottiglie, crea la tua prima cantina personalizzata.",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:853"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:858"
  },
  {
   "fr": "Créer ma première cave",
   "en": "Create my first cellar",
   "it": "Crea la mia prima cantina",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:862"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:867"
  },
  {
   "fr": "Aucune bouteille",
   "en": "No bottles",
   "it": "Nessuna bottiglia",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:884"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:889"
  },
  {
   "fr": "Cette cave est vide",
   "en": "This cellar is empty",
   "it": "Questa cantina è vuota",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:886"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:891"
  },
  {
   "fr": "Touchez Actions Cave pour ajouter une bouteille ou importez directement votre fichier Excel / CSV !",
   "en": "Tap Cellar Actions to add a bottle or import directly your Excel / CSV file!",
   "it": "Tocca Azioni cantina per aggiungere una bottiglia, oppure importa direttamente il tuo file Excel / CSV!",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:887"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:892"
  },
  {
   "fr": "Importer un fichier Excel / CSV",
   "en": "Import Excel / CSV file",
   "it": "Importa un file Excel / CSV",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:898"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:903"
  },
  {
   "fr": "🍷 Vins",
   "en": "🍷 Wines",
   "it": "🍷 Vini",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:996"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1001"
  },
  {
   "fr": "Accord Multi-Palais",
   "en": "Guest Matcher",
   "it": "Abbinamento per più palati",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1242"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1247"
  },
  {
   "fr": "Opportunités de Cave",
   "en": "Cellar Gaps",
   "it": "Opportunità della cantina",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1260"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1265"
  },
  {
   "fr": "Tous",
   "en": "All",
   "it": "Tutti",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1276"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1281"
  },
  {
   "fr": "Favoris",
   "en": "Favorites",
   "it": "Preferiti",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1292"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1297"
  },
  {
   "fr": "Rouge",
   "en": "Red",
   "it": "Rosso",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1306"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1311"
  },
  {
   "fr": "Blanc",
   "en": "White",
   "it": "Bianco",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1320"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1325"
  },
  {
   "fr": "Rosé",
   "en": "Rosé",
   "it": "Rosato",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1334"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1339"
  },
  {
   "fr": "Rhum",
   "en": "Rum",
   "it": "Rum",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1418"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1423"
  },
  {
   "fr": "Aucune bouteille dans cette catégorie",
   "en": "No bottles in this category",
   "it": "Nessuna bottiglia in questa categoria",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1682"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1687"
  },
  {
   "fr": "Aucune bouteille ne correspond à ces critères",
   "en": "No bottles match these criteria",
   "it": "Nessuna bottiglia corrisponde a questi criteri",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1695"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1700"
  },
  {
   "fr": "Effacer les filtres",
   "en": "Clear filters",
   "it": "Cancella i filtri",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1701"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1706"
  },
  {
   "fr": "Coût total estimé : {v1} ({totalBottles} btl • {totalReferences} réf.)",
   "en": "Estimated total value: {v1} ({totalBottles} btl • {totalReferences} ref.)",
   "it": "Costo totale stimato: {v1} ({totalBottles} bott. • {totalReferences} ref.)",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1870"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1875"
  },
  {
   "fr": "{n} groupes",
   "en": "{n} groups",
   "it": "{n} gruppi",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1934"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1939"
  },
  {
   "fr": "{n} groupe",
   "en": "{n} group",
   "it": "{n} gruppo",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1935"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1940"
  },
  {
   "fr": "Tout déplier",
   "en": "Expand all",
   "it": "Espandi tutto",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:1999"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:2004"
  },
  {
   "fr": "Tout replier",
   "en": "Collapse all",
   "it": "Comprimi tutto",
-  "ou": "lib/features/cellar/presentation/cellar_screen.dart:2000"
+  "ou": "lib/features/cellar/presentation/cellar_screen.dart:2005"
  },
  {
   "fr": "Invitation envoyée à {email}",
@@ -11748,12 +11862,6 @@
   "ou": "lib/features/checkout/presentation/checkout_screen.dart:2186"
  },
  {
-  "fr": "Pas de carafage",
-  "en": "No decanting",
-  "it": "Niente decantazione",
-  "ou": "lib/features/checkout/presentation/checkout_screen.dart:2204"
- },
- {
   "fr": "⏱️ Chrono d'aération ({carafeMinutes} min) lancé sur l'écran de verrouillage !",
   "en": "⏱️ Breathing timer ({carafeMinutes} min) started on the lock screen!",
   "it": "⏱️ Timer di ossigenazione ({carafeMinutes} min) avviato sulla schermata di blocco!",
@@ -12850,6 +12958,36 @@
   "en": "Aromas: {v1}",
   "it": "Aromi: {v1}",
   "ou": "lib/features/journal/data/degustations_partagees.dart:55"
+ },
+ {
+  "fr": "Note ≥ {n}/10",
+  "en": "Rating ≥ {n}/10",
+  "it": "Voto ≥ {n}/10",
+  "ou": "lib/features/journal/domain/filtres_du_journal.dart:108"
+ },
+ {
+  "fr": "Moelleux",
+  "en": "Sweet",
+  "it": "Dolce",
+  "ou": "lib/features/journal/domain/filtres_du_journal.dart:209"
+ },
+ {
+  "fr": "Muté",
+  "en": "Fortified",
+  "it": "Fortificato",
+  "ou": "lib/features/journal/domain/filtres_du_journal.dart:210"
+ },
+ {
+  "fr": "Orange",
+  "en": "Orange",
+  "it": "Orange",
+  "ou": "lib/features/journal/domain/filtres_du_journal.dart:211"
+ },
+ {
+  "fr": "Autre",
+  "en": "Other",
+  "it": "Altro",
+  "ou": "lib/features/journal/domain/filtres_du_journal.dart:213"
  },
  {
   "fr": "Ses dégustations récentes, de la plus récente à la plus ancienne :",
@@ -14472,136 +14610,232 @@
   "ou": "lib/features/journal/presentation/external_tasting_dialog.dart:1444"
  },
  {
+  "fr": "Filtrer le journal",
+  "en": "Filter the journal",
+  "it": "Filtra il diario",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:94"
+ },
+ {
+  "fr": "Tout effacer",
+  "en": "Clear all",
+  "it": "Cancella tutto",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:99"
+ },
+ {
+  "fr": "Couleur",
+  "en": "Colour",
+  "it": "Colore",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:111"
+ },
+ {
+  "fr": "Appellation ou région",
+  "en": "Appellation or region",
+  "it": "Denominazione o regione",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:113"
+ },
+ {
+  "fr": "Lieu",
+  "en": "Place",
+  "it": "Luogo",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:114"
+ },
+ {
+  "fr": "Aucune dégustation",
+  "en": "No tasting",
+  "it": "Nessuna degustazione",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:129"
+ },
+ {
+  "fr": "Voir 1 dégustation",
+  "en": "Show 1 tasting",
+  "it": "Mostra 1 degustazione",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:130"
+ },
+ {
+  "fr": "Voir les {n} dégustations",
+  "en": "Show {n} tastings",
+  "it": "Mostra le {n} degustazioni",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:131"
+ },
+ {
+  "fr": "Voir les {n} autres",
+  "en": "Show {n} more",
+  "it": "Mostra altri {n}",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:189"
+ },
+ {
+  "fr": "Note minimale",
+  "en": "Minimum rating",
+  "it": "Voto minimo",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:201"
+ },
+ {
+  "fr": "Toutes",
+  "en": "Any",
+  "it": "Tutte",
+  "ou": "lib/features/journal/presentation/feuille_des_filtres.dart:207"
+ },
+ {
   "fr": "fr_FR",
   "en": "en_US",
   "it": "it_IT",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:236"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:241"
  },
  {
   "fr": "Journal de dégustation",
   "en": "Tasting journal",
   "it": "Diario di degustazione",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:253"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:258"
  },
  {
   "fr": "Dégustation Hors-Cave (Restaurant, Amis)",
   "en": "Out-of-Cellar Tasting (Restaurant, Friends)",
   "it": "Degustazione fuori cantina (ristorante, amici)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:258"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:263"
  },
  {
   "fr": "Déguster Hors-Cave",
   "en": "Taste Out-of-Cellar",
   "it": "Degusta fuori cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:267"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:272"
  },
  {
   "fr": "Aucun souvenir de dégustation pour le moment",
   "en": "No tasting memories yet",
   "it": "Ancora nessun ricordo di degustazione",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:288"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:293"
  },
  {
   "fr": "Dégustez et sortez une bouteille de votre cave, notez un vin bu au restaurant ou scannez une carte.",
   "en": "Taste and check out a bottle from your cellar, rate a wine at a restaurant or scan a menu.",
   "it": "Degusta e togli una bottiglia dalla tua cantina, dai un voto a un vino bevuto al ristorante o scansiona una carta.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:290"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:295"
  },
  {
   "fr": "Noter un vin hors-cave (Restaurant, Amis)",
   "en": "Log out-of-cellar wine (Restaurant, Friends)",
   "it": "Vota un vino fuori cantina (ristorante, amici)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:293"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:298"
  },
  {
   "fr": "Rechercher : vin, lieu, invité, plat, note, année...",
   "en": "Search: wine, place, guest, dish, rating, year...",
   "it": "Cerca: vino, luogo, ospite, piatto, voto, anno...",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:333"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:338"
+ },
+ {
+  "fr": "Filtres · {n}",
+  "en": "Filters · {n}",
+  "it": "Filtri · {n}",
+  "ou": "lib/features/journal/presentation/journal_screen.dart:372"
+ },
+ {
+  "fr": "Filtres",
+  "en": "Filters",
+  "it": "Filtri",
+  "ou": "lib/features/journal/presentation/journal_screen.dart:373"
  },
  {
   "fr": "Hors-Cave",
   "en": "Out-of-Cellar",
   "it": "Fuori cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:392"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:415"
  },
  {
   "fr": "Coups de Cœur (≥ 8/10)",
   "en": "Top Rated (≥ 8/10)",
   "it": "Colpi di fulmine (≥ 8/10)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:421"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:444"
  },
  {
   "fr": "Année",
   "en": "Year",
   "it": "Anno",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:453"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:476"
  },
  {
   "fr": "Toutes les années",
   "en": "All years",
   "it": "Tutti gli anni",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:459"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:482"
+ },
+ {
+  "fr": "Retirer ce filtre",
+  "en": "Remove this filter",
+  "it": "Rimuovi questo filtro",
+  "ou": "lib/features/journal/presentation/journal_screen.dart:522"
+ },
+ {
+  "fr": "{n} dégustation sur {total}",
+  "en": "{n} of {total} tastings",
+  "it": "{n} degustazione su {total}",
+  "ou": "lib/features/journal/presentation/journal_screen.dart:534"
+ },
+ {
+  "fr": "{n} dégustations sur {total}",
+  "en": "{n} of {total} tastings",
+  "it": "{n} degustazioni su {total}",
+  "ou": "lib/features/journal/presentation/journal_screen.dart:536"
  },
  {
   "fr": "Aucun souvenir trouvé",
   "en": "No memories found",
   "it": "Nessun ricordo trovato",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:500"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:563"
  },
  {
   "fr": "Aucune dégustation ne correspond aux filtres actuels.",
   "en": "No tastings match current filters.",
   "it": "Nessuna degustazione corrisponde ai filtri attuali.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:506"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:569"
  },
  {
   "fr": "Réinitialiser les filtres",
   "en": "Reset filters",
   "it": "Reimposta i filtri",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:514"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:577"
  },
  {
   "fr": "« {nom} » supprimé du journal.",
   "en": "\"{nom}\" removed from your journal.",
   "it": "«{nom}» eliminato dal diario.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:635"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:697"
  },
  {
   "fr": "Pas de connexion : « {nom} » reviendra au journal. Supprimez-le à nouveau une fois connecté.",
   "en": "No connection: \"{nom}\" will come back to your journal. Delete it again once online.",
   "it": "Nessuna connessione: «{nom}» tornerà nel diario. Eliminalo di nuovo quando sei connesso.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:652"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:714"
  },
  {
   "fr": "🍽️ Hors-Cave",
   "en": "🍽️ Out-of-Cellar",
   "it": "🍽️ Fuori cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:801"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:894"
  },
  {
   "fr": "🍷 Cave",
   "en": "🍷 Cellar",
   "it": "🍷 Cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:813"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:906"
  },
  {
   "fr": "Accord",
   "en": "Pairing",
   "it": "Abbinamento",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:853"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:946"
  },
  {
   "fr": "Fiche complète & arômes",
   "en": "Full details & aromas",
   "it": "Scheda completa e aromi",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:893"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:986"
  },
  {
   "fr": "Quiz sommelier",
   "en": "Sommelier quiz",
   "it": "Quiz del sommelier",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:909"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:1002"
  },
  {
   "fr": "• Pyrazines (2-isobutyl-3-méthoxypyrazine) : notes végétales nobles, poivron, bourgeon de cassis.",
@@ -15274,6 +15508,180 @@
   "en": "Everyone's favourite: {liste}.",
   "it": "Il preferito di ciascuno: {liste}.",
   "ou": "lib/features/menu_scan/domain/comptoir.dart:106"
+ },
+ {
+  "fr": "Taillé pour vous",
+  "en": "Made for you",
+  "it": "Fatto per te",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:43"
+ },
+ {
+  "fr": "Proche de vos goûts",
+  "en": "Close to your taste",
+  "it": "Vicino ai tuoi gusti",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:44"
+ },
+ {
+  "fr": "Un peu loin de vos goûts",
+  "en": "A little far from your taste",
+  "it": "Un po' lontano dai tuoi gusti",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:45"
+ },
+ {
+  "fr": "Loin de vos goûts",
+  "en": "Far from your taste",
+  "it": "Lontano dai tuoi gusti",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:46"
+ },
+ {
+  "fr": "Pas dans vos couleurs préférées",
+  "en": "Not one of your favourite styles",
+  "it": "Non è tra le tue tipologie preferite",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:71"
+ },
+ {
+  "fr": "{region}, l'une de vos régions préférées",
+  "en": "{region}, one of your favourite regions",
+  "it": "{region}, una delle tue regioni preferite",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:82"
+ },
+ {
+  "fr": "{cepage}, l'un de vos cépages préférés",
+  "en": "{cepage}, one of your favourite grapes",
+  "it": "{cepage}, uno dei tuoi vitigni preferiti",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:92"
+ },
+ {
+  "fr": "Des tanins marqués, que vous n'aimez pas",
+  "en": "Firm tannins, which you don't like",
+  "it": "Tannini marcati, che non ti piacciono",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:101"
+ },
+ {
+  "fr": "Un boisé marqué, que vous n'aimez pas",
+  "en": "Pronounced oak, which you don't like",
+  "it": "Legno marcato, che non ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:104"
+ },
+ {
+  "fr": "Une acidité vive, que vous n'aimez pas",
+  "en": "Sharp acidity, which you don't like",
+  "it": "Acidità vivace, che non ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:107"
+ },
+ {
+  "fr": "Du sucre, que vous n'aimez pas",
+  "en": "Sweetness, which you don't like",
+  "it": "Dolcezza, che non ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:110"
+ },
+ {
+  "fr": "Des tanins comme vous les aimez",
+  "en": "Tannins the way you like them",
+  "it": "Tannini come ti piacciono",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:124"
+ },
+ {
+  "fr": "Un peu plus tannique que ce que vous aimez",
+  "en": "A little more tannic than you like",
+  "it": "Un po' più tannico di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:126"
+ },
+ {
+  "fr": "Un peu moins tannique que ce que vous aimez",
+  "en": "A little less tannic than you like",
+  "it": "Un po' meno tannico di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:127"
+ },
+ {
+  "fr": "Plus tannique que ce que vous aimez",
+  "en": "More tannic than you like",
+  "it": "Più tannico di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:129"
+ },
+ {
+  "fr": "Moins tannique que ce que vous aimez",
+  "en": "Less tannic than you like",
+  "it": "Meno tannico di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:130"
+ },
+ {
+  "fr": "Bien plus tannique que ce que vous aimez",
+  "en": "Much more tannic than you like",
+  "it": "Molto più tannico di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:132"
+ },
+ {
+  "fr": "Bien moins tannique que ce que vous aimez",
+  "en": "Much less tannic than you like",
+  "it": "Molto meno tannico di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:133"
+ },
+ {
+  "fr": "Un corps comme vous l'aimez",
+  "en": "Body the way you like it",
+  "it": "Un corpo come ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:143"
+ },
+ {
+  "fr": "Un peu plus corsé que ce que vous aimez",
+  "en": "A little fuller-bodied than you like",
+  "it": "Un po' più corposo di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:145"
+ },
+ {
+  "fr": "Un peu plus léger que ce que vous aimez",
+  "en": "A little lighter than you like",
+  "it": "Un po' più leggero di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:146"
+ },
+ {
+  "fr": "Plus corsé que ce que vous aimez",
+  "en": "Fuller-bodied than you like",
+  "it": "Più corposo di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:148"
+ },
+ {
+  "fr": "Plus léger que ce que vous aimez",
+  "en": "Lighter than you like",
+  "it": "Più leggero di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:149"
+ },
+ {
+  "fr": "Bien plus corsé que ce que vous aimez",
+  "en": "Much fuller-bodied than you like",
+  "it": "Molto più corposo di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:151"
+ },
+ {
+  "fr": "Bien plus léger que ce que vous aimez",
+  "en": "Much lighter than you like",
+  "it": "Molto più leggero di quanto ti piace",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:152"
+ },
+ {
+  "fr": "Vous aimez les rouges",
+  "en": "You like reds",
+  "it": "Ti piacciono i rossi",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:177"
+ },
+ {
+  "fr": "Vous aimez les blancs",
+  "en": "You like whites",
+  "it": "Ti piacciono i bianchi",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:178"
+ },
+ {
+  "fr": "Vous aimez les rosés",
+  "en": "You like rosés",
+  "it": "Ti piacciono i rosati",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:179"
+ },
+ {
+  "fr": "Vous aimez les bulles",
+  "en": "You like sparkling wines",
+  "it": "Ti piacciono le bollicine",
+  "ou": "lib/features/menu_scan/domain/explication_du_score.dart:181"
  },
  {
   "fr": "🥩 Viande Rouge",
@@ -16113,139 +16521,133 @@
   "fr": "Excellent rapport prix/plaisir sur la carte",
   "en": "Excellent value on this list",
   "it": "Ottimo rapporto prezzo/piacere della carta",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:83"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:84"
  },
  {
   "fr": "Repérée comme une pépite de la carte",
   "en": "Flagged as a gem on this list",
   "it": "Segnalato come una chicca della carta",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:84"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:85"
  },
  {
   "fr": "Très proche de vos goûts",
   "en": "Very close to your taste",
   "it": "Molto vicino ai tuoi gusti",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:86"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:87"
  },
  {
   "fr": "Tannins &\nStructure",
   "en": "Tannins &\nStructure",
   "it": "Tannini e\nstruttura",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:244"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:245"
  },
  {
   "fr": "Puissance\n& Corps",
   "en": "Body &\nPower",
   "it": "Potenza\ne corpo",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:245"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:246"
  },
  {
   "fr": "Fraîcheur\n& Acidité",
   "en": "Freshness\n& Acidity",
   "it": "Freschezza\ne acidità",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:246"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:247"
  },
  {
   "fr": "Fruit &\nBaies",
   "en": "Fruit &\nBerries",
   "it": "Frutto\ne bacche",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:247"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:248"
  },
  {
   "fr": "Boisé &\nÉlevage",
   "en": "Oak &\nComplexity",
   "it": "Legno\ne affinamento",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:248"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:249"
  },
  {
   "fr": "Minéralité\n& Épices",
   "en": "Minerality\n& Spices",
   "it": "Mineralità\ne spezie",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:249"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:250"
  },
  {
   "fr": "Persistance\n& Rondeur",
   "en": "Finish &\nRoundness",
   "it": "Persistenza\ne rotondità",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:250"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:251"
  },
  {
   "fr": "Minéralité\n& Tension",
   "en": "Minerality\n& Crispness",
   "it": "Mineralità\ne tensione",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:254"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:255"
  },
  {
   "fr": "Fraîcheur\n& Vivacité",
   "en": "Freshness\n& Vivacity",
   "it": "Freschezza\ne vivacità",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:255"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:256"
  },
  {
   "fr": "Fruit &\nFleurs",
   "en": "Fruit &\nFloral",
   "it": "Frutto\ne fiori",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:256"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:257"
  },
  {
   "fr": "Beurré &\nRondeur",
   "en": "Buttery &\nRound",
   "it": "Burroso\ne rotondo",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:257"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:258"
  },
  {
   "fr": "Boisé &\nToasté",
   "en": "Oak &\nToasted",
   "it": "Legno\ne tostatura",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:258"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:259"
  },
  {
   "fr": "Douceur &\nSucre",
   "en": "Sweetness\n& Sugar",
   "it": "Dolcezza\ne zucchero",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:259"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:260"
  },
  {
   "fr": "Corps &\nPuissance",
   "en": "Body &\nPower",
   "it": "Corpo\ne potenza",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:260"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:261"
  },
  {
   "fr": "Très bonne affaire",
   "en": "Great deal",
   "it": "Un vero affare",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:64"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:65"
  },
  {
   "fr": "Bonne affaire",
   "en": "Good deal",
   "it": "Un affare",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:64"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:65"
  },
  {
   "fr": "Pépite",
   "en": "Hidden gem",
   "it": "Chicca",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:66"
- },
- {
-  "fr": "Taillé pour vous",
-  "en": "Made for you",
-  "it": "Fatto per te",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:70"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:67"
  },
  {
   "fr": "Taillé pour vous · {pct} %",
   "en": "Made for you · {pct}%",
   "it": "Fatto per te · {pct} %",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:71"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:72"
  },
  {
   "fr": "bt",
   "en": "btl",
   "it": "bott.",
-  "ou": "lib/features/menu_scan/domain/menu_wine.dart:389"
+  "ou": "lib/features/menu_scan/domain/menu_wine.dart:390"
  },
  {
   "fr": "bulles",
@@ -16437,367 +16839,361 @@
   "fr": "{n} % pour vous",
   "en": "{n}% for you",
   "it": "{n}% per te",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:126"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:127"
  },
  {
   "fr": "À prix égal, je prendrais sans doute celui-ci",
   "en": "At the same price, I'd probably pick this one",
   "it": "A parità di prezzo, probabilmente sceglierei questo",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:145"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:146"
  },
  {
   "fr": "À prix égal, je prendrais celui-ci",
   "en": "At the same price, I'd pick this one",
   "it": "A parità di prezzo, sceglierei questo",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:146"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:147"
  },
  {
   "fr": "plus proche de vos goûts que {autre} ({pct} %), au même prix le verre",
   "en": "closer to your taste than {autre} ({pct}%), same price by the glass",
   "it": "più vicino ai tuoi gusti di {autre} ({pct}%), allo stesso prezzo al calice",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:155"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:156"
  },
  {
   "fr": "plus proche de vos goûts que {autre} ({pct} %), au même prix",
   "en": "closer to your taste than {autre} ({pct}%), at the same price",
   "it": "più vicino ai tuoi gusti di {autre} ({pct}%), allo stesso prezzo",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:157"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:158"
  },
  {
   "fr": "plus proche de vos goûts que les {n} autres rouges à {prix}",
   "en": "closer to your taste than the {n} other reds at {prix}",
   "it": "più vicino ai tuoi gusti degli altri {n} rossi a {prix}",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:162"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:163"
  },
  {
   "fr": "plus proche de vos goûts que les {n} autres blancs à {prix}",
   "en": "closer to your taste than the {n} other whites at {prix}",
   "it": "più vicino ai tuoi gusti degli altri {n} bianchi a {prix}",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:164"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:165"
  },
  {
   "fr": "plus proche de vos goûts que les {n} autres rosés à {prix}",
   "en": "closer to your taste than the {n} other rosés at {prix}",
   "it": "più vicino ai tuoi gusti degli altri {n} rosati a {prix}",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:166"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:167"
  },
  {
   "fr": "plus proche de vos goûts que les {n} autres effervescents à {prix}",
   "en": "closer to your taste than the {n} other sparkling wines at {prix}",
   "it": "più vicino ai tuoi gusti degli altri {n} spumanti a {prix}",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:168"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:169"
  },
  {
   "fr": "plus proche de vos goûts que les {n} autres vins à {prix}",
   "en": "closer to your taste than the {n} other wines at {prix}",
   "it": "più vicino ai tuoi gusti degli altri {n} vini a {prix}",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:170"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:171"
  },
  {
   "fr": "plus proche de vos goûts que les {n} autres verres à {prix}",
   "en": "closer to your taste than the {n} other glasses at {prix}",
   "it": "più vicino ai tuoi gusti degli altri {n} calici a {prix}",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:172"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:173"
  },
  {
   "fr": "Carte sans prix : on choisit au goût.",
   "en": "No prices on this list: choose by taste.",
   "it": "Carta senza prezzi: si sceglie in base al gusto.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:544"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:545"
  },
  {
   "fr": "Le comptoir à plusieurs 🥂",
   "en": "Bar with friends 🥂",
   "it": "Il bancone in compagnia 🥂",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:749"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:750"
  },
  {
   "fr": "Chacun note chaque verre",
   "en": "Everyone rates each glass",
   "it": "Ognuno vota ogni calice",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:761"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:762"
  },
  {
   "fr": "Profil à compléter",
   "en": "Complete profile",
   "it": "Profilo da completare",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1747"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1743"
  },
  {
   "fr": "{n} Blanc",
   "en": "{n} White",
   "it": "{n} bianco",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:467"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:468"
  },
  {
   "fr": "{n} Blancs",
   "en": "{n} Whites",
   "it": "{n} bianchi",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:467"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:468"
  },
  {
   "fr": "{n} Rouge",
   "en": "{n} Red",
   "it": "{n} rosso",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:468"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:469"
  },
  {
   "fr": "{n} Rouges",
   "en": "{n} Reds",
   "it": "{n} rossi",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:468"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:469"
  },
  {
   "fr": "{n} Rosé",
   "en": "{n} Rosé",
   "it": "{n} rosato",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:469"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:470"
  },
  {
   "fr": "{n} Rosés",
   "en": "{n} Rosés",
   "it": "{n} rosati",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:469"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:470"
  },
  {
   "fr": "{n} Effervescent",
   "en": "{n} Sparkling",
   "it": "{n} spumante",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:470"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:471"
  },
  {
   "fr": "{n} Effervescents",
   "en": "{n} Sparkling",
   "it": "{n} spumanti",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:470"
- },
- {
-  "fr": "🧭 Pour mieux vous connaître",
-  "en": "🧭 To get to know you better",
-  "it": "🧭 Per conoscerti meglio",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:239"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:471"
  },
  {
   "fr": "Ce {nom}",
   "en": "This {nom}",
   "it": "Questo {nom}",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:243"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:244"
  },
  {
   "fr": "Vous connaissez ({n})",
   "en": "You know ({n})",
   "it": "Li conosci ({n})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:331"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:332"
  },
  {
   "fr": "Nom de l'établissement",
   "en": "Venue Name",
   "it": "Nome del locale",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:426"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:427"
  },
  {
   "fr": "Restaurant / Bar",
   "en": "Restaurant / Bar",
   "it": "Ristorante / bar",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:430"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:431"
  },
  {
   "fr": "Valider",
   "en": "Save",
   "it": "Conferma",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:444"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:445"
  },
  {
   "fr": "Une page n'a pas pu être lue : la carte ci-dessous est incomplète. Reprenez-la en photo pour l'ajouter.",
   "en": "One page could not be read: this list is incomplete. Take the photo again to add it.",
   "it": "Una pagina non è stata letta: la carta qui sotto è incompleta. Rifotografala per aggiungerla.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:506"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:507"
  },
  {
   "fr": "{n} pages n'ont pas pu être lues : la carte ci-dessous est incomplète. Reprenez-les en photo pour les ajouter.",
   "en": "{n} pages could not be read: this list is incomplete. Take the photos again to add them.",
   "it": "{n} pagine non sono state lette: la carta qui sotto è incompleta. Rifotografale per aggiungerle.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:508"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:509"
  },
  {
   "fr": "Reprendre",
   "en": "Retake",
   "it": "Riprendi",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:515"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:516"
  },
  {
   "fr": "{wines_length} références détectées",
   "en": "{wines_length} references detected",
   "it": "{wines_length} referenze trovate",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:533"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:534"
  },
  {
   "fr": "Compact",
   "en": "Compact",
   "it": "Compatta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:572"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:573"
  },
  {
   "fr": "Détaillé",
   "en": "Detailed",
   "it": "Dettagliata",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:572"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:573"
  },
  {
   "fr": "Discuter avec la Carte",
   "en": "Chat with the Wine List",
   "it": "Parla con la carta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:641"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:642"
  },
  {
   "fr": "IA SOMMELIER",
   "en": "AI SOMMELIER",
   "it": "SOMMELIER IA",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:657"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:658"
  },
  {
   "fr": "Posez vos questions : accords mets & vins, conseils en direct...",
   "en": "Ask questions: food & wine pairings, live sommelier advice...",
   "it": "Fai le tue domande: abbinamenti, consigli in diretta...",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:669"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:670"
  },
  {
   "fr": "Choisir en groupe 👥",
   "en": "Choose as a group 👥",
   "it": "Scegliere in gruppo 👥",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:750"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:751"
  },
  {
   "fr": "Consensus multi-palais",
   "en": "Multi-palate consensus",
   "it": "Consenso tra più palati",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:762"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:763"
  },
  {
   "fr": "Flight Sommelier 🍷",
   "en": "Wine Flight 🍷",
   "it": "Percorso del sommelier 🍷",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:820"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:821"
  },
  {
   "fr": "3 ou 5 verres en ordre",
   "en": "3 or 5 glasses in order",
   "it": "3 o 5 calici in ordine",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:830"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:831"
  },
  {
   "fr": "Rechercher un vin, domaine, cépage, appellation...",
   "en": "Search wine, estate, grape, appellation...",
   "it": "Cerca un vino, un produttore, un vitigno, una denominazione...",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:855"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:856"
  },
  {
   "fr": "Bons plans",
   "en": "Deals",
   "it": "Affari",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:887"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:888"
  },
  {
   "fr": "Pépites",
   "en": "Gems",
   "it": "Chicche",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:889"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:890"
  },
  {
   "fr": "Pour vous",
   "en": "For you",
   "it": "Per te",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:891"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:892"
  },
  {
   "fr": "Rouges ({redCount})",
   "en": "Reds ({redCount})",
   "it": "Rossi ({redCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:929"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:930"
  },
  {
   "fr": "Blancs ({whiteCount})",
   "en": "Whites ({whiteCount})",
   "it": "Bianchi ({whiteCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:943"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:944"
  },
  {
   "fr": "Bulles ({sparklingCount})",
   "en": "Sparkling ({sparklingCount})",
   "it": "Bollicine ({sparklingCount})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:964"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:965"
  },
  {
   "fr": "Profil : ",
   "en": "Profile: ",
   "it": "Profilo: ",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:985"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:986"
  },
  {
   "fr": "Minéral",
   "en": "Mineral",
   "it": "Minerale",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:995"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:996"
  },
  {
   "fr": "Beurré",
   "en": "Buttery",
   "it": "Burroso",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:996"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:997"
  },
  {
   "fr": "Tannique",
   "en": "Tannic",
   "it": "Tannico",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:997"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:998"
  },
  {
   "fr": "Fruité",
   "en": "Fruity",
   "it": "Fruttato",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:998"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:999"
  },
  {
   "fr": "Léger",
   "en": "Light",
   "it": "Leggero",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:999"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1000"
  },
  {
   "fr": "Puissant",
   "en": "Bold",
   "it": "Potente",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1000"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1001"
  },
  {
   "fr": "Aucun vin ne correspond à vos filtres",
   "en": "No wines match your filters",
   "it": "Nessun vino corrisponde ai tuoi filtri",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1039"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1040"
  },
  {
   "fr": "Chat Menu",
   "en": "Chat Menu",
   "it": "Chat della carta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1115"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1116"
  },
  {
   "fr": "Comparer ({selectedWineIds_length})",
   "en": "Compare ({selectedWineIds_length})",
   "it": "Confronta ({selectedWineIds_length})",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1143"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1144"
  },
  {
   "fr": "Comparer",
   "en": "Compare",
   "it": "Confronta",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1144"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1145"
  },
  {
   "fr": "v",
   "en": "glass",
   "it": "cal.",
-  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1331"
+  "ou": "lib/features/menu_scan/presentation/enriched_menu_screen.dart:1334"
  },
  {
   "fr": "Votre carte est lue",
@@ -16834,6 +17230,114 @@
   "en": "See my list",
   "it": "Vedi la mia carta",
   "ou": "lib/features/menu_scan/presentation/explication_de_la_video.dart:68"
+ },
+ {
+  "fr": "Retenu pour le comparatif",
+  "en": "Kept for comparison",
+  "it": "Scelto per il confronto",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:117"
+ },
+ {
+  "fr": "Ajouter au comparatif",
+  "en": "Add to comparison",
+  "it": "Aggiungi al confronto",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:118"
+ },
+ {
+  "fr": "Je ne connais pas encore assez vos goûts pour dire si ce vin vous ira.",
+  "en": "I don't know your taste well enough yet to tell whether this wine suits you.",
+  "it": "Non conosco ancora abbastanza i tuoi gusti per dire se questo vino fa per te.",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:244"
+ },
+ {
+  "fr": "Compléter mon palais",
+  "en": "Complete my palate",
+  "it": "Completa il mio palato",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:252"
+ },
+ {
+  "fr": "Votre palais est encore deviné (connu à {pct} %) : ce pourcentage se précisera à chaque vin noté.",
+  "en": "Your palate is still a guess ({pct}% known): this percentage will sharpen with every wine you rate.",
+  "it": "Il tuo palato è ancora un'ipotesi (conosciuto al {pct} %): questa percentuale si affinerà a ogni vino che valuti.",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:290"
+ },
+ {
+  "fr": "Chaque vin part de 70 % ; ces raisons l'en rapprochent ou l'en éloignent.",
+  "en": "Every wine starts at 70%; these reasons move it up or down.",
+  "it": "Ogni vino parte dal 70 %; questi motivi lo alzano o lo abbassano.",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:329"
+ },
+ {
+  "fr": "La somme dépasse 99 % : le pourcentage s'arrête là.",
+  "en": "The total goes past 99%: the percentage stops there.",
+  "it": "La somma supera il 99 %: la percentuale si ferma lì.",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:332"
+ },
+ {
+  "fr": "La somme descend sous 35 % : le pourcentage s'arrête là.",
+  "en": "The total drops below 35%: the percentage stops there.",
+  "it": "La somma scende sotto il 35 %: la percentuale si ferma lì.",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:334"
+ },
+ {
+  "fr": "Au moment du scan, il était à {avant} % : votre palais a changé depuis.",
+  "en": "When the list was scanned, it was at {avant}%: your palate has changed since.",
+  "it": "Alla scansione della carta era al {avant} %: il tuo palato è cambiato da allora.",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:337"
+ },
+ {
+  "fr": "Son profil face au vôtre",
+  "en": "Its profile against yours",
+  "it": "Il suo profilo di fronte al tuo",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:357"
+ },
+ {
+  "fr": "Son profil",
+  "en": "Its profile",
+  "it": "Il suo profilo",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:357"
+ },
+ {
+  "fr": "Ce vin",
+  "en": "This wine",
+  "it": "Questo vino",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:365"
+ },
+ {
+  "fr": "Vous",
+  "en": "You",
+  "it": "Tu",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:368"
+ },
+ {
+  "fr": "Le profil du vin est une estimation, d'après ce qu'on sait de lui ; le vôtre vient de vos dégustations, en pointillés là où je devine encore.",
+  "en": "The wine's profile is an estimate from what is known about it; yours comes from your tastings, dotted where I'm still guessing.",
+  "it": "Il profilo del vino è una stima, da ciò che se ne sa; il tuo viene dalle tue degustazioni, tratteggiato dove sto ancora indovinando.",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:387"
+ },
+ {
+  "fr": "Une estimation, d'après ce qu'on sait de ce vin.",
+  "en": "An estimate, from what is known about this wine.",
+  "it": "Una stima, da ciò che si sa di questo vino.",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:389"
+ },
+ {
+  "fr": "Appellation",
+  "en": "Appellation",
+  "it": "Denominazione",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:411"
+ },
+ {
+  "fr": "Accords",
+  "en": "Pairings",
+  "it": "Abbinamenti",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:414"
+ },
+ {
+  "fr": "Détails",
+  "en": "Details",
+  "it": "Dettagli",
+  "ou": "lib/features/menu_scan/presentation/fiche_du_vin_de_la_carte.dart:420"
  },
  {
   "fr": "Invité",
@@ -19386,18 +19890,6 @@
   "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:157"
  },
  {
-  "fr": "Appellation",
-  "en": "Appellation",
-  "it": "Denominazione",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:204"
- },
- {
-  "fr": "Couleur",
-  "en": "Colour",
-  "it": "Colore",
-  "ou": "lib/features/prise_en_main/presentation/demonstration_apogee.dart:207"
- },
- {
   "fr": "Un Bandol rouge, c'est d'abord le mourvèdre : fruits noirs, garrigue, et des tanins serrés qui s'assouplissent avec les années.",
   "en": "A red Bandol is Mourvèdre first: dark fruit, garrigue, and firm tannins that soften over the years.",
   "it": "Un Bandol rosso è prima di tutto mourvèdre: frutti neri, macchia mediterranea e tannini serrati che si ammorbidiscono con gli anni.",
@@ -20733,115 +21225,115 @@
   "fr": "Pour mieux vous connaître : ouvrez votre {nomDuVin} ({comment}, prêt à boire) — il me dirait ce que vous pensez {quoi}.",
   "en": "To get to know you better: open your {nomDuVin} ({comment}, ready to drink) — it would tell me how you feel about {quoi}.",
   "it": "Per conoscerti meglio: apri il tuo {nomDuVin} ({comment}, pronto da bere): mi direbbe cosa pensi {quoi}.",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:158"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:211"
  },
  {
   "fr": "des tanins",
   "en": "tannins",
   "it": "dei tannini",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:166"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:219"
  },
  {
   "fr": "des vins amples",
   "en": "full-bodied wines",
   "it": "dei vini corposi",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:167"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:220"
  },
  {
   "fr": "du boisé",
   "en": "oak",
   "it": "del legno",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:168"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:221"
  },
  {
   "fr": "de la vivacité",
   "en": "crisp acidity",
   "it": "della vivacità",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:169"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:222"
  },
  {
   "fr": "de la minéralité",
   "en": "minerality",
   "it": "della mineralità",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:170"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:223"
  },
  {
   "fr": "de ce style",
   "en": "this style",
   "it": "di questo stile",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:171"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:224"
  },
  {
   "fr": ", et il a de bonnes chances de vous plaire ({v1} %)",
   "en": ", and there is a good chance you will enjoy it ({v1}%)",
   "it": ", e ha buone probabilità di piacerti ({v1} %)",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:188"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:241"
  },
  {
   "fr": "Je ne sais pas encore ce que vous pensez {quoi}. {nomDuVin}, {comment}, me le dirait{risque}.",
   "en": "I don't know yet how you feel about {quoi}. {nomDuVin}, {comment}, would tell me{risque}.",
   "it": "Non so ancora cosa pensi {quoi}. {nomDuVin}, {comment}, me lo direbbe{risque}.",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:189"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:242"
  },
  {
   "fr": "très charpenté",
   "en": "firmly structured",
   "it": "molto strutturato",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:195"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:248"
  },
  {
   "fr": "tout en souplesse",
   "en": "silky",
   "it": "tutto morbidezza",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:195"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:248"
  },
  {
   "fr": "ample",
   "en": "full-bodied",
   "it": "corposo",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:196"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:249"
  },
  {
   "fr": "léger",
   "en": "light",
   "it": "leggero",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:196"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:249"
  },
  {
   "fr": "nettement boisé",
   "en": "clearly oaked",
   "it": "nettamente legnoso",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:197"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:250"
  },
  {
   "fr": "sans bois",
   "en": "unoaked",
   "it": "senza legno",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:197"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:250"
  },
  {
   "fr": "très vif",
   "en": "very crisp",
   "it": "molto vivace",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:198"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:251"
  },
  {
   "fr": "tout en rondeur",
   "en": "soft and round",
   "it": "tutto rotondità",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:198"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:251"
  },
  {
   "fr": "très minéral",
   "en": "very mineral",
   "it": "molto minerale",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:199"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:252"
  },
  {
   "fr": "plus sur le fruit",
   "en": "more fruit-driven",
   "it": "più sul frutto",
-  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:199"
+  "ou": "lib/features/sommelier/domain/taste_frontier_engine.dart:252"
  },
  {
   "fr": "Température parfaite !",
@@ -22156,12 +22648,6 @@
   "en": "Hide alert",
   "it": "Nascondi l'allerta",
   "ou": "lib/shared/widgets/offline_sync_banner.dart:34"
- },
- {
-  "fr": "Tout effacer",
-  "en": "Clear all",
-  "it": "Cancella tutto",
-  "ou": "lib/shared/widgets/offline_sync_banner.dart:44"
  },
  {
   "fr": "{pendingCount} actions en attente",

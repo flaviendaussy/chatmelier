@@ -501,7 +501,10 @@ const List<RegionVin> regionsFrance = [
       // plus courant de la vallée est un côtes-du-rhône. Déclarées ici, après les crus :
       // une appellation reconnue passe toujours avant.
       'vallee du rhone', 'rhone valley', 'valle del rodano', 'rhone meridional',
-      'rhone sud', 'southern rhone'],
+      'rhone sud', 'southern rhone',
+      // L'IGP régionale du nord (la Syrah de Jamet, 09/10) : sans elle, une « Collines
+      // Rhodaniennes » n'avait ni pays ni garde que son cépage, rattaché au hasard (17/10).
+      'collines rhodaniennes'],
     cepages: ['Grenache', 'Syrah', 'Carignan'],
     longevites: {
       'red': AgingProfile(id: 'cdr', libelle: 'Côtes du Rhône',

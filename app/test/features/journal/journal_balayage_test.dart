@@ -71,14 +71,14 @@ void main() {
     await ouvrir(tester);
     await balayer(tester, 'Clio');
 
-    expect(find.textContaining('Clio (2023)'), findsNothing);
+    expect(find.textContaining('Clio 2023'), findsNothing);
     expect(find.text('« Clio » supprimé du journal.'), findsOneWidget);
     expect(suppression.supprimees, isEmpty, reason: 'rien n\'est supprimé tant que le bandeau est là');
 
     await tester.tap(find.text('Annuler'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Clio (2023)'), findsOneWidget);
+    expect(find.textContaining('Clio 2023'), findsOneWidget);
     expect(suppression.supprimees, isEmpty);
     expect(tester.takeException(), isNull);
   });
@@ -91,7 +91,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(suppression.supprimees, ['t1']);
-    expect(find.textContaining('Clio (2023)'), findsNothing);
+    expect(find.textContaining('Clio 2023'), findsNothing);
     expect(find.textContaining('Bandol Rouge'), findsWidgets);
     expect(tester.takeException(), isNull);
   });

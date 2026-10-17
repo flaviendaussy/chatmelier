@@ -117,6 +117,39 @@ class WineWorld {
     return lue;
   }
 
+  /// Le pays d'une appellation ou d'une région nommée, quand le nom ne laisse aucun doute :
+  /// « Morgon » est en France, « Ribera del Duero » en Espagne (V2.5 · F6 : le journal de
+  /// Flavien n'avait de pays pour aucun vin bu dehors, donc aucun drapeau).
+  ///
+  /// Mot à mot, et non par morceaux : « Castilla » contient « asti », et `region` en faisait
+  /// un vin italien. Sans les cépages qui servent d'alias (un albariño pousse aussi au
+  /// Portugal et en Uruguay), ni les mots partagés par plusieurs pays (un crémant peut être
+  /// luxembourgeois, la Central Valley est au Chili et en Californie). Nul si deux pays se
+  /// disputent le nom.
+  static String? paysDe({String? appellation, String? region}) {
+    for (final texte in [appellation, region]) {
+      final mots = ' ${_norm(texte)} ';
+      if (mots.trim().isEmpty) continue;
+      final trouves = <String>{};
+      for (final r in regions) {
+        final cepages = {for (final c in r.cepages) _norm(c)};
+        for (final a in r.alias) {
+          final cible = _norm(a);
+          if (cible.isEmpty || cepages.contains(cible) || _aliasPartages.contains(cible)) continue;
+          if (mots.contains(' $cible ')) {
+            trouves.add(r.pays);
+            break;
+          }
+        }
+      }
+      if (trouves.length == 1) return trouves.single;
+      if (trouves.length > 1) return null;
+    }
+    return null;
+  }
+
+  static const _aliasPartages = {'cremant', 'vin mousseux', 'central valley'};
+
   /// Deux noms du même pays, en français, en anglais ou en espagnol. Un pays inconnu
   /// ou absent ne contredit rien.
   static bool memePays(String? a, String? b) {

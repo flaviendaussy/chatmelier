@@ -101,7 +101,9 @@ const List<RegionVin> regionsIberie = [
     nom: 'Galice & Atlantique',
     elevages: {'white': Elevage(ContenantElevage.inox, 6)},
     alias: ['rias baixas', 'albarino', 'godello', 'valdeorras', 'ribeiro',
-      'ribeira sacra', 'bierzo'],
+      'ribeira sacra', 'bierzo',
+      // La région seule, sans appellation (« Galicia » dans le journal de Flavien, 17/10).
+      'galicia', 'galice'],
     cepages: ['Albariño', 'Godello', 'Mencía'],
     longevites: {
       'white': AgingProfile(id: 'albarino', libelle: 'Albariño & Godello',

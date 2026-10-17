@@ -6,9 +6,11 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/utils/responsive_layout.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/tasting_deletion_service.dart';
+import '../domain/filtres_du_journal.dart';
 import '../domain/tasting_entry.dart';
 import '../../auth/data/taste_profile_service.dart';
 import 'external_tasting_dialog.dart';
+import 'feuille_des_filtres.dart';
 import 'tasting_questionnaire_sheet.dart';
 import 'tasting_entry_detail_screen.dart';
 import '../../cellar/data/favorite_wines_service.dart';
@@ -17,6 +19,7 @@ import '../../../features/offline/domain/offline_action.dart';
 import '../../../features/offline/presentation/sync_provider.dart';
 import '../../offline/data/offline_storage_service.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/pays.dart';
 import '../../../shared/widgets/onglets.dart';
 
 final tastingLogProvider = FutureProvider<List<TastingEntry>>((ref) async {
@@ -162,8 +165,11 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
   String _searchQuery = '';
   String? _selectedYear;
   String _selectedOriginFilter = 'all'; // 'all', 'cellar', 'external'
-  bool _minRatingOnly = false; // >= 8/10 or >= 4/5
   bool _onlyFavorites = false;
+
+  /// Pays, couleur, appellation, lieu, note minimale (V2.5 · F6). « Coups de cœur » en est
+  /// le raccourci : une note d'au moins 8.
+  FiltresDuJournal _filtres = FiltresDuJournal.vides;
 
   /// Balayées, en attente de la fermeture du bandeau « Annuler » (V2.4 · R3).
   final Set<String> _enSuppression = {};
@@ -174,8 +180,13 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     super.dispose();
   }
 
-  List<TastingEntry> _filterEntries(List<TastingEntry> entries, Set<String> favoriteWineIds) {
+  /// Sans [avecFiltres], la recherche et les pastilles seules : ce que la feuille des filtres
+  /// part pour compter ses valeurs.
+  List<TastingEntry> _filterEntries(List<TastingEntry> entries, Set<String> favoriteWineIds,
+      {bool avecFiltres = true}) {
     return entries.where((entry) {
+      if (avecFiltres && !_filtres.garde(entry)) return false;
+
       // Filter by favorites
       if (_onlyFavorites) {
         final isFav = favoriteWineIds.contains(entry.id) ||
@@ -190,12 +201,6 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
 
       // Filter by year
       if (_selectedYear != null && entry.consumedAt.year.toString() != _selectedYear) {
-        return false;
-      }
-
-      // Filter by high rating (>= 8/10)
-      final effRating = entry.displayRating;
-      if (_minRatingOnly && (effRating == null || effRating < 8.0)) {
         return false;
       }
 
@@ -359,6 +364,24 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
+                              // Pays, couleur, appellation, lieu, note (V2.5 · F6).
+                              FilterChip(
+                                key: const ValueKey('journal-filtres'),
+                                avatar: const Icon(Icons.tune, size: 16, color: Color(0xFF8B1E3F)),
+                                label: Text(_filtres.actifs
+                                    ? trSi(isFr, 'Filtres · {n}', 'Filters · {n}', {'n': _filtres.nombreActifs})
+                                    : trSi(isFr, 'Filtres', 'Filters')),
+                                selected: _filtres.actifs,
+                                showCheckmark: false,
+                                selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.2),
+                                onSelected: (_) => FeuilleDesFiltres.montrer(
+                                  context,
+                                  entrees: _filterEntries(allEntries, favoriteWineIds, avecFiltres: false),
+                                  filtres: _filtres,
+                                  onChanged: (f) => setState(() => _filtres = f),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
                               // All / Cave / Hors-cave Segmented Filter
                               FilterChip(
                                 label: Text(trSi(isFr, 'Tous', 'All')),
@@ -419,11 +442,11 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                 avatar: const Icon(Icons.star,
                                     size: 14, color: Color(0xFFD4AF37)),
                                 label: Text(trSi(isFr, 'Coups de Cœur (≥ 8/10)', 'Top Rated (≥ 8/10)')),
-                                selected: _minRatingOnly,
+                                selected: _filtres.noteMin == 8,
                                 selectedColor: const Color(0xFFD4AF37)
                                     .withValues(alpha: 0.2),
                                 onSelected: (sel) {
-                                  setState(() => _minRatingOnly = sel);
+                                  setState(() => _filtres = _filtres.avecNoteMin(sel ? 8 : null));
                                 },
                               ),
                               const SizedBox(width: 8),
@@ -478,6 +501,46 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                             ],
                           ),
                         ),
+                        if (_filtres.actifs) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              for (final e in _filtres.etiquettes(allEntries))
+                                InputChip(
+                                  avatar: e.famille == FamilleDeFiltre.couleur
+                                      ? Container(
+                                          width: 10,
+                                          height: 10,
+                                          decoration: BoxDecoration(
+                                              color: FeuilleDesFiltres.teinte(e.cle), shape: BoxShape.circle),
+                                        )
+                                      : null,
+                                  label: Text(e.libelle, style: const TextStyle(fontSize: 12)),
+                                  visualDensity: VisualDensity.compact,
+                                  deleteButtonTooltipMessage: trSi(isFr, 'Retirer ce filtre', 'Remove this filter'),
+                                  onDeleted: () => setState(() => _filtres = e.famille == null
+                                      ? _filtres.avecNoteMin(null)
+                                      : _filtres.basculer(e.famille!, e.cle)),
+                                ),
+                            ],
+                          ),
+                        ],
+                        if (filteredEntries.length != allEntries.length) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            filteredEntries.length <= 1
+                                ? trSi(isFr, '{n} dégustation sur {total}', '{n} of {total} tastings',
+                                    {'n': filteredEntries.length, 'total': allEntries.length})
+                                : trSi(isFr, '{n} dégustations sur {total}', '{n} of {total} tastings',
+                                    {'n': filteredEntries.length, 'total': allEntries.length}),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: isDark ? Colors.white60 : Colors.black54,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -518,7 +581,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                                   _searchQuery = '';
                                   _selectedYear = null;
                                   _selectedOriginFilter = 'all';
-                                  _minRatingOnly = false;
+                                  _filtres = FiltresDuJournal.vides;
                                   _onlyFavorites = false;
                                 });
                               },
@@ -584,9 +647,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     bool enGrille = false,
   }) {
     final wineName = entry.wineName ?? (trSi(isFr, 'Vin dégusté', 'Tasted wine'));
-    final vintage = entry.vintage != null && entry.vintage! > 0
-        ? ' (${entry.vintage})'
-        : ' (NV)';
+    // Un millésime inconnu n'est pas un « non millésimé » : on n'écrit rien plutôt que « (NV) ».
+    final millesime = entry.vintage != null && entry.vintage! > 0 ? '${entry.vintage}' : null;
     final dateStr = _formatDate(entry.consumedAt, isFr);
 
     return Dismissible(
@@ -613,7 +675,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         ),
       ),
       onDismissed: (_) => _supprimerAvecAnnulation(entry, isFr),
-      child: _carteDeDegustation(context, entry, isDark, theme, isFr, wineName, vintage, dateStr, enGrille),
+      child: _carteDeDegustation(context, entry, isDark, theme, isFr, wineName, millesime, dateStr, enGrille),
     );
   }
 
@@ -669,10 +731,15 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     ThemeData theme,
     bool isFr,
     String wineName,
-    String vintage,
+    String? millesime,
     String dateStr,
     bool enGrille,
   ) {
+    // Le drapeau, la pastille de couleur et le pays dans la langue de l'écran (V2.5 · F6).
+    final paysDuVin = FiltresDuJournal.paysDe(entry);
+    final drapeau = Pays.code(paysDuVin) != null ? Pays.drapeau(paysDuVin) : null;
+    final couleur = FiltresDuJournal.couleurDe(entry.wineType);
+    final pays = Pays.nom(paysDuVin);
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -699,8 +766,19 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '$wineName$vintage',
+                        Text.rich(
+                          TextSpan(children: [
+                            if (drapeau != null) TextSpan(text: '$drapeau '),
+                            TextSpan(text: wineName),
+                            if (millesime != null)
+                              TextSpan(
+                                text: ' $millesime',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? Colors.white70 : Colors.black54,
+                                ),
+                              ),
+                          ]),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -719,26 +797,41 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        const SizedBox(height: 2),
-                        Text(
-                          [
-                            if (entry.appellation != null &&
-                                entry.appellation!.isNotEmpty)
-                              entry.appellation!
-                            else if (entry.region != null &&
-                                entry.region!.isNotEmpty)
-                              entry.region!,
-                            if (entry.country != null &&
-                                entry.country!.isNotEmpty)
-                              entry.country!,
-                            dateStr,
-                          ].join(' • '),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: isDark ? Colors.white60 : Colors.black54,
-                            fontSize: 12,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            if (couleur != null) ...[
+                              Semantics(
+                                label: FiltresDuJournal.libelleDeCouleur(couleur),
+                                child: Container(
+                                  width: 9,
+                                  height: 9,
+                                  decoration: BoxDecoration(
+                                    color: FeuilleDesFiltres.teinte(couleur),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: isDark ? Colors.white24 : Colors.black12, width: 0.5),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Expanded(
+                              child: Text(
+                                [
+                                  if (FiltresDuJournal.appellationDe(entry) case final lieu?) lieu,
+                                  if (pays.isNotEmpty) pays,
+                                  dateStr,
+                                ].join(' • '),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: isDark ? Colors.white60 : Colors.black54,
+                                  fontSize: 12,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

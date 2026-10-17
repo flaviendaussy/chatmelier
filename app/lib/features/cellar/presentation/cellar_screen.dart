@@ -40,6 +40,16 @@ import '../../../shared/widgets/onglets.dart';
 enum CellarViewMode { grid, list }
 
 class CellarScreen extends ConsumerStatefulWidget {
+  /// La hauteur d'une carte de bouteille dans la grille, le texte du téléphone agrandi de
+  /// [facteur].
+  ///
+  /// Mesurée le 17/10 en Roboto : la carte la plus chargée (domaine, nom sur deux lignes,
+  /// lieu, jauge, prix) tient en 272 à taille normale, 316 à 150 %, 364 à 200 %. On garde
+  /// 8 de marge. À 295, une carte au nom court laissait sous le lieu un vide que Flavien a
+  /// entouré : « il y a pas mal d'espace vide, enlèves-en un peu pour compacter
+  /// légèrement ». À 150 %, le prix sortait de la carte (09/10) : le test le garde.
+  static double hauteurDesCartes(double facteur) => 280 + 92 * (facteur - 1);
+
   const CellarScreen({super.key});
 
   @override
@@ -546,19 +556,14 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     );
   }
 
-  /// La hauteur d'une carte de bouteille dans la grille : 295 à taille normale, et ce
-  /// qu'il faut en plus quand le texte du téléphone est agrandi (environ 85 de texte par
-  /// carte ; à 150 %, le prix sortait de la carte, 09/10).
   /// La devise du compte (Profil → Réglages), dans laquelle la cave compte sa valeur.
   String get _devise {
     final d = (ref.read(currentUserProvider)?.userMetadata?['default_currency'] as String?)?.toUpperCase();
     return CurrencyHelper.supportedCurrencies.any((c) => c.code == d) ? d! : 'EUR';
   }
 
-  static double _hauteurDesCartes(BuildContext context) {
-    final facteur = (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 3.0);
-    return 295 + 90 * (facteur - 1);
-  }
+  static double _hauteurDesCartes(BuildContext context) =>
+      CellarScreen.hauteurDesCartes((MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 3.0));
 
   @override
   Widget build(BuildContext context) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../shared/utils/currency_helper.dart';
 import '../../auth/domain/taste_profile.dart';
 import 'cellar_bridge.dart';
+import 'explication_du_score.dart';
 import '../../auth/domain/wine_taste_radar.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../../../shared/utils/langue.dart';
@@ -695,59 +696,8 @@ class ScannedMenu {
 class MenuWineMatchCalculator {
   static double? calculateMatch(MenuWine wine, TasteProfile? profile) => computeMatchScore(wine, profile);
 
-  static double? computeMatchScore(MenuWine wine, TasteProfile? profile) {
-    if (profile == null || !profile.isWellProvided) return null;
-
-    double score = 70.0; // Base score for personalized evaluation
-
-    // 1. Color / Type affinity (+15 or -25)
-    final favTypes = profile.favoriteTypes.map((t) => t.toLowerCase()).toList();
-    if (favTypes.isNotEmpty) {
-      final matchesColor = favTypes.any((t) =>
-          (wine.isRed && t.contains('rouge')) ||
-          (wine.isWhite && t.contains('blanc')) ||
-          (wine.isRose && t.contains('rosé')) ||
-          (wine.isSparkling && (t.contains('bulles') || t.contains('champ'))));
-      if (matchesColor) {
-        score += 15.0;
-      } else {
-        score -= 20.0;
-      }
-    }
-
-    // 2. Region / Appellation affinity (+12)
-    final favRegions = profile.favoriteRegions.map((r) => r.toLowerCase()).toList();
-    final wineRegion = (wine.region ?? '').toLowerCase();
-    final wineAppell = (wine.appellation ?? '').toLowerCase();
-    if (favRegions.any((r) => wineRegion.contains(r) || wineAppell.contains(r))) {
-      score += 12.0;
-    }
-
-    // 3. Grape Variety affinity (+10)
-    final favGrapes = profile.favoriteGrapes.map((g) => g.toLowerCase()).toList();
-    if (wine.grapes.any((wg) => favGrapes.any((fg) => wg.toLowerCase().contains(fg)))) {
-      score += 10.0;
-    }
-
-    // 4. Disliked characteristics penalty (-30)
-    final dislikes = profile.dislikedCharacteristics.map((d) => d.toLowerCase()).toList();
-    for (final d in dislikes) {
-      if (d.contains('tann') && wine.metrics.tannins > 7.0) score -= 25.0;
-      if (d.contains('bois') && wine.metrics.oak > 7.0) score -= 25.0;
-      if (d.contains('acid') && wine.metrics.acidity > 7.5) score -= 20.0;
-      if (d.contains('sucr') && wine.metrics.sweetness > 4.0) score -= 20.0;
-    }
-
-    // 5. Tannin & Body preference alignment
-    if (profile.avgTanninPreference != null && wine.isRed) {
-      final diff = (profile.avgTanninPreference! * 10 - wine.metrics.tannins).abs();
-      score += (5.0 - diff).clamp(-10.0, 8.0);
-    }
-    if (profile.avgBodyPreference != null) {
-      final diff = (profile.avgBodyPreference! * 10 - wine.metrics.body).abs();
-      score += (5.0 - diff).clamp(-10.0, 8.0);
-    }
-
-    return score.clamp(35.0, 99.0).roundToDouble();
-  }
+  /// Le calcul, raison par raison, est dans [ExplicationDuScore] : la fiche d'un vin de la
+  /// carte l'affiche tel quel (V2.5 · F1), et ce pourcentage en est le total.
+  static double? computeMatchScore(MenuWine wine, TasteProfile? profile) =>
+      ExplicationDuScore.expliquer(wine, profile)?.score;
 }

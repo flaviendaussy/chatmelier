@@ -10,6 +10,7 @@ import '../domain/a_prix_egal.dart';
 import '../domain/cellar_bridge.dart';
 import '../data/cellar_context_provider.dart';
 import '../data/recent_menus_store.dart';
+import 'fiche_du_vin_de_la_carte.dart';
 import 'menu_chat_assistant_sheet.dart';
 import 'menu_matchmaker_sheet.dart';
 import 'menu_photo_capture_screen.dart';
@@ -1188,6 +1189,15 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
       currency: _menu.currency ?? CurrencyHelper.getCurrencyForLocale(Localizations.localeOf(context)),
       decimals: v % 1 == 0 ? 0 : 2);
 
+  /// La fiche du vin : pourquoi il vous va ou non, son profil face au vôtre, ses détails
+  /// (Flavien, 13/10 : « je devrais pouvoir cliquer sur chaque vin pour savoir pourquoi »).
+  void _ouvrirLaFiche(MenuWine wine) => FicheDuVinDeLaCarte.montrer(
+        context,
+        vin: wine,
+        selectionne: _selectedWineIds.contains(wine.id),
+        onComparer: (retenu) => setState(() => retenu ? _selectedWineIds.add(wine.id) : _selectedWineIds.remove(wine.id)),
+      );
+
   Widget _buildCompactWineCard(
     BuildContext context,
     MenuWine wine,
@@ -1221,15 +1231,8 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
         ),
       ),
       child: InkWell(
-        onTap: () {
-          setState(() {
-            if (isSelected) {
-              _selectedWineIds.remove(wine.id);
-            } else {
-              _selectedWineIds.add(wine.id);
-            }
-          });
-        },
+        // Toucher un vin ouvre sa fiche (V2.5 · F1) ; la case le retient pour le comparatif.
+        onTap: () => _ouvrirLaFiche(wine),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -1519,15 +1522,8 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
         ),
       ),
       child: InkWell(
-        onTap: () {
-          setState(() {
-            if (isSelected) {
-              _selectedWineIds.remove(wine.id);
-            } else {
-              _selectedWineIds.add(wine.id);
-            }
-          });
-        },
+        // Toucher un vin ouvre sa fiche (V2.5 · F1) ; la case le retient pour le comparatif.
+        onTap: () => _ouvrirLaFiche(wine),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(14.0),

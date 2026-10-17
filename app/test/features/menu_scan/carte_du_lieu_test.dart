@@ -155,11 +155,16 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('Rouvrir « The Kitchin »'), findsOneWidget);
-    expect(find.text('Rouvrir « Le Petit Zinc »'), findsOneWidget);
-    expect(find.text('Rouvrir « Septime »'), findsOneWidget, reason: 'plus seulement la dernière');
-    expect(find.textContaining('il y a 2 jours'), findsOneWidget);
+    // Les cartes récentes tiennent en une ligne et une liste déroulante (P3, 11/10) : chacune
+    // reste rouvrable, plus seulement la dernière.
+    expect(find.text('Rouvrir une carte récente (3)'), findsOneWidget);
     expect(find.text('Les cartes autour de moi'), findsOneWidget);
+    await tester.tap(find.text('Rouvrir une carte récente (3)'));
+    await tester.pumpAndSettle();
+    for (final nom in ['The Kitchin', 'Le Petit Zinc', 'Septime']) {
+      expect(find.text(nom), findsOneWidget, reason: nom);
+    }
+    expect(find.textContaining('il y a 2 jours'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

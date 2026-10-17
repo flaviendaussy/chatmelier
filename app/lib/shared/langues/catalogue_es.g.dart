@@ -3184,6 +3184,7 @@ const Map<String, String> catalogueEs = {
   'Il y a {inMinutes} min': 'Hace {inMinutes} min',
   'Il y a {inHours} h': 'Hace {inHours} h',
   'Il y a {inDays} j': 'Hace {inDays} d',
+  'Tester la connexion': 'Probar la conexión',
   'Ajout de bouteille': 'Botella añadida',
   'Dégustation / Sortie': 'Cata / salida',
   'Modification bouteille': 'Botella modificada',

@@ -19098,6 +19098,12 @@
   "ou": "lib/features/notifications/presentation/notifications_inbox_sheet.dart:1023"
  },
  {
+  "fr": "Tester la connexion",
+  "en": "Test the connection",
+  "it": "Verifica la connessione",
+  "ou": "lib/features/offline/presentation/chatmelier_offline_antenna_widget.dart:80"
+ },
+ {
   "fr": "Ajout de bouteille",
   "en": "Add bottle",
   "it": "Bottiglia aggiunta",

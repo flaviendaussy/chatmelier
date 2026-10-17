@@ -4,6 +4,12 @@ enum ChatmelierLoaderType {
   detective,
   sommelier,
   carte,
+
+  /// Les écrans « pas de réseau » (16/10 : « ceci devrait être la belle animation du
+  /// Chatmelier qui déploie la bouteille de vin !! »). Cette animation n'existe pas encore :
+  /// le sommelier en tient lieu jusqu'à ce que la vidéo soit générée (prompt dans le plan
+  /// V2.5 · P6), puis `loader_reseau_square.webp` prendra sa place ici.
+  reseau,
 }
 
 /// A premium animated loader featuring the Chatmelier mascot animations:
@@ -49,6 +55,7 @@ class ChatmelierLoader extends StatelessWidget {
         ChatmelierLoaderType.detective => 'assets/animations/loader_detective_square.webp',
         ChatmelierLoaderType.sommelier => 'assets/animations/loader_sommelier_square.webp',
         ChatmelierLoaderType.carte => 'assets/animations/loader_menu_scan_square.webp',
+        ChatmelierLoaderType.reseau => 'assets/animations/loader_sommelier_square.webp',
       };
 
   @override

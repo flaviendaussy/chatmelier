@@ -14,6 +14,7 @@ import 'app.dart';
 import 'features/offline/presentation/sync_provider.dart';
 import 'features/auth/data/ai_cost_tracker_service.dart';
 import 'features/auth/data/palais_distant.dart';
+import 'features/auth/domain/retour_du_lien.dart';
 import 'features/monetization/admob_service.dart';
 import 'features/monetization/mesure_des_pubs.dart';
 import 'shared/utils/app_logger.dart';
@@ -60,6 +61,10 @@ void main() async {
   
   final prefs = await SharedPreferences.getInstance();
 
+  // Lue avant que le SDK ne la traite : l'adresse d'ouverture porte-t-elle un retour de
+  // connexion (V2.5 · Q11) ?
+  final retourDuLien = kIsWeb ? RetourDuLien.lire(Uri.base) : null;
+
   await Supabase.initialize(
     url: const String.fromEnvironment(
       'SUPABASE_URL',
@@ -72,6 +77,13 @@ void main() async {
   );
 
   AppLogger.init(Supabase.instance.client);
+  // Un lien ouvert dans un autre navigateur que celui qui l'a demandé ne connecte personne,
+  // et le SDK n'en dit rien : Camille revenait à l'écran de l'adresse sans un mot (Q11).
+  final apresLeLien = Supabase.instance.client.auth.currentUser;
+  if (retourDuLien != null && (apresLeLien == null || apresLeLien.isAnonymous)) {
+    lienSansEffet.value = retourDuLien;
+    AppLogger.warning('AUTH', 'Lien de connexion sans effet sur le web (${retourDuLien.motif ?? 'aucune session ouverte'})');
+  }
   // Ce qui n'a pas pu partir lors de la dernière session (S5) : coûts IA, pubs.
   unawaited(AiCostTrackerService.envoyerEnAttente());
   // Les retours « secouer pour commenter » restés sans réseau, capture comprise (16/10) :
@@ -88,8 +100,19 @@ void main() async {
   }));
   Supabase.instance.client.auth.onAuthStateChange.listen((etat) {
     if (etat.event == AuthChangeEvent.signedIn) {
+      // Connecté : l'avis sur un lien et l'adresse du dernier lien n'ont plus d'objet (Q11).
+      lienSansEffet.value = null;
+      adresseDuDernierLien.value = null;
       unawaited(PalaisDistant.recuperer());
       unawaited(Croissance.noterPremiereOuvertureSiBesoin());
+    }
+  }, onError: (Object erreur, StackTrace _) {
+    // Le SDK range ici l'échec d'un lien de connexion, et rien ne l'écoutait (Q11). Le
+    // motif seulement : jamais de code ni de jeton dans les journaux.
+    final motif = erreur is AuthException ? (erreur.code ?? erreur.message) : erreur.runtimeType.toString();
+    AppLogger.warning('AUTH', 'Connexion refusée : ${motif.length > 160 ? motif.substring(0, 160) : motif}');
+    if (erreur is AuthException && erreur.message.contains('Code verifier')) {
+      lienSansEffet.value ??= RetourDuLien.sansMotif;
     }
   });
   unawaited(Croissance.noterPremiereOuvertureSiBesoin());

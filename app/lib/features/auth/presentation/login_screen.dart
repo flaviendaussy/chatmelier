@@ -9,7 +9,9 @@ import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
 import '../../menu_scan/presentation/join_table_sheet.dart';
+import '../domain/retour_du_lien.dart';
 import 'reprise_de_soiree_sheet.dart';
+import 'saisie_du_code.dart';
 import '../../../shared/widgets/libere_a_la_fermeture.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -40,6 +42,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    // Un lien parti de l'inscription, ou d'une visite précédente à cet écran : son code
+    // reste proposé, à la même adresse (Q11).
+    final derniere = adresseDuDernierLien.value;
+    if (derniere != null) {
+      _emailCtrl.text = derniere;
+      _magicLinkSent = true;
+    }
     _authSub = ref.read(supabaseProvider).auth.onAuthStateChange.listen((data) {
       // Une session anonyme n'est pas un compte : on reste ici (R2).
       if (data.session != null && !data.session!.user.isAnonymous && mounted) _entrer();
@@ -110,6 +119,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         }
       }
       if (!converti) await repo.sendMagicLink(email);
+      // Le nouveau lien part d'ici : l'avis sur l'ancien n'a plus lieu d'être.
+      lienSansEffet.value = null;
       setState(() {
         _magicLinkSent = true;
       });
@@ -454,6 +465,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                       ),
                     ),
 
+                  // Un lien ouvert dans un autre navigateur, ou expiré (V2.5 · Q11) : le dire
+                  // en tête, au lieu de revenir en silence à l'adresse e-mail.
+                  ValueListenableBuilder<RetourDuLien?>(
+                    valueListenable: lienSansEffet,
+                    builder: (context, retour, _) => retour == null
+                        ? const SizedBox.shrink()
+                        : Padding(
+                            padding: const EdgeInsets.only(bottom: 18),
+                            child: AvisLienSansEffet(retour: retour),
+                          ),
+                  ),
+
                   // Sur iPhone, pas de Google sans « Se connecter avec Apple » à côté : l'App
                   // Store l'exige (règle 4.8). L'iPhone se connecte par lien e-mail.
                   if (_googleProposee) ...[
@@ -602,6 +625,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                     ],
                                   ),
                                 ),
+                                const SizedBox(height: 14),
+                                // Le code du même e-mail connecte ici, où que le lien se soit
+                                // ouvert (Q11).
+                                SaisieDuCode(adresse: () => _emailCtrl.text, onConnecte: _entrer),
                                 const SizedBox(height: 16),
                                 FilledButton.icon(
                                   onPressed: _isLoading ? null : _sendMagicLink,
@@ -649,6 +676,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                     color: theme.colorScheme.onSurfaceVariant,
                                     height: 1.35,
                                   ),
+                                ),
+                                // Arrivé par un lien sans effet : son code marche encore ici,
+                                // sans redemander de lien (sauf s'il a expiré).
+                                ValueListenableBuilder<RetourDuLien?>(
+                                  valueListenable: lienSansEffet,
+                                  builder: (context, retour, _) => retour == null || retour.expire
+                                      ? const SizedBox.shrink()
+                                      : Padding(
+                                          padding: const EdgeInsets.only(top: 16),
+                                          child: SaisieDuCode(adresse: () => _emailCtrl.text, onConnecte: _entrer),
+                                        ),
                                 ),
                               ],
                             ],

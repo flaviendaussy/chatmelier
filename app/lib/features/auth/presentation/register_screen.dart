@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/langue.dart';
+import 'saisie_du_code.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -262,6 +263,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 14),
+              // Le code du même e-mail, si le lien s'ouvre ailleurs (V2.5 · Q11).
+              SaisieDuCode(adresse: () => emailCtrl.text, onConnecte: () => context.go('/')),
               const SizedBox(height: 16),
               Center(
                 child: TextButton(

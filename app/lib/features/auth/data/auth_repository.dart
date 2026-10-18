@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/avatar_et_pseudo.dart';
+import '../domain/retour_du_lien.dart';
 import '../domain/user_profile.dart';
 
 class AuthRepository {
@@ -116,6 +117,9 @@ class AuthRepository {
       email: email,
       emailRedirectTo: redirectUrl,
     );
+    // L'écran de connexion propose ensuite le code du même e-mail (Q11), y compris quand
+    // le lien est parti de l'inscription.
+    adresseDuDernierLien.value = email.trim();
   }
 
   /// Send password reset link to user's email

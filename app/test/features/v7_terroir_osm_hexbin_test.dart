@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:chatmelier/features/cellar/domain/terroir_geo_data.dart';
 import 'package:chatmelier/features/cellar/presentation/terroir_map_view.dart';
@@ -125,11 +126,10 @@ void main() {
         findsOneWidget,
       );
 
-      // Map control buttons must be rendered
-      expect(find.byIcon(Icons.add), findsOneWidget);
-      expect(find.byIcon(Icons.remove), findsOneWidget);
-      expect(find.byIcon(Icons.my_location), findsOneWidget);
-      expect(find.byIcon(Icons.fullscreen), findsOneWidget);
+      // Deux cartes fixes (F7) : plus de boutons de zoom ni de plein écran.
+      expect(find.byType(FlutterMap), findsNWidgets(2));
+      expect(find.byIcon(Icons.add), findsNothing);
+      expect(find.byIcon(Icons.fullscreen), findsNothing);
     });
   });
 }

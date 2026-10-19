@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/utils/pays.dart';
 import 'terroir_geo_data_en.dart';
 
 /// A rich terroir geographic profile containing real GPS coordinates,
@@ -271,6 +272,32 @@ class TerroirGeoResolver {
         avecRepli: false,
       );
 
+  /// Le pays d'un vin, ramené à celui des fiches : l'Écosse au Royaume-Uni, la Martinique
+  /// à la France.
+  static String? _paysDeLAtlas(String country) {
+    final code = Pays.code(country)?.split('-').first;
+    const outreMer = {'MQ', 'GP', 'RE', 'GF', 'YT', 'PM', 'NC', 'PF', 'BL', 'MF', 'WF'};
+    return outreMer.contains(code) ? 'FR' : code;
+  }
+
+  /// Vrai quand [profil] répond à l'appellation elle-même (la première étape de la
+  /// recherche), et non à la sous-région, à la région ou au nom. La carte de la zone
+  /// dessine alors l'appellation ; sinon, environ un département autour du lieu : un
+  /// Bordeaux générique n'est pas un Pauillac (V2.5 · F7).
+  ///
+  /// Au sens strict : l'appellation de la fiche, pas l'un de ses mots-clés. La fiche de
+  /// Côte-Rôtie répond aussi à « Hermitage », cinquante kilomètres plus au sud : y dessiner
+  /// le contour de Côte-Rôtie placerait l'Hermitage au mauvais endroit.
+  static bool parAppellation(TerroirGeoProfile profil, String? appellation) {
+    final normApp = normalize(appellation ?? '');
+    if (normApp.isEmpty) return false;
+    const mentions = {'aoc', 'aop', 'doc', 'docg', 'doca', 'do', 'dop', 'doq', 'ava', 'igp'};
+    return profil.appellation.split(RegExp(r'[&/]')).any((partie) {
+      final nom = normalize(partie).split(' ').where((m) => !mentions.contains(m)).join(' ');
+      return nom.isNotEmpty && normApp.contains(nom);
+    });
+  }
+
   static TerroirGeoProfile? _resoudre({
     required String country,
     required String region,
@@ -291,6 +318,13 @@ class TerroirGeoResolver {
 
     final fullCorpus = '$normName $normType $normApp $normSub $normReg $normCtry';
 
+    // Un vin d'un pays ne prend jamais le terroir d'un autre (V2.5 · F7) : chercher
+    // « malbec » dans tout l'atlas envoyait un Cahors à Mendoza, « riesling » un vin de
+    // Moselle en Alsace, « whisky » un whisky japonais dans le Speyside. Pays inconnu : pas
+    // de borne.
+    final paysDuVin = _paysDeLAtlas(country);
+    bool duPays(TerroirGeoProfile p) => paysDuVin == null || p.countryCode == paysDuVin;
+
     final spiritKeywords = [
       'spirit', 'spiritueux', 'whisky', 'whiskey', 'scotch', 'bourbon',
       'rhum', 'rum', 'gin', 'vodka', 'tequila', 'mezcal', 'cognac',
@@ -302,11 +336,13 @@ class TerroirGeoResolver {
         spiritKeywords.any((k) => normType.contains(k) || normName.contains(k) || normApp.contains(k));
 
     if (isSpiritBottle) {
+      // Toutes les fiches pour les replis de [resolve], celles du pays pour reconnaître.
       final spiritProfiles = _profiles.where((p) => p.id.startsWith('spirit_')).toList();
+      final spiritsDuPays = spiritProfiles.where(duPays).toList();
 
       // 1. Appellation / Keyword match within spirit profiles
       if (normApp.isNotEmpty) {
-        for (final profile in spiritProfiles) {
+        for (final profile in spiritsDuPays) {
           for (final kw in profile.keywords) {
             if (normApp == kw || normApp.contains(kw) || kw.contains(normApp)) {
               return profile;
@@ -316,7 +352,7 @@ class TerroirGeoResolver {
       }
 
       // 2. Name & Producer match within spirit profiles
-      for (final profile in spiritProfiles) {
+      for (final profile in spiritsDuPays) {
         for (final kw in profile.keywords) {
           if (normName.contains(kw)) {
             return profile;
@@ -326,7 +362,7 @@ class TerroirGeoResolver {
 
       // 3. Region / SubRegion match within spirit profiles
       if (normReg.isNotEmpty || normSub.isNotEmpty) {
-        for (final profile in spiritProfiles) {
+        for (final profile in spiritsDuPays) {
           for (final kw in profile.keywords) {
             if ((normReg.isNotEmpty && (normReg == kw || normReg.contains(kw))) ||
                 (normSub.isNotEmpty && (normSub == kw || normSub.contains(kw)))) {
@@ -337,7 +373,7 @@ class TerroirGeoResolver {
       }
 
       // 4. Corpus Search among spirit profiles
-      for (final profile in spiritProfiles) {
+      for (final profile in spiritsDuPays) {
         for (final kw in profile.keywords) {
           if (kw.length >= 4 && fullCorpus.contains(kw)) {
             return profile;
@@ -396,10 +432,11 @@ class TerroirGeoResolver {
 
     // --- Wine Profiles Resolution ---
     final wineProfiles = _profiles.where((p) => !p.id.startsWith('spirit_')).toList();
+    final vinsDuPays = wineProfiles.where(duPays).toList();
 
     // 1. Exact Appellation Match
     if (normApp.isNotEmpty) {
-      for (final profile in wineProfiles) {
+      for (final profile in vinsDuPays) {
         for (final kw in profile.keywords) {
           if (normApp == kw || normApp.contains(kw) || kw.contains(normApp)) {
             return profile;
@@ -410,7 +447,7 @@ class TerroirGeoResolver {
 
     // 2. SubRegion Match
     if (normSub.isNotEmpty) {
-      for (final profile in wineProfiles) {
+      for (final profile in vinsDuPays) {
         for (final kw in profile.keywords) {
           if (normSub == kw || normSub.contains(kw)) {
             return profile;
@@ -421,7 +458,7 @@ class TerroirGeoResolver {
 
     // 3. Region Keyword Match
     if (normReg.isNotEmpty) {
-      for (final profile in wineProfiles) {
+      for (final profile in vinsDuPays) {
         for (final kw in profile.keywords) {
           if (normReg == kw || normReg.contains(kw)) {
             return profile;
@@ -431,7 +468,7 @@ class TerroirGeoResolver {
     }
 
     // 4. Corpus Search
-    for (final profile in wineProfiles) {
+    for (final profile in vinsDuPays) {
       for (final kw in profile.keywords) {
         if (kw.length >= 4 && fullCorpus.contains(kw)) {
           return profile;
@@ -484,7 +521,7 @@ class TerroirGeoResolver {
       classification: 'Premiers Grands Crus Classés 1855 (Latour, Lafite, Mouton)',
       sommelierNotes: 'Les graves pauvres et filtrantes forcent la vigne à plonger ses racines jusqu\'à 6 mètres pour puiser l\'eau, conférant aux vins une structure tannique royale et un potentiel de garde de plusieurs décennies.',
       accentColor: Color(0xFFD4AF37),
-      keywords: ['pauillac', 'medoc', 'haut medoc', 'haut-medoc', 'lafite', 'latour', 'mouton', 'ciron'],
+      keywords: ['pauillac', 'medoc', 'haut medoc', 'haut-medoc', 'lafite', 'latour', 'mouton'],
     ),
     TerroirGeoProfile(
       id: 'margaux',
@@ -661,7 +698,7 @@ class TerroirGeoResolver {
       classification: 'Grands Crus (Romanée-Conti et La Tâche, monopoles ; Richebourg)',
       sommelierNotes: 'La perle de la Côte d\'Or. Un équilibre aristocratique entre dentelle florale (rose fanée, pivoine), épices d\'Orient et tension minérale incomparable.',
       accentColor: Color(0xFF8B1E3F),
-      keywords: ['vosne', 'vosne-romanee', 'vosne romanee', 'romanee', 'romanee-conti', 'la tache', 'richebourg', 'cote de nuits', 'bourgogne', 'burgundy'],
+      keywords: ['vosne', 'vosne-romanee', 'vosne romanee', 'romanee', 'romanee-conti', 'la tache', 'richebourg', 'cote de nuits'],
     ),
     TerroirGeoProfile(
       id: 'gevrey_chambertin',
@@ -775,7 +812,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Chardonnay (Avize, Cramant), Pinot Noir (Bouzy, Ambonnay), Pinot Meunier',
       classification: '17 Villages classés 100% Grand Cru',
       sommelierNotes: 'La craie poreuse agit comme un régulateur thermique et hydrique parfait, apportant une effervescence fine, de la craie broyée et une allonge saline remarquable.',
-      keywords: ['champagne', 'cote des blancs', 'cramant', 'avize', 'mesnil', 'ambonnay', 'bouzy', 'reims', 'epernay', 'ay'],
+      keywords: ['champagne', 'cote des blancs', 'cramant', 'avize', 'mesnil', 'ambonnay', 'bouzy', 'reims', 'epernay'],
     ),
 
     // -------------------------------------------------------------------------
@@ -800,7 +837,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Syrah (dominant), co-fermentée avec jusqu\'à 20% de Viognier',
       classification: 'AOC Crus du Rhône Nord (Côte-Rôtie, Hermitage, Cornas, Condrieu)',
       sommelierNotes: 'Les terrasses en vertige surplombant le Rhône captent la chaleur solaire. La Syrah y exhale des notes d\'olive noire, de lard fumé, de violette et de poivre blanc.',
-      keywords: ['cote-rotie', 'cote rotie', 'hermitage', 'l hermitage', 'cornas', 'condrieu', 'saint-joseph', 'saint joseph', 'rhone nord', 'rhone'],
+      keywords: ['cote-rotie', 'cote rotie', 'hermitage', 'l hermitage', 'cornas', 'condrieu', 'saint-joseph', 'saint joseph', 'rhone nord'],
     ),
     TerroirGeoProfile(
       id: 'rhone_chateauneuf_du_pape',
@@ -821,7 +858,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Grenache Noir (dominant), Mourvèdre, Syrah, Cinsault (13 cépages autorisés)',
       classification: 'Pionnière des appellations d\'origine (AOC 1936)',
       sommelierNotes: 'Les galets roulés emmagasinent la chaleur du soleil le jour et la restituent aux grappes la nuit, menant les Grenaches à une plénitude charnue et épicée de garrigue.',
-      keywords: ['chateauneuf', 'chateauneuf-du-pape', 'chateauneuf du pape', 'gigondas', 'vacqueyras', 'beaumes de venise', 'rhone sud', 'tavel'],
+      keywords: ['chateauneuf', 'chateauneuf-du-pape', 'chateauneuf du pape', 'gigondas', 'vacqueyras', 'beaumes de venise', 'rhone sud', 'tavel', 'cotes du rhone'],
     ),
 
     // -------------------------------------------------------------------------
@@ -846,7 +883,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Sauvignon Blanc (80%), Pinot Noir',
       classification: 'AOC Vignobles du Centre-Loire',
       sommelierNotes: 'Les sols de silex confèrent cette fameuse touche de "pierre à fusil" et de zeste de pamplemousse, tandis que les caillottes apportent vivacité et dentelle.',
-      keywords: ['sancerre', 'pouilly-fume', 'pouilly fume', 'menetou', 'loire', 'centre loire', 'chinon', 'saumur', 'vouvray', 'muscadet'],
+      keywords: ['sancerre', 'pouilly-fume', 'pouilly fume', 'menetou', 'centre loire'],
     ),
 
     // -------------------------------------------------------------------------
@@ -916,7 +953,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Syrah, Grenache, Mourvèdre',
       classification: 'Cru du Languedoc (AOC Communale)',
       sommelierNotes: 'L\'air frais descendant du causse la nuit préserve une fraîcheur aromatique et une finesse tannique qui tranchent avec la chaleur méridionale.',
-      keywords: ['pic saint-loup', 'pic saint loup', 'larzac', 'terrasses du larzac', 'languedoc', 'corbieres', 'minervois', 'collioure'],
+      keywords: ['pic saint-loup', 'pic saint loup', 'larzac', 'terrasses du larzac'],
     ),
 
     // -------------------------------------------------------------------------
@@ -941,7 +978,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Tempranillo (dominant), Garnacha, Graciano, Mazuelo',
       classification: 'Denominación de Origen Calificada (DOCa)',
       sommelierNotes: 'Les fûts de chêne et la maturité lente confèrent au Tempranillo ses arômes emblématiques de vanille, cuir, tabac blond et fruits rouges macérés.',
-      keywords: ['rioja', 'rioja alta', 'rioja alavesa', 'haro', 'tempranillo', 'crianza', 'reserva', 'gran reserva'],
+      keywords: ['rioja', 'rioja alta', 'rioja alavesa', 'haro'],
     ),
     TerroirGeoProfile(
       id: 'spain_ribera_del_duero',
@@ -1027,7 +1064,7 @@ class TerroirGeoResolver {
       classification: 'DOCG Barolo & Barbaresco (Menzioni Geografiche Aggiuntive - MGA)',
       sommelierNotes: 'Le Nebbiolo y livre son éclat translucide grenat orné d\'arômes de goudron noble, de pétale de rose séchée, de truffe blanche et d\'une acidité magistrale.',
       accentColor: Color(0xFFE11D48),
-      keywords: ['barolo', 'barbaresco', 'langhe', 'piemont', 'piedmont', 'nebbiolo', 'alba', 'cannubi', 'la morra', 'serralunga'],
+      keywords: ['barolo', 'barbaresco', 'langhe', 'alba', 'cannubi', 'la morra', 'serralunga'],
     ),
     TerroirGeoProfile(
       id: 'italy_montalcino',
@@ -1047,7 +1084,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Sangiovese Grosso (Brunello 100%)',
       classification: 'DOCG Brunello di Montalcino',
       sommelierNotes: 'Le Sangiovese trouve sur le Galestro sa plus noble expression : cerise griotte, thé noir, cuir de Russie et tanins denses et vibrants.',
-      keywords: ['brunello', 'montalcino', 'chianti', 'chianti classico', 'toscane', 'tuscany', 'sangiovese', 'bolgheri', 'sassicaia'],
+      keywords: ['brunello', 'montalcino', 'chianti', 'chianti classico'],
     ),
 
     // -------------------------------------------------------------------------
@@ -1073,7 +1110,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Cabernet Sauvignon (dominant), Merlot, Cabernet Franc, Chardonnay',
       classification: 'American Viticultural Area (AVA Oakville, Rutherford, Stags Leap)',
       sommelierNotes: 'Le célèbre "Rutherford Dust". Cabernets cossus et opulents aux notes de cassis mûr, moka, bois de cèdre et tanins veloutés à grains très fins.',
-      keywords: ['napa', 'napa valley', 'oakville', 'rutherford', 'stags leap', 'californie', 'opus one', 'screaming eagle', 'sonoma'],
+      keywords: ['napa', 'napa valley', 'oakville', 'rutherford', 'stags leap', 'opus one', 'screaming eagle'],
     ),
 
     // -------------------------------------------------------------------------
@@ -1098,7 +1135,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Malbec (dominant), Cabernet Franc, Torrontés',
       classification: 'Indicación Geográfica (IG Gualtallary, Paraje Altamira)',
       sommelierNotes: 'L\'ensoleillement UV intense épaissit la peau du Malbec tandis que les nuits glaciales des Andes fixent l\'acidité, créant des vins violets profonds aux notes de myrtille et de violette.',
-      keywords: ['mendoza', 'uco', 'valle de uco', 'gualtallary', 'altamira', 'malbec', 'argentine', 'argentina'],
+      keywords: ['mendoza', 'uco', 'valle de uco', 'gualtallary', 'altamira', 'malbec'],
     ),
 
     // -------------------------------------------------------------------------
@@ -1122,7 +1159,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Shiraz (Syrah centenaire préphylloxérique), Cabernet Sauvignon, Grenache',
       classification: 'Geographical Indication (GI Barossa)',
       sommelierNotes: 'Certaines des plus vieilles vignes franches de pied de Shiraz au monde (plantées en 1843). Fruits noirs confiturés, pruneau, eucalyptus et chocolat noir.',
-      keywords: ['barossa', 'barossa valley', 'shiraz', 'penfolds', 'grange', 'australie', 'australia'],
+      keywords: ['barossa', 'barossa valley', 'grange'],
     ),
 
     // -------------------------------------------------------------------------
@@ -1146,7 +1183,7 @@ class TerroirGeoResolver {
       keyGrapes: 'Touriga Nacional, Touriga Franca, Tinta Roriz (Tempranillo)',
       classification: 'Vignoble classé Patrimoine Mondial UNESCO',
       sommelierNotes: 'L\'une des plus anciennes régions délimitées au monde (1756). Terroir héroïque sculpté par la main de l\'homme produisant les grands Vintages de Porto et de somptueux vins secs.',
-      keywords: ['douro', 'porto', 'pinhao', 'touriga', 'portugal', 'alentejo', 'dao', 'vinho verde'],
+      keywords: ['douro', 'porto', 'pinhao'],
     ),
 
     // =========================================================================
@@ -1270,7 +1307,7 @@ class TerroirGeoResolver {
       classification: 'Élixir monastique né, selon la légende, en 1510',
       sommelierNotes: 'Distillation quadruple sous alambics martelés en cuivre de 1888 et vieillissement en foudres de chêne centenaires. Texture soyeuse, miel épicé, écorces d\'oranges confites et notes orientales.',
       accentColor: Color(0xFFD97706),
-      keywords: ['benedictine', 'fecamp', 'dom', 'd.o.m', 'le grand', 'b&b', 'caux'],
+      keywords: ['benedictine', 'fecamp', 'caux'],
     ),
 
     // 6. ISLAY SINGLE MALT SCOTCH WHISKY
@@ -1390,7 +1427,7 @@ class TerroirGeoResolver {
       classification: 'AOC Rhum de Martinique (Seule AOC mondiale du rhum)',
       sommelierNotes: 'Contrairement aux rhums industriels de mélasse, le rhum agricole est distillé à partir du vesou frais. Explosion aromatique de canne fraîche, zeste de lime, fleurs blanches en blanc, et boisé vanillé noble en vieux.',
       accentColor: Color(0xFFEAB308),
-      keywords: ['rhum', 'rum', 'martinique', 'guadeloupe', 'agricole', 'clement', 'bally', 'neisson', 'depaz', 'j.m', 'jm', 'damoiseau', 'caraibes', 'caribbean', 'vesou', 'trois rivieres', 'havana', 'diplomatico', 'zacapa', 'plantation', 'bologne'],
+      keywords: ['rhum', 'rum', 'martinique', 'guadeloupe', 'agricole', 'clement', 'bally', 'neisson', 'depaz', 'jm', 'damoiseau', 'caraibes', 'caribbean', 'vesou', 'trois rivieres', 'havana', 'plantation', 'bologne'],
     ),
 
     // 11. TEQUILA & MEZCAL (JALISCO & OAXACA)
@@ -1438,7 +1475,7 @@ class TerroirGeoResolver {
       classification: 'Catégorie Réglementaire Européenne London Dry Gin',
       sommelierNotes: 'Distillation pure sans aucun arôme ni sucre ajouté après alambic. Dominance résineuse et piquante du genièvre, fraîcheur de zeste de citron jaune, racine d\'iris et graines de coriandre.',
       accentColor: Color(0xFF0284C7),
-      keywords: ['gin', 'london dry', 'tanqueray', 'bombay', 'hendrick', 'beefeater', 'botanical', 'genievre', 'juniper', 'roku', 'monkey 47', 'citadelle'],
+      keywords: ['gin', 'london dry', 'tanqueray', 'bombay', 'hendrick', 'beefeater', 'botanical', 'genievre', 'juniper', 'monkey 47', 'citadelle'],
     ),
 
     // 13. VODKA TRADITION
@@ -1462,7 +1499,7 @@ class TerroirGeoResolver {
       classification: 'Protected Geographical Indication Polska Wódka',
       sommelierNotes: 'Pureté absolue issue de multiples distillations en colonnes et filtrations au charbon de bois. Texture grasse, crémeuse, notes de pain de seigle frais, vanille douce et poivre blanc délicat.',
       accentColor: Color(0xFF64748B),
-      keywords: ['vodka', 'belvedere', 'grey goose', 'chopin', 'smirnoff', 'stolichnaya', 'absolut', 'seigle', 'rye vodka', 'wheat vodka'],
+      keywords: ['vodka', 'belvedere', 'grey goose', 'chopin', 'smirnoff', 'stolichnaya', 'seigle', 'rye vodka', 'wheat vodka'],
     ),
   ];
 }

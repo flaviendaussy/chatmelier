@@ -11271,127 +11271,43 @@
   "fr": "© OpenStreetMap · SRTM · rendu © OpenTopoMap (CC-BY-SA)",
   "en": "© OpenStreetMap · SRTM · style © OpenTopoMap (CC-BY-SA)",
   "es": "© OpenStreetMap · SRTM · estilo © OpenTopoMap (CC-BY-SA)",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:23"
- },
- {
-  "fr": "Relief sombre",
-  "en": "Dark relief",
-  "es": "Relieve oscuro",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:182"
- },
- {
-  "fr": "Relief",
-  "en": "Relief",
-  "es": "Relieve",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:186"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:40"
  },
  {
   "fr": "Ce terroir n'est pas encore dans notre atlas.",
   "en": "This terroir is not in our atlas yet.",
   "es": "Este terruño aún no está en nuestro atlas.",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:266"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:152"
  },
  {
   "fr": "{lieu} : ce terroir n'est pas encore dans notre atlas.",
   "en": "{lieu}: this terroir is not in our atlas yet.",
   "es": "{lieu}: este terruño aún no está en nuestro atlas.",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:267"
- },
- {
-  "fr": "Zoom avant",
-  "en": "Zoom in",
-  "es": "Acercar",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:467"
- },
- {
-  "fr": "Zoom arrière",
-  "en": "Zoom out",
-  "es": "Alejar",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:473"
- },
- {
-  "fr": "Recadrer sur le terroir",
-  "en": "Centre on the terroir",
-  "es": "Centrar en el terruño",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:479"
- },
- {
-  "fr": "Masquer hexagones",
-  "en": "Hide hexagons",
-  "es": "Ocultar hexágonos",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:485"
- },
- {
-  "fr": "Afficher hexagones",
-  "en": "Show hexagons",
-  "es": "Mostrar hexágonos",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:485"
- },
- {
-  "fr": "Revenir sur {nomAffiche}",
-  "en": "Back to {nomAffiche}",
-  "es": "Volver a {nomAffiche}",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:544"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:153"
  },
  {
   "fr": "Sol",
   "en": "Soil",
   "es": "Suelo",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:638"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:328"
  },
  {
   "fr": "Climat",
   "en": "Climate",
   "es": "Clima",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:644"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:334"
+ },
+ {
+  "fr": "Relief",
+  "en": "Relief",
+  "es": "Relieve",
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:340"
  },
  {
   "fr": "{label} : ",
   "en": "{label}: ",
   "es": "{label}: ",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:842"
- },
- {
-  "fr": "Afficher/Masquer Hexagones Terroir",
-  "en": "Show/hide terroir hexagons",
-  "es": "Mostrar/ocultar los hexágonos del terruño",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:930"
- },
- {
-  "fr": "Fond de carte",
-  "en": "Base map",
-  "es": "Mapa base",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:939"
- },
- {
-  "fr": "⛰️ Relief Topographique",
-  "en": "⛰️ Topographic relief",
-  "es": "⛰️ Relieve topográfico",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:953"
- },
- {
-  "fr": "🪨 Sol",
-  "en": "🪨 Soil",
-  "es": "🪨 Suelo",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1083"
- },
- {
-  "fr": "☀️ Climat",
-  "en": "☀️ Climate",
-  "es": "☀️ Clima",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1084"
- },
- {
-  "fr": "📐 Relief & Exposition",
-  "en": "📐 Relief & aspect",
-  "es": "📐 Relieve y orientación",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1085"
- },
- {
-  "fr": "🍇 Cépages Phares",
-  "en": "🍇 Signature grapes",
-  "es": "🍇 Variedades emblemáticas",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1086"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:446"
  },
  {
   "fr": "Veuillez saisir une année valide (ex: 2018)",

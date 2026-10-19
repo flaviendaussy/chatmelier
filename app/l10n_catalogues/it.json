@@ -11271,127 +11271,43 @@
   "fr": "© OpenStreetMap · SRTM · rendu © OpenTopoMap (CC-BY-SA)",
   "en": "© OpenStreetMap · SRTM · style © OpenTopoMap (CC-BY-SA)",
   "it": "© OpenStreetMap · SRTM · stile © OpenTopoMap (CC-BY-SA)",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:23"
- },
- {
-  "fr": "Relief sombre",
-  "en": "Dark relief",
-  "it": "Rilievo scuro",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:182"
- },
- {
-  "fr": "Relief",
-  "en": "Relief",
-  "it": "Rilievo",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:186"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:40"
  },
  {
   "fr": "Ce terroir n'est pas encore dans notre atlas.",
   "en": "This terroir is not in our atlas yet.",
   "it": "Questo terroir non è ancora nel nostro atlante.",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:266"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:152"
  },
  {
   "fr": "{lieu} : ce terroir n'est pas encore dans notre atlas.",
   "en": "{lieu}: this terroir is not in our atlas yet.",
   "it": "{lieu}: questo terroir non è ancora nel nostro atlante.",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:267"
- },
- {
-  "fr": "Zoom avant",
-  "en": "Zoom in",
-  "it": "Ingrandisci",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:467"
- },
- {
-  "fr": "Zoom arrière",
-  "en": "Zoom out",
-  "it": "Riduci",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:473"
- },
- {
-  "fr": "Recadrer sur le terroir",
-  "en": "Centre on the terroir",
-  "it": "Centra sul terroir",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:479"
- },
- {
-  "fr": "Masquer hexagones",
-  "en": "Hide hexagons",
-  "it": "Nascondi gli esagoni",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:485"
- },
- {
-  "fr": "Afficher hexagones",
-  "en": "Show hexagons",
-  "it": "Mostra gli esagoni",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:485"
- },
- {
-  "fr": "Revenir sur {nomAffiche}",
-  "en": "Back to {nomAffiche}",
-  "it": "Torna a {nomAffiche}",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:544"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:153"
  },
  {
   "fr": "Sol",
   "en": "Soil",
   "it": "Suolo",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:638"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:328"
  },
  {
   "fr": "Climat",
   "en": "Climate",
   "it": "Clima",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:644"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:334"
+ },
+ {
+  "fr": "Relief",
+  "en": "Relief",
+  "it": "Rilievo",
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:340"
  },
  {
   "fr": "{label} : ",
   "en": "{label}: ",
   "it": "{label}: ",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:842"
- },
- {
-  "fr": "Afficher/Masquer Hexagones Terroir",
-  "en": "Show/hide terroir hexagons",
-  "it": "Mostra/nascondi gli esagoni del terroir",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:930"
- },
- {
-  "fr": "Fond de carte",
-  "en": "Base map",
-  "it": "Mappa di base",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:939"
- },
- {
-  "fr": "⛰️ Relief Topographique",
-  "en": "⛰️ Topographic relief",
-  "it": "⛰️ Rilievo topografico",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:953"
- },
- {
-  "fr": "🪨 Sol",
-  "en": "🪨 Soil",
-  "it": "🪨 Suolo",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1083"
- },
- {
-  "fr": "☀️ Climat",
-  "en": "☀️ Climate",
-  "it": "☀️ Clima",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1084"
- },
- {
-  "fr": "📐 Relief & Exposition",
-  "en": "📐 Relief & aspect",
-  "it": "📐 Rilievo ed esposizione",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1085"
- },
- {
-  "fr": "🍇 Cépages Phares",
-  "en": "🍇 Signature grapes",
-  "it": "🍇 Vitigni simbolo",
-  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:1086"
+  "ou": "lib/features/cellar/presentation/terroir_map_view.dart:446"
  },
  {
   "fr": "Veuillez saisir une année valide (ex: 2018)",

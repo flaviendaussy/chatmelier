@@ -1,3 +1,4 @@
+import '../../cellar/domain/type_de_vin.dart';
 import '../../cellar/domain/wine.dart';
 
 class ScanResult {
@@ -60,64 +61,17 @@ class ScanResult {
   factory ScanResult.fromJson(Map<String, dynamic> json) {
     final rawName = json['name'] as String? ?? 'Vin sans nom';
     final rawProducer = json['producer'] as String?;
-    final rawType = json['wine_type'] as String? ?? 'red';
     final rawAppellation = json['appellation'] as String?;
-    final combinedLower = '$rawName ${rawProducer ?? ""} ${rawAppellation ?? ""} $rawType'.toLowerCase();
 
-    String resolvedType = rawType;
-    if (combinedLower.contains('italicus') ||
-        combinedLower.contains('rosolio') ||
-        combinedLower.contains('bénédictine') ||
-        combinedLower.contains('benedictine') ||
-        combinedLower.contains('amaretto') ||
-        combinedLower.contains('disaronno') ||
-        combinedLower.contains('chartreuse') ||
-        combinedLower.contains('cointreau') ||
-        combinedLower.contains('chambord') ||
-        combinedLower.contains('pimm') ||
-        combinedLower.contains('fleur de lavande') ||
-        combinedLower.contains('liqueur')) {
-      resolvedType = 'liqueur';
-    } else if (RegExp(r'\bgin\b', caseSensitive: false).hasMatch(combinedLower)) {
-      resolvedType = 'gin';
-    } else if (combinedLower.contains('vodka')) {
-      resolvedType = 'vodka';
-    } else if (combinedLower.contains('whisky') || combinedLower.contains('whiskey') || combinedLower.contains('bourbon') || combinedLower.contains('scotch')) {
-      resolvedType = 'whisky';
-    } else if (combinedLower.contains('rhum') || combinedLower.contains('rum')) {
-      resolvedType = 'rhum';
-    } else if (combinedLower.contains('cognac') || combinedLower.contains('armagnac') || combinedLower.contains('calvados')) {
-      resolvedType = 'cognac';
-    } else if (combinedLower.contains('tequila') || combinedLower.contains('mezcal')) {
-      resolvedType = 'tequila';
-    } else if (combinedLower.contains('grappa') ||
-        combinedLower.contains('vinaccia') ||
-        combinedLower.contains('acquavite') ||
-        combinedLower.contains('marc de ') ||
-        combinedLower.contains('fine de ')) {
-      resolvedType = 'grappa';
-    } else if (combinedLower.contains('pisco') ||
-        combinedLower.contains('aguardente') ||
-        combinedLower.contains('eau de vie') ||
-        combinedLower.contains('eau-de-vie') ||
-        combinedLower.contains('pastis') ||
-        combinedLower.contains('ricard') ||
-        combinedLower.contains('absinthe')) {
-      resolvedType = 'spirit';
-    } else if (combinedLower.contains('porto') ||
-        combinedLower.contains('port wine') ||
-        combinedLower.contains('sherry') ||
-        combinedLower.contains('xérès') ||
-        combinedLower.contains('xeres') ||
-        combinedLower.contains('banyuls') ||
-        combinedLower.contains('maury') ||
-        combinedLower.contains('rivesaltes') ||
-        combinedLower.contains('madère') ||
-        combinedLower.contains('madeira') ||
-        combinedLower.contains('marsala') ||
-        combinedLower.contains('vermouth')) {
-      resolvedType = 'fortified';
-    }
+    // Le type lu par le scan prime sur le nom (V2.5 · Q4) : « Grumello » n'est plus du
+    // rhum, l'AOC Corse Porto-Vecchio n'est plus un porto. Voir TypeDeVin.
+    final resolvedType = TypeDeVin.resoudre(
+      stocke: json['wine_type'] as String?,
+      nom: rawName,
+      producteur: rawProducer,
+      appellation: rawAppellation,
+      alcool: (json['alcohol_pct'] as num?)?.toDouble(),
+    );
 
     return ScanResult(
       name: rawName,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'type_de_vin.dart';
 import 'wine_service_advisor.dart';
 import '../../../shared/utils/langue.dart';
 
@@ -229,73 +230,26 @@ class Wine {
   });
 
   factory Wine.fromJson(Map<String, dynamic> json) {
-    final rawType = json['wine_type'] as String? ?? json['type'] as String? ?? 'red';
     final rawName = json['name'] as String? ?? 'Unnamed Wine';
     final rawProducer = json['producer'] as String?;
     final rawAppellation = json['appellation'] as String?;
     final combinedLower = '$rawName ${rawProducer ?? ""} ${rawAppellation ?? ""}'.toLowerCase();
+    final alcoolLu = (json['alcohol_pct'] as num?)?.toDouble();
 
-    // Auto-normalize spirits, liqueurs, and fortified wines misclassified in database
-    String resolvedType = rawType;
-    if (combinedLower.contains('italicus') ||
-        combinedLower.contains('rosolio') ||
-        combinedLower.contains('bénédictine') ||
-        combinedLower.contains('benedictine') ||
-        combinedLower.contains('chartreuse') ||
-        combinedLower.contains('cointreau') ||
-        combinedLower.contains('grand marnier') ||
-        combinedLower.contains('amaretto') ||
-        combinedLower.contains('disaronno') ||
-        combinedLower.contains('kahlúa') ||
-        combinedLower.contains('kahlua') ||
-        combinedLower.contains('limoncello') ||
-        combinedLower.contains('sambuca') ||
-        combinedLower.contains('chambord') ||
-        combinedLower.contains('fleur de lavande') ||
-        combinedLower.contains('crème de') ||
-        combinedLower.contains('creme de') ||
-        combinedLower.contains('pimm') ||
-        combinedLower.contains('liqueur')) {
-      resolvedType = 'liqueur';
-    } else if (RegExp(r'\bgin\b', caseSensitive: false).hasMatch(combinedLower)) {
-      resolvedType = 'gin';
-    } else if (combinedLower.contains('vodka')) {
-      resolvedType = 'vodka';
-    } else if (combinedLower.contains('whisky') || combinedLower.contains('whiskey') || combinedLower.contains('bourbon') || combinedLower.contains('scotch')) {
-      resolvedType = 'whisky';
-    } else if (combinedLower.contains('rhum') || combinedLower.contains('rum')) {
-      resolvedType = 'rhum';
-    } else if (combinedLower.contains('cognac') || combinedLower.contains('armagnac') || combinedLower.contains('calvados')) {
-      resolvedType = 'cognac';
-    } else if (combinedLower.contains('tequila') || combinedLower.contains('mezcal')) {
-      resolvedType = 'tequila';
-    } else if (combinedLower.contains('pisco') ||
-        combinedLower.contains('grappa') ||
-        combinedLower.contains('eau de vie') ||
-        combinedLower.contains('eau-de-vie') ||
-        combinedLower.contains('aguardente') ||
-        combinedLower.contains('pastis') ||
-        combinedLower.contains('ricard') ||
-        combinedLower.contains('absinthe')) {
-      resolvedType = 'spirit';
-    } else if (combinedLower.contains('porto') ||
-        combinedLower.contains('port wine') ||
-        combinedLower.contains('sherry') ||
-        combinedLower.contains('xérès') ||
-        combinedLower.contains('xeres') ||
-        combinedLower.contains('banyuls') ||
-        combinedLower.contains('maury') ||
-        combinedLower.contains('rivesaltes') ||
-        combinedLower.contains('madère') ||
-        combinedLower.contains('madeira') ||
-        combinedLower.contains('marsala') ||
-        combinedLower.contains('vermouth')) {
-      resolvedType = 'fortified';
-    }
+    // Le type enregistré prime sur le nom (V2.5 · Q4) : « Grumello » n'est plus du rhum,
+    // l'AOC Corse Porto-Vecchio n'est plus un porto. Voir TypeDeVin.
+    final resolvedType = TypeDeVin.resoudre(
+      stocke: json['wine_type'] as String? ?? json['type'] as String?,
+      nom: rawName,
+      producteur: rawProducer,
+      appellation: rawAppellation,
+      alcool: alcoolLu,
+    );
 
-    // Auto-fill alcohol content for famous spirits if missing from DB
-    double? alcohol = (json['alcohol_pct'] as num?)?.toDouble();
-    if (alcohol == null) {
+    // Auto-fill alcohol content for famous spirits if missing from DB — jamais pour un vin :
+    // « Château la Chartreuse » (Sauternes) n'a pas 55 %.
+    double? alcohol = alcoolLu;
+    if (alcohol == null && !TypeDeVin.estUnVin(resolvedType)) {
       if (combinedLower.contains('bénédictine') || combinedLower.contains('benedictine')) {
         alcohol = 40.0;
       } else if (combinedLower.contains('chartreuse')) {
@@ -390,6 +344,10 @@ class Wine {
         t == 'hard') {
       return true;
     }
+    // Un vin enregistré comme tel n'est pas un spiritueux, quel que soit son nom (V2.5 ·
+    // Q4) : « amaro » se lisait dans « Amarone », « chartreuse » dans « Château la
+    // Chartreuse ».
+    if (TypeDeVin.estUnVin(t)) return false;
 
     final n = '$name ${producer ?? ""} ${appellation ?? ""}'.toLowerCase();
     final words = n.split(RegExp(r'[\s,\.\-_]+')).toSet();
@@ -464,20 +422,17 @@ class Wine {
   bool get isFortified {
     final t = type.toLowerCase().trim();
     if (t == 'fortified' || t == 'muté' || t == 'mute' || t == 'vdn' || t == 'vermouth' || t == 'porto' || t == 'sherry') return true;
-    final n = '$name ${producer ?? ""} ${appellation ?? ""}'.toLowerCase();
-    return n.contains('porto') ||
-        n.contains('port wine') ||
-        n.contains('sherry') ||
-        n.contains('xérès') ||
-        n.contains('xeres') ||
-        n.contains('banyuls') ||
-        n.contains('maury') ||
-        n.contains('rivesaltes') ||
-        n.contains('madère') ||
-        n.contains('madeira') ||
-        n.contains('marsala') ||
-        n.contains('vermouth') ||
-        n.contains('vin doux naturel');
+    // Un vin doux naturel se reconnaît à son appellation, quelle que soit sa couleur ;
+    // jamais au nom du domaine (« Clos du Maury ») ni à l'AOC Corse Porto-Vecchio (Q4).
+    if (TypeDeVin.appellationMutee(appellation)) return true;
+    final n = '$name ${producer ?? ""} ${appellation ?? ""}';
+    // Un porto rangé parmi les moelleux reste un porto ; un rouge, un blanc, un rosé
+    // restent ce qu'ils sont.
+    if (const {'dessert', 'sweet', 'moelleux', 'liquoreux'}.contains(t)) {
+      return TypeDeVin.spiritueuxNomme(n, sansAmbiguite: true) == 'fortified';
+    }
+    if (TypeDeVin.estUnVin(t)) return false;
+    return TypeDeVin.spiritueuxNomme(n) == 'fortified';
   }
 
   /// True for spirits, liqueurs, and fortified/muté wines where bottle fill level (0-100%)

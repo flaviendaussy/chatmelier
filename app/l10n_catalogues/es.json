@@ -273,277 +273,277 @@
   "fr": "Email ou mot de passe incorrect. Si vous n'avez pas encore de compte, cliquez sur \"Créer un compte\".",
   "en": "Incorrect email or password. If you don't have an account yet, tap \"Create an account\".",
   "es": "Correo o contraseña incorrectos. Si aún no tienes cuenta, toca \"Crear una cuenta\".",
-  "ou": "lib/features/auth/presentation/login_screen.dart:70"
+  "ou": "lib/features/auth/presentation/login_screen.dart:68"
  },
  {
   "fr": "Format d'adresse email invalide. Veuillez vérifier votre saisie.",
   "en": "Invalid email address. Please check what you typed.",
   "es": "Formato de correo no válido. Revisa lo que has escrito.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:73"
+  "ou": "lib/features/auth/presentation/login_screen.dart:71"
  },
  {
   "fr": "Cette adresse email est déjà enregistrée. Veuillez vous connecter.",
   "en": "This email address is already registered. Please sign in.",
   "es": "Este correo ya está registrado. Inicia sesión.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:76"
+  "ou": "lib/features/auth/presentation/login_screen.dart:74"
  },
  {
   "fr": "Adresse email non confirmée. Veuillez vérifier votre boîte de réception.",
   "en": "Email address not confirmed. Please check your inbox.",
   "es": "Correo no confirmado. Revisa tu bandeja de entrada.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:79"
+  "ou": "lib/features/auth/presentation/login_screen.dart:77"
  },
  {
   "fr": "Le mot de passe doit comporter au moins 6 caractères.",
   "en": "The password must be at least 6 characters long.",
   "es": "La contraseña debe tener al menos 6 caracteres.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:82"
+  "ou": "lib/features/auth/presentation/login_screen.dart:80"
  },
  {
   "fr": "Trop de tentatives en peu de temps. Veuillez patienter 60 secondes avant de réessayer.",
   "en": "Too many attempts in a short time. Please wait 60 seconds before trying again.",
   "es": "Demasiados intentos en poco tiempo. Espera 60 segundos antes de volver a intentarlo.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:85"
+  "ou": "lib/features/auth/presentation/login_screen.dart:83"
  },
  {
   "fr": "Impossible de joindre le serveur. Veuillez vérifier votre connexion Internet et réessayer.",
   "en": "Can't reach the server. Please check your internet connection and try again.",
   "es": "No se puede conectar con el servidor. Comprueba tu conexión a internet y vuelve a intentarlo.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:93"
+  "ou": "lib/features/auth/presentation/login_screen.dart:91"
  },
  {
   "fr": "Une erreur est survenue lors de la connexion. Veuillez réessayer.",
   "en": "Something went wrong while signing in. Please try again.",
   "es": "Algo ha fallado al iniciar sesión. Vuelve a intentarlo.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:95"
+  "ou": "lib/features/auth/presentation/login_screen.dart:93"
  },
  {
   "fr": "Veuillez renseigner une adresse email valide",
   "en": "Please enter a valid email address",
   "es": "Introduce un correo electrónico válido",
-  "ou": "lib/features/auth/presentation/login_screen.dart:102"
+  "ou": "lib/features/auth/presentation/login_screen.dart:100"
  },
  {
   "fr": "✉️ Lien de connexion envoyé à {email} ! Cliquez sur le lien reçu (vérifiez vos spams) pour entrer directement.",
   "en": "✉️ Sign-in link sent to {email}! Tap the link in that email (check your spam folder) to sign straight in.",
   "es": "✉️ ¡Enlace de acceso enviado a {email}! Toca el enlace del correo (revisa el spam) para entrar directamente.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:130"
+  "ou": "lib/features/auth/presentation/login_screen.dart:128"
  },
  {
   "fr": "Veuillez remplir votre email et votre mot de passe",
   "en": "Please enter your email and password",
   "es": "Introduce tu correo y tu contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:162"
+  "ou": "lib/features/auth/presentation/login_screen.dart:160"
  },
  {
   "fr": "Mot de passe incorrect ou compte créé sans mot de passe.",
   "en": "Wrong password, or an account created without a password.",
   "es": "Contraseña incorrecta, o cuenta creada sin contraseña.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:178"
+  "ou": "lib/features/auth/presentation/login_screen.dart:176"
  },
  {
   "fr": "Connexion email ✉️",
   "en": "Email sign-in ✉️",
   "es": "Acceso por correo ✉️",
-  "ou": "lib/features/auth/presentation/login_screen.dart:182"
+  "ou": "lib/features/auth/presentation/login_screen.dart:180"
  },
  {
   "fr": "Mot de passe oublié ?",
   "en": "Forgot your password?",
   "es": "¿Has olvidado tu contraseña?",
-  "ou": "lib/features/auth/presentation/login_screen.dart:216"
+  "ou": "lib/features/auth/presentation/login_screen.dart:214"
  },
  {
   "fr": "Renseignez votre email pour recevoir un lien direct de connexion (sans mot de passe) ou un lien de réinitialisation :",
   "en": "Enter your email to get a direct sign-in link (no password needed) or a reset link:",
   "es": "Introduce tu correo para recibir un enlace de acceso directo (sin contraseña) o un enlace para restablecerla:",
-  "ou": "lib/features/auth/presentation/login_screen.dart:222"
+  "ou": "lib/features/auth/presentation/login_screen.dart:220"
  },
  {
   "fr": "Adresse email",
   "en": "Email address",
   "es": "Correo electrónico",
-  "ou": "lib/features/auth/presentation/login_screen.dart:230"
+  "ou": "lib/features/auth/presentation/login_screen.dart:228"
  },
  {
   "fr": "Lien direct par email (Recommandé)",
   "en": "Direct link by email (recommended)",
   "es": "Enlace directo por correo (recomendado)",
-  "ou": "lib/features/auth/presentation/login_screen.dart:245"
+  "ou": "lib/features/auth/presentation/login_screen.dart:243"
  },
  {
   "fr": "Veuillez renseigner une adresse email valide.",
   "en": "Please enter a valid email address.",
   "es": "Introduce un correo electrónico válido.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:250"
+  "ou": "lib/features/auth/presentation/login_screen.dart:248"
  },
  {
   "fr": "Réinitialiser le mot de passe",
   "en": "Reset password",
   "es": "Restablecer la contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:262"
+  "ou": "lib/features/auth/presentation/login_screen.dart:260"
  },
  {
   "fr": "✉️ Email de réinitialisation envoyé à {targetEmail} (vérifiez vos courriers indésirables / spams)",
   "en": "✉️ Reset email sent to {targetEmail} (check your junk / spam folder)",
   "es": "✉️ Correo para restablecer enviado a {targetEmail} (revisa la carpeta de correo no deseado / spam)",
-  "ou": "lib/features/auth/presentation/login_screen.dart:278"
+  "ou": "lib/features/auth/presentation/login_screen.dart:276"
  },
  {
   "fr": "Erreur : {err}",
   "en": "Error: {err}",
   "es": "Error: {err}",
-  "ou": "lib/features/auth/presentation/login_screen.dart:287"
+  "ou": "lib/features/auth/presentation/login_screen.dart:285"
  },
  {
   "fr": "Annuler",
   "en": "Cancel",
   "es": "Cancelar",
-  "ou": "lib/features/auth/presentation/login_screen.dart:295"
+  "ou": "lib/features/auth/presentation/login_screen.dart:293"
  },
  {
   "fr": "Échec de connexion Google : {e}",
   "en": "Google sign-in failed: {e}",
   "es": "Error al iniciar sesión con Google: {e}",
-  "ou": "lib/features/auth/presentation/login_screen.dart:312"
+  "ou": "lib/features/auth/presentation/login_screen.dart:310"
  },
  {
   "fr": "Votre cave à vin intelligente et partagée",
   "en": "Your smart, shared wine cellar",
   "es": "Tu bodega inteligente y compartida",
-  "ou": "lib/features/auth/presentation/login_screen.dart:358"
+  "ou": "lib/features/auth/presentation/login_screen.dart:356"
  },
  {
   "fr": "Au restaurant ce soir ?",
   "en": "Eating out tonight?",
   "es": "¿Al restaurante esta noche?",
-  "ou": "lib/features/auth/presentation/login_screen.dart:399"
+  "ou": "lib/features/auth/presentation/login_screen.dart:397"
  },
  {
   "fr": "Profitez du sommelier & de la table sans compte !",
   "en": "Use the sommelier and the table without an account!",
   "es": "¡Disfruta del sumiller y de la mesa sin cuenta!",
-  "ou": "lib/features/auth/presentation/login_screen.dart:403"
+  "ou": "lib/features/auth/presentation/login_screen.dart:401"
  },
  {
   "fr": "Rejoindre table",
   "en": "Join table",
   "es": "Unirme a una mesa",
-  "ou": "lib/features/auth/presentation/login_screen.dart:423"
+  "ou": "lib/features/auth/presentation/login_screen.dart:421"
  },
  {
   "fr": "Scanner menu",
   "en": "Scan menu",
   "es": "Escanear la carta",
-  "ou": "lib/features/auth/presentation/login_screen.dart:437"
+  "ou": "lib/features/auth/presentation/login_screen.dart:435"
  },
  {
   "fr": "J'ai un code de reprise",
   "en": "I have a recovery code",
   "es": "Tengo un código de recuperación",
-  "ou": "lib/features/auth/presentation/login_screen.dart:449"
+  "ou": "lib/features/auth/presentation/login_screen.dart:447"
  },
  {
   "fr": "Créez votre compte pour garder votre cave, vos dégustations et votre palais.",
   "en": "Create your account to keep your cellar, your tastings and your palate.",
   "es": "Crea tu cuenta para guardar tu bodega, tus catas y tu paladar.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:461"
+  "ou": "lib/features/auth/presentation/login_screen.dart:459"
  },
  {
   "fr": "Continuer avec Google",
   "en": "Continue with Google",
   "es": "Continuar con Google",
-  "ou": "lib/features/auth/presentation/login_screen.dart:516"
+  "ou": "lib/features/auth/presentation/login_screen.dart:514"
  },
  {
   "fr": "✉️ Lien de connexion",
   "en": "✉️ Sign-in link",
   "es": "✉️ Enlace de acceso",
-  "ou": "lib/features/auth/presentation/login_screen.dart:564"
+  "ou": "lib/features/auth/presentation/login_screen.dart:562"
  },
  {
   "fr": "🔑 Mot de passe",
   "en": "🔑 Password",
   "es": "🔑 Contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:565"
+  "ou": "lib/features/auth/presentation/login_screen.dart:563"
  },
  {
   "fr": "Lien de connexion envoyé !",
   "en": "Sign-in link sent!",
   "es": "¡Enlace de acceso enviado!",
-  "ou": "lib/features/auth/presentation/login_screen.dart:614"
+  "ou": "lib/features/auth/presentation/login_screen.dart:612"
  },
  {
   "fr": "Un email sécurisé a été envoyé à :\n{v1}\n\nOuvrez simplement cet email et cliquez sur le lien pour vous connecter automatiquement à votre cave (vérifiez votre dossier spams si nécessaire).",
   "en": "A secure email has been sent to:\n{v1}\n\nJust open it and tap the link to sign in to your cellar automatically (check your spam folder if needed).",
   "es": "Hemos enviado un correo seguro a:\n{v1}\n\nÁbrelo y toca el enlace para entrar automáticamente en tu bodega (revisa la carpeta de spam si hace falta).",
-  "ou": "lib/features/auth/presentation/login_screen.dart:622"
+  "ou": "lib/features/auth/presentation/login_screen.dart:620"
  },
  {
   "fr": "Renvoi en cours...",
   "en": "Resending...",
   "es": "Reenviando...",
-  "ou": "lib/features/auth/presentation/login_screen.dart:643"
+  "ou": "lib/features/auth/presentation/login_screen.dart:641"
  },
  {
   "fr": "Renvoyer le lien de connexion",
   "en": "Resend the sign-in link",
   "es": "Reenviar el enlace de acceso",
-  "ou": "lib/features/auth/presentation/login_screen.dart:643"
+  "ou": "lib/features/auth/presentation/login_screen.dart:641"
  },
  {
   "fr": "Changer d'adresse email",
   "en": "Use another email address",
   "es": "Usar otro correo",
-  "ou": "lib/features/auth/presentation/login_screen.dart:653"
+  "ou": "lib/features/auth/presentation/login_screen.dart:651"
  },
  {
   "fr": "Envoi en cours...",
   "en": "Sending...",
   "es": "Enviando...",
-  "ou": "lib/features/auth/presentation/login_screen.dart:667"
+  "ou": "lib/features/auth/presentation/login_screen.dart:665"
  },
  {
   "fr": "Recevoir mon lien de connexion",
   "en": "Email me a sign-in link",
   "es": "Recibir mi enlace de acceso",
-  "ou": "lib/features/auth/presentation/login_screen.dart:667"
+  "ou": "lib/features/auth/presentation/login_screen.dart:665"
  },
  {
   "fr": "Connexion sans mot de passe : vous recevrez un email contenant un lien direct et sécurisé pour accéder à votre cave.",
   "en": "Password-free sign-in: you'll get an email with a direct, secure link to your cellar.",
   "es": "Acceso sin contraseña: recibirás un correo con un enlace directo y seguro a tu bodega.",
-  "ou": "lib/features/auth/presentation/login_screen.dart:673"
+  "ou": "lib/features/auth/presentation/login_screen.dart:671"
  },
  {
   "fr": "Mot de passe",
   "en": "Password",
   "es": "Contraseña",
-  "ou": "lib/features/auth/presentation/login_screen.dart:714"
+  "ou": "lib/features/auth/presentation/login_screen.dart:715"
  },
  {
   "fr": "Connexion...",
   "en": "Signing in...",
   "es": "Iniciando sesión...",
-  "ou": "lib/features/auth/presentation/login_screen.dart:735"
+  "ou": "lib/features/auth/presentation/login_screen.dart:736"
  },
  {
   "fr": "Se connecter",
   "en": "Sign in",
   "es": "Iniciar sesión",
-  "ou": "lib/features/auth/presentation/login_screen.dart:735"
+  "ou": "lib/features/auth/presentation/login_screen.dart:736"
  },
  {
   "fr": "Pas encore inscrit ? Créer un compte en 1 clic",
   "en": "Not registered yet? Create an account in one tap",
   "es": "¿Aún no tienes cuenta? Créala en un toque",
-  "ou": "lib/features/auth/presentation/login_screen.dart:743"
+  "ou": "lib/features/auth/presentation/login_screen.dart:744"
  },
  {
   "fr": "Créer un nouveau compte",
   "en": "Create a new account",
   "es": "Crear una cuenta nueva",
-  "ou": "lib/features/auth/presentation/login_screen.dart:759"
+  "ou": "lib/features/auth/presentation/login_screen.dart:760"
  },
  {
   "fr": "Ce pseudo est déjà pris par un autre utilisateur.",
@@ -4929,31 +4929,31 @@
   "fr": "Trop jeune",
   "en": "Too Young",
   "es": "Demasiado joven",
-  "ou": "lib/features/cellar/domain/wine.dart:10"
+  "ou": "lib/features/cellar/domain/wine.dart:11"
  },
  {
   "fr": "En garde",
   "en": "Aging",
   "es": "En guarda",
-  "ou": "lib/features/cellar/domain/wine.dart:11"
+  "ou": "lib/features/cellar/domain/wine.dart:12"
  },
  {
   "fr": "À l'apogée",
   "en": "At Peak",
   "es": "En su apogeo",
-  "ou": "lib/features/cellar/domain/wine.dart:12"
+  "ou": "lib/features/cellar/domain/wine.dart:13"
  },
  {
   "fr": "À boire vite",
   "en": "Drink Soon",
   "es": "Beber pronto",
-  "ou": "lib/features/cellar/domain/wine.dart:13"
+  "ou": "lib/features/cellar/domain/wine.dart:14"
  },
  {
   "fr": "Passé",
   "en": "Past Peak",
   "es": "Pasado",
-  "ou": "lib/features/cellar/domain/wine.dart:14"
+  "ou": "lib/features/cellar/domain/wine.dart:15"
  },
  {
   "fr": "L'accord parfait : les notes de buis et la vivacité d'agrumes du Sauvignon épousent intimement le gras caprin du Crottin de Chavignol ou du Sainte-Maure.",
@@ -5686,6 +5686,522 @@
   "en": "Serve at 8-9°C.",
   "es": "Servir a 8-9 °C.",
   "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:248"
+ },
+ {
+  "fr": "Le grand classique de la salade de chèvre chaud : la vivacité d'agrumes d'un blanc de Loire répond au fromage fondant et à la vinaigrette.",
+  "en": "The great classic for a warm goat cheese salad: the citrus freshness of a Loire white answers the melting cheese and the dressing.",
+  "es": "El gran clásico de la ensalada de queso de cabra caliente: la viveza cítrica de un blanco del Loira responde al queso fundente y a la vinagreta.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:251"
+ },
+ {
+  "fr": "Un blanc sec et frais garde la salade légère et respecte le chèvre chaud.",
+  "en": "A crisp dry white keeps the salad light and respects the warm goat cheese.",
+  "es": "Un blanco seco y fresco mantiene ligera la ensalada y respeta el queso de cabra caliente.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:253"
+ },
+ {
+  "fr": "Un rosé sec et frais accompagne la salade sans alourdir le fromage.",
+  "en": "A crisp dry rosé goes with the salad without weighing down the cheese.",
+  "es": "Un rosado seco y fresco acompaña la ensalada sin hacer pesado el queso.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:255"
+ },
+ {
+  "fr": "La salade niçoise appelle un rosé sec, idéalement de Provence : sa fraîcheur saline tient tête à l'anchois, au thon et aux olives.",
+  "en": "A Niçoise salad calls for a dry rosé, ideally from Provence: its saline freshness stands up to anchovy, tuna and olives.",
+  "es": "La ensalada nizarda pide un rosado seco, idealmente de Provenza: su frescura salina hace frente a la anchoa, el atún y las aceitunas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:257"
+ },
+ {
+  "fr": "Un blanc sec et salin épouse les saveurs iodées de l'anchois et du thon.",
+  "en": "A dry, saline white embraces the briny flavours of anchovy and tuna.",
+  "es": "Un blanco seco y salino abraza los sabores yodados de la anchoa y el atún.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:259"
+ },
+ {
+  "fr": "Un blanc frais et rond répond à la sauce César, au parmesan et au poulet.",
+  "en": "A fresh, rounded white answers the Caesar dressing, the Parmesan and the chicken.",
+  "es": "Un blanco fresco y redondo responde a la salsa César, al parmesano y al pollo.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:261"
+ },
+ {
+  "fr": "Servir à 10-11°C.",
+  "en": "Serve at 10-11°C.",
+  "es": "Servir a 10-11 °C.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:263"
+ },
+ {
+  "fr": "Les bulles allègent la sauce crémeuse et le parmesan.",
+  "en": "Bubbles lighten the creamy dressing and the Parmesan.",
+  "es": "Las burbujas aligeran la salsa cremosa y el parmesano.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:265"
+ },
+ {
+  "fr": "Un rouge léger et fruité, servi frais, accompagne lardons, gésiers ou lentilles sans durcir sous la vinaigrette.",
+  "en": "A light, fruity red served cool goes with bacon, gizzards or lentils without hardening under the vinaigrette.",
+  "es": "Un tinto ligero y afrutado, servido fresco, acompaña panceta, mollejas o lentejas sin endurecerse con la vinagreta.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:267"
+ },
+ {
+  "fr": "Un rosé sec et frais s'accommode de la vinaigrette et des herbes.",
+  "en": "A crisp dry rosé copes with vinaigrette and herbs.",
+  "es": "Un rosado seco y fresco se lleva bien con la vinagreta y las hierbas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:269"
+ },
+ {
+  "fr": "Un rouge du Sud-Ouest, servi un peu frais, pour les gésiers et le magret de la salade périgourdine.",
+  "en": "A South-West red, served slightly cool, for the gizzards and duck breast of a Périgord salad.",
+  "es": "Un tinto del Suroeste, servido algo fresco, para las mollejas y el magret de la ensalada perigordina.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:271"
+ },
+ {
+  "fr": "Un blanc sec et frais, sans boisé, pour ne pas lutter avec la vinaigrette.",
+  "en": "A crisp, unoaked dry white, so as not to fight the vinaigrette.",
+  "es": "Un blanco seco y fresco, sin madera, para no luchar con la vinagreta.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:273"
+ },
+ {
+  "fr": "Un blanc aromatique, à la manière d'un Riesling ou d'un Gewurztraminer, répond au citron vert, à la coriandre et au piment.",
+  "en": "An aromatic white, in the style of a Riesling or a Gewurztraminer, answers lime, coriander and chilli.",
+  "es": "Un blanco aromático, al estilo de un Riesling o un Gewurztraminer, responde a la lima, el cilantro y el picante.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:275"
+ },
+ {
+  "fr": "Un vin frais et sec, sans tanins, pour le citron vert et le piment.",
+  "en": "A fresh, dry wine without tannins, for the lime and chilli.",
+  "es": "Un vino fresco y seco, sin taninos, para la lima y el picante.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:277"
+ },
+ {
+  "fr": "À défaut de blanc aromatique, un rouge très léger servi frais.",
+  "en": "Failing an aromatic white, a very light red served cool.",
+  "es": "A falta de un blanco aromático, un tinto muy ligero servido fresco.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:279"
+ },
+ {
+  "fr": "Un rosé sec et frais pour la feta, les olives et les tomates gorgées de soleil.",
+  "en": "A crisp dry rosé for feta, olives and sun-ripened tomatoes.",
+  "es": "Un rosado seco y fresco para la feta, las aceitunas y los tomates maduros al sol.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:281"
+ },
+ {
+  "fr": "Un blanc vif et salin répond à la feta, aux olives et au concombre.",
+  "en": "A lively, saline white answers the feta, olives and cucumber.",
+  "es": "Un blanco vivo y salino responde a la feta, las aceitunas y el pepino.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:283"
+ },
+ {
+  "fr": "Un blanc sec et frais respecte la douceur de la burrata et l'acidité des tomates.",
+  "en": "A crisp dry white respects the softness of the burrata and the acidity of the tomatoes.",
+  "es": "Un blanco seco y fresco respeta la suavidad de la burrata y la acidez de los tomates.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:285"
+ },
+ {
+  "fr": "Un rosé sec et frais pour les tomates mûres, le basilic et la mozzarella.",
+  "en": "A crisp dry rosé for ripe tomatoes, basil and mozzarella.",
+  "es": "Un rosado seco y fresco para los tomates maduros, la albahaca y la mozzarella.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:287"
+ },
+ {
+  "fr": "Un blanc vif et sec ne craint pas la vinaigrette, ennemie des grands vins : il lui répond par sa propre acidité.",
+  "en": "A lively dry white does not fear vinaigrette, the enemy of great wines: it answers it with its own acidity.",
+  "es": "Un blanco vivo y seco no teme la vinagreta, enemiga de los grandes vinos: le responde con su propia acidez.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:289"
+ },
+ {
+  "fr": "Les bulles d'un brut gardent la salade légère et ne craignent pas la vinaigrette.",
+  "en": "The bubbles of a brut keep the salad light and do not fear the vinaigrette.",
+  "es": "Las burbujas de un brut mantienen ligera la ensalada y no temen la vinagreta.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:291"
+ },
+ {
+  "fr": "La bouillabaisse appelle la Provence : un rosé ou un blanc de Bandol ou de Cassis, sec et salin, répond au safran, au fenouil et à la rouille.",
+  "en": "Bouillabaisse calls for Provence: a dry, saline rosé or white from Bandol or Cassis answers the saffron, fennel and rouille.",
+  "es": "La bullabesa pide Provenza: un rosado o un blanco de Bandol o de Cassis, seco y salino, responde al azafrán, al hinojo y a la rouille.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:293"
+ },
+ {
+  "fr": "Un blanc sec et salin pour les poissons de roche, le safran et l'ail.",
+  "en": "A dry, saline white for the rockfish, saffron and garlic.",
+  "es": "Un blanco seco y salino para los pescados de roca, el azafrán y el ajo.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:295"
+ },
+ {
+  "fr": "La texture beurrée d'un grand Chardonnay épouse le velouté et la douceur iodée de la bisque.",
+  "en": "The buttery texture of a great Chardonnay embraces the velvety, briny sweetness of the bisque.",
+  "es": "La textura mantecosa de un gran Chardonnay abraza la cremosidad y el dulzor yodado de la bisque.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:297"
+ },
+ {
+  "fr": "Les bulles fines d'un Champagne allègent la crème de la bisque et prolongent ses saveurs de crustacé.",
+  "en": "The fine bubbles of a Champagne lighten the cream of the bisque and lengthen its shellfish flavours.",
+  "es": "Las finas burbujas de un Champagne aligeran la crema de la bisque y prolongan sus sabores de marisco.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:299"
+ },
+ {
+  "fr": "Un blanc ample et frais accompagne la douceur iodée de la bisque.",
+  "en": "A broad, fresh white goes with the briny sweetness of the bisque.",
+  "es": "Un blanco amplio y fresco acompaña el dulzor yodado de la bisque.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:301"
+ },
+ {
+  "fr": "L'accord andalou : un Fino ou une Manzanilla, secs et salins, épousent la tomate, le poivron et le vinaigre de Xérès.",
+  "en": "The Andalusian pairing: a dry, saline Fino or Manzanilla embraces the tomato, pepper and sherry vinegar.",
+  "es": "El maridaje andaluz: un Fino o una Manzanilla, secos y salinos, abrazan el tomate, el pimiento y el vinagre de Jerez.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:303"
+ },
+ {
+  "fr": "Servir très frais à 7-9°C.",
+  "en": "Serve well chilled at 7-9°C.",
+  "es": "Servir muy frío, a 7-9 °C.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:305"
+ },
+ {
+  "fr": "Un rosé sec et frais pour la tomate, le concombre et le poivron du gaspacho.",
+  "en": "A crisp dry rosé for the tomato, cucumber and pepper of gazpacho.",
+  "es": "Un rosado seco y fresco para el tomate, el pepino y el pimiento del gazpacho.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:307"
+ },
+ {
+  "fr": "Un blanc sec et vif répond à la fraîcheur acidulée du gaspacho.",
+  "en": "A dry, lively white answers the tangy freshness of gazpacho.",
+  "es": "Un blanco seco y vivo responde a la frescura ácida del gazpacho.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:309"
+ },
+ {
+  "fr": "Un blanc de Savoie ou du Jura, vif et franc, tranche le fromage gratiné et la douceur des oignons.",
+  "en": "A lively, straightforward white from Savoie or the Jura cuts through the grilled cheese and the sweetness of the onions.",
+  "es": "Un blanco de Saboya o del Jura, vivo y franco, corta el queso gratinado y el dulzor de las cebollas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:311"
+ },
+ {
+  "fr": "Un blanc sec et frais tranche le fromage gratiné et la douceur des oignons confits.",
+  "en": "A crisp dry white cuts through the grilled cheese and the sweetness of the slow-cooked onions.",
+  "es": "Un blanco seco y fresco corta el queso gratinado y el dulzor de las cebollas confitadas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:313"
+ },
+ {
+  "fr": "Un Beaujolais fruité, servi frais, comme dans les bouchons et les brasseries.",
+  "en": "A fruity Beaujolais served cool, as in Lyon's bouchons and Paris brasseries.",
+  "es": "Un Beaujolais afrutado, servido fresco, como en los bouchons de Lyon y las brasseries.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:315"
+ },
+ {
+  "fr": "Un Chardonnay ou un Viognier, ronds et beurrés, épousent la douceur veloutée de la courge ou de la châtaigne.",
+  "en": "A rounded, buttery Chardonnay or Viognier embraces the velvety sweetness of squash or chestnut.",
+  "es": "Un Chardonnay o un Viognier, redondos y mantecosos, abrazan el dulzor aterciopelado de la calabaza o la castaña.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:317"
+ },
+ {
+  "fr": "Un blanc d'Alsace, rond et parfumé, répond à la douceur épicée du velouté.",
+  "en": "A rounded, fragrant Alsace white answers the spiced sweetness of the velouté.",
+  "es": "Un blanco de Alsacia, redondo y perfumado, responde al dulzor especiado de la crema.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:319"
+ },
+ {
+  "fr": "Un blanc rond et souple pour la douceur du velouté.",
+  "en": "A rounded, supple white for the sweetness of the velouté.",
+  "es": "Un blanco redondo y suave para el dulzor de la crema.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:321"
+ },
+ {
+  "fr": "Un rosé sec et frais pour les légumes du potager et le basilic.",
+  "en": "A crisp dry rosé for garden vegetables and basil.",
+  "es": "Un rosado seco y fresco para las verduras de la huerta y la albahaca.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:323"
+ },
+ {
+  "fr": "Un rouge italien fruité et digeste, à la manière d'un Chianti, pour le minestrone et son parmesan.",
+  "en": "A fruity, easy Italian red, in the style of a Chianti, for minestrone and its Parmesan.",
+  "es": "Un tinto italiano afrutado y fácil, al estilo de un Chianti, para el minestrone y su parmesano.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:325"
+ },
+ {
+  "fr": "Un blanc sec et frais pour les légumes du potager et le basilic.",
+  "en": "A crisp dry white for garden vegetables and basil.",
+  "es": "Un blanco seco y fresco para las verduras de la huerta y la albahaca.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:327"
+ },
+ {
+  "fr": "La garbure appelle un rouge du Sud-Ouest, charpenté et franc, pour le confit, le jambon et le chou.",
+  "en": "Garbure calls for a structured, straightforward South-West red, for the confit, ham and cabbage.",
+  "es": "La garbure pide un tinto del Suroeste, estructurado y franco, para el confit, el jamón y la col.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:329"
+ },
+ {
+  "fr": "Un rouge franc et rustique pour une soupe de terroir.",
+  "en": "A straightforward, rustic red for a country soup.",
+  "es": "Un tinto franco y rústico para una sopa de la tierra.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:331"
+ },
+ {
+  "fr": "Un blanc aromatique, à la manière d'un Riesling, répond au bouillon parfumé, au gingembre et aux herbes fraîches.",
+  "en": "An aromatic white, in the style of a Riesling, answers the fragrant broth, ginger and fresh herbs.",
+  "es": "Un blanco aromático, al estilo de un Riesling, responde al caldo perfumado, al jengibre y a las hierbas frescas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:333"
+ },
+ {
+  "fr": "Un vin frais et sec, sans tanins, pour le bouillon parfumé et les herbes.",
+  "en": "A fresh, dry wine without tannins, for the fragrant broth and herbs.",
+  "es": "Un vino fresco y seco, sin taninos, para el caldo perfumado y las hierbas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:335"
+ },
+ {
+  "fr": "Un vin frais et sec, sans tanins, accompagne la soupe sans l'écraser.",
+  "en": "A fresh, dry wine without tannins goes with the soup without overpowering it.",
+  "es": "Un vino fresco y seco, sin taninos, acompaña la sopa sin aplastarla.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:337"
+ },
+ {
+  "fr": "L'asperge, si difficile à marier, trouve son vin dans un Sauvignon ou un Muscat sec, dont les notes végétales lui répondent.",
+  "en": "Asparagus, so hard to pair, finds its wine in a Sauvignon or a dry Muscat, whose green notes answer it.",
+  "es": "El espárrago, tan difícil de maridar, encuentra su vino en un Sauvignon o un Muscat seco, cuyas notas vegetales le responden.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:339"
+ },
+ {
+  "fr": "Un blanc d'Alsace, sec et parfumé, répond à l'amertume délicate de l'asperge.",
+  "en": "A dry, fragrant Alsace white answers the delicate bitterness of asparagus.",
+  "es": "Un blanco de Alsacia, seco y perfumado, responde al delicado amargor del espárrago.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:341"
+ },
+ {
+  "fr": "Les bulles d'un brut accompagnent l'asperge sans durcir.",
+  "en": "The bubbles of a brut go with asparagus without turning harsh.",
+  "es": "Las burbujas de un brut acompañan el espárrago sin endurecerse.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:343"
+ },
+ {
+  "fr": "Un blanc sec et frais, sans boisé, pour ne pas heurter l'asperge.",
+  "en": "A crisp, unoaked dry white, so as not to clash with the asparagus.",
+  "es": "Un blanco seco y fresco, sin madera, para no chocar con el espárrago.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:345"
+ },
+ {
+  "fr": "Un rosé sec et frais pour les pois chiches, le sésame et les herbes des mezze.",
+  "en": "A crisp dry rosé for the chickpeas, sesame and herbs of mezze.",
+  "es": "Un rosado seco y fresco para los garbanzos, el sésamo y las hierbas de los mezze.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:347"
+ },
+ {
+  "fr": "Un blanc sec et frais pour le citron, le sésame et les herbes.",
+  "en": "A crisp dry white for the lemon, sesame and herbs.",
+  "es": "Un blanco seco y fresco para el limón, el sésamo y las hierbas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:349"
+ },
+ {
+  "fr": "Un blanc rond et beurré, à la manière d'un Chardonnay, épouse la douceur crémeuse du gratin.",
+  "en": "A rounded, buttery white, in the style of a Chardonnay, embraces the creamy sweetness of the gratin.",
+  "es": "Un blanco redondo y mantecoso, al estilo de un Chardonnay, abraza el dulzor cremoso del gratinado.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:351"
+ },
+ {
+  "fr": "Un blanc rond et souple pour la douceur du gratin.",
+  "en": "A rounded, supple white for the sweetness of the gratin.",
+  "es": "Un blanco redondo y suave para el dulzor del gratinado.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:353"
+ },
+ {
+  "fr": "Un rouge léger et fruité, servi frais, pour accompagner le gratin.",
+  "en": "A light, fruity red served cool to go with the gratin.",
+  "es": "Un tinto ligero y afrutado, servido fresco, para acompañar el gratinado.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:355"
+ },
+ {
+  "fr": "Un rouge italien, fruité et vif, répond à la tomate, à l'aubergine et au parmesan.",
+  "en": "A fruity, lively Italian red answers the tomato, eggplant and Parmesan.",
+  "es": "Un tinto italiano, afrutado y vivo, responde al tomate, la berenjena y el parmesano.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:357"
+ },
+ {
+  "fr": "Un rosé sec et frais pour la tomate, l'aubergine et le basilic.",
+  "en": "A crisp dry rosé for the tomato, eggplant and basil.",
+  "es": "Un rosado seco y fresco para el tomate, la berenjena y la albahaca.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:359"
+ },
+ {
+  "fr": "Un rouge du Sud, fruité et souple, pour l'aubergine fondante et la tomate.",
+  "en": "A fruity, supple southern red for the melting eggplant and the tomato.",
+  "es": "Un tinto del sur, afrutado y suave, para la berenjena melosa y el tomate.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:361"
+ },
+ {
+  "fr": "Un rosé sec et fruité, comme en Provence, pour les légumes du soleil, l'huile d'olive et les herbes.",
+  "en": "A dry, fruity rosé, as in Provence, for sun-ripened vegetables, olive oil and herbs.",
+  "es": "Un rosado seco y afrutado, como en Provenza, para las verduras mediterráneas, el aceite de oliva y las hierbas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:363"
+ },
+ {
+  "fr": "Un rouge du Sud, fruité et souple, aux tanins doux, pour les légumes confits et les herbes de Provence.",
+  "en": "A fruity, supple southern red with soft tannins, for slow-cooked vegetables and herbes de Provence.",
+  "es": "Un tinto del sur, afrutado y suave, de taninos dulces, para las verduras confitadas y las hierbas provenzales.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:365"
+ },
+ {
+  "fr": "Un rouge léger et fruité, servi frais, pour ne pas écraser les légumes.",
+  "en": "A light, fruity red served cool, so as not to overpower the vegetables.",
+  "es": "Un tinto ligero y afrutado, servido fresco, para no aplastar las verduras.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:367"
+ },
+ {
+  "fr": "Un blanc du Sud, ample et parfumé, pour les légumes du soleil.",
+  "en": "A broad, fragrant southern white for sun-ripened vegetables.",
+  "es": "Un blanco del sur, amplio y perfumado, para las verduras mediterráneas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:369"
+ },
+ {
+  "fr": "Un blanc sec et frais pour les légumes et les herbes.",
+  "en": "A crisp dry white for vegetables and herbs.",
+  "es": "Un blanco seco y fresco para las verduras y las hierbas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:371"
+ },
+ {
+  "fr": "Les œufs en meurette sont pochés dans le vin rouge de Bourgogne : un Pinot Noir de la même région en est l'accord naturel.",
+  "en": "Eggs en meurette are poached in Burgundy red wine: a Pinot Noir from the same region is their natural match.",
+  "es": "Los huevos en meurette se escalfan en vino tinto de Borgoña: un Pinot Noir de la misma región es su maridaje natural.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:373"
+ },
+ {
+  "fr": "Un rouge fruité et souple, aux tanins légers, pour la sauce au vin rouge et les lardons.",
+  "en": "A fruity, supple red with light tannins, for the red wine sauce and the bacon.",
+  "es": "Un tinto afrutado y suave, de taninos ligeros, para la salsa de vino tinto y la panceta.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:375"
+ },
+ {
+  "fr": "L'accord alsacien : un Riesling, un Sylvaner ou un Pinot Blanc, secs et vifs, pour la crème, les oignons et les lardons.",
+  "en": "The Alsace pairing: a dry, lively Riesling, Sylvaner or Pinot Blanc for the cream, onions and bacon.",
+  "es": "El maridaje alsaciano: un Riesling, un Sylvaner o un Pinot Blanc, secos y vivos, para la nata, las cebollas y la panceta.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:377"
+ },
+ {
+  "fr": "Un blanc sec et vif tranche la crème et la douceur des oignons.",
+  "en": "A dry, lively white cuts through the cream and the sweetness of the onions.",
+  "es": "Un blanco seco y vivo corta la nata y el dulzor de las cebollas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:379"
+ },
+ {
+  "fr": "Un Pinot Noir léger, servi frais, comme en Alsace.",
+  "en": "A light Pinot Noir served cool, as in Alsace.",
+  "es": "Un Pinot Noir ligero, servido fresco, como en Alsacia.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:381"
+ },
+ {
+  "fr": "La quiche lorraine trouve son vin en Alsace : un Riesling ou un Pinot Blanc, secs et ronds, répondent à la crème et aux lardons.",
+  "en": "Quiche Lorraine finds its wine in Alsace: a dry, rounded Riesling or Pinot Blanc answers the cream and bacon.",
+  "es": "La quiche lorena encuentra su vino en Alsacia: un Riesling o un Pinot Blanc, secos y redondos, responden a la nata y a la panceta.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:383"
+ },
+ {
+  "fr": "Un Chardonnay rond et frais répond à la crème et à l'œuf.",
+  "en": "A rounded, fresh Chardonnay answers the cream and egg.",
+  "es": "Un Chardonnay redondo y fresco responde a la nata y al huevo.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:385"
+ },
+ {
+  "fr": "Les bulles allègent la crème et l'œuf.",
+  "en": "Bubbles lighten the cream and egg.",
+  "es": "Las burbujas aligeran la nata y el huevo.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:387"
+ },
+ {
+  "fr": "Un blanc sec et frais pour les œufs et les herbes.",
+  "en": "A crisp dry white for eggs and herbs.",
+  "es": "Un blanco seco y fresco para los huevos y las hierbas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:389"
+ },
+ {
+  "fr": "Les bulles d'un Champagne, l'accord du brunch, allègent la sauce hollandaise et le jaune coulant.",
+  "en": "The bubbles of a Champagne, the brunch pairing, lighten the hollandaise and the runny yolk.",
+  "es": "Las burbujas de un Champagne, el maridaje del brunch, aligeran la salsa holandesa y la yema líquida.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:391"
+ },
+ {
+  "fr": "Un Chardonnay rond et frais répond à la sauce hollandaise.",
+  "en": "A rounded, fresh Chardonnay answers the hollandaise.",
+  "es": "Un Chardonnay redondo y fresco responde a la salsa holandesa.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:393"
+ },
+ {
+  "fr": "Un Muscadet ou un blanc de Loire, sec et salin, accompagne la galette de sarrasin comme en Bretagne.",
+  "en": "A dry, saline Muscadet or Loire white goes with a buckwheat galette, as in Brittany.",
+  "es": "Un Muscadet o un blanco del Loira, seco y salino, acompaña la galette de trigo sarraceno como en Bretaña.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:395"
+ },
+ {
+  "fr": "Un blanc sec et frais pour le sarrasin, le jambon et le fromage.",
+  "en": "A crisp dry white for the buckwheat, ham and cheese.",
+  "es": "Un blanco seco y fresco para el trigo sarraceno, el jamón y el queso.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:397"
+ },
+ {
+  "fr": "Un rouge léger et fruité, servi frais, pour le jambon et le fromage fondu.",
+  "en": "A light, fruity red served cool, for the ham and melted cheese.",
+  "es": "Un tinto ligero y afrutado, servido fresco, para el jamón y el queso fundido.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:399"
+ },
+ {
+  "fr": "Un rosé sec et fruité pour l'œuf, la pomme de terre et l'huile d'olive.",
+  "en": "A dry, fruity rosé for the egg, potato and olive oil.",
+  "es": "Un rosado seco y afrutado para el huevo, la patata y el aceite de oliva.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:401"
+ },
+ {
+  "fr": "Un blanc sec et frais pour l'œuf, la pomme de terre et l'huile d'olive.",
+  "en": "A crisp dry white for the egg, potato and olive oil.",
+  "es": "Un blanco seco y fresco para el huevo, la patata y el aceite de oliva.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:403"
+ },
+ {
+  "fr": "Un blanc sec et frais, à la manière d'un Chablis ou d'un Sauvignon, pour l'œuf et les herbes.",
+  "en": "A crisp dry white, in the style of a Chablis or a Sauvignon, for egg and herbs.",
+  "es": "Un blanco seco y fresco, al estilo de un Chablis o un Sauvignon, para el huevo y las hierbas.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:405"
+ },
+ {
+  "fr": "Un rosé sec et frais accompagne les œufs sans les écraser.",
+  "en": "A crisp dry rosé goes with eggs without overpowering them.",
+  "es": "Un rosado seco y fresco acompaña los huevos sin aplastarlos.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:407"
+ },
+ {
+  "fr": "Le grand classique des fruits de mer : un blanc vif et iodé, à la manière d'un Muscadet, d'un Chablis ou d'un Picpoul, prolonge la mer.",
+  "en": "The great classic with seafood: a lively, briny white, in the style of a Muscadet, a Chablis or a Picpoul, extends the taste of the sea.",
+  "es": "El gran clásico del marisco: un blanco vivo y yodado, al estilo de un Muscadet, un Chablis o un Picpoul, prolonga el mar.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:409"
+ },
+ {
+  "fr": "Les fines bulles d'un brut accompagnent les fruits de mer avec fraîcheur.",
+  "en": "The fine bubbles of a brut go freshly with seafood.",
+  "es": "Las finas burbujas de un brut acompañan el marisco con frescura.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:411"
+ },
+ {
+  "fr": "Un rosé sec et frais pour la plancha, l'ail et le safran.",
+  "en": "A crisp dry rosé for the griddle, garlic and saffron.",
+  "es": "Un rosado seco y fresco para la plancha, el ajo y el azafrán.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:413"
+ },
+ {
+  "fr": "Un rosé sec et frais accompagne les fruits de mer avec simplicité.",
+  "en": "A crisp dry rosé goes simply with seafood.",
+  "es": "Un rosado seco y fresco acompaña el marisco con sencillez.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:415"
+ },
+ {
+  "fr": "Un rouge fruité et gouleyant, à la manière d'un Beaujolais ou d'un rouge du Jura, pour la saucisse, les lentilles ou le hachis.",
+  "en": "A fruity, easy-drinking red, in the style of a Beaujolais or a Jura red, for the sausage, lentils or hachis.",
+  "es": "Un tinto afrutado y fácil de beber, al estilo de un Beaujolais o un tinto del Jura, para la salchicha, las lentejas o el hachis.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:417"
+ },
+ {
+  "fr": "Un rouge franc pour ce plat de terroir généreux.",
+  "en": "A straightforward red for this hearty country dish.",
+  "es": "Un tinto franco para este generoso plato de la tierra.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:419"
+ },
+ {
+  "fr": "Un blanc sec et franc, d'Alsace ou du Jura, tranche le gras de la charcuterie.",
+  "en": "A dry, straightforward white from Alsace or the Jura cuts through the richness of the cured meats.",
+  "es": "Un blanco seco y franco, de Alsacia o del Jura, corta la grasa de la charcutería.",
+  "ou": "lib/features/cellar/domain/wine_food_matcher_en.dart:421"
  },
  {
   "fr": "L'acidité vive et la salinité de la craie tranchent avec l'iode et subliment la texture soyeuse des coquillages.",

@@ -202,8 +202,9 @@ void main() {
       expect(matches.first.sommelierComment.toLowerCase(), contains('foie gras'));
     });
 
-    test('16 categories are all loaded with rich sample dishes and keywords', () {
-      expect(WineFoodMatcher.categories.length, equals(16));
+    test('20 categories are all loaded with rich sample dishes and keywords', () {
+      // 16, puis salades, légumes, soupes, œufs et tartes salées (19/10).
+      expect(WineFoodMatcher.categories.length, equals(20));
       for (final cat in WineFoodMatcher.categories) {
         expect(cat.sampleDishes, isNotEmpty);
         expect(cat.keywords, isNotEmpty);

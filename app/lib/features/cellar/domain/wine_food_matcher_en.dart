@@ -247,4 +247,177 @@ const Map<String, String> accordsEnAnglais = {
       'Fine bubbles bring a light, festive finish to fresh-fruit or strawberry desserts.',
   'Servir à 8-9°C.':
       'Serve at 8-9°C.',
+  // Les familles du 19/10 : salades, soupes, légumes, œufs et tartes salées.
+  'Le grand classique de la salade de chèvre chaud : la vivacité d\'agrumes d\'un blanc de Loire répond au fromage fondant et à la vinaigrette.':
+      'The great classic for a warm goat cheese salad: the citrus freshness of a Loire white answers the melting cheese and the dressing.',
+  'Un blanc sec et frais garde la salade légère et respecte le chèvre chaud.':
+      'A crisp dry white keeps the salad light and respects the warm goat cheese.',
+  'Un rosé sec et frais accompagne la salade sans alourdir le fromage.':
+      'A crisp dry rosé goes with the salad without weighing down the cheese.',
+  'La salade niçoise appelle un rosé sec, idéalement de Provence : sa fraîcheur saline tient tête à l\'anchois, au thon et aux olives.':
+      'A Niçoise salad calls for a dry rosé, ideally from Provence: its saline freshness stands up to anchovy, tuna and olives.',
+  'Un blanc sec et salin épouse les saveurs iodées de l\'anchois et du thon.':
+      'A dry, saline white embraces the briny flavours of anchovy and tuna.',
+  'Un blanc frais et rond répond à la sauce César, au parmesan et au poulet.':
+      'A fresh, rounded white answers the Caesar dressing, the Parmesan and the chicken.',
+  'Servir à 10-11°C.':
+      'Serve at 10-11°C.',
+  'Les bulles allègent la sauce crémeuse et le parmesan.':
+      'Bubbles lighten the creamy dressing and the Parmesan.',
+  'Un rouge léger et fruité, servi frais, accompagne lardons, gésiers ou lentilles sans durcir sous la vinaigrette.':
+      'A light, fruity red served cool goes with bacon, gizzards or lentils without hardening under the vinaigrette.',
+  'Un rosé sec et frais s\'accommode de la vinaigrette et des herbes.':
+      'A crisp dry rosé copes with vinaigrette and herbs.',
+  'Un rouge du Sud-Ouest, servi un peu frais, pour les gésiers et le magret de la salade périgourdine.':
+      'A South-West red, served slightly cool, for the gizzards and duck breast of a Périgord salad.',
+  'Un blanc sec et frais, sans boisé, pour ne pas lutter avec la vinaigrette.':
+      'A crisp, unoaked dry white, so as not to fight the vinaigrette.',
+  'Un blanc aromatique, à la manière d\'un Riesling ou d\'un Gewurztraminer, répond au citron vert, à la coriandre et au piment.':
+      'An aromatic white, in the style of a Riesling or a Gewurztraminer, answers lime, coriander and chilli.',
+  'Un vin frais et sec, sans tanins, pour le citron vert et le piment.':
+      'A fresh, dry wine without tannins, for the lime and chilli.',
+  'À défaut de blanc aromatique, un rouge très léger servi frais.':
+      'Failing an aromatic white, a very light red served cool.',
+  'Un rosé sec et frais pour la feta, les olives et les tomates gorgées de soleil.':
+      'A crisp dry rosé for feta, olives and sun-ripened tomatoes.',
+  'Un blanc vif et salin répond à la feta, aux olives et au concombre.':
+      'A lively, saline white answers the feta, olives and cucumber.',
+  'Un blanc sec et frais respecte la douceur de la burrata et l\'acidité des tomates.':
+      'A crisp dry white respects the softness of the burrata and the acidity of the tomatoes.',
+  'Un rosé sec et frais pour les tomates mûres, le basilic et la mozzarella.':
+      'A crisp dry rosé for ripe tomatoes, basil and mozzarella.',
+  'Un blanc vif et sec ne craint pas la vinaigrette, ennemie des grands vins : il lui répond par sa propre acidité.':
+      'A lively dry white does not fear vinaigrette, the enemy of great wines: it answers it with its own acidity.',
+  'Les bulles d\'un brut gardent la salade légère et ne craignent pas la vinaigrette.':
+      'The bubbles of a brut keep the salad light and do not fear the vinaigrette.',
+  'La bouillabaisse appelle la Provence : un rosé ou un blanc de Bandol ou de Cassis, sec et salin, répond au safran, au fenouil et à la rouille.':
+      'Bouillabaisse calls for Provence: a dry, saline rosé or white from Bandol or Cassis answers the saffron, fennel and rouille.',
+  'Un blanc sec et salin pour les poissons de roche, le safran et l\'ail.':
+      'A dry, saline white for the rockfish, saffron and garlic.',
+  'La texture beurrée d\'un grand Chardonnay épouse le velouté et la douceur iodée de la bisque.':
+      'The buttery texture of a great Chardonnay embraces the velvety, briny sweetness of the bisque.',
+  'Les bulles fines d\'un Champagne allègent la crème de la bisque et prolongent ses saveurs de crustacé.':
+      'The fine bubbles of a Champagne lighten the cream of the bisque and lengthen its shellfish flavours.',
+  'Un blanc ample et frais accompagne la douceur iodée de la bisque.':
+      'A broad, fresh white goes with the briny sweetness of the bisque.',
+  'L\'accord andalou : un Fino ou une Manzanilla, secs et salins, épousent la tomate, le poivron et le vinaigre de Xérès.':
+      'The Andalusian pairing: a dry, saline Fino or Manzanilla embraces the tomato, pepper and sherry vinegar.',
+  'Servir très frais à 7-9°C.':
+      'Serve well chilled at 7-9°C.',
+  'Un rosé sec et frais pour la tomate, le concombre et le poivron du gaspacho.':
+      'A crisp dry rosé for the tomato, cucumber and pepper of gazpacho.',
+  'Un blanc sec et vif répond à la fraîcheur acidulée du gaspacho.':
+      'A dry, lively white answers the tangy freshness of gazpacho.',
+  'Un blanc de Savoie ou du Jura, vif et franc, tranche le fromage gratiné et la douceur des oignons.':
+      'A lively, straightforward white from Savoie or the Jura cuts through the grilled cheese and the sweetness of the onions.',
+  'Un blanc sec et frais tranche le fromage gratiné et la douceur des oignons confits.':
+      'A crisp dry white cuts through the grilled cheese and the sweetness of the slow-cooked onions.',
+  'Un Beaujolais fruité, servi frais, comme dans les bouchons et les brasseries.':
+      'A fruity Beaujolais served cool, as in Lyon\'s bouchons and Paris brasseries.',
+  'Un Chardonnay ou un Viognier, ronds et beurrés, épousent la douceur veloutée de la courge ou de la châtaigne.':
+      'A rounded, buttery Chardonnay or Viognier embraces the velvety sweetness of squash or chestnut.',
+  'Un blanc d\'Alsace, rond et parfumé, répond à la douceur épicée du velouté.':
+      'A rounded, fragrant Alsace white answers the spiced sweetness of the velouté.',
+  'Un blanc rond et souple pour la douceur du velouté.':
+      'A rounded, supple white for the sweetness of the velouté.',
+  'Un rosé sec et frais pour les légumes du potager et le basilic.':
+      'A crisp dry rosé for garden vegetables and basil.',
+  'Un rouge italien fruité et digeste, à la manière d\'un Chianti, pour le minestrone et son parmesan.':
+      'A fruity, easy Italian red, in the style of a Chianti, for minestrone and its Parmesan.',
+  'Un blanc sec et frais pour les légumes du potager et le basilic.':
+      'A crisp dry white for garden vegetables and basil.',
+  'La garbure appelle un rouge du Sud-Ouest, charpenté et franc, pour le confit, le jambon et le chou.':
+      'Garbure calls for a structured, straightforward South-West red, for the confit, ham and cabbage.',
+  'Un rouge franc et rustique pour une soupe de terroir.':
+      'A straightforward, rustic red for a country soup.',
+  'Un blanc aromatique, à la manière d\'un Riesling, répond au bouillon parfumé, au gingembre et aux herbes fraîches.':
+      'An aromatic white, in the style of a Riesling, answers the fragrant broth, ginger and fresh herbs.',
+  'Un vin frais et sec, sans tanins, pour le bouillon parfumé et les herbes.':
+      'A fresh, dry wine without tannins, for the fragrant broth and herbs.',
+  'Un vin frais et sec, sans tanins, accompagne la soupe sans l\'écraser.':
+      'A fresh, dry wine without tannins goes with the soup without overpowering it.',
+  'L\'asperge, si difficile à marier, trouve son vin dans un Sauvignon ou un Muscat sec, dont les notes végétales lui répondent.':
+      'Asparagus, so hard to pair, finds its wine in a Sauvignon or a dry Muscat, whose green notes answer it.',
+  'Un blanc d\'Alsace, sec et parfumé, répond à l\'amertume délicate de l\'asperge.':
+      'A dry, fragrant Alsace white answers the delicate bitterness of asparagus.',
+  'Les bulles d\'un brut accompagnent l\'asperge sans durcir.':
+      'The bubbles of a brut go with asparagus without turning harsh.',
+  'Un blanc sec et frais, sans boisé, pour ne pas heurter l\'asperge.':
+      'A crisp, unoaked dry white, so as not to clash with the asparagus.',
+  'Un rosé sec et frais pour les pois chiches, le sésame et les herbes des mezze.':
+      'A crisp dry rosé for the chickpeas, sesame and herbs of mezze.',
+  'Un blanc sec et frais pour le citron, le sésame et les herbes.':
+      'A crisp dry white for the lemon, sesame and herbs.',
+  'Un blanc rond et beurré, à la manière d\'un Chardonnay, épouse la douceur crémeuse du gratin.':
+      'A rounded, buttery white, in the style of a Chardonnay, embraces the creamy sweetness of the gratin.',
+  'Un blanc rond et souple pour la douceur du gratin.':
+      'A rounded, supple white for the sweetness of the gratin.',
+  'Un rouge léger et fruité, servi frais, pour accompagner le gratin.':
+      'A light, fruity red served cool to go with the gratin.',
+  'Un rouge italien, fruité et vif, répond à la tomate, à l\'aubergine et au parmesan.':
+      'A fruity, lively Italian red answers the tomato, eggplant and Parmesan.',
+  'Un rosé sec et frais pour la tomate, l\'aubergine et le basilic.':
+      'A crisp dry rosé for the tomato, eggplant and basil.',
+  'Un rouge du Sud, fruité et souple, pour l\'aubergine fondante et la tomate.':
+      'A fruity, supple southern red for the melting eggplant and the tomato.',
+  'Un rosé sec et fruité, comme en Provence, pour les légumes du soleil, l\'huile d\'olive et les herbes.':
+      'A dry, fruity rosé, as in Provence, for sun-ripened vegetables, olive oil and herbs.',
+  'Un rouge du Sud, fruité et souple, aux tanins doux, pour les légumes confits et les herbes de Provence.':
+      'A fruity, supple southern red with soft tannins, for slow-cooked vegetables and herbes de Provence.',
+  'Un rouge léger et fruité, servi frais, pour ne pas écraser les légumes.':
+      'A light, fruity red served cool, so as not to overpower the vegetables.',
+  'Un blanc du Sud, ample et parfumé, pour les légumes du soleil.':
+      'A broad, fragrant southern white for sun-ripened vegetables.',
+  'Un blanc sec et frais pour les légumes et les herbes.':
+      'A crisp dry white for vegetables and herbs.',
+  'Les œufs en meurette sont pochés dans le vin rouge de Bourgogne : un Pinot Noir de la même région en est l\'accord naturel.':
+      'Eggs en meurette are poached in Burgundy red wine: a Pinot Noir from the same region is their natural match.',
+  'Un rouge fruité et souple, aux tanins légers, pour la sauce au vin rouge et les lardons.':
+      'A fruity, supple red with light tannins, for the red wine sauce and the bacon.',
+  'L\'accord alsacien : un Riesling, un Sylvaner ou un Pinot Blanc, secs et vifs, pour la crème, les oignons et les lardons.':
+      'The Alsace pairing: a dry, lively Riesling, Sylvaner or Pinot Blanc for the cream, onions and bacon.',
+  'Un blanc sec et vif tranche la crème et la douceur des oignons.':
+      'A dry, lively white cuts through the cream and the sweetness of the onions.',
+  'Un Pinot Noir léger, servi frais, comme en Alsace.':
+      'A light Pinot Noir served cool, as in Alsace.',
+  'La quiche lorraine trouve son vin en Alsace : un Riesling ou un Pinot Blanc, secs et ronds, répondent à la crème et aux lardons.':
+      'Quiche Lorraine finds its wine in Alsace: a dry, rounded Riesling or Pinot Blanc answers the cream and bacon.',
+  'Un Chardonnay rond et frais répond à la crème et à l\'œuf.':
+      'A rounded, fresh Chardonnay answers the cream and egg.',
+  'Les bulles allègent la crème et l\'œuf.':
+      'Bubbles lighten the cream and egg.',
+  'Un blanc sec et frais pour les œufs et les herbes.':
+      'A crisp dry white for eggs and herbs.',
+  'Les bulles d\'un Champagne, l\'accord du brunch, allègent la sauce hollandaise et le jaune coulant.':
+      'The bubbles of a Champagne, the brunch pairing, lighten the hollandaise and the runny yolk.',
+  'Un Chardonnay rond et frais répond à la sauce hollandaise.':
+      'A rounded, fresh Chardonnay answers the hollandaise.',
+  'Un Muscadet ou un blanc de Loire, sec et salin, accompagne la galette de sarrasin comme en Bretagne.':
+      'A dry, saline Muscadet or Loire white goes with a buckwheat galette, as in Brittany.',
+  'Un blanc sec et frais pour le sarrasin, le jambon et le fromage.':
+      'A crisp dry white for the buckwheat, ham and cheese.',
+  'Un rouge léger et fruité, servi frais, pour le jambon et le fromage fondu.':
+      'A light, fruity red served cool, for the ham and melted cheese.',
+  'Un rosé sec et fruité pour l\'œuf, la pomme de terre et l\'huile d\'olive.':
+      'A dry, fruity rosé for the egg, potato and olive oil.',
+  'Un blanc sec et frais pour l\'œuf, la pomme de terre et l\'huile d\'olive.':
+      'A crisp dry white for the egg, potato and olive oil.',
+  'Un blanc sec et frais, à la manière d\'un Chablis ou d\'un Sauvignon, pour l\'œuf et les herbes.':
+      'A crisp dry white, in the style of a Chablis or a Sauvignon, for egg and herbs.',
+  'Un rosé sec et frais accompagne les œufs sans les écraser.':
+      'A crisp dry rosé goes with eggs without overpowering them.',
+  'Le grand classique des fruits de mer : un blanc vif et iodé, à la manière d\'un Muscadet, d\'un Chablis ou d\'un Picpoul, prolonge la mer.':
+      'The great classic with seafood: a lively, briny white, in the style of a Muscadet, a Chablis or a Picpoul, extends the taste of the sea.',
+  'Les fines bulles d\'un brut accompagnent les fruits de mer avec fraîcheur.':
+      'The fine bubbles of a brut go freshly with seafood.',
+  'Un rosé sec et frais pour la plancha, l\'ail et le safran.':
+      'A crisp dry rosé for the griddle, garlic and saffron.',
+  'Un rosé sec et frais accompagne les fruits de mer avec simplicité.':
+      'A crisp dry rosé goes simply with seafood.',
+  'Un rouge fruité et gouleyant, à la manière d\'un Beaujolais ou d\'un rouge du Jura, pour la saucisse, les lentilles ou le hachis.':
+      'A fruity, easy-drinking red, in the style of a Beaujolais or a Jura red, for the sausage, lentils or hachis.',
+  'Un rouge franc pour ce plat de terroir généreux.':
+      'A straightforward red for this hearty country dish.',
+  'Un blanc sec et franc, d\'Alsace ou du Jura, tranche le gras de la charcuterie.':
+      'A dry, straightforward white from Alsace or the Jura cuts through the richness of the cured meats.',
 };

@@ -2,6 +2,39 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.11.0+84] — 2026-10-19
+
+> Les demandes du 11 au 17/10 (Flavien, Caro, Gandalf, jld), la connexion de Camille (18/10) et la revue complète du 18/10.
+
+### 🍷 Ce qui change pour vous
+- **Se connecter avec le code de l'e-mail** : un lien de connexion ouvert dans un autre navigateur que celui qui l'a demandé (celui d'une messagerie, par exemple) ramenait à l'adresse e-mail sans rien dire. L'écran le dit désormais, et le code à 6 chiffres de l'e-mail connecte où que l'on soit.
+- **La fiche de chaque vin d'une carte** : le toucher ouvre sa fiche — pourquoi il vous va ou non, raison par raison, son radar face au vôtre, ses détails.
+- **Un sommelier par vin et par carte** : ouvert depuis une bouteille ou une carte, Chatmelier tient une conversation à part, avec son historique ; « Effacer » efface vraiment, et seulement la conversation ouverte. Une bouteille de votre cave citée par son nom a sa carte.
+- **Ce que votre cave apprendrait au radar** : axe par axe, la bouteille prête à boire qui trancherait ce que le palais devine encore ; à deux, l'axe qu'aucun de vous n'a montré.
+- **Un palais plus honnête** : une dégustation ne compte qu'une fois par axe ; le cépage ne fait plus que supposer (en pointillés sur le radar) ; une déception apprend aussi ; vos favoris suivent ce que vous avez aimé récemment.
+- **Le terroir en deux cartes fixes** : le pays, puis la zone de l'appellation — plus de carte qu'on fait glisser jusqu'à la perdre. Un vin n'emprunte plus le terroir d'un autre pays (un Cahors n'est plus à Mendoza).
+- **Accords mets-vins** : 217 plats au lieu de 123, salades, soupes, légumes, œufs et tartes salées compris.
+- **Partager une cave par lien** marche de bout en bout : l'invité rejoint la cave, au besoin après s'être connecté.
+- **Une cave créée sans réseau garde ses bouteilles** : elle est recréée au retour du réseau, et ses bouteilles la suivent.
+- **Le type d'un vin** : ce qui est enregistré l'emporte sur le nom (un Valtellina « Grumello » n'est plus un rhum, un Clos du Maury plus un vin muté).
+- **Journal** : le drapeau de chaque vin, et des filtres (pays, couleur, note, appellation, lieu).
+- **La cote d'un vin non coté**, cherchée à la demande et donnée avec sa source — jamais de valeur sans source.
+- **Le nom d'une carte** vient du lieu où vous êtes quand la carte l'imprime ; il reste modifiable.
+- **« Une nouvelle version est disponible »** : l'app le propose, une fois par jour au plus, sans bloquer.
+- **Des cases vides** : plus de nom prérempli ni d'exemple qui cite quelqu'un ; plus de provenance « Acheté au domaine » cochée d'office.
+- **Le carafage** suit la garde de l'appellation (un crozes-hermitage n'est plus carafé deux heures comme un hermitage), et la lecture à voix haute ne prononce plus la consigne donnée à la voix.
+- Corrigé en chemin : la grille de la cave compactée ; les années de la courbe de garde qui se chevauchaient ; le choix « Couleur / Type » de la fiche à modifier qui débordait ; « Ce soir » en liste déroulante.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Migrations* : 071 (`chat_messages.sujet`, suppression de ses messages), 072 (fil complet d'une personne dans la console, `app_config.version_disponible`), 073 (provenances « Acheté au domaine » mises d'office remises à « non dit » — **à rejouer juste avant d'installer la 84**), 074 (accès et partage ; colonnes `wines.user_overrides`, `cellars.wifi_ssid`, `cellars.radius_meters` ; `accept_invite_by_code`). 070 à 074 appliquées le 18/10.
+- *Fonctions* (redéployées le 18/10) : `chat`, `menu-chat`, `scan-menu`, `taches-ia`, `update-wine-values`.
+- *Connexion* : `{{ .Token }}` à ajouter aux modèles d'e-mail « Magic Link » et « Confirm signup » ; l'échec d'un lien est journalisé (`AUTH`).
+- *Invitations* : route `/invite/:code`, ouverte dans l'app sur Android ; iPhone : `/invite*` dans `apple-app-site-association` quand la 84 sera la version minimale.
+- *Hors ligne* : repli sur une coupure du réseau seulement (`estUneCoupureReseau`) ; caves provisoires « temp_ » remplacées partout à la synchronisation (`SyncService.cavesRecreees`).
+- *Modèle de goût* : un pas par axe et par dégustation ; a priori de cépage non comptés ; `TasteProfile.copyWith(clearAxes:)` (défaire une dégustation vide l'axe qu'elle avait renseigné).
+- *Cartes du terroir* : `CadrageDuTerroir` ; centre et zoom calculés (`initialCameraFit` de flutter_map 8.3 laissait la carte vide avec des tuiles en cache) ; atlas borné au pays du vin.
+- *Traductions* : espagnol et italien à jour (3 911 phrases).
+
 ## [v1.10.0+83] — 2026-10-17
 
 > Les retours du 11 au 17/10 (Flavien, Pascal), et les deux vins introuvables du 16/10 au soir.

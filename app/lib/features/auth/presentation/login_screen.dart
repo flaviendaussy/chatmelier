@@ -42,13 +42,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // Un lien parti de l'inscription, ou d'une visite précédente à cet écran : son code
-    // reste proposé, à la même adresse (Q11).
+    // Un lien parti de l'inscription, ou d'une visite précédente à cet écran : son adresse
+    // revient, et le code du même e-mail est proposé sous l'envoi (Q11). L'écran s'ouvre
+    // pour autant comme d'habitude.
     final derniere = adresseDuDernierLien.value;
-    if (derniere != null) {
-      _emailCtrl.text = derniere;
-      _magicLinkSent = true;
-    }
+    if (derniere != null) _emailCtrl.text = derniere;
     _authSub = ref.read(supabaseProvider).auth.onAuthStateChange.listen((data) {
       // Une session anonyme n'est pas un compte : on reste ici (R2).
       if (data.session != null && !data.session!.user.isAnonymous && mounted) _entrer();
@@ -681,7 +679,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                 // sans redemander de lien (sauf s'il a expiré).
                                 ValueListenableBuilder<RetourDuLien?>(
                                   valueListenable: lienSansEffet,
-                                  builder: (context, retour, _) => retour == null || retour.expire
+                                  builder: (context, retour, _) =>
+                                      // Le code d'un lien sans effet marche encore ; celui d'un lien
+                                      // expiré, non. Sans avis : le code du dernier lien envoyé.
+                                      (retour != null ? retour.expire : adresseDuDernierLien.value == null)
                                       ? const SizedBox.shrink()
                                       : Padding(
                                           padding: const EdgeInsets.only(top: 16),

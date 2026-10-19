@@ -294,6 +294,71 @@ class GaussianDrinkingCurve extends StatelessWidget {
   }
 }
 
+/// Les bords gauches d'étiquettes centrées sur [centres] et larges de [largeurs], rangées
+/// dans l'ordre entre [debut] et [fin] sans se chevaucher (au moins [ecart] entre deux) ;
+/// nul si elles n'y tiennent pas.
+///
+/// Les étiquettes qui se touchent forment une grappe, placée pour que chacune s'écarte le
+/// moins possible de son année : deux voisines se partagent le décalage, au lieu que la
+/// seconde le prenne tout entier.
+@visibleForTesting
+List<double>? placerSansChevauchement(
+  List<double> centres,
+  List<double> largeurs,
+  double debut,
+  double fin, {
+  double ecart = 4,
+}) {
+  final n = centres.length;
+  // Chaque grappe : [première, dernière] étiquette.
+  final grappes = <List<int>>[
+    for (var i = 0; i < n; i++) [i, i],
+  ];
+  double largeur(List<int> g) {
+    var w = ecart * (g[1] - g[0]);
+    for (var i = g[0]; i <= g[1]; i++) {
+      w += largeurs[i];
+    }
+    return w;
+  }
+
+  // Le bord gauche qui minimise les écarts au carré entre chaque étiquette et son année.
+  double gauche(List<int> g) {
+    var somme = 0.0;
+    var decalage = 0.0;
+    for (var i = g[0]; i <= g[1]; i++) {
+      somme += centres[i] - decalage - largeurs[i] / 2;
+      decalage += largeurs[i] + ecart;
+    }
+    final w = largeur(g);
+    return (somme / (g[1] - g[0] + 1)).clamp(debut, math.max(debut, fin - w));
+  }
+
+  var fusion = true;
+  while (fusion) {
+    fusion = false;
+    for (var k = 0; k + 1 < grappes.length; k++) {
+      if (gauche(grappes[k]) + largeur(grappes[k]) + ecart > gauche(grappes[k + 1]) + 1e-9) {
+        grappes[k] = [grappes[k][0], grappes[k + 1][1]];
+        grappes.removeAt(k + 1);
+        fusion = true;
+        break;
+      }
+    }
+  }
+
+  final gauches = List<double>.filled(n, 0);
+  for (final g in grappes) {
+    if (largeur(g) > fin - debut) return null;
+    var x = gauche(g);
+    for (var i = g[0]; i <= g[1]; i++) {
+      gauches[i] = x;
+      x += largeurs[i] + ecart;
+    }
+  }
+  return gauches;
+}
+
 class _GaussianCurvePainter extends CustomPainter {
   final int vintage;
   final int drinkStart;
@@ -492,10 +557,19 @@ class _GaussianCurvePainter extends CustomPainter {
       );
     }
 
-    // 7. Timeline X-Axis Labels (Harvest, Drink Start, Peak, Max)
-    void drawYearLabel(int yr, String label, {bool isGold = false}) {
+    // 7. Les années de l'axe — récolte, début, apogée, fin — sans se chevaucher : à un an
+    // d'écart, « 2024 Début » s'écrivait sur « 2025 Apogée ». Trop proches, elles s'écartent
+    // tant que la place le permet ; sinon la moins utile cède, la récolte d'abord (le
+    // millésime est déjà sur la fiche). Une même année ne porte qu'une étiquette.
+    final etiquettes = <(int annee, double x, TextPainter tp, int rang)>[];
+    void etiquette(int yr, String label, int rang, {bool isGold = false}) {
       final x = yearToX(yr.toDouble());
       if (x < paddingLeft - 5 || x > size.width - paddingRight + 5) return;
+      final meme = etiquettes.indexWhere((e) => e.$1 == yr);
+      if (meme >= 0) {
+        if (etiquettes[meme].$4 >= rang) return;
+        etiquettes.removeAt(meme);
+      }
 
       final tp = TextPainter(
         text: TextSpan(
@@ -510,14 +584,35 @@ class _GaussianCurvePainter extends CustomPainter {
         textAlign: TextAlign.center,
         textDirection: TextDirection.ltr,
       )..layout();
-
-      tp.paint(canvas, Offset(x - (tp.width / 2), baselineY + 5));
+      etiquettes.add((yr, x, tp, rang));
     }
 
-    drawYearLabel(vintage, trSi(isFr, 'Récolte', 'Vintage'));
-    if (drinkStart != vintage) drawYearLabel(drinkStart, trSi(isFr, 'Début', 'Start'));
-    drawYearLabel(peakStart, trSi(isFr, 'Apogée ✨', 'Peak ✨'), isGold: true);
-    if (drinkEnd != peakStart && drinkEnd != peakEnd) drawYearLabel(drinkEnd, trSi(isFr, 'Fin', 'End'));
+    etiquette(vintage, trSi(isFr, 'Récolte', 'Vintage'), 1);
+    if (drinkStart != vintage) etiquette(drinkStart, trSi(isFr, 'Début', 'Start'), 2);
+    etiquette(peakStart, trSi(isFr, 'Apogée ✨', 'Peak ✨'), 3, isGold: true);
+    if (drinkEnd != peakStart && drinkEnd != peakEnd) etiquette(drinkEnd, trSi(isFr, 'Fin', 'End'), 2);
+    etiquettes.sort((a, b) => a.$2.compareTo(b.$2));
+
+    while (etiquettes.isNotEmpty) {
+      final gauches = placerSansChevauchement(
+        [for (final e in etiquettes) e.$2],
+        [for (final e in etiquettes) e.$3.width],
+        0,
+        size.width,
+      );
+      if (gauches != null) {
+        for (var i = 0; i < etiquettes.length; i++) {
+          etiquettes[i].$3.paint(canvas, Offset(gauches[i], baselineY + 5));
+        }
+        break;
+      }
+      // La moins utile cède : le rang le plus bas, et à rang égal la plus tardive.
+      var faible = 0;
+      for (var i = 1; i < etiquettes.length; i++) {
+        if (etiquettes[i].$4 <= etiquettes[faible].$4) faible = i;
+      }
+      etiquettes.removeAt(faible);
+    }
   }
 
   @override

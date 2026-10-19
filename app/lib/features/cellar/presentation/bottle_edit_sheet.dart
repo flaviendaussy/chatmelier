@@ -738,8 +738,12 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                                 : Colors.grey.shade700,
                           ),
                           const SizedBox(width: 4),
-                          Text(
+                          // Une demi-ligne de téléphone : le libellé s'abrège plutôt que déborder.
+                          Flexible(
+                            child: Text(
                             _vintageCtrl.text.isEmpty ? tr('Non millésimé (NM) ✓', 'Non-vintage (NV) ✓') : tr('Non millésimé (NM)', 'Non-vintage (NV)'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: _vintageCtrl.text.isEmpty
@@ -749,6 +753,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                                   ? const Color(0xFF8B1E3F)
                                   : Colors.grey.shade800,
                             ),
+                          ),
                           ),
                         ],
                       ),
@@ -760,29 +765,33 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
             const SizedBox(width: 12),
             Expanded(
               child: DropdownButtonFormField<String>(
+                // La liste se calait sur son plus long libellé (« Cognac / Armagnac ») et
+                // débordait de sa demi-ligne de 41 px : elle prend la largeur qu'on lui donne,
+                // et un libellé trop long s'abrège.
+                isExpanded: true,
                 initialValue: _wineType,
                 decoration: InputDecoration(
                   labelText: tr('Couleur / Type', 'Colour / type'),
                   border: const OutlineInputBorder(),
                 ),
                 items: [
-                  DropdownMenuItem(value: 'red', child: Text(tr('🍷 Rouge', '🍷 Red'))),
-                  DropdownMenuItem(value: 'white', child: Text(tr('🥂 Blanc', '🥂 White'))),
-                  DropdownMenuItem(value: 'rosé', child: Text(tr('🌸 Rosé', '🌸 Rosé'))),
-                  DropdownMenuItem(value: 'sparkling', child: Text(tr('🍾 Effervescent', '🍾 Sparkling'))),
-                  DropdownMenuItem(value: 'dessert', child: Text(tr('🍯 Liquoreux', '🍯 Sweet'))),
-                  DropdownMenuItem(value: 'fortified', child: Text(tr('🍷 Fortifié / VDN', '🍷 Fortified'))),
-                  DropdownMenuItem(value: 'orange', child: Text(tr('🍊 Vin Orange', '🍊 Orange wine'))),
-                  DropdownMenuItem(value: 'spirit', child: Text(tr('🥃 Spiritueux', '🥃 Spirit'))),
-                  const DropdownMenuItem(value: 'grappa', child: Text('🍇 Grappa')),
-                  DropdownMenuItem(value: 'eau-de-vie', child: Text(tr('🍐 Eau-de-vie / Marc', '🍐 Brandy / marc'))),
-                  const DropdownMenuItem(value: 'liqueur', child: Text('🍸 Liqueur')),
-                  const DropdownMenuItem(value: 'whisky', child: Text('🥃 Whisky')),
-                  DropdownMenuItem(value: 'rhum', child: Text(tr('🏴‍☠️ Rhum', '🏴‍☠️ Rum'))),
-                  const DropdownMenuItem(value: 'gin', child: Text('🍸 Gin')),
-                  const DropdownMenuItem(value: 'vodka', child: Text('🧊 Vodka')),
-                  const DropdownMenuItem(value: 'tequila', child: Text('🌵 Tequila / Mezcal')),
-                  const DropdownMenuItem(value: 'cognac', child: Text('🍷 Cognac / Armagnac')),
+                  DropdownMenuItem(value: 'red', child: Text(tr('🍷 Rouge', '🍷 Red'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(value: 'white', child: Text(tr('🥂 Blanc', '🥂 White'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(value: 'rosé', child: Text(tr('🌸 Rosé', '🌸 Rosé'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(value: 'sparkling', child: Text(tr('🍾 Effervescent', '🍾 Sparkling'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(value: 'dessert', child: Text(tr('🍯 Liquoreux', '🍯 Sweet'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(value: 'fortified', child: Text(tr('🍷 Fortifié / VDN', '🍷 Fortified'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(value: 'orange', child: Text(tr('🍊 Vin Orange', '🍊 Orange wine'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(value: 'spirit', child: Text(tr('🥃 Spiritueux', '🥃 Spirit'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  const DropdownMenuItem(value: 'grappa', child: Text('🍇 Grappa', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(value: 'eau-de-vie', child: Text(tr('🍐 Eau-de-vie / Marc', '🍐 Brandy / marc'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  const DropdownMenuItem(value: 'liqueur', child: Text('🍸 Liqueur', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  const DropdownMenuItem(value: 'whisky', child: Text('🥃 Whisky', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(value: 'rhum', child: Text(tr('🏴‍☠️ Rhum', '🏴‍☠️ Rum'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  const DropdownMenuItem(value: 'gin', child: Text('🍸 Gin', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  const DropdownMenuItem(value: 'vodka', child: Text('🧊 Vodka', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  const DropdownMenuItem(value: 'tequila', child: Text('🌵 Tequila / Mezcal', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  const DropdownMenuItem(value: 'cognac', child: Text('🍷 Cognac / Armagnac', maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ],
                 onChanged: (val) {
                   if (val != null) setState(() => _wineType = val);

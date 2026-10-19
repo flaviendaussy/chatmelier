@@ -7,6 +7,7 @@ import '../../features/cellar/domain/bottle.dart';
 import '../../features/cellar/domain/cellar_furniture.dart';
 import '../../features/offline/presentation/sync_provider.dart';
 import '../../features/offline/data/offline_storage_service.dart';
+import '../../features/offline/data/sync_service.dart';
 import 'supabase_provider.dart';
 import 'package:flutter/foundation.dart';
 import '../../features/cellar/domain/apogee_backfill.dart';
@@ -24,8 +25,20 @@ final cellarRepositoryProvider = Provider<CellarRepository>((ref) {
 
 class CurrentCellarNotifier extends StateNotifier<String?> {
   final OfflineStorageService _storage;
+  StreamSubscription<(String, String)>? _cavesRecreees;
 
-  CurrentCellarNotifier(this._storage) : super(_storage.getLastSelectedCellarId());
+  CurrentCellarNotifier(this._storage) : super(_storage.getLastSelectedCellarId()) {
+    // Une cave créée hors ligne puis recréée sur le serveur : la sélection la suit (V2.5 · Q2).
+    _cavesRecreees = SyncService.cavesRecreees.listen((remplacement) {
+      if (mounted && state == remplacement.$1) state = remplacement.$2;
+    });
+  }
+
+  @override
+  void dispose() {
+    _cavesRecreees?.cancel();
+    super.dispose();
+  }
 
   @override
   set state(String? value) {

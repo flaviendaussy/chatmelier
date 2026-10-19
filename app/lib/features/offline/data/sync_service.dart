@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/offline_action.dart';
 import 'offline_storage_service.dart';
 import '../../cellar/domain/bottle.dart';
+import '../../cellar/domain/cellar.dart';
 import '../../../config/constants.dart';
 import '../../../shared/services/fonctions_ia.dart';
 import '../../../shared/utils/app_logger.dart';
@@ -34,6 +35,11 @@ class SyncService {
 
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
+
+  /// Les caves créées hors ligne puis recréées sur le serveur : (identifiant provisoire,
+  /// identifiant réel). La cave sélectionnée les suit (V2.5 · Q2).
+  static final _cavesRecreees = StreamController<(String, String)>.broadcast();
+  static Stream<(String, String)> get cavesRecreees => _cavesRecreees.stream;
 
   SyncService({
     required SupabaseClient supabase,
@@ -101,7 +107,10 @@ class SyncService {
     final queue = _offlineStorage.getQueue();
 
     try {
-      for (final action in queue) {
+      for (final enAttente in queue) {
+        // Relue à son tour : une cave recréée plus tôt dans ce passage a pu changer son
+        // identifiant (V2.5 · Q2). La copie de la file prise au départ gardait l'ancien.
+        final action = _offlineStorage.getQueue().firstWhere((a) => a.id == enAttente.id, orElse: () => enAttente);
         if (action.status == OfflineActionStatus.completed) continue;
 
         try {
@@ -198,6 +207,16 @@ class SyncService {
 
     final data = action.data;
     String? cellarId = action.cellarId ?? data['cellar_id']?.toString();
+
+    // Une bouteille d'une cave encore provisoire attend que sa cave existe sur le serveur :
+    // la ranger dans la première cave venue la perdait de vue (V2.5 · Q2).
+    final caveAttendue = cellarId;
+    if (caveAttendue != null &&
+        caveAttendue.startsWith('temp_') &&
+        _offlineStorage.getQueue().any((a) =>
+            a.type == OfflineActionType.createCellar && a.cellarId == caveAttendue && a.status != OfflineActionStatus.completed)) {
+      throw Exception('La cave de cette bouteille n\'est pas encore créée sur le serveur : elle partira avec elle à la prochaine synchronisation.');
+    }
 
     // If cellarId is temporary or invalid, resolve the user's primary/active cellar in Supabase
     if (cellarId == null || cellarId.isEmpty || cellarId.startsWith('temp_')) {
@@ -883,6 +902,11 @@ class SyncService {
       'nickname': data['nickname'],
       'location_name': data['location_name'],
       'description': data['description'],
+      // Le lieu de la cave voyage avec elle (il restait sur le téléphone, V2.5 · Q2).
+      if (data['latitude'] != null) 'latitude': data['latitude'],
+      if (data['longitude'] != null) 'longitude': data['longitude'],
+      if (data['wifi_ssid'] != null) 'wifi_ssid': data['wifi_ssid'],
+      if (data['radius_meters'] != null) 'radius_meters': data['radius_meters'],
       'owner_id': userId,
     }).select().single();
 
@@ -899,25 +923,53 @@ class SyncService {
         AppLogger.debug('OFFLINE_SYNC', 'Repli : $e');
       }
 
-    // Remap any subsequent actions in queue that were tied to oldTempId
-    if (oldTempId != null && oldTempId.startsWith('temp_')) {
-      final queue = _offlineStorage.getQueue();
-      bool modified = false;
-      for (int i = 0; i < queue.length; i++) {
-        final a = queue[i];
-        if (a.cellarId == oldTempId) {
-          final updatedData = Map<String, dynamic>.from(a.data);
-          if (updatedData['cellar_id'] == oldTempId) {
-            updatedData['cellar_id'] = newCellarId;
-          }
-          queue[i] = a.copyWith(cellarId: newCellarId);
-          modified = true;
+    if (oldTempId != null && oldTempId != newCellarId) {
+      await _remplacerLaCaveProvisoire(oldTempId, newCellarId, res);
+    }
+  }
+
+  /// La cave provisoire remplacée partout par la vraie (V2.5 · Q2) : dans les actions en
+  /// attente (identifiant et données ; l'ancien remappage calculait les données sans les
+  /// garder, et n'attendait que des « temp_ » que la création n'écrivait pas), dans le cache
+  /// des caves et de leurs bouteilles, et dans la cave sélectionnée.
+  Future<void> _remplacerLaCaveProvisoire(String provisoire, String reelle, Map<String, dynamic> ligne) async {
+    final file = _offlineStorage.getQueue();
+    var modifiee = false;
+    for (var i = 0; i < file.length; i++) {
+      final a = file[i];
+      final donnees = Map<String, dynamic>.from(a.data);
+      var touchee = a.cellarId == provisoire;
+      for (final cle in const ['cellar_id', 'target_cellar_id']) {
+        if (donnees[cle] == provisoire) {
+          donnees[cle] = reelle;
+          touchee = true;
         }
       }
-      if (modified) {
-        await _offlineStorage.saveQueue(queue);
+      if (touchee) {
+        file[i] = a.copyWith(cellarId: a.cellarId == provisoire ? reelle : a.cellarId, data: donnees);
+        modifiee = true;
       }
     }
+    if (modifiee) await _offlineStorage.saveQueue(file);
+
+    final caves = _offlineStorage.getCachedCellars();
+    final position = caves.indexWhere((c) => c.id == provisoire);
+    if (position >= 0) {
+      caves[position] = Cellar.fromJson(ligne);
+      await _offlineStorage.saveCachedCellars(caves);
+    }
+    final bouteilles = _offlineStorage.getCachedBottles(provisoire);
+    if (bouteilles.isNotEmpty) {
+      await _offlineStorage.saveCachedBottles(reelle, [
+        for (final b in bouteilles) Bottle.fromJson({...b.toJson(), 'cellar_id': reelle}),
+      ]);
+      await _offlineStorage.saveCachedBottles(provisoire, const []);
+    }
+    if (_offlineStorage.getLastSelectedCellarId() == provisoire) {
+      await _offlineStorage.saveLastSelectedCellarId(reelle);
+    }
+    _cavesRecreees.add((provisoire, reelle));
+    AppLogger.info('OFFLINE_SYNC', 'Cave créée hors ligne, recréée sur le serveur');
   }
 
   // ---------------------------------------------------------------------------

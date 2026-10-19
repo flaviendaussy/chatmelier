@@ -5,6 +5,7 @@ import '../domain/bottle.dart';
 import '../domain/cellar.dart';
 import '../domain/cellar_furniture.dart';
 import '../domain/wine.dart';
+import '../../offline/data/coupure_reseau.dart';
 import '../../offline/data/offline_storage_service.dart';
 import '../../offline/domain/offline_action.dart';
 import '../../../shared/utils/app_logger.dart';
@@ -143,8 +144,14 @@ class CellarRepository {
 
       return newCellar;
     } catch (e) {
-      debugPrint('Create cellar offline fallback: $e');
-      final tempId = const Uuid().v4();
+      // Un refus du serveur se dit ; seule une coupure justifie la cave provisoire (V2.5 · Q2).
+      if (!estUneCoupureReseau(e)) {
+        AppLogger.error('CELLAR_REPO', 'Création de cave refusée par le serveur : $e', e);
+        rethrow;
+      }
+      AppLogger.warning('CELLAR_REPO', 'Cave créée hors ligne, en attente de synchronisation : $e');
+      // « temp_ » : la synchronisation reconnaît ainsi la cave à recréer, et la remplace partout.
+      final tempId = 'temp_${const Uuid().v4()}';
       final tempCellar = Cellar(
         id: tempId,
         name: name,

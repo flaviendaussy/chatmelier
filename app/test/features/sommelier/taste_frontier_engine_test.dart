@@ -3,6 +3,7 @@ import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/menu_scan/domain/cellar_bridge.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
 import 'package:chatmelier/features/sommelier/domain/taste_frontier_engine.dart';
+import 'package:chatmelier/features/auth/domain/palais.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Le moteur de frontière (S4) : quelle bouteille apprendrait le plus sur un palais,
@@ -10,6 +11,14 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TasteProfile profil({Map<String, int> observations = const {}, List<String> aversions = const []}) =>
       TasteProfile(id: 'p', name: 'Moi', axisObservations: observations, dislikedCharacteristics: aversions);
+
+  // Un palais connu sur les axes donnés, famille par famille (V2.6).
+  TasteProfile connaissant(Map<String, List<String>> axes) => TasteProfile(
+        id: 'p',
+        name: 'Moi',
+        palais: {for (final e in axes.entries) e.key: {for (final a in e.value) a: 0.5}},
+        observationsPalais: {for (final e in axes.entries) e.key: {for (final a in e.value) a: 20}},
+      );
 
   MenuWine vin(String nom, String type,
           {double tanins = 5, double corps = 5, double bois = 5, double acidite = 5, double mineral = 5}) =>
@@ -53,7 +62,7 @@ void main() {
     expect(TasteFrontierEngine.nettete(1, axe: 'body'), greaterThan(0));
     expect(TasteFrontierEngine.nettete(1, axe: 'tannin'), greaterThan(0));
 
-    final neConnaitQueLeReste = profil(observations: {'tannin': 20, 'body': 20, 'acidity': 20, 'minerality': 20});
+    final neConnaitQueLeReste = connaissant({'rouge': ['tannin', 'body', 'acidity'], 'blanc': ['body', 'acidity']});
     final s = choisir([vin('Muscadet', 'white', bois: 1, acidite: 8, mineral: 7.5)], neConnaitQueLeReste);
     expect(s, isNull, reason: 'rien à apprendre du boisé avec un vin qui n\'en a pas');
   });
@@ -62,11 +71,13 @@ void main() {
     expect(ProfilDeVin.depuisLaCarte(vin('R', 'red', mineral: 9)).axes.containsKey('minerality'), isFalse);
     expect(ProfilDeVin.depuisLaCarte(vin('B', 'white', tanins: 9)).axes.containsKey('tannin'), isFalse);
     expect(ProfilDeVin.depuisLaCarte(vin('R', 'red')).axes.containsKey('tannin'), isTrue);
-    expect(ProfilDeVin.depuisLaCarte(vin('B', 'white')).axes.containsKey('minerality'), isTrue);
+    // V2.6 : la minéralité n'est plus un axe ; la douceur, si.
+    expect(ProfilDeVin.depuisLaCarte(vin('B', 'white')).axes.containsKey('minerality'), isFalse);
+    expect(ProfilDeVin.depuisLaCarte(vin('B', 'white')).axes.containsKey('sweetness'), isTrue);
   });
 
   test('un palais bien connu ne motive aucune suggestion', () {
-    final connu = profil(observations: {for (final k in TasteProfile.axisKeys) k: 20});
+    final connu = connaissant({for (final f in FamillesDeVins.toutes) f: AxesDuPalais.de(f)});
     expect(choisir([vin('Meursault', 'white', bois: 9, corps: 8)], connu), isNull);
   });
 
@@ -90,9 +101,9 @@ void main() {
   test('la phrase dit ce qu\'on ignore et comment le vin le montre', () {
     final s = choisir([vin('Meursault', 'white', bois: 9, corps: 7)], profil(), plaisirs: {'Meursault': 78})!;
     expect(TasteFrontierEngine.phrase(s, 'Ce Meursault', true),
-        'Je ne sais pas encore ce que vous pensez du boisé. Ce Meursault, nettement boisé, me le dirait, '
+        'Je ne sais pas encore ce que vous pensez du boisé sur un blanc. Ce Meursault, nettement boisé, me le dirait, '
         'et il a de bonnes chances de vous plaire (78 %).');
-    expect(TasteFrontierEngine.phrase(s, 'This Meursault', false), contains('how you feel about oak'));
+    expect(TasteFrontierEngine.phrase(s, 'This Meursault', false), contains('how you feel about oak in a white'));
   });
 
   test('la phrase de la cave invite à ouvrir une bouteille prête', () {
@@ -130,11 +141,11 @@ void main() {
       expect(p.axes.containsKey('tannin'), isFalse);
     });
 
-    test('un Sancerre dit sa vivacité et sa minéralité, élevé en cuve il est sans bois', () {
+    test('un Sancerre dit sa vivacité, élevé en cuve il est sans bois', () {
       final p = ProfilDeVin.depuisLaCave(vinDeCave('Sancerre', 'Blanc',
           cepages: ['Sauvignon Blanc'], region: 'Loire', appellation: 'Sancerre', elevage: 'cuve inox'));
       expect(p.axes['acidity'], 8.5);
-      expect(p.axes['minerality'], 8);
+      expect(p.axes.containsKey('minerality'), isFalse);
       expect(p.axes['oak'], 1.5);
     });
   });

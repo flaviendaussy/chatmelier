@@ -31,7 +31,7 @@ void main() {
 
       expect(h.lire(), hasLength(1),
           reason: 'La capture se déclenche à chaque ouverture de l\'écran de profil.');
-      expect(h.lire().single.axes['acidity'], closeTo(0.62, 1e-9),
+      expect(h.lire().single.axes['blanc:acidity'], closeTo(0.62, 1e-9),
           reason: 'Ce qui intéresse, c\'est où en était le palais à la fin du mois.');
     });
 
@@ -67,7 +67,7 @@ void main() {
     test('elle n\'existe pas sur un seul point', () async {
       final h = await TasteProfileHistory.ouvrir();
       await h.capturer(profil(acidite: 0.80), maintenant: DateTime(2026, 9, 5));
-      expect(h.derive('acidity'), isNull,
+      expect(h.derive('blanc:acidity'), isNull,
           reason: 'Une dérive suppose deux mesures.');
     });
 
@@ -77,9 +77,29 @@ void main() {
       await h.capturer(profil(acidite: 0.60), maintenant: DateTime(2026, 6, 5));
       await h.capturer(profil(acidite: 0.82), maintenant: DateTime(2026, 9, 5));
 
-      expect(h.derive('acidity'), closeTo(0.42, 1e-9),
+      expect(h.derive('blanc:acidity'), closeTo(0.42, 1e-9),
           reason: 'Le palais s\'est déplacé vers la tension : +0,42 sur six mois.');
-      expect(h.derive('tannin'), isNull, reason: 'Axe jamais renseigné.');
+      expect(h.derive('rouge:tannin'), isNull, reason: 'Axe jamais renseigné.');
+    });
+
+    test('un instantané d\'avant les familles compte par son axe sans famille (V2.6)', () async {
+      SharedPreferences.setMockInitialValues({
+        'chatmelier_taste_history_v1':
+            '[{"mois":"2026-03","axes":{"acidity":0.4},"observations":{"acidity":8},"confiance":0.6,"degustations":4}]',
+      });
+      final h = await TasteProfileHistory.ouvrir();
+      await h.capturer(
+        const TasteProfile(
+          id: 'p',
+          name: 'Moi',
+          questionnairesCompleted: 6,
+          palais: {'blanc': {'acidity': 0.7}},
+          observationsPalais: {'blanc': {'acidity': 3}},
+        ),
+        maintenant: DateTime(2026, 10, 5),
+      );
+      expect(h.lire().last.observations['blanc:acidity'], 3);
+      expect(h.derive('blanc:acidity'), closeTo(0.3, 1e-9));
     });
 
     test('un historique corrompu ne fait pas tomber l\'app', () async {
@@ -87,7 +107,7 @@ void main() {
           {'chatmelier_taste_history_v1': '{pas une liste}'});
       final h = await TasteProfileHistory.ouvrir();
       expect(h.lire(), isEmpty);
-      expect(h.derive('acidity'), isNull);
+      expect(h.derive('blanc:acidity'), isNull);
     });
   });
 

@@ -336,7 +336,11 @@ void main() {
     await tester.tap(find.text('Yes'));
     await tester.pumpAndSettle();
     expect(find.textContaining('No Chatmelier palate on this device'), findsOneWidget);
-    expect(find.byType(Slider), findsNWidgets(6));
+    // Cinq curseurs en mots simples (V2.6) : sec ou doux, rond ou vif, léger ou puissant,
+    // tanins souples ou fermes, sans bois ou boisé.
+    expect(find.byType(Slider), findsNWidgets(5));
+    expect(find.text('Dry'), findsOneWidget);
+    expect(find.text('Sweet'), findsOneWidget);
   });
 
   testWidgets('mettre à jour ses goûts ne renomme pas l\'invité', (tester) async {

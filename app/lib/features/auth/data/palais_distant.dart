@@ -175,6 +175,14 @@ class PalaisDistant {
       if (((p['questionnaires_completed'] as num?) ?? 0) > 0) return false;
       final obs = p['axis_observations'];
       if (obs is Map && obs.values.any((v) => v is num && v > 0)) return false;
+      // V2.6 : les observations par famille, et un palais appris. Une simple déclaration
+      // (le palais de départ) ne retient pas un palais appris ailleurs.
+      final parFamille = p['observations_palais'];
+      if (parFamille is Map && parFamille.values.any((m) => m is Map && m.values.any((v) => v is num && v > 0))) {
+        return false;
+      }
+      final palais = p['palais'];
+      if (palais is Map && palais.values.any((m) => m is Map && m.isNotEmpty)) return false;
     }
     return true;
   }

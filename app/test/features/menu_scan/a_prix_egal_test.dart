@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:chatmelier/features/auth/domain/palais.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,7 +12,11 @@ import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
 import 'package:chatmelier/features/menu_scan/presentation/enriched_menu_screen.dart';
 
 MenuWine vin(String nom,
-        {double? prix, double? accord, String type = 'Rouge', List<MenuWineGlassPrice> verres = const []}) =>
+        {double? prix,
+        double? accord,
+        String type = 'Rouge',
+        List<MenuWineGlassPrice> verres = const [],
+        MenuWineRadarMetrics metriques = const MenuWineRadarMetrics()}) =>
     MenuWine(
       id: nom,
       name: nom,
@@ -20,6 +25,7 @@ MenuWine vin(String nom,
       bottlePrice: prix,
       userMatchScore: accord,
       glassPrices: verres,
+      metrics: metriques,
     );
 
 void main() {
@@ -82,8 +88,11 @@ void main() {
       pagePhotoPaths: const [],
       currency: 'EUR',
       wines: [
-        vin('Morgon Côte du Py 2021', prix: 42, accord: 71),
-        vin('Saint-Joseph 2020', prix: 42, accord: 92),
+        // Un Morgon tout en souplesse et vif : celui qui apprendrait le plus (V2.6 : un rouge
+        // sans tanins lus ne dit plus rien de ses tanins).
+        vin('Morgon Côte du Py 2021',
+            prix: 42, accord: 71, metriques: const MenuWineRadarMetrics(tannins: 1.5, acidity: 8.5, body: 4)),
+        vin('Saint-Joseph 2020', prix: 42, accord: 92, metriques: const MenuWineRadarMetrics(tannins: 5, acidity: 5, body: 5)),
         vin('Chablis 2022', prix: 42, accord: 60, type: 'Blanc'),
       ],
     );
@@ -106,11 +115,13 @@ void main() {
     }
 
     testWidgets('le sommelier désigne le vin, et dit pourquoi', (tester) async {
+      // Un palais bien connu, rouges comme blancs (V2.6).
       final connu = TasteProfile(
         id: 'p',
         name: 'Moi',
         isPrimary: true,
-        axisObservations: {for (final k in TasteProfile.axisKeys) k: 12},
+        palais: {for (final f in ['rouge', 'blanc']) f: {for (final a in AxesDuPalais.de(f)) a: 0.5}},
+        observationsPalais: {for (final f in ['rouge', 'blanc']) f: {for (final a in AxesDuPalais.de(f)) a: 12}},
       );
       await ouvrir(tester, [connu]);
       expect(find.textContaining('À prix égal, je prendrais celui-ci'), findsOneWidget);

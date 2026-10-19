@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/taste_profile_service.dart';
+import '../domain/affinite_des_palais.dart';
+import '../domain/mots_du_palais.dart';
+import '../domain/palais.dart';
 import '../domain/taste_profile.dart';
-import '../domain/wine_taste_radar.dart';
 import 'widgets/bouteilles_qui_apprendraient.dart';
+import 'widgets/radar_du_palais.dart';
 import 'widgets/radar_legende.dart';
 import 'widgets/wine_taste_radar_chart.dart';
+import '../../journal/domain/tasting_questionnaire_result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/utils/langue.dart';
@@ -50,7 +54,6 @@ class TasteProfileRadarScreen extends ConsumerStatefulWidget {
 }
 
 class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScreen> {
-  String get _langCode => Localizations.maybeLocaleOf(context)?.languageCode ?? 'en';
   RadarViewMode _mode = RadarViewMode.individual;
 
   // Mode 1: Individual
@@ -62,6 +65,22 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
   // Mode 3: Comparison profiles
   String? _compareProfileId1;
   String? _compareProfileId2;
+
+  /// La famille regardée (V2.6) : celle qu'on a choisie, sinon la mieux connue du palais
+  /// affiché.
+  String? _famille;
+  String _familleDe(TasteProfile p) => _famille ?? p.familleDominante;
+
+  Widget _choixDeFamille(String famille) => Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: ChoixDeFamille(
+          famille: famille,
+          onChanged: (f) {
+            HapticFeedback.selectionClick();
+            setState(() => _famille = f);
+          },
+        ),
+      );
 
   @override
   void initState() {
@@ -287,7 +306,9 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
       (p) => p.id == _selectedProfileId,
       orElse: () => profiles.first,
     );
-    final metrics = WineTasteRadarCalculator.compute(currentProfile);
+    final famille = _familleDe(currentProfile);
+    final palais = currentProfile.palaisPour(famille);
+    final couleur = kRadarPalette[profiles.indexOf(currentProfile) % kRadarPalette.length];
 
     return Column(
       children: [
@@ -337,68 +358,65 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
               onPressed: () => _retirer(currentProfile),
             ),
           ),
-        const SizedBox(height: 20),
+        _choixDeFamille(famille),
+        const SizedBox(height: 16),
 
         // Radar Chart
         Center(
           child: WineTasteRadarChart(
             size: 270,
-            datasets: [
-              RadarChartDataset(
-                label: currentProfile.name,
-                metrics: metrics,
-                color: kRadarPalette[profiles.indexOf(currentProfile) % kRadarPalette.length],
-                confidences: TasteProfile.axisKeys.map(currentProfile.axisConfidence).toList(),
-              ),
-            ],
+            customAxisLabels: RadarDuPalais.libelles(famille),
+            datasets: [RadarDuPalais.jeu(currentProfile, famille, label: currentProfile.name, color: couleur)],
           ),
         ),
         const SizedBox(height: 6),
-        LegendeDuRadar(color: kRadarPalette[profiles.indexOf(currentProfile) % kRadarPalette.length]),
+        LegendeDuRadar(color: couleur),
         const SizedBox(height: 20),
 
         // Les bouteilles de la cave qui trancheraient ce que le radar devine (V2.5 · F3).
         BouteillesQuiApprendraient(
           profil: currentProfile,
-          couleur: kRadarPalette[profiles.indexOf(currentProfile) % kRadarPalette.length],
+          couleur: couleur,
         ),
 
-        // Metrics Breakdown Grid (8 dimensions)
-        Builder(
-          builder: (context) {
-            final axes = WineTasteRadarMetrics.localizedAxisLabels(_langCode);
-            final titleText = tr('Détail des 8 Dimensions Gustatives', '8 Taste Dimensions Breakdown');
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        // Le détail des axes de la famille (V2.6 : cinq par famille, et non huit).
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              tr('Le palais des {famille}, axe par axe', 'The {famille} palate, axis by axis',
+                  {'famille': MotsDuPalais.familleAuPluriel(famille)}),
+              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 2.6,
               children: [
-                Text(
-                  titleText,
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 2.6,
-                  children: [
-                    _buildMetricTile(axes[0].replaceAll('\n', ' '), metrics.tannin, Icons.grain_rounded, const Color(0xFF795548), observations: currentProfile.axisObservations['tannin'] ?? 0),
-                    _buildMetricTile(axes[1].replaceAll('\n', ' '), metrics.body, Icons.fitness_center_rounded, const Color(0xFF8B1E3F), observations: currentProfile.axisObservations['body'] ?? 0),
-                    _buildMetricTile(axes[2].replaceAll('\n', ' '), metrics.oak, Icons.forest_rounded, const Color(0xFF8D6E63), observations: currentProfile.axisObservations['oak'] ?? 0),
-                    _buildMetricTile(axes[3].replaceAll('\n', ' '), metrics.ripeFruit, Icons.wb_sunny_rounded, const Color(0xFFD81B60), observations: currentProfile.axisObservations['ripeFruit'] ?? 0),
-                    _buildMetricTile(axes[4].replaceAll('\n', ' '), metrics.spice, Icons.local_fire_department_rounded, const Color(0xFFE65100), observations: currentProfile.axisObservations['spice'] ?? 0),
-                    _buildMetricTile(axes[5].replaceAll('\n', ' '), metrics.freshFruit, Icons.eco_rounded, const Color(0xFF2E7D32), observations: currentProfile.axisObservations['freshFruit'] ?? 0),
-                    _buildMetricTile(axes[6].replaceAll('\n', ' '), metrics.minerality, Icons.landscape_rounded, const Color(0xFF00838F), observations: currentProfile.axisObservations['minerality'] ?? 0),
-                    _buildMetricTile(axes[7].replaceAll('\n', ' '), metrics.acidity, Icons.bolt_rounded, const Color(0xFF1E88E5), observations: currentProfile.axisObservations['acidity'] ?? 0),
-                  ],
-                ),
+                for (final axe in AxesDuPalais.duRadar(famille))
+                  _buildMetricTile(
+                    AxesDuPalais.nom(axe),
+                    palais.valeur(axe),
+                    _iconeDe(axe),
+                    _couleurDe(axe),
+                    observations: currentProfile.observationsSur(famille, axe),
+                    bout: _boutDe(axe, palais.valeur(axe)),
+                  ),
               ],
-            );
-          },
+            ),
+          ],
         ),
         const SizedBox(height: 20),
+
+        // Les arômes : des étiquettes, plus des axes (V2.6). La minéralité en est une.
+        if (MotsDuPalais.aromesPreferes(currentProfile) case final aromes when aromes.isNotEmpty) ...[
+          _AromesPreferes(ids: aromes, nom: currentProfile.isPrimary ? null : currentProfile.name),
+          const SizedBox(height: 20),
+        ],
 
         // Profile Tags Summary
         if (currentProfile.favoriteTypes.isNotEmpty ||
@@ -453,7 +471,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
 
   /// [observations] : dégustations qui ont renseigné cet axe. Sous cinq, la valeur est
   /// devinée et le dit (mêmes seuils que le radar).
-  Widget _buildMetricTile(String label, double value, IconData icon, Color color, {int? observations}) {
+  Widget _buildMetricTile(String label, double value, IconData icon, Color color, {int? observations, String? bout}) {
     final devine = observations != null && observations < 5;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -472,7 +490,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  label,
+                  bout == null ? label : '$label · $bout',
                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -511,28 +529,60 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
     );
   }
 
+  static IconData _iconeDe(String axe) => switch (axe) {
+        AxesDuPalais.fraicheur => Icons.bolt_rounded,
+        AxesDuPalais.douceur => Icons.water_drop_outlined,
+        AxesDuPalais.corps => Icons.fitness_center_rounded,
+        AxesDuPalais.tanins => Icons.grain_rounded,
+        AxesDuPalais.boise => Icons.forest_rounded,
+        _ => Icons.hourglass_bottom_rounded,
+      };
+
+  static Color _couleurDe(String axe) => switch (axe) {
+        AxesDuPalais.fraicheur => const Color(0xFF1E88E5),
+        AxesDuPalais.douceur => const Color(0xFFD4A017),
+        AxesDuPalais.corps => const Color(0xFF8B1E3F),
+        AxesDuPalais.tanins => const Color(0xFF795548),
+        AxesDuPalais.boise => const Color(0xFF8D6E63),
+        _ => const Color(0xFF6D4C9F),
+      };
+
+  /// Le bout de l'axe vers lequel penche la valeur, ou rien au milieu.
+  static String? _boutDe(String axe, double v) {
+    final (bas, haut) = AxesDuPalais.bouts(axe);
+    if (v >= 6.5) return haut;
+    if (v <= 3.5) return bas;
+    return null;
+  }
+
   // =========================================================================
   // MODE 2: OVERLAY (TOUS LES CONVIVES SUPERPOSÉS)
   // =========================================================================
   Widget _buildOverlayView(ThemeData theme, bool isDark, List<TasteProfile> profiles) {
+    final famille = _familleDe(profiles.firstWhere((p) => p.isPrimary, orElse: () => profiles.first));
     final datasets = <RadarChartDataset>[];
     for (int i = 0; i < profiles.length; i++) {
       final p = profiles[i];
       final isVis = _overlayVisibility[p.id] ?? true;
-      datasets.add(RadarChartDataset(
+      datasets.add(RadarDuPalais.jeu(
+        p,
+        famille,
         label: p.name,
-        metrics: WineTasteRadarCalculator.compute(p),
         color: kRadarPalette[i % kRadarPalette.length],
         isVisible: isVis,
+        avecConfiance: false,
       ));
     }
 
     return Column(
       children: [
+        _choixDeFamille(famille),
+        const SizedBox(height: 16),
         // Multi-layer Radar Chart
         Center(
           child: WineTasteRadarChart(
             size: 280,
+            customAxisLabels: RadarDuPalais.libelles(famille),
             datasets: datasets,
           ),
         ),
@@ -675,7 +725,9 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
     final color1 = kRadarPalette[profiles.indexOf(p1) % kRadarPalette.length];
     final color2 = kRadarPalette[profiles.indexOf(p2) % kRadarPalette.length];
 
-    final affinity = WineTasteRadarCalculator.compare(p1, p2, _langCode);
+    final famille = _familleDe(p1);
+    final affinite = AffiniteDesPalais.comparer(p1, p2, famille);
+    final pourcentage = affinite.pourcentage;
 
     return Column(
       children: [
@@ -738,23 +790,17 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        _choixDeFamille(famille),
+        const SizedBox(height: 16),
 
         // Dual Spider Chart
         Center(
           child: WineTasteRadarChart(
             size: 280,
+            customAxisLabels: RadarDuPalais.libelles(famille),
             datasets: [
-              RadarChartDataset(
-                label: p1.name,
-                metrics: WineTasteRadarCalculator.compute(p1),
-                color: color1,
-              ),
-              RadarChartDataset(
-                label: p2.name,
-                metrics: WineTasteRadarCalculator.compute(p2),
-                color: color2,
-              ),
+              RadarDuPalais.jeu(p1, famille, label: p1.name, color: color1, avecConfiance: false),
+              RadarDuPalais.jeu(p2, famille, label: p2.name, color: color2, avecConfiance: false),
             ],
           ),
         ),
@@ -785,18 +831,24 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      tr('{pct} % d\'affinité', '{pct}% affinity', {'pct': affinity.affinityPercentage.toStringAsFixed(0)}),
+                      // Sur un ou deux axes connus des deux, ce n'est qu'une approximation.
+                      pourcentage == null
+                          ? tr('Affinité à venir', 'Affinity to come')
+                          : tr('{pct} % d\'affinité', '{pct}% affinity',
+                              {'pct': '${affinite.axesCompares < 3 ? '≈' : ''}${pourcentage.toStringAsFixed(0)}'}),
                       style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text(
-                    // On parle à la personne : « Votre compatibilité avec Caro », pas « Moi & Caro ».
-                    p1.isPrimary || p2.isPrimary
-                        ? tr('Votre compatibilité avec {b}', 'Your compatibility with {b}',
-                            {'b': p1.isPrimary ? p2.name : p1.name})
-                        : tr('Compatibilité {a} & {b}', 'Compatibility {a} & {b}', {'a': p1.name, 'b': p2.name}),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  Expanded(
+                    child: Text(
+                      // On parle à la personne : « Votre compatibilité avec Caro », pas « Moi & Caro ».
+                      p1.isPrimary || p2.isPrimary
+                          ? tr('Votre compatibilité avec {b}', 'Your compatibility with {b}',
+                              {'b': p1.isPrimary ? p2.name : p1.name})
+                          : tr('Compatibilité {a} & {b}', 'Compatibility {a} & {b}', {'a': p1.name, 'b': p2.name}),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
                   ),
                 ],
               ),
@@ -809,7 +861,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      affinity.commonGroundsSummary,
+                      affinite.phraseEnCommun,
                       style: const TextStyle(fontSize: 12.5, height: 1.35),
                     ),
                   ),
@@ -824,7 +876,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      affinity.divergencesSummary,
+                      affinite.phraseEcarts,
                       style: const TextStyle(fontSize: 12.5, height: 1.35),
                     ),
                   ),
@@ -849,7 +901,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          affinity.idealWineRecommendation,
+                          affinite.vinIdeal,
                           style: const TextStyle(fontSize: 12.5, height: 1.4, fontWeight: FontWeight.w500),
                         ),
                       ],
@@ -956,6 +1008,46 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Les arômes qu'une personne cite le plus, en étiquettes (V2.6).
+class _AromesPreferes extends StatelessWidget {
+  final List<String> ids;
+
+  /// Le prénom d'un proche ; nul pour soi (« que vous citez »).
+  final String? nom;
+
+  const _AromesPreferes({required this.ids, this.nom});
+
+  @override
+  Widget build(BuildContext context) {
+    final options = {for (final o in TastingQuestionnaireResult.getAromaOptions(AppLocalizations.of(context))) o.id: o};
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          nom == null
+              ? tr('Les arômes que vous citez le plus', 'The aromas you mention most')
+              : tr('Les arômes que {nom} cite le plus', 'The aromas {nom} mentions most', {'nom': nom}),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final id in ids)
+              if (options[id] case final o?)
+                Chip(
+                  visualDensity: VisualDensity.compact,
+                  avatar: Text(o.emoji),
+                  label: Text(o.label, style: const TextStyle(fontSize: 12)),
+                ),
+          ],
+        ),
+      ],
     );
   }
 }

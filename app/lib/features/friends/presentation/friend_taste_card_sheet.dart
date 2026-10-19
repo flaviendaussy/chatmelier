@@ -6,8 +6,10 @@ import '../../../shared/utils/phone_dial_code.dart';
 import '../../../shared/widgets/owner_avatar.dart';
 import '../data/friends_repository.dart';
 import '../domain/friend.dart';
-import '../../auth/domain/taste_profile.dart';
-import '../../auth/domain/wine_taste_radar.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../auth/domain/mots_du_palais.dart';
+import '../../auth/presentation/widgets/radar_du_palais.dart';
+import '../../journal/domain/tasting_questionnaire_result.dart';
 import '../../auth/presentation/widgets/radar_legende.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../../../shared/utils/langue.dart';
@@ -33,6 +35,9 @@ class FriendTasteCardSheet extends ConsumerStatefulWidget {
 
 class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
   bool _isActionLoading = false;
+
+  /// La famille de son radar (V2.6) : celle qu'on a choisie, sinon celle qu'il connaît le mieux.
+  String? _famille;
 
   Future<void> _showRequestCellarAccessDialog() async {
     String selectedRole = 'viewer';
@@ -513,14 +518,22 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()))
                 else if (palais.valueOrNull != null) ...[
                   Center(
+                    child: ChoixDeFamille(
+                      famille: _famille ?? taste.familleDominante,
+                      onChanged: (f) => setState(() => _famille = f),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
                     child: WineTasteRadarChart(
                       size: 240,
+                      customAxisLabels: RadarDuPalais.libelles(_famille ?? taste.familleDominante),
                       datasets: [
-                        RadarChartDataset(
+                        RadarDuPalais.jeu(
+                          taste,
+                          _famille ?? taste.familleDominante,
                           label: friend.displayName,
-                          metrics: WineTasteRadarCalculator.compute(taste),
                           color: const Color(0xFF8B1E3F),
-                          confidences: TasteProfile.axisKeys.map(taste.axisConfidence).toList(),
                         ),
                       ],
                     ),
@@ -653,18 +666,28 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   const SizedBox(height: 16),
                 ],
 
-                // 6. ARÔMES FAVORIS
-                if (taste.aromaPreferences.isNotEmpty) ...[
+                // 6. ARÔMES FAVORIS — les plus cités d'abord, et nommés (V2.6 : « epices douces »
+                // s'affichait tel quel). La minéralité du palais d'avant en est une.
+                if (MotsDuPalais.aromesPreferes(taste, max: 6) case final aromes when aromes.isNotEmpty) ...[
                   _buildSectionHeader(tr('✨ Arômes les plus plébiscités', '✨ Favourite aromas'), isDark),
                   const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: taste.aromaPreferences.keys
-                        .take(6)
-                        .map((a) => _buildChip(a.replaceAll('_', ' '), Colors.purple, isDark))
-                        .toList(),
-                  ),
+                  Builder(builder: (context) {
+                    final options = {
+                      for (final o in TastingQuestionnaireResult.getAromaOptions(AppLocalizations.of(context))) o.id: o,
+                    };
+                    return Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final a in aromes)
+                          _buildChip(
+                            options[a] == null ? a.replaceAll('_', ' ') : '${options[a]!.emoji} ${options[a]!.label}',
+                            Colors.purple,
+                            isDark,
+                          ),
+                      ],
+                    );
+                  }),
                   const SizedBox(height: 16),
                 ],
               ],

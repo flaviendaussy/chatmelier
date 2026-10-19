@@ -147,7 +147,9 @@ class MenuFlightEngine {
     if (premier != null) pris.add(premier);
 
     // Les verres du milieu : les plus instructifs, un axe chacun tant que possible.
-    final instructifs = <(MenuWine, String)>[];
+    // Un axe se lit dans une famille (V2.6) : le boisé d'un blanc et celui d'un rouge
+    // s'apprennent chacun.
+    final instructifs = <(MenuWine, String, String?)>[];
     final axesVus = <String>{};
     while (instructifs.length < n - 2) {
       final libres = TasteFrontierEngine.candidatsDeLaCarte(pool).where((w) => !pris.contains(w)).toList();
@@ -159,13 +161,14 @@ class MenuFlightEngine {
             prix: prixPourApprendre,
           );
       final nouveaux = libres.where((w) {
-        final r = TasteFrontierEngine.evaluer(ProfilDeVin.depuisLaCarte(w), palais);
-        return r != null && !axesVus.contains(r.$2);
+        final p = ProfilDeVin.depuisLaCarte(w);
+        final r = TasteFrontierEngine.evaluer(p, palais);
+        return r != null && !axesVus.contains('${p.famille}:${r.$2}');
       }).toList();
       final s = choix(nouveaux) ?? choix(libres);
       if (s == null) break;
-      instructifs.add((s.vin, s.axe));
-      axesVus.add(s.axe);
+      instructifs.add((s.vin, s.axe, s.famille));
+      axesVus.add('${s.famille}:${s.axe}');
       pris.add(s.vin);
     }
 
@@ -173,7 +176,8 @@ class MenuFlightEngine {
     if (dernier != null) pris.add(dernier);
     // Une carte trop courte pour apprendre : le milieu se remplit de vins aimés.
     final milieu = [
-      for (final (w, axe) in instructifs) (w, trSi(fr, 'Pour savoir ce que vous pensez {quoi}', 'To find out how you feel about {quoi}', {'quoi': TasteFrontierEngine.ceQueJugeLAxe(axe)})),
+      for (final (w, axe, famille) in instructifs)
+        (w, trSi(fr, 'Pour savoir ce que vous pensez {quoi}', 'To find out how you feel about {quoi}', {'quoi': TasteFrontierEngine.ceQueJugeLAxe(axe, famille: famille)})),
     ];
     while (milieu.length < n - 2) {
       final w = leMieuxAime();

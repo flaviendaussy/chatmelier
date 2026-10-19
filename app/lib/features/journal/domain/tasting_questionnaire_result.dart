@@ -42,6 +42,12 @@ class TastingQuestionnaireResult {
   final String? mouthfeelTexture; // 'silky_lacy', 'crisp_salivating', 'dense_structured'
   final String? fruitProfile; // 'crunchy_tart', 'deep_ripe', 'spicy_herbal'
 
+  /// Le « pour vous » de la bouche (V2.6 · P6) : axe du palais (`AxesDuPalais`) →
+  /// `trop`, `juste` ou `pas_assez`. Remplace les curseurs qui faisaient mesurer le vin :
+  /// ce que le vin offre, ses données le disent ; ce qui manque, c'est de quel côté la
+  /// personne le voulait.
+  final Map<String, String> jugements;
+
   // — Extensions for Purists & Fast Tasters —
   final List<String> customAromas; // Freeform aromas added by user
   final bool isExpressMode; // true if completed in 1-page express mode
@@ -69,6 +75,7 @@ class TastingQuestionnaireResult {
     this.platAccorde,
     this.mouthfeelTexture,
     this.fruitProfile,
+    this.jugements = const {},
     this.customAromas = const [],
     this.isExpressMode = false,
     required this.profileId,
@@ -95,6 +102,7 @@ class TastingQuestionnaireResult {
     if (platAccorde != null) 'plat_accorde': platAccorde,
     if (mouthfeelTexture != null) 'mouthfeel_texture': mouthfeelTexture,
     if (fruitProfile != null) 'fruit_profile': fruitProfile,
+    if (jugements.isNotEmpty) 'jugements': jugements,
     'is_express_mode': isExpressMode,
     'profile_id': profileId,
     'profile_name': profileName,
@@ -134,6 +142,12 @@ class TastingQuestionnaireResult {
       platAccorde: json['plat_accorde'] as String?,
       mouthfeelTexture: json['mouthfeel_texture'] as String?,
       fruitProfile: json['fruit_profile'] as String?,
+      jugements: json['jugements'] is Map
+          ? {
+              for (final e in (json['jugements'] as Map).entries)
+                if (const {'trop', 'juste', 'pas_assez'}.contains(e.value)) e.key.toString(): e.value as String,
+            }
+          : const {},
       isExpressMode: (json['is_express_mode'] as bool?) ?? false,
       profileId: (json['profile_id'] as String?) ?? 'me',
       profileName: (json['profile_name'] as String?) ?? 'Moi',

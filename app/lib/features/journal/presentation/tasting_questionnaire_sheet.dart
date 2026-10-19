@@ -12,9 +12,12 @@ import '../../friends/domain/friend.dart';
 import '../../offline/presentation/sync_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../data/tasting_ai_assistant_service.dart';
+import '../domain/question_pour_vous.dart';
 import '../domain/questionnaire_de_degustation.dart';
 import '../domain/tasting_questionnaire_result.dart';
 import '../../cellar/domain/wine.dart';
+import '../../sommelier/domain/profil_du_vin.dart';
+import 'widgets/pour_vous.dart';
 import '../domain/tasting_pedagogy_engine.dart';
 import 'tasting_pedagogy_sheet.dart';
 import 'journal_screen.dart';
@@ -55,6 +58,9 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
   final String? textureDeja;
   final String? fruitDeja;
 
+  /// Le « pour vous » que la Gorgée a déjà demandé (V2.6).
+  final Map<String, String>? jugementsDeja;
+
   const TastingQuestionnaireSheet({
     super.key,
     required this.wineName,
@@ -76,6 +82,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
     this.racheterDeja,
     this.textureDeja,
     this.fruitDeja,
+    this.jugementsDeja,
   });
 
   /// Show the questionnaire as a full-screen modal bottom sheet.
@@ -100,6 +107,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
     String? racheterDeja,
     String? textureDeja,
     String? fruitDeja,
+    Map<String, String>? jugementsDeja,
   }) {
     return showModalBottomSheet<bool>(
       context: context,
@@ -127,6 +135,7 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
         racheterDeja: racheterDeja,
         textureDeja: textureDeja,
         fruitDeja: fruitDeja,
+        jugementsDeja: jugementsDeja,
       ),
     );
   }
@@ -210,8 +219,50 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   bool get _isRed => _vin.estRouge;
   bool get _isWhite => _vin.estBlanc;
   bool get _isSparkling => _vin.estEffervescent;
-  bool get _isRose => _vin.estRose;
   bool get _showTannins => _vin.demandeLesTanins;
+
+  /// La famille du vin (V2.6) : nulle pour un muté ou un spiritueux, dont le palais
+  /// n'apprend rien — pas de « pour vous ».
+  String? get _famille => TasteProfile.familleDe(widget.wineType);
+
+  /// Le vin tel que le palais l'apprendra, millésime compris : l'âge d'un vin se lit sur
+  /// son millésime, sa douceur sur son nom.
+  late final Wine _vinDeLaDegustation = Wine(
+    id: widget.wineId ?? '',
+    name: widget.wineName,
+    type: widget.wineType ?? '',
+    country: '',
+    region: widget.region ?? '',
+    producer: widget.producer,
+    vintage: widget.vintage,
+    grapes: [
+      for (final c in widget.wineGrapes ?? const <String>[])
+        if (c.trim().isNotEmpty) Grape(name: c.trim()),
+    ],
+  );
+  late final ProfilDuVin _profilDuVin = ProfilDuVin.deLaCave(_vinDeLaDegustation);
+
+  /// Le convive dont c'est le tour.
+  TasteProfile get _quiRepond {
+    if (_selectedProfiles.isNotEmpty) return _selectedProfiles[_currentProfileIndex.clamp(0, _selectedProfiles.length - 1)];
+    return _allProfiles.firstWhere((p) => p.isPrimary,
+        orElse: () => _allProfiles.firstOrNull ?? TasteProfile(id: 'me', name: tr('Moi', 'Me'), isPrimary: true));
+  }
+
+  /// Le « pour vous » (V2.6 · P6) : l'axe que le palais de ce convive connaît le moins,
+  /// là où ce vin tranche ; les autres se précisent si l'on veut.
+  Widget? _pourVous() {
+    final famille = _famille;
+    if (famille == null) return null;
+    final convive = _quiRepond;
+    return PourVous(
+      key: ValueKey('pour_vous_${convive.id}'),
+      famille: famille,
+      premier: QuestionPourVous.aDemander(convive, famille, _profilDuVin),
+      jugements: _r.jugements,
+      onJuger: (axe, sens) => setState(() => _r.juger(axe, sens)),
+    );
+  }
 
   String _profileDisplayName(TasteProfile profile) {
     if (!profile.isPrimary) return profile.name;
@@ -272,6 +323,9 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     if (widget.racheterDeja != null) _r.racheter = widget.racheterDeja!;
     _r.texture ??= widget.textureDeja;
     _r.fruit ??= widget.fruitDeja;
+    for (final e in (widget.jugementsDeja ?? const <String, String>{}).entries) {
+      _r.jugements.putIfAbsent(e.key, () => e.value);
+    }
   }
 
   /// À qui appartiennent les réponses en cours : un retour au choix des dégustateurs ne les
@@ -346,6 +400,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           wineType: widget.wineType,
           tastingId: _tastingId,
           wineName: widget.wineName,
+          vin: _vinDeLaDegustation,
         );
         AppLogger.info('QUESTIONNAIRE', 'Saved answers for ${profile.name}');
       }
@@ -1489,6 +1544,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   Widget _buildStep3Bouche() {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final pourVous = _pourVous();
 
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -1498,92 +1554,89 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
+        // V2.6 · P6 : on demande ce que la personne en pense, pas de décrire le vin.
         Text(
-          l10n.tastingStepBoucheSubtitle,
+          tr('Une seule question suffit : le reste, le vin le dit de lui-même.',
+              'One question is enough: the wine tells the rest itself.'),
           style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
         const SizedBox(height: 20),
-
-        // Acidité / Vivacité
-        Text(
-          _isWhite
-              ? (l10n.tastingAcidityFreshness)
-              : (l10n.tastingAcidity),
-          style: theme.textTheme.titleSmall,
+        if (pourVous != null) pourVous,
+        const SizedBox(height: 12),
+        // Décrire le vin reste possible, replié : un curseur qu'on ne touche pas ne dit rien.
+        // Son propre Material : la page a un fond, qui cacherait l'encre de la tuile.
+        Material(
+          type: MaterialType.transparency,
+          child: Theme(
+            data: theme.copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: EdgeInsets.zero,
+              expandedAlignment: Alignment.centerLeft,
+              expandedCrossAxisAlignment: CrossAxisAlignment.start,
+              initiallyExpanded: _r.decrits.isNotEmpty,
+              title: Text(tr('Décrire le vin (facultatif)', 'Describe the wine (optional)'),
+                  style: theme.textTheme.titleSmall),
+              subtitle: Text(
+                tr('Pour votre journal : sa vivacité, sa structure, sa longueur.', 'For your journal: its crispness, structure, length.'),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              children: [
+                ..._curseursDeDescription(l10n, theme.textTheme.titleSmall),
+              ],
+            ),
+          ),
         ),
+      ],
+    );
+  }
+
+  /// Les curseurs qui décrivent le vin : facultatifs, et sans effet tant qu'on n'y a pas
+  /// touché.
+  List<Widget> _curseursDeDescription(AppLocalizations l10n, TextStyle? titre) => [
+        Text(_isWhite ? l10n.tastingAcidityFreshness : l10n.tastingAcidity, style: titre),
         _buildSliderRow(
           leftLabel: l10n.tastingAcidityFlat,
           rightLabel: l10n.tastingAciditySharp,
           value: _r.acidite,
-          onChanged: (v) => setState(() => _r.acidite = v),
+          touche: _r.decrits.contains('acidity'),
+          onChanged: (v) => setState(() => _r.decrire('acidity', v)),
         ),
-        const SizedBox(height: 16),
-
-        // Tanins (ONLY for reds — never for whites!)
+        const SizedBox(height: 12),
         if (_showTannins) ...[
-          Text(
-            l10n.tastingTannins,
-            style: theme.textTheme.titleSmall,
-          ),
+          Text(l10n.tastingTannins, style: titre),
           _buildSliderRow(
             leftLabel: l10n.tastingTanninsSilky,
             rightLabel: l10n.tastingTanninsGrippy,
             value: _r.tanins,
-            onChanged: (v) => setState(() => _r.tanins = v),
+            touche: _r.decrits.contains('tannin'),
+            onChanged: (v) => setState(() => _r.decrire('tannin', v)),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
         ],
-
-        // Minéralité & Fraîcheur (for whites and rosés instead of tannins)
-        if (_isWhite || _isRose) ...[
-          Text(
-            l10n.tastingMinerality,
-            style: theme.textTheme.titleSmall,
-          ),
-          _buildSliderRow(
-            leftLabel: l10n.tastingMineralityRound,
-            rightLabel: l10n.tastingMineralityCrisp,
-            value: _r.mineralite,
-            onChanged: (v) => setState(() => _r.mineralite = v),
-          ),
-          const SizedBox(height: 16),
-        ],
-
-        // Effervescence (only for sparkling)
         if (_isSparkling) ...[
-          Text(
-            l10n.tastingEffervescence,
-            style: theme.textTheme.titleSmall,
-          ),
+          Text(l10n.tastingEffervescence, style: titre),
           _buildSliderRow(
             leftLabel: l10n.tastingEffervescenceDelicate,
             rightLabel: l10n.tastingEffervescenceVibrant,
             value: _r.effervescence,
-            onChanged: (v) => setState(() => _r.effervescence = v),
+            touche: _r.decrits.contains('effervescence'),
+            onChanged: (v) => setState(() => _r.decrire('effervescence', v)),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
         ],
-
-        // Corps
-        Text(
-          l10n.tastingBody,
-          style: theme.textTheme.titleSmall,
-        ),
+        Text(l10n.tastingBody, style: titre),
         _buildSliderRow(
           leftLabel: l10n.tastingBodyLight,
           rightLabel: l10n.tastingBodyFull,
           value: _r.corps,
-          onChanged: (v) => setState(() => _r.corps = v),
+          touche: _r.decrits.contains('body'),
+          onChanged: (v) => setState(() => _r.decrire('body', v)),
         ),
-        const SizedBox(height: 16),
-
-        // Longueur (Caudalies)
+        const SizedBox(height: 12),
         Row(
           children: [
-            Text(
-              l10n.tastingLength,
-              style: theme.textTheme.titleSmall,
-            ),
+            Text(l10n.tastingLength, style: titre),
             const SizedBox(width: 6),
             InkWell(
               onTap: () => _showCaudalieTooltip(context),
@@ -1599,11 +1652,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           leftLabel: l10n.tastingLengthShort,
           rightLabel: l10n.tastingLengthLong,
           value: _r.longueur,
-          onChanged: (v) => setState(() => _r.longueur = v),
+          touche: _r.decrits.contains('length'),
+          onChanged: (v) => setState(() => _r.decrire('length', v)),
         ),
-      ],
-    );
-  }
+      ];
 
   // ===========================================================================
   // Step 4: Verdict Final ✅
@@ -1673,31 +1725,31 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               l10n.tastingMomentApero,
               'apero',
               _r.moment,
-              (v) => setState(() => _r.moment = v),
+              (v) => setState(() => _r.moment = _r.moment == v ? null : v),
             ),
             _buildChoiceChip(
               l10n.tastingMomentMeal,
               'repas',
               _r.moment,
-              (v) => setState(() => _r.moment = v),
+              (v) => setState(() => _r.moment = _r.moment == v ? null : v),
             ),
             _buildChoiceChip(
               l10n.tastingMomentDinner,
               'grand_diner',
               _r.moment,
-              (v) => setState(() => _r.moment = v),
+              (v) => setState(() => _r.moment = _r.moment == v ? null : v),
             ),
             _buildChoiceChip(
               l10n.tastingMomentRomantic,
               'diner_romantique',
               _r.moment,
-              (v) => setState(() => _r.moment = v),
+              (v) => setState(() => _r.moment = _r.moment == v ? null : v),
             ),
             _buildChoiceChip(
               l10n.tastingMomentSolo,
               'solo',
               _r.moment,
-              (v) => setState(() => _r.moment = v),
+              (v) => setState(() => _r.moment = _r.moment == v ? null : v),
             ),
           ],
         ),
@@ -2362,12 +2414,15 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   // Shared widgets
   // ===========================================================================
 
+  /// [touche] faux : le curseur n'a pas encore été réglé, il se montre pâle et ne dit rien.
   Widget _buildSliderRow({
     required String leftLabel,
     required String rightLabel,
     required double value,
     required ValueChanged<double> onChanged,
+    bool touche = true,
   }) {
+    final teinte = touche ? 1.0 : 0.35;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -2379,9 +2434,9 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           Expanded(
             child: SliderTheme(
               data: SliderThemeData(
-                activeTrackColor: const Color(0xFF8B1E3F),
+                activeTrackColor: const Color(0xFF8B1E3F).withValues(alpha: teinte),
                 inactiveTrackColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
-                thumbColor: const Color(0xFF8B1E3F),
+                thumbColor: const Color(0xFF8B1E3F).withValues(alpha: teinte),
                 overlayColor: const Color(0xFF8B1E3F).withValues(alpha: 0.1),
                 trackHeight: 5,
               ),
@@ -3071,138 +3126,31 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         ),
         const SizedBox(height: 14),
 
-        // Card: ⚡ 3 Micro-Taps Fast-Tasting (Sensation Express)
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.25)),
+        // Card 2 : le « pour vous » (V2.6 · P6) — une question, trois réponses. Il remplace les
+        // trois micro-gestes et les curseurs de la bouche : décrire un vin demande de savoir
+        // déguster, dire « trop vif pour moi » non.
+        if (_pourVous() case final pourVous?) ...[
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.25)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '2. ${tr('Pour vous', 'For you')}',
+                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                pourVous,
+              ],
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.flash_on_rounded, size: 18, color: Color(0xFFD4AF37)),
-                  const SizedBox(width: 6),
-                  Text(
-                    TastingQuestionnaireResult.fastTastingTitle(l10n),
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              // Micro-Tap 1: Le Toucher de Bouche
-              Text(
-                TastingQuestionnaireResult.mouthfeelTitle(l10n),
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: TastingQuestionnaireResult.textureOptions.map((opt) {
-                  final isSelected = _r.texture == opt.id;
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: InkWell(
-                        onTap: () {
-                          setState(() => _r.basculerLaTexture(opt.id));
-                          HapticFeedback.selectionClick();
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFF8B1E3F).withValues(alpha: 0.18)
-                                : theme.colorScheme.surface.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected ? const Color(0xFF8B1E3F) : theme.dividerColor.withAlpha(40),
-                              width: isSelected ? 1.5 : 1,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Text(opt.emoji, style: const TextStyle(fontSize: 18)),
-                              const SizedBox(height: 4),
-                              Text(
-                                opt.localizedLabel(l10n),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  color: isSelected ? const Color(0xFF8B1E3F) : null,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 12),
-
-              // Micro-Tap 2: L'Éclat du Fruit
-              Text(
-                TastingQuestionnaireResult.fruitProfileTitle(l10n),
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: TastingQuestionnaireResult.fruitProfileOptions.map((opt) {
-                  final isSelected = _r.fruit == opt.id;
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: InkWell(
-                        onTap: () {
-                          setState(() => _r.basculerLeFruit(opt.id));
-                          HapticFeedback.selectionClick();
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFFD4AF37).withValues(alpha: 0.18)
-                                : theme.colorScheme.surface.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected ? const Color(0xFFD4AF37) : theme.dividerColor.withAlpha(40),
-                              width: isSelected ? 1.5 : 1,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Text(opt.emoji, style: const TextStyle(fontSize: 18)),
-                              const SizedBox(height: 4),
-                              Text(
-                                opt.localizedLabel(l10n),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  color: isSelected ? const Color(0xFFD4AF37) : null,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
+          const SizedBox(height: 14),
+        ],
 
         // Card 2: Arômes express (sélection rapide + sur-mesure)
         Container(
@@ -3219,7 +3167,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '2. ${l10n.tastingStepNezNav}',
+                    '${_famille == null ? 2 : 3}. ${l10n.tastingStepNezNav}',
                     style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   if (_r.aromes.isNotEmpty || _r.aromesLibres.isNotEmpty)
@@ -3279,86 +3227,6 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         ),
         const SizedBox(height: 14),
 
-        // Card 3: Équilibre en Bouche express
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.2)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '3. ${l10n.tastingStepBoucheNav}',
-                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              // Vivacité / Acidité
-              Text(_isWhite ? l10n.tastingAcidityFreshness : l10n.tastingAcidity, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-              _buildSliderRow(
-                leftLabel: l10n.tastingAcidityFlat,
-                rightLabel: l10n.tastingAciditySharp,
-                value: _r.acidite,
-                onChanged: (v) => setState(() => _r.acidite = v),
-              ),
-              // Tanins (reds)
-              if (_showTannins) ...[
-                const SizedBox(height: 8),
-                Text(l10n.tastingTannins, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                _buildSliderRow(
-                  leftLabel: l10n.tastingTanninsSilky,
-                  rightLabel: l10n.tastingTanninsGrippy,
-                  value: _r.tanins,
-                  onChanged: (v) => setState(() => _r.tanins = v),
-                ),
-              ],
-              // Minéralité (whites/rosés)
-              if (_isWhite || _isRose) ...[
-                const SizedBox(height: 8),
-                Text(l10n.tastingMinerality, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                _buildSliderRow(
-                  leftLabel: l10n.tastingMineralityRound,
-                  rightLabel: l10n.tastingMineralityCrisp,
-                  value: _r.mineralite,
-                  onChanged: (v) => setState(() => _r.mineralite = v),
-                ),
-              ],
-              // Effervescence (sparkling)
-              if (_isSparkling) ...[
-                const SizedBox(height: 8),
-                Text(l10n.tastingEffervescence, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                _buildSliderRow(
-                  leftLabel: l10n.tastingEffervescenceDelicate,
-                  rightLabel: l10n.tastingEffervescenceVibrant,
-                  value: _r.effervescence,
-                  onChanged: (v) => setState(() => _r.effervescence = v),
-                ),
-              ],
-              const SizedBox(height: 8),
-              // Longueur & Caudalies
-              Row(
-                children: [
-                  Text(l10n.tastingLength, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: () => _showCaudalieTooltip(context),
-                    child: const Icon(Icons.help_outline, size: 14, color: Color(0xFFD4AF37)),
-                  ),
-                ],
-              ),
-              _buildSliderRow(
-                leftLabel: l10n.tastingLengthShort,
-                rightLabel: l10n.tastingLengthLong,
-                value: _r.longueur,
-                onChanged: (v) => setState(() => _r.longueur = v),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
         // Card 4: Accord Mets & Verdict
         Container(
           padding: const EdgeInsets.all(14),
@@ -3371,7 +3239,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '4. ${l10n.tastingStepVerdictNav}',
+                '${_famille == null ? 3 : 4}. ${l10n.tastingStepVerdictNav}',
                 style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),

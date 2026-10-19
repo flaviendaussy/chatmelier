@@ -13,6 +13,7 @@ import '../data/table_session_service.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../auth/domain/user_profile.dart';
+import '../../auth/presentation/widgets/radar_du_palais.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import 'palais_express.dart';
 import 'table_matchmaker_sheet.dart';
@@ -578,11 +579,14 @@ class _MenuTableConsensusGuestScreenState extends ConsumerState<MenuTableConsens
               size: 140,
               showLabels: false,
               isInteractive: false,
+              customAxisLabels: RadarDuPalais.libelles(palaisDuCompte.familleDominante),
               datasets: [
-                RadarChartDataset(
+                RadarDuPalais.jeu(
+                  palaisDuCompte,
+                  palaisDuCompte.familleDominante,
                   label: trSi(isFr, 'Votre palais', 'Your palate'),
                   color: or,
-                  metrics: palaisDuCompte.radarMetrics,
+                  avecConfiance: false,
                 ),
               ],
             ),

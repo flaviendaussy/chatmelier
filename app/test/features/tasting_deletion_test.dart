@@ -98,16 +98,18 @@ void main() {
 
       await service.applyQuestionnaireResult(
         result: reponse(profileId: p.id, note: 8.0, acidite: 0.9),
+        wineType: 'white',
         tastingId: 'deg-a',
       );
-      final avant = (await service.getPrimaryProfile()).avgAcidityPreference;
+      final avant = (await service.getPrimaryProfile()).valeurPalais('blanc', 'acidity');
 
       await service.applyQuestionnaireResult(
         result: reponse(profileId: p.id, note: 8.0, acidite: 0.2),
+        wineType: 'white',
         tastingId: 'deg-b',
       );
       final apres = await service.getPrimaryProfile();
-      expect(apres.avgAcidityPreference, isNot(equals(avant)));
+      expect(apres.valeurPalais('blanc', 'acidity'), isNot(equals(avant)));
 
       final registre = await TasteEvidenceLedger.ouvrir();
       final r = TasteUndo.annuler(
@@ -116,7 +118,7 @@ void main() {
         registre: registre,
       );
 
-      expect(r.profil.avgAcidityPreference, closeTo(avant!, 0.0001),
+      expect(r.profil.valeurPalais('blanc', 'acidity'), closeTo(avant!, 0.0001),
           reason: 'l\'avant a été noté au moment du changement, donc il se retrouve');
       expect(r.complete, isTrue);
     });
@@ -127,16 +129,19 @@ void main() {
 
       await service.applyQuestionnaireResult(
         result: reponse(profileId: p.id, note: 8.0, acidite: 0.9),
+        wineType: 'white',
         tastingId: 'deg-a',
       );
       // La dégustation qu'on supprimera.
       await service.applyQuestionnaireResult(
         result: reponse(profileId: p.id, note: 8.0, acidite: 0.2),
+        wineType: 'white',
         tastingId: 'deg-b',
       );
       // Puis une autre, plus récente, sur le même axe.
       await service.applyQuestionnaireResult(
         result: reponse(profileId: p.id, note: 8.0, acidite: 0.7),
+        wineType: 'white',
         tastingId: 'deg-c',
       );
       final courant = await service.getPrimaryProfile();
@@ -148,11 +153,11 @@ void main() {
         registre: registre,
       );
 
-      expect(r.profil.avgAcidityPreference, equals(courant.avgAcidityPreference),
+      expect(r.profil.valeurPalais('blanc', 'acidity'), equals(courant.valeurPalais('blanc', 'acidity')),
           reason: 'restaurer une valeur périmée écraserait une observation plus récente');
-      expect(r.nonDefaites, contains('axe:acidity'));
+      expect(r.nonDefaites, contains('axe:blanc:acidity'));
       expect(r.complete, isFalse);
-      expect(TastingDeletionService.phraseDesRestes(r.nonDefaites), contains('acidité'),
+      expect(TastingDeletionService.phraseDesRestes(r.nonDefaites), contains('fraîcheur des blancs'),
           reason: 'la limite doit être dite en français, pas en clés techniques');
     });
 
@@ -162,10 +167,11 @@ void main() {
 
       await service.applyQuestionnaireResult(
         result: reponse(profileId: p.id, note: 8.0, acidite: 0.9),
+        wineType: 'white',
         tastingId: 'deg-a',
       );
       final courant = await service.getPrimaryProfile();
-      expect(courant.axisObservations['acidity'], equals(1));
+      expect(courant.observationsSur('blanc', 'acidity'), equals(1));
 
       final registre = await TasteEvidenceLedger.ouvrir();
       final r = TasteUndo.annuler(
@@ -174,7 +180,7 @@ void main() {
         registre: registre,
       );
 
-      expect(r.profil.axisObservations.containsKey('acidity'), isFalse,
+      expect(r.profil.observationsSur('blanc', 'acidity'), 0,
           reason: 'la confiance doit refléter ce qui reste, pas ce qui a été');
     });
 

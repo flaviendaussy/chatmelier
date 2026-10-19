@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../../shared/utils/app_logger.dart';
+import '../domain/apprentissage_du_palais.dart';
+import '../domain/description_du_palais.dart';
+import '../domain/palais.dart';
 import '../domain/taste_profile.dart';
+import '../../sommelier/domain/profil_du_vin.dart';
 import '../domain/taste_evidence.dart';
 import '../domain/taste_profile_history.dart';
 import '../../../shared/providers/cellar_provider.dart';
@@ -148,6 +152,8 @@ class TasteProfileService {
         avgBodyPreference: null,
         idealMoments: const {},
         questionnairesCompleted: 0,
+        palais: const {},
+        observationsPalais: const {},
       );
       await saveProfiles(profiles);
     }
@@ -310,7 +316,7 @@ class TasteProfileService {
       }
       // Entre les deux seuils, la dégustation ne dit rien de tranché : on n'ajoute ni ne retire.
 
-      final updated = profile.copyWith(
+      var updated = profile.copyWith(
         favoriteTypes: favTypes,
         favoriteRegions: favRegions,
         favoriteGrapes: favGrapes,
@@ -318,6 +324,20 @@ class TasteProfileService {
         // l'expérience accumulée, pas le nombre de bons souvenirs.
         questionnairesCompleted: profile.questionnairesCompleted + 1,
       );
+      // Une note seule dit encore quelque chose du palais (V2.6 · P4) : le vin aimé tire
+      // ses axes d'un demi-pas, son âge et une douceur écrite comptent.
+      final famille = TasteProfile.familleDe(wine.type);
+      if (famille != null) {
+        updated = await _apprendreLePalais(
+          updated,
+          famille: famille,
+          note: rating,
+          vin: ProfilDuVin.deLaCave(wine),
+          source: 'degustation',
+          tastingId: tastingId,
+          wineName: wine.name,
+        );
+      }
       await updateProfile(updated);
 
       final registre = await TasteEvidenceLedger.ouvrir();
@@ -371,6 +391,31 @@ class TasteProfileService {
     String? wineType,
     String? tastingId,
     String? wineName,
+    Wine? vin,
+    DateTime? le,
+  }) =>
+      // Le vin, quand l'appelant le donne entier, dit lui-même sa région, ses cépages et sa
+      // couleur.
+      _appliquerLeQuestionnaire(
+        result: result,
+        wineRegion: wineRegion ?? ((vin != null && vin.region.isNotEmpty && vin.region != 'Autre') ? vin.region : null),
+        wineGrapes: wineGrapes ?? (vin == null ? null : [for (final g in vin.grapes) if (g.name.trim().isNotEmpty) g.name.trim()]),
+        wineType: wineType ?? vin?.type,
+        tastingId: tastingId,
+        wineName: wineName ?? vin?.name,
+        vin: vin,
+        le: le,
+      );
+
+  Future<void> _appliquerLeQuestionnaire({
+    required TastingQuestionnaireResult result,
+    String? wineRegion,
+    List<String>? wineGrapes,
+    String? wineType,
+    String? tastingId,
+    String? wineName,
+    Wine? vin,
+    DateTime? le,
   }) async {
     final profiles = await getProfiles();
     final idx = profiles.indexWhere((p) => p.id == result.profileId);
@@ -408,192 +453,30 @@ class TasteProfileService {
     }
     profile = profile.copyWith(dislikedTraits: updatedDisliked);
 
-    // 5. Les axes du palais.
-    //
-    // Une dégustation fait au plus UN pas par axe, vers la moyenne de ce qu'elle y a
-    // mesuré (la réponse, les micro-touches). Avant, l'acidité d'un même vin pouvait être
-    // appliquée par la réponse, le toucher et le fruit, puis une quatrième fois par le
-    // cépage : une bouteille pesait pour quatre.
-    //
-    // Un vin aimé (≥ 5) attire l'axe vers lui. Un vin qui déçoit (≤ 4) l'en éloigne d'un
-    // demi-pas au plus, et seulement s'il ressemblait à la préférence : loin du palais, la
-    // déception confirme le modèle sans rien lui apprendre. Un défaut nommé (« trop
-    // acide ») vaut pour son axe quelle que soit la note : un vin aimé malgré son acidité
-    // n'apprend pas le goût de l'acidité.
-    //
-    // Le cépage n'est pas une mesure. Sur un vin aimé, il pose au plus un a priori sur un
-    // axe encore vide, que rien n'a observé ni déclaré : le radar le dessine flou, et la
-    // première mesure le remplace. Ni boisé ni minéralité : ils tiennent à l'élevage et au
-    // sol, pas au cépage (un Chardonnay de Chablis n'est pas un Chardonnay de Californie).
-    final aime = result.noteOutOf10 >= 5.0;
-    final decu = result.noteOutOf10 <= kDislikedThreshold;
-    final cleanType = (wineType ?? '').toLowerCase();
-    final isRedWine = cleanType.contains('rouge') || cleanType == 'red';
-
-    // Une gorgée qui n'a pas mesuré la bouche ne doit rien apprendre sur ces axes : les
-    // appliquer avec une valeur neutre créerait une observation, donc de la confiance, à
-    // partir de rien.
-    final mesures = <String, List<double>>{};
-    void mesurer(String axe, double? valeur) {
-      if (valeur != null) (mesures[axe] ??= []).add(valeur);
-    }
-
-    mesurer('acidity', result.acidity);
-    mesurer('body', result.body);
-    // La minéralité perçue d'un blanc ou d'un rosé, comme l'acidité et le corps.
-    mesurer('minerality', result.mineralite);
-    if (isRedWine && result.tannins != null && result.tannins! > 0) {
-      mesurer('tannin', result.tannins);
-    }
-
-    // Fast-Tasting Micro-Tap 1: Toucher de Bouche
-    switch (result.mouthfeelTexture) {
-      case 'silky_lacy':
-        mesurer('freshFruit', 0.75);
-        mesurer('minerality', 0.70);
-        if (isRedWine) mesurer('tannin', 0.40);
-        break;
-      case 'crisp_salivating':
-        mesurer('acidity', 0.85);
-        mesurer('minerality', 0.80);
-        break;
-      case 'dense_structured':
-        mesurer('body', 0.80);
-        if (isRedWine) mesurer('tannin', 0.80);
-        break;
-    }
-
-    // Fast-Tasting Micro-Tap 2: Éclat du Fruit
-    switch (result.fruitProfile) {
-      case 'crunchy_tart':
-        mesurer('freshFruit', 0.85);
-        mesurer('acidity', 0.75);
-        break;
-      case 'deep_ripe':
-        mesurer('ripeFruit', 0.85);
-        mesurer('body', 0.70);
-        break;
-      case 'spicy_herbal':
-        mesurer('spice', 0.85);
-        mesurer('minerality', 0.65);
-        break;
-    }
-
-    final sensDesDefauts = <String, double>{};
-    for (final defaut in result.whatDislikedMost) {
-      _axesDesDefauts[defaut]?.forEach((axe, sens) => sensDesDefauts[axe] = sens);
-    }
-
-    final observations = Map<String, int>.from(profile.axisObservations);
-    final avant = {for (final axe in TasteProfile.axisKeys) axe: profile.valeurAxe(axe)};
-    final apres = Map<String, double?>.from(avant);
-    final confirmes = <String>{};
-    mesures.forEach((axe, valeurs) {
-      final cible = valeurs.reduce((a, b) => a + b) / valeurs.length;
-      // Sans observation, la valeur en place n'est qu'un a priori : la mesure la remplace.
-      final etabli = (observations[axe] ?? 0) > 0 ? avant[axe] : null;
-      final sensImpose = sensDesDefauts[axe];
-      if (aime && sensImpose == null) {
-        apres[axe] = _runningAvg(etabli, cible, n);
-        confirmes.add(axe);
-      } else if ((decu || sensImpose != null) && etabli != null) {
-        final sens = sensImpose ?? (etabli - cible).sign;
-        final marge = sens * (etabli - cible);
-        if (sens != 0 && marge < 0.5) {
-          apres[axe] = (etabli + sens * kAxisSmoothing / 2 * (0.5 - marge)).clamp(0.0, 1.0);
-        }
-      }
-    });
-
-    // L'a priori du cépage (Passive Bottle Auto-Enrichment), sur un vin bien aimé.
-    final supposes = <String>{};
-    if (result.noteOutOf10 >= 7.0 && wineGrapes != null) {
-      final parAxe = <String, List<double>>{};
-      void supposer(String axe, double valeur) => (parAxe[axe] ??= []).add(valeur);
-      for (final g in wineGrapes) {
-        final cepage = g.toLowerCase();
-        if (cepage.contains('syrah') || cepage.contains('shiraz')) {
-          supposer('spice', 0.85);
-          supposer('ripeFruit', 0.75);
-        } else if ((cepage.contains('cabernet') && !cepage.contains('franc')) ||
-            cepage.contains('malbec') || cepage.contains('mourv') || cepage.contains('tannat')) {
-          if (isRedWine) supposer('tannin', 0.80);
-        } else if (cepage.contains('pinot noir') || cepage.contains('gamay')) {
-          supposer('freshFruit', 0.80);
-          supposer('acidity', 0.75);
-        } else if (cepage.contains('sauvignon') || cepage.contains('riesling') || cepage.contains('chenin')) {
-          supposer('acidity', 0.85);
-        }
-      }
-      parAxe.forEach((axe, valeurs) {
-        final libre = apres[axe] == null &&
-            (observations[axe] ?? 0) == 0 &&
-            !profile.palaisDeDepart.containsKey(axe);
-        if (!libre) return;
-        apres[axe] = valeurs.reduce((a, b) => a + b) / valeurs.length;
-        supposes.add(axe);
-      });
-    }
-
-    // Compter les observations par axe : un axe mesuré sur un vin aimé, même s'il ne
-    // bouge pas (une mesure qui confirme la préférence est une preuve de plus : sans elle,
-    // quelqu'un qui touche toujours « Vif & Salivant » restait à une observation), ou
-    // déplacé par une déception. Jamais par l'a priori du cépage. C'est ce compte qui
-    // permet d'afficher la confiance du modèle plutôt qu'une fausse précision uniforme sur
-    // les huit axes, et de tracer en pointillé ce qui n'est que deviné.
-    //
-    // Tracer chaque observation, avant d'écraser les anciennes valeurs : c'est le seul
-    // moment où l'on dispose de l'avant et de l'après, et ce qui permet de la décompter si
-    // la dégustation est supprimée.
-    final tracesAxes = <TasteEvidenceEntry>[];
-    final maintenant = DateTime.now();
-    for (final axe in TasteProfile.axisKeys) {
-      final av = avant[axe];
-      final ap = apres[axe];
-      if (ap == null || (ap == av && !confirmes.contains(axe))) continue;
-      final suppose = supposes.contains(axe);
-      if (!suppose) observations[axe] = (observations[axe] ?? 0) + 1;
-      final sens = suppose
-          ? 'supposé à ${ap.toStringAsFixed(2)} d\'après le cépage, en attendant une mesure'
-          : av == null
-              ? 'renseigné à ${ap.toStringAsFixed(2)}'
-              : ap == av
-                  ? 'confirmé à ${ap.toStringAsFixed(2)}'
-                  : '${ap > av ? 'monté' : 'descendu'} '
-                      'de ${av.toStringAsFixed(2)} à ${ap.toStringAsFixed(2)}';
-      tracesAxes.add(TasteEvidenceEntry(
-        quand: maintenant,
+    // 5. Les axes du palais, appris par famille (V2.6 · P1, P4) : les rouges d'un côté,
+    // les blancs, rosés et bulles de l'autre. Un muté ou un spiritueux n'apprend rien au
+    // palais des vins de table.
+    final famille = TasteProfile.familleDe(wineType ?? vin?.type);
+    if (famille != null) {
+      profile = await _apprendreLePalais(
+        profile,
+        famille: famille,
+        note: result.noteOutOf10,
+        jugements: ApprentissageDuPalais.jugementsDe(result.jugements, result.whatDislikedMost),
+        mesures: _mesuresDe(result, famille),
+        vin: ProfilDuVin.deLaCave(vin ?? _vinDe(wineName, wineType, wineRegion, wineGrapes), le: le),
         source: result.isExpressMode ? 'gorgee' : 'degustation',
-        cible: 'axe:$axe',
-        effet: '$sens (note ${result.noteOutOf10.toStringAsFixed(1)}/10).',
-        vin: wineName,
         tastingId: tastingId,
-        // L'avant et l'après en clair : la moyenne exponentielle ne se remonte pas, donc
-        // le seul moyen de pouvoir défaire ce pas est de l'avoir noté en le faisant.
-        avant: av,
-        apres: ap,
-      ));
+        wineName: wineName ?? vin?.name,
+      );
     }
-    if (tracesAxes.isNotEmpty) {
-      await (await TasteEvidenceLedger.ouvrir()).ajouter(tracesAxes);
-    }
-
-    profile = profile.copyWith(
-      avgAcidityPreference: apres['acidity'],
-      avgBodyPreference: apres['body'],
-      avgTanninPreference: apres['tannin'],
-      avgOakPreference: apres['oak'],
-      avgRipeFruitPreference: apres['ripeFruit'],
-      avgSpicePreference: apres['spice'],
-      avgFreshFruitPreference: apres['freshFruit'],
-      avgMineralityPreference: apres['minerality'],
-      axisObservations: observations,
-    );
 
     // 6. Update ideal moments
-    final updatedMoments = Map<String, int>.from(profile.idealMoments);
-    updatedMoments[result.idealMoment] = (updatedMoments[result.idealMoment] ?? 0) + 1;
-    profile = profile.copyWith(idealMoments: updatedMoments);
+    if (result.idealMoment.isNotEmpty) {
+      final updatedMoments = Map<String, int>.from(profile.idealMoments);
+      updatedMoments[result.idealMoment] = (updatedMoments[result.idealMoment] ?? 0) + 1;
+      profile = profile.copyWith(idealMoments: updatedMoments);
+    }
 
     // Ce que cette dégustation ajoute ou retire aux favoris, tracé pour pouvoir être défait.
     // Contrairement aux axes, l'appartenance à un ensemble s'annule exactement : il suffit
@@ -874,9 +757,10 @@ class TasteProfileService {
       // Learned palate profile
       if (p.questionnairesCompleted > 0) {
         buffer.writeln('  * Profil palais (basé sur ${p.questionnairesCompleted} dégustation${p.questionnairesCompleted > 1 ? "s" : ""}):');
-        if (p.avgAcidityPreference != null) buffer.writeln('    - Acidité préférée: ${_axisLabel(p.avgAcidityPreference!, "mou", "vif")}');
-        if (p.avgTanninPreference != null) buffer.writeln('    - Tanins préférés: ${_axisLabel(p.avgTanninPreference!, "fondus", "puissants")}');
-        if (p.avgBodyPreference != null) buffer.writeln('    - Corps préféré: ${_axisLabel(p.avgBodyPreference!, "léger", "puissant")}');
+        // Le palais par famille, en mots, avec ce qu'on en sait (V2.6).
+        for (final l in DescriptionDuPalais.lignes(p)) {
+          buffer.writeln(l);
+        }
 
         // Top aromas
         if (p.aromaPreferences.isNotEmpty) {
@@ -900,7 +784,7 @@ class TasteProfileService {
       // Strict anti-hallucination guard for sparse profiles
       final isSparse = (p.favoriteTypes.isEmpty && p.favoriteRegions.isEmpty && p.favoriteGrapes.isEmpty) || p.questionnairesCompleted <= 1;
       if (isSparse && !p.isPrimary) {
-        buffer.writeln('  * STATUT STRICT SOMMELIER: Données très limitées pour ${p.name}. INTERDICTION FORMELLE d\'extrapoler des préférences pour les vins rouges ou des terroirs comme la Galice ! Si l\'utilisateur demande ce qu\'aime ${p.name}, indique factuellement qu\'elle n\'a dégusté qu\'un seul vin (un blanc) et que ses goûts sont encore en cours de découverte.');
+        buffer.writeln('  * ${DescriptionDuPalais.garde(p.name, p.questionnairesCompleted)}');
       }
     }
     return buffer.toString();
@@ -921,9 +805,9 @@ class TasteProfileService {
 
       if (p.questionnairesCompleted > 0) {
         buffer.writeln('  * Palais appris:');
-        if (p.avgAcidityPreference != null) buffer.writeln('    - Acidité préférée: ${_axisLabel(p.avgAcidityPreference!, "mou", "vif")}');
-        if (p.avgTanninPreference != null) buffer.writeln('    - Tanins préférés: ${_axisLabel(p.avgTanninPreference!, "fondus", "puissants")}');
-        if (p.avgBodyPreference != null) buffer.writeln('    - Corps préféré: ${_axisLabel(p.avgBodyPreference!, "léger", "puissant")}');
+        for (final l in DescriptionDuPalais.lignes(p)) {
+          buffer.writeln(l);
+        }
         if (p.aromaPreferences.isNotEmpty) {
           final sorted = p.aromaPreferences.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
           final top = sorted.take(4).map((e) => e.key.replaceAll('_', ' ')).join(', ');
@@ -933,7 +817,7 @@ class TasteProfileService {
 
       final isSparse = (p.favoriteTypes.isEmpty && p.favoriteRegions.isEmpty && p.favoriteGrapes.isEmpty) || p.questionnairesCompleted <= 1;
       if (isSparse) {
-        buffer.writeln('  * STATUT STRICT SOMMELIER: Données très limitées pour ${f.displayName}. INTERDICTION FORMELLE d\'inventer des goûts pour les vins rouges ou terroirs non prouvés ! Expliquer factuellement que son profil se construit progressivement.');
+        buffer.writeln('  * ${DescriptionDuPalais.garde(f.displayName, p.questionnairesCompleted)}');
       }
     }
     return buffer.toString();
@@ -941,33 +825,117 @@ class TasteProfileService {
 
   // — Private helpers —
 
-  /// Moyenne exponentielle d'un axe sensoriel.
-  ///
-  /// Remplace une moyenne cumulative `(courant × n + nouveau) / (n + 1)` qui gelait le profil :
-  /// le poids d'une dégustation y valait 1/(n+1), soit 1,96 % après cinquante et 0,33 % après
-  /// trois cents. Un palais qui évolue — ce qui est la norme les deux premières années —
-  /// devenait intraçable. Simulation sur le cas d'un palais basculant de 0,80 à 0,32 :
-  /// 120 dégustations contradictoires n'amenaient l'axe qu'à 0,400 ; l'exponentielle
-  /// y parvient en huit.
-  ///
-  /// Le paramètre `count` n'est plus utilisé pour la pondération — il est conservé dans la
-  /// signature parce que les appelants le passent, et parce qu'il sert à distinguer la
-  /// toute première observation (qui initialise l'axe) des suivantes.
-  double _runningAvg(double? current, double newVal, int count) {
-    if (current == null) return newVal;
-    return current * (1 - kAxisSmoothing) + newVal * kAxisSmoothing;
+  /// Applique au palais de [famille] ce qu'une dégustation lui apprend, et l'inscrit au
+  /// registre, axe par axe, avec l'avant et l'après pour pouvoir le défaire.
+  Future<TasteProfile> _apprendreLePalais(
+    TasteProfile profile, {
+    required String famille,
+    required double note,
+    Map<String, String> jugements = const {},
+    Map<String, double> mesures = const {},
+    required ProfilDuVin vin,
+    required String source,
+    String? tastingId,
+    String? wineName,
+  }) async {
+    final changements = ApprentissageDuPalais.apprendre(
+      profil: profile,
+      famille: famille,
+      note: note,
+      jugements: jugements,
+      mesures: mesures,
+      vin: vin,
+    );
+    if (changements.isEmpty) return profile;
+    final maintenant = DateTime.now();
+    final traces = <TasteEvidenceEntry>[];
+    var p = profile;
+    for (final c in changements) {
+      // Le compte d'un axe encore hérité du palais d'avant devient le sien : sans cela, le
+      // premier pas déduit le ferait retomber à zéro.
+      final n = p.observationsSur(c.famille, c.axe);
+      p = p.avecAxeDuPalais(c.famille, c.axe, c.apres, observations: c.compte ? n + 1 : n);
+      traces.add(TasteEvidenceEntry(
+        quand: maintenant,
+        source: source,
+        cible: 'axe:${c.famille}:${c.axe}',
+        effet: _effetDuChangement(c, note),
+        vin: wineName,
+        tastingId: tastingId,
+        avant: c.avant,
+        apres: c.apres,
+        compte: c.compte,
+      ));
+    }
+    await (await TasteEvidenceLedger.ouvrir()).ajouter(traces);
+    return p;
   }
 
-  /// Les défauts que le questionnaire laisse nommer, avec l'axe qu'ils jugent et leur
-  /// sens : « trop » demande moins (-1), « pas assez » davantage (+1).
-  static const Map<String, Map<String, double>> _axesDesDefauts = {
-    'trop_acide': {'acidity': -1},
-    'trop_tannique': {'tannin': -1},
-    'trop_boise': {'oak': -1},
-    'trop_alcoolise': {'body': -1},
-    'trop_leger': {'body': 1},
-    'manque_fruit': {'freshFruit': 1, 'ripeFruit': 1},
-  };
+  /// L'effet d'un changement, en clair, pour le registre.
+  static String _effetDuChangement(ChangementDAxe c, double note) {
+    final famille = c.famille == FamillesDeVins.rouge ? 'rouges' : 'blancs';
+    final axe = AxesDuPalais.nom(c.axe).toLowerCase();
+    final av = c.avant;
+    final sens = av == null
+        ? 'renseigné à ${c.apres.toStringAsFixed(2)}'
+        : c.apres == av
+            ? 'confirmé à ${c.apres.toStringAsFixed(2)}'
+            : '${c.apres > av ? 'monté' : 'descendu'} de ${av.toStringAsFixed(2)} à ${c.apres.toStringAsFixed(2)}';
+    final (pasAssez, juste, trop) = AxesDuPalais.jugements(c.axe);
+    final raison = switch (c.motif) {
+      'jugement' => '« ${switch (c.jugement) { 'trop' => trop, 'pas_assez' => pasAssez, _ => juste }} » à vos yeux',
+      'mesure' => 'la bouche décrite',
+      'sur' => c.axe == AxesDuPalais.evolution ? 'l\'âge du vin' : 'sa douceur écrite',
+      'deception' => 'une déception',
+      _ => 'déduit d\'un vin aimé',
+    };
+    return '$famille, $axe : $sens — $raison (note ${note.toStringAsFixed(1)}/10).';
+  }
+
+  /// La bouche que la personne a décrite elle-même (une dictée, les micro-touches d'avant
+  /// la V2.6 qu'une dégustation porte encore) : une mesure par axe, moyenne de ce qui la dit.
+  static Map<String, double> _mesuresDe(TastingQuestionnaireResult r, String famille) {
+    final rouge = famille == FamillesDeVins.rouge;
+    final parAxe = <String, List<double>>{};
+    void ajouter(String axe, double? v) {
+      if (v != null) (parAxe[axe] ??= []).add(v);
+    }
+
+    ajouter(AxesDuPalais.fraicheur, r.acidity);
+    ajouter(AxesDuPalais.corps, r.body);
+    if (rouge && (r.tannins ?? 0) > 0) ajouter(AxesDuPalais.tanins, r.tannins);
+    switch (r.mouthfeelTexture) {
+      case 'silky_lacy':
+        if (rouge) ajouter(AxesDuPalais.tanins, 0.40);
+        break;
+      case 'crisp_salivating':
+        ajouter(AxesDuPalais.fraicheur, 0.85);
+        break;
+      case 'dense_structured':
+        ajouter(AxesDuPalais.corps, 0.80);
+        if (rouge) ajouter(AxesDuPalais.tanins, 0.80);
+        break;
+    }
+    switch (r.fruitProfile) {
+      case 'crunchy_tart':
+        ajouter(AxesDuPalais.fraicheur, 0.75);
+        break;
+      case 'deep_ripe':
+        ajouter(AxesDuPalais.corps, 0.70);
+        break;
+    }
+    return {for (final e in parAxe.entries) e.key: e.value.reduce((a, b) => a + b) / e.value.length};
+  }
+
+  /// Le vin dont on ne connaît que ce que la dégustation en a transmis.
+  static Wine _vinDe(String? nom, String? type, String? region, List<String>? cepages) => Wine(
+        id: '',
+        name: nom ?? '',
+        type: type ?? '',
+        country: '',
+        region: region ?? '',
+        grapes: [for (final c in cepages ?? const <String>[]) if (c.trim().isNotEmpty) Grape(name: c.trim())],
+      );
 
   static bool _contient(List<String> liste, String valeur) =>
       liste.any((x) => x.toLowerCase() == valeur.toLowerCase());
@@ -995,13 +963,6 @@ class TasteProfileService {
     if (valeur.isEmpty || liste.length >= max || _contient(liste, valeur)) return false;
     liste.add(valeur);
     return true;
-  }
-
-  String _axisLabel(double val, String low, String high) {
-    if (val < 0.3) return 'Plutôt $low';
-    if (val < 0.5) return 'Modéré (légèrement $low)';
-    if (val < 0.7) return 'Modéré (légèrement $high)';
-    return 'Plutôt $high';
   }
 
   String _wineTypeToLabel(String type) {

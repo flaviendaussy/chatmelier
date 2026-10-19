@@ -7,8 +7,8 @@ import '../../../cellar/domain/bottle.dart';
 import '../../../cellar/domain/wine.dart';
 import '../../../cellar/presentation/bottle_detail_screen.dart';
 import '../../../sommelier/domain/taste_frontier_engine.dart';
+import '../../domain/palais.dart';
 import '../../domain/taste_profile.dart';
-import '../../domain/wine_taste_radar.dart';
 
 /// Les bouteilles de la cave d'où le moteur choisit : prêtes à boire, jamais en garde, et
 /// pas de spiritueux (ils ne disent rien d'un palais de vin).
@@ -53,7 +53,6 @@ class BouteillesQuiApprendraient extends ConsumerWidget {
     if (axes.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final libelles = WineTasteRadarMetrics.localizedAxisLabels(Langue.code);
     final gris = isDark ? Colors.white60 : Colors.black54;
     return Container(
       width: double.infinity,
@@ -86,7 +85,7 @@ class BouteillesQuiApprendraient extends ConsumerWidget {
           const SizedBox(height: 6),
           for (final a in axes.take(5))
             InkWell(
-              key: ValueKey('apprendre-${a.axe}'),
+              key: ValueKey('apprendre-${a.famille}-${a.axe}'),
               borderRadius: BorderRadius.circular(10),
               onTap: () => _ouvrir(context, a.bouteille),
               child: Padding(
@@ -100,10 +99,10 @@ class BouteillesQuiApprendraient extends ConsumerWidget {
                           Text.rich(
                             TextSpan(children: [
                               TextSpan(
-                                text: libelles[TasteProfile.axisKeys.indexOf(a.axe)].replaceAll('\n', ' '),
+                                text: _nomDeLAxe(a.famille, a.axe),
                                 style: TextStyle(fontWeight: FontWeight.w700, color: couleur),
                               ),
-                              TextSpan(text: '  ${_etat(profil, a.axe)}', style: TextStyle(color: gris)),
+                              TextSpan(text: '  ${_etat(profil, a.famille, a.axe)}', style: TextStyle(color: gris)),
                             ]),
                             style: const TextStyle(fontSize: 12),
                           ),
@@ -128,9 +127,17 @@ class BouteillesQuiApprendraient extends ConsumerWidget {
     );
   }
 
+  /// « Boisé · blancs » : l'axe et la famille dont il manque (V2.6).
+  static String _nomDeLAxe(String famille, String axe) => axe == AxesDuPalais.tanins
+      ? AxesDuPalais.nom(axe)
+      : tr('{axe} · {famille}', '{axe} · {famille}', {
+          'axe': AxesDuPalais.nom(axe),
+          'famille': famille == FamillesDeVins.rouge ? tr('rouges', 'reds') : tr('blancs', 'whites'),
+        });
+
   /// « jamais goûté », ou « deviné · 2 dégustations ».
-  static String _etat(TasteProfile p, String axe) {
-    final n = p.axisObservations[axe] ?? 0;
+  static String _etat(TasteProfile p, String famille, String axe) {
+    final n = p.observationsSur(famille, axe);
     if (n <= 0) return tr('jamais goûté', 'never tasted');
     if (n == 1) return tr('deviné · 1 dégustation', 'a guess · 1 tasting');
     return tr('deviné · {n} dégustations', 'a guess · {n} tastings', {'n': n});
@@ -187,7 +194,7 @@ class PourVousConnaitreTousLesDeux extends ConsumerWidget {
   /// nettement boisé et prêt à boire, me le dirait pour vous deux. » Le palais principal,
   /// c'est « vous ».
   static String phrase(AxeAApprendre<Object?> x, String vin) {
-    final quoi = TasteFrontierEngine.ceQueJugeLAxe(x.axe);
+    final quoi = TasteFrontierEngine.ceQueJugeLAxe(x.axe, famille: x.famille);
     final comment = TasteFrontierEngine.commentLeVinLeMontre(x.axe, x.valeurDuVin);
     final ignorants = x.ignorants;
     final String qui;

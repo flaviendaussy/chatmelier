@@ -3,12 +3,15 @@ import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/friends/data/friends_repository.dart';
 import 'package:chatmelier/features/friends/domain/friend.dart';
 import 'package:chatmelier/features/journal/data/degustations_partagees.dart';
+import 'package:chatmelier/features/journal/domain/question_pour_vous.dart';
 import 'package:chatmelier/features/journal/domain/tasting_questionnaire_result.dart';
 import 'package:chatmelier/features/journal/presentation/tasting_questionnaire_sheet.dart';
+import 'package:chatmelier/features/journal/presentation/widgets/pour_vous.dart';
 import 'package:chatmelier/l10n/app_localizations.dart';
 import 'package:chatmelier/shared/providers/supabase_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -31,6 +34,8 @@ class _Palais extends Fake implements TasteProfileService {
     String? wineType,
     String? tastingId,
     String? wineName,
+    Wine? vin,
+    DateTime? le,
   }) async =>
       recus.add(result);
 }
@@ -127,6 +132,9 @@ void main() {
     await _toucher(tester, find.text('Commencer (1)'));
     await _toucher(tester, find.textContaining('Agrumes'));
     await _toucher(tester, find.text('Suivant'));
+    // La bouche (V2.6) : une question « pour vous », plus des curseurs à régler.
+    expect(find.byType(PourVous), findsOneWidget);
+    await _toucher(tester, find.text('Juste').first);
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     // La note, en dernier : le visage le plus heureux.
@@ -140,22 +148,31 @@ void main() {
     expect(r.perceivedAromas, {'agrumes'});
     expect(r.tannins, isNull, reason: 'un blanc n\'a pas de tanins à juger');
     expect(r.effervescence, isNull);
-    expect(r.acidity, 0.5);
+    expect(r.acidity, isNull, reason: 'un curseur qu\'on n\'a pas touché ne dit rien');
+    expect(r.jugements.values, ['juste']);
+    expect(QuestionPourVous.axes('blanc'), contains(r.jugements.keys.single));
+    expect(r.idealMoment, '', reason: 'le moment n\'a pas été choisi');
     expect(r.isExpressMode, isFalse);
   });
 
-  testWidgets('en express, un rouge : le toucher soyeux suppose des tanins fondus', (tester) async {
+  testWidgets('en express, un rouge : une question « pour vous », et rien de supposé (V2.6)', (tester) async {
     final palais = await _ouvrir(tester, type: 'red', express: true);
 
     // Le visage d'abord : la liste ne garde pas construit ce qui sort de l'écran.
     await _toucher(tester, find.text('😐').first);
-    await _toucher(tester, find.textContaining(TastingQuestionnaireResult.textureOptions.first.emoji).first);
+    // Ni toucher de bouche ni éclat du fruit : une seule question, trop · juste · pas assez.
+    expect(find.textContaining(TastingQuestionnaireResult.textureOptions.first.emoji), findsNothing);
+    final trop = find.descendant(of: find.byType(PourVous), matching: find.byType(InkWell)).at(2);
+    await _toucher(tester, trop);
     await _toucher(tester, find.text('Valider & Terminer ✨'));
 
     final r = palais.recus.single;
     expect(r.isExpressMode, isTrue);
-    expect(r.mouthfeelTexture, 'silky_lacy');
-    expect(r.tannins, 0.40);
+    expect(r.mouthfeelTexture, isNull);
+    expect(r.tannins, isNull, reason: 'le rouge n\'a pas été décrit : on ne suppose pas ses tanins');
+    expect(r.jugements.values, ['trop']);
+    expect(QuestionPourVous.axes('rouge'), contains(r.jugements.keys.single));
+    expect(r.idealMoment, '', reason: 'l\'express ne demande pas le moment');
     expect(r.emojiImpression, 2);
     expect(TastingQuestionnaireResult.emojiIndexForRating(r.noteOutOf10), 2);
   });

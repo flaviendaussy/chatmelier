@@ -100,8 +100,10 @@ void main() {
       );
 
       final updated = await service.getPrimaryProfile();
-      expect(updated.avgTanninPreference, isNotNull);
-      expect(updated.avgTanninPreference! > 0.5, isTrue);
+      // V2.6 : les tanins s'apprennent au palais des rouges.
+      expect(updated.valeurPalais('rouge', 'tannin'), isNotNull);
+      expect(updated.valeurPalais('rouge', 'tannin')! > 0.5, isTrue);
+      expect(updated.valeurPalais('blanc', 'tannin'), isNull);
     });
   });
 
@@ -180,7 +182,10 @@ void main() {
 
       final sommelierPrompt = service.formatProfilesForSommelier(profiles);
       // Prompt must include strict anti-hallucination instruction for Caro
-      expect(sommelierPrompt.contains('INTERDICTION FORMELLE'), isTrue);
+      expect(sommelierPrompt, contains('Aucune dégustation enregistrée pour Caro : ne pas lui prêter de goûts'));
+      // …et rien du cas particulier qu'elle affirmait à tout le monde (V2.6).
+      expect(sommelierPrompt, isNot(contains('Galice')));
+      expect(sommelierPrompt, isNot(contains('un seul vin (un blanc)')));
     });
   });
 }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/taste_profile_service.dart';
+import '../domain/palais.dart';
 import '../domain/taste_profile.dart';
+import '../../menu_scan/presentation/palais_express.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
 
@@ -43,9 +45,11 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
   late TextEditingController _notesController;
   late TextEditingController _customInputController;
 
-  double _tanninPref = 0.5;
-  double _acidityPref = 0.5;
-  double _bodyPref = 0.5;
+  /// Ce que la personne déclare de son palais (V2.6), de 0 à 10 : le point de départ que
+  /// ses dégustations corrigeront (`TasteProfile.palaisDeDepart`). Un curseur qu'elle n'a
+  /// pas touché ne déclare rien. Les anciens réglages écrivaient le palais appris
+  /// lui-même, qu'aucune dégustation ne venait plus corriger.
+  final Map<String, double> _declares = {};
   bool _hasCustomSliders = false;
 
   // Suggested canonical items for easy 1-tap toggles
@@ -122,14 +126,10 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
     _notesController = TextEditingController(text: widget.profile.notes);
     _customInputController = TextEditingController();
 
-    if (widget.profile.avgTanninPreference != null ||
-        widget.profile.avgAcidityPreference != null ||
-        widget.profile.avgBodyPreference != null) {
-      _hasCustomSliders = true;
-      _tanninPref = widget.profile.avgTanninPreference ?? 0.5;
-      _acidityPref = widget.profile.avgAcidityPreference ?? 0.5;
-      _bodyPref = widget.profile.avgBodyPreference ?? 0.5;
+    for (final axe in AxesDuPalais.demandables) {
+      if (widget.profile.palaisDeDepart[axe] case final v?) _declares[axe] = v;
     }
+    _hasCustomSliders = _declares.isNotEmpty;
   }
 
   @override
@@ -201,9 +201,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
                 _dislikedCharacteristics.clear();
                 _notesController.clear();
                 _hasCustomSliders = false;
-                _tanninPref = 0.5;
-                _acidityPref = 0.5;
-                _bodyPref = 0.5;
+                _declares.clear();
               });
               Navigator.pop(ctx);
             },
@@ -226,9 +224,11 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
       favoriteGrapes: _favoriteGrapes,
       dislikedCharacteristics: _dislikedCharacteristics,
       notes: _notesController.text.trim(),
-      avgTanninPreference: _hasCustomSliders ? _tanninPref : null,
-      avgAcidityPreference: _hasCustomSliders ? _acidityPref : null,
-      avgBodyPreference: _hasCustomSliders ? _bodyPref : null,
+      palaisDeDepart: {
+        for (final e in widget.profile.palaisDeDepart.entries)
+          if (!AxesDuPalais.demandables.contains(e.key)) e.key: e.value,
+        if (_hasCustomSliders) ..._declares,
+      },
     );
 
     final service = ref.read(tasteProfileServiceProvider);
@@ -398,7 +398,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
                                     const Icon(Icons.tune, color: Color(0xFFD4AF37), size: 20),
                                     const SizedBox(width: 8),
                                     Text(
-                                      tr('Sensibilités du Palais', 'Palate Sensitivities'),
+                                      tr('Ce que vous aimez', 'What you like'),
                                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                     ),
                                   ],
@@ -414,38 +414,30 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 6),
                                 child: Text(
-                                  tr('Activez pour calibrer manuellement votre sensibilité aux tanins, à l\'acidité et au corps.', 'Turn on to set your sensitivity to tannins, acidity and body by hand.'),
+                                  tr('Activez pour dire vous-même ce que vous aimez : un point de départ, que vos dégustations corrigeront.',
+                                      'Turn on to say what you like yourself: a starting point your tastings will correct.'),
                                   style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                                 ),
                               )
                             else ...[
-                              const SizedBox(height: 16),
-                              // Tannins
-                              _buildSliderRow(
-                                label: tr('Structure tannique', 'Tannic structure'),
-                                value: _tanninPref,
-                                leftLabel: tr('Souple & Fondu', 'Soft & Smooth'),
-                                rightLabel: tr('Puissant & Racé', 'Bold & Powerful'),
-                                onChanged: (v) => setState(() => _tanninPref = v),
+                              const SizedBox(height: 8),
+                              Text(
+                                tr('Un point de départ : vos dégustations le corrigeront. Un curseur pâle ne dit rien.',
+                                    'A starting point: your tastings will correct it. A faded slider says nothing.'),
+                                style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                               ),
-                              const SizedBox(height: 12),
-                              // Acidity
-                              _buildSliderRow(
-                                label: tr('Acidité / Fraîcheur', 'Acidity / Freshness'),
-                                value: _acidityPref,
-                                leftLabel: tr('Rondeur', 'Round'),
-                                rightLabel: tr('Vif & Tendu', 'Crisp & Lively'),
-                                onChanged: (v) => setState(() => _acidityPref = v),
-                              ),
-                              const SizedBox(height: 12),
-                              // Body
-                              _buildSliderRow(
-                                label: tr('Corps & Matière', 'Body & Weight'),
-                                value: _bodyPref,
-                                leftLabel: tr('Léger & Digest', 'Light & Easy'),
-                                rightLabel: tr('Charnu & Puissant', 'Full & Powerful'),
-                                onChanged: (v) => setState(() => _bodyPref = v),
-                              ),
+                              const SizedBox(height: 8),
+                              for (final (axe, bas, haut) in PalaisSaisi.curseurs(Langue.estFr)) ...[
+                                _buildSliderRow(
+                                  label: AxesDuPalais.nom(axe),
+                                  value: _declares[axe] ?? PalaisSaisi.departs[axe] ?? 5.0,
+                                  dit: _declares.containsKey(axe),
+                                  leftLabel: bas,
+                                  rightLabel: haut,
+                                  onChanged: (v) => setState(() => _declares[axe] = v),
+                                ),
+                                const SizedBox(height: 8),
+                              ],
                             ],
                           ],
                         ),
@@ -584,12 +576,14 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
     );
   }
 
+  /// [value] de 0 à 10 ; [dit] faux : pas encore réglé, le curseur se montre pâle.
   Widget _buildSliderRow({
     required String label,
     required double value,
     required String leftLabel,
     required String rightLabel,
     required ValueChanged<double> onChanged,
+    bool dit = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -598,15 +592,15 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-            Text('${(value * 100).toInt()}%', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            if (dit) Text('${value.toStringAsFixed(1)} / 10', style: const TextStyle(color: Colors.grey, fontSize: 12)),
           ],
         ),
         Slider(
           value: value,
           min: 0.0,
-          max: 1.0,
-          divisions: 10,
-          activeColor: const Color(0xFF8B1E3F),
+          max: 10.0,
+          divisions: 20,
+          activeColor: const Color(0xFF8B1E3F).withValues(alpha: dit ? 1.0 : 0.35),
           onChanged: onChanged,
         ),
         Row(

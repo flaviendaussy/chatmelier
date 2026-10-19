@@ -1,3 +1,4 @@
+import 'package:chatmelier/features/auth/domain/palais.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/cellar/domain/wine_world/wine_world.dart';
 import 'package:chatmelier/features/sommelier/domain/carte_des_terroirs.dart';
@@ -12,13 +13,23 @@ void main() {
   VinSitue vin(String nom, {String? region, String? appellation, String pays = 'France'}) =>
       (pays: pays, region: region, appellation: appellation, nom: nom);
 
+  /// Un palais dont chaque axe des deux familles est observé douze fois, sauf le boisé
+  /// (V2.6 : un palais par famille).
+  TasteProfile palaisConnu({bool boiseConnu = false}) {
+    final observations = <String, Map<String, int>>{};
+    final valeurs = <String, Map<String, double>>{};
+    for (final famille in FamillesDeVins.toutes) {
+      for (final axe in AxesDuPalais.de(famille)) {
+        if (axe == AxesDuPalais.boise && !boiseConnu) continue;
+        (observations[famille] ??= {})[axe] = 12;
+        (valeurs[famille] ??= {})[axe] = 0.5;
+      }
+    }
+    return TasteProfile(id: 'moi', name: 'Moi', isPrimary: true, palais: valeurs, observationsPalais: observations);
+  }
+
   // Un palais bien connu partout, sauf sur le boisé.
-  const palais = TasteProfile(
-    id: 'moi',
-    name: 'Moi',
-    isPrimary: true,
-    axisObservations: {'tannin': 12, 'body': 12, 'acidity': 12, 'minerality': 12},
-  );
+  final palais = palaisConnu();
 
   test('goûtés, en cave sans avoir été goûtés, et ce qui reste à découvrir', () {
     final carte = CarteDesTerroirs.dresser(
@@ -44,26 +55,24 @@ void main() {
   });
 
   test('la prochaine région éclaire l\'axe le moins connu, et jamais une région déjà vue', () {
+    // Le boisé se juge sur un blanc : un Rioja rouge ne dirait rien du bois d'un blanc.
     final neuf = CarteDesTerroirs.dresser(goutes: const [], enCave: const [], profil: palais);
-    expect(neuf.prochaine?.nom, 'Rioja');
+    expect(neuf.prochaine?.nom, 'Meursault');
+    expect(neuf.prochaine?.famille, FamillesDeVins.blanc);
     expect(neuf.prochaine?.phrase,
-        'Prochaine région à explorer : Rioja. Ses vins vous diraient ce que vous pensez du boisé.');
+        'Prochaine région à explorer : Meursault. Ses vins vous diraient ce que vous pensez du boisé sur un blanc.');
 
-    final apresUnRioja = CarteDesTerroirs.dresser(
-      goutes: [vin('Viña Tondonia', appellation: 'Rioja', region: 'Rioja', pays: 'Espagne')],
+    final apresUnMeursault = CarteDesTerroirs.dresser(
+      goutes: [vin('Meursault 1er Cru Charmes', appellation: 'Meursault', region: 'Bourgogne')],
       enCave: const [],
       profil: palais,
     );
-    expect(apresUnRioja.prochaine?.nom, 'Meursault');
+    expect(apresUnMeursault.prochaine?.nom, 'Pessac-Léognan');
   });
 
   test('sans palais, ou quand tout est connu, pas de suggestion', () {
     expect(CarteDesTerroirs.dresser(goutes: const [], enCave: const []).prochaine, isNull);
-    const toutConnu = TasteProfile(
-      id: 'moi',
-      name: 'Moi',
-      axisObservations: {'tannin': 12, 'body': 12, 'acidity': 12, 'minerality': 12, 'oak': 12},
-    );
+    final toutConnu = palaisConnu(boiseConnu: true);
     expect(CarteDesTerroirs.dresser(goutes: const [], enCave: const [], profil: toutConnu).prochaine, isNull);
   });
 
@@ -74,11 +83,11 @@ void main() {
   });
 
   test('« mais est-ce que j\'ai un Meursault ?? » : une bouteille de la cave passe avant (13/10)', () {
-    // Un Crozes boisé jamais goûté attend en cave : il éclaire le boisé, l'axe inconnu.
+    // Un Crozes boisé jamais goûté attend en cave : il éclaire le boisé des rouges, inconnu.
     final crozes = (
       lieu: vin('Crozes-Hermitage', appellation: 'Crozes-Hermitage', region: 'Vallée du Rhône'),
       nomDuVin: 'Domaine Combier Clos des Grives 2019',
-      profil: const ProfilDeVin({'oak': 8.0, 'tannin': 6.0, 'body': 7.0}),
+      profil: const ProfilDeVin({'oak': 8.0, 'tannin': 6.0, 'body': 7.0}, famille: FamillesDeVins.rouge),
     );
     final carte = CarteDesTerroirs.dresser(
       goutes: const [],
@@ -90,6 +99,7 @@ void main() {
     expect(carte.prochaine?.vinDeLaCave, 'Domaine Combier Clos des Grives 2019');
     expect(carte.prochaine?.phrase, contains('déjà dans votre cave'));
     expect(carte.prochaine?.phrase, contains('Ouvrez votre Domaine Combier Clos des Grives 2019'));
+    expect(carte.prochaine?.phrase, endsWith('ce que vous pensez du boisé sur un rouge.'));
 
     // Déjà goûté, ce terroir n'est plus « à explorer » : la région hors cave revient.
     final dejaGoute = CarteDesTerroirs.dresser(
@@ -99,7 +109,7 @@ void main() {
       aOuvrir: [crozes],
     );
     expect(dejaGoute.prochaine?.vinDeLaCave, isNull);
-    expect(dejaGoute.prochaine?.nom, 'Rioja');
+    expect(dejaGoute.prochaine?.nom, 'Meursault');
   });
 
   test('la cuvée n\'est pas un terroir : « Bandol », pas « Bandol Pour Lulu » (17/10)', () {

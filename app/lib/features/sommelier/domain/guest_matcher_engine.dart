@@ -1,4 +1,6 @@
 import 'dart:math' as math;
+import '../../auth/domain/palais.dart';
+import 'profil_du_vin.dart';
 import '../../cellar/domain/bottle.dart';
 import '../../cellar/domain/wine.dart';
 import '../../auth/domain/taste_profile.dart';
@@ -26,6 +28,11 @@ class GuestProfile {
   /// sur le radar grossier déduit de son archétype, et la table votait sur une caricature
   /// de son goût.
   final WineTasteRadarMetrics? radarDistant;
+
+  /// Les palais par famille d'un convive venu d'un autre téléphone (V2.6) : ce que le sien
+  /// sait des rouges et des blancs, sur six axes. Les versions d'avant n'envoient que
+  /// [radarDistant].
+  final Map<String, PalaisDeFamille>? palaisDistants;
 
   /// Venu « juste avec son prénom » : il est compté à table, mais ne pèse pas sur le
   /// classement — on ne devine pas les goûts de quelqu'un qui n'a rien dit.
@@ -65,6 +72,7 @@ class GuestProfile {
     this.dislikedCharacteristics = const [],
     this.archetype = 'Curieux & Éclectique',
     this.radarDistant,
+    this.palaisDistants,
     this.sansPreferences = false,
     this.avis = const {},
     this.neBoitPas = false,
@@ -80,6 +88,57 @@ class GuestProfile {
     final c = confianceParAxe;
     if (c == null) return 1.0;
     return 0.35 + 0.65 * (c[axe] ?? 0.0).clamp(0.0, 1.0);
+  }
+
+  /// Son palais pour une famille de vins (V2.6) : celui que son téléphone a envoyé, sinon
+  /// le radar des versions d'avant (ou des curseurs de la page invité), sinon son profil,
+  /// sinon son archétype. Un palais déclaré ou tiré d'un archétype compte pleinement, comme
+  /// avant ; un palais appris, selon ce qu'on sait de chaque axe.
+  PalaisDeFamille palaisPour(String famille) {
+    final distant = palaisDistants?[famille];
+    if (distant != null) return distant;
+    final r = radarDistant;
+    if (r != null) return _depuisLeRadar(r, famille, confianceParAxe);
+    final tp = tasteProfile;
+    if (tp != null) return tp.palaisPour(famille);
+    return _depuisLeRadar(radar, famille, null);
+  }
+
+  static PalaisDeFamille _depuisLeRadar(WineTasteRadarMetrics r, String famille, Map<String, double>? confiance) {
+    final valeurs = <String, double>{
+      AxesDuPalais.fraicheur: r.acidity,
+      AxesDuPalais.corps: r.body,
+      AxesDuPalais.boise: r.oak,
+      if (famille == FamillesDeVins.rouge) AxesDuPalais.tanins: r.tannin,
+    };
+    return PalaisDeFamille(
+      famille: famille,
+      valeurs: {
+        for (final axe in AxesDuPalais.de(famille)) axe: valeurs[axe] ?? AxesDuPalais.neutre(famille, axe),
+      },
+      confiance: {for (final axe in valeurs.keys) axe: confiance == null ? 1.0 : (confiance[axe] ?? 0.0)},
+      connus: valeurs.keys.toSet(),
+    );
+  }
+
+  /// Le poids d'un axe d'une famille dans les accords : nul s'il n'en sait rien (l'écart
+  /// d'ignorance le remplace), un tiers s'il est deviné, plein s'il est bien établi.
+  double poidsSur(String famille, String axe) {
+    final p = palaisPour(famille);
+    if (!p.connait(axe)) return 0.0;
+    return 0.35 + 0.65 * p.confianceDe(axe).clamp(0.0, 1.0);
+  }
+
+  /// L'écart d'un vin à ce palais sur un axe d'une famille, selon ce qu'on sait de l'axe.
+  double ecartSur(String famille, String axe, double ecart) {
+    final p = poidsSur(famille, axe);
+    return p * ecart.abs() + (1 - p) * ecartDIgnorance;
+  }
+
+  /// Le même écart, au carré, pour la distance euclidienne de la cave.
+  double ecartCarreSur(String famille, String axe, double ecart) {
+    final p = poidsSur(famille, axe);
+    return p * ecart * ecart + (1 - p) * ecartDIgnorance * ecartDIgnorance;
   }
 
   /// L'écart qu'on attend, sur un axe, entre un vin et quelqu'un dont on ignore le goût :
@@ -106,6 +165,14 @@ class GuestProfile {
   /// connu à … % » de son profil. Nul pour un palais déclaré (curseurs de la page invité)
   /// ou tiré d'un archétype : il compte pour connu.
   double? get connaissance {
+    final tp = tasteProfile;
+    if (tp != null && radarDistant == null && palaisDistants == null) {
+      return FamillesDeVins.toutes.map((f) => tp.palaisPour(f).connaissance).reduce((a, b) => a > b ? a : b);
+    }
+    final distants = palaisDistants;
+    if (distants != null && distants.isNotEmpty) {
+      return distants.values.map((p) => p.connaissance).reduce((a, b) => a > b ? a : b);
+    }
     final c = confianceParAxe;
     if (c == null) return null;
     const axes = TasteProfile.axisKeys;
@@ -136,6 +203,7 @@ class GuestProfile {
         dislikedCharacteristics: dislikedCharacteristics,
         archetype: archetype,
         radarDistant: radarDistant,
+        palaisDistants: palaisDistants,
         sansPreferences: sansPreferences,
         avis: avis ?? this.avis,
         neBoitPas: neBoitPas ?? this.neBoitPas,
@@ -171,6 +239,8 @@ class GuestProfile {
           'minerality': radar.minerality,
           'acidity': radar.acidity,
         },
+        if (tasteProfile != null || palaisDistants != null)
+          'palais': {for (final f in FamillesDeVins.toutes) f: palaisPour(f).toJson()},
         if (confianceParAxe != null)
           'confiance': {
             for (final e in confianceParAxe!.entries) e.key: double.parse(e.value.toStringAsFixed(1)),
@@ -208,6 +278,12 @@ class GuestProfile {
           ? {
               for (final e in (json['confiance'] as Map).entries)
                 if (double.tryParse(e.value.toString()) case final c?) e.key.toString(): c.clamp(0.0, 1.0).toDouble(),
+            }
+          : null,
+      palaisDistants: json['palais'] is Map
+          ? {
+              for (final f in FamillesDeVins.toutes)
+                if (PalaisDeFamille.fromJson(f, (json['palais'] as Map)[f]) case final p?) f: p,
             }
           : null,
       radarDistant: r is Map
@@ -264,6 +340,8 @@ class GuestProfile {
       'Blancs Minéraux & Tendus': 'Taut, mineral whites',
       'Blancs Minéraux & Frais': 'Crisp, mineral whites',
       'Rouges Fruits Croquants': 'Crunchy fruity reds',
+      'Amateur de Blancs Tendres & Doux': 'Lover of off-dry and sweet whites',
+      'Blancs tendres ou doux': 'Off-dry and sweet whites',
       'Fruit Croquant': 'Crunchy fruit',
       'Sans préférences déclarées': 'No stated preferences',
       'Ne boit pas ce soir': 'Not drinking tonight',
@@ -286,16 +364,25 @@ class GuestProfile {
   /// 02/10 : « Adepte de Minéralité » pour un palais connu à 6 %, déclaré « Rouge », que
   /// la table servait en Pauillac, Madiran et Crozes.
   static String _detectArchetype(TasteProfile tp) {
-    final radar = tp.radarMetrics;
-    bool observe(String axe) => tp.axisConfidence(axe) >= seuilAxeObserve;
-    if (radar.tannin >= 7.0 && radar.body >= 7.0 && (observe('tannin') || observe('body'))) {
+    // V2.6 : lue sur les palais par famille — les rouges puissants sur celui des rouges,
+    // les blancs vifs sur celui des blancs.
+    final r = tp.palaisPour(FamillesDeVins.rouge);
+    final b = tp.palaisPour(FamillesDeVins.blanc);
+    bool observe(PalaisDeFamille p, String axe) => p.confianceDe(axe) >= seuilAxeObserve;
+    if (r.valeur(AxesDuPalais.tanins) >= 7.0 &&
+        r.valeur(AxesDuPalais.corps) >= 7.0 &&
+        (observe(r, AxesDuPalais.tanins) || observe(r, AxesDuPalais.corps))) {
       return 'Amateur de Grands Rouges Puissants';
-    } else if (radar.acidity >= 7.0 && radar.minerality >= 6.5 && (observe('acidity') || observe('minerality'))) {
+    } else if (b.valeur(AxesDuPalais.douceur) >= 4.0 && observe(b, AxesDuPalais.douceur)) {
+      return 'Amateur de Blancs Tendres & Doux';
+    } else if (b.valeur(AxesDuPalais.fraicheur) >= 7.0 &&
+        b.valeur(AxesDuPalais.corps) <= 5.0 &&
+        observe(b, AxesDuPalais.fraicheur)) {
       return 'Adepte de Minéralité & Fraîcheur Droite';
-    } else if (radar.freshFruit >= 7.0 && observe('freshFruit')) {
+    } else if (r.valeur(AxesDuPalais.fraicheur) >= 6.5 &&
+        r.valeur(AxesDuPalais.tanins) <= 4.5 &&
+        (observe(r, AxesDuPalais.fraicheur) || observe(r, AxesDuPalais.tanins))) {
       return 'Palais Friand & Fruit Croquant';
-    } else if (radar.spice >= 7.0 && observe('spice')) {
-      return 'Amateur de Vins Épicés & Singuliers';
     }
     final couleurs = {
       for (final t in tp.favoriteTypes)
@@ -501,24 +588,28 @@ class GuestMatcherEngine {
   }
 
   static double _calculateCompatibility(Wine wine, WineTasteRadarMetrics wineRadar, GuestProfile guest) {
-    final guestRadar = guest.radar;
-
-    // Distance euclidienne sur les 8 axes, chaque écart pesé selon ce qu'on sait de l'axe
-    // (V2.3 · K1, K5), comme à la table du restaurant.
-    double ecart(double vin, double convive, String axe) => guest.ecartCarreSurLAxe(axe, vin - convive);
-    final dist = math.sqrt(
-      ecart(wineRadar.tannin, guestRadar.tannin, 'tannin') +
-      ecart(wineRadar.body, guestRadar.body, 'body') +
-      ecart(wineRadar.oak, guestRadar.oak, 'oak') +
-      ecart(wineRadar.ripeFruit, guestRadar.ripeFruit, 'ripeFruit') +
-      ecart(wineRadar.spice, guestRadar.spice, 'spice') +
-      ecart(wineRadar.freshFruit, guestRadar.freshFruit, 'freshFruit') +
-      ecart(wineRadar.minerality, guestRadar.minerality, 'minerality') +
-      ecart(wineRadar.acidity, guestRadar.acidity, 'acidity'),
-    );
-
-    // Max theoretical distance on 8 axes with scale 0-10 is sqrt(8 * 10^2) = 28.28
-    double baseScore = (1.0 - (dist / 22.0)) * 100.0;
+    // Le palais de la famille du vin (V2.6) : un rouge face au palais des rouges, un blanc
+    // face à celui des blancs, sur six axes. Chaque écart pèse selon ce qu'on sait de l'axe
+    // (V2.3 · K1, K5), comme à la table du restaurant. Un muté ou un spiritueux n'a pas de
+    // palais de vins de table où se comparer : il part du milieu.
+    final famille = TasteProfile.familleDe(wine.type);
+    double baseScore;
+    if (famille == null) {
+      baseScore = 55.0;
+    } else {
+      final vin = ProfilDuVin.deLaCave(wine);
+      final palais = guest.palaisPour(famille);
+      var somme = 0.0;
+      var n = 0;
+      for (final axe in AxesDuPalais.de(famille)) {
+        final v = vin.sur10(axe);
+        if (v == null) continue;
+        somme += guest.ecartCarreSur(famille, axe, v - palais.valeur(axe));
+        n++;
+      }
+      // La même échelle qu'à huit axes : 22 points d'écart vidaient le score.
+      baseScore = (1.0 - math.sqrt(somme) / (22.0 * math.sqrt(math.max(n, 1) / 8))) * 100.0;
+    }
 
     // Bonus de cépages favoris
     if (guest.favoriteGrapes.isNotEmpty && wine.grapes.isNotEmpty) {

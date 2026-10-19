@@ -4,9 +4,9 @@ import '../../../shared/providers/cellar_provider.dart';
 import '../../cellar/domain/bottle.dart';
 import '../../cellar/presentation/bottle_detail_screen.dart';
 import '../../friends/data/friends_repository.dart';
-import '../../auth/domain/taste_profile.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../domain/guest_matcher_engine.dart';
+import '../../menu_scan/domain/palais_saisi.dart';
 import '../../../shared/utils/langue.dart';
 
 class GuestMatcherSheet extends ConsumerStatefulWidget {
@@ -120,6 +120,7 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
                   DropdownMenuItem(value: 'equilibre', child: Text(tr('🍷 Curieux & Éclectique (Tout-terrain)', '🍷 Curious, likes a bit of everything'))),
                   DropdownMenuItem(value: 'puissant', child: Text(tr('🧱 Grands Rouges Puissants & Tanniques', '🧱 Big, powerful, tannic reds'))),
                   DropdownMenuItem(value: 'mineral', child: Text(tr('⚡ Blancs Tendus, Frais & Minéraux', '⚡ Crisp, fresh, mineral whites'))),
+                  DropdownMenuItem(value: 'tendre', child: Text(tr('🍯 Blancs tendres ou doux', '🍯 Off-dry and sweet whites'))),
                   DropdownMenuItem(value: 'fruit', child: Text(tr('🍒 Rouges Légers & Fruit Croquant', '🍒 Light, fruity reds'))),
                   DropdownMenuItem(value: 'sans_tanin', child: Text(tr('🕊️ Aversion stricte aux tanins durs', '🕊️ Can\'t stand firm tannins'))),
                 ],
@@ -138,49 +139,13 @@ class _GuestMatcherSheetState extends ConsumerState<GuestMatcherSheet> {
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
               onPressed: () {
                 final name = nameCtrl.text.trim().isEmpty ? parDefaut : nameCtrl.text.trim();
-                TasteProfile? tp;
-                List<String> disliked = [];
-
-                if (selectedStyle == 'puissant') {
-                  tp = TasteProfile(
-                    id: 'guest_${DateTime.now().millisecondsSinceEpoch}',
-                    name: name,
-                    favoriteTypes: const ['Rouge'],
-                    avgTanninPreference: 0.85,
-                    avgBodyPreference: 0.85,
-                    avgSpicePreference: 0.8,
-                  );
-                } else if (selectedStyle == 'mineral') {
-                  tp = TasteProfile(
-                    id: 'guest_${DateTime.now().millisecondsSinceEpoch}',
-                    name: name,
-                    favoriteTypes: const ['Blanc sec', 'Champagne'],
-                    avgAcidityPreference: 0.85,
-                    avgMineralityPreference: 0.85,
-                    avgFreshFruitPreference: 0.75,
-                  );
-                } else if (selectedStyle == 'fruit') {
-                  tp = TasteProfile(
-                    id: 'guest_${DateTime.now().millisecondsSinceEpoch}',
-                    name: name,
-                    favoriteTypes: const ['Rouge'],
-                    avgFreshFruitPreference: 0.85,
-                    avgTanninPreference: 0.35,
-                  );
-                } else if (selectedStyle == 'sans_tanin') {
-                  disliked = const ['Trop tannique', 'Trop lourd'];
-                  tp = TasteProfile(
-                    id: 'guest_${DateTime.now().millisecondsSinceEpoch}',
-                    name: name,
-                    favoriteTypes: const ['Blanc sec', 'Champagne', 'Rouge'],
-                    dislikedCharacteristics: disliked,
-                    avgTanninPreference: 0.2,
-                  );
-                }
-
-                final newGuest = tp != null
-                    ? GuestProfile.fromTasteProfile(tp)
-                    : GuestProfile(id: 'guest_${DateTime.now().millisecondsSinceEpoch}', name: name);
+                final id = 'guest_${DateTime.now().millisecondsSinceEpoch}';
+                // Un style choisi est une déclaration (V2.6) : il compte pleinement, comme les
+                // curseurs de la page invité, dont ce sont les mêmes points de départ.
+                final style = PalaisSaisi.prereglages[selectedStyle];
+                final newGuest = selectedStyle == 'equilibre' || style == null
+                    ? GuestProfile(id: id, name: name)
+                    : style.versConvive(id: id, nom: name, fr: Langue.estFr);
 
                 setState(() => _selectedGuests.add(newGuest));
                 Navigator.pop(ctx);

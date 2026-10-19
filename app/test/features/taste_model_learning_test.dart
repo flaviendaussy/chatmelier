@@ -382,18 +382,19 @@ void main() {
       final service = TasteProfileService();
       final profile = await service.getPrimaryProfile();
 
-      // « Vif & Salivant » décrit l'acidité et la minéralité, rien d'autre.
+      // « Vif & Salivant » décrit la fraîcheur, rien d'autre (V2.6 : la minéralité n'est
+      // plus un axe, et le palais s'apprend par famille — ici les blancs).
       await service.applyQuestionnaireResult(
         result: sip(profileId: profile.id, texture: 'crisp_salivating'),
+        wineType: 'white',
       );
 
       final after = await service.getPrimaryProfile();
-      expect(after.axisObservations['acidity'], equals(1));
-      expect(after.axisObservations['minerality'], equals(1));
-      expect(after.avgAcidityPreference, closeTo(0.85, 0.001));
-      expect(after.axisObservations['body'] ?? 0, equals(0),
+      expect(after.observationsSur('blanc', 'acidity'), equals(1));
+      expect(after.valeurPalais('blanc', 'acidity'), closeTo(0.85, 0.001));
+      expect(after.observationsSur('blanc', 'body'), equals(0),
           reason: 'Le toucher de bouche ne dit rien du corps : ne rien affirmer.');
-      expect(after.axisObservations['oak'] ?? 0, equals(0));
+      expect(after.observationsSur('blanc', 'oak'), equals(0));
     });
 
     test('deux touches se cumulent sans se contredire', () async {
@@ -402,13 +403,13 @@ void main() {
 
       await service.applyQuestionnaireResult(
         result: sip(profileId: profile.id, texture: 'dense_structured', fruit: 'deep_ripe'),
+        wineType: 'red',
       );
 
       final after = await service.getPrimaryProfile();
-      expect(after.avgBodyPreference, isNotNull,
+      expect(after.valeurPalais('rouge', 'body'), closeTo((0.80 + 0.70) / 2, 0.001),
           reason: 'Les deux touches décrivent un vin ample : le corps doit être renseigné.');
-      expect(after.avgRipeFruitPreference, closeTo(0.85, 0.001));
-      expect(after.axisObservations['body'], equals(1),
+      expect(after.observationsSur('rouge', 'body'), equals(1),
           reason: 'Un axe touché par deux micro-touches dans la même dégustation ne compte '
               'qu\'une observation : c\'est une seule bouteille goûtée.');
     });

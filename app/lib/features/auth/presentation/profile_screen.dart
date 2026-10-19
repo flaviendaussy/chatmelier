@@ -15,10 +15,12 @@ import '../data/export_des_donnees.dart';
 import 'taste_profiles_dialog.dart';
 import 'taste_profile_edit_sheet.dart';
 import 'taste_profile_radar_screen.dart';
+import 'widgets/radar_du_palais.dart';
 import 'widgets/radar_legende.dart';
 import 'widgets/wine_taste_radar_chart.dart';
-import '../domain/wine_taste_radar.dart';
 import '../data/taste_profile_service.dart';
+import '../domain/mots_du_palais.dart';
+import '../domain/palais.dart';
 import '../domain/taste_profile.dart';
 import 'mandatory_username_dialog.dart';
 import '../../../shared/widgets/owner_avatar.dart';
@@ -139,20 +141,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   /// une dégustation ou cinquante derrière. Le modèle devient lisible seulement s'il
   /// admet ce qu'il ignore — et l'axe le moins connu est exactement l'endroit où une
   /// prochaine bouteille apprendrait le plus.
-  Widget _buildConfidenceLine(ThemeData theme, TasteProfile profile) {
+  /// La famille du radar de la carte (V2.6) : celle qu'on a choisie, sinon la mieux connue.
+  String? _familleDuRadar;
+
+  Widget _buildConfidenceLine(ThemeData theme, TasteProfile profile, String famille) {
     final l10n = AppLocalizations.of(context)!;
     final lang = Localizations.localeOf(context).languageCode;
-    final confiance = profile.overallConfidence;
+    final palais = profile.palaisPour(famille);
+    final confiance = palais.connaissance;
 
     final String texte;
     if (confiance < 0.05) {
       texte = l10n.tasteConfidenceUnknown;
     } else {
-      final labels = WineTasteRadarMetrics.localizedAxisLabels(lang);
-      final idx = TasteProfile.axisKeys.indexOf(profile.leastKnownAxis);
-      final axe = (idx >= 0 && idx < labels.length)
-          ? labels[idx].replaceAll('\n', ' ')
-          : profile.leastKnownAxis;
+      final axes = AxesDuPalais.duRadar(famille);
+      final moinsConnu = axes.reduce((a, b) => palais.confianceDe(b) < palais.confianceDe(a) ? b : a);
+      final axe = MotsDuPalais.nomDansLaFamille(famille, moinsConnu);
       texte = '${l10n.tasteConfidenceKnown((confiance * 100).round().toString())} '
           '${l10n.tasteConfidenceFrontier(axe)}';
     }
@@ -1100,7 +1104,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     // Même effet de bord que sur l'écran du radar plein écran : c'est ici qu'on atterrit,
     // donc c'est ici que l'inventaire de cave doit être à jour avant le dessin.
     ref.watch(cellarGrapeSyncProvider);
-    final metrics = WineTasteRadarCalculator.compute(currentProfile);
+    final famille = _familleDuRadar ?? currentProfile.familleDominante;
 
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -1149,6 +1153,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         context,
                         profil: currentProfile,
                         nom: _displayName.isNotEmpty ? _displayName : null,
+                        famille: famille,
                       ),
                     ),
                     FilledButton.tonalIcon(
@@ -1163,6 +1168,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
+                // Un palais par famille (V2.6) : les rouges, ou les blancs, rosés et bulles.
+                Center(
+                  child: ChoixDeFamille(
+                    famille: famille,
+                    onChanged: (f) => setState(() => _familleDuRadar = f),
+                  ),
+                ),
+                const SizedBox(height: 6),
 
                 // Radar chart interactive preview
                 Center(
@@ -1172,14 +1185,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     child: GestureDetector(
                       onTap: () => TasteProfileRadarScreen.show(context),
                       child: WineTasteRadarChart(
+                        customAxisLabels: RadarDuPalais.libelles(famille),
                         datasets: [
-                          RadarChartDataset(
+                          RadarDuPalais.jeu(
+                            currentProfile,
+                            famille,
                             label: _displayName.isNotEmpty ? _displayName : (trSi(isFr, 'Mes Goûts', 'My Taste')),
                             color: const Color(0xFF8B1E3F),
-                            metrics: metrics,
-                            confidences: TasteProfile.axisKeys
-                                .map(currentProfile.axisConfidence)
-                                .toList(),
                           ),
                         ],
                       ),
@@ -1190,7 +1202,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const LegendeDuRadar(),
                 const SizedBox(height: 8),
 
-                _buildConfidenceLine(theme, currentProfile),
+                _buildConfidenceLine(theme, currentProfile, famille),
                 const SizedBox(height: 8),
 
                 // Summary of current preferences

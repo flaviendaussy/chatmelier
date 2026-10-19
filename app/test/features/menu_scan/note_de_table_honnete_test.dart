@@ -53,8 +53,12 @@ void main() {
     });
 
     test('un palais observé garde l\'étiquette de son radar', () {
-      final observe = palais(observations: {'acidity': 4, 'minerality': 4}, styles: ['Rouge']);
+      final observe = palais(observations: {'acidity': 4, 'minerality': 4}, styles: ['Blanc']);
       expect(GuestProfile.fromTasteProfile(observe).archetype, 'Adepte de Minéralité & Fraîcheur Droite');
+      // V2.6 : appris sur des rouges (la seule couleur aimée), le même palais vif et peu
+      // tannique se dit dans la famille où on l'a observé.
+      final enRouge = palais(observations: {'acidity': 4, 'minerality': 4}, styles: ['Rouge']);
+      expect(GuestProfile.fromTasteProfile(enRouge).archetype, 'Palais Friand & Fruit Croquant');
     });
 
     test('les nouvelles étiquettes se lisent dans la langue de l\'écran', () {
@@ -91,7 +95,7 @@ void main() {
       expect(ecartDevine, lessThan(ecartObserve));
     });
 
-    test('la minéralité juge les blancs, pas les rouges ; le bois juge tout le monde', () {
+    test('la minéralité ne juge plus personne ; le bois juge tout le monde', () {
       final observe = GuestProfile.fromTasteProfile(palais(observations: toutObserve));
       MenuWine avec(MenuWine w, {double? minerality, double? oak}) => MenuWine(
             id: w.id,
@@ -108,12 +112,14 @@ void main() {
               minerality: minerality ?? w.metrics.minerality,
             ),
           );
-      expect(note(observe, avec(chablis, minerality: 4)), lessThan(note(observe, chablis)),
-          reason: 'un blanc peu minéral plaît moins à qui aime la minéralité');
-      expect(note(observe, avec(pauillac, minerality: 9)), note(observe, pauillac),
-          reason: 'la minéralité d\'un rouge ne se juge pas');
+      // V2.6 : la minéralité n'est plus un axe du palais (mal comprise, jamais apprise) :
+      // elle ne change plus la note, ni d'un blanc ni d'un rouge.
+      expect(note(observe, avec(chablis, minerality: 4)), note(observe, chablis));
+      expect(note(observe, avec(pauillac, minerality: 9)), note(observe, pauillac));
       expect(note(observe, avec(pauillac, oak: 2)), greaterThan(note(observe, pauillac)),
           reason: 'qui aime peu le bois préfère un rouge peu boisé');
+      expect(note(observe, avec(chablis, oak: 8)), lessThan(note(observe, chablis)),
+          reason: 'et un blanc peu boisé aussi');
     });
 
     test('la confiance voyage avec le profil, au dixième près ; un invité web compte plein', () {

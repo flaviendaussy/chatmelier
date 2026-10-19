@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/utils/langue.dart';
 import '../../auth/data/taste_profile_service.dart';
+import '../../auth/domain/palais.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../auth/presentation/taste_profiles_dialog.dart';
 import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../../journal/domain/filtres_du_journal.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
+import '../../sommelier/domain/profil_du_vin.dart';
 import '../domain/explication_du_score.dart';
 import '../domain/menu_wine.dart';
 
@@ -255,7 +257,11 @@ class _FicheDuVinDeLaCarteState extends ConsumerState<FicheDuVinDeLaCarte> {
         ],
       );
     }
-    final confiance = palais?.overallConfidence ?? 1.0;
+    // Le palais de la famille du vin (V2.6) : connaître ses rouges ne dit rien de ses blancs.
+    final famille = TasteProfile.familleDe(_vin.wineType);
+    final confiance = palais == null
+        ? 1.0
+        : (famille == null ? palais.overallConfidence : palais.palaisPour(famille).connaissance);
     final devine = confiance < GuestProfile.seuilAxeObserve;
     final avant = _vin.userMatchScore;
     final vert = isDark ? const Color(0xFF81C784) : const Color(0xFF2E7D32);
@@ -347,28 +353,40 @@ class _FicheDuVinDeLaCarteState extends ConsumerState<FicheDuVinDeLaCarte> {
 
   static String _points(double p) => p % 1 == 0 ? '${p.toInt()}' : p.toStringAsFixed(1).replaceAll('.', Langue.estFr ? ',' : '.');
 
-  /// Son profil face au vôtre, sur les mêmes huit axes.
+  /// Son profil face au vôtre, sur les axes du palais de sa famille (V2.6) : ceux que l'on
+  /// connaît du vin. Un muté, un spiritueux n'ont pas de palais en face : leur seul profil.
   Widget _profil(ThemeData theme, bool isDark, TasteProfile? palais) {
-    final vin = _vin.toRadarDataset(color: _bordeaux);
     final gris = isDark ? Colors.white60 : Colors.black54;
+    final profil = ProfilDuVin.deLaCarte(_vin);
+    final famille = profil.famille;
+    final axes = famille == null
+        ? const <String>[]
+        : [for (final a in AxesDuPalais.duRadar(famille)) if (profil.valeur(a) != null) a];
+    final face = famille != null && axes.length >= 3;
+    final vous = face && palais != null ? palais.palaisPour(famille) : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _titre(palais != null ? tr('Son profil face au vôtre', 'Its profile against yours') : tr('Son profil', 'Its profile'),
+        _titre(vous != null ? tr('Son profil face au vôtre', 'Its profile against yours') : tr('Son profil', 'Its profile'),
             isDark),
         Center(
           child: SizedBox(
             height: 270,
             child: WineTasteRadarChart(
               size: 260,
+              customAxisLabels: face ? [for (final a in axes) AxesDuPalais.nom(a)] : null,
               datasets: [
-                RadarChartDataset(label: tr('Ce vin', 'This wine'), metrics: vin.metrics, color: _bordeaux),
-                if (palais != null)
+                if (face)
+                  RadarChartDataset(
+                      label: tr('Ce vin', 'This wine'), customValues: [for (final a in axes) profil.sur10(a)!], color: _bordeaux)
+                else
+                  _vin.toRadarDataset(color: _bordeaux),
+                if (vous != null)
                   RadarChartDataset(
                     label: tr('Vous', 'You'),
-                    metrics: palais.radarMetrics,
+                    customValues: [for (final a in axes) vous.valeur(a)],
                     color: _or,
-                    confidences: [for (final k in TasteProfile.axisKeys) palais.axisConfidence(k)],
+                    confidences: [for (final a in axes) vous.confianceDe(a)],
                   ),
               ],
             ),
@@ -378,12 +396,12 @@ class _FicheDuVinDeLaCarteState extends ConsumerState<FicheDuVinDeLaCarte> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _pastille(_bordeaux, tr('Ce vin', 'This wine')),
-            if (palais != null) ...[const SizedBox(width: 18), _pastille(_or, tr('Vous', 'You'))],
+            if (vous != null) ...[const SizedBox(width: 18), _pastille(_or, tr('Vous', 'You'))],
           ],
         ),
         const SizedBox(height: 8),
         Text(
-          palais != null
+          vous != null
               ? tr('Le profil du vin est une estimation, d\'après ce qu\'on sait de lui ; le vôtre vient de vos dégustations, en pointillés là où je devine encore.',
                   'The wine\'s profile is an estimate from what is known about it; yours comes from your tastings, dotted where I\'m still guessing.')
               : tr('Une estimation, d\'après ce qu\'on sait de ce vin.', 'An estimate, from what is known about this wine.'),

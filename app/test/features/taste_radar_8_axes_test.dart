@@ -150,13 +150,11 @@ void main() {
       final updatedProfiles = await service.getProfiles();
       final updated = updatedProfiles.firstWhere((p) => p.id == 'taster_1');
 
-      // High acidity & minerality learned from micro-taps and bottle
-      expect(updated.avgAcidityPreference, isNotNull);
-      expect(updated.avgAcidityPreference!, greaterThan(0.70));
-      expect(updated.avgFreshFruitPreference, isNotNull);
-      expect(updated.avgFreshFruitPreference!, greaterThan(0.70));
-      expect(updated.avgMineralityPreference, isNotNull);
-      expect(updated.avgMineralityPreference!, greaterThan(0.65));
+      // Une fraîcheur haute, apprise au palais des blancs (V2.6 : le fruit frais et la
+      // minéralité ne sont plus des axes ; la fraîcheur absorbe le premier).
+      expect(updated.valeurPalais('blanc', 'acidity'), isNotNull);
+      expect(updated.valeurPalais('blanc', 'acidity')!, greaterThan(0.70));
+      expect(updated.observationsSur('blanc', 'acidity'), 1);
 
       // Auto-enriched favorites from rated bottle (note 9.0 >= 7.5)
       expect(updated.favoriteRegions, contains('Chablis'));
@@ -191,7 +189,7 @@ void main() {
       expect(metrics.tannin, greaterThan(5.5));
     });
 
-    test('la minéralité répondue sur un blanc aimé nourrit l\'axe, et compte comme une observation', () async {
+    test('la minéralité répondue reste dans la dégustation, mais n\'est plus un axe du palais', () async {
       const depart = TasteProfile(id: 'mineral', name: 'Maxime', isPrimary: true);
       await service.saveProfiles([depart]);
 
@@ -215,8 +213,11 @@ void main() {
 
       await service.applyQuestionnaireResult(result: chablis, wineType: 'white');
       final apres = (await service.getProfiles()).firstWhere((p) => p.id == 'mineral');
-      expect(apres.avgMineralityPreference, closeTo(0.9, 1e-9));
-      expect(apres.axisObservations['minerality'], 1);
+      // V2.6 : six axes ; la minéralité, mal comprise et jamais utilisée pour choisir, n'en
+      // est plus un. L'acidité et le corps décrits, eux, comptent.
+      expect(apres.valeurPalais('blanc', 'minerality'), isNull);
+      expect(apres.valeurPalais('blanc', 'acidity'), closeTo(0.8, 1e-9));
+      expect(apres.observationsSur('blanc', 'body'), 1);
     });
 
     test('Hard negative filtering: low rating flags aversions', () async {

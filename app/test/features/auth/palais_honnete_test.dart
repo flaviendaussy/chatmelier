@@ -58,10 +58,15 @@ void main() {
 
   Future<void> depart(TasteProfile p) => service.saveProfiles([p]);
 
+  // V2.6 : le palais s'apprend par famille (rouges ; blancs, rosés, bulles). Ces essais
+  // gardent l'intention de Q5, lue sur la famille du vin goûté.
+  double? axe(TasteProfile p, String famille, String a) => p.valeurPalais(famille, a);
+  int obs(TasteProfile p, String famille, String a) => p.observationsSur(famille, a);
+
   group('un pas par axe et par dégustation', () {
     test('trois mesures de l\'acidité d\'un même vin font un seul pas, vers leur moyenne', () async {
       await depart(const TasteProfile(
-          id: 'moi', name: 'Moi', isPrimary: true, avgAcidityPreference: 0.5, axisObservations: {'acidity': 3}));
+          id: 'moi', name: 'Moi', isPrimary: true, palais: {'blanc': {'acidity': 0.5}}, observationsPalais: {'blanc': {'acidity': 3}}));
 
       await service.applyQuestionnaireResult(
         result: degustation(acidite: 0.9, toucher: 'crisp_salivating', fruit: 'crunchy_tart'),
@@ -69,9 +74,9 @@ void main() {
       );
 
       final p = await moi();
-      expect(p.avgAcidityPreference, closeTo(0.5 * 0.75 + (0.9 + 0.85 + 0.75) / 3 * 0.25, 1e-9),
-          reason: 'Avant : trois pas de suite (réponse, toucher, fruit) ; une bouteille pesait pour trois.');
-      expect(p.axisObservations['acidity'], 4);
+      expect(axe(p, 'blanc', 'acidity'), closeTo(0.5 * 0.75 + (0.9 + 0.85 + 0.75) / 3 * 0.25, 1e-9),
+          reason: 'Avant Q5 : trois pas de suite (réponse, toucher, fruit) ; une bouteille pesait pour trois.');
+      expect(obs(p, 'blanc', 'acidity'), 4);
     });
 
     test('un palais qui change est suivi : dix vins vifs, puis dix plus mous', () async {
@@ -85,83 +90,72 @@ void main() {
       }
 
       final p = await moi();
-      expect(p.avgAcidityPreference, closeTo(0.3, 0.03));
-      expect(p.axisObservations['acidity'], 20);
-      expect(p.avgBodyPreference, 0.5);
-      expect(p.axisObservations['body'], 20,
+      expect(axe(p, 'blanc', 'acidity'), closeTo(0.3, 0.03));
+      expect(obs(p, 'blanc', 'acidity'), 20);
+      expect(axe(p, 'blanc', 'body'), 0.5);
+      expect(obs(p, 'blanc', 'body'), 20,
           reason: 'Vingt corps identiques sont vingt preuves, pas une : la confiance doit monter.');
+      expect(p.palais['rouge'], isNull, reason: 'des blancs n\'apprennent rien du palais des rouges');
     });
 
     test('une mesure qui confirme compte, et se décompte avec sa dégustation', () async {
       await depart(const TasteProfile(id: 'moi', name: 'Moi', isPrimary: true));
-      await service.applyQuestionnaireResult(result: degustation(toucher: 'crisp_salivating'), tastingId: 'a');
-      await service.applyQuestionnaireResult(result: degustation(toucher: 'crisp_salivating'), tastingId: 'b');
+      await service.applyQuestionnaireResult(result: degustation(toucher: 'crisp_salivating'), wineType: 'white', tastingId: 'a');
+      await service.applyQuestionnaireResult(result: degustation(toucher: 'crisp_salivating'), wineType: 'white', tastingId: 'b');
 
       final p = await moi();
-      expect(p.avgAcidityPreference, 0.85);
-      expect(p.axisObservations['acidity'], 2);
+      expect(axe(p, 'blanc', 'acidity'), 0.85);
+      expect(obs(p, 'blanc', 'acidity'), 2);
 
       final registre = await TasteEvidenceLedger.ouvrir();
       final r = TasteUndo.annuler(profil: p, contributions: registre.pourDegustation('b'), registre: registre);
-      expect(r.profil.axisObservations['acidity'], 1);
-      expect(r.profil.avgAcidityPreference, 0.85);
+      expect(obs(r.profil, 'blanc', 'acidity'), 1);
+      expect(axe(r.profil, 'blanc', 'acidity'), 0.85);
     });
   });
 
-  group('le cépage, un a priori et jamais une mesure', () {
-    test('une Syrah aimée suppose les épices et le fruit mûr, sans rien compter', () async {
+  group('le cépage et les données du vin : des déductions, jamais des mesures', () {
+    test('une Syrah aimée tire le palais des rouges, sans rien compter', () async {
       await depart(const TasteProfile(id: 'moi', name: 'Moi', isPrimary: true));
 
       await service.applyQuestionnaireResult(
           result: degustation(note: 8.5), wineGrapes: ['Syrah'], wineType: 'red', tastingId: 'syrah');
 
       final p = await moi();
-      expect(p.avgSpicePreference, 0.85);
-      expect(p.avgRipeFruitPreference, 0.75);
-      expect(p.axisObservations['spice'] ?? 0, 0, reason: 'Le radar doit le dessiner flou : rien n\'a été goûté.');
-      expect(p.axisConfidence('ripeFruit'), 0);
-      final trace = (await TasteEvidenceLedger.ouvrir()).pour('axe:spice').single;
-      expect(trace.effet, startsWith('supposé à 0.85 d\'après le cépage'));
+      expect(p.valeurPropre('rouge', 'body'), isNotNull);
+      expect(p.valeurPropre('rouge', 'tannin'), isNotNull);
+      for (final a in ['body', 'tannin', 'acidity', 'oak', 'sweetness']) {
+        expect(obs(p, 'rouge', a), 0, reason: '$a : le radar doit le dessiner flou, rien n\'a été dit');
+      }
+      final trace = (await TasteEvidenceLedger.ouvrir()).pour('axe:rouge:body').single;
+      expect(trace.effet, contains('déduit d\'un vin aimé'));
+      expect(trace.compte, isFalse);
     });
 
-    test('ni boisé ni minéralité par le cépage : ils tiennent à l\'élevage et au sol', () async {
-      await depart(const TasteProfile(id: 'moi', name: 'Moi', isPrimary: true));
-
-      await service.applyQuestionnaireResult(result: degustation(note: 9), wineGrapes: ['Chardonnay'], wineType: 'white');
-      await service.applyQuestionnaireResult(
-          result: degustation(note: 9), wineGrapes: ['Cabernet Sauvignon', 'Merlot'], wineType: 'red');
-      await service.applyQuestionnaireResult(result: degustation(note: 9), wineGrapes: ['Sauvignon Blanc'], wineType: 'white');
-
-      final p = await moi();
-      expect(p.avgOakPreference, isNull);
-      expect(p.avgMineralityPreference, isNull);
-      expect(p.avgTanninPreference, 0.80);
-      expect(p.avgAcidityPreference, 0.85);
-      expect(p.axisObservations.values.where((n) => n > 0), isEmpty);
-    });
-
-    test('la première mesure remplace l\'a priori au lieu de s\'y mêler', () async {
+    test('la première mesure remplace la déduction au lieu de s\'y mêler', () async {
       await depart(const TasteProfile(id: 'moi', name: 'Moi', isPrimary: true));
       await service.applyQuestionnaireResult(result: degustation(note: 8.5), wineGrapes: ['Syrah'], wineType: 'red');
 
-      await service.applyQuestionnaireResult(result: degustation(note: 8, fruit: 'deep_ripe'), wineType: 'red');
+      await service.applyQuestionnaireResult(result: degustation(note: 8, corps: 0.3), wineType: 'red');
 
       final p = await moi();
-      expect(p.avgRipeFruitPreference, 0.85, reason: 'Pas 0,775 : le stéréotype ne pèse plus rien.');
-      expect(p.axisObservations['ripeFruit'], 1);
+      expect(axe(p, 'rouge', 'body'), 0.3, reason: 'la déduction ne pèse plus rien face à ce que la personne a dit');
+      expect(obs(p, 'rouge', 'body'), 1);
     });
 
-    test('un a priori ne recouvre pas ce que la personne a déclaré à l\'accueil', () async {
-      await depart(const TasteProfile(id: 'moi', name: 'Moi', isPrimary: true, palaisDeDepart: {'spice': 3.0}));
+    test('une déduction ne recouvre pas ce que la personne a déclaré à l\'accueil', () async {
+      await depart(const TasteProfile(id: 'moi', name: 'Moi', isPrimary: true, palaisDeDepart: {'tannin': 3.0}));
 
       await service.applyQuestionnaireResult(result: degustation(note: 8.5), wineGrapes: ['Syrah'], wineType: 'red');
 
       final p = await moi();
-      expect(p.avgSpicePreference, isNull);
-      expect(p.avgRipeFruitPreference, 0.75);
+      final deduit = p.valeurPropre('rouge', 'tannin')! * 10;
+      final affiche = p.palaisPour('rouge');
+      expect(affiche.valeur('tannin'), closeTo(3.0 * 0.5 + deduit * 0.5, 1e-9));
+      expect(affiche.confianceDe('tannin'), 0);
     });
 
-    test('supprimer la dégustation défait l\'a priori sans toucher aux observations', () async {
+    test('supprimer la dégustation défait la déduction sans toucher aux observations', () async {
       await depart(const TasteProfile(id: 'moi', name: 'Moi', isPrimary: true));
       await service.applyQuestionnaireResult(
           result: degustation(note: 8.5), wineGrapes: ['Syrah'], wineType: 'red', tastingId: 'syrah');
@@ -169,34 +163,33 @@ void main() {
       final registre = await TasteEvidenceLedger.ouvrir();
       final r = TasteUndo.annuler(profil: await moi(), contributions: registre.pourDegustation('syrah'), registre: registre);
 
-      expect(r.profil.avgSpicePreference, isNull);
-      expect(r.profil.avgRipeFruitPreference, isNull);
-      expect(r.profil.axisObservations['spice'] ?? 0, 0);
+      expect(r.profil.palais['rouge'], isNull);
+      expect(obs(r.profil, 'rouge', 'body'), 0);
       expect(r.complete, isTrue);
     });
   });
 
   group('une déception apprend aussi', () {
-    test('un vin décevant proche du palais l\'en éloigne d\'un demi-pas', () async {
+    test('un vin décevant proche du palais l\'en éloigne d\'un pas', () async {
       await depart(const TasteProfile(
-          id: 'moi', name: 'Moi', isPrimary: true, avgAcidityPreference: 0.7, axisObservations: {'acidity': 3}));
+          id: 'moi', name: 'Moi', isPrimary: true, palais: {'blanc': {'acidity': 0.7}}, observationsPalais: {'blanc': {'acidity': 3}}));
 
       await service.applyQuestionnaireResult(result: degustation(note: 3, acidite: 0.8), wineType: 'white');
 
       final p = await moi();
-      expect(p.avgAcidityPreference, closeTo(0.7 - 0.125 * (0.5 - 0.1), 1e-9));
-      expect(p.axisObservations['acidity'], 4);
+      expect(axe(p, 'blanc', 'acidity'), closeTo(0.7 - 0.0625, 1e-9));
+      expect(obs(p, 'blanc', 'acidity'), 4);
     });
 
     test('un vin décevant loin du palais ne fait que le confirmer', () async {
       await depart(const TasteProfile(
-          id: 'moi', name: 'Moi', isPrimary: true, avgAcidityPreference: 0.2, axisObservations: {'acidity': 3}));
+          id: 'moi', name: 'Moi', isPrimary: true, palais: {'blanc': {'acidity': 0.2}}, observationsPalais: {'blanc': {'acidity': 3}}));
 
       await service.applyQuestionnaireResult(result: degustation(note: 3, acidite: 0.9), wineType: 'white');
 
       final p = await moi();
-      expect(p.avgAcidityPreference, 0.2);
-      expect(p.axisObservations['acidity'], 3);
+      expect(axe(p, 'blanc', 'acidity'), 0.2);
+      expect(obs(p, 'blanc', 'acidity'), 3);
     });
 
     test('une déception n\'invente rien sur un axe jamais observé', () async {
@@ -205,14 +198,13 @@ void main() {
       await service.applyQuestionnaireResult(result: degustation(note: 2, acidite: 0.9, corps: 0.8), wineType: 'red');
 
       final p = await moi();
-      expect(p.avgAcidityPreference, isNull);
-      expect(p.avgBodyPreference, isNull);
-      expect(p.axisObservations, isEmpty);
+      expect(p.palais, isEmpty);
+      expect(p.observationsPalais, isEmpty);
     });
 
     test('des déceptions des deux côtés ne font pas dériver un palais établi', () async {
       await depart(const TasteProfile(
-          id: 'moi', name: 'Moi', isPrimary: true, avgAcidityPreference: 0.6, axisObservations: {'acidity': 10}));
+          id: 'moi', name: 'Moi', isPrimary: true, palais: {'blanc': {'acidity': 0.6}}, observationsPalais: {'blanc': {'acidity': 10}}));
 
       for (var i = 0; i < 10; i++) {
         await service.applyQuestionnaireResult(result: degustation(note: 8, acidite: 0.6), wineType: 'white');
@@ -221,31 +213,33 @@ void main() {
         await service.applyQuestionnaireResult(result: degustation(note: 3, acidite: 0.35), wineType: 'white');
       }
 
-      expect((await moi()).avgAcidityPreference, closeTo(0.6, 0.02));
+      // Une oscillation autour de 0,6 qui se stabilise (0,636 après le dernier pas vers le
+      // haut), pas une dérive.
+      expect(axe(await moi(), 'blanc', 'acidity'), closeTo(0.6, 0.04));
     });
   });
 
   group('un défaut nommé ne s\'apprend pas comme un goût', () {
     test('aimé malgré une acidité « trop » marquée : l\'axe descend au lieu de monter', () async {
       await depart(const TasteProfile(
-          id: 'moi', name: 'Moi', isPrimary: true, avgAcidityPreference: 0.7, axisObservations: {'acidity': 3}));
+          id: 'moi', name: 'Moi', isPrimary: true, palais: {'blanc': {'acidity': 0.85}}, observationsPalais: {'blanc': {'acidity': 3}}));
 
       await service.applyQuestionnaireResult(
           result: degustation(note: 8, acidite: 0.9, defauts: {'trop_acide'}), wineType: 'white');
 
       final p = await moi();
-      expect(p.avgAcidityPreference, closeTo(0.7 - 0.125 * (0.5 - 0.2), 1e-9),
-          reason: 'Avant : 0,75, l\'axe montait vers le vin jugé trop acide.');
+      expect(axe(p, 'blanc', 'acidity'), closeTo(0.85 * 0.75 + 0.7 * 0.25, 1e-9),
+          reason: 'trop acide à 0,9 : la préférence est en deçà (0,7), pas vers le vin');
     });
 
     test('« trop léger » demande davantage de corps', () async {
       await depart(const TasteProfile(
-          id: 'moi', name: 'Moi', isPrimary: true, avgBodyPreference: 0.35, axisObservations: {'body': 2}));
+          id: 'moi', name: 'Moi', isPrimary: true, palais: {'rouge': {'body': 0.35}}, observationsPalais: {'rouge': {'body': 2}}));
 
       await service.applyQuestionnaireResult(
           result: degustation(note: 6, corps: 0.3, defauts: {'trop_leger'}), wineType: 'red');
 
-      expect((await moi()).avgBodyPreference, closeTo(0.35 + 0.125 * (0.5 - 0.05), 1e-9));
+      expect(axe(await moi(), 'rouge', 'body'), closeTo(0.35 * 0.75 + 0.5 * 0.25, 1e-9));
     });
   });
 

@@ -42,6 +42,10 @@ class VinBuDehors {
   final String? fruit;
   final String? racheter;
 
+  /// Le « pour vous » de la personne principale (V2.6 · P6) : axe → `trop`, `juste` ou
+  /// `pas_assez`. Il est à elle : les convives nommés ne le reçoivent pas.
+  final Map<String, String> jugements;
+
   const VinBuDehors({
     required this.nom,
     this.producteur,
@@ -60,9 +64,10 @@ class VinBuDehors {
     this.texture,
     this.fruit,
     this.racheter,
+    this.jugements = const {},
   });
 
-  bool get aUneGorgee => texture != null || fruit != null || racheter != null;
+  bool get aUneGorgee => texture != null || fruit != null || racheter != null || jugements.isNotEmpty;
 }
 
 /// Enregistrer un vin bu dehors : la base commune à « Déguster ailleurs » et à la fin de
@@ -251,7 +256,7 @@ class DegustationRapide {
       // Avec une gorgée, le même chemin que le questionnaire complet : les micro-touches
       // sont câblées sur les axes du profil. Sans elle, le chemin court, qui n'apprend que
       // la région et le cépage. Les deux incrémentent le compteur : jamais les deux.
-      Future<void> apprendre(String profileId, String profileName) async {
+      Future<void> apprendre(String profileId, String profileName, {bool principal = false}) async {
         if (!v.aUneGorgee) {
           return _gout.recordTastingExperience(nameOrId: profileId, wine: vin, rating: note, tastingId: tastingId);
         }
@@ -267,11 +272,13 @@ class DegustationRapide {
             body: null,
             length: 0.5,
             wouldBuyAgain: v.racheter ?? 'maybe',
-            idealMoment: 'repas',
+            // La gorgée ne demande pas le moment : on ne le suppose pas (V2.6).
+            idealMoment: '',
             whatLikedMost: const {},
             whatDislikedMost: const {},
             mouthfeelTexture: v.texture,
             fruitProfile: v.fruit,
+            jugements: principal ? v.jugements : const {},
             isExpressMode: true,
             profileId: profileId,
             profileName: profileName,
@@ -281,11 +288,13 @@ class DegustationRapide {
           wineType: v.couleur,
           tastingId: tastingId,
           wineName: v.nom,
+          // Le vin entier : son millésime dit son âge, son nom sa douceur.
+          vin: vin,
         );
       }
 
       final principal = await _gout.getPrimaryProfile();
-      await apprendre(principal.id, principal.name);
+      await apprendre(principal.id, principal.name, principal: true);
       for (final convive in v.convivesApprennent ? v.convives : const <String>[]) {
         // Les convives sont désignés par leur nom : on résout d'abord leur profil.
         final p = await _gout.addOrGetProfileByName(convive);

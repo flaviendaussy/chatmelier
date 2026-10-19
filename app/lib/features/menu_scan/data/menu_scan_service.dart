@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../auth/domain/description_du_palais.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -391,6 +392,7 @@ class MenuScanService {
       profileContext = '''\nProfil de l'utilisateur :
 - Aime : ${userProfile.favoriteTypes.join(', ')} / Régions : ${userProfile.favoriteRegions.join(', ')} / Cépages : ${userProfile.favoriteGrapes.join(', ')}
 - N'aime pas : ${userProfile.dislikedCharacteristics.join(', ')}
+${DescriptionDuPalais.lignes(userProfile, retrait: '').join('\n')}
 - Notes : ${userProfile.notes.isNotEmpty ? userProfile.notes : 'Non précisé'}''';
     }
 

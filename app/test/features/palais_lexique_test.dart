@@ -22,7 +22,9 @@ void main() {
     await tester.tap(find.text('Que veulent dire ces mots ?'));
     await tester.pump();
     expect(find.textContaining('thé trop infusé'), findsOneWidget);
-    expect(find.textContaining('pierre mouillée'), findsOneWidget);
+    // V2.6 : la douceur a son exemple ; la minéralité n'est plus un curseur.
+    expect(find.textContaining('Sauternes'), findsOneWidget);
+    expect(find.textContaining('pierre mouillée'), findsNothing);
   });
 
   testWidgets('en anglais aussi', (tester) async {

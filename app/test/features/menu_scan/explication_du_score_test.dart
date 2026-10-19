@@ -47,29 +47,31 @@ void main() {
 
   test('un Volnay pour un amateur de Bourgogne : taillé pour lui, et pourquoi', () {
     final e = ExplicationDuScore.expliquer(volnay, palais)!;
-    expect(e.score, 99);
+    // V2.6 : les étiquettes ne pèsent plus que 4 points chacune, et des tanins et un corps
+    // seulement devinés (aucune observation) ne rapprochent que d'un demi-point.
+    // 70 + 4 + 4 + 4 + 0,5 + 0,5 = 83.
+    expect(e.score, 83);
     expect(ExplicationDuScore.verdict(e.score), 'Taillé pour vous');
     expect(e.raisons.map((r) => r.phrase), [
       'Vous aimez les rouges',
       'Bourgogne, l\'une de vos régions préférées',
       'Pinot Noir, l\'un de vos cépages préférés',
-      'Des tanins comme vous les aimez',
       'Un corps comme vous l\'aimez',
+      'Des tanins comme vous les aimez',
     ]);
-    // 70 + 15 + 12 + 10 + 4,5 + 4,5 = 116, ramené à 99 : la fiche le dit.
-    expect(e.borne, isTrue);
+    expect(e.borne, isFalse);
   });
 
   test('un Madiran boisé et tannique : ce qui l\'éloigne, avec son poids', () {
     final e = ExplicationDuScore.expliquer(madiran, palais)!;
     final poids = {for (final r in e.raisons) r.phrase: r.points};
     expect(poids['Un boisé marqué, que vous n\'aimez pas'], -25);
-    expect(poids['Bien plus tannique que ce que vous aimez'], -0.5);
-    expect(poids['Vous aimez les rouges'], 15);
-    // Un corps de 9 pour qui aime 5 : plus corsé, encore dans ses goûts (un point).
-    expect(poids['Plus corsé que ce que vous aimez'], 1);
-    expect(e.score, 61);
-    expect(ExplicationDuScore.verdict(e.score), 'Un peu loin de vos goûts');
+    // Des tanins devinés à 4 face à 9,5 : un écart de 5,5 éloigne, même deviné (V2.3 · K5).
+    expect(poids['Bien plus tannique que ce que vous aimez'], -2.5);
+    expect(poids['Vous aimez les rouges'], 4);
+    expect(poids['Plus corsé que ce que vous aimez'], -1);
+    expect(e.score, 46);
+    expect(ExplicationDuScore.verdict(e.score), 'Loin de vos goûts');
   });
 
   test('le pourcentage est la somme de ses raisons, et celui de la carte', () {
@@ -105,7 +107,10 @@ void main() {
             tannins: note(), body: note(), oak: note(), acidity: note(), sweetness: note()),
       );
       final e = ExplicationDuScore.expliquer(vin, profil)!;
-      expect(e.score, _ancienCalcul(vin, profil), reason: 'cas $i');
+      // V2.6 : les pourcentages changent à dessein (palais par famille, étiquettes moins
+      // lourdes) ; restent le total et l'égalité avec la carte.
+      expect(e.score, e.brut.clamp(ExplicationDuScore.plancher, ExplicationDuScore.plafond).roundToDouble(),
+          reason: 'cas $i');
       final somme = ExplicationDuScore.depart + e.raisons.fold<double>(0, (s, r) => s + r.points);
       expect(somme, closeTo(e.brut, 1e-9), reason: 'cas $i');
       expect(MenuWineMatchCalculator.computeMatchScore(vin, profil), e.score);
@@ -123,57 +128,11 @@ void main() {
     );
     final e = ExplicationDuScore.expliquer(madiran, vide)!;
     expect(e.raisons.map((r) => r.phrase), ['Vous aimez les rouges']);
-    expect(e.score, 85);
+    expect(e.score, 74);
   });
 
   test('un palais trop peu connu : pas d\'accord deviné', () {
     expect(ExplicationDuScore.expliquer(volnay, const TasteProfile(id: 'x', name: 'X')), isNull);
     expect(ExplicationDuScore.expliquer(volnay, null), isNull);
   });
-}
-
-/// Le calcul d'avant l'explication (`MenuWineMatchCalculator`, jusqu'au 17/10), recopié tel
-/// quel : l'explication ne doit rien changer aux pourcentages des cartes.
-double? _ancienCalcul(MenuWine wine, TasteProfile? profile) {
-  if (profile == null || !profile.isWellProvided) return null;
-  double score = 70.0;
-  final favTypes = profile.favoriteTypes.map((t) => t.toLowerCase()).toList();
-  if (favTypes.isNotEmpty) {
-    final matchesColor = favTypes.any((t) =>
-        (wine.isRed && t.contains('rouge')) ||
-        (wine.isWhite && t.contains('blanc')) ||
-        (wine.isRose && t.contains('rosé')) ||
-        (wine.isSparkling && (t.contains('bulles') || t.contains('champ'))));
-    if (matchesColor) {
-      score += 15.0;
-    } else {
-      score -= 20.0;
-    }
-  }
-  final favRegions = profile.favoriteRegions.map((r) => r.toLowerCase()).toList();
-  final wineRegion = (wine.region ?? '').toLowerCase();
-  final wineAppell = (wine.appellation ?? '').toLowerCase();
-  if (favRegions.any((r) => wineRegion.contains(r) || wineAppell.contains(r))) {
-    score += 12.0;
-  }
-  final favGrapes = profile.favoriteGrapes.map((g) => g.toLowerCase()).toList();
-  if (wine.grapes.any((wg) => favGrapes.any((fg) => wg.toLowerCase().contains(fg)))) {
-    score += 10.0;
-  }
-  final dislikes = profile.dislikedCharacteristics.map((d) => d.toLowerCase()).toList();
-  for (final d in dislikes) {
-    if (d.contains('tann') && wine.metrics.tannins > 7.0) score -= 25.0;
-    if (d.contains('bois') && wine.metrics.oak > 7.0) score -= 25.0;
-    if (d.contains('acid') && wine.metrics.acidity > 7.5) score -= 20.0;
-    if (d.contains('sucr') && wine.metrics.sweetness > 4.0) score -= 20.0;
-  }
-  if (profile.avgTanninPreference != null && wine.isRed) {
-    final diff = (profile.avgTanninPreference! * 10 - wine.metrics.tannins).abs();
-    score += (5.0 - diff).clamp(-10.0, 8.0);
-  }
-  if (profile.avgBodyPreference != null) {
-    final diff = (profile.avgBodyPreference! * 10 - wine.metrics.body).abs();
-    score += (5.0 - diff).clamp(-10.0, 8.0);
-  }
-  return score.clamp(35.0, 99.0).roundToDouble();
 }

@@ -26,18 +26,21 @@ class ProchaineRegion {
   final String nom;
   final String axe;
 
+  /// La famille du palais que la région éclairerait (V2.6).
+  final String? famille;
+
   /// La bouteille de la cave qui la ferait découvrir, quand il y en a une (16/10).
   final String? vinDeLaCave;
 
-  const ProchaineRegion(this.nom, this.axe, {this.vinDeLaCave});
+  const ProchaineRegion(this.nom, this.axe, {this.vinDeLaCave, this.famille});
 
   String get phrase => vinDeLaCave != null
       ? tr('Prochaine région à explorer : {region}, déjà dans votre cave. Ouvrez votre {vin} : il vous dirait ce que vous pensez {quoi}.',
           'Next region to explore: {region}, already in your cellar. Open your {vin}: it would tell you how you feel about {quoi}.',
-          {'region': valeurAffichee(nom), 'vin': vinDeLaCave, 'quoi': TasteFrontierEngine.ceQueJugeLAxe(axe)})
+          {'region': valeurAffichee(nom), 'vin': vinDeLaCave, 'quoi': TasteFrontierEngine.ceQueJugeLAxe(axe, famille: famille)})
       : tr('Prochaine région à explorer : {region}. Ses vins vous diraient ce que vous pensez {quoi}.',
           'Next region to explore: {region}. Its wines would tell you how you feel about {quoi}.',
-          {'region': valeurAffichee(nom), 'quoi': TasteFrontierEngine.ceQueJugeLAxe(axe)});
+          {'region': valeurAffichee(nom), 'quoi': TasteFrontierEngine.ceQueJugeLAxe(axe, famille: famille)});
 }
 
 /// Une bouteille de la cave qui pourrait faire découvrir son terroir.
@@ -63,13 +66,14 @@ class CarteDesTerroirs {
     this.prochaine,
   });
 
-  /// Les régions qui montrent le mieux chaque axe, dans l'ordre où on les propose.
+  /// Les régions qui montrent le mieux chaque axe d'une famille (`famille:axe`), dans
+  /// l'ordre où on les propose. L'âge d'un vin ne tient pas à sa région : pas de liste.
   static const regionsQuiMontrent = {
-    'oak': ['Rioja', 'Meursault', 'Pessac-Léognan', 'Napa Valley'],
-    'minerality': ['Chablis', 'Sancerre', 'Santorin', 'Muscadet'],
-    'tannin': ['Madiran', 'Barolo', 'Bandol'],
-    'acidity': ['Moselle', 'Muscadet', 'Jura', 'Chablis'],
-    'body': ['Châteauneuf-du-Pape', 'Amarone', 'Priorat', 'Barossa'],
+    'blanc:oak': ['Meursault', 'Pessac-Léognan', 'Napa Valley'],
+    'rouge:tannin': ['Madiran', 'Barolo', 'Bandol'],
+    'blanc:acidity': ['Moselle', 'Muscadet', 'Jura', 'Chablis'],
+    'rouge:body': ['Châteauneuf-du-Pape', 'Amarone', 'Priorat', 'Barossa'],
+    'blanc:sweetness': ['Vouvray', 'Jurançon', 'Moselle'],
   };
 
   /// [aOuvrir] : les bouteilles de la cave prêtes à boire (sans spiritueux). La prochaine
@@ -106,16 +110,16 @@ class CarteDesTerroirs {
         profilDe: (c) => c.$1.profil,
       );
       if (choix != null) {
-        prochaine = ProchaineRegion(choix.vin.$2.libelle, choix.axe, vinDeLaCave: choix.vin.$1.nomDuVin);
+        prochaine = ProchaineRegion(choix.vin.$2.libelle, choix.axe, vinDeLaCave: choix.vin.$1.nomDuVin, famille: choix.famille);
       }
     }
     if (profil != null && prochaine == null) {
-      for (final axe in AngleMortDeLaCave.axesAApprendre(profil)) {
-        for (final nom in regionsQuiMontrent[axe] ?? const <String>[]) {
+      for (final (famille, axe) in AngleMortDeLaCave.axesAApprendre(profil)) {
+        for (final nom in regionsQuiMontrent['$famille:$axe'] ?? const <String>[]) {
           final id = WineWorld.region(appellation: nom)?.id;
           final dejaVue = id != null ? regions.contains(id) : libelles.contains(nom.toLowerCase());
           if (!dejaVue) {
-            prochaine = ProchaineRegion(nom, axe);
+            prochaine = ProchaineRegion(nom, axe, famille: famille);
             break;
           }
         }

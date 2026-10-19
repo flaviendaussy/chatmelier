@@ -32,18 +32,24 @@ void main() {
     verre('madiran', 'Madiran', 'Red', 66, const MenuWineRadarMetrics(tannins: 9, acidity: 6, body: 8, fruit: 6, oak: 6, minerality: 4)),
     verre('cdr', 'Côtes-du-Rhône', 'Red', 80, const MenuWineRadarMetrics(tannins: 5, acidity: 5, body: 6, fruit: 7, oak: 3, minerality: 4)),
     verre('muscadet', 'Muscadet', 'White', 64, const MenuWineRadarMetrics(tannins: 0, acidity: 8, body: 3.5, fruit: 5, oak: 1, minerality: 7.5)),
+    // V2.6 : la douceur est un axe ; un moelleux l'apprend.
+    verre('vouvray', 'Vouvray moelleux', 'White', 62, const MenuWineRadarMetrics(tannins: 0, acidity: 7, body: 5, fruit: 7, oak: 1, sweetness: 7)),
   ];
   ScannedMenu menuDe(List<MenuWine> vins) =>
       ScannedMenu(id: 'ardoise', restaurantName: 'Le Comptoir', scannedAt: DateTime(2026, 10, 2), pagePhotoPaths: const [], wines: vins);
   final carte = menuDe(ardoise);
 
-  // Un palais qui ne sait rien du boisé ni de la minéralité ; les tanins, il les connaît.
-  const palais = TasteProfile(
-    id: 'moi',
-    name: 'Moi',
-    isPrimary: true,
-    axisObservations: {'tannin': 12, 'body': 12, 'acidity': 12},
-  );
+  // Un palais qui connaît les tanins, le corps et la fraîcheur ; ni le boisé, ni la douceur,
+  // ni l'âge (V2.6 : palais par famille).
+  TasteProfile connaissant(Map<String, List<String>> axes, {List<String> aversions = const []}) => TasteProfile(
+        id: 'moi',
+        name: 'Moi',
+        isPrimary: true,
+        dislikedCharacteristics: aversions,
+        palais: {for (final e in axes.entries) e.key: {for (final a in e.value) a: 0.5}},
+        observationsPalais: {for (final e in axes.entries) e.key: {for (final a in e.value) a: 12}},
+      );
+  final palais = connaissant({'rouge': ['tannin', 'body', 'acidity'], 'blanc': ['body', 'acidity']});
 
   test('trois verres : un verre aimé, le plus instructif, une valeur sûre — servis du plus léger au plus intense', () {
     final p = MenuFlightEngine.buildFrontierFlight(menu: carte, palais: palais);
@@ -51,16 +57,16 @@ void main() {
     expect(parRole['Un style que vous aimez'], 'Morgon', reason: 'le style que la personne aime le plus');
     expect(parRole['Une valeur sûre'], 'Côtes-du-Rhône');
     final instructif = p.steps.singleWhere((s) => s.sommelierRole.startsWith('Pour savoir ce que vous pensez '));
-    expect(['Meursault', 'Chablis'], contains(instructif.wine.name), reason: 'le boisé ou la minéralité, inconnus');
-    // Le blanc d'abord : un rouge juste avant fausserait la lecture de sa minéralité.
+    expect(instructif.wine.name, 'Meursault', reason: 'le boisé, inconnu, et ce Meursault le montre');
+    // Le blanc d'abord : un rouge juste avant fausserait sa lecture.
     expect(p.steps.first.wine.name, instructif.wine.name);
     expect(p.steps.map((s) => s.wine.name).skip(1), ['Morgon', 'Côtes-du-Rhône'], reason: 'du plus souple au plus charpenté');
     expect(p.title, contains('Pour mieux vous connaître'));
   });
 
   test('cinq verres : chaque verre du milieu apprend quelque chose de différent', () {
-    // Trois axes inconnus cette fois : le boisé, la minéralité et les tanins.
-    const neuf = TasteProfile(id: 'moi', name: 'Moi', isPrimary: true, axisObservations: {'body': 12, 'acidity': 12});
+    // Trois axes à apprendre cette fois : le boisé, la douceur et les tanins.
+    final neuf = connaissant({'rouge': ['body', 'acidity'], 'blanc': ['body', 'acidity']});
     final p = MenuFlightEngine.buildFrontierFlight(menu: carte, palais: neuf, format: FlightFormat.fiveGlasses);
     expect(p.steps, hasLength(5));
     final milieu = [
@@ -69,7 +75,7 @@ void main() {
     ];
     expect(milieu.toSet(), hasLength(3), reason: p.steps.map((s) => '${s.wine.name} : ${s.sommelierRole}').join(' · '));
     expect(milieu.where((r) => r.contains('du boisé')), hasLength(1));
-    expect(milieu.where((r) => r.contains('de la minéralité')), hasLength(1));
+    expect(milieu.where((r) => r.contains('des vins tendres ou doux')), hasLength(1));
     expect(milieu.where((r) => r.contains('des tanins')), hasLength(1));
   });
 
@@ -80,13 +86,8 @@ void main() {
   });
 
   test('qui fuit le bois ne se le voit pas servir pour apprendre', () {
-    const fuitLeBois = TasteProfile(
-      id: 'moi',
-      name: 'Moi',
-      isPrimary: true,
-      dislikedCharacteristics: ['Trop boisé'],
-      axisObservations: {'tannin': 12, 'body': 12, 'acidity': 12},
-    );
+    final fuitLeBois = connaissant({'rouge': ['tannin', 'body', 'acidity'], 'blanc': ['body', 'acidity']},
+        aversions: ['Trop boisé']);
     final p = MenuFlightEngine.buildFrontierFlight(menu: carte, palais: fuitLeBois);
     expect(p.steps.map((s) => s.wine.name), isNot(contains('Meursault')));
   });
@@ -100,7 +101,7 @@ void main() {
     ];
     final p = MenuFlightEngine.buildFrontierFlight(menu: menuDe(dejaGoute), palais: palais);
     final instructif = p.steps.singleWhere((s) => s.sommelierRole.startsWith('Pour savoir ce que vous pensez '));
-    expect(instructif.wine.name, 'Muscadet', reason: 'le plus minéral qui reste à découvrir');
+    expect(instructif.wine.name, 'Vouvray moelleux', reason: 'la douceur, qui reste à découvrir');
   });
 
   testWidgets('sur un téléphone, un rôle long passe à la ligne sans pousser le prix hors de l\'écran', (tester) async {
@@ -122,12 +123,7 @@ void main() {
     // Relevé le 02/10 en production : lue au prix de la bouteille, une ardoise (prix au
     // verre seulement) n'avait aucun plafond. La carte proposait le verre le plus cher, un
     // Madiran, pendant que le parcours en choisissait un autre.
-    const sansTaninsNiVivacite = TasteProfile(
-      id: 'moi',
-      name: 'Moi',
-      isPrimary: true,
-      axisObservations: {'body': 12, 'oak': 12, 'minerality': 12},
-    );
+    final sansTaninsNiVivacite = connaissant({'rouge': ['body', 'oak'], 'blanc': ['body', 'oak']});
     final bar = menuDe([
       verre('muscadet', 'Muscadet', 'White', 84, const MenuWineRadarMetrics(tannins: 0, acidity: 8, body: 3.5, fruit: 5, oak: 1, minerality: 7.5), prix: 6),
       verre('chablis', 'Chablis', 'White', 78, const MenuWineRadarMetrics(tannins: 0, acidity: 8.5, body: 4, fruit: 5, oak: 1, minerality: 9), prix: 9),
@@ -152,7 +148,7 @@ void main() {
 
     final parcours = MenuFlightEngine.buildFrontierFlight(menu: bar, palais: sansTaninsNiVivacite);
     final instructif = parcours.steps.singleWhere((s) => s.sommelierRole.startsWith('Pour savoir ce que vous pensez '));
-    expect(instructif.sommelierRole, endsWith(TasteFrontierEngine.ceQueJugeLAxe(juste.axe)),
+    expect(instructif.sommelierRole, endsWith(TasteFrontierEngine.ceQueJugeLAxe(juste.axe, famille: juste.famille)),
         reason: 'la carte et le parcours apprennent la même chose');
   });
 }

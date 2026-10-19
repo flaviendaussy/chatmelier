@@ -1,4 +1,6 @@
+import '../../auth/domain/palais.dart';
 import '../../auth/domain/taste_profile.dart';
+import '../../sommelier/domain/profil_du_vin.dart';
 import '../../../shared/utils/langue.dart';
 import 'menu_wine.dart';
 
@@ -66,9 +68,9 @@ class ExplicationDuScore {
     if (types.isNotEmpty) {
       final aimee = _couleurAimee(wine, types.map((t) => t.toLowerCase()));
       if (aimee != null) {
-        compter(15.0, aimee);
+        compter(4.0, aimee);
       } else {
-        compter(-20.0, tr('Pas dans vos couleurs préférées', 'Not one of your favourite styles'));
+        compter(-10.0, tr('Pas dans vos couleurs préférées', 'Not one of your favourite styles'));
       }
     }
 
@@ -79,7 +81,7 @@ class ExplicationDuScore {
     for (final r in regions) {
       final cle = r.toLowerCase();
       if (region.contains(cle) || appellation.contains(cle)) {
-        compter(12.0, tr('{region}, l\'une de vos régions préférées', '{region}, one of your favourite regions',
+        compter(4.0, tr('{region}, l\'une de vos régions préférées', '{region}, one of your favourite regions',
             {'region': r.trim()}));
         break;
       }
@@ -89,7 +91,7 @@ class ExplicationDuScore {
     for (final g in remplies(profile.favoriteGrapes)) {
       final cle = g.toLowerCase();
       if (wine.grapes.any((wg) => wg.toLowerCase().contains(cle))) {
-        compter(10.0, tr('{cepage}, l\'un de vos cépages préférés', '{cepage}, one of your favourite grapes',
+        compter(4.0, tr('{cepage}, l\'un de vos cépages préférés', '{cepage}, one of your favourite grapes',
             {'cepage': g.trim()}));
         break;
       }
@@ -111,46 +113,35 @@ class ExplicationDuScore {
       }
     }
 
-    // 5. Les tanins et le corps que vous aimez : proches, des points ; loin, on en perd.
-    // La phrase dit l'écart tel qu'il est, le poids dit ce qu'il coûte : un vin « plus
-    // corsé que ce que vous aimez » peut encore gagner un point, s'il reste dans vos goûts.
-    if (profile.avgTanninPreference != null && wine.isRed) {
-      final aime = profile.avgTanninPreference! * 10;
-      final ecart = (aime - wine.metrics.tannins).abs();
-      final plus = wine.metrics.tannins > aime;
-      compter(
-          (5.0 - ecart).clamp(-10.0, 8.0),
-          switch (ecart) {
-            <= 1.5 => tr('Des tanins comme vous les aimez', 'Tannins the way you like them'),
-            <= 3 => plus
-                ? tr('Un peu plus tannique que ce que vous aimez', 'A little more tannic than you like')
-                : tr('Un peu moins tannique que ce que vous aimez', 'A little less tannic than you like'),
-            < 5 => plus
-                ? tr('Plus tannique que ce que vous aimez', 'More tannic than you like')
-                : tr('Moins tannique que ce que vous aimez', 'Less tannic than you like'),
-            _ => plus
-                ? tr('Bien plus tannique que ce que vous aimez', 'Much more tannic than you like')
-                : tr('Bien moins tannique que ce que vous aimez', 'Much less tannic than you like'),
-          });
-    }
-    if (profile.avgBodyPreference != null) {
-      final aime = profile.avgBodyPreference! * 10;
-      final ecart = (aime - wine.metrics.body).abs();
-      final plus = wine.metrics.body > aime;
-      compter(
-          (5.0 - ecart).clamp(-10.0, 8.0),
-          switch (ecart) {
-            <= 1.5 => tr('Un corps comme vous l\'aimez', 'Body the way you like it'),
-            <= 3 => plus
-                ? tr('Un peu plus corsé que ce que vous aimez', 'A little fuller-bodied than you like')
-                : tr('Un peu plus léger que ce que vous aimez', 'A little lighter than you like'),
-            < 5 => plus
-                ? tr('Plus corsé que ce que vous aimez', 'Fuller-bodied than you like')
-                : tr('Plus léger que ce que vous aimez', 'Lighter than you like'),
-            _ => plus
-                ? tr('Bien plus corsé que ce que vous aimez', 'Much fuller-bodied than you like')
-                : tr('Bien plus léger que ce que vous aimez', 'Much lighter than you like'),
-          });
+    // 5. Le palais de la famille du vin, axe par axe (V2.6 · P5) : un rouge se compare au
+    // palais des rouges, un blanc à celui des blancs — douceur, fraîcheur, corps, tanins,
+    // boisé, évolution. Proche, des points ; loin, on en perd. Un axe dont on ne sait rien
+    // ne dit rien ; un axe deviné pèse un tiers, un axe bien établi plein, comme à table.
+    // La phrase dit l'écart tel qu'il est, le poids dit ce qu'il coûte : un vin « un peu plus
+    // corsé que ce que vous aimez » peut encore gagner un point.
+    final famille = TasteProfile.familleDe(wine.wineType);
+    if (famille != null) {
+      final palais = profile.palaisPour(famille);
+      final vin = ProfilDuVin.deLaCarte(wine);
+      for (final axe in AxesDuPalais.de(famille)) {
+        final v = vin.sur10(axe);
+        if (v == null || !palais.connait(axe)) continue;
+        final aime = palais.valeur(axe);
+        final ecart = (aime - v).abs();
+        final confiance = palais.confianceDe(axe);
+        final poids = (0.35 + 0.65 * confiance) * (_poidsDesAxes[axe] ?? 1.0);
+        // La douceur se sent par paliers : de sec à demi-sec, deux points sur dix changent
+        // de vin.
+        final sensible = ecart * (axe == AxesDuPalais.douceur ? 1.6 : 1.0);
+        var points = (2.0 * poids * (2.5 - sensible)).clamp(-12.0, 5.0);
+        // Un axe seulement deviné peut écarter un vin, pas le rapprocher : ne rien savoir ne
+        // doit pas flatter (V2.3 · K5).
+        if (confiance == 0 && points > 0.5) points = 0.5;
+        // Au demi-point : un écart qui ne pèse presque rien ne s'affiche pas, et le total
+        // reste la somme de ce qui s'affiche.
+        points = (points * 2).round() / 2;
+        if (points != 0) compter(points, _phraseDeLAxe(axe, ecart, v > aime));
+      }
     }
 
     // Une même raison comptée deux fois (deux aversions au tanin) ne s'affiche qu'une fois,
@@ -169,6 +160,67 @@ class ExplicationDuScore {
       brut: score,
       raisons: fusionnees,
     );
+  }
+
+  /// Ce que pèse chaque axe dans le pourcentage : la douceur et les tanins partagent le
+  /// plus les gens ; l'élevage et l'âge, moins.
+  static const Map<String, double> _poidsDesAxes = {
+    AxesDuPalais.douceur: 1.2,
+    AxesDuPalais.tanins: 1.1,
+    AxesDuPalais.corps: 1.0,
+    AxesDuPalais.fraicheur: 1.0,
+    AxesDuPalais.boise: 0.8,
+    AxesDuPalais.evolution: 0.7,
+  };
+
+  /// L'écart d'un vin à vos goûts sur un axe, en une phrase : proche, un peu, plus, bien plus.
+  static String _phraseDeLAxe(String axe, double ecart, bool plus) {
+    final bande = ecart <= 1.5 ? 0 : (ecart <= 3 ? 1 : (ecart < 5 ? 2 : 3));
+    return switch ((axe, bande, plus)) {
+      (AxesDuPalais.tanins, 0, _) => tr('Des tanins comme vous les aimez', 'Tannins the way you like them'),
+      (AxesDuPalais.tanins, 1, true) => tr('Un peu plus tannique que ce que vous aimez', 'A little more tannic than you like'),
+      (AxesDuPalais.tanins, 1, false) => tr('Un peu moins tannique que ce que vous aimez', 'A little less tannic than you like'),
+      (AxesDuPalais.tanins, 2, true) => tr('Plus tannique que ce que vous aimez', 'More tannic than you like'),
+      (AxesDuPalais.tanins, 2, false) => tr('Moins tannique que ce que vous aimez', 'Less tannic than you like'),
+      (AxesDuPalais.tanins, _, true) => tr('Bien plus tannique que ce que vous aimez', 'Much more tannic than you like'),
+      (AxesDuPalais.tanins, _, false) => tr('Bien moins tannique que ce que vous aimez', 'Much less tannic than you like'),
+      (AxesDuPalais.corps, 0, _) => tr('Un corps comme vous l\'aimez', 'Body the way you like it'),
+      (AxesDuPalais.corps, 1, true) => tr('Un peu plus corsé que ce que vous aimez', 'A little fuller-bodied than you like'),
+      (AxesDuPalais.corps, 1, false) => tr('Un peu plus léger que ce que vous aimez', 'A little lighter than you like'),
+      (AxesDuPalais.corps, 2, true) => tr('Plus corsé que ce que vous aimez', 'Fuller-bodied than you like'),
+      (AxesDuPalais.corps, 2, false) => tr('Plus léger que ce que vous aimez', 'Lighter than you like'),
+      (AxesDuPalais.corps, _, true) => tr('Bien plus corsé que ce que vous aimez', 'Much fuller-bodied than you like'),
+      (AxesDuPalais.corps, _, false) => tr('Bien plus léger que ce que vous aimez', 'Much lighter than you like'),
+      (AxesDuPalais.fraicheur, 0, _) => tr('Une fraîcheur comme vous l\'aimez', 'Freshness the way you like it'),
+      (AxesDuPalais.fraicheur, 1, true) => tr('Un peu plus vif que ce que vous aimez', 'A little crisper than you like'),
+      (AxesDuPalais.fraicheur, 1, false) => tr('Un peu plus rond que ce que vous aimez', 'A little softer than you like'),
+      (AxesDuPalais.fraicheur, 2, true) => tr('Plus vif que ce que vous aimez', 'Crisper than you like'),
+      (AxesDuPalais.fraicheur, 2, false) => tr('Plus rond que ce que vous aimez', 'Softer than you like'),
+      (AxesDuPalais.fraicheur, _, true) => tr('Bien plus vif que ce que vous aimez', 'Much crisper than you like'),
+      (AxesDuPalais.fraicheur, _, false) => tr('Bien plus rond que ce que vous aimez', 'Much softer than you like'),
+      (AxesDuPalais.douceur, 0, _) => tr('Une douceur comme vous l\'aimez', 'Sweetness the way you like it'),
+      (AxesDuPalais.douceur, 1, true) => tr('Un peu plus doux que ce que vous aimez', 'A little sweeter than you like'),
+      (AxesDuPalais.douceur, 1, false) => tr('Un peu plus sec que ce que vous aimez', 'A little drier than you like'),
+      (AxesDuPalais.douceur, 2, true) => tr('Plus doux que ce que vous aimez', 'Sweeter than you like'),
+      (AxesDuPalais.douceur, 2, false) => tr('Plus sec que ce que vous aimez', 'Drier than you like'),
+      (AxesDuPalais.douceur, _, true) => tr('Bien plus doux que ce que vous aimez', 'Much sweeter than you like'),
+      (AxesDuPalais.douceur, _, false) => tr('Bien plus sec que ce que vous aimez', 'Much drier than you like'),
+      (AxesDuPalais.boise, 0, _) => tr('Un boisé comme vous l\'aimez', 'Oak the way you like it'),
+      (AxesDuPalais.boise, 1, true) => tr('Un peu plus boisé que ce que vous aimez', 'A little oakier than you like'),
+      (AxesDuPalais.boise, 1, false) => tr('Un peu moins boisé que ce que vous aimez', 'A little less oaky than you like'),
+      (AxesDuPalais.boise, 2, true) => tr('Plus boisé que ce que vous aimez', 'Oakier than you like'),
+      (AxesDuPalais.boise, 2, false) => tr('Moins boisé que ce que vous aimez', 'Less oaky than you like'),
+      (AxesDuPalais.boise, _, true) => tr('Bien plus boisé que ce que vous aimez', 'Much oakier than you like'),
+      (AxesDuPalais.boise, _, false) => tr('Bien moins boisé que ce que vous aimez', 'Much less oaky than you like'),
+      (AxesDuPalais.evolution, 0, _) => tr('À l\'âge où vous l\'aimez', 'At the age you like'),
+      (AxesDuPalais.evolution, 1, true) => tr('Un peu plus évolué que ce que vous aimez', 'A little more mature than you like'),
+      (AxesDuPalais.evolution, 1, false) => tr('Un peu plus jeune que ce que vous aimez', 'A little younger than you like'),
+      (AxesDuPalais.evolution, 2, true) => tr('Plus évolué que ce que vous aimez', 'More mature than you like'),
+      (AxesDuPalais.evolution, 2, false) => tr('Plus jeune que ce que vous aimez', 'Younger than you like'),
+      (AxesDuPalais.evolution, _, true) => tr('Bien plus évolué que ce que vous aimez', 'Much more mature than you like'),
+      (AxesDuPalais.evolution, _, false) => tr('Bien plus jeune que ce que vous aimez', 'Much younger than you like'),
+      _ => AxesDuPalais.nom(axe),
+    };
   }
 
   /// La couleur du vin parmi les préférées, dite comme une raison ; nulle sinon.

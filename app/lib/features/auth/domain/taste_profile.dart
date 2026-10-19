@@ -1,3 +1,7 @@
+import 'dart:math' as math;
+
+import '../../journal/domain/questionnaire_de_degustation.dart';
+import 'palais.dart';
 import 'wine_taste_radar.dart';
 
 class TasteProfile {
@@ -61,6 +65,21 @@ class TasteProfile {
   /// Sert uniquement à ne pas réécrire la même entrée au registre à chaque chargement de
   /// la cave : le fournisseur se déclenche à chaque ouverture de l'écran de profil.
   final List<String> concentrationsConnues;
+
+  /// Les palais appris par famille de vins (V2.6 · P1) : `rouge`, et `blanc` pour les
+  /// blancs, rosés, bulles, orange et liquoreux — chacun sur les six axes de
+  /// [AxesDuPalais], de 0 à 1. Une seule moyenne de tous les vins disait « moyen » de
+  /// quelqu'un qui aime les blancs légers et les rouges puissants : ni l'un ni l'autre.
+  ///
+  /// Les anciens champs `avg…Preference` sont le palais d'avant, toutes couleurs
+  /// confondues : ils ne bougent plus, et servent de repli à un axe qu'une famille n'a pas
+  /// encore appris ([valeurPalais]).
+  final Map<String, Map<String, double>> palais;
+
+  /// Les observations par famille et par axe : ce que la personne a dit elle-même (un
+  /// « pour vous », une bouche décrite) ou ce que le vin disait sûrement (son âge, une
+  /// douceur écrite). Ce qui n'est que déduit des vins aimés n'y compte pas.
+  final Map<String, Map<String, int>> observationsPalais;
   final String? friendUserId; // Set if this profile corresponds to a connected friend who has the app
 
   bool get hasApp => friendUserId != null && friendUserId!.isNotEmpty;
@@ -95,6 +114,140 @@ class TasteProfile {
         _ => null,
       };
 
+  // ---------------------------------------------------------------------------
+  // Le palais par famille (V2.6)
+  // ---------------------------------------------------------------------------
+
+  /// La famille dont un vin relève : `rouge`, `blanc` (blancs, rosés, bulles, orange,
+  /// liquoreux), ou nulle pour ce qui n'est pas un vin de table (muté, spiritueux, type
+  /// inconnu) : on n'en apprend rien sur le palais.
+  static String? familleDe(String? typeDuVin) {
+    final c = couleurDuQuestionnaire(typeDuVin);
+    if (c == 'red') return FamillesDeVins.rouge;
+    if (const {'white', 'rose', 'sparkling', 'dessert', 'orange'}.contains(c)) return FamillesDeVins.blanc;
+    return null;
+  }
+
+  /// Ce que la famille a appris sur un axe (0–1), sinon le palais d'avant, toutes couleurs
+  /// confondues.
+  double? valeurPalais(String famille, String axe) {
+    if (!AxesDuPalais.deLaFamille(famille, axe)) return null;
+    return palais[famille]?[axe] ?? _herite(famille, axe);
+  }
+
+  /// Ce que la famille a appris elle-même, sans le repli.
+  double? valeurPropre(String famille, String axe) => palais[famille]?[axe];
+
+  double? _herite(String famille, String axe) => switch (axe) {
+        AxesDuPalais.fraicheur => avgAcidityPreference,
+        AxesDuPalais.corps => avgBodyPreference,
+        AxesDuPalais.boise => avgOakPreference,
+        AxesDuPalais.tanins => famille == FamillesDeVins.rouge ? avgTanninPreference : null,
+        _ => null,
+      };
+
+  /// Les observations d'un axe dans une famille. Un axe encore hérité du palais d'avant,
+  /// appris sur toutes les couleurs, en reçoit la part que disent les couleurs préférées :
+  /// toutes à la seule famille aimée, rien à l'autre ; la moitié à chacune sinon. Les
+  /// tanins ne s'observaient que sur des rouges : ils leur reviennent en entier.
+  int observationsSur(String famille, String axe) {
+    final propres = observationsPalais[famille]?[axe];
+    if (propres != null) return propres;
+    if (palais[famille]?[axe] != null) return 0;
+    if (_herite(famille, axe) == null) return 0;
+    final n = axisObservations[axe] ?? 0;
+    if (axe == AxesDuPalais.tanins) return n;
+    final aimees = {for (final t in favoriteTypes) if (familleDe(t) case final f?) f};
+    if (aimees.length == 1) return aimees.contains(famille) ? n : 0;
+    return (n / 2).ceil();
+  }
+
+  /// Même saturation douce que [axisConfidence].
+  double confianceSur(String famille, String axe) {
+    final n = observationsSur(famille, axe);
+    return n <= 0 ? 0.0 : n / (n + 5.0);
+  }
+
+  /// La famille la mieux connue ; à égalité, celle des couleurs préférées, sinon les rouges.
+  String get familleDominante {
+    int total(String f) => AxesDuPalais.de(f).fold(0, (s, a) => s + observationsSur(f, a));
+    final r = total(FamillesDeVins.rouge);
+    final b = total(FamillesDeVins.blanc);
+    if (r != b) return r > b ? FamillesDeVins.rouge : FamillesDeVins.blanc;
+    final types = favoriteTypes.map((t) => t.toLowerCase());
+    final rouges = types.any((t) => t.contains('rouge') || t.contains('red'));
+    final autres = types.any((t) => !(t.contains('rouge') || t.contains('red')));
+    return autres && !rouges ? FamillesDeVins.blanc : FamillesDeVins.rouge;
+  }
+
+  /// Le palais d'une famille tel qu'on le montre et le compare (V2.6 · P5) : appris, sinon
+  /// déclaré à l'accueil, sinon neutre — et rien d'autre. Les couleurs, régions et cépages
+  /// préférés n'y ajoutent plus rien : ajoutés axe après axe, ils saturaient le radar à 10.
+  /// Une aversion dite, faute de mieux, place l'axe bas.
+  PalaisDeFamille palaisPour(String famille) {
+    final valeurs = <String, double>{};
+    final confiance = <String, double>{};
+    final connus = <String>{};
+    final aversions = dislikedCharacteristics.map((d) => d.toLowerCase()).toList();
+    for (final axe in AxesDuPalais.de(famille)) {
+      final appris = valeurPalais(famille, axe);
+      final declare = palaisDeDepart[axe];
+      final n = observationsSur(famille, axe);
+      double v;
+      if (appris != null) {
+        v = (appris * 10).clamp(0.0, 10.0);
+        if (declare != null) {
+          // La déclaration s'efface devant l'observation : à parts égales avec une simple
+          // déduction, puis 15 %, 10 % après une, deux observations, puis rien.
+          final poids = n == 0 ? 0.5 : (n >= 3 ? 0.0 : 0.3 / (1 + n));
+          v = declare * poids + v * (1 - poids);
+        }
+        connus.add(axe);
+      } else if (declare != null) {
+        v = declare.clamp(0.0, 10.0);
+        connus.add(axe);
+      } else {
+        v = _aversion(axe, aversions) ?? AxesDuPalais.neutre(famille, axe);
+      }
+      valeurs[axe] = v;
+      confiance[axe] = confianceSur(famille, axe);
+    }
+    return PalaisDeFamille(famille: famille, valeurs: valeurs, confiance: confiance, connus: connus);
+  }
+
+  static double? _aversion(String axe, List<String> aversions) {
+    bool dit(List<String> mots) => aversions.any((d) => mots.any(d.contains));
+    return switch (axe) {
+      AxesDuPalais.tanins when dit(['tann', 'astringent', 'râpeux']) => 2.5,
+      AxesDuPalais.fraicheur when dit(['acid', 'vif', 'vert']) => 3.0,
+      AxesDuPalais.boise when dit(['boisé', 'bois', 'vanill']) => 1.5,
+      AxesDuPalais.douceur when dit(['sucr', 'doux']) => 0.3,
+      AxesDuPalais.corps when dit(['lourd', 'alcool', 'puissant']) => 3.5,
+      AxesDuPalais.corps when dit(['léger', 'dilu']) => 7.0,
+      _ => null,
+    };
+  }
+
+  /// Un axe d'une famille fixé à [valeur] (nulle : effacé, le repli reprend), avec son
+  /// nombre d'observations (nul : effacé).
+  TasteProfile avecAxeDuPalais(String famille, String axe, double? valeur, {int? observations, bool effacerObservations = false}) {
+    final p = {for (final e in palais.entries) e.key: Map<String, double>.from(e.value)};
+    final o = {for (final e in observationsPalais.entries) e.key: Map<String, int>.from(e.value)};
+    if (valeur == null) {
+      p[famille]?.remove(axe);
+    } else {
+      (p[famille] ??= {})[axe] = valeur.clamp(0.0, 1.0).toDouble();
+    }
+    if (effacerObservations) {
+      o[famille]?.remove(axe);
+    } else if (observations != null) {
+      (o[famille] ??= {})[axe] = observations;
+    }
+    p.removeWhere((_, v) => v.isEmpty);
+    o.removeWhere((_, v) => v.isEmpty);
+    return copyWith(palais: p, observationsPalais: o);
+  }
+
   double axisConfidence(String axis) {
     final n = axisObservations[axis] ?? 0;
     if (n <= 0) return 0.0;
@@ -103,10 +256,10 @@ class TasteProfile {
 
   /// Confiance moyenne sur les huit axes — utile pour décider si le profil mérite d'être
   /// présenté comme un portrait ou comme une esquisse.
-  double get overallConfidence {
-    final sum = axisKeys.fold<double>(0, (acc, k) => acc + axisConfidence(k));
-    return sum / axisKeys.length;
-  }
+  double get overallConfidence =>
+      // V2.6 : le palais le mieux connu des deux familles — quelqu'un qui ne boit que des
+      // rouges a un palais connu, même si ses blancs restent à deviner.
+      FamillesDeVins.toutes.map((f) => palaisPour(f).connaissance).reduce(math.max);
 
   /// L'axe le moins établi : c'est là qu'une dégustation apprendrait le plus.
   /// Entrée du moteur de frontière (S4).
@@ -145,6 +298,8 @@ class TasteProfile {
     this.axisObservations = const {},
     this.palaisDeDepart = const {},
     this.concentrationsConnues = const [],
+    this.palais = const {},
+    this.observationsPalais = const {},
     this.friendUserId,
   });
 
@@ -175,6 +330,8 @@ class TasteProfile {
     Map<String, int>? axisObservations,
     Map<String, double>? palaisDeDepart,
     List<String>? concentrationsConnues,
+    Map<String, Map<String, double>>? palais,
+    Map<String, Map<String, int>>? observationsPalais,
     String? friendUserId,
     bool clearFriendUserId = false,
     // Les axes à vider (clés de [axisKeys]) : un `null` passé ci-dessus garde la valeur, et
@@ -208,6 +365,8 @@ class TasteProfile {
       axisObservations: axisObservations ?? this.axisObservations,
       palaisDeDepart: palaisDeDepart ?? this.palaisDeDepart,
       concentrationsConnues: concentrationsConnues ?? this.concentrationsConnues,
+      palais: palais ?? this.palais,
+      observationsPalais: observationsPalais ?? this.observationsPalais,
       friendUserId: clearFriendUserId ? null : (friendUserId ?? this.friendUserId),
     );
   }
@@ -239,6 +398,8 @@ class TasteProfile {
         'axis_observations': axisObservations,
         if (palaisDeDepart.isNotEmpty) 'palais_de_depart': palaisDeDepart,
         'concentrations_connues': concentrationsConnues,
+        if (palais.isNotEmpty) 'palais': palais,
+        if (observationsPalais.isNotEmpty) 'observations_palais': observationsPalais,
         if (friendUserId != null) 'friend_user_id': friendUserId,
       };
 
@@ -281,8 +442,22 @@ class TasteProfile {
               .toList() ??
           const [],
       questionnairesCompleted: ((json['questionnaires_completed'] ?? json['questionnairesCompleted']) as num?)?.toInt() ?? 0,
+      palais: _parFamille(json['palais'], (v) => v is num ? v.toDouble().clamp(0.0, 1.0).toDouble() : null),
+      observationsPalais: _parFamille(json['observations_palais'], (v) => v is num ? v.toInt() : null),
       friendUserId: json['friend_user_id']?.toString(),
     );
+  }
+
+  static Map<String, Map<String, T>> _parFamille<T>(dynamic brut, T? Function(dynamic) lire) {
+    if (brut is! Map) return const {};
+    return {
+      for (final f in brut.entries)
+        if (f.value is Map)
+          f.key.toString(): {
+            for (final a in (f.value as Map).entries)
+              if (lire(a.value) case final v?) a.key.toString(): v,
+          },
+    };
   }
 
   static Map<String, int> _castIntMap(dynamic raw) {

@@ -74,9 +74,10 @@ void main() {
   });
 
   group('l\'écran', () {
-    test('connu à 5 % : deviné ; bien connu, ou déclaré : pas deviné', () {
+    test('connu à 8 % : deviné ; bien connu, ou déclaré : pas deviné', () {
       final peu = GuestProfile.fromTasteProfile(palais(observations: {'acidity': 3}));
-      expect((peu.connaissance! * 100).round(), 5);
+      // V2.6 : trois observations sur l'un des cinq axes du radar des rouges.
+      expect((peu.connaissance! * 100).round(), 8);
       expect(peu.palaisDevine, isTrue);
       expect(GuestProfile.fromTasteProfile(palais(observations: bienConnu)).palaisDevine, isFalse);
       const declare = GuestProfile(id: 'web', name: 'Paul');
@@ -100,11 +101,11 @@ void main() {
       const paul = GuestProfile(id: 'web', name: 'Paul');
 
       expect(PalaisDevine.legende([moi, paul], fr: true, idLecteur: 'moi'),
-          '≈ : votre palais est encore deviné (connu à 5 %). Vos accords restent prudents et se précisent à chaque vin noté.');
+          '≈ : votre palais est encore deviné (connu à 8 %). Vos accords restent prudents et se précisent à chaque vin noté.');
       expect(PalaisDevine.legende([moi, paul], fr: true, idLecteur: 'web'),
-          '≈ : palais encore deviné, Moi (connu à 5 %). Ses accords restent prudents et se précisent à chaque vin noté.');
+          '≈ : palais encore deviné, Moi (connu à 8 %). Ses accords restent prudents et se précisent à chaque vin noté.');
       expect(PalaisDevine.legende([moi, lea, paul], fr: false, idLecteur: 'web'),
-          '≈: palates still guessed, Moi (5% known), Léa (0% known). Their matches stay cautious and sharpen with every wine rated.');
+          '≈: palates still guessed, Moi (8% known), Léa (0% known). Their matches stay cautious and sharpen with every wine rated.');
       expect(PalaisDevine.legende([paul], fr: true), isNull);
       expect(PalaisDevine.legende([moi.copie(neBoitPas: true), paul], fr: true), isNull,
           reason: 'qui ne boit pas ce soir n\'a pas d\'accord à nuancer');
@@ -125,7 +126,7 @@ void main() {
       final podium = MenuTableMatcherEngine.rankTop3WinesForTable(menuWines: [crozes, chablis], guests: [moi, paul]);
       final r = ResultatDeTable.publier(restaurant: 'Le Petit Zinc', langue: 'fr', convives: [moi, paul], podium: podium);
       expect(r['convives'], [
-        {'nom': 'Moi', 'devine': true, 'connu': 5},
+        {'nom': 'Moi', 'devine': true, 'connu': 8},
         {'nom': 'Paul'},
       ]);
     });

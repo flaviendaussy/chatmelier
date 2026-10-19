@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/utils/langue.dart';
 import '../../domain/empreinte_de_palais.dart';
+import '../../domain/palais.dart';
 import '../../domain/taste_profile.dart';
-import '../../domain/wine_taste_radar.dart';
+import 'radar_du_palais.dart';
 import 'radar_legende.dart';
 import 'wine_taste_radar_chart.dart';
 
-/// L'empreinte de palais, mise en carte pour être partagée (P5).
+/// L'empreinte de palais, mise en carte pour être partagée (P5) : le palais d'une famille,
+/// celle que la personne connaît le mieux sauf choix contraire (V2.6).
 ///
 /// Format 4:5 (360 × 450, exporté ×3 en 1080 × 1350) : celui qu'Instagram et les
 /// messageries affichent sans rogner. Fond sombre dans les deux thèmes de l'app : l'image
@@ -23,13 +25,13 @@ class CarteEmpreinte extends StatelessWidget {
 
   final String? nom;
   final TasteProfile profil;
+  final String? famille;
 
-  const CarteEmpreinte({super.key, required this.profil, this.nom});
+  const CarteEmpreinte({super.key, required this.profil, this.nom, this.famille});
 
   @override
   Widget build(BuildContext context) {
-    final radar = WineTasteRadarCalculator.compute(profil);
-    final empreinte = EmpreinteDePalais.lire(profil, radar);
+    final empreinte = EmpreinteDePalais.lire(profil, famille: famille);
     final titre = (nom != null && nom!.trim().isNotEmpty) ? nom!.trim() : tr('Mon palais', 'My palate');
     final aDecouvrir = empreinte.phraseADecouvrir;
 
@@ -54,7 +56,9 @@ class CarteEmpreinte extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        tr('EMPREINTE DE PALAIS', 'PALATE FINGERPRINT'),
+                        '${tr('EMPREINTE DE PALAIS', 'PALATE FINGERPRINT')} · ${FamillesDeVins.nomCourt(empreinte.famille).toUpperCase()}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: _or, fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 2.2),
                       ),
                     ),
@@ -78,15 +82,8 @@ class CarteEmpreinte extends StatelessWidget {
                         size: c.maxWidth < c.maxHeight ? c.maxWidth : c.maxHeight,
                         anime: false,
                         isInteractive: false,
-                        customAxisLabels: WineTasteRadarMetrics.localizedAxisLabels(tr('fr', 'en')),
-                        datasets: [
-                          RadarChartDataset(
-                            label: titre,
-                            color: _vin,
-                            metrics: radar,
-                            confidences: [for (final k in TasteProfile.axisKeys) profil.axisConfidence(k)],
-                          ),
-                        ],
+                        customAxisLabels: RadarDuPalais.libelles(empreinte.famille),
+                        datasets: [RadarDuPalais.jeu(profil, empreinte.famille, label: titre, color: _vin)],
                       ),
                     ),
                   ),
@@ -108,7 +105,9 @@ class CarteEmpreinte extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        empreinte.phraseBase,
+                        // Une espace insécable avant « % » : « 28 » et « % » ne se séparent pas
+                        // d'une ligne à l'autre.
+                        empreinte.phraseBase.replaceAll(' %', '\u00a0%'),
                         maxLines: 2,
                         style: const TextStyle(color: Colors.white54, fontSize: 10.5, height: 1.25),
                       ),

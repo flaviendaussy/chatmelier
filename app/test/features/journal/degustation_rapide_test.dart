@@ -39,6 +39,8 @@ class _Palais extends Fake implements TasteProfileService {
     String? wineType,
     String? tastingId,
     String? wineName,
+    Wine? vin,
+    DateTime? le,
   }) async =>
       parQuestionnaire.add('${result.profileId}:${result.mouthfeelTexture}');
 }

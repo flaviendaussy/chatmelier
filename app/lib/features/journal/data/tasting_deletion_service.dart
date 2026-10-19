@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/utils/langue.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/providers/supabase_provider.dart';
@@ -103,34 +104,42 @@ class TastingDeletionService {
     );
   }
 
-  /// Traduit en français ce qui n'a pas pu être défait.
+  /// Dit, en clair, ce qui n'a pas pu être défait.
   ///
   /// Une liste de clés techniques ne dit rien à personne ; et taire la limite ferait croire
   /// à une suppression complète qui n'a pas eu lieu.
   static String? phraseDesRestes(List<String> restes) {
     if (restes.isEmpty) return null;
-    final noms = restes
-        .map((c) => _nomsAxes[c.replaceFirst('axe:', '')] ?? c)
-        .toSet()
-        .toList();
-    final liste = noms.length == 1
-        ? noms.first
-        : '${noms.take(noms.length - 1).join(', ')} et ${noms.last}';
+    final noms = restes.map(_nomDeLaCible).toSet().toList();
+    final liste = noms.length == 1 ? noms.first : '${noms.take(noms.length - 1).join(', ')}${tr(' et ', ' and ')}${noms.last}';
     return noms.length == 1
-        ? 'Votre goût pour $liste a évolué depuis : il reste tel quel.'
-        : 'Vos goûts pour $liste ont évolué depuis : ils restent tels quels.';
+        ? tr('Votre goût pour {liste} a évolué depuis : il reste tel quel.',
+            'Your taste for {liste} has changed since: it stays as it is.', {'liste': liste})
+        : tr('Vos goûts pour {liste} ont évolué depuis : ils restent tels quels.',
+            'Your tastes for {liste} have changed since: they stay as they are.', {'liste': liste});
   }
 
-  static const Map<String, String> _nomsAxes = {
-    'acidity': 'l\'acidité',
-    'body': 'le corps',
-    'tannin': 'les tanins',
-    'oak': 'le boisé',
-    'ripeFruit': 'le fruit mûr',
-    'spice': 'les épices',
-    'freshFruit': 'le fruit frais',
-    'minerality': 'la minéralité',
-  };
+  /// `axe:acidity` (palais d'avant la V2.6) ou `axe:blanc:acidity` (palais d'une famille).
+  static String _nomDeLaCible(String cible) {
+    final morceaux = cible.replaceFirst('axe:', '').split(':');
+    final nom = switch (morceaux.last) {
+      'acidity' => tr('la fraîcheur', 'freshness'),
+      'sweetness' => tr('la douceur', 'sweetness'),
+      'body' => tr('le corps', 'body'),
+      'tannin' => tr('les tanins', 'tannins'),
+      'oak' => tr('le boisé', 'oak'),
+      'evolution' => tr('l\'évolution', 'maturity'),
+      'ripeFruit' => tr('le fruit mûr', 'ripe fruit'),
+      'spice' => tr('les épices', 'spice'),
+      'freshFruit' => tr('le fruit frais', 'fresh fruit'),
+      'minerality' => tr('la minéralité', 'minerality'),
+      _ => cible,
+    };
+    if (morceaux.length < 2) return nom;
+    return morceaux.first == 'rouge'
+        ? tr('{nom} des rouges', '{nom} in reds', {'nom': nom})
+        : tr('{nom} des blancs', '{nom} in whites', {'nom': nom});
+  }
 }
 
 

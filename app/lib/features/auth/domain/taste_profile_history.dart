@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'palais.dart';
 import 'taste_profile.dart';
 import '../data/palais_distant.dart';
 
@@ -9,6 +10,9 @@ import '../data/palais_distant.dart';
 class TasteProfileSnapshot {
   /// Le mois décrit, au format `AAAA-MM`. C'est aussi la clé d'unicité.
   final String mois;
+
+  /// Les axes, par famille depuis la V2.6 (`rouge:tannin`, `blanc:acidity`) ; ceux d'avant
+  /// sans famille (`acidity`).
   final Map<String, double> axes;
   final Map<String, int> observations;
   final double confiance;
@@ -100,10 +104,16 @@ class TasteProfileHistory {
   Future<void> capturer(TasteProfile profile, {DateTime? maintenant}) async {
     final mois = moisDe(maintenant ?? DateTime.now());
 
+    // V2.6 : le palais de chaque famille. Les anciens axes ne bougent plus : les figer
+    // chaque mois ne montrerait qu'une ligne droite.
     final axes = <String, double>{};
-    for (final k in TasteProfile.axisKeys) {
-      final v = profile.valeurAxe(k);
-      if (v != null) axes[k] = v;
+    final observations = <String, int>{};
+    for (final famille in FamillesDeVins.toutes) {
+      for (final axe in AxesDuPalais.de(famille)) {
+        if (profile.valeurPalais(famille, axe) case final v?) axes['$famille:$axe'] = v;
+        final n = profile.observationsSur(famille, axe);
+        if (n > 0) observations['$famille:$axe'] = n;
+      }
     }
 
     // Un profil encore vide n'a rien à figer : on ne veut pas d'une année de zéros
@@ -113,7 +123,7 @@ class TasteProfileHistory {
     final snap = TasteProfileSnapshot(
       mois: mois,
       axes: axes,
-      observations: Map<String, int>.from(profile.axisObservations),
+      observations: observations,
       confiance: profile.overallConfidence,
       degustations: profile.questionnairesCompleted,
     );
@@ -130,14 +140,20 @@ class TasteProfileHistory {
     PalaisDistant.planifierEnvoi();
   }
 
-  /// De combien un axe a bougé depuis le premier instantané disponible.
+  /// De combien un axe (`rouge:tannin`) a bougé depuis le premier instantané disponible.
+  /// Un instantané d'avant la V2.6 compte par son axe sans famille, celui dont la famille
+  /// a hérité : la dérive ne repart pas de zéro.
   ///
   /// Nul tant qu'il n'y a pas deux mois distincts à comparer : une dérive sur un seul
   /// point n'existe pas.
   double? derive(String axe) {
-    final snaps = lire().where((s) => s.axes.containsKey(axe)).toList();
-    if (snaps.length < 2) return null;
-    return snaps.last.axes[axe]! - snaps.first.axes[axe]!;
+    final ancien = axe.contains(':') ? axe.substring(axe.indexOf(':') + 1) : null;
+    final valeurs = [
+      for (final s in lire())
+        if (s.axes[axe] ?? (ancien == null ? null : s.axes[ancien]) case final v?) v,
+    ];
+    if (valeurs.length < 2) return null;
+    return valeurs.last - valeurs.first;
   }
 
   Future<void> vider() => _prefs.remove(_cle);

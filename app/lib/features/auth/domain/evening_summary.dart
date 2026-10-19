@@ -1,4 +1,6 @@
 import '../../../shared/utils/langue.dart';
+import 'mots_du_palais.dart';
+import 'palais.dart';
 import 'taste_profile.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
 
@@ -30,9 +32,9 @@ class EveningSummary {
           : tr('{verresGoutes} verres goûtés{ou}', '{verresGoutes} glasses tasted{ou}', {'verresGoutes': verresGoutes, 'ou': ou}));
     }
 
-    final axe = _axeLePlusObserve(profil);
-    if (axe != null) {
-      out.add(tr('Votre palais commence à se dessiner sur {v1}', 'Your palate is starting to take shape around {v1}', {'v1': nomDeLAxe(axe)}));
+    if (_axeLePlusObserve(profil) case (final famille, final axe)) {
+      out.add(tr('Votre palais commence à se dessiner sur {v1}', 'Your palate is starting to take shape around {v1}',
+          {'v1': MotsDuPalais.nomDansLaFamille(famille, axe)}));
     }
 
     if (profil.favoriteRegions.isNotEmpty) {
@@ -49,31 +51,22 @@ class EveningSummary {
     return out;
   }
 
-  /// L'axe sur lequel on a le plus observé — donc celui dont on peut parler sans mentir.
-  static String? _axeLePlusObserve(TasteProfile p) {
-    String? meilleur;
+  /// L'axe sur lequel on a le plus observé, et sa famille (V2.6) — donc celui dont on peut
+  /// parler sans mentir.
+  static (String, String)? _axeLePlusObserve(TasteProfile p) {
+    (String, String)? meilleur;
     var n = 0;
-    p.axisObservations.forEach((axe, compte) {
-      if (compte > n) {
-        n = compte;
-        meilleur = axe;
+    for (final famille in FamillesDeVins.toutes) {
+      for (final axe in AxesDuPalais.de(famille)) {
+        final compte = p.observationsSur(famille, axe);
+        if (compte > n) {
+          n = compte;
+          meilleur = (famille, axe);
+        }
       }
-    });
+    }
     // Une seule observation ne dessine rien. Le dire quand même serait la première
     // exagération d'une phrase qui ne tient que par son exactitude.
     return n >= 2 ? meilleur : null;
   }
-
-  /// Le nom d'un axe dans une phrase (« les tanins », « crisp acidity »).
-  static String nomDeLAxe(String axe) => switch (axe) {
-        'acidity' => tr('la vivacité', 'crisp acidity'),
-        'body' => tr('le corps', 'body'),
-        'tannin' => tr('les tanins', 'tannins'),
-        'oak' => tr('le boisé', 'oak'),
-        'ripeFruit' => tr('le fruit mûr', 'ripe fruit'),
-        'spice' => tr('les épices', 'spice'),
-        'freshFruit' => tr('le fruit frais', 'fresh fruit'),
-        'minerality' => tr('la minéralité', 'minerality'),
-        _ => axe,
-      };
 }

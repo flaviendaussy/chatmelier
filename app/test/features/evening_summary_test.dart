@@ -38,16 +38,22 @@ void main() {
     test('un axe vu une seule fois ne « se dessine » pas', () {
       // Le dire quand même serait la première exagération d'une phrase qui ne tient que
       // par son exactitude.
-      final p = vide.copyWith(axisObservations: {'minerality': 1});
+      final p = vide.copyWith(
+        palais: {'blanc': {'acidity': 0.7}},
+        observationsPalais: {'blanc': {'acidity': 1}},
+      );
       final l = EveningSummary.lignes(profil: p, verresGoutes: 1);
       expect(l.join(' '), isNot(contains('palais')));
     });
 
     test('à partir de deux observations, on peut le dire', () {
-      final p = vide.copyWith(axisObservations: {'minerality': 3, 'oak': 1});
+      final p = vide.copyWith(
+        palais: {'blanc': {'acidity': 0.7}, 'rouge': {'oak': 0.4}},
+        observationsPalais: {'blanc': {'acidity': 3}, 'rouge': {'oak': 1}},
+      );
       final l = EveningSummary.lignes(profil: p, verresGoutes: 2);
-      expect(l.join(' '), contains('minéralité'),
-          reason: 'c\'est l\'axe le plus observé qui est nommé');
+      expect(l.join(' '), contains('la fraîcheur des blancs'),
+          reason: 'c\'est l\'axe le plus observé qui est nommé, avec sa famille (V2.6)');
     });
 
     test('les régions découvertes sont nommées', () {

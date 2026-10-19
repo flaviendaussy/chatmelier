@@ -86,12 +86,13 @@ void main() {
     });
 
     test('le résultat : rien que ce qui a été demandé', () {
+      // V2.6 : seul ce qui a été décrit part (`decrire`) ; un curseur resté à 0,5 ne dit rien.
       final r = ReponsesDuConvive()
         ..choisirLeVisage(3)
         ..aromes = {'agrumes'}
         ..accordAvecLePlat = 'sublime'
-        ..tanins = 0.9
-        ..effervescence = 0.8;
+        ..decrire('tannin', 0.9)
+        ..decrire('effervescence', 0.8);
 
       final blanc = r.resultat(
           profileId: 'moi', profileName: 'Moi', vin: QuestionnaireDuVin('white'), express: false, avecUnPlat: false);
@@ -113,7 +114,8 @@ void main() {
       expect(avecPlat.isExpressMode, isTrue);
 
       final rouge = r.resultat(profileId: 'moi', profileName: 'Moi', vin: QuestionnaireDuVin('red'), express: false);
-      expect(blanc.mineralite, 0.5, reason: 'la minéralité d\'un blanc part au palais');
+      expect(blanc.mineralite, isNull, reason: 'pas décrite : la minéralité n\'est plus un curseur (V2.6)');
+      expect(blanc.acidity, isNull, reason: 'pas touchée : rien ne part');
       expect(rouge.mineralite, isNull, reason: 'on ne la demande pas à un rouge');
       expect(rouge.tannins, 0.9);
 

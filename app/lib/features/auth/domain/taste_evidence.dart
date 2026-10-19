@@ -40,6 +40,10 @@ class TasteEvidenceEntry {
   final double? avant;
   final double? apres;
 
+  /// Faux quand le changement d'un axe n'a pas compté comme observation (déduit d'un vin
+  /// aimé, V2.6) : l'annuler remet la valeur sans retirer d'observation.
+  final bool compte;
+
   const TasteEvidenceEntry({
     required this.quand,
     required this.source,
@@ -49,6 +53,7 @@ class TasteEvidenceEntry {
     this.tastingId,
     this.avant,
     this.apres,
+    this.compte = true,
   });
 
   Map<String, dynamic> toJson() => {
@@ -60,6 +65,7 @@ class TasteEvidenceEntry {
         if (tastingId != null) 'tasting_id': tastingId,
         if (avant != null) 'avant': avant,
         if (apres != null) 'apres': apres,
+        if (!compte) 'compte': false,
       };
 
   factory TasteEvidenceEntry.fromJson(Map<String, dynamic> j) => TasteEvidenceEntry(
@@ -71,6 +77,7 @@ class TasteEvidenceEntry {
         tastingId: j['tasting_id']?.toString(),
         avant: (j['avant'] as num?)?.toDouble(),
         apres: (j['apres'] as num?)?.toDouble(),
+        compte: j['compte'] != false,
       );
 }
 

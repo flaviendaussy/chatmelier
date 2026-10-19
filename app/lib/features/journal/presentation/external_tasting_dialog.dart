@@ -22,9 +22,12 @@ import '../../friends/domain/friend.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../auth/data/taste_profile_service.dart';
 import 'journal_screen.dart';
-import '../domain/tasting_questionnaire_result.dart';
+import '../domain/question_pour_vous.dart';
 import 'tasting_questionnaire_sheet.dart';
+import 'widgets/pour_vous.dart';
 import '../data/degustation_rapide.dart';
+import '../../cellar/domain/wine.dart';
+import '../../sommelier/domain/profil_du_vin.dart';
 import '../../../shared/widgets/libere_a_la_fermeture.dart';
 
 class ExternalTastingDialog extends ConsumerStatefulWidget {
@@ -115,11 +118,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   // Cet écran est le plus utilisé du produit (8 points d'entrée) et ne captait jusqu'ici
   // aucune donnée sensorielle : il n'apprenait donc rien au modèle, alors que ce sont les
   // dégustations au restaurant qui décrivent le mieux un palais en situation réelle.
-  // Trois touches facultatives suffisent, car les micro-touches sont déjà câblées sur les
-  // axes du profil (voir TasteProfileService.applyQuestionnaireResult).
-  String? _mouthfeelTexture;
-  String? _fruitProfile;
+  // Deux touches facultatives suffisent : le « pour vous » et « en reprendriez-vous ? »
+  // (voir TasteProfileService.applyQuestionnaireResult).
   String? _wouldBuyAgain;
+
+  /// Le « pour vous » (V2.6 · P6) : il remplace le toucher de bouche et l'éclat du fruit.
+  final Map<String, String> _jugements = {};
 
 
   // Friends & Co-tasters
@@ -580,9 +584,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             photoUrl: _photoUrl,
             convives: _selectedCoTasters.toList(),
             coupDeCoeur: _isFavorite,
-            texture: _mouthfeelTexture,
-            fruit: _fruitProfile,
             racheter: _wouldBuyAgain,
+            jugements: Map<String, String>.from(_jugements),
           ));
       ref.invalidate(tastingLogProvider);
       ref.invalidate(tasteProfilesListProvider);
@@ -603,8 +606,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             wineType: _wineType,
             // La « Gorgée » a déjà posé ces questions : le questionnaire ne les repose pas.
             racheterDeja: _wouldBuyAgain,
-            textureDeja: _mouthfeelTexture,
-            fruitDeja: _fruitProfile,
+            jugementsDeja: Map<String, String>.from(_jugements),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -637,13 +639,45 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     }
   }
 
+  /// Le « pour vous » de la gorgée : l'axe que le palais connaît le moins, là où ce vin
+  /// tranche. Nul pour un muté ou un spiritueux.
+  Widget? _pourVous() {
+    final famille = TasteProfile.familleDe(_wineType);
+    if (famille == null) return null;
+    final profils = ref.watch(tasteProfilesListProvider).valueOrNull ?? const <TasteProfile>[];
+    final principal = profils.firstWhere((p) => p.isPrimary,
+        orElse: () => profils.firstOrNull ?? const TasteProfile(id: 'moi', name: 'Moi', isPrimary: true));
+    final vin = ProfilDuVin.deLaCave(Wine(
+      id: '',
+      name: _nameController.text.trim(),
+      type: _wineType,
+      country: '',
+      region: _regionController.text.trim(),
+      vintage: int.tryParse(_vintageController.text.trim()),
+    ));
+    return PourVous(
+      key: ValueKey('gorgee_$famille'),
+      famille: famille,
+      premier: QuestionPourVous.aDemander(principal, famille, vin),
+      jugements: _jugements,
+      onJuger: (axe, sens) => setState(() {
+        // Le même choix une seconde fois le retire.
+        if (_jugements[axe] == sens) {
+          _jugements.remove(axe);
+        } else {
+          _jugements[axe] = sens;
+        }
+      }),
+    );
+  }
+
   /// Niveau « Gorgée » : capture sensorielle minimale pour l'écran hors-cave.
   ///
   /// Tout est facultatif — c'est la condition pour que l'écran reste rapide au restaurant.
   /// Mais dès qu'une seule touche est posée, la dégustation passe par
   /// `applyQuestionnaireResult` et alimente les axes du profil, au lieu de ne transmettre
-  /// qu'une note. Les options et leur traduction existaient déjà pour le questionnaire
-  /// complet : on les réutilise telles quelles plutôt que d'inventer un second vocabulaire.
+  /// qu'une note. V2.6 : une question « pour vous » au lieu de deux descriptions de la
+  /// bouche — dire « trop tannique pour moi » ne demande pas de savoir déguster.
   Widget _buildSipLevel(ThemeData theme, AppLocalizations l10n) {
     Widget group({
       required String title,
@@ -696,28 +730,15 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           ),
           const SizedBox(height: 2),
           Text(
-            l10n.sipSectionSubtitle,
+            tr('Une touche, et ce verre apprend quelque chose à votre palais.',
+                'One tap, and this glass teaches your palate something.'),
             style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11.5),
           ),
           const SizedBox(height: 12),
-          group(
-            title: TastingQuestionnaireResult.mouthfeelTitle(l10n),
-            options: TastingQuestionnaireResult.textureOptions
-                .map((o) => (id: o.id, emoji: o.emoji, label: o.localizedLabel(l10n)))
-                .toList(),
-            selected: _mouthfeelTexture,
-            onPick: (v) => _mouthfeelTexture = v,
-          ),
-          const SizedBox(height: 12),
-          group(
-            title: TastingQuestionnaireResult.fruitProfileTitle(l10n),
-            options: TastingQuestionnaireResult.fruitProfileOptions
-                .map((o) => (id: o.id, emoji: o.emoji, label: o.localizedLabel(l10n)))
-                .toList(),
-            selected: _fruitProfile,
-            onPick: (v) => _fruitProfile = v,
-          ),
-          const SizedBox(height: 12),
+          if (_pourVous() case final pourVous?) ...[
+            pourVous,
+            const SizedBox(height: 12),
+          ],
           group(
             title: l10n.tastingBuyAgain,
             options: [

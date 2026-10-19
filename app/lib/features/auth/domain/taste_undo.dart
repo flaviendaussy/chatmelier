@@ -78,6 +78,27 @@ class TasteUndo {
           defaites.add(e.cible);
           break;
 
+        case 'axe' when valeur.contains(':'):
+          // Le palais d'une famille (V2.6) : `axe:rouge:tannin`. L'avant noté est la valeur
+          // propre à la famille, nulle quand l'axe reposait sur le palais d'avant : la remettre
+          // à nul rend la main à ce repli, exactement comme avant la dégustation.
+          if (!estLaDerniere) {
+            nonDefaites.add(e.cible);
+            break;
+          }
+          final morceaux = valeur.split(':');
+          final famille = morceaux.first;
+          final axe = morceaux.last;
+          final n = p.observationsSur(famille, axe);
+          p = p.avecAxeDuPalais(
+            famille,
+            axe,
+            e.avant,
+            observations: e.compte ? (n - 1).clamp(0, 1 << 30) : null,
+          );
+          defaites.add(e.cible);
+          break;
+
         case 'axe':
           // `apres` et non `avant` : un axe renseigné pour la première fois venait
           // légitimement de `null`, et c'est le cas le plus exactement annulable qui soit.

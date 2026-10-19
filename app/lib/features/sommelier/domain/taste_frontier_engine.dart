@@ -1,4 +1,6 @@
 import '../../auth/domain/taste_profile.dart';
+import '../../auth/domain/palais.dart';
+import 'profil_du_vin.dart';
 import '../../cellar/domain/wine.dart';
 import '../../menu_scan/domain/cellar_bridge.dart';
 import '../../menu_scan/domain/menu_wine.dart';
@@ -16,9 +18,8 @@ import '../../../shared/utils/langue.dart';
 /// rien de ce qu'on pense du boisé, un vin à 9 ou à 1 tranche. Un axe déjà observé
 /// (confiance ≥ 0,5, soit cinq dégustations) ne rapporte presque plus rien.
 ///
-/// Cinq axes seulement, ceux qu'un vin permet de juger : tanins (rouges), corps, boisé,
-/// vivacité, minéralité (blancs et bulles). Le fruit se partage mal entre « mûr » et
-/// « frais », les épices n'ont pas de mesure : on se tait plutôt que d'inventer.
+/// Les six axes du palais (V2.6), chacun dans la famille du vin : un rouge renseigne le
+/// palais des rouges, un blanc celui des blancs.
 class TasteFrontierEngine {
   /// À partir de là, un axe est observé : il ne motive plus de suggestion.
   static const double seuilObserve = 0.5;
@@ -37,7 +38,9 @@ class TasteFrontierEngine {
   /// pensez du boisé » (relevé le 02/10).
   static double nettete(double v, {String? axe}) {
     if (v >= 5) return ((v - 5) / 5).clamp(0.0, 1.0);
-    if (axe == 'oak' || axe == 'minerality') return 0;
+    // Le bois et la douceur sont là ou pas : un vin sec ne dit rien de ce qu'on pense d'un
+    // vin tendre. L'âge, lui, va d'un pôle à l'autre : un vin tout jeune renseigne aussi.
+    if (axe == 'oak' || axe == 'minerality' || axe == 'sweetness') return 0;
     return (0.5 * (5 - v) / 5).clamp(0.0, 1.0);
   }
 
@@ -46,8 +49,10 @@ class TasteFrontierEngine {
     var total = 0.0;
     String? meilleurAxe;
     var meilleur = 0.0;
+    final famille = vin.famille;
+    if (famille == null) return null;
     for (final e in vin.axes.entries) {
-      final confiance = profil.axisConfidence(e.key);
+      final confiance = profil.confianceSur(famille, e.key);
       final part = (1 - confiance) * nettete(e.value, axe: e.key);
       total += part;
       if (part > meilleur) {
@@ -84,11 +89,11 @@ class TasteFrontierEngine {
       if (r == null) continue;
       final (gain, axe) = r;
       if (gain < gainMinimal) continue;
-      if (profil.axisConfidence(axe) >= seuilObserve) continue;
+      if (p.famille == null || profil.confianceSur(p.famille!, axe) >= seuilObserve) continue;
       final score = plaisir?.call(c);
       if (score != null && score < plaisirMinimal) continue;
       if (_heurteUneAversion(p, profil)) continue;
-      retenus.add((SuggestionDeFrontiere(c, axe, gain, score, p.axes[axe]!), prix?.call(c)));
+      retenus.add((SuggestionDeFrontiere(c, axe, gain, score, p.axes[axe]!, famille: p.famille), prix?.call(c)));
     }
     if (retenus.isEmpty) return null;
 
@@ -146,12 +151,13 @@ class TasteFrontierEngine {
       if ((d.contains('tann') || d.contains('tanin')) && (vin.axes['tannin'] ?? 0) >= 6.5) return true;
       if ((d.contains('bois') || d.contains('oak') || d.contains('chêne')) && (vin.axes['oak'] ?? 0) >= 6) return true;
       if ((d.contains('acid') || d.contains('acide')) && (vin.axes['acidity'] ?? 0) >= 8) return true;
+      if ((d.contains('sucr') || d.contains('doux')) && (vin.axes['sweetness'] ?? 0) >= 4.5) return true;
     }
     return false;
   }
 
   /// Les axes que le moteur sait trancher, dans l'ordre du radar.
-  static const axesJugeables = ['tannin', 'body', 'oak', 'acidity', 'minerality'];
+  static const axesJugeables = ['tannin', 'body', 'oak', 'acidity', 'sweetness', 'evolution'];
 
   /// Assez net pour trancher un axe : 7 sur 10 au moins (ou 1 au plus sur les axes qui
   /// vont d'un pôle à l'autre).
@@ -173,26 +179,31 @@ class TasteFrontierEngine {
     if (profils.isEmpty) return const [];
     final profilsDesVins = [for (final c in candidats) (c, profilDe(c))];
     final sortie = <AxeAApprendre<T>>[];
-    for (final axe in axesJugeables) {
-      final ignorants = [for (final p in profils) if (p.axisConfidence(axe) < seuilObserve) p];
-      if (ignorants.isEmpty) continue;
-      (T, double)? meilleur;
-      for (final (c, vin) in profilsDesVins) {
-        final v = vin.axes[axe];
-        if (v == null) continue;
-        final n = nettete(v, axe: axe);
-        if (n < netteteMinimale) continue;
-        if (profils.any((p) => _heurteUneAversion(vin, p))) continue;
-        if (meilleur == null || n > nettete(meilleur.$2, axe: axe)) meilleur = (c, v);
+    for (final famille in FamillesDeVins.toutes) {
+      for (final axe in axesJugeables) {
+        if (!AxesDuPalais.deLaFamille(famille, axe)) continue;
+        final ignorants = [for (final p in profils) if (p.confianceSur(famille, axe) < seuilObserve) p];
+        if (ignorants.isEmpty) continue;
+        (T, double)? meilleur;
+        for (final (c, vin) in profilsDesVins) {
+          if (vin.famille != famille) continue;
+          final v = vin.axes[axe];
+          if (v == null) continue;
+          final n = nettete(v, axe: axe);
+          if (n < netteteMinimale) continue;
+          if (profils.any((p) => _heurteUneAversion(vin, p))) continue;
+          if (meilleur == null || n > nettete(meilleur.$2, axe: axe)) meilleur = (c, v);
+        }
+        if (meilleur == null) continue;
+        sortie.add(AxeAApprendre(
+          axe: axe,
+          famille: famille,
+          ignorants: ignorants,
+          ignorance: profils.fold(0.0, (s, p) => s + (1 - p.confianceSur(famille, axe))),
+          bouteille: meilleur.$1,
+          valeurDuVin: meilleur.$2,
+        ));
       }
-      if (meilleur == null) continue;
-      sortie.add(AxeAApprendre(
-        axe: axe,
-        ignorants: ignorants,
-        ignorance: profils.fold(0.0, (s, p) => s + (1 - p.axisConfidence(axe))),
-        bouteille: meilleur.$1,
-        valeurDuVin: meilleur.$2,
-      ));
     }
     sortie.sort((a, b) => a.ignorants.length != b.ignorants.length
         ? b.ignorants.length.compareTo(a.ignorants.length)
@@ -206,35 +217,42 @@ class TasteFrontierEngine {
   /// Une bouteille de la cave : « ouvrez votre… ». Elle est prête à boire (l'appelant ne
   /// propose jamais une bouteille en garde).
   static String phraseCave(SuggestionDeFrontiere<Object?> s, String nomDuVin, bool fr) {
-    final quoi = _quoi(s.axe, fr);
+    final quoi = _quoi(s.axe, fr, famille: s.famille);
     final comment = _commentLeVinLeMontre(s.axe, s.valeurDuVin, fr);
     return trSi(fr, 'Pour mieux vous connaître : ouvrez votre {nomDuVin} ({comment}, prêt à boire) — il me dirait ce que vous pensez {quoi}.', 'To get to know you better: open your {nomDuVin} ({comment}, ready to drink) — it would tell me how you feel about {quoi}.', {'nomDuVin': nomDuVin, 'comment': comment, 'quoi': quoi});
   }
 
   /// « du boisé », « des tanins »… : ce qu'un axe permet de juger, dans la langue de
   /// l'écran (« Je ne sais pas encore ce que vous pensez du boisé »).
-  static String ceQueJugeLAxe(String axe) => _quoi(axe, Langue.estFr);
+  static String ceQueJugeLAxe(String axe, {String? famille}) => _quoi(axe, Langue.estFr, famille: famille);
 
-  static String _quoi(String axe, bool fr) => switch (axe) {
-        'tannin' => trSi(fr, 'des tanins', 'tannins'),
-        'body' => trSi(fr, 'des vins amples', 'full-bodied wines'),
-        'oak' => trSi(fr, 'du boisé', 'oak'),
-        'acidity' => trSi(fr, 'de la vivacité', 'crisp acidity'),
-        'minerality' => trSi(fr, 'de la minéralité', 'minerality'),
-        _ => trSi(fr, 'de ce style', 'this style'),
-      };
+  static String _quoi(String axe, bool fr, {String? famille}) {
+    final rouge = famille == FamillesDeVins.rouge;
+    final blanc = famille == FamillesDeVins.blanc;
+    return switch (axe) {
+      'tannin' => trSi(fr, 'des tanins', 'tannins'),
+      'body' when rouge => trSi(fr, 'des rouges amples', 'full-bodied reds'),
+      'body' when blanc => trSi(fr, 'des blancs amples', 'full-bodied whites'),
+      'body' => trSi(fr, 'des vins amples', 'full-bodied wines'),
+      'oak' when rouge => trSi(fr, 'du boisé sur un rouge', 'oak in a red'),
+      'oak' when blanc => trSi(fr, 'du boisé sur un blanc', 'oak in a white'),
+      'oak' => trSi(fr, 'du boisé', 'oak'),
+      'acidity' when rouge => trSi(fr, 'des rouges vifs', 'crisp reds'),
+      'acidity' when blanc => trSi(fr, 'des blancs vifs', 'crisp whites'),
+      'acidity' => trSi(fr, 'de la vivacité', 'crisp acidity'),
+      'sweetness' => trSi(fr, 'des vins tendres ou doux', 'off-dry and sweet wines'),
+      'evolution' when rouge => trSi(fr, 'des rouges évolués', 'mature reds'),
+      'evolution' when blanc => trSi(fr, 'des blancs évolués', 'mature whites'),
+      'evolution' => trSi(fr, 'des vins évolués', 'mature wines'),
+      'minerality' => trSi(fr, 'de la minéralité', 'minerality'),
+      _ => trSi(fr, 'de ce style', 'this style'),
+    };
+  }
 
   /// La phrase qui accompagne la suggestion. Un palais encore deviné lit sa chance de plaisir
   /// « ≈ 71 % », comme partout ailleurs (V2.3 · K5).
   static String phrase(SuggestionDeFrontiere<Object?> s, String nomDuVin, bool fr, {bool palaisDevine = false}) {
-    final quoi = switch (s.axe) {
-      'tannin' => trSi(fr, 'des tanins', 'tannins'),
-      'body' => trSi(fr, 'des vins amples', 'full-bodied wines'),
-      'oak' => trSi(fr, 'du boisé', 'oak'),
-      'acidity' => trSi(fr, 'de la vivacité', 'crisp acidity'),
-      'minerality' => trSi(fr, 'de la minéralité', 'minerality'),
-      _ => trSi(fr, 'de ce style', 'this style'),
-    };
+    final quoi = _quoi(s.axe, fr, famille: s.famille);
     final comment = _commentLeVinLeMontre(s.axe, s.valeurDuVin, fr);
     final risque = s.plaisir == null
         ? ''
@@ -250,6 +268,8 @@ class TasteFrontierEngine {
       'oak' => haut ? (trSi(fr, 'nettement boisé', 'clearly oaked')) : (trSi(fr, 'sans bois', 'unoaked')),
       'acidity' => haut ? (trSi(fr, 'très vif', 'very crisp')) : (trSi(fr, 'tout en rondeur', 'soft and round')),
       'minerality' => haut ? (trSi(fr, 'très minéral', 'very mineral')) : (trSi(fr, 'plus sur le fruit', 'more fruit-driven')),
+      'sweetness' => haut ? (trSi(fr, 'tendre ou doux', 'off-dry or sweet')) : (trSi(fr, 'bien sec', 'bone dry')),
+      'evolution' => haut ? (trSi(fr, 'déjà évolué', 'already mature')) : (trSi(fr, 'tout jeune', 'very young')),
       _ => '',
     };
   }
@@ -257,46 +277,50 @@ class TasteFrontierEngine {
 
 /// Ce qu'un vin permet de juger, axe par axe (clés de `TasteProfile.axisKeys`, sur 10).
 class ProfilDeVin {
+  /// Clés de [AxesDuPalais], sur 10.
   final Map<String, double> axes;
+
+  /// La famille du vin (`rouge`, `blanc`), nulle pour un muté ou un spiritueux : il
+  /// n'apprend rien au palais des vins de table.
+  final String? famille;
 
   /// Vrai si les valeurs sont estimées (cépages, région, élevage) plutôt que mesurées.
   final bool estime;
 
-  const ProfilDeVin(this.axes, {this.estime = false});
+  const ProfilDeVin(this.axes, {this.famille, this.estime = false});
 
-  /// Un vin de la carte : les mesures du scan, sur les seuls axes plausibles pour sa couleur.
-  factory ProfilDeVin.depuisLaCarte(MenuWine w) {
-    final m = w.metrics;
-    final blancOuBulles = w.isSparkling || (w.isWhite && !w.isRose && !w.isRed);
-    return ProfilDeVin({
-      if (w.isRed) 'tannin': m.tannins,
-      'body': m.body,
-      'oak': m.oak,
-      'acidity': m.acidity,
-      if (blancOuBulles) 'minerality': m.minerality,
-    });
-  }
+  /// Un vin de la carte : les mesures du scan, sa douceur écrite, son âge.
+  factory ProfilDeVin.depuisLaCarte(MenuWine w) => _depuis(ProfilDuVin.deLaCarte(w), estime: false);
 
   /// Un vin de la cave : pas de mesures, une estimation par cépages, région et élevage.
-  /// Seuls les axes que ces données tranchent vraiment sont renseignés : un rouge dont
-  /// on ignore les cépages ne dit rien de ses tanins.
-  factory ProfilDeVin.depuisLaCave(Wine w) {
+  /// Seuls les axes que ces données tranchent vraiment sont renseignés : un rouge dont on
+  /// ignore les cépages ne dit rien de ses tanins. S'y ajoutent ce qui est sûr (V2.6) : une
+  /// douceur écrite sur l'étiquette, l'âge d'un vin millésimé.
+  factory ProfilDeVin.depuisLaCave(Wine w, {DateTime? le}) {
     final type = w.type.toLowerCase();
-    // Un vin muté ou moelleux ne dit rien d'un palais de vins secs : un porto est « ample »
-    // par son alcool et son sucre, pas par ce qu'on aime d'un rouge. Le radar proposait le
-    // Velhotes 10 ans pour apprendre « ce que vous pensez des vins amples » (17/10).
-    if (w.tracksFillLevel || RegExp(r'dessert|moelleux|liquoreux|sweet|dulce|dolce').hasMatch(type)) {
-      return const ProfilDeVin({}, estime: true);
+    final famille = TasteProfile.familleDe(w.type);
+    if (famille == null || w.tracksFillLevel) return ProfilDeVin(const {}, famille: famille, estime: true);
+    final complet = ProfilDuVin.deLaCave(w, le: le);
+    final surs = {
+      for (final a in complet.surs)
+        if (complet.valeur(a) case final v?) a: v * 10,
+    };
+    // Un moelleux est ample par son sucre, pas par ce qu'on aime d'un vin sec : il dit sa
+    // douceur et son âge, rien d'autre. Le radar proposait le Velhotes 10 ans pour apprendre
+    // « ce que vous pensez des vins amples » (17/10).
+    if (RegExp(r'dessert|moelleux|liquoreux|sweet|dulce|dolce').hasMatch(type) ||
+        (surs[AxesDuPalais.douceur] ?? 0) >= 6) {
+      return ProfilDeVin(surs, famille: famille, estime: true);
     }
-    final rouge = type.contains('rouge') || type.contains('red');
+    final rouge = famille == FamillesDeVins.rouge;
     final bulles = type.contains('effervescent') || type.contains('sparkling') || type.contains('champagne');
-    final blanc = type.contains('blanc') || type.contains('white');
+    final blanc = !rouge;
     final cepages = w.grapes.map((g) => g.name.toLowerCase()).join(' ');
     final lieu = '${w.region} ${w.appellation ?? ''} ${w.subRegion ?? ''}'.toLowerCase();
     final elevage = '${w.elevageType ?? ''} ${w.barrelAging ?? ''}'.toLowerCase();
     bool a(List<String> mots, String t) => mots.any(t.contains);
 
-    final axes = <String, double>{};
+    final axes = <String, double>{...surs};
     if (rouge) {
       if (a(['cabernet', 'syrah', 'nebbiolo', 'tannat', 'mourv', 'malbec', 'sagrantino'], cepages) ||
           a(['bandol', 'madiran', 'barolo', 'cahors', 'pauillac', 'saint-estèphe', 'hermitage', 'cornas'], lieu)) {
@@ -312,7 +336,6 @@ class ProfilDeVin {
           a(['chablis', 'sancerre', 'muscadet', 'pouilly-fumé', 'champagne'], lieu) ||
           bulles) {
         axes['acidity'] = 8.5;
-        axes['minerality'] = 8;
       }
       if (a(['meursault', 'puligny', 'chassagne'], lieu)) {
         axes['body'] = 7;
@@ -327,14 +350,26 @@ class ProfilDeVin {
     if ((w.alcoholPct ?? 0) >= 14.5) {
       axes['body'] = (axes['body'] ?? 6) + 1;
     }
-    return ProfilDeVin(axes, estime: true);
+    return ProfilDeVin(axes, famille: famille, estime: true);
   }
+
+  static ProfilDeVin _depuis(ProfilDuVin p, {required bool estime, bool sansCorps = false}) => ProfilDeVin(
+        {
+          for (final e in p.valeurs.entries)
+            if (!(sansCorps && e.key == AxesDuPalais.corps)) e.key: e.value * 10,
+        },
+        famille: p.famille,
+        estime: estime,
+      );
 }
 
 /// Un axe encore deviné, et la bouteille qui le trancherait.
 class AxeAApprendre<T> {
-  /// Clé de `TasteProfile.axisKeys`.
+  /// Clé de [AxesDuPalais].
   final String axe;
+
+  /// La famille du palais que la bouteille renseignerait.
+  final String famille;
 
   /// Les palais qui l'ignorent encore (confiance sous `seuilObserve`).
   final List<TasteProfile> ignorants;
@@ -348,6 +383,7 @@ class AxeAApprendre<T> {
 
   const AxeAApprendre({
     required this.axe,
+    required this.famille,
     required this.ignorants,
     required this.ignorance,
     required this.bouteille,
@@ -358,9 +394,12 @@ class AxeAApprendre<T> {
 class SuggestionDeFrontiere<T> {
   final T vin;
 
-  /// L'axe que le vin trancherait (clé de `TasteProfile.axisKeys`).
+  /// L'axe que le vin trancherait (clé de [AxesDuPalais]).
   final String axe;
   final double gain;
+
+  /// La famille du palais qu'il renseignerait.
+  final String? famille;
 
   /// Plaisir prédit (0–100), ou nul s'il est inconnu.
   final double? plaisir;
@@ -368,5 +407,5 @@ class SuggestionDeFrontiere<T> {
   /// La valeur du vin sur cet axe, sur 10.
   final double valeurDuVin;
 
-  const SuggestionDeFrontiere(this.vin, this.axe, this.gain, this.plaisir, this.valeurDuVin);
+  const SuggestionDeFrontiere(this.vin, this.axe, this.gain, this.plaisir, this.valeurDuVin, {this.famille});
 }

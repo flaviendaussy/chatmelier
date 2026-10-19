@@ -5,6 +5,7 @@ import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
 import '../../auth/data/taste_profile_service.dart';
+import '../../cellar/domain/wine.dart';
 import '../domain/questionnaire_de_degustation.dart';
 import '../domain/tasting_questionnaire_result.dart';
 
@@ -37,13 +38,25 @@ class DegustationsPartagees {
       final resultat = TastingQuestionnaireResult.fromJson(
           {...Map<String, dynamic>.from(q), 'profile_id': principal.id, 'profile_name': principal.name});
       if (r['defaut'] == null) {
+        final cepages = [for (final g in (vin['cepages'] as List? ?? const [])) '$g'];
         await _gout.applyQuestionnaireResult(
           result: resultat,
           wineRegion: vin['region']?.toString(),
-          wineGrapes: [for (final g in (vin['cepages'] as List? ?? const [])) '$g'],
+          wineGrapes: cepages,
           wineType: vin['couleur']?.toString(),
           tastingId: journal,
           wineName: vin['nom']?.toString(),
+          // Le vin entier (V2.6) : son millésime dit son âge, son nom sa douceur.
+          vin: Wine(
+            id: r['wine_id']?.toString() ?? '',
+            name: vin['nom']?.toString() ?? '',
+            type: vin['couleur']?.toString() ?? '',
+            country: vin['pays']?.toString() ?? '',
+            region: vin['region']?.toString() ?? '',
+            producer: vin['producteur']?.toString(),
+            vintage: int.tryParse('${vin['millesime'] ?? ''}'),
+            grapes: [for (final c in cepages) if (c.trim().isNotEmpty) Grape(name: c.trim())],
+          ),
         );
       } else {
         AppLogger.info('DEGUSTATION_PARTAGEE', 'Palais non modifié : bouteille défectueuse (${r['defaut']})');

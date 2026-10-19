@@ -6,6 +6,7 @@ import 'package:chatmelier/shared/providers/cellar_provider.dart';
 import 'package:chatmelier/shared/utils/langue.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:chatmelier/features/auth/domain/palais.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// 11/10, Flavien : « savoir vite quelles bouteilles en cave pourraient améliorer les axes
@@ -64,7 +65,8 @@ void main() {
       );
 
   testWidgets('votre radar : axe par axe, la bouteille prête à boire qui le trancherait', (tester) async {
-    const moi = TasteProfile(id: 'moi', name: 'Moi', isPrimary: true, axisObservations: {'tannin': 2});
+    const moi = TasteProfile(
+        id: 'moi', name: 'Moi', isPrimary: true, palais: {'rouge': {'tannin': 0.5}}, observationsPalais: {'rouge': {'tannin': 2}});
     await tester.pumpWidget(ecran(const BouteillesQuiApprendraient(profil: moi, couleur: Colors.red)));
     await tester.pumpAndSettle();
 
@@ -78,28 +80,39 @@ void main() {
     expect(find.textContaining('Barolo'), findsNothing);
     expect(find.textContaining('Madiran'), findsNothing);
     expect(find.textContaining('Porto'), findsNothing);
+    // Un liquoreux se garde pour son plat : on ne le fait pas ouvrir pour apprendre.
     expect(find.textContaining('Sauternes'), findsNothing);
   });
 
   testWidgets('à deux : ce que Caro et vous ignorez, et la bouteille qui le dirait pour les deux', (tester) async {
-    const moi = TasteProfile(
-        id: 'moi', name: 'Moi', isPrimary: true, axisObservations: {'tannin': 12, 'body': 12, 'acidity': 12, 'minerality': 12});
-    const caro = TasteProfile(
-        id: 'caro', name: 'Caro', axisObservations: {'tannin': 12, 'body': 12, 'acidity': 12, 'minerality': 12});
+    const connus = {
+      'rouge': {'tannin': 0.5, 'body': 0.5, 'acidity': 0.5},
+      'blanc': {'body': 0.5, 'acidity': 0.5},
+    };
+    const observes = {
+      'rouge': {'tannin': 12, 'body': 12, 'acidity': 12},
+      'blanc': {'body': 12, 'acidity': 12},
+    };
+    const moi = TasteProfile(id: 'moi', name: 'Moi', isPrimary: true, palais: connus, observationsPalais: observes);
+    const caro = TasteProfile(id: 'caro', name: 'Caro', palais: connus, observationsPalais: observes);
     await tester.pumpWidget(ecran(const PourVousConnaitreTousLesDeux(a: moi, b: caro)));
     await tester.pumpAndSettle();
     expect(find.text('🧭 Pour mieux vous connaître tous les deux'), findsOneWidget);
     expect(
-        find.text('Je ne sais pas encore ce que Caro et vous pensez du boisé. '
+        find.text('Je ne sais pas encore ce que Caro et vous pensez du boisé sur un blanc. '
             'Votre Meursault ${annee - 6}, nettement boisé et prêt à boire, me le dirait pour vous deux.'),
         findsOneWidget);
   });
 
   testWidgets('un palais déjà connu sur tout ce que la cave sait trancher : rien à proposer', (tester) async {
-    const connu = TasteProfile(id: 'moi', name: 'Moi', isPrimary: true, axisObservations: {
-      'tannin': 12, 'body': 12, 'oak': 12, 'acidity': 12, 'minerality': 12,
-    });
-    await tester.pumpWidget(ecran(const BouteillesQuiApprendraient(profil: connu, couleur: Colors.red)));
+    final connu = TasteProfile(
+      id: 'moi',
+      name: 'Moi',
+      isPrimary: true,
+      palais: {for (final f in FamillesDeVins.toutes) f: {for (final a in AxesDuPalais.de(f)) a: 0.5}},
+      observationsPalais: {for (final f in FamillesDeVins.toutes) f: {for (final a in AxesDuPalais.de(f)) a: 12}},
+    );
+    await tester.pumpWidget(ecran(BouteillesQuiApprendraient(profil: connu, couleur: Colors.red)));
     await tester.pumpAndSettle();
     expect(find.textContaining('m\'apprendraient'), findsNothing);
   });

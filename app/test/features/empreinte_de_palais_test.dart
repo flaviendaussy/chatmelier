@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:chatmelier/features/auth/domain/empreinte_de_palais.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
-import 'package:chatmelier/features/auth/domain/wine_taste_radar.dart';
 import 'package:chatmelier/features/auth/presentation/partage_empreinte_sheet.dart';
 import 'package:chatmelier/features/auth/presentation/widgets/carte_empreinte.dart';
 import 'package:chatmelier/shared/utils/langue.dart';
@@ -10,10 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// L'empreinte de palais qu'on partage (P5) : rien d'affirmé qui ne soit observé.
+/// V2.6 : le palais d'une famille, celle que la personne connaît le mieux.
 void main() {
   tearDown(() => Langue.estFr = true);
 
-  // Un amateur de tanins, bien observé sur les tanins et le corps, jamais sur la minéralité.
+  // Un amateur de tanins, bien observé sur les tanins et le corps — un palais d'avant,
+  // appris toutes couleurs confondues.
   const amateur = TasteProfile(
     id: 'moi',
     name: 'Moi',
@@ -24,16 +25,30 @@ void main() {
     axisObservations: {'tannin': 12, 'body': 9, 'acidity': 6, 'oak': 2},
   );
 
-  EmpreinteDePalais lire(TasteProfile p) => EmpreinteDePalais.lire(p, WineTasteRadarCalculator.compute(p));
+  EmpreinteDePalais lire(TasteProfile p) => EmpreinteDePalais.lire(p);
 
-  test('« j\'aime » ne cite que des axes observés et hauts', () {
+  test('« j\'aime » ne cite que des axes observés et francs', () {
     final e = lire(amateur);
+    expect(e.famille, 'rouge', reason: 'les tanins ne se jugent que sur des rouges : c\'est le palais le mieux connu');
     expect(e.aime, ['tannin', 'body']);
-    expect(e.phraseAime, 'J\'aime les tanins et le corps');
-    expect(e.aDecouvrir, containsAll(['ripeFruit', 'spice']));
-    expect(e.aDecouvrir, isNot(contains('tannin')));
+    expect(e.phraseAime, 'J\'aime les tanins fermes et les rouges puissants');
+    expect(e.aDecouvrir, ['acidity', 'oak']);
+    expect(e.phraseADecouvrir, 'Encore à découvrir : la fraîcheur et le boisé');
     expect(e.degustations, 12);
     expect(e.phraseBase, startsWith('D\'après 12 dégustations'));
+  });
+
+  test('un goût du côté bas est un goût aussi ; un axe moyen ne dit rien', () {
+    const p = TasteProfile(
+      id: 'moi',
+      name: 'Moi',
+      isPrimary: true,
+      palais: {'blanc': {'oak': 0.1, 'acidity': 0.8, 'body': 0.5}},
+      observationsPalais: {'blanc': {'oak': 8, 'acidity': 8, 'body': 8}},
+    );
+    final e = EmpreinteDePalais.lire(p, famille: 'blanc');
+    expect(e.phraseAime, 'J\'aime les blancs sans bois et les blancs vifs');
+    expect(e.aime, isNot(contains('body')));
   });
 
   test('un palais déclaré mais jamais goûté n\'aime encore rien', () {
@@ -52,7 +67,7 @@ void main() {
   test('en anglais', () {
     Langue.estFr = false;
     final e = lire(amateur);
-    expect(e.phraseAime, 'I love tannins and body');
+    expect(e.phraseAime, 'I love firm tannins and full-bodied reds');
     expect(e.phraseADecouvrir, startsWith('Still to discover: '));
     expect(e.phraseBase, startsWith('Based on 12 tastings'));
   });
@@ -66,7 +81,7 @@ void main() {
     ));
     await tester.pump();
     expect(find.text('Flavien'), findsOneWidget);
-    expect(find.text('J\'aime les tanins et le corps'), findsOneWidget);
+    expect(find.text('J\'aime les tanins fermes et les rouges puissants'), findsOneWidget);
 
     final png = await tester.runAsync<Uint8List?>(() => PartageEmpreinteSheet.capturer(cle));
     expect(png, isNotNull);

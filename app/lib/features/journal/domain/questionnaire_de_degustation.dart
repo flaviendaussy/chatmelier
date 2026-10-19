@@ -78,9 +78,47 @@ class ReponsesDuConvive {
   double longueur = 0.5;
   double effervescence = 0.5;
 
+  /// Ce que la personne a décrit du vin (V2.6) : `acidity`, `tannin`, `body`, `length`,
+  /// `effervescence`, `minerality`. Un curseur qu'elle n'a pas touché ne part pas : ses
+  /// 0,5 se lisaient comme « moyen », et le palais l'apprenait.
+  final Set<String> decrits = {};
+
+  /// Le « pour vous » (V2.6 · P6) : axe du palais → `trop`, `juste` ou `pas_assez`.
+  final Map<String, String> jugements = {};
+
   /// `yes`, `maybe`, `no`.
   String racheter = 'maybe';
-  String moment = 'repas';
+
+  /// Nul tant que la personne n'a rien choisi : le moment ne se suppose pas.
+  String? moment;
+
+  /// Le « pour vous » d'un axe ; le même choix une seconde fois le retire.
+  void juger(String axe, String sens) {
+    if (jugements[axe] == sens) {
+      jugements.remove(axe);
+    } else {
+      jugements[axe] = sens;
+    }
+  }
+
+  /// Un curseur de description touché : sa valeur part avec la dégustation.
+  void decrire(String quoi, double v) {
+    decrits.add(quoi);
+    switch (quoi) {
+      case 'acidity':
+        acidite = v;
+      case 'tannin':
+        tanins = v;
+      case 'body':
+        corps = v;
+      case 'length':
+        longueur = v;
+      case 'effervescence':
+        effervescence = v;
+      case 'minerality':
+        mineralite = v;
+    }
+  }
   Set<String> aime = {};
   Set<String> aimePas = {};
 
@@ -126,14 +164,14 @@ class ReponsesDuConvive {
     texture = id;
     switch (id) {
       case 'silky_lacy':
-        tanins = 0.40;
-        acidite = 0.55;
+        decrire('tannin', 0.40);
+        decrire('acidity', 0.55);
       case 'crisp_salivating':
-        acidite = 0.80;
-        mineralite = 0.75;
+        decrire('acidity', 0.80);
+        decrire('minerality', 0.75);
       case 'dense_structured':
-        corps = 0.80;
-        tanins = 0.80;
+        decrire('body', 0.80);
+        decrire('tannin', 0.80);
     }
   }
 
@@ -147,10 +185,10 @@ class ReponsesDuConvive {
     switch (id) {
       case 'crunchy_tart':
         aromes.add('fruits_rouges');
-        acidite = 0.70;
+        decrire('acidity', 0.70);
       case 'deep_ripe':
         aromes.add('fruits_noirs');
-        corps = 0.70;
+        decrire('body', 0.70);
       case 'spicy_herbal':
         aromes.add('epices_vives');
     }
@@ -172,17 +210,18 @@ class ReponsesDuConvive {
     this.note = note;
     this.visage = visage;
     this.aromes = aromes;
-    this.acidite = acidite;
-    if (tanins != null && vin.demandeLesTanins) this.tanins = tanins;
-    if (mineralite != null && !vin.demandeLesTanins) this.mineralite = mineralite;
-    this.corps = corps;
-    this.longueur = longueur;
+    decrire('acidity', acidite);
+    if (tanins != null && vin.demandeLesTanins) decrire('tannin', tanins);
+    if (mineralite != null && !vin.demandeLesTanins) decrire('minerality', mineralite);
+    decrire('body', corps);
+    decrire('length', longueur);
   }
 
   /// Ce que le palais apprendra de ce tour.
   ///
   /// Le plat et l'accord ne partent que si le vin a été bu avec un plat ; les tanins, la
-  /// minéralité et l'effervescence, que si la couleur les a fait demander.
+  /// minéralité et l'effervescence, que si la couleur les a fait demander ; une description,
+  /// que si la personne l'a donnée (V2.6).
   TastingQuestionnaireResult resultat({
     required String profileId,
     required String profileName,
@@ -203,14 +242,15 @@ class ReponsesDuConvive {
       fruitProfile: fruit,
       isExpressMode: express,
       aromaIntensity: intensiteAromatique,
-      acidity: acidite,
-      tannins: vin.demandeLesTanins ? tanins : null,
-      mineralite: vin.demandeLaMineralite ? mineralite : null,
-      body: corps,
+      acidity: decrits.contains('acidity') ? acidite : null,
+      tannins: vin.demandeLesTanins && decrits.contains('tannin') ? tanins : null,
+      mineralite: vin.demandeLaMineralite && decrits.contains('minerality') ? mineralite : null,
+      body: decrits.contains('body') ? corps : null,
       length: longueur,
-      effervescence: vin.demandeLEffervescence ? effervescence : null,
+      effervescence: vin.demandeLEffervescence && decrits.contains('effervescence') ? effervescence : null,
+      jugements: Map<String, String>.from(jugements),
       wouldBuyAgain: racheter,
-      idealMoment: moment,
+      idealMoment: moment ?? '',
       whatLikedMost: Set<String>.from(aime),
       whatDislikedMost: Set<String>.from(aimePas),
       profileId: profileId,

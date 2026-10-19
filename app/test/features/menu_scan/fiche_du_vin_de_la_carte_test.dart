@@ -23,9 +23,13 @@ void main() {
     favoriteRegions: const ['Bourgogne'],
     favoriteGrapes: const ['Pinot Noir'],
     dislikedCharacteristics: const ['Trop boisé'],
-    avgTanninPreference: 0.4,
-    avgBodyPreference: 0.5,
-    axisObservations: {for (final k in TasteProfile.axisKeys) k: 12},
+    // Un palais des rouges bien établi (V2.6), proche du Volnay.
+    palais: const {
+      'rouge': {'tannin': 0.45, 'body': 0.55, 'acidity': 0.5, 'oak': 0.4, 'sweetness': 0.05},
+    },
+    observationsPalais: const {
+      'rouge': {'tannin': 20, 'body': 20, 'acidity': 20, 'oak': 20, 'sweetness': 20},
+    },
   );
 
   ScannedMenu carte({double scoreDuVolnayAuScan = 99}) => ScannedMenu(
@@ -90,8 +94,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('POUR VOUS'), findsOneWidget);
-    expect(find.text('61 %'), findsOneWidget);
-    expect(find.text('Un peu loin de vos goûts'), findsOneWidget);
+    expect(find.text('46 %'), findsOneWidget);
+    expect(find.text('Loin de vos goûts'), findsOneWidget);
     expect(find.text('Un boisé marqué, que vous n\'aimez pas'), findsOneWidget);
     expect(find.text('−25'), findsOneWidget);
     expect(find.text('Vous aimez les rouges'), findsOneWidget);

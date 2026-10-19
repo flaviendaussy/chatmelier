@@ -2,6 +2,29 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [À venir] — Un palais par famille (branche `palais-six-axes`, lot P)
+
+> « Le radar suffit-il pour connaître un palais ? » (Flavien, 19/10) — non : il disait « moyen » de qui aime les blancs légers et les rouges puissants, ignorait la douceur et l'âge, et demandait six curseurs pour l'apprendre.
+
+### 🍷 Ce qui change pour vous
+- **Deux palais : les rouges, et les blancs, rosés et bulles.** Chaque famille apprend à part ; le radar, la carte du profil, l'empreinte et la fiche d'un ami ont un choix Rouges / Blancs.
+- **Les axes qui comptent** : fraîcheur, douceur, corps, tanins (rouges), boisé, évolution — cinq par radar. La douceur arrive (le Sancerre détesté de qui aime les vins tendres n'est plus « taillé pour vous ») ; l'âge d'un vin se lit sur son millésime (une Gran Reserva n'est plus l'égale d'une Crianza de l'année). Le fruit, les épices et la minéralité deviennent des étiquettes : les arômes que vous citez le plus.
+- **Une question au lieu des curseurs** : « Ses tanins, pour vous ? » — trop, juste, pas assez —, sur l'axe que votre palais connaît le moins, là où le vin tranche. Le reste se précise si l'on veut ; décrire le vin reste possible, replié, et un curseur qu'on ne touche pas ne compte plus. La Gorgée pose la même question ; le moment ne se suppose plus.
+- **Le palais de départ et la page invité en mots simples** : sec ou doux, rond ou vif, léger ou puissant, tanins souples ou fermes, sans bois ou boisé — pas de vins à connaître. Un curseur pas touché ne déclare rien. Nouveau point de départ « Blancs tendres ou doux », nouvelle aversion « Vins sucrés » ; « Personnaliser » déclare un point de départ au lieu de réécrire le palais appris.
+- **Comparer deux palais honnêtement** : famille par famille, sur ce qu'on sait des deux seulement (« Affinité à venir » plutôt qu'un 99 % inventé), les goûts partagés, les écarts dits à la personne (« Caro aime les blancs plus doux que vous ») et un vin pour le duo.
+- **L'empreinte partagée** : celle des rouges ou des blancs ; « J'aime les tanins fermes et les rouges puissants » — un goût franc d'un côté comme de l'autre (« les blancs sans bois »).
+- **Les scores des cartes** : chaque vin face au palais de sa famille ; la couleur, la région ou le cépage ne suffisent plus à faire un « Taillé pour vous ».
+- Corrigé en chemin : une déception poussait d'autant plus un axe qu'il était proche du vin ; l'invite du sommelier prêtait à tout proche peu connu « un seul vin (un blanc) » et la Galice.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Modèle* : `TasteProfile.palais` / `observationsPalais` (JSON `palais`, `observations_palais`) ; `avg…Preference` et `axis_observations` figés, repris par famille (`valeurPalais`, `observationsSur` : part selon les couleurs aimées, les tanins en entier aux rouges). `PalaisDeFamille.connaissance` sur les axes du radar (`AxesDuPalais.duRadar`).
+- *Apprentissage* : `ApprentissageDuPalais` — « pour vous », défauts nommés, bouche décrite, demi-pas déduit d'un vin aimé, axes sûrs (millésime, douceur écrite) ; registre `axe:<famille>:<axe>`, annulable.
+- *Vin* : `ProfilDuVin` (cave et carte), `DouceurDuVin`, `EvolutionDuVin`.
+- *Moteurs par famille* : explication du score, table (`GuestProfile.palaisPour`, `palaisDistants` envoyés avec le convive, `radar` gardé pour les hôtes d'avant), accueil, frontière, angle mort, carte des terroirs, parcours ; archétype lu sur les palais par famille.
+- *Questionnaire* : `QuestionPourVous`, `ReponsesDuConvive.jugements` / `decrits`, `TastingQuestionnaireResult.jugements` ; `PalaisSaisi` (domaine) pour l'accueil, la page invité et les convives de démonstration.
+- *Historique* : instantanés par famille (`rouge:tannin`), dérive continue avec ceux d'avant. *Palais distant* : un palais appris par famille n'est plus « vierge ».
+- *Traductions* : espagnol et italien à jour (4 056 phrases).
+
 ## [v1.11.0+84] — 2026-10-19
 
 > Les demandes du 11 au 17/10 (Flavien, Caro, Gandalf, jld), la connexion de Camille (18/10) et la revue complète du 18/10.

@@ -9,10 +9,11 @@ import '../../../shared/utils/langue.dart';
 
 /// Le palais de départ, proposé une fois à la première ouverture (retour du 28/09).
 ///
-/// Les mêmes six curseurs qu'à table. Ce que la personne déclare devient un A PRIORI :
-/// aucune observation n'est comptée, la confiance affichée reste nulle, et la première
-/// vraie dégustation pèse davantage que la déclaration (voir
-/// `WineTasteRadarCalculator.compute`). Refusable : « Plus tard ».
+/// Les mêmes cinq curseurs qu'à table, en mots simples — pas de paires de vins à connaître
+/// (V2.6). Ce que la personne déclare devient un A PRIORI : aucune observation n'est
+/// comptée, la confiance affichée reste nulle, et la déclaration s'efface devant les vraies
+/// dégustations (voir `TasteProfile.palaisPour`). Un curseur qu'elle n'a pas touché ne
+/// déclare rien. Refusable : « Plus tard ».
 class PalaisDeDepartSheet extends ConsumerWidget {
   const PalaisDeDepartSheet({super.key});
 
@@ -39,7 +40,12 @@ class PalaisDeDepartSheet extends ConsumerWidget {
     }
   }
 
-  static const _aversionsDuProfil = {'tanin': 'Trop tannique', 'boisé': 'Trop boisé', 'acide': 'Trop acide'};
+  static const _aversionsDuProfil = {
+    'tanin': 'Trop tannique',
+    'boisé': 'Trop boisé',
+    'acide': 'Trop acide',
+    'sucré': 'Trop sucré',
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,15 +79,7 @@ class PalaisDeDepartSheet extends ConsumerWidget {
               onJusteMonPrenom: () => Navigator.of(context).pop(),
               onValider: (p) async {
                 await ref.read(tasteProfileServiceProvider).enregistrerPalaisDeDepart(
-                  axes: {
-                    'tannin': p.tanins,
-                    'body': p.corps,
-                    'acidity': p.acidite,
-                    'oak': p.boise,
-                    'ripeFruit': p.fruit,
-                    'freshFruit': p.fruit,
-                    'minerality': p.mineralite,
-                  },
+                  axes: p.dits,
                   couleurs: p.couleurs.toList(),
                   aversions: [for (final a in p.aversions) _aversionsDuProfil[a] ?? a],
                 );

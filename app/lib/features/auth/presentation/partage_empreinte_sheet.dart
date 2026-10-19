@@ -9,6 +9,7 @@ import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
 import '../domain/taste_profile.dart';
 import 'widgets/carte_empreinte.dart';
+import 'widgets/radar_du_palais.dart';
 
 /// Montre l'empreinte telle qu'elle partira, puis la partage en image (P5).
 ///
@@ -18,14 +19,17 @@ class PartageEmpreinteSheet extends StatefulWidget {
   final TasteProfile profil;
   final String? nom;
 
-  const PartageEmpreinteSheet({super.key, required this.profil, this.nom});
+  /// La famille montrée d'abord : celle de l'écran d'où l'on vient (V2.6).
+  final String? famille;
 
-  static Future<void> show(BuildContext context, {required TasteProfile profil, String? nom}) {
+  const PartageEmpreinteSheet({super.key, required this.profil, this.nom, this.famille});
+
+  static Future<void> show(BuildContext context, {required TasteProfile profil, String? nom, String? famille}) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => PartageEmpreinteSheet(profil: profil, nom: nom),
+      builder: (_) => PartageEmpreinteSheet(profil: profil, nom: nom, famille: famille),
     );
   }
 
@@ -46,6 +50,7 @@ class PartageEmpreinteSheet extends StatefulWidget {
 class _PartageEmpreinteSheetState extends State<PartageEmpreinteSheet> {
   final _carte = GlobalKey();
   bool _enCours = false;
+  late String _famille = widget.famille ?? widget.profil.familleDominante;
 
   Future<void> _partager() async {
     setState(() => _enCours = true);
@@ -100,6 +105,8 @@ class _PartageEmpreinteSheetState extends State<PartageEmpreinteSheet> {
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
+          const SizedBox(height: 10),
+          ChoixDeFamille(famille: _famille, onChanged: (f) => setState(() => _famille = f)),
           const SizedBox(height: 12),
           Flexible(
             child: FittedBox(
@@ -107,7 +114,7 @@ class _PartageEmpreinteSheetState extends State<PartageEmpreinteSheet> {
                 borderRadius: BorderRadius.circular(16),
                 child: RepaintBoundary(
                   key: _carte,
-                  child: CarteEmpreinte(profil: widget.profil, nom: widget.nom),
+                  child: CarteEmpreinte(profil: widget.profil, nom: widget.nom, famille: _famille),
                 ),
               ),
             ),

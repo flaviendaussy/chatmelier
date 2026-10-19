@@ -1,4 +1,7 @@
 import 'dart:math' as math;
+import '../../auth/domain/palais.dart';
+import '../../auth/domain/taste_profile.dart';
+import '../../sommelier/domain/profil_du_vin.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import 'menu_wine.dart';
 import 'food_pairing_engine.dart';
@@ -186,6 +189,17 @@ class MenuTableMatcherEngine {
     return meilleure;
   }
 
+  /// Ce que pèse chaque axe à table : les quatre qui partagent le plus une tablée en plein,
+  /// l'élevage et l'âge moins.
+  static const Map<String, double> poidsALaTable = {
+    AxesDuPalais.tanins: 1.5,
+    AxesDuPalais.corps: 1.5,
+    AxesDuPalais.fraicheur: 1.5,
+    AxesDuPalais.douceur: 1.5,
+    AxesDuPalais.boise: 1.0,
+    AxesDuPalais.evolution: 0.8,
+  };
+
   static double _calculateGuestWineHarmony(
     MenuWine wine,
     GuestProfile guest,
@@ -195,7 +209,6 @@ class MenuTableMatcherEngine {
     double score = 70.0; // Base de départ
 
     final radar = wine.metrics;
-    final guestRadar = guest.radar;
 
     // 1. Concordance de couleur
     if (guest.favoriteTypes.isNotEmpty) {
@@ -206,6 +219,7 @@ class MenuTableMatcherEngine {
     }
 
     // 2. Vérification des aversions strictes
+    final profilDuVin = ProfilDuVin.deLaCarte(wine);
     for (final disliked in guest.dislikedCharacteristics) {
       final dl = disliked.toLowerCase();
       if (dl.contains('tanin') || dl.contains('tannin') || dl.contains('dur')) {
@@ -226,32 +240,31 @@ class MenuTableMatcherEngine {
           alerts.add(trSi(isFr, '{guest_name} n\'apprécie pas le boisé marqué : élevage puissant ({v1}/10).', '{guest_name} dislikes heavy oak: strong barrel ageing ({v1}/10).', {'guest_name': guest.name, 'v1': radar.oak.toStringAsFixed(1)}));
         }
       }
+      // V2.6 : la douceur est un axe, et une aversion qu'on peut dire à table.
+      if (dl.contains('sucr') || dl.contains('sweet')) {
+        final douceur = profilDuVin.sur10(AxesDuPalais.douceur) ?? 0;
+        if (douceur >= 4) {
+          score -= 30.0;
+          alerts.add(trSi(isFr, '{guest_name} n\'aime pas les vins sucrés : celui-ci est tendre ou doux.',
+              '{guest_name} dislikes sweet wines: this one is off-dry or sweet.', {'guest_name': guest.name}));
+        }
+      }
     }
 
-    // 3. Proximité des axes sensoriels. Chaque écart pèse selon ce qu'on sait de l'axe :
-    // plein s'il est observé ou déclaré ; deviné, il tranche moins sans flatter (V2.3 · K1, K5).
-    double ecart(double vin, double convive, String axe, double facteur) =>
-        facteur * guest.ecartSurLAxe(axe, vin - convive);
-
-    // Les tanins jugent les rouges ; la minéralité, les blancs, les rosés et les bulles.
-    if (!wine.isWhite && radar.tannins > 0.0) {
-      score -= ecart(radar.tannins, guestRadar.tannin, 'tannin', 1.5);
+    // 3. Proximité du palais de la famille du vin (V2.6) : un rouge face au palais des rouges
+    // du convive, un blanc face à celui des blancs — douceur, fraîcheur, corps, tanins,
+    // boisé, évolution. Chaque écart pèse selon ce qu'on sait de l'axe : plein s'il est
+    // observé ou déclaré ; deviné, il tranche moins sans flatter (V2.3 · K1, K5).
+    final famille = TasteProfile.familleDe(wine.wineType);
+    if (famille != null) {
+      final vin = profilDuVin;
+      final palais = guest.palaisPour(famille);
+      for (final axe in AxesDuPalais.de(famille)) {
+        final v = vin.sur10(axe);
+        if (v == null) continue;
+        score -= (poidsALaTable[axe] ?? 1.0) * guest.ecartSur(famille, axe, v - palais.valeur(axe));
+      }
     }
-    if (!wine.isRed) {
-      score -= ecart(radar.minerality, guestRadar.minerality, 'minerality', 1.0);
-    }
-
-    // Corps / Puissance
-    score -= ecart(radar.body, guestRadar.body, 'body', 1.5);
-
-    // Vivacité / Acidité
-    score -= ecart(radar.acidity, guestRadar.acidity, 'acidity', 1.5);
-
-    // Fruit
-    score -= ecart(radar.fruit, guestRadar.freshFruit, 'freshFruit', 1.0);
-
-    // Bois : il se goûte dans toutes les couleurs.
-    score -= ecart(radar.oak, guestRadar.oak, 'oak', 1.0);
 
     // Bonus si le cépage est dans les favoris du convive
     if (wine.grapes.isNotEmpty && guest.favoriteGrapes.isNotEmpty) {
@@ -430,17 +443,24 @@ class RedactionDesRaisons {
     return parts.join(trSi(fr, ' ; ', '; '));
   }
 
-  /// L'axe sur lequel ce vin s'éloigne le plus du palais de ce convive.
+  /// L'axe sur lequel ce vin s'éloigne le plus du palais de ce convive, pour sa famille.
   static String _ecart(MenuWine vin, GuestProfile g, bool fr) {
-    final m = vin.metrics;
-    final p = g.radar;
+    final famille = TasteProfile.familleDe(vin.wineType) ?? FamillesDeVins.rouge;
+    final profil = ProfilDuVin.deLaCarte(vin);
+    final palais = g.palaisPour(famille);
+    (String, String) mots(String axe) => switch (axe) {
+          AxesDuPalais.tanins => (trSi(fr, 'un peu tannique', 'a little tannic'), trSi(fr, 'trop souple', 'too soft')),
+          AxesDuPalais.corps => (trSi(fr, 'un peu puissant', 'a little powerful'), trSi(fr, 'un peu léger', 'a little light')),
+          AxesDuPalais.fraicheur => (trSi(fr, 'un peu vif', 'a little sharp'), trSi(fr, 'un peu mou', 'a little flat')),
+          AxesDuPalais.boise => (trSi(fr, 'un peu boisé', 'a little oaky'), trSi(fr, 'un peu simple', 'a little plain')),
+          AxesDuPalais.douceur => (trSi(fr, 'un peu doux', 'a little sweet'), trSi(fr, 'un peu sec', 'a little dry')),
+          _ => (trSi(fr, 'un peu évolué', 'a little too mature'), trSi(fr, 'un peu jeune', 'a little young')),
+        };
     final ecarts = <(double, String, String)>[
-      if (vin.isRed)
-        (m.tannins - p.tannin, trSi(fr, 'un peu tannique', 'a little tannic'), trSi(fr, 'trop souple', 'too soft')),
-      (m.body - p.body, trSi(fr, 'un peu puissant', 'a little powerful'), trSi(fr, 'un peu léger', 'a little light')),
-      (m.acidity - p.acidity, trSi(fr, 'un peu vif', 'a little sharp'), trSi(fr, 'un peu mou', 'a little flat')),
-      (m.oak - p.oak, trSi(fr, 'un peu boisé', 'a little oaky'), trSi(fr, 'un peu simple', 'a little plain')),
+      for (final axe in AxesDuPalais.de(famille))
+        if (profil.sur10(axe) case final v?) (v - palais.valeur(axe), mots(axe).$1, mots(axe).$2),
     ];
+    if (ecarts.isEmpty) return trSi(fr, 'un peu loin de ses goûts', 'a little far from their taste');
     ecarts.sort((a, b) => b.$1.abs().compareTo(a.$1.abs()));
     final e = ecarts.first;
     return e.$1 >= 0 ? e.$2 : e.$3;

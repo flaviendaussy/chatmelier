@@ -177,6 +177,9 @@ class TasteProfile {
     List<String>? concentrationsConnues,
     String? friendUserId,
     bool clearFriendUserId = false,
+    // Les axes à vider (clés de [axisKeys]) : un `null` passé ci-dessus garde la valeur, et
+    // défaire la dégustation qui a renseigné un axe doit le rendre vide.
+    Set<String> clearAxes = const {},
   }) {
     return TasteProfile(
       id: id ?? this.id,
@@ -190,14 +193,14 @@ class TasteProfile {
       aromaPreferences: aromaPreferences ?? this.aromaPreferences,
       likedTraits: likedTraits ?? this.likedTraits,
       dislikedTraits: dislikedTraits ?? this.dislikedTraits,
-      avgAcidityPreference: avgAcidityPreference ?? this.avgAcidityPreference,
-      avgTanninPreference: avgTanninPreference ?? this.avgTanninPreference,
-      avgBodyPreference: avgBodyPreference ?? this.avgBodyPreference,
-      avgOakPreference: avgOakPreference ?? this.avgOakPreference,
-      avgRipeFruitPreference: avgRipeFruitPreference ?? this.avgRipeFruitPreference,
-      avgSpicePreference: avgSpicePreference ?? this.avgSpicePreference,
-      avgFreshFruitPreference: avgFreshFruitPreference ?? this.avgFreshFruitPreference,
-      avgMineralityPreference: avgMineralityPreference ?? this.avgMineralityPreference,
+      avgAcidityPreference: clearAxes.contains('acidity') ? null : (avgAcidityPreference ?? this.avgAcidityPreference),
+      avgTanninPreference: clearAxes.contains('tannin') ? null : (avgTanninPreference ?? this.avgTanninPreference),
+      avgBodyPreference: clearAxes.contains('body') ? null : (avgBodyPreference ?? this.avgBodyPreference),
+      avgOakPreference: clearAxes.contains('oak') ? null : (avgOakPreference ?? this.avgOakPreference),
+      avgRipeFruitPreference: clearAxes.contains('ripeFruit') ? null : (avgRipeFruitPreference ?? this.avgRipeFruitPreference),
+      avgSpicePreference: clearAxes.contains('spice') ? null : (avgSpicePreference ?? this.avgSpicePreference),
+      avgFreshFruitPreference: clearAxes.contains('freshFruit') ? null : (avgFreshFruitPreference ?? this.avgFreshFruitPreference),
+      avgMineralityPreference: clearAxes.contains('minerality') ? null : (avgMineralityPreference ?? this.avgMineralityPreference),
       wishlistGrapes: wishlistGrapes ?? this.wishlistGrapes,
       cellarGrapes: cellarGrapes ?? this.cellarGrapes,
       idealMoments: idealMoments ?? this.idealMoments,

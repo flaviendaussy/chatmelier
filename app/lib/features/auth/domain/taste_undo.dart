@@ -119,16 +119,20 @@ class TasteUndo {
     );
   }
 
-  static TasteProfile _avecAxe(TasteProfile p, String axe, double? v) =>
-      switch (axe) {
-        'acidity' => p.copyWith(avgAcidityPreference: v),
-        'body' => p.copyWith(avgBodyPreference: v),
-        'tannin' => p.copyWith(avgTanninPreference: v),
-        'oak' => p.copyWith(avgOakPreference: v),
-        'ripeFruit' => p.copyWith(avgRipeFruitPreference: v),
-        'spice' => p.copyWith(avgSpicePreference: v),
-        'freshFruit' => p.copyWith(avgFreshFruitPreference: v),
-        'minerality' => p.copyWith(avgMineralityPreference: v),
-        _ => p,
-      };
+  static TasteProfile _avecAxe(TasteProfile p, String axe, double? v) {
+    // L'axe était vide : le rendre vide. Un `null` passé à `copyWith` garde la valeur en
+    // place — celle de la dégustation qu'on défait.
+    if (v == null) return p.copyWith(clearAxes: {axe});
+    return switch (axe) {
+      'acidity' => p.copyWith(avgAcidityPreference: v),
+      'body' => p.copyWith(avgBodyPreference: v),
+      'tannin' => p.copyWith(avgTanninPreference: v),
+      'oak' => p.copyWith(avgOakPreference: v),
+      'ripeFruit' => p.copyWith(avgRipeFruitPreference: v),
+      'spice' => p.copyWith(avgSpicePreference: v),
+      'freshFruit' => p.copyWith(avgFreshFruitPreference: v),
+      'minerality' => p.copyWith(avgMineralityPreference: v),
+      _ => p,
+    };
+  }
 }

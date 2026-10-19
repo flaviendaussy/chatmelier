@@ -14,6 +14,8 @@ import '../features/cellar/presentation/bottle_detail_screen.dart';
 import '../features/cellar/presentation/cellar_sharing_screen.dart';
 import '../features/prise_en_main/presentation/demonstration_apogee.dart';
 import '../features/cellar/presentation/pending_invites_screen.dart';
+import '../features/cellar/data/invitation_en_attente.dart';
+import '../features/offline/presentation/sync_provider.dart';
 import '../features/cellar/presentation/excel_import_screen.dart';
 import '../features/cellar/domain/bottle.dart';
 import '../features/scan/presentation/scan_screen.dart';
@@ -100,13 +102,30 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      return GardeDesRoutes.redirection(
+      // Une invitation par lien ouverte avant la connexion (V2.5 · Q3) : on y revient une fois,
+      // puis elle s'efface.
+      String? invitation;
+      if (isLoggedIn) {
+        try {
+          invitation = InvitationEnAttente.lire(ref.read(sharedPreferencesInstanceProvider));
+        } catch (_) {
+          invitation = null;
+        }
+      }
+      final cible = GardeDesRoutes.redirection(
         web: kIsWeb,
         connecte: isLoggedIn,
         chemin: state.matchedLocation,
         emplacement: state.uri.toString(),
         suite: state.uri.queryParameters['suite'],
+        invitationEnAttente: invitation,
       );
+      if (invitation != null && (cible == '/invite/$invitation' || state.matchedLocation.startsWith('/invite/'))) {
+        try {
+          unawaited(InvitationEnAttente.effacer(ref.read(sharedPreferencesInstanceProvider)));
+        } catch (_) {}
+      }
+      return cible;
     },
     routes: [
       // Auth routes
@@ -122,9 +141,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Deep link for invite codes
       GoRoute(
         path: '/invite/:code',
-        builder: (context, state) {
-          return const PendingInvitesScreen();
-        },
+        // Le code du lien d'invitation (V2.5 · Q3) : la route le jetait.
+        builder: (context, state) => PendingInvitesScreen(code: state.pathParameters['code']),
       ),
 
       // Blind Battle est masqué (V2.3 · I2) : un ancien QR mène à l'accueil plutôt qu'à une

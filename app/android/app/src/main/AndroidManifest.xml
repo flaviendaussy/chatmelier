@@ -53,6 +53,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="chatmelier.github.io" android:pathPrefix="/table" />
+                <!-- Le lien d'invitation à une cave (V2.5 · Q3) : l'app installée sait le lire depuis la 84. -->
+                <data android:scheme="https" android:host="chatmelier.github.io" android:pathPrefix="/invite/" />
             </intent-filter>
             <!-- Deep linking for Chatmelier OAuth / Magic Link callbacks -->
             <intent-filter>

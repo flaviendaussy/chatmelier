@@ -17,12 +17,17 @@ class GardeDesRoutes {
   /// [chemin] : la route demandée ; [emplacement] : son adresse complète (avec ses
   /// paramètres), gardée dans `suite` pour y revenir une fois le compte créé — un invité qui
   /// ouvre le lien d'une table dans l'app retrouve sa table après s'être inscrit.
+  ///
+  /// [invitationEnAttente] : le code d'une invitation par lien ouverte avant de se connecter
+  /// (V2.5 · Q3). Une fois connecté, on y revient, même quand la connexion s'est faite dans un
+  /// autre onglet (lien de l'e-mail, Google) et que `suite` s'est perdue.
   static String? redirection({
     required bool web,
     required bool connecte,
     required String chemin,
     String? emplacement,
     String? suite,
+    String? invitationEnAttente,
   }) {
     final connexion = estUneRouteDeConnexion(chemin);
     if (!connecte) {
@@ -33,6 +38,7 @@ class GardeDesRoutes {
       }
       return '/login';
     }
+    if (invitationEnAttente != null && !chemin.startsWith('/invite/')) return '/invite/$invitationEnAttente';
     if (connexion) return suiteSure(suite) ?? '/';
     return null;
   }

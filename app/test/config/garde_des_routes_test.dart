@@ -55,4 +55,24 @@ void main() {
     );
     expect(GardeDesRoutes.redirection(web: false, connecte: true, chemin: '/table', emplacement: '/table?t=KYZ3YZ'), isNull);
   });
+
+  group('une invitation par lien ouverte avant de se connecter (V2.5 · Q3)', () {
+    String? apres(String chemin, {bool connecte = true, String? suite}) => GardeDesRoutes.redirection(
+        web: true, connecte: connecte, chemin: chemin, emplacement: chemin, suite: suite, invitationEnAttente: 'a1b2c3d4e5f6');
+
+    test('une fois connecté, on y revient, même quand la suite s\'est perdue dans un autre onglet', () {
+      expect(apres('/'), '/invite/a1b2c3d4e5f6');
+      expect(apres('/login'), '/invite/a1b2c3d4e5f6');
+      expect(apres('/login', suite: '/cellar'), '/invite/a1b2c3d4e5f6');
+    });
+
+    test('sur l\'écran de l\'invitation, on reste', () {
+      expect(apres('/invite/a1b2c3d4e5f6'), isNull);
+    });
+
+    test('sans compte, rien ne change', () {
+      expect(apres('/', connecte: false), '/login');
+      expect(apres('/invite/a1b2c3d4e5f6', connecte: false), isNull);
+    });
+  });
 }

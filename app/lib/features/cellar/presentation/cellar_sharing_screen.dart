@@ -144,18 +144,13 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
 
       final code = res['invite_code'] as String;
       // L'app web actuelle (celle des tables) : l'autre domaine sert une version ancienne.
+      // L'origine seule (V2.5 · Q3) : partagé depuis cet écran, le chemin de la page donnait
+      // « …/cellar/<id>/share/invite/<code> », une adresse qui ne menait nulle part.
       String baseUrl = 'https://chatmelier.github.io';
       if (kIsWeb) {
         try {
           final origin = Uri.base.origin;
-          final path = Uri.base.path;
-          if (origin.isNotEmpty && origin != 'null') {
-            final normalizedPath = path.isEmpty ? '/' : (path.endsWith('/') ? path : '$path/');
-            baseUrl = '$origin$normalizedPath';
-            if (baseUrl.endsWith('/')) {
-              baseUrl = baseUrl.substring(0, baseUrl.length - 1);
-            }
-          }
+          if (origin.isNotEmpty && origin != 'null') baseUrl = origin;
         } catch (_) {}
       }
       final link = '$baseUrl/invite/$code';

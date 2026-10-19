@@ -9771,313 +9771,313 @@
   "fr": "Rejoins ma cave à vin \"{cellarName}\" sur Chatmelier !\n{link}",
   "en": "Join my wine cellar \"{cellarName}\" on Chatmelier!\n{link}",
   "es": "¡Únete a mi bodega «{cellarName}» en Chatmelier!\n{link}",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:164"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:159"
  },
  {
   "fr": "Impossible de créer le lien : {e}",
   "en": "Error creating link: {e}",
   "es": "No se pudo crear el enlace: {e}",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:169"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:164"
  },
  {
   "fr": "Erreur: {e}",
   "en": "Error: {e}",
   "es": "Error: {e}",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:195"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:190"
  },
  {
   "fr": "Retirer le membre",
   "en": "Remove member",
   "es": "Quitar al miembro",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:206"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:201"
  },
  {
   "fr": "Retirer {memberName} de cette cave ?",
   "en": "Remove {memberName} from this cellar?",
   "es": "¿Quitar a {memberName} de esta bodega?",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:207"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:202"
  },
  {
   "fr": "Partage - {cellarName}",
   "en": "Sharing - {cellarName}",
   "es": "Compartir - {cellarName}",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:275"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:270"
  },
  {
   "fr": "Inviter par email ou lien",
   "en": "Invite by email or link",
   "es": "Invitar por correo o enlace",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:299"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:294"
  },
  {
   "fr": "Adresse e-mail",
   "en": "Email address",
   "es": "Dirección de correo electrónico",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:307"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:302"
  },
  {
   "fr": "Lecture seule",
   "en": "Read only",
   "es": "Solo lectura",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:324"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:319"
  },
  {
   "fr": "Lecture & Écriture",
   "en": "Read & write",
   "es": "Lectura y escritura",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:334"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:329"
  },
  {
   "fr": "Envoi...",
   "en": "Sending...",
   "es": "Enviando...",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:350"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:345"
  },
  {
   "fr": "Inviter par e-mail",
   "en": "Invite by email",
   "es": "Invitar por correo",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:350"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:345"
  },
  {
   "fr": "Lien",
   "en": "Link",
   "es": "Enlace",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:357"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:352"
  },
  {
   "fr": "Mes Amis",
   "en": "My friends",
   "es": "Mis amigos",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:363"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:358"
  },
  {
   "fr": "Membres actuels",
   "en": "Current members",
   "es": "Miembros actuales",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:371"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:366"
  },
  {
   "fr": " (vous)",
   "en": " (you)",
   "es": " (tú)",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:389"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:384"
  },
  {
   "fr": "👑 Propriétaire",
   "en": "👑 Owner",
   "es": "👑 Propietario",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:394"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:389"
  },
  {
   "fr": "✍️ Lecture & Écriture",
   "en": "✍️ Read & write",
   "es": "✍️ Lectura y escritura",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:396"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:391"
  },
  {
   "fr": "👁️ Lecture seule",
   "en": "👁️ Read only",
   "es": "👁️ Solo lectura",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:397"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:392"
  },
  {
   "fr": "Passer en Lecture seule",
   "en": "Switch to read only",
   "es": "Pasar a solo lectura",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:424"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:419"
  },
  {
   "fr": "Passer en Lecture & Écriture",
   "en": "Switch to read & write",
   "es": "Pasar a lectura y escritura",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:425"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:420"
  },
  {
   "fr": "Invitations en attente",
   "en": "Pending Invites",
   "es": "Invitaciones pendientes",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:445"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:440"
  },
  {
   "fr": "Invité comme éditeur • En attente",
   "en": "Invited as Editor • Pending",
   "es": "Invitado como editor • Pendiente",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:460"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:455"
  },
  {
   "fr": "Invité comme lecteur • En attente",
   "en": "Invited as Viewer • Pending",
   "es": "Invitado como lector • Pendiente",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:461"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:456"
  },
  {
   "fr": "Annuler l'invitation",
   "en": "Revoke invite",
   "es": "Anular la invitación",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:467"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:462"
  },
  {
   "fr": "À propos du partage",
   "en": "About sharing",
   "es": "Sobre el uso compartido",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:488"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:483"
  },
  {
   "fr": "• Les lecteurs parcourent la cave et y cherchent\n• Les éditeurs ajoutent, sortent et gèrent les bouteilles\n• Les changements se synchronisent en direct sur tous les appareils\n• Chacun voit sa propre cave et celles qu'on lui partage",
   "en": "• Viewers can browse and search the cellar\n• Editors can add bottles, consume, and manage wines\n• Changes sync in real-time across all devices\n• Each person sees their own collection + shared ones",
   "es": "• Los lectores recorren la bodega y buscan en ella\n• Los editores añaden, sacan y gestionan las botellas\n• Los cambios se sincronizan en directo en todos los dispositivos\n• Cada uno ve su propia bodega y las que le comparten",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:493"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:488"
  },
  {
   "fr": "Demandes d'accès reçues ({requests_length})",
   "en": "Access requests ({requests_length})",
   "es": "Solicitudes de acceso recibidas ({requests_length})",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:532"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:527"
  },
  {
   "fr": "Un ami",
   "en": "A friend",
   "es": "Un amigo",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:540"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:535"
  },
  {
   "fr": "Sommelier ✍️",
   "en": "Sommelier ✍️",
   "es": "Sumiller ✍️",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:541"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:536"
  },
  {
   "fr": "Lecteur 👁️",
   "en": "Viewer 👁️",
   "es": "Lector 👁️",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:541"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:536"
  },
  {
   "fr": "{reqName} souhaite accéder en tant que {role}",
   "en": "{reqName} would like access as {role}",
   "es": "{reqName} quiere acceder como {role}",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:549"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:544"
  },
  {
   "fr": "Refuser",
   "en": "Decline",
   "es": "Rechazar",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:555"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:550"
  },
  {
   "fr": "Accepter",
   "en": "Accept",
   "es": "Aceptar",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:565"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:560"
  },
  {
   "fr": "Accès accordé !",
   "en": "Access granted!",
   "es": "¡Acceso concedido!",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:591"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:586"
  },
  {
   "fr": "Demande refusée.",
   "en": "Request declined.",
   "es": "Solicitud rechazada.",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:591"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:586"
  },
  {
   "fr": "Partager avec mes amis",
   "en": "Share with my friends",
   "es": "Compartir con mis amigos",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:615"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:610"
  },
  {
   "fr": "Ajouter un ami",
   "en": "Add a friend",
   "es": "Añadir un amigo",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:618"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:613"
  },
  {
   "fr": "Erreur amis: {err}",
   "en": "Friends error: {err}",
   "es": "Error de amigos: {err}",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:626"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:621"
  },
  {
   "fr": "Vous n'avez pas encore d'amis ajoutés. Ajoutez vos proches pour partager votre cave en 1 clic !",
   "en": "You haven't added any friends yet. Add the people close to you to share your cellar in one tap!",
   "es": "Aún no has añadido amigos. ¡Añade a tus allegados para compartir tu bodega en un toque!",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:640"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:635"
  },
  {
   "fr": "Rechercher",
   "en": "Search",
   "es": "Buscar",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:646"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:641"
  },
  {
   "fr": "✍️ Sommelier",
   "en": "✍️ Sommelier",
   "es": "✍️ Sumiller",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:680"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:675"
  },
  {
   "fr": "👁️ Lecteur",
   "en": "👁️ Viewer",
   "es": "👁️ Lector",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:680"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:675"
  },
  {
   "fr": "Donner accès",
   "en": "Give access",
   "es": "Dar acceso",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:692"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:687"
  },
  {
   "fr": "Accès cave pour {displayName}",
   "en": "Cellar access for {displayName}",
   "es": "Acceso a la bodega para {displayName}",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:719"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:714"
  },
  {
   "fr": "Donner accès à \"{cellarName}\" :",
   "en": "Give access to \"{cellarName}\":",
   "es": "Dar acceso a «{cellarName}»:",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:730"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:725"
  },
  {
   "fr": "Lecteur (Consultation 👁️)",
   "en": "Viewer (browse only 👁️)",
   "es": "Lector (consulta 👁️)",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:735"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:730"
  },
  {
   "fr": "Peut voir votre cave, vos bouteilles et vos fiches de dégustation.",
   "en": "Can see your cellar, your bottles and your tasting notes.",
   "es": "Puede ver tu bodega, tus botellas y tus fichas de cata.",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:736"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:731"
  },
  {
   "fr": "Sommelier Délégué (Éditeur ✍️)",
   "en": "Deputy sommelier (editor ✍️)",
   "es": "Sumiller delegado (editor ✍️)",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:742"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:737"
  },
  {
   "fr": "Peut ajouter, déplacer et consommer des bouteilles dans cette cave.",
   "en": "Can add, move and drink bottles in this cellar.",
   "es": "Puede añadir, mover y consumir botellas de esta bodega.",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:743"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:738"
  },
  {
   "fr": "🍾 Accès accordé à {displayName} !",
   "en": "🍾 Access granted to {displayName}!",
   "es": "🍾 ¡Acceso concedido a {displayName}!",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:774"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:769"
  },
  {
   "fr": "Confirmer l'accès",
   "en": "Confirm access",
   "es": "Confirmar el acceso",
-  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:787"
+  "ou": "lib/features/cellar/presentation/cellar_sharing_screen.dart:782"
  },
  {
   "fr": "Mes Caves à Vin",
@@ -10582,6 +10582,120 @@
   "en": "Save the rack",
   "es": "Guardar el mueble",
   "ou": "lib/features/cellar/presentation/furniture_editor_dialog.dart:750"
+ },
+ {
+  "fr": "Impossible de charger les invitations : {e}",
+  "en": "Couldn't load invitations: {e}",
+  "es": "No se pudieron cargar las invitaciones: {e}",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:89"
+ },
+ {
+  "fr": "🎉 Bienvenue ! Vous avez désormais accès à cette cave.",
+  "en": "🎉 Welcome! You now have access to this cellar.",
+  "es": "🎉 ¡Te damos la bienvenida! Ya tienes acceso a esta bodega.",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:106"
+ },
+ {
+  "fr": "Vous avez rejoint la cave : elle apparaît avec les vôtres.",
+  "en": "You've joined the cellar: it now appears with yours.",
+  "es": "Ya formas parte de la bodega: aparece junto a las tuyas.",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:157"
+ },
+ {
+  "fr": "Ce lien a déjà servi, ou il n'est plus valable. Demandez-en un nouveau à la personne qui vous l'a envoyé.",
+  "en": "This link has already been used, or is no longer valid. Ask the person who sent it for a new one.",
+  "es": "Este enlace ya se ha usado o ya no es válido. Pide uno nuevo a la persona que te lo envió.",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:172"
+ },
+ {
+  "fr": "Impossible de rejoindre la cave pour l'instant. Vérifiez votre connexion et réessayez.",
+  "en": "Couldn't join the cellar right now. Check your connection and try again.",
+  "es": "No se puede entrar en la bodega por ahora. Comprueba tu conexión y vuelve a intentarlo.",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:180"
+ },
+ {
+  "fr": "Une invitation à rejoindre une cave",
+  "en": "An invitation to join a cellar",
+  "es": "Una invitación para unirte a una bodega",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:210"
+ },
+ {
+  "fr": "Quelqu'un vous a envoyé ce lien pour partager sa cave. Une fois rejointe, elle apparaît avec les vôtres.",
+  "en": "Someone sent you this link to share their cellar. Once you join, it appears with yours.",
+  "es": "Alguien te ha enviado este enlace para compartir su bodega. Cuando te unas, aparecerá junto a las tuyas.",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:218"
+ },
+ {
+  "fr": "Connectez-vous, ou créez votre compte, pour rejoindre cette cave : vous reviendrez ici ensuite.",
+  "en": "Sign in, or create your account, to join this cellar: you'll come back here afterwards.",
+  "es": "Inicia sesión, o crea tu cuenta, para unirte a esta bodega: después volverás aquí.",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:220"
+ },
+ {
+  "fr": "Non merci",
+  "en": "No thanks",
+  "es": "No, gracias",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:232"
+ },
+ {
+  "fr": "Rejoindre la cave",
+  "en": "Join the cellar",
+  "es": "Unirme a la bodega",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:239"
+ },
+ {
+  "fr": "Cave sans nom",
+  "en": "Unnamed cellar",
+  "es": "Bodega sin nombre",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:257"
+ },
+ {
+  "fr": "Quelqu'un",
+  "en": "Someone",
+  "es": "Alguien",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:259"
+ },
+ {
+  "fr": "{nom} vous invite à modifier sa cave",
+  "en": "{nom} invited you to edit their cellar",
+  "es": "{nom} te invita a editar su bodega",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:280"
+ },
+ {
+  "fr": "{nom} vous invite à consulter sa cave",
+  "en": "{nom} invited you to browse their cellar",
+  "es": "{nom} te invita a ver su bodega",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:281"
+ },
+ {
+  "fr": "✏️ Vous pourrez ajouter, modifier et sortir des bouteilles",
+  "en": "✏️ You can add, edit, and consume bottles",
+  "es": "✏️ Podrás añadir, editar y sacar botellas",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:292"
+ },
+ {
+  "fr": "👁️ Vous pourrez parcourir la cave et y chercher",
+  "en": "👁️ You can browse and search the collection",
+  "es": "👁️ Podrás recorrer la bodega y buscar en ella",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:293"
+ },
+ {
+  "fr": "Invitations",
+  "en": "Invitations",
+  "es": "Invitaciones",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:325"
+ },
+ {
+  "fr": "Aucune invitation en attente",
+  "en": "No pending invites",
+  "es": "No hay invitaciones pendientes",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:347"
+ },
+ {
+  "fr": "Quand quelqu'un partagera sa cave avec vous,\nelle apparaîtra ici.",
+  "en": "When someone shares their cellar with you,\nit will appear here.",
+  "es": "Cuando alguien comparta su bodega contigo,\naparecerá aquí.",
+  "ou": "lib/features/cellar/presentation/pending_invites_screen.dart:352"
  },
  {
   "fr": "✅ Bouteille rangée dans {furniture_name} ({v1})",

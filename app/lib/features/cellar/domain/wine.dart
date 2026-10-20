@@ -313,7 +313,12 @@ class Wine {
     );
   }
 
-  bool get isSpirit {
+  /// Gardés par vin (20/10) : la cave les redemande à chaque carte affichée, à chaque
+  /// statut d'apogée, et ils lisent le nom mot à mot.
+  bool get isSpirit => _spiritueux[this] ??= _estUnSpiritueux();
+  static final Expando<bool> _spiritueux = Expando('isSpirit');
+
+  bool _estUnSpiritueux() {
     final t = type.toLowerCase().trim();
     if (t == 'spirit' ||
         t == 'spiritueux' ||
@@ -419,7 +424,10 @@ class Wine {
   }
 
   /// True for fortified / muté wines (Porto, Sherry, Banyuls, Vermouth, VDN, Madeira).
-  bool get isFortified {
+  bool get isFortified => _mutes[this] ??= _estUnMute();
+  static final Expando<bool> _mutes = Expando('isFortified');
+
+  bool _estUnMute() {
     final t = type.toLowerCase().trim();
     if (t == 'fortified' || t == 'muté' || t == 'mute' || t == 'vdn' || t == 'vermouth' || t == 'porto' || t == 'sherry') return true;
     // Un vin doux naturel se reconnaît à son appellation, quelle que soit sa couleur ;
@@ -449,22 +457,35 @@ class Wine {
   ///
   /// Tout passe désormais par `WineOenologyAdvisor.computeDrinkingWindow`, qui confronte
   /// la valeur stockée à ce que la catégorie et le domaine impliquent.
-  WineDrinkingWindowData get fenetreEffective =>
-      WineOenologyAdvisor.computeDrinkingWindow(
-        wineType: type,
-        vintage: vintage,
-        country: country,
-        region: region,
-        appellation: appellation,
-        classification: classification,
-        wineName: name,
-        producer: producer,
-        grapes: grapes.map((g) => g.name).toList(),
-        explicitDrinkStart: drinkStart,
-        explicitDrinkEnd: drinkEnd,
-        explicitPeakStart: peakStart,
-        explicitPeakEnd: peakEnd,
-      );
+  ///
+  /// Calculée une fois par vin et par année (20/10) : la cave la redemandait à chaque
+  /// bouteille affichée, à chaque regroupement, et des milliers de fois pour un tri par
+  /// maturité — plusieurs secondes de fil principal sur une cave de trois cents vins. Un
+  /// vin ne change pas (ses champs sont finaux) ; l'année, si.
+  WineDrinkingWindowData get fenetreEffective {
+    final annee = DateTime.now().year;
+    final dejaLa = _fenetres[this];
+    if (dejaLa != null && dejaLa.$1 == annee) return dejaLa.$2;
+    final fenetre = WineOenologyAdvisor.computeDrinkingWindow(
+      wineType: type,
+      vintage: vintage,
+      country: country,
+      region: region,
+      appellation: appellation,
+      classification: classification,
+      wineName: name,
+      producer: producer,
+      grapes: grapes.map((g) => g.name).toList(),
+      explicitDrinkStart: drinkStart,
+      explicitDrinkEnd: drinkEnd,
+      explicitPeakStart: peakStart,
+      explicitPeakEnd: peakEnd,
+    );
+    _fenetres[this] = (annee, fenetre);
+    return fenetre;
+  }
+
+  static final Expando<(int, WineDrinkingWindowData)> _fenetres = Expando('fenetreEffective');
 
   DrinkWindowStatus get windowStatus {
     final currentYear = DateTime.now().year;

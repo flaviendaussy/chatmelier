@@ -36,10 +36,44 @@ class WineWorld {
 
   // Le trait d'union compte comme une espace : « Côtes-du-Rhône » et « Côtes du Rhône »
   // sont la même appellation, et seule la seconde graphie était reconnue (30/09).
-  static String _norm(String? s) => sansAccents(s ?? '')
-      .replaceAll(RegExp(r"[^a-z0-9\s']"), ' ')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
+  static final _horsDesMots = RegExp(r"[^a-z0-9\s']");
+  static final _espaces = RegExp(r'\s+');
+  static String _norm(String? s) => sansAccents(s ?? '').replaceAll(_horsDesMots, ' ').replaceAll(_espaces, ' ').trim();
+
+  /// La base, normalisée une fois pour toutes (20/10). `region()` et la recherche des
+  /// références renormalisaient chaque alias de chaque région à chaque appel : 10 à 15 ms
+  /// par vin, plusieurs fois par fenêtre de garde — et la cave triée par maturité en
+  /// calculait des milliers.
+  static final List<_RegionNormee> _normees = [
+    for (final r in regions)
+      _RegionNormee(
+        r,
+        alias: [for (final a in r.alias) _norm(a)],
+        cepages: [for (final c in r.cepages) _norm(c)],
+        pays: _norm(r.pays),
+        cles: [
+          for (final ref in r.references)
+            for (final cle in [ref.nom, ...ref.alias])
+              if (_norm(cle) case final c when c.isNotEmpty) (c, ref),
+        ],
+      ),
+  ];
+  static final Map<RegionVin, _RegionNormee> _parRegion = {for (final n in _normees) n.region: n};
+
+  /// Les réponses déjà données : la base ne change pas, les mêmes vins reviennent à
+  /// chaque écran. Bornées, pour ne pas grossir sans fin.
+  static final Map<String, RegionVin?> _memoRegion = {};
+  static final Map<String, ReferenceVin?> _memoReference = {};
+  static final Map<String, String?> _memoPays = {};
+  static const _memoMax = 4000;
+
+  static V _memoise<V>(Map<String, V> memo, String cle, V Function() calcul) {
+    if (memo.containsKey(cle)) return memo[cle] as V;
+    final v = calcul();
+    if (memo.length >= _memoMax) memo.clear();
+    memo[cle] = v;
+    return v;
+  }
 
   /// La région qui correspond, du plus spécifique au plus général.
   ///
@@ -56,23 +90,26 @@ class WineWorld {
     final reg = _norm(region);
     final pay = _norm(pays);
     final ceps = cepages.map(_norm).toList();
+    return _memoise(_memoRegion, '$app|$reg|$pay|${ceps.join('|')}', () => _region(app, reg, pay, ceps));
+  }
 
+  static RegionVin? _region(String app, String reg, String pay, List<String> ceps) {
     // 1. L'appellation, qui est le signal le plus précis.
-    for (final r in regions) {
+    for (final n in _normees) {
       if (app.isEmpty) break;
-      if (r.alias.any((a) => app.contains(_norm(a)))) return r;
+      if (n.alias.any(app.contains)) return n.region;
     }
     // 2. La région déclarée.
-    for (final r in regions) {
+    for (final n in _normees) {
       if (reg.isEmpty) break;
-      if (r.alias.any((a) => reg.contains(_norm(a)))) return r;
+      if (n.alias.any(reg.contains)) return n.region;
     }
     // 3. Le cépage, qui trahit souvent l'origine à défaut de mieux.
-    for (final r in regions) {
+    for (final n in _normees) {
       if (ceps.isEmpty) break;
-      if (r.cepages.any((c) => ceps.any((x) => x == _norm(c)))) {
-        if (pay.isEmpty || _norm(r.pays).contains(pay) || pay.contains(_norm(r.pays))) {
-          return r;
+      if (n.cepages.any(ceps.contains)) {
+        if (pay.isEmpty || n.pays.contains(pay) || pay.contains(n.pays)) {
+          return n.region;
         }
       }
     }
@@ -96,12 +133,12 @@ class WineWorld {
   static String? appellationLueDans(String? nom, {String? pays}) {
     final r = region(appellation: nom);
     if (nom == null || r == null || !memePays(r.pays, pays)) return null;
-    final mots = RegExp(r"[\p{L}\p{N}']+", unicode: true).allMatches(nom).toList();
+    final mots = _mots.allMatches(nom).toList();
     final normes = [for (final m in mots) _norm(m.group(0))];
-    final cepages = {for (final c in r.cepages) _norm(c)};
+    final n = _parRegion[r]!;
+    final cepages = n.cepages.toSet();
     String? lue;
-    for (final alias in r.alias) {
-      final cible = _norm(alias);
+    for (final cible in n.alias) {
       if (cible.isEmpty || cepages.contains(cible)) continue;
       final morceaux = cible.split(' ');
       for (var i = 0; i + morceaux.length <= normes.length; i++) {
@@ -126,18 +163,20 @@ class WineWorld {
   /// Portugal et en Uruguay), ni les mots partagés par plusieurs pays (un crémant peut être
   /// luxembourgeois, la Central Valley est au Chili et en Californie). Nul si deux pays se
   /// disputent le nom.
-  static String? paysDe({String? appellation, String? region}) {
+  static String? paysDe({String? appellation, String? region}) =>
+      _memoise(_memoPays, '${_norm(appellation)}|${_norm(region)}', () => _paysDe(appellation, region));
+
+  static String? _paysDe(String? appellation, String? region) {
     for (final texte in [appellation, region]) {
       final mots = ' ${_norm(texte)} ';
       if (mots.trim().isEmpty) continue;
       final trouves = <String>{};
-      for (final r in regions) {
-        final cepages = {for (final c in r.cepages) _norm(c)};
-        for (final a in r.alias) {
-          final cible = _norm(a);
+      for (final n in _normees) {
+        final cepages = n.cepages.toSet();
+        for (final cible in n.alias) {
           if (cible.isEmpty || cepages.contains(cible) || _aliasPartages.contains(cible)) continue;
           if (mots.contains(' $cible ')) {
-            trouves.add(r.pays);
+            trouves.add(n.region.pays);
             break;
           }
         }
@@ -149,6 +188,7 @@ class WineWorld {
   }
 
   static const _aliasPartages = {'cremant', 'vin mousseux', 'central valley'};
+  static final _mots = RegExp(r"[\p{L}\p{N}']+", unicode: true);
 
   /// Deux noms du même pays, en français, en anglais ou en espagnol. Un pays inconnu
   /// ou absent ne contredit rien.
@@ -196,31 +236,31 @@ class WineWorld {
 
   static ReferenceVin? _chercherDans(String texte) {
     if (texte.isEmpty) return null;
+    return _memoise(_memoReference, texte, () => _chercher(texte));
+  }
+
+  static ReferenceVin? _chercher(String texte) {
     ReferenceVin? meilleure;
     var meilleureLongueur = 0;
-    for (final r in regions) {
-      for (final ref in r.references) {
-        for (final cle in [ref.nom, ...ref.alias]) {
-          final c = _norm(cle);
-          if (c.isEmpty) continue;
-          // Un libellé court — « DRC », « KWV », « Ott » — doit rester atteignable : le
-          // rejeter sur sa seule longueur en faisait des entrées MORTES, présentes dans
-          // la base mais qu'aucune recherche ne pouvait renvoyer.
-          //
-          // Ce qui protège des fragments n'est pas la longueur mais la frontière de
-          // mot : « ott » dans « Domaines Ott » oui, dans « Lotte » non. Au-delà de
-          // quatre caractères la sous-chaîne suffit, les collisions y étant improbables
-          // et les étiquettes rarement écrites à l'identique.
-          final trouve = c.length >= 5
-              ? texte.contains(c)
-              : _contientMotEntier(texte, c);
-          if (!trouve) continue;
-          // À champ égal, le libellé le plus long reste le plus précis :
-          // « Penfolds Grange » avant « Penfolds ».
-          if (c.length > meilleureLongueur) {
-            meilleureLongueur = c.length;
-            meilleure = ref;
-          }
+    for (final n in _normees) {
+      for (final (c, ref) in n.cles) {
+        // Un libellé court — « DRC », « KWV », « Ott » — doit rester atteignable : le
+        // rejeter sur sa seule longueur en faisait des entrées MORTES, présentes dans
+        // la base mais qu'aucune recherche ne pouvait renvoyer.
+        //
+        // Ce qui protège des fragments n'est pas la longueur mais la frontière de
+        // mot : « ott » dans « Domaines Ott » oui, dans « Lotte » non. Au-delà de
+        // quatre caractères la sous-chaîne suffit, les collisions y étant improbables
+        // et les étiquettes rarement écrites à l'identique.
+        final trouve = c.length >= 5
+            ? texte.contains(c)
+            : _contientMotEntier(texte, c);
+        if (!trouve) continue;
+        // À champ égal, le libellé le plus long reste le plus précis :
+        // « Penfolds Grange » avant « Penfolds ».
+        if (c.length > meilleureLongueur) {
+          meilleureLongueur = c.length;
+          meilleure = ref;
         }
       }
     }
@@ -297,4 +337,17 @@ class WineWorld {
     }
     return m;
   }
+}
+
+/// Une région de la base et ses noms déjà normalisés.
+class _RegionNormee {
+  final RegionVin region;
+  final List<String> alias;
+  final List<String> cepages;
+  final String pays;
+
+  /// Les noms et alias de ses références, normalisés et non vides, dans l'ordre de la base.
+  final List<(String, ReferenceVin)> cles;
+
+  const _RegionNormee(this.region, {required this.alias, required this.cepages, required this.pays, required this.cles});
 }

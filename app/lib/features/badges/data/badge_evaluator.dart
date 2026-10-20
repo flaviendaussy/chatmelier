@@ -1677,18 +1677,46 @@ class BadgeEvaluator {
     return true;
   }
 
+  /// Normalisé une fois par texte (20/10) : l'évaluation de tous les badges normalisait
+  /// chaque mot-clé pour chaque bouteille, sept expressions compilées à chaque fois — près
+  /// de trois secondes pour une cave de trois cents bouteilles, sur le fil principal, à
+  /// chaque ouverture du profil.
+  /// Les champs en minuscules de chaque bouteille et dégustation, calculés une fois : chaque
+  /// badge les recalculait (20/10). Bouteilles et dégustations ne changent pas ; une
+  /// nouvelle version de l'une est un autre objet.
+  static final Expando<_Champs> _champsDeLaBouteille = Expando('badges');
+  static final Expando<_Champs> _champsDeLaDegustation = Expando('badges');
+
   static String _normalize(String text) {
-    return text
+    final deja = _normalises[text];
+    if (deja != null) return deja;
+    final n = text
         .toLowerCase()
-        .replaceAll(RegExp(r'[éèêë]'), 'e')
-        .replaceAll(RegExp(r'[àâä]'), 'a')
-        .replaceAll(RegExp(r'[îï]'), 'i')
-        .replaceAll(RegExp(r'[ôö]'), 'o')
-        .replaceAll(RegExp(r'[ûüù]'), 'u')
-        .replaceAll(RegExp(r'[ç]'), 'c')
-        .replaceAll(RegExp(r'[^a-z0-9 ]'), ' ')
+        .replaceAll(_e, 'e')
+        .replaceAll(_a, 'a')
+        .replaceAll(_i, 'i')
+        .replaceAll(_o, 'o')
+        .replaceAll(_u, 'u')
+        .replaceAll(_c, 'c')
+        .replaceAll(_autres, ' ')
         .trim();
+    if (_normalises.length >= 20000) _normalises.clear();
+    return _normalises[text] = n;
   }
+
+  static final Map<String, String> _normalises = {};
+  static final _e = RegExp(r'[éèêë]');
+  static final _a = RegExp(r'[àâä]');
+  static final _i = RegExp(r'[îï]');
+  static final _o = RegExp(r'[ôö]');
+  static final _u = RegExp(r'[ûüù]');
+  static final _c = RegExp(r'[ç]');
+  static final _autres = RegExp(r'[^a-z0-9 ]');
+
+  /// Le motif « mot entier » d'un mot-clé déjà normalisé, compilé une fois.
+  static RegExp _motEntier(String motNormalise) =>
+      _motsEntiers[motNormalise] ??= RegExp('\\b${RegExp.escape(motNormalise)}\\b');
+  static final Map<String, RegExp> _motsEntiers = {};
 
   static bool _matchCountry(String? country, List<String> canonicalTokens) {
     if (country == null || country.trim().isEmpty) return false;
@@ -1696,8 +1724,7 @@ class BadgeEvaluator {
     for (final token in canonicalTokens) {
       final normToken = _normalize(token);
       if (norm == normToken) return true;
-      final regex = RegExp('\\b${RegExp.escape(normToken)}\\b');
-      if (regex.hasMatch(norm)) return true;
+      if (_motEntier(normToken).hasMatch(norm)) return true;
     }
     return false;
   }
@@ -1749,8 +1776,7 @@ class BadgeEvaluator {
 
     // 2b. Explicit grape token with word boundary in name or appellation
     for (final alias in grapeAliases) {
-      final normAlias = _normalize(alias);
-      final regex = RegExp('\\b${RegExp.escape(normAlias)}\\b');
+      final regex = _motEntier(_normalize(alias));
       if (regex.hasMatch(normName) || regex.hasMatch(normApp)) {
         return true;
       }
@@ -1772,14 +1798,11 @@ class BadgeEvaluator {
 
     for (final b in bottles) {
       final w = b.wine;
-      final t = (w?.type ?? '').toLowerCase();
-      final n = (w?.name ?? '').toLowerCase();
-      final cl = (w?.classification ?? '').toLowerCase();
-      if (requireWine && !_isWine(t, n, cl)) continue;
+      final f = _champsDeLaBouteille[b] ??= _Champs.de(
+          w?.type, w?.name, w?.classification, w?.country, w?.region, w?.appellation);
+      final (t, n, c, r, a) = (f.type, f.nom, f.pays, f.region, f.appellation);
+      if (requireWine && !f.estUnVin) continue;
 
-      final c = (w?.country ?? '').toLowerCase();
-      final r = (w?.region ?? '').toLowerCase();
-      final a = (w?.appellation ?? '').toLowerCase();
       if (predicate(c, r, a, n, t) || (winePredicate != null && winePredicate(w))) {
         count++;
         if (b.wineId.isNotEmpty) matchedWineIds.add(b.wineId);
@@ -1788,17 +1811,16 @@ class BadgeEvaluator {
       }
     }
     for (final te in tastings) {
-      final t = (te.wineType ?? '').toLowerCase();
-      final n = (te.wineName ?? '').toLowerCase();
-      if (requireWine && !_isWine(t, n)) continue;
+      final f = _champsDeLaDegustation[te] ??=
+          _Champs.de(te.wineType, te.wineName, null, te.country, te.region, te.appellation);
+      final (t, n) = (f.type, f.nom);
+      if (requireWine && !f.estUnVin) continue;
 
       // Avoid counting the exact same wine twice if it was already matched in bottles
       if (te.wineId.isNotEmpty && matchedWineIds.contains(te.wineId)) continue;
       if (n.isNotEmpty && matchedWineNames.contains(n)) continue;
 
-      final c = (te.country ?? '').toLowerCase();
-      final r = (te.region ?? '').toLowerCase();
-      final a = (te.appellation ?? '').toLowerCase();
+      final (c, r, a) = (f.pays, f.region, f.appellation);
       if (predicate(c, r, a, n, t)) {
         count++;
         if (te.wineId.isNotEmpty) matchedWineIds.add(te.wineId);
@@ -1807,5 +1829,20 @@ class BadgeEvaluator {
       }
     }
     return count;
+  }
+}
+
+/// Les champs d'une bouteille ou d'une dégustation tels que les badges les comparent.
+class _Champs {
+  final String type, nom, pays, region, appellation;
+  final bool estUnVin;
+
+  const _Champs(this.type, this.nom, this.pays, this.region, this.appellation, this.estUnVin);
+
+  factory _Champs.de(String? type, String? nom, String? classification, String? pays, String? region, String? appellation) {
+    final t = (type ?? '').toLowerCase();
+    final n = (nom ?? '').toLowerCase();
+    return _Champs(t, n, (pays ?? '').toLowerCase(), (region ?? '').toLowerCase(), (appellation ?? '').toLowerCase(),
+        BadgeEvaluator._isWine(t, n, (classification ?? '').toLowerCase()));
   }
 }

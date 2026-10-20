@@ -29,10 +29,20 @@ class ProfilDuVin {
   double? sur10(String axe) => valeurs[axe] == null ? null : valeurs[axe]! * 10;
 
   /// Un vin de cave (ou bu dehors, saisi comme tel), le jour [le] (aujourd'hui sinon).
+  ///
+  /// Gardé par vin et par année (20/10) : le profil, la frontière et l'angle mort le
+  /// recalculaient pour toute la cave à chaque affichage.
   static ProfilDuVin deLaCave(Wine wine, {DateTime? le}) {
+    final annee = (le ?? DateTime.now()).year;
+    final parAnnee = _deLaCave[wine] ??= <int, ProfilDuVin>{};
+    return parAnnee[annee] ??= _calculerDeLaCave(wine, annee);
+  }
+
+  static final Expando<Map<int, ProfilDuVin>> _deLaCave = Expando('ProfilDuVin.deLaCave');
+
+  static ProfilDuVin _calculerDeLaCave(Wine wine, int annee) {
     final famille = TasteProfile.familleDe(wine.type);
     if (famille == null) return const ProfilDuVin(famille: null, valeurs: {});
-    final annee = (le ?? DateTime.now()).year;
     final r = ProfilDuVinDeCave.estimer(wine, annee: annee);
     final cepages = [for (final g in wine.grapes) g.name];
     final douceur = DouceurDuVin.estimer(

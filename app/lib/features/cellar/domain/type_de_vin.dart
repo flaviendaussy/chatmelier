@@ -84,8 +84,13 @@ class TypeDeVin {
       '$nom ${producteur ?? ''} ${appellation ?? ''}'.toLowerCase();
 
   /// Un mot entier : ni lettre ni chiffre de part et d'autre, accents compris.
-  static bool _contient(String texte, String mot) =>
-      RegExp('(?<![\\p{L}\\p{N}])${RegExp.escape(mot)}(?![\\p{L}\\p{N}])', unicode: true).hasMatch(texte);
+  static bool _contient(String texte, String mot) => (_motifs[mot] ??=
+          RegExp('(?<![\\p{L}\\p{N}])${RegExp.escape(mot)}(?![\\p{L}\\p{N}])', unicode: true))
+      .hasMatch(texte);
+
+  /// Un motif compilé par mot (20/10) : chaque carte de la cave en recompilait des dizaines
+  /// à chaque affichage — le premier poste de calcul de la cave au profileur.
+  static final Map<String, RegExp> _motifs = {};
 
   /// Dans l'ordre : « vin de liqueur » (Pineau, Floc, Macvin) est un muté avant d'être
   /// une liqueur.

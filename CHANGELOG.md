@@ -14,6 +14,7 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - **Comparer deux palais honnêtement** : famille par famille, sur ce qu'on sait des deux seulement (« Affinité à venir » plutôt qu'un 99 % inventé), les goûts partagés, les écarts dits à la personne (« Caro aime les blancs plus doux que vous ») et un vin pour le duo.
 - **L'empreinte partagée** : celle des rouges ou des blancs ; « J'aime les tanins fermes et les rouges puissants » — un goût franc d'un côté comme de l'autre (« les blancs sans bois »).
 - **Les scores des cartes** : chaque vin face au palais de sa famille ; la couleur, la région ou le cépage ne suffisent plus à faire un « Taillé pour vous ».
+- **Plus rapide** : la cave triée par « Prêt à boire », le profil et les badges ne figent plus l'écran — la fenêtre de garde de chaque vin se calculait des milliers de fois par tri, les badges près de trois secondes pour une grande cave ; les vignettes en chargement ne tournent plus, et une photo n'est plus redécodée à chaque affichage.
 - Corrigé en chemin : une déception poussait d'autant plus un axe qu'il était proche du vin ; l'invite du sommelier prêtait à tout proche peu connu « un seul vin (un blanc) » et la Galice.
 
 ### 🛠️ Notes Techniques (Développeurs)
@@ -24,6 +25,7 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - *Questionnaire* : `QuestionPourVous`, `ReponsesDuConvive.jugements` / `decrits`, `TastingQuestionnaireResult.jugements` ; `PalaisSaisi` (domaine) pour l'accueil, la page invité et les convives de démonstration.
 - *Historique* : instantanés par famille (`rouge:tannin`), dérive continue avec ceux d'avant. *Palais distant* : un palais appris par famille n'est plus « vierge ».
 - *Traductions* : espagnol et italien à jour (4 056 phrases).
+- *Performances* (revue du 20/10) : `WineWorld` normalisé une fois et mémorisé ; `Wine.fenetreEffective`, `isSpirit`, `isFortified`, `ProfilDuVin.deLaCave` gardés par vin (et par année) ; tri par maturité en une passe ; badges et `TypeDeVin` sans regex recompilées ; vignettes sans animation d'attente, octets « data: » décodés une fois. Banc `test/_bench` (hors suite) et profileur `app/tool/profil_cpu.dart` (service VM d'un build profile).
 
 ## [v1.11.0+84] — 2026-10-19
 

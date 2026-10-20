@@ -1,0 +1,5 @@
+# Les bancs de mesure (test/_bench) chronomètrent sans rien affirmer : la suite ne les lance
+# pas. À la main : flutter test --run-skipped --tags bench test/_bench
+tags:
+  bench:
+    skip: "banc de mesure, à lancer à part (voir dart_test.yaml)"

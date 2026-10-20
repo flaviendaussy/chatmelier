@@ -60,6 +60,31 @@ class BottleImageView extends StatelessWidget {
     return Icons.wine_bar;
   }
 
+  /// Une photo qui se charge : un fond immobile. Le petit cercle animé de chaque carte
+  /// remontait tout l'arbre à chaque image tant qu'il tournait — au profileur, le premier
+  /// poste de la cave quand elle se réaffiche (20/10).
+  Widget _enAttente() => Container(
+        width: width,
+        height: height,
+        color: Colors.grey.withValues(alpha: 0.1),
+        alignment: Alignment.center,
+        child: Icon(Icons.wine_bar_outlined, size: 18, color: Colors.grey.withValues(alpha: 0.45)),
+      );
+
+  /// Les octets d'une image « data: », décodés une fois. Décodés à chaque construction,
+  /// ils faisaient aussi une nouvelle clé pour le cache d'images : la photo entière était
+  /// redécodée à chaque fois que la carte se reconstruisait (20/10).
+  static Uint8List _octetsDe(String donnees) {
+    final deja = _octets[donnees];
+    if (deja != null) return deja;
+    final virgule = donnees.indexOf(',');
+    final octets = base64Decode(virgule != -1 ? donnees.substring(virgule + 1) : donnees);
+    if (_octets.length >= 40) _octets.remove(_octets.keys.first);
+    return _octets[donnees] = octets;
+  }
+
+  static final Map<String, Uint8List> _octets = {};
+
   Widget _buildFallback(BuildContext context) {
     if (placeholder != null) return placeholder!;
     final color = _getWineColor(wineType);
@@ -119,18 +144,7 @@ class BottleImageView extends StatelessWidget {
                 cacheWidth: decodage,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
-                  return Container(
-                    width: width,
-                    height: height,
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    child: const Center(
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 1.5),
-                      ),
-                    ),
-                  );
+                  return _enAttente();
                 },
                 errorBuilder: (context, error, stackTrace) => _buildFallback(context),
               )
@@ -142,18 +156,9 @@ class BottleImageView extends StatelessWidget {
                 height: height,
                 fit: fit,
                 memCacheWidth: decodage,
-                placeholder: (context, url) => Container(
-                  width: width,
-                  height: height,
-                  color: Colors.grey.withValues(alpha: 0.1),
-                  child: const Center(
-                    child: SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 1.5),
-                    ),
-                  ),
-                ),
+                placeholder: (context, url) => _enAttente(),
+                // Une photo déjà sur l'appareil n'a pas à apparaître en fondu sur une demi-seconde.
+                fadeInDuration: const Duration(milliseconds: 150),
                 errorWidget: (context, url, error) => _buildFallback(context),
               ),
       );
@@ -162,9 +167,7 @@ class BottleImageView extends StatelessWidget {
     // 2. Base64 Data URI
     if (raw.startsWith('data:image')) {
       try {
-        final commaIdx = raw.indexOf(',');
-        final base64Str = commaIdx != -1 ? raw.substring(commaIdx + 1) : raw;
-        final bytes = base64Decode(base64Str);
+        final bytes = _octetsDe(raw);
         return ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
           child: Image.memory(

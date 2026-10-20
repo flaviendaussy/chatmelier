@@ -222,8 +222,30 @@ enum CellarSortBy {
   }
 
   /// Sort a list of bottles in-place based on this criterion
+  /// Order: drinkSoon (1) -> inPeak (2) -> aging (3) -> tooYoung (4) -> pastPeak (5) -> unknown (6)
+  static int _prioriteDeMaturite(Bottle b) {
+    final s = b.wine?.windowStatus;
+    if (s == null) return 6;
+    switch (s) {
+      case DrinkWindowStatus.drinkSoon:
+        return 1;
+      case DrinkWindowStatus.inPeak:
+        return 2;
+      case DrinkWindowStatus.aging:
+        return 3;
+      case DrinkWindowStatus.tooYoung:
+        return 4;
+      case DrinkWindowStatus.pastPeak:
+        return 5;
+    }
+  }
+
   List<Bottle> sort(List<Bottle> bottles) {
     final list = List<Bottle>.from(bottles);
+    // La maturité se calcule une fois par bouteille, pas à chaque comparaison (20/10).
+    final maturite = this == CellarSortBy.maturity
+        ? (Map<Bottle, int>.identity()..addEntries(bottles.map((b) => MapEntry(b, _prioriteDeMaturite(b)))))
+        : null;
     list.sort((a, b) {
       final wineA = a.wine;
       final wineB = b.wine;
@@ -260,25 +282,8 @@ enum CellarSortBy {
           return vA.compareTo(vB);
 
         case CellarSortBy.maturity:
-          // Order: drinkSoon (1) -> inPeak (2) -> aging (3) -> tooYoung (4) -> pastPeak (5) -> unknown (6)
-          int getMaturityPriority(Bottle b) {
-            final s = b.wine?.windowStatus;
-            if (s == null) return 6;
-            switch (s) {
-              case DrinkWindowStatus.drinkSoon:
-                return 1;
-              case DrinkWindowStatus.inPeak:
-                return 2;
-              case DrinkWindowStatus.aging:
-                return 3;
-              case DrinkWindowStatus.tooYoung:
-                return 4;
-              case DrinkWindowStatus.pastPeak:
-                return 5;
-            }
-          }
-          final pA = getMaturityPriority(a);
-          final pB = getMaturityPriority(b);
+          final pA = maturite![a]!;
+          final pB = maturite[b]!;
           if (pA != pB) return pA.compareTo(pB);
           // Secondary sort: vintage ascending
           return (a.wine?.vintage ?? 0).compareTo(b.wine?.vintage ?? 0);

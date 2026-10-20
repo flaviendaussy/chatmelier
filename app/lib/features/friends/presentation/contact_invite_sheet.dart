@@ -103,9 +103,10 @@ class _ContactInviteSheetState extends ConsumerState<ContactInviteSheet> {
   }
 
   Future<void> _sendFriendRequest(UserProfile user) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     try {
-      await ref.read(friendsRepositoryProvider).sendFriendRequest(user);
-      ref.invalidate(pendingOutgoingRequestsProvider);
+      await conteneur.read(friendsRepositoryProvider).sendFriendRequest(user);
+      conteneur.invalidate(pendingOutgoingRequestsProvider);
       if (mounted) {
         setState(() => _sentRequests.add(user.id));
         ScaffoldMessenger.of(context).showSnackBar(

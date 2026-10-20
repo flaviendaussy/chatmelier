@@ -2,11 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../shared/providers/supabase_provider.dart';
 import '../../shared/utils/app_logger.dart';
 import '../../shared/utils/langue.dart';
+import '../offline/data/coupure_reseau.dart';
 
 /// Ce que la phase de test exige (`app_config.version_minimale_test`, migration 045).
 ///
@@ -74,7 +76,13 @@ final exigenceDeVersionProvider = FutureProvider<ExigenceDeVersion?>((ref) async
     return await _lireLaVersion(ref, 'version_minimale_test');
   } catch (e) {
     // Hors ligne, ou table absente : on ne bloque personne pour une vérification ratée.
-    AppLogger.warning('VERSION', 'Version minimale illisible: $e');
+    // Le réseau seul n'est qu'une information (T3) : 59 avertissements en vingt jours, tous
+    // des délais dépassés au lancement. Un autre refus du serveur reste un avertissement.
+    if (estUneCoupureReseau(e) || (e is PostgrestException && e.code == '504')) {
+      AppLogger.info('VERSION', 'Version minimale illisible (réseau) : $e');
+    } else {
+      AppLogger.warning('VERSION', 'Version minimale illisible: $e');
+    }
     return null;
   }
 });

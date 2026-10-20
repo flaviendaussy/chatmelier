@@ -158,6 +158,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Future<void> _showAddCompanionDialog() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final l10n = AppLocalizations.of(context);
     final nameCtrl = TextEditingController();
     final newName = await showDialog<String>(
@@ -209,10 +210,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
 
     if (newName != null && newName.isNotEmpty) {
-      final service = ref.read(tasteProfileServiceProvider);
+      final service = conteneur.read(tasteProfileServiceProvider);
       await service.addOrGetProfileByName(newName);
       final fresh = await service.getProfiles();
-      ref.invalidate(tasteProfilesListProvider);
+      conteneur.invalidate(tasteProfilesListProvider);
       if (mounted) {
         setState(() {
           _companionProfiles = fresh;
@@ -348,10 +349,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Future<void> _submitCheckout() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     if (_selectedBottle == null || _isSubmitting) return;
 
     setState(() => _isSubmitting = true);
-    final supabase = ref.read(supabaseProvider);
+    final supabase = conteneur.read(supabaseProvider);
     final user = supabase.auth.currentUser;
     final bottleId = _selectedBottle!['id'] as String;
     final currentQty = _selectedBottle!['quantity'] as int? ?? 1;
@@ -374,10 +376,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     try {
       bool tastingSavedOnline = false;
       bool bottleSavedOnline = false;
-      final offlineStorage = ref.read(offlineStorageServiceProvider);
+      final offlineStorage = conteneur.read(offlineStorageServiceProvider);
       final wineMap = _selectedBottle!['wines'] as Map<String, dynamic>?;
       final wineId = _selectedBottle!['wine_id'] as String? ?? wineMap?['id'] as String?;
-      final effectiveCellarId = cellarId ?? ref.read(currentCellarIdProvider);
+      final effectiveCellarId = cellarId ?? conteneur.read(currentCellarIdProvider);
       final wineName = wineMap?['name'] as String? ?? tr('Vin dégusté', 'Wine tasted');
       final vintage = (wineMap?['vintage'] as num?)?.toInt() ?? int.tryParse(wineMap?['vintage']?.toString() ?? '');
 
@@ -555,8 +557,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       }
 
       // 3. Invalidate cellar & journal cache
-      notifyCellarChanged(ref, cellarId);
-      ref.invalidate(tastingLogProvider);
+      notifyCellarChangedIn(conteneur, cellarId);
+      conteneur.invalidate(tastingLogProvider);
 
       // Reinforce taste profiles for primary user and all participants.
       // Sans note, rien à apprendre : une sortie sans noter ne touche pas au profil.
@@ -564,7 +566,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       try {
         if (wineMap != null && note != null) {
           final wineObj = Wine.fromJson(wineMap);
-          final tasteService = ref.read(tasteProfileServiceProvider);
+          final tasteService = conteneur.read(tasteProfileServiceProvider);
           final primaryProfile = await tasteService.getPrimaryProfile();
           await tasteService.recordTastingExperience(
             nameOrId: primaryProfile.id,
@@ -580,7 +582,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               tastingId: tastingId,
             );
           }
-          ref.invalidate(tasteProfilesListProvider);
+          conteneur.invalidate(tasteProfilesListProvider);
         }
       } catch (e) {
         debugPrint('Taste profile reinforcement notice: $e');
@@ -588,7 +590,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       // 4. Schedule post-tasting feedback notification (1h after checkout)
       try {
-        final notifService = ref.read(postTastingNotificationProvider);
+        final notifService = conteneur.read(postTastingNotificationProvider);
         await notifService.schedulePostCheckout(
           bottleId: bottleId,
           wineName: wineMap?['name'] as String? ?? 'Vin',
@@ -652,7 +654,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     label: l10n?.checkoutStartTimerAction(advice.carafeMinutes) ?? tr('Chrono {carafeMinutes}m ⏱️', 'Timer {carafeMinutes}m ⏱️', {'carafeMinutes': advice.carafeMinutes}),
                     textColor: const Color(0xFFD4AF37),
                     onPressed: () {
-                      ref.read(localNotificationServiceProvider).showLiveAerationNotification(
+                      conteneur.read(localNotificationServiceProvider).showLiveAerationNotification(
                         wineName: wineName,
                         vintage: vintage,
                         remainingSeconds: advice.carafeMinutes * 60,
@@ -1133,6 +1135,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Future<void> _submitDecantingCheckout(int defaultMinutes) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     if (_selectedBottle == null || _isSubmitting) return;
     final l10n = AppLocalizations.of(context);
 
@@ -1213,7 +1216,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (confirmedMinutes == null || !mounted) return;
 
     setState(() => _isSubmitting = true);
-    final supabase = ref.read(supabaseProvider);
+    final supabase = conteneur.read(supabaseProvider);
     final bottleId = _selectedBottle!['id'] as String;
     final currentQty = _selectedBottle!['quantity'] as int? ?? 1;
     final cellarId = _selectedBottle!['cellar_id'] as String?;
@@ -1233,14 +1236,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       }
 
       if (cellarId != null) {
-        final offlineStorage = ref.read(offlineStorageServiceProvider);
+        final offlineStorage = conteneur.read(offlineStorageServiceProvider);
         await offlineStorage.applyOfflineConsume(cellarId, bottleId);
       }
 
-      notifyCellarChanged(ref, cellarId);
-      ref.invalidate(tastingLogProvider);
+      notifyCellarChangedIn(conteneur, cellarId);
+      conteneur.invalidate(tastingLogProvider);
 
-      ref.read(localNotificationServiceProvider).showLiveAerationNotification(
+      conteneur.read(localNotificationServiceProvider).showLiveAerationNotification(
         wineName: wineName,
         vintage: vintage,
         remainingSeconds: confirmedMinutes * 60,

@@ -434,8 +434,8 @@ class BottleContextSheet extends ConsumerWidget {
 
   void _showMoveCellarDialog(BuildContext context, WidgetRef ref) async {
     final repo = ref.read(cellarRepositoryProvider);
-    final userCellars = await repo.getUserCellarsWithRole();
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    final userCellars = await repo.getUserCellarsWithRole();
     final otherCellars = userCellars.where((c) {
       final cMap = c['cellars'];
       final id = cMap is Map ? cMap['id']?.toString() : c['cellar_id']?.toString();

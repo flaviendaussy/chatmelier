@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 enum LogLevel { debug, info, warning, error }
 
 class LogEntry {
+  /// Fixé sur l'appareil : une ligne renvoyée alors qu'elle était déjà arrivée bute sur la
+  /// clé primaire au lieu de s'enregistrer une seconde fois (T3).
+  final String id;
   final DateTime timestamp;
   final LogLevel level;
   final String tag;
@@ -14,6 +18,7 @@ class LogEntry {
   bool isSyncedToServer;
 
   LogEntry({
+    String? id,
     required this.timestamp,
     required this.level,
     required this.tag,
@@ -21,7 +26,7 @@ class LogEntry {
     this.error,
     this.stackTrace,
     this.isSyncedToServer = false,
-  });
+  }) : id = id ?? const Uuid().v4();
 
   String get levelIcon {
     switch (level) {
@@ -65,6 +70,12 @@ const String versionApp = String.fromEnvironment(
   'CHATMELIER_VERSION',
   defaultValue: 'dev',
 );
+
+/// La version portée par les journaux : suffixée hors release (T3). Un build de profil sur
+/// l'émulateur, la vraie version passée en `--dart-define`, se faisait passer pour des
+/// lancements de la version publiée (52 « lancements de la 83 » le 17/10, un démarrage de 43 s
+/// qui n'était que le rendu logiciel de l'émulateur).
+const String versionDesJournaux = kReleaseMode ? versionApp : '$versionApp-${kProfileMode ? 'profile' : 'debug'}';
 
 class AppLogger {
   static final List<LogEntry> _logs = [];
@@ -165,7 +176,14 @@ class AppLogger {
     logChangeNotifier.value++;
   }
 
-  /// Manually or automatically push unsynced logs to central Supabase backend
+  /// Envoie au serveur les lignes en attente ; rend le nombre de lignes rangées.
+  ///
+  /// Chaque ligne part avec son identifiant (T3). Le délai de 5 s n'annule pas la requête :
+  /// un lot « expiré » arrivait souvent quand même, restait en file et repartait — chaque
+  /// ligne enregistrée deux ou trois fois, aux mêmes millisecondes. Désormais, un lot qui
+  /// bute sur une clé déjà présente (23505) repart ligne à ligne, et celles qui butent encore
+  /// sont tenues pour rangées. `upsert(ignoreDuplicates)` n'est pas possible : il demande la
+  /// lecture de la table, que les comptes n'ont pas.
   static Future<int> flushToServer() async {
     final client = _supabaseClient;
     if (client == null || _isSyncing || _pendingServerQueue.isEmpty) return 0;
@@ -174,34 +192,31 @@ class AppLogger {
     final batch = List<LogEntry>.from(_pendingServerQueue);
 
     try {
-      final user = client.auth.currentUser;
-      final payload = batch.map((e) {
-        return {
-          'user_id': user?.id,
-          'device_id': kIsWeb ? 'Web Browser' : defaultTargetPlatform.name,
-          'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
-          'app_version': versionApp,
-          'tag': e.tag,
-          'level': e.level.name,
-          'message': e.message,
-          'error_details': e.error != null ? '${e.error}${e.stackTrace != null ? "\n${e.stackTrace}" : ""}' : null,
-          // Heure locale de l'appareil, sans fuseau : c'est elle que citent les testeurs
-          // (« 19h07 »), et toute la table est dans cette convention. Le décalage permet de
-          // retrouver l'instant UTC pour croiser avec les journaux du serveur — en Écosse
-          // (UTC+1) comme en France (UTC+2), l'heure seule ne suffisait pas.
-          'created_at': e.timestamp.toIso8601String(),
-          'metadata': {'utc_offset_min': e.timestamp.timeZoneOffset.inMinutes},
-        };
-      }).toList();
+      final userId = client.auth.currentUser?.id;
+      Future<void> envoyer(List<LogEntry> lignes) =>
+          client.from('app_diagnostic_logs').insert([for (final e in lignes) _ligne(e, userId)]).timeout(const Duration(seconds: 5));
 
-      await client.from('app_diagnostic_logs').insert(payload).timeout(const Duration(seconds: 5));
-
-      for (final item in batch) {
-        item.isSyncedToServer = true;
+      final ranges = <LogEntry>[];
+      try {
+        await envoyer(batch);
+        ranges.addAll(batch);
+      } on PostgrestException catch (e) {
+        if (e.code != _dejaEnregistree) rethrow;
+        for (final ligne in batch) {
+          try {
+            await envoyer([ligne]);
+            ranges.add(ligne);
+          } on PostgrestException catch (e) {
+            if (e.code == _dejaEnregistree) {
+              ranges.add(ligne);
+            } else {
+              rethrow;
+            }
+          }
+        }
       }
-      _pendingServerQueue.removeWhere((item) => batch.contains(item));
-      logChangeNotifier.value++;
-      return batch.length;
+      _marquerRangees(ranges);
+      return ranges.length;
     } catch (e) {
       debugPrint('AppLogger central sync notice: $e');
       return 0;
@@ -209,6 +224,37 @@ class AppLogger {
       _isSyncing = false;
     }
   }
+
+  /// Violation d'unicité : la ligne est déjà sur le serveur.
+  static const String _dejaEnregistree = '23505';
+
+  static void _marquerRangees(List<LogEntry> ranges) {
+    if (ranges.isEmpty) return;
+    for (final item in ranges) {
+      item.isSyncedToServer = true;
+    }
+    final ids = {for (final e in ranges) e.id};
+    _pendingServerQueue.removeWhere((item) => ids.contains(item.id));
+    logChangeNotifier.value++;
+  }
+
+  static Map<String, dynamic> _ligne(LogEntry e, String? userId) => {
+        'id': e.id,
+        'user_id': userId,
+        'device_id': kIsWeb ? 'Web Browser' : defaultTargetPlatform.name,
+        'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
+        'app_version': versionDesJournaux,
+        'tag': e.tag,
+        'level': e.level.name,
+        'message': e.message,
+        'error_details': e.error != null ? '${e.error}${e.stackTrace != null ? "\n${e.stackTrace}" : ""}' : null,
+        // Heure locale de l'appareil, sans fuseau : c'est elle que citent les testeurs
+        // (« 19h07 »), et toute la table est dans cette convention. Le décalage permet de
+        // retrouver l'instant UTC pour croiser avec les journaux du serveur — en Écosse
+        // (UTC+1) comme en France (UTC+2), l'heure seule ne suffisait pas.
+        'created_at': e.timestamp.toIso8601String(),
+        'metadata': {'utc_offset_min': e.timestamp.timeZoneOffset.inMinutes},
+      };
 
   /// Retrieve central logs across all devices from Supabase
   static Future<List<Map<String, dynamic>>> fetchServerLogs({int limit = 150}) async {

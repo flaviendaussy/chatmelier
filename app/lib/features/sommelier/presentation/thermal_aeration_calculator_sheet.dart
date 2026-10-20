@@ -152,9 +152,9 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B1E3F).withOpacity(0.3),
+                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.5)),
+                    border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.5)),
                   ),
                   child: const Icon(Icons.thermostat_rounded, color: Color(0xFFD4AF37), size: 26),
                 ),
@@ -204,7 +204,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
                     decoration: BoxDecoration(
                       color: const Color(0xFF331E20),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.orangeAccent.withOpacity(0.6), width: 1.2),
+                      border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.6), width: 1.2),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,11 +262,11 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
                       color: const Color(0xFF1E1926),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: _useIceBucket ? Colors.cyanAccent.withOpacity(0.6) : Colors.white10,
+                        color: _useIceBucket ? Colors.cyanAccent.withValues(alpha: 0.6) : Colors.white10,
                       ),
                     ),
                     child: SwitchListTile(
-                      activeColor: Colors.cyanAccent,
+                      activeThumbColor: Colors.cyanAccent,
                       title: Row(
                         children: [
                           const Icon(Icons.ac_unit_rounded, color: Colors.cyanAccent, size: 20),
@@ -337,13 +337,13 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
         gradient: LinearGradient(
           colors: [
             const Color(0xFF261D2F),
-            accentColor.withOpacity(0.12),
+            accentColor.withValues(alpha: 0.12),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: accentColor.withOpacity(0.5), width: 1.2),
+        border: Border.all(color: accentColor.withValues(alpha: 0.5), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,7 +354,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.2),
+                  color: accentColor.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(actionIcon, color: accentColor, size: 24),
@@ -557,7 +557,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFF8B1E3F).withOpacity(0.4) : const Color(0xFF1E1926),
+          color: selected ? const Color(0xFF8B1E3F).withValues(alpha: 0.4) : const Color(0xFF1E1926),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected ? const Color(0xFFD4AF37) : Colors.white12,
@@ -642,9 +642,9 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: color.withOpacity(0.4)),
+                border: Border.all(color: color.withValues(alpha: 0.4)),
               ),
               child: Text(
                 '${value.toStringAsFixed(1)}$unit',
@@ -658,7 +658,7 @@ class _ThermalAerationCalculatorSheetState extends State<ThermalAerationCalculat
             activeTrackColor: color,
             inactiveTrackColor: Colors.white12,
             thumbColor: const Color(0xFFD4AF37),
-            overlayColor: color.withOpacity(0.2),
+            overlayColor: color.withValues(alpha: 0.2),
             trackHeight: 3,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
           ),

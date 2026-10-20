@@ -130,7 +130,7 @@ class _FurnitureEditorDialogState extends ConsumerState<FurnitureEditorDialog> {
     );
     if (image == null) return;
 
-    setState(() => _isScanning = true);
+    if (mounted) setState(() => _isScanning = true);
     try {
       final visionService = FurnitureVisionService();
       final layout = await visionService.analyzeFurnitureImage(imagePath: image.path);

@@ -341,7 +341,7 @@ class _CourbeActifs extends StatelessWidget {
       LineChartData(
         minY: 0,
         maxY: (maxi * 1.25).ceilToDouble(),
-        gridData: FlGridData(show: true, drawVerticalLine: false),
+        gridData: const FlGridData(show: true, drawVerticalLine: false),
         borderData: FlBorderData(show: false),
         titlesData: _titres(jours),
         lineBarsData: [
@@ -378,7 +378,7 @@ class _CourbeNouveaux extends StatelessWidget {
       BarChartData(
         minY: 0,
         maxY: (maxi * 1.3).ceilToDouble(),
-        gridData: FlGridData(show: true, drawVerticalLine: false),
+        gridData: const FlGridData(show: true, drawVerticalLine: false),
         borderData: FlBorderData(show: false),
         titlesData: _titres(jours),
         barGroups: [
@@ -420,7 +420,7 @@ class _BarresGestes extends StatelessWidget {
             BarChartData(
               minY: 0,
               maxY: (maxi * 1.25).ceilToDouble(),
-              gridData: FlGridData(show: true, drawVerticalLine: false),
+              gridData: const FlGridData(show: true, drawVerticalLine: false),
               borderData: FlBorderData(show: false),
               titlesData: _titres(jours),
               barGroups: [

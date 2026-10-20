@@ -726,19 +726,24 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
                 style: const TextStyle(fontSize: 13, color: Colors.grey),
               ),
               const SizedBox(height: 12),
-              RadioListTile<String>(
-                title: Text(tr('Lecteur (Consultation 👁️)', 'Viewer (browse only 👁️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: Text(tr('Peut voir votre cave, vos bouteilles et vos fiches de dégustation.', 'Can see your cellar, your bottles and your tasting notes.'), style: const TextStyle(fontSize: 11)),
-                value: 'viewer',
+              RadioGroup<String>(
                 groupValue: selectedRole,
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
-              ),
-              RadioListTile<String>(
-                title: Text(tr('Sommelier Délégué (Éditeur ✍️)', 'Deputy sommelier (editor ✍️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: Text(tr('Peut ajouter, déplacer et consommer des bouteilles dans cette cave.', 'Can add, move and drink bottles in this cellar.'), style: const TextStyle(fontSize: 11)),
-                value: 'editor',
-                groupValue: selectedRole,
-                onChanged: (val) => setDialogState(() => selectedRole = val!),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<String>(
+                      title: Text(tr('Lecteur (Consultation 👁️)', 'Viewer (browse only 👁️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                      subtitle: Text(tr('Peut voir votre cave, vos bouteilles et vos fiches de dégustation.', 'Can see your cellar, your bottles and your tasting notes.'), style: const TextStyle(fontSize: 11)),
+                      value: 'viewer',
+                    ),
+                    RadioListTile<String>(
+                      title: Text(tr('Sommelier Délégué (Éditeur ✍️)', 'Deputy sommelier (editor ✍️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                      subtitle: Text(tr('Peut ajouter, déplacer et consommer des bouteilles dans cette cave.', 'Can add, move and drink bottles in this cellar.'), style: const TextStyle(fontSize: 11)),
+                      value: 'editor',
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

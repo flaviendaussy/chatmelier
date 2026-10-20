@@ -86,7 +86,7 @@ void main() {
     );
 
     test('Consensus ranking penalizes heavy tannins when a guest has strict tannin aversion', () {
-      final guest1 = const GuestProfile(
+      const guest1 = GuestProfile(
         id: 'g1',
         name: 'Alice',
         favoriteTypes: ['Blanc', 'Rouge'],
@@ -94,7 +94,7 @@ void main() {
         archetype: 'Aversion Tanins Durs',
       );
 
-      final guest2 = const GuestProfile(
+      const guest2 = GuestProfile(
         id: 'g2',
         name: 'Bob',
         favoriteTypes: ['Rouge'],
@@ -121,14 +121,14 @@ void main() {
     });
 
     test('Consensus ranking returns top 3 best matching wines with matching score', () {
-      final guest1 = const GuestProfile(
+      const guest1 = GuestProfile(
         id: 'g1',
         name: 'Thomas',
         favoriteTypes: ['Blanc'],
         archetype: 'Blancs Minéraux & Frais',
       );
 
-      final guest2 = const GuestProfile(
+      const guest2 = GuestProfile(
         id: 'g2',
         name: 'Sophie',
         favoriteTypes: ['Blanc'],

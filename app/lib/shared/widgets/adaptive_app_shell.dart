@@ -708,7 +708,7 @@ class _SidebarNavItem extends StatelessWidget {
                 Container(
                   width: 6,
                   height: 6,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: activeColor,
                     shape: BoxShape.circle,
                   ),

@@ -106,17 +106,18 @@ class _RepriseDeSoireeSheetState extends ConsumerState<RepriseDeSoireeSheet> {
   }
 
   Future<ResultatDeReprise> _reprendreParLeServeur(String code) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     // Il faut une session pour recevoir la soirée : anonyme au besoin.
-    final auth = ref.read(authRepositoryProvider);
+    final auth = conteneur.read(authRepositoryProvider);
     final moi = await auth.assurerUneSession();
     if (moi == null) return const ResultatDeReprise(erreur: 'non_connecte');
-    final reponse = await ref.read(supabaseProvider).rpc('reprendre_avec_code', params: {'p_code': code});
+    final reponse = await conteneur.read(supabaseProvider).rpc('reprendre_avec_code', params: {'p_code': code});
     final resultat = ResultatDeReprise.depuis(reponse);
     if (resultat.reussi) {
       // Le palais repris remplace celui (vierge) de cet appareil, et le journal se recharge
       // avec les dégustations de la soirée.
       await PalaisDistant.recuperer(forcer: true);
-      ref.invalidate(tastingLogProvider);
+      conteneur.invalidate(tastingLogProvider);
     }
     return resultat;
   }

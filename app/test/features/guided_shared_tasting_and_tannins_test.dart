@@ -109,7 +109,7 @@ void main() {
 
   group('TasteProfile Friend Sync & App Detection', () {
     test('TasteProfile model serialization with friendUserId', () {
-      final profileWithApp = TasteProfile(
+      const profileWithApp = TasteProfile(
         id: 'caro_123',
         name: 'Caro',
         isPrimary: false,

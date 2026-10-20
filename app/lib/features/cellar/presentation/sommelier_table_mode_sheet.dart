@@ -203,6 +203,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
   }
 
   Future<void> _saveTastingNote() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final wine = widget.bottle.wine;
     if (wine == null) return;
 
@@ -210,7 +211,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
     HapticFeedback.mediumImpact();
 
     try {
-      final supabase = ref.read(supabaseProvider);
+      final supabase = conteneur.read(supabaseProvider);
       final userId = supabase.auth.currentUser?.id;
 
       final notesSummary = StringBuffer();
@@ -252,7 +253,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
 
       // Only queue offline action if remote insert failed
       if (!savedOnline) {
-        final offlineStorage = ref.read(offlineStorageServiceProvider);
+        final offlineStorage = conteneur.read(offlineStorageServiceProvider);
         await offlineStorage.queueAction(OfflineAction(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           type: OfflineActionType.consumeBottle,
@@ -277,13 +278,13 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
         ));
       }
 
-      ref.invalidate(tastingLogProvider);
+      conteneur.invalidate(tastingLogProvider);
 
       // Une dégustation sans note n'apprend rien au palais.
       final note = _noteSaisie;
       if (note != null) {
         try {
-          final tasteService = ref.read(tasteProfileServiceProvider);
+          final tasteService = conteneur.read(tasteProfileServiceProvider);
           final primaryProfile = await tasteService.getPrimaryProfile();
           await tasteService.recordTastingExperience(
             nameOrId: primaryProfile.id,
@@ -291,7 +292,7 @@ class _SommelierTableModeSheetState extends ConsumerState<SommelierTableModeShee
             rating: note,
             tastingId: tastingId,
           );
-          ref.invalidate(tasteProfilesListProvider);
+          conteneur.invalidate(tasteProfilesListProvider);
         } catch (_) {}
       }
 

@@ -82,13 +82,14 @@ class _ComptoirScreenState extends ConsumerState<ComptoirScreen> {
 
   /// L'hôte s'assoit sous son prénom et avec son vrai palais, comme à table.
   Future<GuestProfile> _sAsseoir(String code) async {
-    final profils = await ref.read(tasteProfilesListProvider.future);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final profils = await conteneur.read(tasteProfilesListProvider.future);
     final principal = profils.firstWhere((p) => p.isPrimary, orElse: () => profils.first);
-    final userId = ref.read(currentUserProvider)?.id;
-    final compte = userId == null ? null : await ref.read(authRepositoryProvider).getProfile(userId);
+    final userId = conteneur.read(currentUserProvider)?.id;
+    final compte = userId == null ? null : await conteneur.read(authRepositoryProvider).getProfile(userId);
     final prenom = (compte?.displayName.trim().isNotEmpty ?? false) ? compte!.displayName.trim() : principal.name;
     final moi = GuestProfile.fromTasteProfile(principal).copie(name: prenom);
-    await ref.read(tableSessionServiceProvider).rejoindre(code: code, nom: prenom, profil: moi);
+    await conteneur.read(tableSessionServiceProvider).rejoindre(code: code, nom: prenom, profil: moi);
     return moi;
   }
 

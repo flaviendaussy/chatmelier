@@ -152,7 +152,7 @@ class _BlindBattleHostScreenState extends ConsumerState<BlindBattleHostScreen> {
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8B1E3F).withOpacity(0.3),
+                      color: const Color(0xFF8B1E3F).withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.wine_bar_rounded, color: Color(0xFFD4AF37)),
@@ -217,7 +217,7 @@ class _BlindBattleHostScreenState extends ConsumerState<BlindBattleHostScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF22162A),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.4)),
+                border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
               ),
               child: Column(
                 children: [
@@ -476,7 +476,7 @@ class _BlindBattleHostScreenState extends ConsumerState<BlindBattleHostScreen> {
             height: height,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [color.withOpacity(0.7), color.withOpacity(0.3)],
+                colors: [color.withValues(alpha: 0.7), color.withValues(alpha: 0.3)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),

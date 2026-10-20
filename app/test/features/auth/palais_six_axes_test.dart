@@ -151,8 +151,8 @@ void main() {
       expect(p.observationsSur('blanc', 'body'), 3, reason: 'sans couleur préférée : la moitié à chaque famille');
       expect(p.valeurPalais('blanc', 'tannin'), isNull, reason: 'les tanins ne se jugent que sur un rouge');
       expect(p.observationsSur('rouge', 'tannin'), 4, reason: 'les tanins ne s\'observaient que sur des rouges : en entier');
-      final rougesSeulement = TasteProfile(
-          id: 'p', name: 'P', favoriteTypes: const ['Rouge'], avgBodyPreference: 0.7, axisObservations: const {'body': 6});
+      const rougesSeulement = TasteProfile(
+          id: 'p', name: 'P', favoriteTypes: ['Rouge'], avgBodyPreference: 0.7, axisObservations: {'body': 6});
       expect(rougesSeulement.observationsSur('rouge', 'body'), 6);
       expect(rougesSeulement.observationsSur('blanc', 'body'), 0, reason: 'appris sur des rouges : deviné pour les blancs');
     });
@@ -209,8 +209,8 @@ void main() {
           profileName: 'P',
         );
 
-    final chablis = Wine(id: 'c', name: 'Chablis', type: 'white', country: 'France', region: 'Bourgogne', appellation: 'Chablis', vintage: 2022);
-    final cornas = Wine(id: 'r', name: 'Cornas', type: 'red', country: 'France', region: 'Vallée du Rhône', appellation: 'Cornas', vintage: 2019);
+    const chablis = Wine(id: 'c', name: 'Chablis', type: 'white', country: 'France', region: 'Bourgogne', appellation: 'Chablis', vintage: 2022);
+    const cornas = Wine(id: 'r', name: 'Cornas', type: 'red', country: 'France', region: 'Vallée du Rhône', appellation: 'Cornas', vintage: 2019);
 
     test('un blanc n\'apprend qu\'au palais des blancs, et se défait', () async {
       final service = TasteProfileService();

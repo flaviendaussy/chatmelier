@@ -158,7 +158,7 @@ void main() {
       // Exponentielle : le poids d'une nouvelle observation est constant.
       const poidsExp = kAxisSmoothing;
       // Cumulative : 1/(n+1), soit 0,33 % après 300 dégustations.
-      final poidsCumul300 = 1 / 301;
+      const poidsCumul300 = 1 / 301;
       expect(poidsExp, greaterThan(poidsCumul300 * 50),
           reason: 'Après 300 dégustations, la cumulative n\'écoutait plus (0,33 %).');
     });

@@ -74,23 +74,28 @@ class _FriendTasteCardSheetState extends ConsumerState<FriendTasteCardSheet> {
                   const SizedBox(height: 16),
                   Text(tr('Niveau d\'accès souhaité :', 'Access you\'d like:'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 8),
-                  RadioListTile<String>(
-                    value: 'viewer',
+                  RadioGroup<String>(
                     groupValue: selectedRole,
-                    title: Text(tr('👁️ Consultation (Lecture seule)', '👁️ View only'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                    subtitle: Text(tr('Voir les bouteilles, emplacements et apogées.', 'See bottles, where they are, and when they peak.'), style: const TextStyle(fontSize: 11)),
                     onChanged: (val) => setDialogState(() => selectedRole = val!),
-                    activeColor: const Color(0xFF8B1E3F),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  RadioListTile<String>(
-                    value: 'editor',
-                    groupValue: selectedRole,
-                    title: Text(tr('✍️ Sommelier délégué (Écriture)', '✍️ Deputy sommelier (write)'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                    subtitle: Text(tr('Ajouter, modifier ou consommer des bouteilles.', 'Add, edit or drink bottles.'), style: const TextStyle(fontSize: 11)),
-                    onChanged: (val) => setDialogState(() => selectedRole = val!),
-                    activeColor: const Color(0xFF8B1E3F),
-                    contentPadding: EdgeInsets.zero,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        RadioListTile<String>(
+                          value: 'viewer',
+                          title: Text(tr('👁️ Consultation (Lecture seule)', '👁️ View only'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                          subtitle: Text(tr('Voir les bouteilles, emplacements et apogées.', 'See bottles, where they are, and when they peak.'), style: const TextStyle(fontSize: 11)),
+                          activeColor: const Color(0xFF8B1E3F),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        RadioListTile<String>(
+                          value: 'editor',
+                          title: Text(tr('✍️ Sommelier délégué (Écriture)', '✍️ Deputy sommelier (write)'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                          subtitle: Text(tr('Ajouter, modifier ou consommer des bouteilles.', 'Add, edit or drink bottles.'), style: const TextStyle(fontSize: 11)),
+                          activeColor: const Color(0xFF8B1E3F),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(

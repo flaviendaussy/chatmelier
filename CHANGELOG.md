@@ -16,6 +16,10 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - **Les scores des cartes** : chaque vin face au palais de sa famille ; la couleur, la région ou le cépage ne suffisent plus à faire un « Taillé pour vous ».
 - **Plus rapide** : la cave triée par « Prêt à boire », le profil et les badges ne figent plus l'écran — la fenêtre de garde de chaque vin se calculait des milliers de fois par tri, les badges près de trois secondes pour une grande cave ; les vignettes en chargement ne tournent plus, et une photo n'est plus redécodée à chaque affichage.
 - Corrigé en chemin : une déception poussait d'autant plus un axe qu'il était proche du vin ; l'invite du sommelier prêtait à tout proche peu connu « un seul vin (un blanc) » et la Galice.
+- **Vos retours (17-19/10)** : un balayage dans le Journal demande confirmation avant de supprimer une dégustation ; la carte d'un restaurant se range du plus au moins « pour vous » (ou dans l'ordre de la carte, au choix) ; le rappel « À consommer avec modération » en pied de connexion et de profil ; « Bavette steak » en anglais ; un gin n'est plus placé au centre de Londres — « London Dry » est un style, pas un lieu.
+- **Les % des cartes dès le palais de départ** : « Profil à compléter » ne s'affiche plus quand le palais déclaré ou appris suffit.
+- **La cave plus lisible et plus fluide** : « À boire vite · d'ici 2027 » au lieu des années d'une apogée déjà passée ; les sections groupées se construisent au fil du défilement, et la recherche ne refait plus filtre, tri et regroupement à chaque frappe.
+- **Le chenin de Loire** (Vouvray, Montlouis, Savennières…) est supposé élevé en foudre ou vieux bois, plus en barrique neuve : un Vouvray ordinaire n'apprend plus le boisé à votre palais.
 
 ### 🛠️ Notes Techniques (Développeurs)
 - *Modèle* : `TasteProfile.palais` / `observationsPalais` (JSON `palais`, `observations_palais`) ; `avg…Preference` et `axis_observations` figés, repris par famille (`valeurPalais`, `observationsSur` : part selon les couleurs aimées, les tanins en entier aux rouges). `PalaisDeFamille.connaissance` sur les axes du radar (`AxesDuPalais.duRadar`).
@@ -24,7 +28,9 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - *Moteurs par famille* : explication du score, table (`GuestProfile.palaisPour`, `palaisDistants` envoyés avec le convive, `radar` gardé pour les hôtes d'avant), accueil, frontière, angle mort, carte des terroirs, parcours ; archétype lu sur les palais par famille.
 - *Questionnaire* : `QuestionPourVous`, `ReponsesDuConvive.jugements` / `decrits`, `TastingQuestionnaireResult.jugements` ; `PalaisSaisi` (domaine) pour l'accueil, la page invité et les convives de démonstration.
 - *Historique* : instantanés par famille (`rouge:tannin`), dérive continue avec ceux d'avant. *Palais distant* : un palais appris par famille n'est plus « vierge ».
-- *Traductions* : espagnol et italien à jour (4 056 phrases).
+- *Traductions* : espagnol et italien à jour (4 061 phrases).
+- *Journaux* (revue du 20/10) : chaque ligne part avec son identifiant ; un doublon refusé (23505) est tenu pour rangé — chaque ligne arrivait deux ou trois fois, un lot « expiré » au bout de 5 s étant souvent arrivé quand même. Version suffixée `-debug`/`-profile` hors release ; « Version minimale illisible » en information quand c'est le réseau.
+- *Robustesse* : `ref` après un `await` passe par le conteneur de l'app (`ProviderScope.containerOf`) — l'invalidation se fait même si la fiche a été fermée entre-temps ; `setState` gardés par `mounted` ; plus de `BuildContext` après `await` ; l'initialisation de la racine (rappels de dégustation, secousse, pub d'ouverture) ne se relance plus à chaque reconstruction. `RadioGroup`, `withValues`, `activeThumbColor` : plus aucune API dépréciée.
 - *Performances* (revue du 20/10) : `WineWorld` normalisé une fois et mémorisé ; `Wine.fenetreEffective`, `isSpirit`, `isFortified`, `ProfilDuVin.deLaCave` gardés par vin (et par année) ; tri par maturité en une passe ; badges et `TypeDeVin` sans regex recompilées ; vignettes sans animation d'attente, octets « data: » décodés une fois. Banc `test/_bench` (hors suite) et profileur `app/tool/profil_cpu.dart` (service VM d'un build profile).
 
 ## [v1.11.0+84] — 2026-10-19

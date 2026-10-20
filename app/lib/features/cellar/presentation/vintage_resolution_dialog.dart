@@ -33,6 +33,7 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
   }
 
   Future<void> _submit(bool isFr) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final vintage = _isNonVintage ? null : int.tryParse(_controller.text.trim());
     if (!_isNonVintage && vintage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -43,7 +44,7 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
 
     setState(() => _isSaving = true);
 
-    final repo = ref.read(cellarRepositoryProvider);
+    final repo = conteneur.read(cellarRepositoryProvider);
     if (vintage != null) {
       await repo.resolveMissingVintage(
         bottleId: widget.bottleId,
@@ -51,17 +52,17 @@ class _VintageResolutionDialogState extends ConsumerState<VintageResolutionDialo
         vintage: vintage,
       );
     } else {
-      final storage = ref.read(offlineStorageServiceProvider);
+      final storage = conteneur.read(offlineStorageServiceProvider);
       await storage.removePendingResolutionWine(widget.bottleId);
     }
 
-    final storage = ref.read(offlineStorageServiceProvider);
-    ref.read(pendingResolutionWinesProvider.notifier).state =
+    final storage = conteneur.read(offlineStorageServiceProvider);
+    conteneur.read(pendingResolutionWinesProvider.notifier).state =
         storage.getPendingResolutionWines();
 
-    final currentCellarId = ref.read(currentCellarIdProvider);
+    final currentCellarId = conteneur.read(currentCellarIdProvider);
     if (currentCellarId != null) {
-      ref.invalidate(bottlesProvider(currentCellarId));
+      conteneur.invalidate(bottlesProvider(currentCellarId));
     }
 
     if (mounted) {

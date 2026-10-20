@@ -93,6 +93,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
   /// quelque part — mais elle se trompe : un point à moins de quatre-vingts mètres peut
   /// être une rue plutôt qu'une maison. Le rattrapage est ici.
   Future<void> _modifierLeLieu({required bool isFr}) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final champ = TextEditingController(
         text: _lieu ?? widget.entry.locationName ?? '');
     final nouveau = await showDialog<String>(
@@ -125,7 +126,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
 
     setState(() => _lieu = nouveau);
     try {
-      await ref.read(supabaseProvider).from('tasting_log').update({
+      await conteneur.read(supabaseProvider).from('tasting_log').update({
         'location_name': nouveau.isEmpty ? null : nouveau,
         'occasion': nouveau.isEmpty ? null : nouveau,
       }).eq('id', widget.entry.id);
@@ -138,7 +139,7 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
     }
 
     // Le cache local, sinon le journal réafficherait l'ancien lieu à la prochaine ouverture.
-    final offline = ref.read(offlineStorageServiceProvider);
+    final offline = conteneur.read(offlineStorageServiceProvider);
     final cache = offline.getCachedTastings();
     for (final t in cache) {
       if (t['id']?.toString() == widget.entry.id) {
@@ -147,10 +148,11 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
       }
     }
     await offline.saveCachedTastings(cache);
-    ref.invalidate(tastingLogProvider);
+    conteneur.invalidate(tastingLogProvider);
   }
 
   Future<void> _confirmerSuppression({required bool isFr}) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final nom = widget.entry.wineName ?? (trSi(isFr, 'ce vin', 'this wine'));
     final ok = await showDialog<bool>(
       context: context,
@@ -175,9 +177,9 @@ class _TastingEntryDetailScreenState extends ConsumerState<TastingEntryDetailScr
     if (ok != true || !mounted) return;
 
     final resultat =
-        await ref.read(tastingDeletionServiceProvider).supprimer(widget.entry.id);
-    ref.invalidate(tastingLogProvider);
-    ref.invalidate(tasteProfilesListProvider);
+        await conteneur.read(tastingDeletionServiceProvider).supprimer(widget.entry.id);
+    conteneur.invalidate(tastingLogProvider);
+    conteneur.invalidate(tasteProfilesListProvider);
     if (!mounted) return;
 
     final reste = TastingDeletionService.phraseDesRestes(resultat.restes);

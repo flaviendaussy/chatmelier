@@ -217,6 +217,7 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
   }
 
   Future<void> _save() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final updated = widget.profile.copyWith(
       name: _name,
       favoriteTypes: _favoriteTypes,
@@ -231,9 +232,9 @@ class _TasteProfileEditSheetState extends ConsumerState<TasteProfileEditSheet> {
       },
     );
 
-    final service = ref.read(tasteProfileServiceProvider);
+    final service = conteneur.read(tasteProfileServiceProvider);
     await service.updateProfile(updated);
-    ref.invalidate(tasteProfilesListProvider);
+    conteneur.invalidate(tasteProfilesListProvider);
 
     widget.onSaved?.call(updated);
 

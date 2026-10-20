@@ -75,6 +75,10 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
   /// Ne montrer que les vins que la cave ou le journal reconnaissent.
   bool _seulementConnus = false;
   bool _isCompactView = true; // High density compact mode for viewing many wines simultaneously
+
+  /// Les vins rangés du plus au moins « pour vous » (Caro, 18/10 ; Flavien, 19/10) ; faux :
+  /// l'ordre de la carte.
+  bool _parPourVous = true;
   final Set<String> _selectedWineIds = {};
 
   final List<String> _sensoryFilters = [
@@ -88,6 +92,9 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     'rond',
     'frais',
   ];
+
+  /// Les pourcentages tels qu'au scan, avant d'être recalculés avec le palais du jour.
+  late final Map<String, double?> _scoresAuScan = {for (final w in widget.menu.wines) w.id: w.userMatchScore};
 
   @override
   void initState() {
@@ -204,7 +211,19 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
       if (profils.isEmpty || !mounted) return;
       final principal = profils.firstWhere((p) => p.isPrimary, orElse: () => profils.first);
       // Redessiner tout de suite : le « ≈ » d'un palais deviné ne dépend pas de la suggestion.
-      setState(() => _palais = principal);
+      // Les pourcentages d'une carte rouverte dataient de son scan : ils suivent le palais
+      // d'aujourd'hui (20/10). Un palais qui n'en sait pas assez n'en donne aucun.
+      final rescores = [
+        for (final w in _menu.wines)
+          if (MenuWineMatchCalculator.computeMatchScore(w, principal) case final score?)
+            w.copyWith(userMatchScore: score)
+          else
+            w.copyWith(sansScore: true),
+      ];
+      setState(() {
+        _palais = principal;
+        _menu = _menu.copie(wines: rescores);
+      });
       final s = TasteFrontierEngine.choisir<MenuWine>(
         TasteFrontierEngine.candidatsDeLaCarte(_menu.wines),
         principal,
@@ -262,6 +281,28 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
       });
     } catch (_) {}
   }
+
+  Widget _boutonDEnTete(bool isDark, {required IconData icone, required String libelle, required VoidCallback onTap}) =>
+      InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white10 : Colors.white70,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icone, size: 14, color: const Color(0xFF8B1E3F)),
+              const SizedBox(width: 4),
+              Text(libelle, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF8B1E3F))),
+            ],
+          ),
+        ),
+      );
 
   Future<void> _loadViewPreference() async {
     try {
@@ -370,7 +411,19 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
     return seuils;
   }
 
+  /// Les vins affichés : filtrés, puis du plus au moins « pour vous » si on le veut — à
+  /// égalité, et sans pourcentage, dans l'ordre de la carte.
   List<MenuWine> _filterWines() {
+    final filtres = _filtrer();
+    if (!_parPourVous || !filtres.any((w) => w.userMatchScore != null)) return filtres;
+    final rang = Map<MenuWine, int>.identity()..addAll({for (var i = 0; i < filtres.length; i++) filtres[i]: i});
+    return [...filtres]..sort((a, b) {
+        final c = (b.userMatchScore ?? -1).compareTo(a.userMatchScore ?? -1);
+        return c != 0 ? c : rang[a]!.compareTo(rang[b]!);
+      });
+  }
+
+  List<MenuWine> _filtrer() {
     return _menu.wines.where((wine) {
       // 0. Drapeau du sommelier, par nature
       if (_filtreDrapeau != null && wine.flag?.type != _filtreDrapeau) {
@@ -548,38 +601,20 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                     ],
                   ),
                 ),
-                InkWell(
-                  onTap: _toggleViewMode,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white10 : Colors.white70,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark ? Colors.white24 : Colors.grey.shade300,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _isCompactView ? Icons.view_headline_rounded : Icons.view_agenda_outlined,
-                          size: 14,
-                          color: const Color(0xFF8B1E3F),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _isCompactView ? (trSi(isFr, 'Compact', 'Compact')) : (trSi(isFr, 'Détaillé', 'Detailed')),
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF8B1E3F),
-                          ),
-                        ),
-                      ],
-                    ),
+                if (_menu.wines.any((w) => w.userMatchScore != null)) ...[
+                  _boutonDEnTete(
+                    isDark,
+                    icone: _parPourVous ? Icons.favorite_rounded : Icons.format_list_numbered_rounded,
+                    libelle: _parPourVous ? trSi(isFr, 'Pour vous', 'For you') : trSi(isFr, 'Ordre de la carte', 'List order'),
+                    onTap: () => setState(() => _parPourVous = !_parPourVous),
                   ),
+                  const SizedBox(width: 6),
+                ],
+                _boutonDEnTete(
+                  isDark,
+                  icone: _isCompactView ? Icons.view_headline_rounded : Icons.view_agenda_outlined,
+                  libelle: _isCompactView ? (trSi(isFr, 'Compact', 'Compact')) : (trSi(isFr, 'Détaillé', 'Detailed')),
+                  onTap: _toggleViewMode,
                 ),
               ],
             ),
@@ -1191,9 +1226,14 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
 
   /// La fiche du vin : pourquoi il vous va ou non, son profil face au vôtre, ses détails
   /// (Flavien, 13/10 : « je devrais pouvoir cliquer sur chaque vin pour savoir pourquoi »).
+  /// La fiche reçoit le vin avec son pourcentage du jour du scan : elle calcule celui
+  /// d'aujourd'hui, et dit « au moment du scan, il était à … » quand le palais a changé.
   void _ouvrirLaFiche(MenuWine wine) => FicheDuVinDeLaCarte.montrer(
         context,
-        vin: wine,
+        vin: switch (_scoresAuScan[wine.id]) {
+          final avant? => wine.copyWith(userMatchScore: avant),
+          null => wine.copyWith(sansScore: true),
+        },
         selectionne: _selectedWineIds.contains(wine.id),
         onComparer: (retenu) => setState(() => retenu ? _selectedWineIds.add(wine.id) : _selectedWineIds.remove(wine.id)),
       );

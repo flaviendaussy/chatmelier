@@ -44,13 +44,14 @@ class _NoteDUnGesteSheetState extends ConsumerState<NoteDUnGesteSheet> {
   bool _enCours = false;
 
   Future<void> _enregistrer() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final i = _visage;
     if (i == null || _enCours) return;
     setState(() => _enCours = true);
     final note = NoteDUnGeste.notes[i];
     final v = widget.vin;
     try {
-      await ref.read(degustationRapideProvider).enregistrer(VinBuDehors(
+      await conteneur.read(degustationRapideProvider).enregistrer(VinBuDehors(
             nom: v.nom,
             producteur: v.producteur,
             millesime: v.millesime,
@@ -61,8 +62,8 @@ class _NoteDUnGesteSheetState extends ConsumerState<NoteDUnGesteSheet> {
             convivesApprennent: false,
             racheter: _racheter,
           ));
-      ref.invalidate(tastingLogProvider);
-      ref.invalidate(tasteProfilesListProvider);
+      conteneur.invalidate(tastingLogProvider);
+      conteneur.invalidate(tasteProfilesListProvider);
       if (mounted) Navigator.pop(context, note);
     } catch (e, pile) {
       AppLogger.error('TABLE', 'Note d\'un geste non enregistrée', e, pile);

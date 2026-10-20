@@ -693,7 +693,10 @@ const List<RegionVin> regionsFrance = [
     id: 'fr_loire_chenin',
     pays: 'France',
     nom: 'Chenin de Loire',
-    elevages: {'white': Elevage(ContenantElevage.barrique, 10)},
+    // Foudre ou vieux bois : la règle en Vouvray, Montlouis, Savennières. La barrique
+    // neuve est l'affaire de quelques cuvées, et se lit alors sur la fiche (T10 : tout
+    // Vouvray ordinaire sortait « boisé 6/10 », et le palais appris avec).
+    elevages: {'white': Elevage(ContenantElevage.foudre, 10)},
     alias: ['vouvray', 'montlouis', 'savennieres', 'saumur blanc',
       'anjou blanc', 'jasnieres'],
     cepages: ['Chenin Blanc'],

@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:chatmelier/features/cellar/domain/elevage_backfill.dart';
 import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/cellar/domain/wine_world/wine_world.dart';
-import 'package:chatmelier/features/cellar/domain/wine_world/wine_world_model.dart';
 
 /// Ce que le backfill écrit doit passer les contraintes de la base.
 ///
@@ -51,7 +50,7 @@ void main() {
 
     test('un vin déjà renseigné n\'est pas réécrit', () {
       // Sinon le backfill repartirait à chaque chargement de cave, pour rien.
-      final dejaFait = Wine(
+      const dejaFait = Wine(
         id: 'w', name: 'Margaux', region: 'Margaux', country: 'France',
         type: 'red', vintage: 2015, elevageType: 'barrique', elevageMois: 18,
       );

@@ -29,9 +29,9 @@ void main() {
       ? envKey
       : (Platform.environment['GEMINI_API_KEY'] ?? '');
   final isLive = apiKey.trim().isNotEmpty;
-  final model = envModel;
-  final mode = envMode;
-  final limit = envLimit;
+  const model = envModel;
+  const mode = envMode;
+  const limit = envLimit;
 
   group('🍷 Chatmelier Anti-Regression & Live Performance Benchmark', () {
     setUpAll(() {

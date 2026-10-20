@@ -174,7 +174,8 @@ class _TerroirMapViewState extends State<TerroirMapView> {
       cadrage: CadrageDuTerroir.pays(profil),
       legende: '${profil.flag} ${dansLePays ? Pays.nom(profil.country) : profil.region}',
       sombre: isDark,
-      couches: [_point(profil)],
+      // Un style n'a pas d'adresse : pas de point au milieu de Londres.
+      couches: [if (!profil.estUnStyle) _point(profil)],
     );
     final zone = _CarteFixe(
       key: ValueKey('zone_${profil.id}_$_parAppellation'),
@@ -225,6 +226,8 @@ class _TerroirMapViewState extends State<TerroirMapView> {
                 builder: (context, constraints) {
                   // Côte à côte : la carte du pays n'est qu'un repère, elle se lit encore sur 120 px
                   // (un téléphone de 360 px laisse à la fiche 288 px). L'une sous l'autre en deçà.
+                  // Un style (« London Dry Gin ») : le pays seul, il n'y a pas de zone à montrer.
+                  if (profil.estUnStyle) return SizedBox(height: 190, child: pays);
                   if (constraints.maxWidth >= 240) {
                     return SizedBox(
                       height: 190,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../shared/providers/supabase_provider.dart';
@@ -674,9 +675,34 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
           ],
         ),
       ),
+      // Un balayage par erreur supprimait d'emblée (Flavien, 18/10) : il demande d'abord,
+      // et le seuil est plus long. L'« Annuler » du bandeau reste.
+      dismissThresholds: const {DismissDirection.endToStart: 0.6},
+      confirmDismiss: (_) => _confirmerLaSuppression(wineName, isFr),
       onDismissed: (_) => _supprimerAvecAnnulation(entry, isFr),
       child: _carteDeDegustation(context, entry, isDark, theme, isFr, wineName, millesime, dateStr, enGrille),
     );
+  }
+
+  Future<bool> _confirmerLaSuppression(String nom, bool isFr) async {
+    HapticFeedback.selectionClick();
+    final oui = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(trSi(isFr, 'Supprimer cette dégustation ?', 'Delete this tasting?')),
+        content: Text(trSi(isFr, '« {nom} » quittera votre journal, et ce qu\'elle avait appris à votre palais avec elle.',
+            '"{nom}" will leave your journal, along with what it taught your palate.', {'nom': nom})),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(trSi(isFr, 'Garder', 'Keep'))),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(c).colorScheme.error),
+            onPressed: () => Navigator.pop(c, true),
+            child: Text(trSi(isFr, 'Supprimer', 'Delete')),
+          ),
+        ],
+      ),
+    );
+    return oui ?? false;
   }
 
   /// Balayer une dégustation la supprime, avec « Annuler » (V2.4 · R3 ; Dimitri, 04/10).

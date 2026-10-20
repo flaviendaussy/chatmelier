@@ -74,21 +74,22 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
   }
 
   Future<void> _syncAll() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     setState(() => _isProcessing = true);
-    final storage = ref.read(offlineStorageServiceProvider);
+    final storage = conteneur.read(offlineStorageServiceProvider);
     await storage.retryFailedActions();
 
-    final syncService = ref.read(syncServiceProvider);
+    final syncService = conteneur.read(syncServiceProvider);
     final result = await syncService.processPendingActions();
 
     // Refresh state
-    ref.read(pendingSyncCountProvider.notifier).state = storage.pendingActionCount;
-    ref.read(pendingResolutionWinesProvider.notifier).state = storage.getPendingResolutionWines();
+    conteneur.read(pendingSyncCountProvider.notifier).state = storage.pendingActionCount;
+    conteneur.read(pendingResolutionWinesProvider.notifier).state = storage.getPendingResolutionWines();
 
-    ref.invalidate(userCellarsProvider);
-    final currentCellarId = ref.read(currentCellarIdProvider);
+    conteneur.invalidate(userCellarsProvider);
+    final currentCellarId = conteneur.read(currentCellarIdProvider);
     if (currentCellarId != null) {
-      ref.invalidate(bottlesProvider(currentCellarId));
+      conteneur.invalidate(bottlesProvider(currentCellarId));
     }
 
     if (!mounted) return;
@@ -118,20 +119,23 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
   }
 
   Future<void> _deleteAction(String actionId) async {
-    final storage = ref.read(offlineStorageServiceProvider);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final storage = conteneur.read(offlineStorageServiceProvider);
     await storage.removeAction(actionId);
-    ref.read(pendingSyncCountProvider.notifier).state = storage.pendingActionCount;
-    setState(() {});
+    conteneur.read(pendingSyncCountProvider.notifier).state = storage.pendingActionCount;
+    if (mounted) setState(() {});
   }
 
   Future<void> _clearFailed() async {
-    final storage = ref.read(offlineStorageServiceProvider);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final storage = conteneur.read(offlineStorageServiceProvider);
     await storage.clearFailedActions();
-    ref.read(pendingSyncCountProvider.notifier).state = storage.pendingActionCount;
+    conteneur.read(pendingSyncCountProvider.notifier).state = storage.pendingActionCount;
     if (mounted) setState(() {});
   }
 
   Future<void> _clearAll() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final confirmed = await showDialog<bool>(
       context: context,
@@ -155,12 +159,12 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
     );
 
     if (confirmed == true) {
-      final storage = ref.read(offlineStorageServiceProvider);
+      final storage = conteneur.read(offlineStorageServiceProvider);
       final queue = storage.getQueue();
       for (final a in queue) {
         await storage.removeAction(a.id);
       }
-      ref.read(pendingSyncCountProvider.notifier).state = 0;
+      conteneur.read(pendingSyncCountProvider.notifier).state = 0;
       if (mounted) {
         setState(() {});
         Navigator.of(context).pop();

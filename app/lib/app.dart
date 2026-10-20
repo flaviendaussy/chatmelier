@@ -18,6 +18,17 @@ import 'shared/utils/app_logger.dart';
 import 'shared/utils/langue.dart';
 import 'shared/widgets/clavier_qui_se_ferme.dart';
 
+/// Ce qui ne se lance qu'une fois par démarrage (T8). Le rappel d'après-image du `builder`
+/// était réinscrit à chaque reconstruction de la racine — langue, thème… — et relançait la
+/// minuterie des rappels de dégustation (et un contrôle cinq secondes plus tard), l'écoute
+/// de la secousse et la pub d'ouverture. Un drapeau par conteneur, pas global : chaque
+/// essai qui monte l'app repart d'un démarrage.
+class _Demarrage {
+  bool fait = false;
+}
+
+final _demarrageProvider = Provider<_Demarrage>((ref) => _Demarrage());
+
 class ChatmelierApp extends ConsumerWidget {
   const ChatmelierApp({super.key});
 
@@ -62,25 +73,29 @@ class ChatmelierApp extends ConsumerWidget {
         // La langue des textes écrits en dur (`tr`), à chaque changement de langue.
         Langue.definir(Localizations.localeOf(context));
         // Initialize post-tasting notification checker and App Open Ads
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.read(connectivityServiceProvider);
-          final notifService = ref.read(postTastingNotificationProvider);
-          notifService.init(context);
+        final demarrage = ref.read(_demarrageProvider);
+        if (!demarrage.fait) {
+          demarrage.fait = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(connectivityServiceProvider);
+            final notifService = ref.read(postTastingNotificationProvider);
+            notifService.init(context);
 
-          // Register App Open Ad lifecycle observation and trigger startup check
-          final admob = ref.read(admobServiceProvider);
-          admob.startAppLifecycleObservation(
-            isPremium: () => ref.read(premiumProvider),
-          );
+            // Register App Open Ad lifecycle observation and trigger startup check
+            final admob = ref.read(admobServiceProvider);
+            admob.startAppLifecycleObservation(
+              isPremium: () => ref.read(premiumProvider),
+            );
 
-          final isPremium = ref.read(premiumProvider);
-          if (!isPremium) {
-            admob.showAppOpenAdOnLaunch();
-          }
+            final isPremium = ref.read(premiumProvider);
+            if (!isPremium) {
+              admob.showAppOpenAdOnLaunch();
+            }
 
-          // Initialize shake-to-report feedback service for testers
-          ShakeFeedbackService.instance.startListening();
-        });
+            // Initialize shake-to-report feedback service for testers
+            ShakeFeedbackService.instance.startListening();
+          });
+        }
         return RepaintBoundary(
           key: ShakeFeedbackService.rootRepaintBoundaryKey,
           // Toucher ailleurs referme le clavier (V2.4 · R3).

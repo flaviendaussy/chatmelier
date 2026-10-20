@@ -99,7 +99,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
   Future<void> _respondCellarRequest(CellarAccessRequest req, bool accept, String role) async {
     // Immediately dismiss from local state so badge and card vanish instantly
     await ref.read(dismissedNotificationIdsProvider.notifier).dismiss(req.id);
-    setState(() => _isProcessing = true);
+    if (mounted) setState(() => _isProcessing = true);
     final repo = ref.read(friendsRepositoryProvider);
     try {
       await repo.respondCellarAccess(
@@ -353,7 +353,7 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
   }) async {
     // 1. Instantly dismiss locally so card vanishes
     await ref.read(dismissedNotificationIdsProvider.notifier).dismiss(req.id);
-    setState(() => _isProcessing = true);
+    if (mounted) setState(() => _isProcessing = true);
 
     final repo = ref.read(friendsRepositoryProvider);
     int grantedCount = 0;
@@ -409,8 +409,9 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
   }
 
   Future<void> _dismissCellarRequest(CellarAccessRequest req) async {
-    await ref.read(dismissedNotificationIdsProvider.notifier).dismiss(req.id);
-    final repo = ref.read(friendsRepositoryProvider);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    await conteneur.read(dismissedNotificationIdsProvider.notifier).dismiss(req.id);
+    final repo = conteneur.read(friendsRepositoryProvider);
     try {
       await repo.dismissCellarRequest(requestId: req.id, requesterId: req.requesterId);
       refreshFriendsAndNotifications(ref);
@@ -984,14 +985,15 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
 
   /// Accepter ou refuser la dégustation qu'un ami a faite pour soi (V2.4 · R4).
   Future<void> _deciderDeLaDegustation(UserNotification notif, {required bool accepter}) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
     final id = notif.data['degustation_id'].toString();
     try {
-      final service = ref.read(degustationsPartageesProvider);
+      final service = conteneur.read(degustationsPartageesProvider);
       if (accepter) {
         await service.accepter(id);
-        ref.invalidate(tastingLogProvider);
-        ref.invalidate(tasteProfilesListProvider);
+        conteneur.invalidate(tastingLogProvider);
+        conteneur.invalidate(tasteProfilesListProvider);
       } else {
         await service.refuser(id);
       }

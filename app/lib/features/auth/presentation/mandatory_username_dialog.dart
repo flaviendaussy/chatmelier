@@ -14,7 +14,8 @@ class MandatoryUsernameDialog extends ConsumerStatefulWidget {
 
   /// Check if the current user needs to define a username, and show dialog if so
   static Future<void> checkAndPromptIfNeeded(BuildContext context, WidgetRef ref) async {
-    final user = ref.read(currentUserProvider);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final user = conteneur.read(currentUserProvider);
     if (user == null) return;
 
     // 1. Instant check: is username already in Auth User Metadata?
@@ -35,7 +36,7 @@ class MandatoryUsernameDialog extends ConsumerStatefulWidget {
 
     // 3. Deep check from auth repository
     try {
-      final repo = ref.read(authRepositoryProvider);
+      final repo = conteneur.read(authRepositoryProvider);
       final profile = await repo.getProfile(user.id);
 
       if (profile != null && profile.username != null && profile.username!.trim().isNotEmpty) {
@@ -151,6 +152,7 @@ class _MandatoryUsernameDialogState extends ConsumerState<MandatoryUsernameDialo
     // 1. Check Username availability across all users
     final usernameAvailable = await repo.isUsernameAvailable(rawUser, excludeUserId: user?.id);
     if (!usernameAvailable) {
+      if (!mounted) return;
       setState(() {
         _isChecking = false;
         _usernameError = tr('Ce pseudo est déjà pris par un autre utilisateur.', 'That username is already taken.');

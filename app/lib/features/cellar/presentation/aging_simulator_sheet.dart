@@ -64,9 +64,9 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B1E3F).withOpacity(0.3),
+                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.5)),
+                    border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.5)),
                   ),
                   child: const Icon(Icons.history_toggle_off_rounded, color: Color(0xFFD4AF37), size: 24),
                 ),
@@ -130,7 +130,7 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
       decoration: BoxDecoration(
         color: const Color(0xFF1F1626),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.6)),
+        border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.6)),
       ),
       child: Column(
         children: [
@@ -199,7 +199,7 @@ class _AgingSimulatorSheetState extends State<AgingSimulatorSheet> {
               border: Border.all(color: const Color(0xFFD4AF37), width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: snapshot.robeColor.withOpacity(0.5),
+                  color: snapshot.robeColor.withValues(alpha: 0.5),
                   blurRadius: 12,
                   spreadRadius: 2,
                 ),

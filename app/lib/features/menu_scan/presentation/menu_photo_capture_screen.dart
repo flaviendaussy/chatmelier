@@ -237,7 +237,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
         maxHeight: 2048,
       );
       if (photo != null) {
-        setState(() => _capturedPages.add(photo));
+        if (mounted) setState(() => _capturedPages.add(photo));
       }
     } catch (e) {
       if (mounted) {
@@ -257,7 +257,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
         maxHeight: 2048,
       );
       if (photos.isNotEmpty) {
-        setState(() => _capturedPages.addAll(photos));
+        if (mounted) setState(() => _capturedPages.addAll(photos));
       }
     } catch (e) {
       if (mounted) {
@@ -296,6 +296,8 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
         analyse.then((r) => r.$2 is LimiteIaAtteinte),
         Future<bool>.delayed(const Duration(milliseconds: 1200), () => false),
       ]);
+      // Écran quitté pendant l'attente : pas de pub pour une analyse que personne ne verra.
+      if (!mounted) return;
 
       var videoRegardee = false;
       var recompense = true;

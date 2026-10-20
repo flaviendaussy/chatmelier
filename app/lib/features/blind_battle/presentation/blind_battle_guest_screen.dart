@@ -243,7 +243,7 @@ class _BlindBattleGuestScreenState extends State<BlindBattleGuestScreen> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF8B1E3F).withOpacity(0.25),
+              color: const Color(0xFF8B1E3F).withValues(alpha: 0.25),
               shape: BoxShape.circle,
               border: Border.all(color: const Color(0xFFD4AF37), width: 1.5),
             ),
@@ -360,7 +360,7 @@ class _BlindBattleGuestScreenState extends State<BlindBattleGuestScreen> {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF8B1E3F).withOpacity(0.4) : const Color(0xFF1E1726),
+                color: isSelected ? const Color(0xFF8B1E3F).withValues(alpha: 0.4) : const Color(0xFF1E1726),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: isSelected ? const Color(0xFFD4AF37) : Colors.white12,

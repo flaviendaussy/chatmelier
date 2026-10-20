@@ -197,7 +197,7 @@ void main() {
 
     test('le plafond reste modeste en coût', () {
       const coutGroundingUsd = 0.035;
-      final pireCasQuotidien =
+      const pireCasQuotidien =
           GroundedVerificationBudget.plafondQuotidien * coutGroundingUsd;
       expect(pireCasQuotidien, lessThanOrEqualTo(0.20),
           reason: 'Pire cas par appareil et par jour, à comparer aux 3,25 c€ d\'un seul '

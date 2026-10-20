@@ -158,6 +158,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
   }
 
   Future<void> _sendMessage(String query) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final clean = query.trim();
     if (clean.isEmpty || _isLoading) return;
 
@@ -170,16 +171,16 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
     _scrollToBottom();
 
     try {
-      final profiles = await ref.read(tasteProfilesListProvider.future);
+      final profiles = await conteneur.read(tasteProfilesListProvider.future);
       final activeProfile = profiles.isNotEmpty ? profiles.first : null;
 
-      final scanService = ref.read(menuScanServiceProvider);
+      final scanService = conteneur.read(menuScanServiceProvider);
       if (!mounted) return;
       final languageCode = Localizations.localeOf(context).languageCode;
       // Ce qu'elle boit d'habitude : sans journal joignable, le sommelier répond quand même.
       var habitudes = '';
       try {
-        final journal = await ref.read(tastingLogProvider.future).timeout(const Duration(seconds: 3));
+        final journal = await conteneur.read(tastingLogProvider.future).timeout(const Duration(seconds: 3));
         habitudes = HabitudesDuPalais.resumer(journal, fr: languageCode == 'fr');
       } catch (_) {}
       if (!mounted) return;

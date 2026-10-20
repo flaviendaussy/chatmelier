@@ -67,6 +67,10 @@ dev_dependencies:
   freezed: ^2.5.0
   flutter_lints: ^5.0.0
 
+  # Importés directement par les essais (préférences simulées) et par tool/profil_cpu.dart.
+  vm_service: any
+  shared_preferences_platform_interface: any
+
 flutter:
   uses-material-design: true
   generate: true

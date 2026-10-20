@@ -16,6 +16,7 @@ import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
 import '../../friends/data/friends_repository.dart' show palaisDesAmisProvider;
+import '../../../shared/widgets/libere_a_la_fermeture.dart';
 
 /// 🎨 Distinct Vibrant Color Palette for Multi-Guest Overlays
 const List<Color> kRadarPalette = [
@@ -113,6 +114,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
 
   /// Retirer un proche de ses profils (« je ne veux pas voir Paul et Aude ici », 07/10).
   Future<void> _retirer(TasteProfile p) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
@@ -126,8 +128,8 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
       ),
     );
     if (ok != true) return;
-    await ref.read(tasteProfileServiceProvider).deleteProfile(p.id);
-    ref.invalidate(tasteProfilesListProvider);
+    await conteneur.read(tasteProfileServiceProvider).deleteProfile(p.id);
+    conteneur.invalidate(tasteProfilesListProvider);
     if (mounted) setState(() => _selectedProfileId = null);
   }
 
@@ -954,59 +956,63 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.person_add, color: Color(0xFF8B1E3F)),
-            const SizedBox(width: 10),
-            Text(dialogTitle),
+      builder: (ctx) => LibereALaFermeture(
+        controleurs: [nameCtrl, notesCtrl],
+        child: AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.person_add, color: Color(0xFF8B1E3F)),
+              const SizedBox(width: 10),
+              Text(dialogTitle),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: nameLabel,
+                  hintText: nameHint,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: notesCtrl,
+                decoration: InputDecoration(
+                  labelText: notesLabel,
+                  hintText: notesHint,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(cancelText),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
+              onPressed: () async {
+                final conteneur = ProviderScope.containerOf(context, listen: false);
+                final name = nameCtrl.text.trim();
+                if (name.isEmpty) return;
+                final service = conteneur.read(tasteProfileServiceProvider);
+                final newP = await service.addProfile(
+                  name: name,
+                  notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : (tr('Ajouté par l\'utilisateur', 'Added by user')),
+                );
+                conteneur.invalidate(tasteProfilesListProvider);
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) setState(() => _selectedProfileId = newP.id);
+              },
+              child: Text(createText),
+            ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: nameLabel,
-                hintText: nameHint,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: notesCtrl,
-              decoration: InputDecoration(
-                labelText: notesLabel,
-                hintText: notesHint,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(cancelText),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
-            onPressed: () async {
-              final name = nameCtrl.text.trim();
-              if (name.isEmpty) return;
-              final service = ref.read(tasteProfileServiceProvider);
-              final newP = await service.addProfile(
-                name: name,
-                notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : (tr('Ajouté par l\'utilisateur', 'Added by user')),
-              );
-              ref.invalidate(tasteProfilesListProvider);
-              if (ctx.mounted) Navigator.pop(ctx);
-              setState(() => _selectedProfileId = newP.id);
-            },
-            child: Text(createText),
-          ),
-        ],
       ),
     );
   }

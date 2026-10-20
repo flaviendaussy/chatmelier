@@ -8,6 +8,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/message_de_moderation.dart';
 import '../../menu_scan/presentation/join_table_sheet.dart';
 import '../domain/retour_du_lien.dart';
 import 'reprise_de_soiree_sheet.dart';
@@ -119,6 +120,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       if (!converti) await repo.sendMagicLink(email);
       // Le nouveau lien part d'ici : l'avis sur l'ancien n'a plus lieu d'être.
       lienSansEffet.value = null;
+      if (!mounted) return;
       setState(() {
         _magicLinkSent = true;
       });
@@ -760,6 +762,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                       child: Text(l10n?.loginRegisterLink ?? tr('Créer un nouveau compte', 'Create a new account')),
                     ),
                   ),
+                  const MessageDeModeration(),
                 ],
               ),
             ),

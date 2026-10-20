@@ -41,6 +41,7 @@ import '../../cellar/domain/wine.dart';
 import '../../sommelier/domain/taste_frontier_engine.dart';
 import 'partage_empreinte_sheet.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/message_de_moderation.dart';
 import '../../../shared/widgets/onglets.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
 import 'widgets/carte_des_terroirs_card.dart';
@@ -356,7 +357,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
       if (picked == null) return;
 
-      setState(() => _isUploadingAvatar = true);
+      if (mounted) setState(() => _isUploadingAvatar = true);
 
       final user = ref.read(currentUserProvider);
       if (user == null) return;
@@ -601,7 +602,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           email: user.email,
           avatarUrl: _avatarUrl,
         );
-        setState(() => _displayName = result);
+        if (mounted) setState(() => _displayName = result);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -689,7 +690,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           email: user.email,
           avatarUrl: _avatarUrl,
         );
-        setState(() => _phoneNumber = result.isNotEmpty ? result : null);
+        if (mounted) setState(() => _phoneNumber = result.isNotEmpty ? result : null);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -793,6 +794,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _confirmDeleteAccount() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final confirmCtrl = TextEditingController();
     bool canDelete = false;
@@ -886,10 +888,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
 
       try {
-        final repo = ref.read(authRepositoryProvider);
+        final repo = conteneur.read(authRepositoryProvider);
         await repo.deleteAccount();
 
-        ref.read(currentCellarIdProvider.notifier).state = null;
+        conteneur.read(currentCellarIdProvider.notifier).state = null;
 
         if (mounted) {
           Navigator.of(context, rootNavigator: true).pop();
@@ -1309,6 +1311,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
         ),
+        const MessageDeModeration(),
       ],
     );
   }

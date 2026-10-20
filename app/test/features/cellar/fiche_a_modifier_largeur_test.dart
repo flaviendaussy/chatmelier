@@ -16,7 +16,7 @@ void main() {
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
 
-    final vin = Wine(id: 'w1', name: 'Fine Champagne VSOP', type: 'cognac', country: 'France', region: 'Cognac');
+    const vin = Wine(id: 'w1', name: 'Fine Champagne VSOP', type: 'cognac', country: 'France', region: 'Cognac');
     final bouteille = Bottle(
       id: 'b1',
       cellarId: 'c1',

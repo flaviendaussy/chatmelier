@@ -19,6 +19,14 @@ class TasteProfile {
     if (totalExplicitPrefs >= 3) return true;
     if (aromaPreferences.length >= 3) return true;
     if (likedTraits.length >= 3) return true;
+    // V2.6 : un palais qui sait déjà deux axes d'une famille — déclarés à l'accueil, appris,
+    // ou hérités du palais d'avant — donne des pourcentages, « ≈ » tant qu'ils sont devinés.
+    // Sans cela, la carte disait « Profil à compléter » à qui venait de dessiner son palais.
+    if (palaisDeDepart.keys.where(AxesDuPalais.tous.contains).length >= 2) return true;
+    if (palais.values.any((axes) => axes.length >= 2)) return true;
+    if ([avgAcidityPreference, avgBodyPreference, avgTanninPreference, avgOakPreference].whereType<double>().length >= 2) {
+      return true;
+    }
     return false;
   }
 

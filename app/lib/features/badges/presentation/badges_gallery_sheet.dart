@@ -603,7 +603,7 @@ class _BadgeDetailModal extends StatelessWidget {
               const SizedBox(height: 14),
 
               // Voir la cérémonie vidéo du Chatmelier
-              SizedBox(
+              const SizedBox(
                 width: double.infinity,
               ),
               const SizedBox(height: 8),

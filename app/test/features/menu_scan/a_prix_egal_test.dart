@@ -124,19 +124,51 @@ void main() {
         observationsPalais: {for (final f in ['rouge', 'blanc']) f: {for (final a in AxesDuPalais.de(f)) a: 12}},
       );
       await ouvrir(tester, [connu]);
+      // Les pourcentages suivent le palais du jour, et non ceux du scan (20/10).
+      final sj = MenuWineMatchCalculator.computeMatchScore(carte.wines[1], connu)!.round();
+      final morgon = MenuWineMatchCalculator.computeMatchScore(carte.wines[0], connu)!.round();
+      expect(sj, greaterThan(morgon), reason: 'un rouge moyen va mieux à un palais moyen');
       expect(find.textContaining('À prix égal, je prendrais celui-ci'), findsOneWidget);
-      expect(find.textContaining('plus proche de vos goûts que Morgon Côte du Py 2021 (71 %), au même prix'),
+      expect(find.textContaining('plus proche de vos goûts que Morgon Côte du Py 2021 ($morgon %), au même prix'),
           findsOneWidget);
-      expect(find.text('92 % pour vous'), findsOneWidget);
+      expect(find.text('$sj % pour vous'), findsOneWidget);
       expect(find.textContaining('% Match'), findsNothing);
     });
 
     testWidgets('un palais encore deviné : « sans doute » et ≈', (tester) async {
-      await ouvrir(tester, [const TasteProfile(id: 'p', name: 'Moi', isPrimary: true)]);
+      // Un palais seulement déclaré (le palais de départ) : des pourcentages, devinés.
+      const declare = TasteProfile(
+        id: 'p',
+        name: 'Moi',
+        isPrimary: true,
+        // Des rouges charpentés et peu vifs : tout le contraire du Morgon.
+        palaisDeDepart: {'tannin': 6.5, 'body': 6.5, 'acidity': 4},
+      );
+      await ouvrir(tester, [declare]);
+      final sj = MenuWineMatchCalculator.computeMatchScore(carte.wines[1], declare)!.round();
+      final morgon = MenuWineMatchCalculator.computeMatchScore(carte.wines[0], declare)!.round();
+      expect(sj - morgon, greaterThanOrEqualTo(APrixEgal.ecartMinimal), reason: 'Saint-Joseph $sj %, Morgon $morgon %');
       // La suggestion « pour mieux vous connaître » le dit aussi.
-      expect(find.textContaining('chances de vous plaire (≈71 %)'), findsOneWidget);
+      expect(find.textContaining('chances de vous plaire (≈$morgon %)'), findsOneWidget);
       expect(find.textContaining('À prix égal, je prendrais sans doute celui-ci'), findsOneWidget);
-      expect(find.text('≈92 % pour vous'), findsOneWidget);
+      expect(find.text('≈$sj % pour vous'), findsOneWidget);
+    });
+
+    testWidgets('rangée du plus au moins « pour vous », ou dans l\'ordre de la carte', (tester) async {
+      final connu = TasteProfile(
+        id: 'p',
+        name: 'Moi',
+        isPrimary: true,
+        palais: {for (final f in ['rouge', 'blanc']) f: {for (final a in AxesDuPalais.de(f)) a: 0.5}},
+        observationsPalais: {for (final f in ['rouge', 'blanc']) f: {for (final a in AxesDuPalais.de(f)) a: 12}},
+      );
+      await ouvrir(tester, [connu]);
+      double y(String nom) => tester.getTopLeft(find.text(nom).last).dy;
+      expect(y('Saint-Joseph 2020'), lessThan(y('Morgon Côte du Py 2021')), reason: 'le plus « pour vous » d\'abord');
+      await tester.tap(find.text('Pour vous'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ordre de la carte'), findsOneWidget);
+      expect(y('Morgon Côte du Py 2021'), lessThan(y('Saint-Joseph 2020')), reason: 'l\'ordre de la carte');
     });
   });
 }

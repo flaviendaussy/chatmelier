@@ -229,16 +229,17 @@ class _MenuTableConsensusSheetState extends ConsumerState<MenuTableConsensusShee
   /// Sans cela, les invités ne le voyaient pas : leur écran calculait le consensus avec
   /// un « Hôte de la table » aux goûts génériques (« Rouge, Blanc »).
   Future<void> _inscrireLHote(String code) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     try {
-      final profiles = await ref.read(tasteProfilesListProvider.future);
+      final profiles = await conteneur.read(tasteProfilesListProvider.future);
       final primary = profiles.firstWhere((p) => p.isPrimary, orElse: () => profiles.first);
-      final userId = ref.read(currentUserProvider)?.id;
-      final compte = userId == null ? null : await ref.read(authRepositoryProvider).getProfile(userId);
+      final userId = conteneur.read(currentUserProvider)?.id;
+      final compte = userId == null ? null : await conteneur.read(authRepositoryProvider).getProfile(userId);
       final prenom = (compte?.displayName.trim().isNotEmpty ?? false) ? compte!.displayName.trim() : primary.name;
       // Sa place à l'écran si elle existe déjà : un plat ou des avis donnés avant que la
       // table ne soit ouverte partent avec lui.
       final local = _tableGuests.where((g) => g.id == _idHote).firstOrNull;
-      await ref.read(tableSessionServiceProvider).rejoindre(
+      await conteneur.read(tableSessionServiceProvider).rejoindre(
             code: code,
             nom: prenom,
             profil: local ?? GuestProfile.fromTasteProfile(primary),

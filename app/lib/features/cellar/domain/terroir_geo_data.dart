@@ -30,6 +30,11 @@ class TerroirGeoProfile {
   final Color accentColor;
   final List<String> keywords;
 
+  /// Un style plutôt qu'un lieu (« London Dry Gin ») : on sait le pays, pas l'endroit. La
+  /// carte montre le pays, sans point ni zone (Caro, 17/10 : « wrong location as London
+  /// gin but it's not made in London »).
+  final bool estUnStyle;
+
   const TerroirGeoProfile({
     required this.id,
     required this.name,
@@ -52,6 +57,7 @@ class TerroirGeoProfile {
     required this.sommelierNotes,
     this.accentColor = const Color(0xFFD4AF37),
     required this.keywords,
+    this.estUnStyle = false,
   });
 
   // Ce que l'écran affiche, dans la langue de l'app (table : terroir_geo_data_en.dart).
@@ -1460,22 +1466,24 @@ class TerroirGeoResolver {
       name: 'London Dry Gin & Botanicals',
       appellation: 'London Dry Gin',
       region: 'Royaume-Uni / Europe',
-      subRegion: 'Londres & Distilleries Artisanales',
+      subRegion: 'Distilleries du Royaume-Uni',
       country: 'Royaume-Uni',
       countryCode: 'GB',
       flag: '🇬🇧',
       center: LatLng(51.5074, -0.1278),
       defaultZoom: 11.8,
       hexRadiusKm: 3.5,
-      soilType: 'Bassin alluvionnaire de la Tamise et sources d\'eau pures',
+      soilType: 'Sans objet : un gin naît de l\'alambic, pas du sol',
       climate: 'Océanique tempéré maritime',
-      exposure: 'Cœur historique de la distillation urbaine britannique',
-      elevation: '15 - 40 mètres',
+      exposure: 'Un style, pas un lieu : le London Dry se distille partout au Royaume-Uni, et au-delà',
+      elevation: 'Sans objet',
       keyGrapes: 'Alcool neutre redistillé avec baies de genièvre (Juniperus communis), coriandre, angélique, agrumes',
       classification: 'Catégorie Réglementaire Européenne London Dry Gin',
       sommelierNotes: 'Distillation pure sans aucun arôme ni sucre ajouté après alambic. Dominance résineuse et piquante du genièvre, fraîcheur de zeste de citron jaune, racine d\'iris et graines de coriandre.',
       accentColor: Color(0xFF0284C7),
-      keywords: ['gin', 'london dry', 'tanqueray', 'bombay', 'hendrick', 'beefeater', 'botanical', 'genievre', 'juniper', 'monkey 47', 'citadelle'],
+      // Ni Monkey 47 (Forêt-Noire) ni Citadelle (Cognac) : ce ne sont pas des gins britanniques.
+      keywords: ['gin', 'london dry', 'tanqueray', 'bombay', 'hendrick', 'beefeater', 'botanical', 'genievre', 'juniper'],
+      estUnStyle: true,
     ),
 
     // 13. VODKA TRADITION

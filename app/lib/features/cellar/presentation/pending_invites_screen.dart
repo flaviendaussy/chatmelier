@@ -93,14 +93,15 @@ class _PendingInvitesScreenState extends ConsumerState<PendingInvitesScreen> {
   }
 
   Future<void> _acceptInvite(String inviteId) async {
-    final supabase = ref.read(supabaseProvider);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final supabase = conteneur.read(supabaseProvider);
     try {
       final result = await supabase.rpc('accept_invite', params: {
         'p_invite_id': inviteId,
       });
 
       if (result['success'] == true) {
-        ref.invalidate(userCellarsProvider);
+        conteneur.invalidate(userCellarsProvider);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(tr('🎉 Bienvenue ! Vous avez désormais accès à cette cave.', '🎉 Welcome! You now have access to this cellar.'))),
@@ -144,15 +145,16 @@ class _PendingInvitesScreenState extends ConsumerState<PendingInvitesScreen> {
   }
 
   Future<void> _rejoindreParLien(String code) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     setState(() => _rejointEnCours = true);
     final messager = ScaffoldMessenger.of(context);
     try {
-      final reponse = await ref.read(supabaseProvider).rpc('accept_invite_by_code', params: {'p_code': code});
+      final reponse = await conteneur.read(supabaseProvider).rpc('accept_invite_by_code', params: {'p_code': code});
       final resultat = reponse is Map ? reponse : const {};
       if (resultat['success'] == true) {
         final prefs = _prefs;
         if (prefs != null) await InvitationEnAttente.effacer(prefs);
-        ref.invalidate(userCellarsProvider);
+        conteneur.invalidate(userCellarsProvider);
         AppLogger.info('CELLAR', 'Cave rejointe par un lien d\'invitation (${resultat['role'] ?? 'rôle inconnu'})');
         messager.showSnackBar(SnackBar(content: Text(tr('Vous avez rejoint la cave : elle apparaît avec les vôtres.', 'You\'ve joined the cellar: it now appears with yours.'))));
         if (mounted) context.go('/');

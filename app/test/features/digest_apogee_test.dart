@@ -32,7 +32,7 @@ void main() {
   final pauillac = Wine(
       id: 'pauillac', name: 'Pauillac', type: 'red', region: 'Bordeaux', appellation: 'Pauillac', country: 'France',
       vintage: annee - 2, drinkStart: annee + 6, drinkEnd: annee + 30, peakStart: annee + 12, peakEnd: annee + 25);
-  final chartreuse = Wine(id: 'chartreuse', name: 'Chartreuse Verte', type: 'liqueur', region: 'Isère', country: 'France');
+  const chartreuse = Wine(id: 'chartreuse', name: 'Chartreuse Verte', type: 'liqueur', region: 'Isère', country: 'France');
 
   test('les vins à ouvrir : d\'abord ceux dont la fenêtre se referme, jamais un vin trop jeune', () {
     final aBoire = DigestApogee.aBoire([

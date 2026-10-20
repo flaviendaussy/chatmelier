@@ -62,10 +62,30 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Balayer, puis confirmer : un balayage seul ne supprime plus (T4a, Flavien 18/10).
   Future<void> balayer(WidgetTester tester, String vin) async {
     await tester.drag(find.textContaining(vin).first, const Offset(-600, 0));
     await tester.pumpAndSettle();
+    expect(find.text('Supprimer cette dégustation ?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Supprimer'));
+    await tester.pumpAndSettle();
   }
+
+  testWidgets('un balayage demande confirmation ; « Garder » laisse la dégustation en place', (tester) async {
+    await ouvrir(tester);
+    await tester.drag(find.textContaining('Clio').first, const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('Supprimer cette dégustation ?'), findsOneWidget);
+
+    await tester.tap(find.text('Garder'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Clio 2023'), findsOneWidget);
+    expect(find.text('« Clio » supprimé du journal.'), findsNothing);
+    await tester.pump(const Duration(seconds: 6));
+    expect(suppression.supprimees, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('balayer cache la dégustation, « Annuler » la rend sans rien supprimer', (tester) async {
     await ouvrir(tester);

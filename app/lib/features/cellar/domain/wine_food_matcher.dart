@@ -222,7 +222,7 @@ class FoodPairingCategory {
   /// Les plats d'exemple hors du français ([sampleDishes]). Une langue absente : l'anglais.
   static const Map<String, Map<String, List<String>>> _plats = {
     'red_meat': {
-      'en': ['Grilled Prime Rib', 'Ribeye steak', 'Duck breast', 'Tournedos Rossini', 'Beef Tartare', 'Roast leg of lamb with thyme', 'BBQ Picanha', 'Flank steak with shallots', 'Seven-hour slow-roasted leg of lamb', 'Herb-crusted rack of lamb', 'Beef burger with cheddar', 'Grilled lamb chops with rosemary'],
+      'en': ['Grilled Prime Rib', 'Ribeye steak', 'Duck breast', 'Tournedos Rossini', 'Beef Tartare', 'Roast leg of lamb with thyme', 'BBQ Picanha', 'Bavette steak with shallots', 'Seven-hour slow-roasted leg of lamb', 'Herb-crusted rack of lamb', 'Beef burger with cheddar', 'Grilled lamb chops with rosemary'],
       'es': ['Chuletón de buey a la brasa', 'Entrecot', 'Magret de pato', 'Tournedos Rossini', 'Tartar de buey', 'Pierna de cordero al tomillo', 'Picanha a la barbacoa', 'Bavette con chalotas', 'Pierna de cordero a las siete horas', 'Costillar de cordero en costra de hierbas', 'Hamburguesa de ternera con cheddar', 'Chuletas de cordero a la parrilla con romero'],
       'it': ['Costata di manzo alla griglia', 'Entrecôte al prezzemolo', 'Petto d\'anatra', 'Tournedos Rossini', 'Tartare di manzo', 'Cosciotto d\'agnello al timo', 'Picanha al barbecue', 'Bavetta allo scalogno', 'Cosciotto d\'agnello cotto sette ore', 'Carré d\'agnello in crosta di erbe', 'Hamburger di manzo al cheddar', 'Costolette d\'agnello alla griglia con rosmarino'],
       'ca': ['Mitjana de bou a la brasa', 'Entrecot', 'Magret d\'ànec', 'Tournedos Rossini', 'Tàrtar de vedella', 'Cuixa de xai amb farigola', 'Picanha a la barbacoa', 'Bavette amb escalunyes'],

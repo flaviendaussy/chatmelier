@@ -7,22 +7,22 @@ import 'package:chatmelier/features/sommelier/domain/profil_du_vin_de_cave.dart'
 
 void main() {
   group('👫 Guest Matcher Consensus & Aversion Tests', () {
-    final flavienProfile = TasteProfile(
+    const flavienProfile = TasteProfile(
       id: 'flavien',
       name: 'Flavien',
-      favoriteTypes: const ['Rouge'],
-      favoriteGrapes: const ['Syrah', 'Mourvèdre'],
+      favoriteTypes: ['Rouge'],
+      favoriteGrapes: ['Syrah', 'Mourvèdre'],
       avgTanninPreference: 0.8,
       avgBodyPreference: 0.8,
       avgSpicePreference: 0.9,
     );
 
-    final caroProfile = TasteProfile(
+    const caroProfile = TasteProfile(
       id: 'caro',
       name: 'Caro',
-      favoriteTypes: const ['Blanc sec', 'Champagne'],
-      favoriteGrapes: const ['Chardonnay', 'Sauvignon Blanc', 'Pinot Noir'],
-      dislikedCharacteristics: const ['Trop tannique', 'Trop lourd'],
+      favoriteTypes: ['Blanc sec', 'Champagne'],
+      favoriteGrapes: ['Chardonnay', 'Sauvignon Blanc', 'Pinot Noir'],
+      dislikedCharacteristics: ['Trop tannique', 'Trop lourd'],
       avgAcidityPreference: 0.9,
       avgMineralityPreference: 0.85,
       avgFreshFruitPreference: 0.8,
@@ -35,14 +35,14 @@ void main() {
     ];
 
     // Bottle 1: Powerful tannic Cornas
-    final cornasWine = Wine(
+    const cornasWine = Wine(
       id: 'wine_cornas',
       name: 'Cornas Les Ruchets',
       producer: 'Jean-Luc Colombo',
       type: 'Rouge',
       region: 'Vallée du Rhône',
       country: 'France',
-      grapes: const [Grape(name: 'Syrah', pct: 100)],
+      grapes: [Grape(name: 'Syrah', pct: 100)],
       vintage: 2019,
     );
     final cornasBottle = Bottle(
@@ -56,14 +56,14 @@ void main() {
     );
 
     // Bottle 2: Balanced, elegant Bourgogne Pinot Noir (Passerelle / Consensus)
-    final pinotWine = Wine(
+    const pinotWine = Wine(
       id: 'wine_pinot',
       name: 'Chambolle-Musigny 1er Cru',
       producer: 'Domaine de la Pousse d\'Or',
       type: 'Rouge',
       region: 'Bourgogne',
       country: 'France',
-      grapes: const [Grape(name: 'Pinot Noir', pct: 100)],
+      grapes: [Grape(name: 'Pinot Noir', pct: 100)],
       vintage: 2020,
     );
     final pinotBottle = Bottle(
@@ -77,14 +77,14 @@ void main() {
     );
 
     // Bottle 3: Tension Chablis 1er Cru (white)
-    final chablisWine = Wine(
+    const chablisWine = Wine(
       id: 'wine_chablis',
       name: 'Chablis 1er Cru Montée de Tonnerre',
       producer: 'Louis Michel',
       type: 'Blanc sec',
       region: 'Bourgogne',
       country: 'France',
-      grapes: const [Grape(name: 'Chardonnay', pct: 100)],
+      grapes: [Grape(name: 'Chardonnay', pct: 100)],
       vintage: 2021,
     );
     final chablisBottle = Bottle(

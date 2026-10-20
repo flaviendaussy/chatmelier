@@ -52,7 +52,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
     try {
       final ssid = await CellarLocationService.getCurrentWifiSsid();
       if (ssid != null && ssid.isNotEmpty) {
-        setState(() => _wifiController.text = ssid);
+        if (mounted) setState(() => _wifiController.text = ssid);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -82,6 +82,7 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
     try {
       final pos = await CellarLocationService.getCurrentPosition();
       if (pos != null) {
+        if (!mounted) return;
         setState(() {
           _latController.text = pos.latitude.toStringAsFixed(6);
           _lonController.text = pos.longitude.toStringAsFixed(6);
@@ -111,13 +112,14 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
   }
 
   Future<void> _submit() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     if (!_formKey.currentState!.validate()) return;
     final l10n = AppLocalizations.of(context);
 
     setState(() => _isCreating = true);
 
     try {
-      final repo = ref.read(cellarRepositoryProvider);
+      final repo = conteneur.read(cellarRepositoryProvider);
       final lat = double.tryParse(_latController.text.trim());
       final lon = double.tryParse(_lonController.text.trim());
 
@@ -133,9 +135,9 @@ class _CreateCellarDialogState extends ConsumerState<CreateCellarDialog> {
       );
 
       // Select new cellar
-      ref.read(currentCellarIdProvider.notifier).state = newCellar.id;
-      ref.invalidate(userCellarsProvider);
-      ref.invalidate(bottlesProvider(newCellar.id));
+      conteneur.read(currentCellarIdProvider.notifier).state = newCellar.id;
+      conteneur.invalidate(userCellarsProvider);
+      conteneur.invalidate(bottlesProvider(newCellar.id));
 
       if (mounted) {
         setState(() {

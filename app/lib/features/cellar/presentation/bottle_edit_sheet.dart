@@ -581,7 +581,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
       final picker = ImagePicker();
       final picked = await picker.pickImage(source: source, imageQuality: 85);
       if (picked != null) {
-        setState(() => _imageUrl = picked.path);
+        if (mounted) setState(() => _imageUrl = picked.path);
       }
     } catch (e) {
       debugPrint('Error picking image in edit sheet: $e');
@@ -1414,7 +1414,7 @@ class _BottleEditSheetState extends ConsumerState<BottleEditSheet> with SingleTi
                           currentCode: _bottleSize,
                         );
                         if (code == null) return;
-                        setState(() => _bottleSize = code);
+                        if (mounted) setState(() => _bottleSize = code);
                         if (ctx.mounted) Navigator.pop(ctx);
                       },
                     );

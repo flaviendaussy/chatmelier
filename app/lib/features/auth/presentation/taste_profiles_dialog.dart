@@ -203,9 +203,10 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                                   IconButton(
                                     icon: const Icon(Icons.delete_outline, size: 20, color: Colors.red),
                                     onPressed: () async {
-                                      final service = ref.read(tasteProfileServiceProvider);
+                                      final conteneur = ProviderScope.containerOf(context, listen: false);
+                                      final service = conteneur.read(tasteProfileServiceProvider);
                                       await service.deleteProfile(profile.id);
-                                      ref.invalidate(tasteProfilesListProvider);
+                                      conteneur.invalidate(tasteProfilesListProvider);
                                     },
                                   ),
                               ],
@@ -377,13 +378,14 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
+                final conteneur = ProviderScope.containerOf(context, listen: false);
                 final name = nameCtrl.text.trim();
                 if (name.isEmpty) return;
 
                 List<String> parseList(String text) =>
                     text.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
 
-                final service = ref.read(tasteProfileServiceProvider);
+                final service = conteneur.read(tasteProfileServiceProvider);
                 if (existing != null) {
                   await service.updateProfile(
                     existing.copyWith(
@@ -406,7 +408,7 @@ class _TasteProfilesDialogState extends ConsumerState<TasteProfilesDialog> {
                   );
                 }
 
-                ref.invalidate(tasteProfilesListProvider);
+                conteneur.invalidate(tasteProfilesListProvider);
                 if (ctx.mounted) Navigator.pop(ctx);
               },
               child: Text(tr('Enregistrer', 'Save')),

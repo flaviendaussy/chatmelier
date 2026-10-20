@@ -144,6 +144,7 @@ class _BottleProvenancePickerState extends ConsumerState<BottleProvenancePicker>
                         onPressed: () async {
                           final selected = await WineMerchantSearchDialog.show(context);
                           if (selected != null) {
+                            if (!mounted) return;
                             setState(() {
                               _detailsCtrl.text = selected.name;
                             });
@@ -173,7 +174,7 @@ class _BottleProvenancePickerState extends ConsumerState<BottleProvenancePicker>
                   onPressed: () async {
                     final selected = await WineMerchantSearchDialog.show(context);
                     if (selected != null) {
-                      setState(() => _detailsCtrl.text = selected.name);
+                      if (mounted) setState(() => _detailsCtrl.text = selected.name);
                       _notifyChange();
                     }
                   },

@@ -57,7 +57,7 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
       return;
     }
 
-    setState(() => _isLoading = true);
+    if (mounted) setState(() => _isLoading = true);
     final service = ref.read(wineMerchantServiceProvider);
     final results = await service.searchOnlineMerchants(clean);
 
@@ -70,6 +70,7 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
   }
 
   Future<void> _confirmAndSaveMerchant(WineMerchant candidate) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final notesCtrl = TextEditingController(text: candidate.notes ?? '');
     final confirmed = await showDialog<bool>(
       context: context,
@@ -183,9 +184,9 @@ class _WineMerchantSearchDialogState extends ConsumerState<WineMerchantSearchDia
 
     if (confirmed == true && mounted) {
       final finalMerchant = candidate.copyWith(notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null);
-      final service = ref.read(wineMerchantServiceProvider);
+      final service = conteneur.read(wineMerchantServiceProvider);
       await service.saveMerchant(finalMerchant);
-      ref.invalidate(wineMerchantsProvider);
+      conteneur.invalidate(wineMerchantsProvider);
       if (mounted) {
         Navigator.of(context).pop(finalMerchant);
       }

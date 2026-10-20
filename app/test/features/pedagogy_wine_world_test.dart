@@ -136,7 +136,7 @@ void main() {
     });
 
     test('mais un texte d\'élevage explicite est cru', () {
-      final w = Wine(
+      const w = Wine(
         id: 'w', name: 'Cuvée du Chat', region: 'Autre', country: 'France',
         type: 'red', vintage: 2022, barrelAging: '12 mois en fûts de chêne',
       );

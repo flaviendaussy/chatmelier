@@ -295,7 +295,7 @@ class BlindBattleScorer {
     if (guess.selectedAromaIds.isNotEmpty) {
       // Valorise la finesse de détection sensorielle
       aromasScore = math.min(20, guess.selectedAromaIds.length * 5);
-      feedback.add('👃 ${guess.selectedAromaIds.length} notes et arômes exprimés avec acuité (+${aromasScore} pts)');
+      feedback.add('👃 ${guess.selectedAromaIds.length} notes et arômes exprimés avec acuité (+$aromasScore pts)');
     }
 
     // 6. Bouche & Caudalies (20 pts)

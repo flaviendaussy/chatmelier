@@ -52,11 +52,11 @@ void main() {
   test('le résultat publié nomme les convives, jamais par leur identifiant', () {
     const sancerre = MenuWine(id: 's', name: 'Sancerre', producer: 'Vacheron', vintage: 2022, wineType: 'White', bottlePrice: 42);
     final podium = [
-      MenuTableMatchResult(
+      const MenuTableMatchResult(
         menuWine: sancerre,
         harmonyScore: 81.4,
         consensusRationale: 'Caro et Paul l\'apprécieront.',
-        guestScores: const {'id-caro': 84.2, 'id-paul': 78.6},
+        guestScores: {'id-caro': 84.2, 'id-paul': 78.6},
       ),
     ];
     final r = ResultatDeTable.publier(

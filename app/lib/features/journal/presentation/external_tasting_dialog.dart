@@ -132,6 +132,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   final Set<String> _selectedCoTasters = {};
 
   Future<void> _showAddCompanionDialog() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController();
     final newName = await showDialog<String>(
@@ -185,10 +186,10 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     );
 
     if (newName != null && newName.isNotEmpty) {
-      final service = ref.read(tasteProfileServiceProvider);
+      final service = conteneur.read(tasteProfileServiceProvider);
       await service.addOrGetProfileByName(newName);
       final fresh = await service.getProfiles();
-      ref.invalidate(tasteProfilesListProvider);
+      conteneur.invalidate(tasteProfilesListProvider);
       if (mounted) {
         setState(() {
           _companionProfiles = fresh;
@@ -252,11 +253,13 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
 
   Future<void> _pickPhoto(ImageSource source) async {
     final l10n = AppLocalizations.of(context)!;
+    final currentLang = Localizations.localeOf(context).languageCode;
     try {
       final picker = ImagePicker();
       final picked = await picker.pickImage(source: source, imageQuality: 85);
-      if (picked == null) return;
-      
+      // La fiche a pu être fermée pendant que l'appareil photo était ouvert.
+      if (picked == null || !mounted) return;
+
       setState(() {
         _photoUrl = picked.path;
         _isScanningPhoto = true;
@@ -268,7 +271,6 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
 
       // 1. Automatic Gemini Vision OCR & Enology Extraction
       try {
-        final currentLang = Localizations.localeOf(context).languageCode;
         final result = await scanService.analyzeBottleImage(
           imagePath: picked.path,
           imageBytes: bytes,

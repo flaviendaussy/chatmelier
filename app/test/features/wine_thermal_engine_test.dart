@@ -4,7 +4,7 @@ import 'package:chatmelier/features/cellar/domain/wine.dart';
 
 void main() {
   group('🌡️ Wine Thermal Engine & Newton Heating/Cooling Tests', () {
-    final chablis = const Wine(
+    const chablis = Wine(
       id: 'w_chablis',
       name: 'Chablis Grand Cru Les Clos',
       type: 'Blanc sec',
@@ -14,7 +14,7 @@ void main() {
       vintage: 2021,
     );
 
-    final cornas = const Wine(
+    const cornas = Wine(
       id: 'w_cornas',
       name: 'Cornas Granit 30',
       type: 'Rouge',
@@ -24,7 +24,7 @@ void main() {
       vintage: 2022,
     );
 
-    final champagne = const Wine(
+    const champagne = Wine(
       id: 'w_champ',
       name: 'Champagne Blanc de Blancs',
       type: 'Champagne',

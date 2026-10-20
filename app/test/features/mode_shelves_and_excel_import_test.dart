@@ -169,7 +169,7 @@ Brunello di Montalcino,Biondi-Santi,2015,red,1
     });
 
     test('Extracts rows from tab-delimited TSV', () {
-      final tsvContent = "Wine\tVintage\tQty\nPétrus\t2010\t1\n";
+      const tsvContent = "Wine\tVintage\tQty\nPétrus\t2010\t1\n";
       final bytes = Uint8List.fromList(utf8.encode(tsvContent));
       final rows = ExcelImportService.extractRawRows(bytes: bytes, fileName: 'prestige.tsv');
 

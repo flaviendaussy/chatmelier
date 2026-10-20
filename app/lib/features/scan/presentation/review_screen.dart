@@ -655,15 +655,16 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   Future<void> _increaseExistingBottleStock() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     if (_duplicateBottle == null) return;
     setState(() => _isSaving = true);
     try {
-      final repo = ref.read(cellarRepositoryProvider);
+      final repo = conteneur.read(cellarRepositoryProvider);
       final newQty = _duplicateBottle!.quantity + _quantity;
       await repo.updateBottleQuantity(_duplicateBottle!.id, newQty, cellarId: _duplicateBottle!.cellarId);
       
-      final cellarId = ref.read(currentCellarIdProvider);
-      if (cellarId != null) ref.invalidate(bottlesProvider(cellarId));
+      final cellarId = conteneur.read(currentCellarIdProvider);
+      if (cellarId != null) conteneur.invalidate(bottlesProvider(cellarId));
 
       AppLogger.info('REVIEW_SCREEN', 'Updated stock for bottle ${_duplicateBottle!.id} to $newQty');
 
@@ -751,11 +752,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     final conteneur = ProviderScope.containerOf(context, listen: false);
 
     try {
-      final supabase = ref.read(supabaseProvider);
-      final repo = ref.read(cellarRepositoryProvider);
+      final supabase = conteneur.read(supabaseProvider);
+      final repo = conteneur.read(cellarRepositoryProvider);
       
       // Determine cellar ID
-      String? cellarId = ref.read(currentCellarIdProvider);
+      String? cellarId = conteneur.read(currentCellarIdProvider);
       if (cellarId == null || cellarId.isEmpty) {
         final userCellars = await repo.getUserCellarsWithRole();
         if (userCellars.isNotEmpty) {
@@ -771,7 +772,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           cellarId = newCellar.id;
         }
         if (cellarId != null) {
-          ref.read(currentCellarIdProvider.notifier).state = cellarId;
+          conteneur.read(currentCellarIdProvider.notifier).state = cellarId;
         }
       }
 
@@ -2201,7 +2202,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                           currentCode: _bottleSize,
                         );
                         if (code == null) return;
-                        setState(() => _bottleSize = code);
+                        if (mounted) setState(() => _bottleSize = code);
                         if (ctx.mounted) Navigator.pop(ctx);
                       },
                     );

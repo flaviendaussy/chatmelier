@@ -108,7 +108,7 @@ Pic Saint-Loup "La Chouette du Chai" 2021 — Mas Bruguière (Verre 12cl: 6.50�
           region: 'Bourgogne',
           country: 'France',
           bottlePrice: 85.0,
-          glassPrices: const [MenuWineGlassPrice(format: '12cl', price: 14.0)],
+          glassPrices: [MenuWineGlassPrice(format: '12cl', price: 14.0)],
           isGem: true,
           gemReason: 'Domaine mythique ultra-convoité',
         ),
@@ -133,7 +133,7 @@ Pic Saint-Loup "La Chouette du Chai" 2021 — Mas Bruguière (Verre 12cl: 6.50�
           region: 'Loire',
           country: 'France',
           bottlePrice: 48.0,
-          glassPrices: const [MenuWineGlassPrice(format: '12cl', price: 9.0)],
+          glassPrices: [MenuWineGlassPrice(format: '12cl', price: 9.0)],
         ),
         BenchmarkMenuWine(
           name: 'Côtes du Jura Savagnin Sous Voile',
@@ -156,7 +156,7 @@ Pic Saint-Loup "La Chouette du Chai" 2021 — Mas Bruguière (Verre 12cl: 6.50�
           region: 'Beaujolais',
           country: 'France',
           bottlePrice: 42.0,
-          glassPrices: const [MenuWineGlassPrice(format: '12cl', price: 8.0)],
+          glassPrices: [MenuWineGlassPrice(format: '12cl', price: 8.0)],
           isDeal: true,
           dealReason: 'Tarif exceptionnel pour un monument du Beaujolais',
         ),
@@ -169,7 +169,7 @@ Pic Saint-Loup "La Chouette du Chai" 2021 — Mas Bruguière (Verre 12cl: 6.50�
           region: 'Vallée du Rhône',
           country: 'France',
           bottlePrice: 39.0,
-          glassPrices: const [MenuWineGlassPrice(format: '12cl', price: 7.5)],
+          glassPrices: [MenuWineGlassPrice(format: '12cl', price: 7.5)],
           isDeal: true,
           dealReason: 'Excellent rapport qualité/prix de grande maison',
         ),
@@ -214,7 +214,7 @@ Pic Saint-Loup "La Chouette du Chai" 2021 — Mas Bruguière (Verre 12cl: 6.50�
           region: 'Languedoc',
           country: 'France',
           bottlePrice: 34.0,
-          glassPrices: const [MenuWineGlassPrice(format: '12cl', price: 6.5)],
+          glassPrices: [MenuWineGlassPrice(format: '12cl', price: 6.5)],
           isDeal: true,
           dealReason: 'Prix très doux pour ce superbe domaine familial',
         ),
@@ -496,7 +496,7 @@ OSTERIA DEL VIGNETO — CARTA DEI VINI
 
 BOLLICINE
 Prosecco Superiore Valdobbiadene DOCG Extra Dry — Nino Franco (Verre: 6€ | Bouteille: 30€)
-Franciacorta "Cuvée Prestige" Edizione 45 — Ca\' del Bosco (Bouteille: 65€)
+Franciacorta "Cuvée Prestige" Edizione 45 — Ca' del Bosco (Bouteille: 65€)
 
 BIANCHI
 Gavi del Comune di Gavi "La Granée" 2022 — Batasiolo (Verre: 7€ | Bouteille: 35€)
@@ -518,7 +518,7 @@ Etna Rosso 2021 — Tenuta delle Terre Nere (Verre: 8.50€ | Bouteille: 45€)
           region: 'Vénétie',
           country: 'Italie',
           bottlePrice: 30.0,
-          glassPrices: const [MenuWineGlassPrice(format: 'Verre', price: 6.0)],
+          glassPrices: [MenuWineGlassPrice(format: 'Verre', price: 6.0)],
         ),
         BenchmarkMenuWine(
           name: 'Franciacorta Cuvée Prestige',
@@ -541,7 +541,7 @@ Etna Rosso 2021 — Tenuta delle Terre Nere (Verre: 8.50€ | Bouteille: 45€)
           region: 'Piémont',
           country: 'Italie',
           bottlePrice: 35.0,
-          glassPrices: const [MenuWineGlassPrice(format: 'Verre', price: 7.0)],
+          glassPrices: [MenuWineGlassPrice(format: 'Verre', price: 7.0)],
         ),
         BenchmarkMenuWine(
           name: 'Soave Classico Calvarino',
@@ -564,7 +564,7 @@ Etna Rosso 2021 — Tenuta delle Terre Nere (Verre: 8.50€ | Bouteille: 45€)
           region: 'Toscane',
           country: 'Italie',
           bottlePrice: 42.0,
-          glassPrices: const [MenuWineGlassPrice(format: 'Verre', price: 8.0)],
+          glassPrices: [MenuWineGlassPrice(format: 'Verre', price: 8.0)],
           isDeal: true,
           dealReason: 'Sangiovese pur de référence à prix très équilibré',
         ),
@@ -599,7 +599,7 @@ Etna Rosso 2021 — Tenuta delle Terre Nere (Verre: 8.50€ | Bouteille: 45€)
           region: 'Sicile',
           country: 'Italie',
           bottlePrice: 45.0,
-          glassPrices: const [MenuWineGlassPrice(format: 'Verre', price: 8.5)],
+          glassPrices: [MenuWineGlassPrice(format: 'Verre', price: 8.5)],
           isDeal: true,
           dealReason: 'Élégance bourguignonne sur terroir volcanique',
         ),

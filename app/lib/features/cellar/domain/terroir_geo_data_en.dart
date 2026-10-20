@@ -87,8 +87,8 @@ const Map<String, String> terroirEnAnglais = {
       'Rich, fertile volcanic andosols of Mount Pelée',
   'Terres volcaniques rouges riches en fer et minéraux du volcan de Tequila':
       'Red volcanic soils rich in iron and minerals from the Tequila volcano',
-  'Bassin alluvionnaire de la Tamise et sources d\'eau pures':
-      'The Thames alluvial basin and pure water springs',
+  'Sans objet : un gin naît de l\'alambic, pas du sol':
+      'Not applicable: a gin comes from the still, not the soil',
   'Plaines fertiles de Tchernoziom et terres sablo-limoneuses de céréales nobles':
       'Fertile chernozem plains and sandy-silty soils for fine cereals',
   'Océanique tempéré régulé par l\'estuaire de la Gironde':
@@ -259,8 +259,8 @@ const Map<String, String> terroirEnAnglais = {
       'Volcanic slopes and sunny sugar-cane plains',
   'Plateaux arides et pentes volcaniques sous le volcan Tequila':
       'Arid plateaus and volcanic slopes below the Tequila volcano',
-  'Cœur historique de la distillation urbaine britannique':
-      'The historic heart of British urban distilling',
+  'Un style, pas un lieu : le London Dry se distille partout au Royaume-Uni, et au-delà':
+      'A style, not a place: London Dry is distilled all over the UK, and beyond',
   'Grands plateaux céréaliers d\'Europe centrale':
       'The great cereal plateaus of Central Europe',
   '12 - 30 mètres':
@@ -347,6 +347,8 @@ const Map<String, String> terroirEnAnglais = {
       '1200 - 2100 m (high altitude)',
   '15 - 40 mètres':
       '15 - 40 m',
+  'Sans objet':
+      'Not applicable',
   'Cabernet Sauvignon, Merlot (forte proportion)':
       'Cabernet Sauvignon, Merlot (a high share)',
   'Syrah (dominant), co-fermentée avec jusqu\'à 20% de Viognier':

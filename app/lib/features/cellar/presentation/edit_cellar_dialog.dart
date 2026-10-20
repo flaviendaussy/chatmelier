@@ -69,7 +69,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
     try {
       final ssid = await CellarLocationService.getCurrentWifiSsid();
       if (ssid != null && ssid.isNotEmpty) {
-        setState(() => _wifiController.text = ssid);
+        if (mounted) setState(() => _wifiController.text = ssid);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -99,6 +99,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
     try {
       final pos = await CellarLocationService.getCurrentPosition();
       if (pos != null) {
+        if (!mounted) return;
         setState(() {
           _latController.text = pos.latitude.toStringAsFixed(6);
           _lonController.text = pos.longitude.toStringAsFixed(6);
@@ -128,6 +129,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
   }
 
   Future<void> _save() async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     if (!_formKey.currentState!.validate()) return;
     final l10n = AppLocalizations.of(context);
     setState(() => _isSaving = true);
@@ -141,7 +143,7 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
     final lon = double.tryParse(_lonController.text.trim());
 
     try {
-      final repo = ref.read(cellarRepositoryProvider);
+      final repo = conteneur.read(cellarRepositoryProvider);
       await repo.updateCellar(
         widget.cellar.id,
         name: name,
@@ -154,9 +156,9 @@ class _EditCellarDialogState extends ConsumerState<EditCellarDialog> {
         radiusMeters: _radiusMeters,
       );
 
-      ref.invalidate(userCellarsProvider);
-      ref.invalidate(currentCellarIdProvider);
-      ref.invalidate(bottlesProvider(widget.cellar.id));
+      conteneur.invalidate(userCellarsProvider);
+      conteneur.invalidate(currentCellarIdProvider);
+      conteneur.invalidate(bottlesProvider(widget.cellar.id));
 
       if (mounted) {
         Navigator.of(context).pop();

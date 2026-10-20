@@ -369,7 +369,7 @@ class _BadgeUnlockCelebrationDialogState extends State<BadgeUnlockCelebrationDia
                         const SizedBox(height: 16),
 
                         // Video ceremony button
-                        SizedBox(
+                        const SizedBox(
                           width: double.infinity,
                         ),
                         const SizedBox(height: 12),

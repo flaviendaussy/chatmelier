@@ -14,7 +14,7 @@ void main() {
   _carteQuiTraverse();
 
   group('🧳 Le profil d\'un convive fait le voyage', () {
-    final radar = const WineTasteRadarMetrics(
+    const radar = WineTasteRadarMetrics(
       tannin: 8.5,
       body: 7.0,
       oak: 2.0,
@@ -26,12 +26,12 @@ void main() {
     );
 
     test('les huit axes survivent à l\'aller-retour', () {
-      final origine = GuestProfile(
+      const origine = GuestProfile(
         id: 'paul',
         name: 'Paul',
-        favoriteTypes: const ['Rouge'],
-        favoriteGrapes: const ['Mourvèdre'],
-        dislikedCharacteristics: const ['Boisé marqué'],
+        favoriteTypes: ['Rouge'],
+        favoriteGrapes: ['Mourvèdre'],
+        dislikedCharacteristics: ['Boisé marqué'],
         archetype: 'Amateur de Grands Rouges Puissants',
         radarDistant: radar,
       );
@@ -67,7 +67,7 @@ void main() {
     test('rien de plus que ce qu\'il faut ne part', () {
       // Le profil voyage vers d'autres convives : il ne doit emporter ni identifiant de
       // compte, ni cave, ni historique de dégustations.
-      final json = GuestProfile(id: 'secret-user-id', name: 'Paul', radarDistant: radar)
+      final json = const GuestProfile(id: 'secret-user-id', name: 'Paul', radarDistant: radar)
           .toJson();
       expect(json.keys, isNot(contains('id')));
       expect(json.toString(), isNot(contains('secret-user-id')));
@@ -92,7 +92,7 @@ void _carteQuiTraverse() {
         pagePhotoPaths: const [],
         scannedAt: DateTime(2026, 9, 18),
         wines: [
-          MenuWine(
+          const MenuWine(
             id: 'w1',
             name: 'Bandol Rouge',
             producer: 'Domaine de Terrebrune',
@@ -101,11 +101,11 @@ void _carteQuiTraverse() {
             appellation: 'Bandol',
             region: 'Provence',
             bottlePrice: 78,
-            grapes: const ['Mourvèdre', 'Grenache'],
-            glassPrices: const [MenuWineGlassPrice(format: '125ml', price: 12)],
-            metrics: const MenuWineRadarMetrics(
+            grapes: ['Mourvèdre', 'Grenache'],
+            glassPrices: [MenuWineGlassPrice(format: '125ml', price: 12)],
+            metrics: MenuWineRadarMetrics(
                 tannins: 8.5, acidity: 5.5, body: 8.0, oak: 6.0),
-            tags: const ['tannique'],
+            tags: ['tannique'],
             isGem: true,
           ),
         ],

@@ -264,11 +264,11 @@ void main() {
     });
 
     test('une catégorie équilibrée ne produit aucun conseil', () {
-      final equilibre = CellarGapAnalysis(
+      const equilibre = CellarGapAnalysis(
         totalBottles: 20,
         redRatio: 0.5, whiteRatio: 0.5, roseRatio: 0, sparklingRatio: 0,
         readyToDrinkCount: 10, inAgingCount: 10, pastPeakCount: 0,
-        gaps: const [
+        gaps: [
           CellarGapCategory(
             title: 'Blancs',
             status: 'balanced',
@@ -277,10 +277,10 @@ void main() {
             recommendedAppellations: ['Chablis'],
           ),
         ],
-        shoppingWishlist: const [],
+        shoppingWishlist: [],
       );
       final l = lien(carteVin('Chablis', appellation: 'Chablis'),
-          ContexteDeCave(lacunes: equilibre));
+          const ContexteDeCave(lacunes: equilibre));
       expect(l, isNull);
     });
   });

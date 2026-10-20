@@ -217,13 +217,13 @@ void main() {
     );
 
     test('TastingQuestionnaireResult serializes and deserializes customAromas, foodPairingSynergy and isExpressMode', () {
-      final initial = TastingQuestionnaireResult(
+      const initial = TastingQuestionnaireResult(
         profileId: 'taster-expert',
         profileName: 'Jean-Luc (Sommelier)',
         noteOutOf10: 9.5,
         emojiImpression: 4,
-        perceivedAromas: const {'🫐 Fruits noirs', '🌶️ Poivre / Épices'},
-        customAromas: const ['Garrigue', 'Sous-bois'],
+        perceivedAromas: {'🫐 Fruits noirs', '🌶️ Poivre / Épices'},
+        customAromas: ['Garrigue', 'Sous-bois'],
         foodPairingSynergy: 'sublime',
         isExpressMode: true,
         aromaIntensity: 0.9,
@@ -233,8 +233,8 @@ void main() {
         length: 0.8,
         wouldBuyAgain: 'yes',
         idealMoment: 'diner_gastronomique',
-        whatLikedMost: const {'complexite', 'longueur'},
-        whatDislikedMost: const {},
+        whatLikedMost: {'complexite', 'longueur'},
+        whatDislikedMost: {},
       );
 
       final json = initial.toJson();

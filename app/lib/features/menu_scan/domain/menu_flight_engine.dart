@@ -478,17 +478,17 @@ class MenuFlightEngine {
     final m = w.metrics;
     final blancOuBulles = w.isSparkling || (w.isWhite && !w.isRose && !w.isRed);
     final traits = <(double, Phrase)>[
-      if (w.isSparkling) (20, Phrase('Bulles', 'Bubbles')),
-      if (m.sweetness >= 4) (m.sweetness + 3, Phrase('Douceur', 'Sweetness')),
-      if (m.acidity >= 7.5) (m.acidity, Phrase('Vivacité', 'Crispness')),
-      if (blancOuBulles && m.minerality >= 7.5) (m.minerality, Phrase('Minéralité', 'Minerality')),
-      if (w.isRed && m.tannins >= 7.5) (m.tannins, Phrase('Charpente', 'Structure')),
-      if (w.isRed && m.tannins > 0 && m.tannins <= 4.5) (10 - m.tannins, Phrase('Souplesse', 'Silkiness')),
-      if (m.body >= 7.5) (m.body, Phrase('Ampleur', 'Fullness')),
-      if (m.body > 0 && m.body <= 4.5) (10 - m.body, Phrase('Légèreté', 'Lightness')),
-      if (m.oak >= 6) (m.oak, Phrase('Boisé', 'Oak')),
-      if (blancOuBulles && m.butteriness >= 6) (m.butteriness, Phrase('Gras', 'Creaminess')),
-      if (m.fruit >= 7.5) (m.fruit, Phrase('Fruit', 'Fruit')),
+      if (w.isSparkling) (20, const Phrase('Bulles', 'Bubbles')),
+      if (m.sweetness >= 4) (m.sweetness + 3, const Phrase('Douceur', 'Sweetness')),
+      if (m.acidity >= 7.5) (m.acidity, const Phrase('Vivacité', 'Crispness')),
+      if (blancOuBulles && m.minerality >= 7.5) (m.minerality, const Phrase('Minéralité', 'Minerality')),
+      if (w.isRed && m.tannins >= 7.5) (m.tannins, const Phrase('Charpente', 'Structure')),
+      if (w.isRed && m.tannins > 0 && m.tannins <= 4.5) (10 - m.tannins, const Phrase('Souplesse', 'Silkiness')),
+      if (m.body >= 7.5) (m.body, const Phrase('Ampleur', 'Fullness')),
+      if (m.body > 0 && m.body <= 4.5) (10 - m.body, const Phrase('Légèreté', 'Lightness')),
+      if (m.oak >= 6) (m.oak, const Phrase('Boisé', 'Oak')),
+      if (blancOuBulles && m.butteriness >= 6) (m.butteriness, const Phrase('Gras', 'Creaminess')),
+      if (m.fruit >= 7.5) (m.fruit, const Phrase('Fruit', 'Fruit')),
     ];
     if (traits.isEmpty) return trSi(fr, 'Équilibre', 'Balance');
     // Le tri de Dart n'est pas stable : à saillance égale, l'ordre de déclaration tranche,

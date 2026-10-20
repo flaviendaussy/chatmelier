@@ -124,7 +124,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       try {
         final newMode = _isFlashOn ? FlashMode.off : FlashMode.torch;
         await _controller!.setFlashMode(newMode);
-        setState(() => _isFlashOn = !_isFlashOn);
+        if (mounted) setState(() => _isFlashOn = !_isFlashOn);
       } catch (e) {
         AppLogger.warning('SCAN_SCREEN', 'Error toggling flash: $e');
       }

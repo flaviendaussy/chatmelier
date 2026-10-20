@@ -96,7 +96,7 @@ class MenuTableSessionManager {
       // GZipEncoder du paquet `archive`, et non `gzip` de dart:io : ce dernier lève
       // UnsupportedError une fois compilé par dart2js. `decodeMenuPayload` renvoyait donc
       // null sur TOUT navigateur, et l'invité basculait en silence sur un menu fictif.
-      final compressed = GZipEncoder().encode(bytes);
+      final compressed = const GZipEncoder().encode(bytes);
       return base64Url.encode(compressed);
     } catch (_) {
       // Fallback simple base64 si compression échoue
@@ -141,7 +141,7 @@ class MenuTableSessionManager {
       List<int> bytes = compressed;
       if (estGzip) {
         try {
-          bytes = GZipDecoder().decodeBytes(compressed);
+          bytes = const GZipDecoder().decodeBytes(compressed);
         } catch (_) {
           bytes = compressed;
         }

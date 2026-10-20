@@ -78,10 +78,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
   }
 
   Future<void> _sendFriendRequest(UserProfile user) async {
-    final friendsRepo = ref.read(friendsRepositoryProvider);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final friendsRepo = conteneur.read(friendsRepositoryProvider);
     try {
       await friendsRepo.sendFriendRequest(user);
-      ref.invalidate(pendingOutgoingRequestsProvider);
+      conteneur.invalidate(pendingOutgoingRequestsProvider);
 
       if (mounted) {
         setState(() => _sentRequestUserIds.add(user.id));
@@ -102,11 +103,12 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
   }
 
   Future<void> _acceptFriend(Friend friend) async {
-    final friendsRepo = ref.read(friendsRepositoryProvider);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final friendsRepo = conteneur.read(friendsRepositoryProvider);
     try {
       await friendsRepo.acceptFriendRequest(friend.id, friend.friendUserId);
-      ref.invalidate(friendsListProvider);
-      ref.invalidate(pendingIncomingRequestsProvider);
+      conteneur.invalidate(friendsListProvider);
+      conteneur.invalidate(pendingIncomingRequestsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -125,10 +127,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
   }
 
   Future<void> _declineFriend(Friend friend) async {
-    final friendsRepo = ref.read(friendsRepositoryProvider);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final friendsRepo = conteneur.read(friendsRepositoryProvider);
     try {
       await friendsRepo.declineFriendRequest(friend.id);
-      ref.invalidate(pendingIncomingRequestsProvider);
+      conteneur.invalidate(pendingIncomingRequestsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(tr('Demande d\'ami déclinée.', 'Friend request declined.'))),
@@ -144,7 +147,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
   }
 
   Future<void> _respondCellarRequest(CellarAccessRequest req, bool accept, String role) async {
-    final friendsRepo = ref.read(friendsRepositoryProvider);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final friendsRepo = conteneur.read(friendsRepositoryProvider);
     try {
       await friendsRepo.respondCellarAccess(
         requestId: req.id,
@@ -154,8 +158,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
         role: role,
         cellarName: req.cellarName,
       );
-      ref.invalidate(incomingCellarRequestsProvider);
-      ref.invalidate(friendsListProvider);
+      conteneur.invalidate(incomingCellarRequestsProvider);
+      conteneur.invalidate(friendsListProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -338,6 +342,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                       PopupMenuButton<String>(
                         icon: const Icon(Icons.more_vert, size: 18),
                         onSelected: (val) async {
+                          final conteneur = ProviderScope.containerOf(context, listen: false);
                           if (val == 'taste') {
                             FriendTasteCardSheet.show(context, friend);
                           } else if (val == 'remove') {
@@ -356,8 +361,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                               ),
                             );
                             if (confirm == true) {
-                              await ref.read(friendsRepositoryProvider).removeFriend(friend.friendUserId);
-                              ref.invalidate(friendsListProvider);
+                              await conteneur.read(friendsRepositoryProvider).removeFriend(friend.friendUserId);
+                              conteneur.invalidate(friendsListProvider);
                             }
                           }
                         },
@@ -478,19 +483,24 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                 style: const TextStyle(fontSize: 13, color: Colors.grey),
               ),
               const SizedBox(height: 12),
-              RadioListTile<String>(
-                title: Text(tr('Consultation (Lecteur 👁️)', 'View only (viewer 👁️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: Text(tr('Peut voir votre cave, vos bouteilles et vos fiches de dégustation.', 'Can see your cellar, your bottles and your tasting notes.'), style: const TextStyle(fontSize: 11)),
-                value: 'viewer',
+              RadioGroup<String>(
                 groupValue: selectedRole,
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
-              ),
-              RadioListTile<String>(
-                title: Text(tr('Sommelier Délégué (Éditeur ✍️)', 'Deputy sommelier (editor ✍️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: Text(tr('Peut ajouter, déplacer et consommer des bouteilles dans votre cave.', 'Can add, move and drink bottles in your cellar.'), style: const TextStyle(fontSize: 11)),
-                value: 'editor',
-                groupValue: selectedRole,
-                onChanged: (val) => setDialogState(() => selectedRole = val!),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<String>(
+                      title: Text(tr('Consultation (Lecteur 👁️)', 'View only (viewer 👁️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                      subtitle: Text(tr('Peut voir votre cave, vos bouteilles et vos fiches de dégustation.', 'Can see your cellar, your bottles and your tasting notes.'), style: const TextStyle(fontSize: 11)),
+                      value: 'viewer',
+                    ),
+                    RadioListTile<String>(
+                      title: Text(tr('Sommelier Délégué (Éditeur ✍️)', 'Deputy sommelier (editor ✍️)'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                      subtitle: Text(tr('Peut ajouter, déplacer et consommer des bouteilles dans votre cave.', 'Can add, move and drink bottles in your cellar.'), style: const TextStyle(fontSize: 11)),
+                      value: 'editor',
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -506,14 +516,15 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () async {
+                final conteneur = ProviderScope.containerOf(context, listen: false);
                 Navigator.pop(dialogCtx);
                 try {
-                  await ref.read(friendsRepositoryProvider).grantCellarAccessDirectly(
+                  await conteneur.read(friendsRepositoryProvider).grantCellarAccessDirectly(
                     cellarId: '', // Automatically resolved to current user's cellar
                     friendUserId: friend.friendUserId,
                     role: selectedRole,
                   );
-                  ref.invalidate(friendsListProvider);
+                  conteneur.invalidate(friendsListProvider);
                   if (mounted) {
                     messenger.showSnackBar(
                       SnackBar(

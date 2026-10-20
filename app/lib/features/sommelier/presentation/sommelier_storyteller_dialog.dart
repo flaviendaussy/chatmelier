@@ -135,7 +135,7 @@ class _SommelierStorytellerDialogState extends State<SommelierStorytellerDialog>
     // Reprendre la voix naturelle là où elle s'était arrêtée.
     if (_voix == _Voix.naturelle && _lecteur != null && _position > Duration.zero) {
       await _lecteur!.resume();
-      setState(() => _enLecture = true);
+      if (mounted) setState(() => _enLecture = true);
       return;
     }
     setState(() => _preparation = true);
@@ -158,6 +158,7 @@ class _SommelierStorytellerDialogState extends State<SommelierStorytellerDialog>
       }
       try {
         await lecteur.play(DeviceFileSource(chemin));
+        if (!mounted) return;
         setState(() {
           _voix = _Voix.naturelle;
           _preparation = false;

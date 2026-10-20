@@ -15,19 +15,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   setUp(() => Langue.code = 'fr');
 
-  final palais = TasteProfile(
+  const palais = TasteProfile(
     id: 'moi',
     name: 'Moi',
     isPrimary: true,
-    favoriteTypes: const ['Rouge'],
-    favoriteRegions: const ['Bourgogne'],
-    favoriteGrapes: const ['Pinot Noir'],
-    dislikedCharacteristics: const ['Trop boisé'],
+    favoriteTypes: ['Rouge'],
+    favoriteRegions: ['Bourgogne'],
+    favoriteGrapes: ['Pinot Noir'],
+    dislikedCharacteristics: ['Trop boisé'],
     // Un palais des rouges bien établi (V2.6), proche du Volnay.
-    palais: const {
+    palais: {
       'rouge': {'tannin': 0.45, 'body': 0.55, 'acidity': 0.5, 'oak': 0.4, 'sweetness': 0.05},
     },
-    observationsPalais: const {
+    observationsPalais: {
       'rouge': {'tannin': 20, 'body': 20, 'acidity': 20, 'oak': 20, 'sweetness': 20},
     },
   );

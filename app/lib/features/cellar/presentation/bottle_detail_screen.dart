@@ -70,18 +70,19 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   /// « Non cotée ») lance une recherche Google sourcée pour ce vin ». Jamais de prix sans
   /// page source ; trouvée, elle s'affiche avec son site.
   Future<void> _chercherLaCote(String wineId) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     setState(() => _coteEnCours = true);
-    final service = CoteALaDemande(FonctionsIa(ref.read(supabaseProvider),
-        assurerUneSession: ref.read(authRepositoryProvider).assurerUneSession));
+    final service = CoteALaDemande(FonctionsIa(conteneur.read(supabaseProvider),
+        assurerUneSession: conteneur.read(authRepositoryProvider).assurerUneSession));
     final resultat = await service.chercher(wineId);
     if (!mounted) return;
     setState(() => _coteEnCours = false);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(resultat.message)));
     if (!resultat.trouvee) return;
     await _loadBottleDetails();
-    final currentCellar = ref.read(currentCellarIdProvider);
-    notifyCellarChanged(ref, currentCellar);
-    if (currentCellar != null) ref.invalidate(bottlesProvider(currentCellar));
+    final currentCellar = conteneur.read(currentCellarIdProvider);
+    notifyCellarChangedIn(conteneur, currentCellar);
+    if (currentCellar != null) conteneur.invalidate(bottlesProvider(currentCellar));
   }
 
   Map<String, dynamic>? _bottleData;
@@ -281,6 +282,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               title: Text(trSi(isFr, 'Restaurer l\'étiquette officielle', 'Restore official label')),
               subtitle: Text(trSi(isFr, 'Appliquer le visuel haute résolution du domaine', 'Apply high-resolution estate visual')),
               onTap: () async {
+                final conteneur = ProviderScope.containerOf(context, listen: false);
                 Navigator.of(ctx).pop();
                 final officialImg = WineImageService.resolveWineImageUrl(wine, forceDomainOrArchetype: true);
                 PaintingBinding.instance.imageCache.clear();
@@ -294,11 +296,11 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     }
                   }
                 });
-                final repo = ref.read(cellarRepositoryProvider);
+                final repo = conteneur.read(cellarRepositoryProvider);
                 await repo.updateBottle(widget.id, photoUrl: '');
                 await repo.updateWine(wine.id, imageUrl: officialImg);
-                final currentCellar = ref.read(currentCellarIdProvider);
-                notifyCellarChanged(ref, currentCellar);
+                final currentCellar = conteneur.read(currentCellarIdProvider);
+                notifyCellarChangedIn(conteneur, currentCellar);
                 if (mounted) {
                   final snackFr = Localizations.localeOf(context).languageCode == 'fr';
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -317,6 +319,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   }
 
   Future<void> _pickAndSetPhoto(ImageSource source, Wine wine) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     try {
       final picker = ImagePicker();
       final picked = await picker.pickImage(source: source, imageQuality: 85);
@@ -324,6 +327,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       PaintingBinding.instance.imageCache.clear();
       PaintingBinding.instance.imageCache.clearLiveImages();
 
+      if (!mounted) return;
       setState(() {
         _labelPhotoUrl = picked.path;
         if (_bottleData != null) {
@@ -335,13 +339,13 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       });
 
       // Save to bottle repo and wine repo
-      final repo = ref.read(cellarRepositoryProvider);
+      final repo = conteneur.read(cellarRepositoryProvider);
       await repo.updateBottle(widget.id, photoUrl: picked.path);
       await repo.updateWine(wine.id, imageUrl: picked.path);
 
       // Upload to Supabase storage if online
       try {
-        final scanService = ScanService(ref.read(supabaseProvider));
+        final scanService = ScanService(conteneur.read(supabaseProvider));
         final bytes = await picked.readAsBytes();
         final publicUrl = await scanService.uploadPhoto(
           bottleId: widget.id,
@@ -367,8 +371,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
         debugPrint('Photo upload notice: $e');
       }
 
-      final currentCellar = ref.read(currentCellarIdProvider);
-      notifyCellarChanged(ref, currentCellar);
+      final currentCellar = conteneur.read(currentCellarIdProvider);
+      notifyCellarChangedIn(conteneur, currentCellar);
 
       if (mounted) {
         final snackFr = Localizations.localeOf(context).languageCode == 'fr';
@@ -466,15 +470,17 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     if (bottleObj.notes != null && bottleObj.notes!.trim().isNotEmpty) ...[
                       TextButton.icon(
                         onPressed: () async {
+                          final conteneur = ProviderScope.containerOf(context, listen: false);
                           Navigator.pop(ctx);
-                          final repo = ref.read(cellarRepositoryProvider);
+                          final repo = conteneur.read(cellarRepositoryProvider);
                           await repo.updateBottle(bottleObj.id, notes: null);
+                          if (!mounted) return;
                           setState(() {
                             if (_bottleData != null) _bottleData!['notes'] = null;
                           });
                           await _loadBottleDetails();
-                          final currentCellar = ref.read(currentCellarIdProvider);
-                          notifyCellarChanged(ref, currentCellar);
+                          final currentCellar = conteneur.read(currentCellarIdProvider);
+                          notifyCellarChangedIn(conteneur, currentCellar);
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -497,17 +503,19 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                     const SizedBox(width: 8),
                     FilledButton(
                       onPressed: () async {
+                        final conteneur = ProviderScope.containerOf(context, listen: false);
                         final val = textCtrl.text.trim();
                         final newNotes = val.isEmpty ? null : val;
                         Navigator.pop(ctx);
-                        final repo = ref.read(cellarRepositoryProvider);
+                        final repo = conteneur.read(cellarRepositoryProvider);
                         await repo.updateBottle(bottleObj.id, notes: newNotes);
+                        if (!mounted) return;
                         setState(() {
                           if (_bottleData != null) _bottleData!['notes'] = newNotes;
                         });
                         await _loadBottleDetails();
-                        final currentCellar = ref.read(currentCellarIdProvider);
-                        notifyCellarChanged(ref, currentCellar);
+                        final currentCellar = conteneur.read(currentCellarIdProvider);
+                        notifyCellarChangedIn(conteneur, currentCellar);
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -535,6 +543,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   }
 
   Future<void> _enrichWineData(Wine wine) async {
+    final conteneur = ProviderScope.containerOf(context, listen: false);
     if (_isEnriching) return;
     setState(() => _isEnriching = true);
 
@@ -628,7 +637,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
           enrichedData: enriched,
           enrichedGrapes: grapes,
           onApply: (finalPayload, updatedOverrides) async {
-            final repo = ref.read(cellarRepositoryProvider);
+            final conteneur = ProviderScope.containerOf(context, listen: false);
+            final repo = conteneur.read(cellarRepositoryProvider);
             await repo.updateWine(
               wine.id,
               name: finalPayload['name'] as String?,
@@ -654,8 +664,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
               userOverrides: updatedOverrides,
             );
             await _loadBottleDetails();
-            final currentCellar = ref.read(currentCellarIdProvider);
-            notifyCellarChanged(ref, currentCellar);
+            final currentCellar = conteneur.read(currentCellarIdProvider);
+            notifyCellarChangedIn(conteneur, currentCellar);
             if (mounted) {
               final sFr = Localizations.localeOf(context).languageCode == 'fr';
               ScaffoldMessenger.of(context).showSnackBar(
@@ -709,8 +719,8 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
       // Reload bottle details
       await _loadBottleDetails();
 
-      final currentCellar = ref.read(currentCellarIdProvider);
-      notifyCellarChanged(ref, currentCellar);
+      final currentCellar = conteneur.read(currentCellarIdProvider);
+      notifyCellarChangedIn(conteneur, currentCellar);
 
       if (mounted) {
         final sFr = Localizations.localeOf(context).languageCode == 'fr';
@@ -1294,13 +1304,14 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                         wineName: wine.name,
                         readOnly: isViewOnly,
                         onFillLevelChanged: (newLevel) async {
+                          final conteneur = ProviderScope.containerOf(context, listen: false);
                           setState(() {
                             _bottleData!['fill_level'] = newLevel;
                           });
-                          final repo = ref.read(cellarRepositoryProvider);
+                          final repo = conteneur.read(cellarRepositoryProvider);
                           await repo.updateBottle(bottleObj.id, fillLevel: newLevel);
-                          final currentCellar = ref.read(currentCellarIdProvider);
-                          notifyCellarChanged(ref, currentCellar);
+                          final currentCellar = conteneur.read(currentCellarIdProvider);
+                          notifyCellarChangedIn(conteneur, currentCellar);
                         },
                       ),
                     ),
@@ -2480,6 +2491,7 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                     icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
                                     tooltip: trSi(isFr, 'Supprimer ma note', 'Delete my note'),
                                     onPressed: () async {
+                                      final conteneur = ProviderScope.containerOf(context, listen: false);
                                       final confirm = await showDialog<bool>(
                                         context: context,
                                         builder: (c) => AlertDialog(
@@ -2496,15 +2508,16 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
                                         ),
                                       );
                                       if (confirm == true) {
-                                        final repo = ref.read(cellarRepositoryProvider);
+                                        final repo = conteneur.read(cellarRepositoryProvider);
                                         await repo.updateBottle(bottleObj.id, notes: null);
+                                        if (!mounted) return;
                                         setState(() {
                                           if (_bottleData != null) _bottleData!['notes'] = null;
                                         });
                                         await _loadBottleDetails();
-                                        final currentCellar = ref.read(currentCellarIdProvider);
-                                        notifyCellarChanged(ref, currentCellar);
-                                        if (currentCellar != null) ref.invalidate(bottlesProvider(currentCellar));
+                                        final currentCellar = conteneur.read(currentCellarIdProvider);
+                                        notifyCellarChangedIn(conteneur, currentCellar);
+                                        if (currentCellar != null) conteneur.invalidate(bottlesProvider(currentCellar));
                                       }
                                     },
                                   ),

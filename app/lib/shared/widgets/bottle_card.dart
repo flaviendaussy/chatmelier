@@ -350,9 +350,7 @@ class BottleCard extends StatelessWidget {
                         wine: wine,
                         width: double.infinity,
                         height: 5,
-                        fin: wine.peakStart != null && wine.peakEnd != null
-                            ? '${wine.fenetreEffective.peakStart}-${wine.fenetreEffective.peakEnd}'
-                            : null,
+                        fin: wine.peakStart != null && wine.peakEnd != null ? _finDeLaJauge(wine) : null,
                       ),
                       const SizedBox(height: 6),
                     ] else if (bottle.tracksFillLevel || (wine?.tracksFillLevel ?? false)) ...[
@@ -418,4 +416,15 @@ class BottleCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Ce qu'on lit au bout de la jauge : les années de l'apogée, sauf pour un vin qui l'a
+/// passée mais se boit encore — « À boire vite · 2018-2023 » se lisait comme une
+/// contradiction en 2026 (revue du 20/10) : on dit jusqu'à quand.
+String _finDeLaJauge(Wine wine) {
+  final f = wine.fenetreEffective;
+  if (wine.windowStatus == DrinkWindowStatus.drinkSoon) {
+    return tr('d\'ici {an}', 'by {an}', {'an': f.drinkEnd});
+  }
+  return '${f.peakStart}-${f.peakEnd}';
 }

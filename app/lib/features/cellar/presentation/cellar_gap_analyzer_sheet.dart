@@ -70,9 +70,9 @@ class CellarGapAnalyzerSheet extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B1E3F).withOpacity(0.3),
+                    color: const Color(0xFF8B1E3F).withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.5)),
+                    border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.5)),
                   ),
                   child: const Icon(Icons.auto_graph_rounded, color: Color(0xFFD4AF37), size: 24),
                 ),
@@ -278,7 +278,7 @@ class CellarGapAnalyzerSheet extends ConsumerWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1E1626),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: statusColor.withOpacity(0.5)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

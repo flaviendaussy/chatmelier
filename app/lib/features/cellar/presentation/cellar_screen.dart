@@ -66,6 +66,26 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
 
   CellarFilterState _filter = const CellarFilterState();
 
+  /// Les listes dérivées de la cave, gardées tant que rien de ce qui les fait ne change
+  /// (T2, revue du 20/10). Chaque frappe dans la recherche et chaque `setState` refaisaient
+  /// le partage vins / spiritueux, le filtre, le tri et le regroupement (60 à 120 ms au banc
+  /// pour 300 bouteilles groupées par millésime). Les clés comparent par identité : la liste
+  /// du fournisseur, le filtre et les favoris sont remplacés, jamais modifiés en place.
+  List<Bottle>? _partageDe;
+  (List<Bottle>, List<Bottle>) _partage = (const [], const []);
+  final Map<Object, _VueDeLaCave> _vues = {};
+
+  (List<Bottle>, List<Bottle>) _vinsEtSpiritueux(List<Bottle> bouteilles) {
+    if (!identical(bouteilles, _partageDe)) {
+      _partageDe = bouteilles;
+      _partage = (
+        bouteilles.where((b) => !(b.wine?.isSpirit ?? false)).toList(),
+        bouteilles.where((b) => (b.wine?.isSpirit ?? false)).toList(),
+      );
+    }
+    return _partage;
+  }
+
   // Tab controller for swipeable Vins vs Spiritueux zones
   TabController? _tabController;
   int _activeTabIndex = 0; // 0 = wines, 1 = spirits (when both exist)
@@ -908,8 +928,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
                     );
                   }
 
-                  final wineBottles = bottleList.where((b) => !(b.wine?.isSpirit ?? false)).toList();
-                  final spiritBottles = bottleList.where((b) => (b.wine?.isSpirit ?? false)).toList();
+                  final (wineBottles, spiritBottles) = _vinsEtSpiritueux(bottleList);
                   final hasWines = wineBottles.isNotEmpty;
                   final hasSpirits = spiritBottles.isNotEmpty;
                   final hasBoth = hasWines && hasSpirits;
@@ -1656,7 +1675,28 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
     String? langCode,
     AppLocalizations? l10n,
   }) {
-    final filteredList = _filterBottles(sourceBottles);
+    final cle = (sourceBottles, _filter, ref.watch(favoriteWineIdsProvider), _searchQuery, _sortBy, _groupBy, langCode, isFr, _devise);
+    var vue = _vues[cle];
+    if (vue == null) {
+      if (_vues.length > 3) _vues.clear();
+      final filtrees = _filterBottles(sourceBottles);
+      final triees = _sortBy.sort(filtrees);
+      vue = _vues[cle] = _VueDeLaCave(
+        filtrees: filtrees,
+        triees: triees,
+        totalBouteilles: triees.fold<int>(0, (sum, b) => sum + b.quantity),
+        valeur: valeurDesBouteilles(triees, devise: _devise),
+        sections: _groupBy == CellarGroupBy.none
+            ? const []
+            : CellarGroupEngine.partitionBottles(
+                triees,
+                _groupBy,
+                sortBy: _sortBy,
+                lang: langCode ?? (trSi(isFr, 'fr', 'en')),
+              ),
+      );
+    }
+    final filteredList = vue.filtrees;
 
     // Tout est bu : la cave le dit, et l'historique est au Journal.
     if (filteredList.isEmpty && sourceBottles.isNotEmpty && sourceBottles.every((b) => b.quantity <= 0)) {
@@ -1710,19 +1750,14 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
       );
     }
 
-    final sortedList = _sortBy.sort(filteredList);
-    final totalBottles = sortedList.fold<int>(0, (sum, b) => sum + b.quantity);
-    final totalValue = valeurDesBouteilles(sortedList, devise: _devise);
+    final sortedList = vue.triees;
+    final totalBottles = vue.totalBouteilles;
+    final totalValue = vue.valeur;
 
     Widget mainContent;
 
     if (_groupBy != CellarGroupBy.none) {
-      final sections = CellarGroupEngine.partitionBottles(
-        sortedList,
-        _groupBy,
-        sortBy: _sortBy,
-        lang: langCode ?? (trSi(isFr, 'fr', 'en')),
-      );
+      final sections = vue.sections;
       mainContent = _buildGroupedBottleView(
         theme: theme,
         sections: sections,
@@ -2025,183 +2060,158 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
           ),
         ),
 
-        // Group sections list
+        // Group sections list — en slivers (revue du 20/10) : les bouteilles d'une section se
+        // construisent au fil du défilement, et non toutes d'un coup dans une grille
+        // `shrinkWrap`, retriée à chaque construction.
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
-            itemCount: sections.length,
-            itemBuilder: (context, sIdx) {
-              final section = sections[sIdx];
-              final isCollapsed = _collapsedGroups.contains(section.key);
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: section.color?.withValues(alpha: 0.3) ??
-                        theme.dividerColor.withValues(alpha: 0.2),
-                    width: 1.2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Section Accordion Header
-                    InkWell(
-                      borderRadius: BorderRadius.vertical(
-                        top: const Radius.circular(16),
-                        bottom: Radius.circular(isCollapsed ? 16 : 0),
-                      ),
-                      onTap: () => _toggleGroupCollapse(section.key),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                        decoration: BoxDecoration(
-                          color: (section.color ?? const Color(0xFF8B1E3F))
-                              .withValues(alpha: theme.brightness == Brightness.dark ? 0.16 : 0.06),
-                          borderRadius: BorderRadius.vertical(
-                            top: const Radius.circular(16),
-                            bottom: Radius.circular(isCollapsed ? 16 : 0),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            if (section.emoji.isNotEmpty)
-                              Text(section.emoji, style: const TextStyle(fontSize: 18))
-                            else if (section.icon != null)
-                              Icon(section.icon, size: 18, color: section.color ?? const Color(0xFF8B1E3F)),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                section.title,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14.5,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            // Bottle count badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                              decoration: BoxDecoration(
-                                color: (section.color ?? const Color(0xFF8B1E3F)).withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                langCode == 'la'
-                                    ? '${section.totalBottleCount} amp.'
-                                    : '${section.totalBottleCount} btl',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: section.color ?? const Color(0xFF8B1E3F),
-                                ),
-                              ),
-                            ),
-                            if (!_isViewOnly && _showTotalCosts && section.totalEstimatedValue > 0) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  CurrencyHelper.formatPrice(section.valeurEn(_devise), currency: _devise),
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFD4AF37),
-                                  ),
-                                ),
-                              ),
-                            ],
-                            const SizedBox(width: 6),
-                            AnimatedRotation(
-                              turns: isCollapsed ? -0.25 : 0.0,
-                              duration: const Duration(milliseconds: 200),
-                              child: const Icon(Icons.expand_more, size: 20),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Section Content (if expanded)
-                    if (!isCollapsed) ...[
-                      const Divider(height: 1, thickness: 0.8),
-                      Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: Builder(
-                          builder: (context) {
-                            final sortedSectionBottles = _sortBy.sort(section.bottles);
-                            if (_viewMode == CellarViewMode.grid) {
-                              return GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: 250,
-                                  mainAxisExtent: _hauteurDesCartes(context),
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                ),
-                                itemCount: sortedSectionBottles.length,
-                                itemBuilder: (context, bIdx) {
-                                  final bottle = sortedSectionBottles[bIdx];
-                                  return BottleCard(
-                                    bottle: bottle,
-                                    onTap: () => context.push('/cellar/${bottle.id}'),
-                                    onLongPress: () => BottleContextSheet.show(
-                                      context,
-                                      bottle: bottle,
-                                      cellarId: activeCellarId,
-                                    ),
-                                  );
-                                },
-                              );
-                            } else {
-                              return ListView.separated(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: sortedSectionBottles.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 3),
-                                itemBuilder: (context, bIdx) {
-                                  final bottle = sortedSectionBottles[bIdx];
-                                  return BottleListItem(
-                                    bottle: bottle,
-                                    isUltraCompact: true,
-                                    onTap: () => context.push('/cellar/${bottle.id}'),
-                                    onLongPress: () => BottleContextSheet.show(
-                                      context,
-                                      bottle: bottle,
-                                      cellarId: activeCellarId,
-                                    ),
-                                  );
-                                },
-                              );
-                            }
-                          },
-                        ),
-                      ),
+          child: CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+                sliver: SliverMainAxisGroup(
+                  slivers: [
+                    for (final section in sections) ...[
+                      _sectionEnSlivers(theme, section, activeCellarId, langCode),
+                      const SliverToBoxAdapter(child: SizedBox(height: 12)),
                     ],
                   ],
                 ),
-              );
-            },
+              ),
+            ],
           ),
         ),
       ],
     );
   }
+
+  /// Une section de la cave regroupée : son en-tête, puis ses bouteilles (déjà triées par
+  /// le regroupement), construites à mesure qu'elles paraissent.
+  Widget _sectionEnSlivers(ThemeData theme, CellarGroupSection section, String activeCellarId, String? langCode) {
+    final isCollapsed = _collapsedGroups.contains(section.key);
+    final bouteilles = section.bottles;
+    void ouvrir(Bottle bottle) => context.push('/cellar/${bottle.id}');
+    void menu(Bottle bottle) => BottleContextSheet.show(context, bottle: bottle, cellarId: activeCellarId);
+    return DecoratedSliver(
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: section.color?.withValues(alpha: 0.3) ?? theme.dividerColor.withValues(alpha: 0.2),
+          width: 1.2,
+        ),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
+      ),
+      sliver: SliverMainAxisGroup(
+        slivers: [
+          SliverToBoxAdapter(
+            child: InkWell(
+              borderRadius: BorderRadius.vertical(
+                top: const Radius.circular(16),
+                bottom: Radius.circular(isCollapsed ? 16 : 0),
+              ),
+              onTap: () => _toggleGroupCollapse(section.key),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                decoration: BoxDecoration(
+                  color: (section.color ?? const Color(0xFF8B1E3F)).withValues(
+                    alpha: theme.brightness == Brightness.dark ? 0.16 : 0.06,
+                  ),
+                  borderRadius: BorderRadius.vertical(
+                    top: const Radius.circular(16),
+                    bottom: Radius.circular(isCollapsed ? 16 : 0),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    if (section.emoji.isNotEmpty)
+                      Text(section.emoji, style: const TextStyle(fontSize: 18))
+                    else if (section.icon != null)
+                      Icon(section.icon, size: 18, color: section.color ?? const Color(0xFF8B1E3F)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        section.title,
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 14.5),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    // Bottle count badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: (section.color ?? const Color(0xFF8B1E3F)).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        langCode == 'la' ? '${section.totalBottleCount} amp.' : '${section.totalBottleCount} btl',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: section.color ?? const Color(0xFF8B1E3F),
+                        ),
+                      ),
+                    ),
+                    if (!_isViewOnly && _showTotalCosts && section.totalEstimatedValue > 0) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          CurrencyHelper.formatPrice(section.valeurEn(_devise), currency: _devise),
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD4AF37)),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(width: 6),
+                    AnimatedRotation(
+                      turns: isCollapsed ? -0.25 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(Icons.expand_more, size: 20),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (!isCollapsed) ...[
+            const SliverToBoxAdapter(child: Divider(height: 1, thickness: 0.8)),
+            SliverPadding(
+              padding: const EdgeInsets.all(6),
+              sliver: _viewMode == CellarViewMode.grid
+                  ? SliverGrid.builder(
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 250,
+                        mainAxisExtent: _hauteurDesCartes(context),
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      itemCount: bouteilles.length,
+                      itemBuilder: (context, i) => BottleCard(
+                        bottle: bouteilles[i],
+                        onTap: () => ouvrir(bouteilles[i]),
+                        onLongPress: () => menu(bouteilles[i]),
+                      ),
+                    )
+                  : SliverList.separated(
+                      itemCount: bouteilles.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 3),
+                      itemBuilder: (context, i) => BottleListItem(
+                        bottle: bouteilles[i],
+                        isUltraCompact: true,
+                        onTap: () => ouvrir(bouteilles[i]),
+                        onLongPress: () => menu(bouteilles[i]),
+                      ),
+                    ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
 }
 
 /// La pastille d'une couleur de vin, la même pour les quatre filtres : un rond rose et non
@@ -2223,4 +2233,21 @@ class _PastilleDeCouleur extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Ce que la cave affiche pour un jeu de bouteilles, un filtre, un tri et un regroupement.
+class _VueDeLaCave {
+  final List<Bottle> filtrees;
+  final List<Bottle> triees;
+  final int totalBouteilles;
+  final double valeur;
+  final List<CellarGroupSection> sections;
+
+  const _VueDeLaCave({
+    required this.filtrees,
+    required this.triees,
+    required this.totalBouteilles,
+    required this.valeur,
+    required this.sections,
+  });
 }

@@ -22,11 +22,12 @@ GRANT USAGE ON SCHEMA extensions TO anon, authenticated, service_role;
 CREATE SCHEMA IF NOT EXISTS auth;
 GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
 CREATE TABLE IF NOT EXISTS auth.users (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email           TEXT,
-  is_anonymous    BOOLEAN NOT NULL DEFAULT false,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  last_sign_in_at TIMESTAMPTZ
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email              TEXT,
+  is_anonymous       BOOLEAN NOT NULL DEFAULT false,
+  raw_user_meta_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_sign_in_at    TIMESTAMPTZ
 );
 -- Les claims du jeton, comme PostgREST les pose : SELECT set_config('request.jwt.claims', …).
 CREATE OR REPLACE FUNCTION auth.jwt() RETURNS JSONB LANGUAGE sql STABLE AS $$
@@ -42,11 +43,12 @@ GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO anon, authenticated, service_ro
 
 -- Tables publiques utiles ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.profiles (
-  id           UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  display_name TEXT,
-  username     TEXT,
-  avatar_url   TEXT,
-  is_admin     BOOLEAN NOT NULL DEFAULT false
+  id               UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  display_name     TEXT,
+  username         TEXT,
+  avatar_url       TEXT,
+  default_currency TEXT DEFAULT 'EUR',
+  is_admin         BOOLEAN NOT NULL DEFAULT false
 );
 
 -- Le journal de l'app (011), réduit aux colonnes que lisent les fonctions de la console.
@@ -65,9 +67,10 @@ CREATE TABLE IF NOT EXISTS public.app_diagnostic_logs (
 );
 
 CREATE TABLE IF NOT EXISTS public.cellars (
-  id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id UUID REFERENCES public.profiles(id),
-  name     TEXT NOT NULL DEFAULT 'Ma cave'
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id   UUID REFERENCES public.profiles(id),
+  name       TEXT NOT NULL DEFAULT 'Ma cave',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS public.cellar_members (
   cellar_id UUID REFERENCES public.cellars(id) ON DELETE CASCADE,
@@ -168,8 +171,10 @@ CREATE TABLE IF NOT EXISTS public.friendships (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   friend_id  UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  status     TEXT NOT NULL DEFAULT 'pending',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  status     TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'blocked')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, friend_id)
 );
 CREATE TABLE IF NOT EXISTS public.user_notifications (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -318,3 +323,112 @@ DROP POLICY IF EXISTS "Authenticated Delete Labels" ON storage.objects;
 CREATE POLICY "Authenticated Delete Labels" ON storage.objects FOR DELETE USING (bucket_id = 'labels' AND auth.role() = 'authenticated');
 DROP POLICY IF EXISTS "Anyone can read labels" ON storage.objects;
 CREATE POLICY "Anyone can read labels" ON storage.objects FOR SELECT USING (bucket_id = 'labels');
+-- Le bucket `avatars` a, lui aussi, une règle de lecture qui laisse LISTER tous les fichiers
+-- (l'URL publique n'en a pas besoin) : c'est ce que la 074 retire.
+DROP POLICY IF EXISTS "Avatar images are publicly accessible" ON storage.objects;
+CREATE POLICY "Avatar images are publicly accessible" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+
+-- ╔══════════════════════════════════════════════════════════════════════════════════╗
+-- ║ État de production AVANT la 074 (lot Q), pour ce que cette migration corrige.       ║
+-- ║ Lu dans pg_catalog (rôle en lecture seule) et dans les migrations appliquées :      ║
+-- ║ 006 (RLS des caves, is_cellar_*), 010 (le propriétaire devient admin), 011+030      ║
+-- ║ (journaux), 018/019 (amitiés, demandes d'accès, notifications), 004 (invitations).  ║
+-- ╚══════════════════════════════════════════════════════════════════════════════════╝
+
+-- is_cellar_admin : 006 la définit SANS search_path figé (c'est ce que la 074 durcit).
+CREATE OR REPLACE FUNCTION public.is_cellar_admin(p_cellar_id uuid, p_user_id uuid DEFAULT auth.uid())
+ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER
+AS $function$
+  SELECT EXISTS (
+    SELECT 1 FROM cellar_members
+    WHERE cellar_id = p_cellar_id AND user_id = p_user_id AND role = 'admin'
+  );
+$function$;
+
+-- RLS des caves et des appartenances, telle que 006 la pose (la règle d'insertion
+-- « OR user_id = auth.uid() » est la faille P0 que la 074 referme).
+ALTER TABLE public.cellars        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cellar_members ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view cellars they are members of." ON public.cellars;
+CREATE POLICY "Users can view cellars they are members of." ON public.cellars FOR SELECT USING (
+  owner_id = auth.uid() OR is_cellar_member(id, auth.uid())
+);
+DROP POLICY IF EXISTS "Users can create cellars." ON public.cellars;
+CREATE POLICY "Users can create cellars." ON public.cellars FOR INSERT WITH CHECK (owner_id = auth.uid());
+DROP POLICY IF EXISTS "Owners can update their cellars." ON public.cellars;
+CREATE POLICY "Owners can update their cellars." ON public.cellars FOR UPDATE USING (owner_id = auth.uid());
+DROP POLICY IF EXISTS "Owners can delete their cellars." ON public.cellars;
+CREATE POLICY "Owners can delete their cellars." ON public.cellars FOR DELETE USING (owner_id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can view cellar members." ON public.cellar_members;
+CREATE POLICY "Users can view cellar members." ON public.cellar_members FOR SELECT USING (
+  user_id = auth.uid() OR is_cellar_member(cellar_id, auth.uid())
+);
+DROP POLICY IF EXISTS "Admins or users can insert cellar members." ON public.cellar_members;
+CREATE POLICY "Admins or users can insert cellar members." ON public.cellar_members FOR INSERT WITH CHECK (
+  is_cellar_admin(cellar_id, auth.uid()) OR user_id = auth.uid()
+);
+DROP POLICY IF EXISTS "Admins can update cellar members." ON public.cellar_members;
+CREATE POLICY "Admins can update cellar members." ON public.cellar_members FOR UPDATE USING (
+  is_cellar_admin(cellar_id, auth.uid())
+);
+DROP POLICY IF EXISTS "Admins or members can delete cellar members." ON public.cellar_members;
+CREATE POLICY "Admins or members can delete cellar members." ON public.cellar_members FOR DELETE USING (
+  user_id = auth.uid() OR is_cellar_admin(cellar_id, auth.uid())
+);
+
+-- Note : le socle n'installe PAS le déclencheur 010 (le propriétaire devient admin) ;
+-- les essais posent la cave ET la ligne admin à la main (comme 052 et 071), et un
+-- déclencheur ferait doublon avec ces insertions. est_proprietaire_cave, que la 074
+-- ajoute, lit cellars.owner_id directement, sans dépendre de l'appartenance.
+
+-- Les demandes d'accès à une cave (018) : request_friend_cellar_access y écrit.
+CREATE TABLE IF NOT EXISTS public.cellar_access_requests (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  cellar_id      UUID NOT NULL REFERENCES public.cellars(id) ON DELETE CASCADE,
+  owner_id       UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  requester_id   UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  requested_role TEXT NOT NULL DEFAULT 'viewer' CHECK (requested_role IN ('viewer', 'editor')),
+  status         TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
+  message        TEXT,
+  created_at     TIMESTAMPTZ DEFAULT now(),
+  responded_at   TIMESTAMPTZ,
+  UNIQUE (cellar_id, requester_id)
+);
+
+-- Les invitations de cave par code (004) : accept_invite_by_code les lit.
+-- (Le plan note que cette fonction est ABSENTE en production : la 074 la (re)crée.)
+CREATE TABLE IF NOT EXISTS public.cellar_invites (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  cellar_id       UUID NOT NULL REFERENCES public.cellars(id) ON DELETE CASCADE,
+  invited_by      UUID NOT NULL REFERENCES public.profiles(id),
+  invited_user_id UUID REFERENCES public.profiles(id),
+  invited_email   TEXT,
+  role            TEXT NOT NULL DEFAULT 'viewer' CHECK (role IN ('viewer', 'editor')),
+  status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'revoked')),
+  invite_code     TEXT UNIQUE DEFAULT encode(extensions.gen_random_bytes(16), 'hex'),
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  responded_at    TIMESTAMPTZ
+);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.cellar_access_requests, public.cellar_invites TO authenticated, service_role;
+
+-- Les journaux (011 puis 030) : TROIS politiques d'insertion se superposent, toutes
+-- « WITH CHECK (true) », c'est le « trois règles en double, sans borne » du lot Q.
+ALTER TABLE public.app_diagnostic_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow authenticated insert to diagnostic logs" ON public.app_diagnostic_logs;
+CREATE POLICY "Allow authenticated insert to diagnostic logs" ON public.app_diagnostic_logs
+  FOR INSERT TO authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow anon insert to diagnostic logs" ON public.app_diagnostic_logs;
+CREATE POLICY "Allow anon insert to diagnostic logs" ON public.app_diagnostic_logs
+  FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "insert_diagnostic_logs" ON public.app_diagnostic_logs;
+CREATE POLICY "insert_diagnostic_logs" ON public.app_diagnostic_logs
+  FOR INSERT TO anon, authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "read_own_diagnostic_logs" ON public.app_diagnostic_logs;
+CREATE POLICY "read_own_diagnostic_logs" ON public.app_diagnostic_logs
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+REVOKE SELECT ON public.app_diagnostic_logs FROM anon;
+GRANT INSERT ON public.app_diagnostic_logs TO anon, authenticated;
+GRANT SELECT ON public.app_diagnostic_logs TO authenticated;

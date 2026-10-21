@@ -46,6 +46,24 @@ R2=$(appel '{"notification_id": "11111111-2222-3333-4444-555555555555"}')
 R3=$(appel '{"autre": 1}')
 JOURNAL=$(curl -s "http://127.0.0.1:$PORT_FAUX/journal")
 
+# Le secret tel qu'un copier-coller peut le laisser (21/10 : « illisible » en production) :
+# chaque forme doit être lue. Le conteneur est relancé avec le secret abîmé.
+FORMES_OK=""
+for forme in base64 guillemets retours; do
+  ABIME=$(python3 "$ICI/abimer.py" "$COMPTE" "$forme")
+  docker rm -f "$NOM" >/dev/null 2>&1 || true
+  docker run -d --name "$NOM" --network host \
+    -v "$DEPOT/supabase/functions:/home/deno/functions:ro" \
+    -e SUPABASE_URL="http://127.0.0.1:$PORT_FAUX" -e SUPABASE_SERVICE_ROLE_KEY="cle-service-de-test" \
+    -e FCM_BASE_URL="http://127.0.0.1:$PORT_FAUX" -e FCM_SERVICE_ACCOUNT="$ABIME" \
+    public.ecr.aws/supabase/edge-runtime:v1.74.3 start --main-service /home/deno/functions/envoyer-push --port $PORT_FONCTION >/dev/null
+  for _ in $(seq 1 60); do curl -s -o /dev/null "http://127.0.0.1:$PORT_FONCTION/" 2>/dev/null && break; sleep 1; done
+  R=$(appel '{"notification_id": "11111111-2222-3333-4444-555555555555"}')
+  case "$R" in *illisible*) echo "❌ secret en forme « $forme » non lu : $R"; exit 1;; esac
+  FORMES_OK="$FORMES_OK $forme"
+done
+echo "✅ secret lu sous les formes :$FORMES_OK"
+
 python3 - "$R1" "$R2" "$R3" "$JOURNAL" <<'EOF'
 import json, sys
 r1, r2, r3, journal = (json.loads(x) for x in sys.argv[1:5])

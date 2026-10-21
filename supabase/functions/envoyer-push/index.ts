@@ -190,6 +190,34 @@ async function jetonGoogle(sa: CompteDeService): Promise<string> {
   return jetonEnCache.valeur
 }
 
+// Le JSON du compte de service, tel que le Dashboard l'a gardé (21/10 : « illisible » au
+// premier déploiement). On accepte les maladresses courantes du copier-coller : guillemets
+// autour, JSON encodé en base64, retours à la ligne réels dans la clé. Sinon, la cause part
+// dans les journaux de la fonction (forme et longueur seulement, jamais le contenu).
+export function lireLeCompteDeService(brut: string): CompteDeService | null {
+  const t = brut.trim()
+  const bases = [t]
+  if (t.length > 1 && (t[0] === "'" || t[0] === '"') && t[t.length - 1] === t[0]) bases.push(t.slice(1, -1).trim())
+  const essais: (() => string)[] = []
+  for (const b of bases) {
+    essais.push(() => b, () => b.replace(/\r?\n/g, ' '), () => atob(b.replace(/\s+/g, '')))
+  }
+  for (const essai of essais) {
+    try {
+      let v = JSON.parse(essai())
+      if (typeof v === 'string') v = JSON.parse(v) // JSON rangé comme une chaîne
+      if (v && typeof v.client_email === 'string' && typeof v.private_key === 'string' && typeof v.project_id === 'string') {
+        return v as CompteDeService
+      }
+    } catch (_) { /* essai suivant */ }
+  }
+  console.error('envoyer-push : FCM_SERVICE_ACCOUNT illisible —',
+    `longueur ${brut.length}, commence par « ${brut.trim().slice(0, 1)} », finit par « ${brut.trim().slice(-1)} »,`,
+    `${brut.includes('\n') ? 'sur plusieurs lignes' : 'sur une ligne'}.`,
+    'Attendu : tout le contenu du fichier JSON du compte de service, de « { » à « } ».')
+  return null
+}
+
 function json(corps: unknown, statut = 200): Response {
   return new Response(JSON.stringify(corps), { status: statut, headers: { 'Content-Type': 'application/json' } })
 }
@@ -204,12 +232,8 @@ serve(async (req) => {
 
   const brut = Deno.env.get('FCM_SERVICE_ACCOUNT')
   if (!brut) return json({ error: 'FCM_SERVICE_ACCOUNT non configuré' }, 500)
-  let sa: CompteDeService
-  try {
-    sa = JSON.parse(brut)
-  } catch (_) {
-    return json({ error: 'FCM_SERVICE_ACCOUNT illisible' }, 500)
-  }
+  const sa = lireLeCompteDeService(brut)
+  if (!sa) return json({ error: 'FCM_SERVICE_ACCOUNT illisible' }, 500)
 
   const serveur = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', {
     auth: { persistSession: false, autoRefreshToken: false },

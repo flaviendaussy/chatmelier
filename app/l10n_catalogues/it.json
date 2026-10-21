@@ -8427,733 +8427,733 @@
   "fr": "Cote relevée sur le web",
   "en": "Price found on the web",
   "it": "Quotazione trovata sul web",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:61"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:65"
  },
  {
   "fr": "Cote relevée sur le web le {date}",
   "en": "Price found on the web on {date}",
   "it": "Quotazione trovata sul web il {date}",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:62"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:66"
  },
  {
   "fr": "Cote relevée sur {site}",
   "en": "Price found on {site}",
   "it": "Quotazione trovata su {site}",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:65"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:69"
  },
  {
   "fr": "Cote relevée sur {site} le {date}",
   "en": "Price found on {site} on {date}",
   "it": "Quotazione trovata su {site} il {date}",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:66"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:70"
  },
  {
   "fr": "Aucune cote trouvée avec une source vérifiable, et Chatmelier n'invente pas de prix. Vous pouvez saisir la vôtre dans « Modifier la fiche ».",
   "en": "No market price found with a verifiable source, and Chatmelier doesn't make prices up. You can enter your own in “Edit Details”.",
   "it": "Nessuna quotazione trovata con una fonte verificabile, e Chatmelier non inventa i prezzi. Puoi inserire la tua in «Modifica la scheda».",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2222"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2233"
  },
  {
   "fr": "Recherche en cours…",
   "en": "Searching…",
   "it": "Ricerca in corso…",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2244"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2255"
  },
  {
   "fr": "Chercher sa cote en ligne",
   "en": "Look up its market price",
   "it": "Cerca la sua quotazione online",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2245"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2256"
  },
  {
   "fr": "Votre estimation",
   "en": "Your own estimate",
   "it": "La tua stima",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2255"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2266"
  },
  {
   "fr": "Service",
   "en": "Service",
   "it": "Servizio",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2823"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2834"
  },
  {
   "fr": "Terroir",
   "en": "Terroir",
   "it": "Terroir",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2825"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2836"
  },
  {
   "fr": "Photo & Étiquette",
   "en": "Photo & Label",
   "it": "Foto ed etichetta",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:256"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:267"
  },
  {
   "fr": "Prendre une photo",
   "en": "Take a photo",
   "it": "Scatta una foto",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:264"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:275"
  },
  {
   "fr": "Photographier l'étiquette de cette bouteille",
   "en": "Photograph this bottle's label",
   "it": "Fotografa l'etichetta di questa bottiglia",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:265"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:276"
  },
  {
   "fr": "Choisir depuis la galerie",
   "en": "Choose from gallery",
   "it": "Scegli dalla galleria",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:273"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:284"
  },
  {
   "fr": "Sélectionner une photo existante",
   "en": "Select an existing photo",
   "it": "Seleziona una foto esistente",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:274"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:285"
  },
  {
   "fr": "Restaurer l'étiquette officielle",
   "en": "Restore official label",
   "it": "Ripristina l'etichetta ufficiale",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:282"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:293"
  },
  {
   "fr": "Appliquer le visuel haute résolution du domaine",
   "en": "Apply high-resolution estate visual",
   "it": "Applica l'immagine in alta risoluzione del produttore",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:283"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:294"
  },
  {
   "fr": "✨ Étiquette officielle du domaine appliquée !",
   "en": "✨ Official estate label applied!",
   "it": "✨ Etichetta ufficiale del produttore applicata!",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:308"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:319"
  },
  {
   "fr": "📸 Photo de la bouteille enregistrée avec succès !",
   "en": "📸 Bottle photo saved successfully!",
   "it": "📸 Foto della bottiglia salvata!",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:381"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:392"
  },
  {
   "fr": "Mes Notes & Commentaires",
   "en": "My Notes & Comments",
   "it": "Le mie note e commenti",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:441"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:452"
  },
  {
   "fr": "Privé • Strictement réservé à votre usage",
   "en": "Private • Strictly for your personal use",
   "it": "Privato • Solo per uso personale",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:445"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:456"
  },
  {
   "fr": "Vos impressions, circonstances d'achat, potentiel ressenti...",
   "en": "Your impressions, purchase context, perceived potential...",
   "it": "Le tue impressioni, le circostanze dell'acquisto, il potenziale percepito...",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:463"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:474"
  },
  {
   "fr": "🗑️ Note personnelle effacée",
   "en": "🗑️ Personal note cleared",
   "it": "🗑️ Nota personale cancellata",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:487"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:498"
  },
  {
   "fr": "Effacer",
   "en": "Clear",
   "it": "Cancella",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:494"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:505"
  },
  {
   "fr": "✅ Note personnelle enregistrée !",
   "en": "✅ Personal note saved!",
   "it": "✅ Nota personale salvata!",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:522"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:533"
  },
  {
   "fr": "Chatmelier recherche les données et cépages manquants...",
   "en": "Chatmelier is searching for missing data and grape varieties...",
   "it": "Chatmelier cerca i dati e i vitigni mancanti...",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:567"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:578"
  },
  {
   "fr": "✨ Données et apogée mis à jour avec vos sélections !",
   "en": "✨ Data and peak window updated with your selections!",
   "it": "✨ Dati e apice aggiornati con le tue scelte!",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:674"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:685"
  },
  {
   "fr": "✨ Données œnologiques, cépages et apogée enrichis avec succès !",
   "en": "✨ Oenological data, grapes, and peak window successfully enriched!",
   "it": "✨ Dati enologici, vitigni e apice completati!",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:730"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:741"
  },
  {
   "fr": "Impossible d'enrichir les données : {e}",
   "en": "Unable to enrich data: {e}",
   "it": "Impossibile completare i dati: {e}",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:742"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:753"
  },
  {
   "fr": "Qu'est-ce que l'Apogée ?",
   "en": "What is the Peak Window?",
   "it": "Che cos'è l'apice?",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:765"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:776"
  },
  {
   "fr": "L'apogée est la période idéale pour déguster un vin. C'est le moment où il atteint son équilibre parfait entre arômes, tanins et acidité.",
   "en": "The peak window is the ideal period to enjoy a wine. It is the moment when it reaches perfect balance between aromas, tannins, and acidity.",
   "it": "L'apice è il periodo ideale per degustare un vino: il momento in cui raggiunge l'equilibrio perfetto tra aromi, tannini e acidità.",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:776"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:787"
  },
  {
   "fr": "Trop jeune / En garde : le vin gagnera en complexité en vieillissant en cave.",
   "en": "Too young / Aging: the wine will gain complexity as it ages in cellar.",
   "it": "Troppo giovane / in invecchiamento: il vino guadagnerà complessità invecchiando in cantina.",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:786"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:797"
  },
  {
   "fr": "À l'apogée : le vin est à son sommet gustatif, moment idéal pour l'ouvrir.",
   "en": "At peak: the wine is at its taste peak, perfect time to open it.",
   "it": "All'apice: il vino è al suo massimo, il momento ideale per aprirlo.",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:799"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:810"
  },
  {
   "fr": "En déclin : le vin approche ou dépasse sa limite de garde, à boire sans tarder.",
   "en": "In decline: the wine is nearing or past its aging limit, drink promptly.",
   "it": "In declino: il vino si avvicina al limite di invecchiamento o l'ha superato; bevilo senza indugio.",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:812"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:823"
  },
  {
   "fr": "💡 Chatmelier estime cette fenêtre grâce à l'IA à partir du domaine, de l'appellation et du millésime. Vous pouvez la personnaliser à tout moment.",
   "en": "💡 Chatmelier estimates this window using AI based on producer, appellation, and vintage. You can customize it at any time.",
   "it": "💡 Chatmelier stima questa finestra con l'IA a partire dal produttore, dalla denominazione e dall'annata. Puoi personalizzarla in qualsiasi momento.",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:820"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:831"
  },
  {
   "fr": "Compris !",
   "en": "Got it!",
   "it": "Capito!",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:832"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:843"
  },
  {
   "fr": "Modifier Prix & Devise",
   "en": "Edit Price & Currency",
   "it": "Modifica prezzo e valuta",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:851"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:862"
  },
  {
   "fr": "Prix d'achat unitaire",
   "en": "Unit purchase price",
   "it": "Prezzo d'acquisto unitario",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:859"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:870"
  },
  {
   "fr": "Devise d'achat",
   "en": "Purchase currency",
   "it": "Valuta d'acquisto",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:868"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:879"
  },
  {
   "fr": "Fiche Bouteille",
   "en": "Bottle Details",
   "it": "Scheda bottiglia",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:927"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:938"
  },
  {
   "fr": "Erreur : {v1}",
   "en": "Error: {v1}",
   "it": "Errore: {v1}",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:928"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:939"
  },
  {
   "fr": "Bouteille introuvable",
   "en": "Bottle not found",
   "it": "Bottiglia non trovata",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:928"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:939"
  },
  {
   "fr": "Modifier toutes les informations",
   "en": "Edit all details",
   "it": "Modifica tutte le informazioni",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1075"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1086"
  },
  {
   "fr": "Chercher données manquantes / Vérifier avec l'IA",
   "en": "Find missing data / Verify with AI",
   "it": "Cerca i dati mancanti / verifica con l'IA",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1086"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1097"
  },
  {
   "fr": "plein",
   "en": "full",
   "it": "piena",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1190"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1201"
  },
  {
   "fr": "NM • Achat {v1}",
   "en": "NV • Cellared {v1}",
   "it": "s.a. • Acquisto {v1}",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1245"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1256"
  },
  {
   "fr": "Offerte à {giftedTo} le {v1}",
   "en": "Given to {giftedTo} on {v1}",
   "it": "Regalata a {giftedTo} il {v1}",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1284"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1295"
  },
  {
   "fr": "Offerte à {giftedTo}",
   "en": "Given to {giftedTo}",
   "it": "Regalata a {giftedTo}",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1285"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1296"
  },
  {
   "fr": "Sortir cette bouteille",
   "en": "Checkout this bottle",
   "it": "Stappa questa bottiglia",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1334"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1345"
  },
  {
   "fr": "Mode Sommelier à Table (Service & Notes)",
   "en": "Table Sommelier Mode (Service & Notes)",
   "it": "Modalità sommelier a tavola (servizio e note)",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1361"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1372"
  },
  {
   "fr": "Mode consultation (lecture seule)",
   "en": "View-only mode (read-only)",
   "it": "Modalità consultazione (sola lettura)",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1385"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1396"
  },
  {
   "fr": "Conseils de Service & Dégustation",
   "en": "Service & Tasting Advice",
   "it": "Consigli di servizio e degustazione",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1427"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1438"
  },
  {
   "fr": "Température",
   "en": "Temperature",
   "it": "Temperatura",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1451"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1462"
  },
  {
   "fr": "Aération",
   "en": "Aeration",
   "it": "Ossigenazione",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1479"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1490"
  },
  {
   "fr": "Verre conseillé",
   "en": "Recommended glassware",
   "it": "Calice consigliato",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1506"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1517"
  },
  {
   "fr": "Mode Sommelier à Table (Minuteur & Notes)",
   "en": "Table Sommelier Mode (Timer & Notes)",
   "it": "Modalità sommelier a tavola (timer e note)",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1524"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1535"
  },
  {
   "fr": "Thermocourbe",
   "en": "Thermal Curve",
   "it": "Curva di temperatura",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1544"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1555"
  },
  {
   "fr": "Récit Audio",
   "en": "Storyteller",
   "it": "Racconto audio",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1564"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1575"
  },
  {
   "fr": "Simulateur de vieillissement",
   "en": "Ageing simulator",
   "it": "Simulatore di invecchiamento",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1589"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1600"
  },
  {
   "fr": "Profil Sommelier",
   "en": "Sommelier Profile",
   "it": "Profilo sommelier",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1632"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1643"
  },
  {
   "fr": "Fiche œnologique & aromatique (estimée par l'IA)",
   "en": "Oenological & aromatic profile (AI estimate)",
   "it": "Scheda enologica e aromatica (stimata dall'IA)",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1636"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1647"
  },
  {
   "fr": "Modifier le profil sommelier",
   "en": "Edit sommelier profile",
   "it": "Modifica il profilo sommelier",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1648"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1659"
  },
  {
   "fr": "Accords & Dégustation conseillés",
   "en": "Recommended pairings & tasting",
   "it": "Abbinamenti e degustazione consigliati",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1672"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1683"
  },
  {
   "fr": "Accords Mets & Vins conseillés",
   "en": "Recommended Food & Wine Pairings",
   "it": "Abbinamenti cibo-vino consigliati",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1673"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1684"
  },
  {
   "fr": "Que cuisiner avec ce vin ? (Accords Inversés)",
   "en": "What to cook with this wine? (Reverse Pairings)",
   "it": "Cosa cucinare con questo vino? (abbinamenti inversi)",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1709"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1720"
  },
  {
   "fr": "Garde & Fenêtre d'Apogée",
   "en": "Aging & Peak Drinking Window",
   "it": "Invecchiamento e finestra di apice",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1749"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1760"
  },
  {
   "fr": "Garde & Maturité (Non Millésimé)",
   "en": "Aging & Maturity (Non-Vintage)",
   "it": "Invecchiamento e maturità (senza annata)",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1750"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1761"
  },
  {
   "fr": "Personnalisé",
   "en": "Custom",
   "it": "Personalizzato",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1767"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1778"
  },
  {
   "fr": "Qu'est-ce que l'apogée ?",
   "en": "What is the peak window?",
   "it": "Che cos'è l'apice?",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1774"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1785"
  },
  {
   "fr": "Modifier les dates d'apogée et de garde",
   "en": "Edit peak and drinking window dates",
   "it": "Modifica le date di apice e di invecchiamento",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1780"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1791"
  },
  {
   "fr": "Origine Géographique & Terroir",
   "en": "Geographic Origin & Terroir",
   "it": "Origine geografica e terroir",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1811"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1822"
  },
  {
   "fr": "Composition & Cépages (Raisin)",
   "en": "Composition & Grape Varieties",
   "it": "Composizione e vitigni",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1851"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1862"
  },
  {
   "fr": "Modifier les cépages",
   "en": "Edit grape varieties",
   "it": "Modifica i vitigni",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1858"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1869"
  },
  {
   "fr": "Élevage & Vinification",
   "en": "Aging & Vinification",
   "it": "Affinamento e vinificazione",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1914"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1925"
  },
  {
   "fr": "Temps passé en fût & Élevage",
   "en": "Barrel Aging Duration & Method",
   "it": "Tempo in botte e affinamento",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1945"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1956"
  },
  {
   "fr": "Fermentation malolactique",
   "en": "Malolactic fermentation",
   "it": "Fermentazione malolattica",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1984"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1995"
  },
  {
   "fr": "Mode de vendanges",
   "en": "Harvest method",
   "it": "Tipo di vendemmia",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:1994"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2005"
  },
  {
   "fr": "Potentiel de garde estimé",
   "en": "Estimated aging potential",
   "it": "Potenziale di invecchiamento stimato",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2003"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2014"
  },
  {
   "fr": "Données d'élevage & vinification non renseignées par le domaine.",
   "en": "Aging and vinification technical data not provided by estate.",
   "it": "Il produttore non ha fornito dati su affinamento e vinificazione.",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2022"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2033"
  },
  {
   "fr": "Notes & Distinctions des Guides ({v1})",
   "en": "Ratings & Guide Awards ({v1})",
   "it": "Punteggi e riconoscimenti delle guide ({v1})",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2059"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2070"
  },
  {
   "fr": "Estimation & Valeur patrimoniale",
   "en": "Valuation & Asset Value",
   "it": "Stima e valore del patrimonio",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2131"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2142"
  },
  {
   "fr": "Modifier prix ou devise",
   "en": "Edit price or currency",
   "it": "Modifica prezzo o valuta",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2136"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2147"
  },
  {
   "fr": "{n} bouteilles en cave",
   "en": "{n} bottles in cellar",
   "it": "{n} bottiglie in cantina",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2142"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2153"
  },
  {
   "fr": "{n} bouteille en cave",
   "en": "{n} bottle in cellar",
   "it": "{n} bottiglia in cantina",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2143"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2154"
  },
  {
   "fr": "Prix d'achat",
   "en": "Purchase price",
   "it": "Prezzo d'acquisto",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2159"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2170"
  },
  {
   "fr": "Confidentiel",
   "en": "Confidential",
   "it": "Riservato",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2165"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2176"
  },
  {
   "fr": "Valeur estimée",
   "en": "Estimated value",
   "it": "Valore stimato",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2188"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2199"
  },
  {
   "fr": "Non cotée",
   "en": "Not valued",
   "it": "Non quotata",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2205"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2216"
  },
  {
   "fr": "Retirer du meuble ?",
   "en": "Remove from furniture?",
   "it": "Togliere dal mobile?",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2323"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2334"
  },
  {
   "fr": "Voulez-vous retirer cette bouteille de son meuble et la replacer en stockage non assigné ?",
   "en": "Do you want to remove this bottle from its furniture and return it to unassigned storage?",
   "it": "Vuoi togliere questa bottiglia dal suo mobile e riportarla tra le bottiglie senza posto?",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2325"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2336"
  },
  {
   "fr": "Provenance",
   "en": "Origin",
   "it": "Provenienza",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2375"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2386"
  },
  {
   "fr": "Emplacement & Meuble de cave",
   "en": "Location & Cellar Furniture",
   "it": "Posizione e mobile di cantina",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2400"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2411"
  },
  {
   "fr": "Ranger dans un meuble (Mode Rayonnage)",
   "en": "Store in furniture (Shelf Mode)",
   "it": "Sistema in un mobile (modalità scaffale)",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2407"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2418"
  },
  {
   "fr": "Mes Notes & Commentaires Personnels",
   "en": "My Personal Notes & Comments",
   "it": "Le mie note e commenti personali",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2471"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2482"
  },
  {
   "fr": "Privé • Rédigé par vous (non modifiable par l'IA)",
   "en": "Private • Written by you (not modifiable by AI)",
   "it": "Privato • Scritto da te (l'IA non può modificarlo)",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2475"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2486"
  },
  {
   "fr": "Modifier ma note",
   "en": "Edit my note",
   "it": "Modifica la mia nota",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2487"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2498"
  },
  {
   "fr": "Supprimer ma note",
   "en": "Delete my note",
   "it": "Elimina la mia nota",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2492"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2503"
  },
  {
   "fr": "Supprimer votre note ?",
   "en": "Delete your note?",
   "it": "Eliminare la tua nota?",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2498"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2509"
  },
  {
   "fr": "Voulez-vous effacer vos commentaires personnels pour cette bouteille ?",
   "en": "Do you want to erase your personal comments for this bottle?",
   "it": "Vuoi cancellare i tuoi commenti personali su questa bottiglia?",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2499"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2510"
  },
  {
   "fr": "Supprimer",
   "en": "Delete",
   "it": "Elimina",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2505"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2516"
  },
  {
   "fr": "+ Ajouter une note personnelle (souvenirs, circonstances d'achat...)",
   "en": "+ Add a personal note (memories, purchase context...)",
   "it": "+ Aggiungi una nota personale (ricordi, circostanze dell'acquisto...)",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2542"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2553"
  },
  {
   "fr": "💬 Discuter de ce vin avec le Chatmelier",
   "en": "💬 Chat about this wine with Chatmelier",
   "it": "💬 Parla di questo vino con Chatmelier",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2600"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2611"
  },
  {
   "fr": "Recherche IA",
   "en": "AI Search",
   "it": "Ricerca con IA",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2655"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2666"
  },
  {
   "fr": "Cépages & Apogée",
   "en": "Grapes & Peak",
   "it": "Vitigni e apice",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2663"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2674"
  },
  {
   "fr": "Modifier la fiche",
   "en": "Edit Details",
   "it": "Modifica la scheda",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2703"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2714"
  },
  {
   "fr": "Tous les champs",
   "en": "All fields",
   "it": "Tutti i campi",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2711"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2722"
  },
  {
   "fr": "+ 1 Bouteille / Ajouter un exemplaire",
   "en": "+ 1 Bottle / Add duplicate",
   "it": "+ 1 bottiglia / aggiungi un esemplare",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2738"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2749"
  },
  {
   "fr": "Supprimer définitivement de la cave",
   "en": "Permanently delete from cellar",
   "it": "Elimina definitivamente dalla cantina",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2761"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2772"
  },
  {
   "fr": "Niveau",
   "en": "Fill Level",
   "it": "Livello",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2817"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2828"
  },
  {
   "fr": "Apogée",
   "en": "Peak Window",
   "it": "Apice",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2820"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2831"
  },
  {
   "fr": "Cépages",
   "en": "Grapes",
   "it": "Vitigni",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2828"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2839"
  },
  {
   "fr": "Élevage",
   "en": "Aging",
   "it": "Affinamento",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2832"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2843"
  },
  {
   "fr": "Ajuster le stock / Exemplaire",
   "en": "Adjust Stock / Add Duplicate",
   "it": "Regola le scorte / esemplare",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2962"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2973"
  },
  {
   "fr": "1. Ajuster le stock de cette fiche",
   "en": "1. Adjust stock for this entry",
   "it": "1. Regola le scorte di questa scheda",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:2990"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3001"
  },
  {
   "fr": "Stock actuel",
   "en": "Current stock",
   "it": "Scorte attuali",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3008"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3019"
  },
  {
   "fr": "Ajout",
   "en": "Added",
   "it": "Aggiunta",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3016"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3027"
  },
  {
   "fr": "Nouveau total",
   "en": "New total",
   "it": "Nuovo totale",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3024"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3035"
  },
  {
   "fr": "Quantité ajoutée :",
   "en": "Added quantity:",
   "it": "Quantità aggiunta:",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3039"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3050"
  },
  {
   "fr": "Nouveau stock total :",
   "en": "New total stock:",
   "it": "Nuovo totale delle scorte:",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3084"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3095"
  },
  {
   "fr": "🍾 Stock mis à jour : {finalTotal} bouteilles en cave !",
   "en": "🍾 Stock updated: {finalTotal} bottles in cellar!",
   "it": "🍾 Scorte aggiornate: {finalTotal} bottiglie in cantina!",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3139"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3150"
  },
  {
   "fr": "Valider le stock total ({currentTotal} btl • +{extraQty})",
   "en": "Confirm total stock ({currentTotal} btl • +{extraQty})",
   "it": "Conferma il totale ({currentTotal} bott. • +{extraQty})",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3147"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3158"
  },
  {
   "fr": "2. Créer une nouvelle entrée (autre casier / prix)",
   "en": "2. Create a new entry (different slot / price)",
   "it": "2. Crea una nuova voce (altro portabottiglie / altro prezzo)",
-  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3177"
+  "ou": "lib/features/cellar/presentation/bottle_detail_screen.dart:3188"
  },
  {
   "fr": "✅ Toutes les modifications et apogées ont été enregistrées avec succès !",
@@ -12285,241 +12285,241 @@
   "fr": "Chatmelier est hors-ligne",
   "en": "Chatmelier is offline",
   "it": "Chatmelier è offline",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:242"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:248"
  },
  {
   "fr": "L'IA Chatmelier requiert une connexion internet pour vous conseiller et analyser votre cave. Vos bouteilles et statistiques restent consultables hors-ligne.",
   "en": "Chatmelier's AI needs an internet connection to advise you and analyse your cellar. Your bottles and statistics stay available offline.",
   "it": "L'IA di Chatmelier ha bisogno di una connessione internet per consigliarti e analizzare la tua cantina. Bottiglie e statistiche restano consultabili offline.",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:243"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:249"
  },
  {
   "fr": "Aller tout en bas",
   "en": "Scroll to the bottom",
   "it": "Vai in fondo",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:486"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:505"
  },
  {
   "fr": "⏰ Quand l'ouvrir ?",
   "en": "⏰ When should I open it?",
   "it": "⏰ Quando aprirlo?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:504"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:523"
  },
  {
   "fr": "🍽️ Avec quel plat ?",
   "en": "🍽️ What should I eat with it?",
   "it": "🍽️ Con quale piatto?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:505"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:524"
  },
  {
   "fr": "🌡️ Comment le servir ?",
   "en": "🌡️ How should I serve it?",
   "it": "🌡️ Come servirlo?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:506"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:525"
  },
  {
   "fr": "🗺️ Que raconte son terroir ?",
   "en": "🗺️ What does its terroir say?",
   "it": "🗺️ Cosa racconta il suo terroir?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:507"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:526"
  },
  {
   "fr": "Conversation propre à ce vin",
   "en": "A conversation just for this wine",
   "it": "Conversazione dedicata a questo vino",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:639"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:658"
  },
  {
   "fr": "INSPIRATIONS SOMMELIER",
   "en": "SOMMELIER IDEAS",
   "it": "IDEE DEL SOMMELIER",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:713"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:732"
  },
  {
   "fr": "Soirée {v1} & {v2} 🍷",
   "en": "An evening with {v1} & {v2} 🍷",
   "it": "Serata con {v1} e {v2} 🍷",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:726"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:745"
  },
  {
   "fr": "Soirée {v1} & moi 🍷",
   "en": "An evening with {v1} 🍷",
   "it": "Serata con {v1} 🍷",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:727"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:746"
  },
  {
   "fr": "Inspiration du Soir 🍷",
   "en": "Tonight's idea 🍷",
   "it": "L'idea di stasera 🍷",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:727"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:746"
  },
  {
   "fr": "Conseil sur-mesure pour vos profils de goût",
   "en": "Tailored to your palate profiles",
   "it": "Un consiglio su misura per i vostri profili di gusto",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:728"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:747"
  },
  {
   "fr": "Que me conseilles-tu d'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à {v1} et à {v2} ?",
   "en": "Which of my bottles should I open tonight to please both {v1} and {v2}?",
   "it": "Tra le mie bottiglie, cosa mi consigli di aprire stasera che piaccia sia a {v1} sia a {v2}?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:730"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:749"
  },
  {
   "fr": "Que me conseilles-tu d'ouvrir ce soir parmi mes bouteilles qui plaira à la fois à {v1} et à moi ?",
   "en": "Which of my bottles should I open tonight that both {v1} and I will enjoy?",
   "it": "Tra le mie bottiglie, cosa mi consigli di aprire stasera che piaccia sia a {v1} sia a me?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:732"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:751"
  },
  {
   "fr": "Que me conseilles-tu d'ouvrir ce soir parmi mes bouteilles pour passer un excellent moment ?",
   "en": "Which of my bottles should I open tonight for a great evening?",
   "it": "Tra le mie bottiglie, cosa mi consigli di aprire stasera per passare un momento splendido?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:733"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:752"
  },
  {
   "fr": "Apogées prioritaires ⏰",
   "en": "Drink these first ⏰",
   "it": "Apici prioritari ⏰",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:736"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:755"
  },
  {
   "fr": "Les vins à boire sans tarder",
   "en": "Wines to drink soon",
   "it": "I vini da bere senza indugio",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:737"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:756"
  },
  {
   "fr": "Quelles sont les bouteilles de ma cave actuellement à leur apogée ou à boire rapidement ?",
   "en": "Which bottles in my cellar are at their peak right now, or should be drunk soon?",
   "it": "Quali bottiglie della mia cantina sono ora all'apice o da bere presto?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:738"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:757"
  },
  {
   "fr": "Accord Viande Rouge 🥩",
   "en": "Red meat pairing 🥩",
   "it": "Abbinamento con carne rossa 🥩",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:741"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:760"
  },
  {
   "fr": "Sélection de rouges tanniques ou soyeux",
   "en": "Firm or silky reds",
   "it": "Rossi tannici o setosi",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:742"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:761"
  },
  {
   "fr": "Quel vin de ma cave serait idéal pour accompagner une belle pièce de bœuf ou des grillades ?",
   "en": "Which wine from my cellar would be ideal with a fine cut of beef or grilled meat?",
   "it": "Quale vino della mia cantina sarebbe ideale con un bel taglio di manzo o con una grigliata?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:743"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:762"
  },
  {
   "fr": "Accord Poisson / Crustacés 🐟",
   "en": "Fish & shellfish pairing 🐟",
   "it": "Abbinamento con pesce e crostacei 🐟",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:746"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:765"
  },
  {
   "fr": "Sélection de blancs minéraux ou ronds",
   "en": "Mineral or rounder whites",
   "it": "Bianchi minerali o rotondi",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:747"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:766"
  },
  {
   "fr": "Quel vin blanc de ma cave ouvrir pour accompagner un poisson ou des fruits de mer ?",
   "en": "Which white from my cellar should I open with fish or seafood?",
   "it": "Quale bianco della mia cantina apro per accompagnare un pesce o dei frutti di mare?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:748"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:767"
  },
  {
   "fr": "Plateau de Fromages 🧀",
   "en": "Cheese board 🧀",
   "it": "Tagliere di formaggi 🧀",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:751"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:770"
  },
  {
   "fr": "Accords blancs & rouges affinés",
   "en": "White & red pairings",
   "it": "Abbinamenti con bianchi e rossi",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:752"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:771"
  },
  {
   "fr": "Quels vins de ma cave suggères-tu pour un accord parfait avec un plateau de fromages variés ?",
   "en": "Which wines from my cellar would you suggest with a mixed cheese board?",
   "it": "Quali vini della mia cantina mi suggerisci per un abbinamento perfetto con un tagliere di formaggi misti?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:753"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:772"
  },
  {
   "fr": "MA CAVE EN DIRECT",
   "en": "ASK ABOUT MY CELLAR",
   "it": "LA MIA CANTINA IN DIRETTA",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:766"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:785"
  },
  {
   "fr": "Que penses-tu de mon {name} {vintage} ({region}) ? Donne-moi son apogée estimée, son profil gustatif et les meilleurs accords mets-vins.",
   "en": "What do you think of my {name} {vintage} ({region})? Give me its estimated peak, its taste profile and the best food pairings.",
   "it": "Cosa ne pensi del mio {name} {vintage} ({region})? Dimmi il suo apice stimato, il suo profilo gustativo e i migliori abbinamenti.",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:835"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:854"
  },
  {
   "fr": "Effacer la conversation ?",
   "en": "Clear conversation?",
   "it": "Cancellare la conversazione?",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:118"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:124"
  },
  {
   "fr": "Vos échanges seront supprimés, et le sommelier repartira de zéro : il ne se souviendra plus de ce qui a été dit.",
   "en": "Your messages will be deleted, and the sommelier will start over: it will no longer remember what was said.",
   "it": "I tuoi messaggi saranno eliminati e il sommelier ripartirà da zero: non ricorderà più cosa vi siete detti.",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:119"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:125"
  },
  {
   "fr": "La conversation n'a pas pu être effacée. Réessayez une fois connecté.",
   "en": "The conversation could not be cleared. Try again once online.",
   "it": "Impossibile cancellare la conversazione. Riprova quando sei connesso.",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:144"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:150"
  },
  {
   "fr": "Conversation effacée.",
   "en": "Conversation cleared.",
   "it": "Conversazione cancellata.",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:154"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:160"
  },
  {
   "fr": "Désolé, une erreur est survenue lors de la communication avec Chatmelier : {e}",
   "en": "Sorry, I encountered an issue connecting to the cellar knowledge base: {e}",
   "it": "Spiacente, si è verificato un errore nella comunicazione con Chatmelier: {e}",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:329"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:348"
  },
  {
   "fr": "Profils de Goût ({v1})",
   "en": "Taste Profiles ({v1})",
   "it": "Profili di gusto ({v1})",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:364"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:383"
  },
  {
   "fr": "Profils de Goût & Invités",
   "en": "Taste Profiles & Guests",
   "it": "Profili di gusto e ospiti",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:365"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:384"
  },
  {
   "fr": "Mode Hors-Ligne : Chatmelier recherche du réseau...",
   "en": "Offline Mode: Chatmelier is looking for network...",
   "it": "Modalità offline: Chatmelier cerca la rete...",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:444"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:463"
  },
  {
   "fr": "Tester",
   "en": "Retry",
   "it": "Riprova",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:453"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:472"
  },
  {
   "fr": "Aucune bouteille enregistrée dans cette cave.",
   "en": "No bottles recorded in this cellar.",
   "it": "Nessuna bottiglia registrata in questa cantina.",
-  "ou": "lib/features/chat/presentation/chat_screen.dart:790"
+  "ou": "lib/features/chat/presentation/chat_screen.dart:809"
  },
  {
   "fr": "Dans votre cave",
@@ -15963,181 +15963,181 @@
   "fr": "fr_FR",
   "en": "en_US",
   "it": "it_IT",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:242"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:243"
  },
  {
   "fr": "Journal de dégustation",
   "en": "Tasting journal",
   "it": "Diario di degustazione",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:259"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:260"
  },
  {
   "fr": "Dégustation Hors-Cave (Restaurant, Amis)",
   "en": "Out-of-Cellar Tasting (Restaurant, Friends)",
   "it": "Degustazione fuori cantina (ristorante, amici)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:264"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:265"
  },
  {
   "fr": "Déguster Hors-Cave",
   "en": "Taste Out-of-Cellar",
   "it": "Degusta fuori cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:273"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:274"
  },
  {
   "fr": "Aucun souvenir de dégustation pour le moment",
   "en": "No tasting memories yet",
   "it": "Ancora nessun ricordo di degustazione",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:294"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:295"
  },
  {
   "fr": "Dégustez et sortez une bouteille de votre cave, notez un vin bu au restaurant ou scannez une carte.",
   "en": "Taste and check out a bottle from your cellar, rate a wine at a restaurant or scan a menu.",
   "it": "Degusta e togli una bottiglia dalla tua cantina, dai un voto a un vino bevuto al ristorante o scansiona una carta.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:296"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:297"
  },
  {
   "fr": "Noter un vin hors-cave (Restaurant, Amis)",
   "en": "Log out-of-cellar wine (Restaurant, Friends)",
   "it": "Vota un vino fuori cantina (ristorante, amici)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:299"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:300"
  },
  {
   "fr": "Rechercher : vin, lieu, invité, plat, note, année...",
   "en": "Search: wine, place, guest, dish, rating, year...",
   "it": "Cerca: vino, luogo, ospite, piatto, voto, anno...",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:339"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:340"
  },
  {
   "fr": "Filtres · {n}",
   "en": "Filters · {n}",
   "it": "Filtri · {n}",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:373"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:374"
  },
  {
   "fr": "Filtres",
   "en": "Filters",
   "it": "Filtri",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:374"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:375"
  },
  {
   "fr": "Hors-Cave",
   "en": "Out-of-Cellar",
   "it": "Fuori cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:416"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:417"
  },
  {
   "fr": "Coups de Cœur (≥ 8/10)",
   "en": "Top Rated (≥ 8/10)",
   "it": "Colpi di fulmine (≥ 8/10)",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:445"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:446"
  },
  {
   "fr": "Année",
   "en": "Year",
   "it": "Anno",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:477"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:478"
  },
  {
   "fr": "Toutes les années",
   "en": "All years",
   "it": "Tutti gli anni",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:483"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:484"
  },
  {
   "fr": "Retirer ce filtre",
   "en": "Remove this filter",
   "it": "Rimuovi questo filtro",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:523"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:524"
  },
  {
   "fr": "{n} dégustation sur {total}",
   "en": "{n} of {total} tastings",
   "it": "{n} degustazione su {total}",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:535"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:536"
  },
  {
   "fr": "{n} dégustations sur {total}",
   "en": "{n} of {total} tastings",
   "it": "{n} degustazioni su {total}",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:537"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:538"
  },
  {
   "fr": "Aucun souvenir trouvé",
   "en": "No memories found",
   "it": "Nessun ricordo trovato",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:564"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:565"
  },
  {
   "fr": "Aucune dégustation ne correspond aux filtres actuels.",
   "en": "No tastings match current filters.",
   "it": "Nessuna degustazione corrisponde ai filtri attuali.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:570"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:571"
  },
  {
   "fr": "Réinitialiser les filtres",
   "en": "Reset filters",
   "it": "Reimposta i filtri",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:578"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:579"
  },
  {
   "fr": "Supprimer cette dégustation ?",
   "en": "Delete this tasting?",
   "it": "Eliminare questa degustazione?",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:692"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:702"
  },
  {
   "fr": "« {nom} » quittera votre journal, et ce qu'elle avait appris à votre palais avec elle.",
   "en": "\"{nom}\" will leave your journal, along with what it taught your palate.",
   "it": "«{nom}» lascerà il tuo diario, e con lei ciò che aveva insegnato al tuo palato.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:693"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:703"
  },
  {
   "fr": "Garder",
   "en": "Keep",
   "it": "Tieni",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:696"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:706"
  },
  {
   "fr": "« {nom} » supprimé du journal.",
   "en": "\"{nom}\" removed from your journal.",
   "it": "«{nom}» eliminato dal diario.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:723"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:733"
  },
  {
   "fr": "Pas de connexion : « {nom} » reviendra au journal. Supprimez-le à nouveau une fois connecté.",
   "en": "No connection: \"{nom}\" will come back to your journal. Delete it again once online.",
   "it": "Nessuna connessione: «{nom}» tornerà nel diario. Eliminalo di nuovo quando sei connesso.",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:740"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:750"
  },
  {
   "fr": "🍽️ Hors-Cave",
   "en": "🍽️ Out-of-Cellar",
   "it": "🍽️ Fuori cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:920"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:930"
  },
  {
   "fr": "🍷 Cave",
   "en": "🍷 Cellar",
   "it": "🍷 Cantina",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:932"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:942"
  },
  {
   "fr": "Accord",
   "en": "Pairing",
   "it": "Abbinamento",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:972"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:982"
  },
  {
   "fr": "Fiche complète & arômes",
   "en": "Full details & aromas",
   "it": "Scheda completa e aromi",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:1012"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:1022"
  },
  {
   "fr": "Quiz sommelier",
   "en": "Sommelier quiz",
   "it": "Quiz del sommelier",
-  "ou": "lib/features/journal/presentation/journal_screen.dart:1028"
+  "ou": "lib/features/journal/presentation/journal_screen.dart:1038"
  },
  {
   "fr": "• Pyrazines (2-isobutyl-3-méthoxypyrazine) : notes végétales nobles, poivron, bourgeon de cassis.",
@@ -18921,73 +18921,73 @@
   "fr": "Effacer la conversation",
   "en": "Clear conversation",
   "it": "Cancella la conversazione",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:297"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:310"
  },
  {
   "fr": "🐟 Quel vin avec du poisson / fruits de mer ?",
   "en": "🐟 Which wine with fish / seafood?",
   "it": "🐟 Quale vino con pesce o frutti di mare?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:112"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:117"
  },
  {
   "fr": "🥩 Quel vin rouge pour une viande rouge savoureuse ?",
   "en": "🥩 Which red wine for savory red meat?",
   "it": "🥩 Quale rosso per una carne rossa saporita?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:113"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:118"
  },
  {
   "fr": "💎 Le meilleur rapport qualité / prix de la carte ?",
   "en": "💎 Best value for money on this list?",
   "it": "💎 Il miglior rapporto qualità/prezzo della carta?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:114"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:119"
  },
  {
   "fr": "🍷 Un vin rouge souple et très peu tannique ?",
   "en": "🍷 A smooth red wine with low tannins?",
   "it": "🍷 Un rosso morbido e pochissimo tannico?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:115"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:120"
  },
  {
   "fr": "🧀 Quel accord parfait avec un plateau de fromages ?",
   "en": "🧀 Best pairing for a cheese board?",
   "it": "🧀 Quale abbinamento perfetto con un tagliere di formaggi?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:116"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:121"
  },
  {
   "fr": "Bonjour ! Je suis votre Sommelier personnel chez \"{restaurantName}\". J'ai analysé les {wines_length} références de cette carte des vins. Que mangez-vous ce soir, ou quelles sont vos envies pour vous guider ?",
   "en": "Hello! I'm your personal Sommelier at \"{restaurantName}\". I have analyzed the {wines_length} wines on this list. What are you dining on tonight, or what are you in the mood for?",
   "it": "Ciao! Sono il tuo sommelier personale da «{restaurantName}». Ho analizzato le {wines_length} referenze di questa carta dei vini. Cosa mangi stasera, o cosa ti va, per orientarti?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:129"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:134"
  },
  {
   "fr": "Désolé, une erreur est survenue : {e}",
   "en": "Sorry, an error occurred: {e}",
   "it": "Spiacente, si è verificato un errore: {e}",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:214"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:227"
  },
  {
   "fr": "Conseil Sommelier sur cette carte",
   "en": "Sommelier Advice on this Wine List",
   "it": "Il consiglio del sommelier su questa carta",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:285"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:298"
  },
  {
   "fr": "{restaurantName} • {wines_length} vins analysés",
   "en": "{restaurantName} • {wines_length} wines analyzed",
   "it": "{restaurantName} • {wines_length} vini analizzati",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:289"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:302"
  },
  {
   "fr": "Le sommelier réfléchit...",
   "en": "Sommelier reflecting...",
   "it": "Il sommelier sta riflettendo...",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:396"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:409"
  },
  {
   "fr": "Ex: Quel vin pour du canard rôti ?",
   "en": "E.g.: Which wine for roasted duck?",
   "it": "Es.: quale vino con un'anatra arrosto?",
-  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:416"
+  "ou": "lib/features/menu_scan/presentation/menu_chat_assistant_sheet.dart:429"
  },
  {
   "fr": "📈 En montant en intensité",
@@ -19443,247 +19443,247 @@
   "fr": "Position indisponible : tapez le nom du lieu.",
   "en": "Location unavailable: type the place name.",
   "it": "Posizione non disponibile: scrivi il nome del locale.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:74"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:76"
  },
  {
   "fr": "Aucun restaurant ni bar trouvé autour de vous : tapez le nom du lieu.",
   "en": "No restaurant or bar found around you: type the place name.",
   "it": "Nessun ristorante né bar trovato qui intorno: scrivi il nome del locale.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:93"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:95"
  },
  {
   "fr": "Où êtes-vous ?",
   "en": "Where are you?",
   "it": "Dove sei?",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:152"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:154"
  },
  {
   "fr": "Nom du restaurant ou du bar",
   "en": "Restaurant or bar name",
   "it": "Nome del ristorante o del bar",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:153"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:155"
  },
  {
   "fr": "Lieux proches",
   "en": "Nearby places",
   "it": "Locali vicini",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:163"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:165"
  },
  {
   "fr": "Chatmelier analyse le menu...",
   "en": "Chatmelier is analyzing the menu...",
   "it": "Chatmelier analizza la carta...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:395"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:402"
  },
  {
   "fr": "Analyser · vidéo",
   "en": "Analyze · video",
   "it": "Analizza · video",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:451"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:458"
  },
  {
   "fr": "L'ardoise du bar",
   "en": "The bar's board",
   "it": "La lavagna del bar",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:492"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:499"
  },
  {
   "fr": "Photographiez l'ardoise, en plusieurs fois si elle est grande : les prix au verre passeront en premier.",
   "en": "Photograph the board, in several shots if it is large: glass prices will come first.",
   "it": "Fotografa la lavagna, in più scatti se è grande: i prezzi al calice verranno prima.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:499"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:506"
  },
  {
   "fr": "Prenez l'ardoise en photo, ou choisissez une photo dans la galerie.",
   "en": "Take a photo of the board, or pick one from the gallery.",
   "it": "Fotografa la lavagna o scegli una foto dalla galleria.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:538"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:545"
  },
  {
   "fr": "Analyser · courte vidéo",
   "en": "Analyze · short video",
   "it": "Analizza · breve video",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:738"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:745"
  },
  {
   "fr": "Analyser la carte · courte vidéo",
   "en": "Analyze the list · short video",
   "it": "Analizza la carta · breve video",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:739"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:746"
  },
  {
   "fr": "Analyser l'ardoise",
   "en": "Analyze the board",
   "it": "Analizza la lavagna",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:741"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:748"
  },
  {
   "fr": "Chatmelier analyse le menu{suffixe}...",
   "en": "Chatmelier is analyzing the menu{suffixe}...",
   "it": "Chatmelier analizza la carta{suffixe}...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:206"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:208"
  },
  {
   "fr": "Déchiffrage optique des cuvées, producteurs et millésimes...",
   "en": "Optical recognition of cuvées, producers and vintages...",
   "it": "Lettura di cuvée, produttori e annate...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:207"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:209"
  },
  {
   "fr": "Chatmelier s'informe sur les domaines et terroirs viticoles...",
   "en": "Chatmelier explores estates and wine terroirs...",
   "it": "Chatmelier si informa su produttori e terroir...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:208"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:210"
  },
  {
   "fr": "Extraction des prix à la bouteille et des formats au verre...",
   "en": "Extracting bottle and by-the-glass pricing...",
   "it": "Estrazione dei prezzi alla bottiglia e al calice...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:209"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:211"
  },
  {
   "fr": "Calcul des profils sensoriels (tanins, minéralité, vivacité)...",
   "en": "Computing sensory profiles (tannins, minerality, acidity)...",
   "it": "Calcolo dei profili sensoriali (tannini, mineralità, vivacità)...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:210"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:212"
  },
  {
   "fr": "Vérification dans la cave de connaissances Chatmelier...",
   "en": "Cross-referencing Chatmelier knowledge cellar...",
   "it": "Verifica nella cantina delle conoscenze di Chatmelier...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:211"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:213"
  },
  {
   "fr": "Génération des accords mets-vins personnalisés...",
   "en": "Generating personalized food & wine pairings...",
   "it": "Creazione di abbinamenti personalizzati...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:212"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:214"
  },
  {
   "fr": "Finalisation de votre carte des vins enrichie...",
   "en": "Finalizing your enriched wine list...",
   "it": "Ultimi ritocchi alla tua carta dei vini arricchita...",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:213"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:215"
  },
  {
   "fr": "Erreur lors de la prise de photo : {e}",
   "en": "Error taking photo: {e}",
   "it": "Errore durante lo scatto della foto: {e}",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:248"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:250"
  },
  {
   "fr": "Erreur lors de la sélection de photos : {e}",
   "en": "Error selecting photos: {e}",
   "it": "Errore durante la scelta delle foto: {e}",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:268"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:270"
  },
  {
   "fr": "Le visionnage de la vidéo est requis pour le scan en mode gratuit.",
   "en": "Watching the video is required for scanning in free mode.",
   "it": "Per la scansione gratuita bisogna guardare il video.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:345"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:352"
  },
  {
   "fr": "Erreur d'analyse du menu : {v1}",
   "en": "Menu analysis failed: {v1}",
   "it": "Errore nell'analisi della carta: {v1}",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:352"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:359"
  },
  {
   "fr": "Pendant la vidéo, Chatmelier a lu votre carte : pas une seconde de perdue.",
   "en": "While the video played, Chatmelier read your menu — no time lost.",
   "it": "Durante il video, Chatmelier ha letto la tua carta: neanche un secondo perso.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:380"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:387"
  },
  {
   "fr": "Scanner la Carte des Vins",
   "en": "Scan Wine List",
   "it": "Scansiona la carta dei vini",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:442"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:449"
  },
  {
   "fr": "Analyser ({capturedPages_length})",
   "en": "Analyze ({capturedPages_length})",
   "it": "Analizza ({capturedPages_length})",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:452"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:459"
  },
  {
   "fr": "Capture Multi-Pages",
   "en": "Multi-Page Capture",
   "it": "Acquisizione di più pagine",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:493"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:500"
  },
  {
   "fr": "Prenez toutes les pages de la carte (blancs, rouges, bulles...). Elles seront fusionnées et analysées en une seule fois par l'IA !",
   "en": "Capture all pages of the list (whites, reds, sparkling...). They will be merged and analyzed together by AI!",
   "it": "Fotografa tutte le pagine della carta (bianchi, rossi, bollicine...). L'IA le unirà e le analizzerà in una volta sola!",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:501"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:508"
  },
  {
   "fr": "Aucune page capturée pour le moment",
   "en": "No pages captured yet",
   "it": "Ancora nessuna pagina acquisita",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:530"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:537"
  },
  {
   "fr": "Prenez la première page de la carte des vins avec l'appareil photo ou la galerie.",
   "en": "Capture the first page of the wine list using the camera or gallery.",
   "it": "Fotografa la prima pagina della carta dei vini con la fotocamera o dalla galleria.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:540"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:547"
  },
  {
   "fr": "Prendre photo",
   "en": "Take photo",
   "it": "Scatta una foto",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:556"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:563"
  },
  {
   "fr": "Prendre une autre page en photo",
   "en": "Take another page photo",
   "it": "Fotografa un'altra pagina",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:594"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:601"
  },
  {
   "fr": "Ajouter depuis la galerie",
   "en": "Add from gallery",
   "it": "Aggiungi dalla galleria",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:602"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:609"
  },
  {
   "fr": "Ajouter une page",
   "en": "Add a page",
   "it": "Aggiungi una pagina",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:629"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:636"
  },
  {
   "fr": "Photo ou Galerie",
   "en": "Photo or Gallery",
   "it": "Foto o galleria",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:633"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:640"
  },
  {
   "fr": "Analyser la carte ({n} pages)",
   "en": "Analyze wine list ({n} pages)",
   "it": "Analizza la carta ({n} pagine)",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:743"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:750"
  },
  {
   "fr": "Analyser la carte ({n} page)",
   "en": "Analyze wine list ({n} page)",
   "it": "Analizza la carta ({n} pagina)",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:744"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:751"
  },
  {
   "fr": "Analyse du menu par Chatmelier",
   "en": "Menu analysis by Chatmelier",
   "it": "Analisi della carta di Chatmelier",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:826"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:833"
  },
  {
   "fr": "Extraction des cuvées, millésimes, prix au verre & bouteille, et profils sensoriels.",
   "en": "Extracting cuvées, vintages, by-the-glass & bottle pricing, and sensory profiles.",
   "it": "Estrazione di cuvée, annate, prezzi al calice e alla bottiglia, e profili sensoriali.",
-  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:899"
+  "ou": "lib/features/menu_scan/presentation/menu_photo_capture_screen.dart:906"
  },
  {
   "fr": "Sans préférences déclarées",
@@ -20596,6 +20596,48 @@
   "en": "{vins} for {convives}",
   "it": "{vins} per {convives}",
   "ou": "lib/features/menu_scan/presentation/titre_du_classement.dart:61"
+ },
+ {
+  "fr": "Encore des questions ?",
+  "en": "More questions?",
+  "it": "Altre domande?",
+  "ou": "lib/features/monetization/passer_par_une_video.dart:78"
+ },
+ {
+  "fr": "Vos {n} questions offertes du jour sont posées. Une courte vidéo en ouvre {m} de plus.",
+  "en": "You've used today's {n} free questions. A short video opens {m} more.",
+  "it": "Hai già fatto le tue {n} domande gratuite di oggi. Un breve video ne apre altre {m}.",
+  "ou": "lib/features/monetization/passer_par_une_video.dart:79"
+ },
+ {
+  "fr": "Une vidéo pour la soirée",
+  "en": "One video for the evening",
+  "it": "Un video per la serata",
+  "ou": "lib/features/monetization/passer_par_une_video.dart:84"
+ },
+ {
+  "fr": "Une courte vidéo, et vos questions sur la carte sont libres pendant {h} heures.",
+  "en": "One short video, and your questions about the list are free for {h} hours.",
+  "it": "Un breve video, e le tue domande sulla carta sono libere per {h} ore.",
+  "ou": "lib/features/monetization/passer_par_une_video.dart:85"
+ },
+ {
+  "fr": "Chercher la cote",
+  "en": "Look up the market price",
+  "it": "Cerca la quotazione",
+  "ou": "lib/features/monetization/passer_par_une_video.dart:90"
+ },
+ {
+  "fr": "Chaque cote est une recherche sur le web. Vos {n} recherches offertes du jour sont faites : une courte vidéo paie la suivante.",
+  "en": "Each market price is a web search. Today's {n} free searches are used: a short video pays for the next one.",
+  "it": "Ogni quotazione è una ricerca sul web. Hai già fatto le tue {n} ricerche gratuite di oggi: un breve video paga la prossima.",
+  "ou": "lib/features/monetization/passer_par_une_video.dart:91"
+ },
+ {
+  "fr": "Annonce · elle paie l'IA de Chatmelier",
+  "en": "Ad · it pays for Chatmelier's AI",
+  "it": "Annuncio · paga l'IA di Chatmelier",
+  "ou": "lib/features/monetization/presentation/annonce_native.dart:101"
  },
  {
   "fr": "Chatmelier ne vend rien : ces courtes vidéos paient l'IA.",

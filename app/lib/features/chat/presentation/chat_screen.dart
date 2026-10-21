@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/cellar_provider.dart';
@@ -14,6 +16,10 @@ import '../../offline/presentation/chatmelier_offline_antenna_widget.dart';
 import '../../offline/presentation/sync_provider.dart';
 import '../../offline/data/connectivity_service.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/providers/premium_provider.dart';
+import '../../../shared/providers/supabase_provider.dart';
+import '../../monetization/domain/credits_ia.dart';
+import '../../monetization/passer_par_une_video.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   /// Le vin d'où la conversation est ouverte (V2.5 · F4) : sa propre conversation, son
@@ -255,6 +261,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       return;
     }
 
+    // Le modèle économique (87) : quelques questions offertes par jour, puis une courte
+    // vidéo choisie pour en ouvrir d'autres. Refusée : la question reste dans la case.
+    final uid = ref.read(supabaseProvider).auth.currentUser?.id;
+    final autorise = await PasserParUneVideo.autoriser(context,
+        geste: GesteIa.chat, premium: ref.read(premiumProvider), uid: uid);
+    if (!autorise || !mounted) return;
+
     if (presetText == null) _textController.clear();
 
     final userMsg = ChatMessage(
@@ -295,7 +308,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     try {
       final stream = service.sendMessageStream(text, cellarId, languageCode: langCode, sujet: widget.sujet);
+      var compte = false;
       await for (final chunk in stream) {
+        // Une réponse arrive : la question compte parmi celles du jour.
+        if (!compte && chunk.trim().isNotEmpty) {
+          compte = true;
+          unawaited(CreditsIa.compterUnGeste(uid, GesteIa.chat));
+        }
         if (!mounted) break;
         // Smooth typewriter pacing so user can naturally read AI stream
         final words = chunk.split(' ');

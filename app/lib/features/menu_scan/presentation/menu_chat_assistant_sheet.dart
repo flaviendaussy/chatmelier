@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,10 @@ import '../../journal/presentation/journal_screen.dart';
 import '../data/menu_scan_service.dart';
 import '../domain/menu_wine.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/providers/premium_provider.dart';
+import '../../../shared/providers/supabase_provider.dart';
+import '../../monetization/domain/credits_ia.dart';
+import '../../monetization/passer_par_une_video.dart';
 
 class MenuChatMessage {
   final String text;
@@ -162,6 +167,13 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
     final clean = query.trim();
     if (clean.isEmpty || _isLoading) return;
 
+    // Le modèle économique (87) : libre pendant une soirée ouverte (la vidéo de la carte
+    // l'ouvre) ; sinon quelques questions offertes, puis une vidéo pour la soirée.
+    final uid = conteneur.read(supabaseProvider).auth.currentUser?.id;
+    final autorise = await PasserParUneVideo.autoriser(context,
+        geste: GesteIa.questionCarte, premium: conteneur.read(premiumProvider), uid: uid);
+    if (!autorise || !mounted) return;
+
     _inputController.clear();
     setState(() {
       _messages.add(MenuChatMessage(text: clean, isUser: true, time: DateTime.now()));
@@ -198,6 +210,7 @@ class _MenuChatAssistantSheetState extends ConsumerState<MenuChatAssistantSheet>
         historique: historique,
       );
 
+      unawaited(CreditsIa.compterUnGeste(uid, GesteIa.questionCarte));
       if (mounted) {
         setState(() {
           _messages.add(MenuChatMessage(text: answer, isUser: false, time: DateTime.now()));

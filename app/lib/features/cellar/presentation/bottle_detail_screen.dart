@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,9 @@ import 'package:intl/intl.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/supabase_provider.dart';
+import '../../../shared/providers/premium_provider.dart';
+import '../../monetization/domain/credits_ia.dart';
+import '../../monetization/passer_par_une_video.dart';
 import '../../../shared/services/fonctions_ia.dart';
 import '../data/cote_a_la_demande.dart';
 import '../../../shared/providers/cellar_provider.dart';
@@ -71,10 +75,17 @@ class _BottleDetailScreenState extends ConsumerState<BottleDetailScreen> {
   /// page source ; trouvée, elle s'affiche avec son site.
   Future<void> _chercherLaCote(String wineId) async {
     final conteneur = ProviderScope.containerOf(context, listen: false);
+    // Chaque cote est une recherche Google payante : quelques-unes offertes par jour, puis
+    // une courte vidéo choisie (modèle économique, 87).
+    final uid = conteneur.read(supabaseProvider).auth.currentUser?.id;
+    final autorise = await PasserParUneVideo.autoriser(context,
+        geste: GesteIa.cote, premium: conteneur.read(premiumProvider), uid: uid);
+    if (!autorise || !mounted) return;
     setState(() => _coteEnCours = true);
     final service = CoteALaDemande(FonctionsIa(conteneur.read(supabaseProvider),
         assurerUneSession: conteneur.read(authRepositoryProvider).assurerUneSession));
     final resultat = await service.chercher(wineId);
+    unawaited(CreditsIa.compterUnGeste(uid, GesteIa.cote));
     if (!mounted) return;
     setState(() => _coteEnCours = false);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(resultat.message)));

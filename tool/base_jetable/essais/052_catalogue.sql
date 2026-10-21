@@ -115,22 +115,25 @@ BEGIN
   END IF;
 END $$;
 
--- Quotas : Camille (anonyme) a 8 pages de carte par jour ; Alice 45 ; l'admin est illimité ;
--- sans session, refus.
+-- Quotas : Camille (anonyme) a ses pages de carte par jour (8 en 052) ; Alice les siennes
+-- (45 en 052) ; l'admin est illimité ; sans session, refus. Les limites sont lues dans
+-- app_config : une migration plus récente (077) ou la console peut les régler.
 DO $$
-DECLARE r JSONB; i INTEGER;
+DECLARE r JSONB; i INTEGER; v_anon INTEGER; v_compte INTEGER;
 BEGIN
+  SELECT (valeur -> 'scan_carte' ->> 'anonyme')::int, (valeur -> 'scan_carte' ->> 'compte')::int
+    INTO v_anon, v_compte FROM public.app_config WHERE cle = 'quotas_ia';
   PERFORM public.essai_session('00000000-0000-0000-0000-00000000ca31', true);
-  FOR i IN 1..8 LOOP
+  FOR i IN 1..v_anon LOOP
     r := public.consommer_quota_ia('scan_carte');
     IF NOT (r ->> 'autorise')::boolean THEN RAISE EXCEPTION 'scan % refusé trop tôt : %', i, r; END IF;
   END LOOP;
   r := public.consommer_quota_ia('scan_carte');
-  IF (r ->> 'autorise')::boolean OR r ->> 'raison' <> 'limite' THEN RAISE EXCEPTION 'la 9e page anonyme devait être refusée : %', r; END IF;
+  IF (r ->> 'autorise')::boolean OR r ->> 'raison' <> 'limite' THEN RAISE EXCEPTION 'la page anonyme de trop devait être refusée : %', r; END IF;
 
   PERFORM public.essai_session('00000000-0000-0000-0000-00000000a11c');
   r := public.consommer_quota_ia('scan_carte');
-  IF (r ->> 'restant')::int <> 44 THEN RAISE EXCEPTION 'Alice : restant attendu 44, obtenu %', r; END IF;
+  IF (r ->> 'restant')::int <> v_compte - 1 THEN RAISE EXCEPTION 'Alice : restant attendu %, obtenu %', v_compte - 1, r; END IF;
   r := public.consommer_quota_ia('fonction_inconnue');
   IF (r ->> 'limite')::int <> 30 THEN RAISE EXCEPTION 'limite par défaut attendue 30 : %', r; END IF;
 

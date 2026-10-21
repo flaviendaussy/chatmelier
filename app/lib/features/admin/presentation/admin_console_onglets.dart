@@ -335,6 +335,8 @@ class OngletReglages extends ConsumerWidget {
             final proposee = r.valeur('version_disponible');
             final ecpm = r.valeur('ecpm_eur_estime');
             final quotas = r.valeur('quotas_ia');
+            final pub = r.valeur('politique_pub');
+            final push = r.valeur('push');
 
             return RefreshIndicator(
               onRefresh: () async => ref.invalidate(adminReglagesProvider),
@@ -452,6 +454,87 @@ class OngletReglages extends ConsumerWidget {
                       await _appliquer(context, ref, 'ecpm_eur_estime', ecpm, nouveaux);
                     },
                   ),
+                  const SizedBox(height: 16),
+                  // Le modèle économique (077, app 87) : ce que l'IA offre chaque jour, ce qu'une
+                  // vidéo ouvre, les cartes « Annonce ».
+                  const _Titre('Publicité et IA offerte'),
+                  if (pub is! Map)
+                    Text('Migration 077 à appliquer : l\'app 87 prend en attendant ses valeurs par défaut.',
+                        style: TextStyle(fontSize: 12.5, color: gris))
+                  else ...[
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Vidéos de déblocage', style: TextStyle(fontSize: 14)),
+                      subtitle: const Text(
+                          'Au-delà de ce qui est offert chaque jour, une courte vidéo choisie ouvre le sommelier, la soirée, '
+                          'la cote. Éteint : tout est ouvert dans la limite des quotas.',
+                          style: TextStyle(fontSize: 12)),
+                      value: pub['videos'] != false,
+                      onChanged: (v) => _appliquer(context, ref, 'politique_pub', pub, {...pub, 'videos': v}),
+                    ),
+                    ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text('Sommelier ${pub['chat_offerts']} offertes, +${pub['chat_par_video']} par vidéo · '
+                          'carte ${pub['questions_carte_offertes']} offertes, soirée ${pub['soiree_heures']} h · '
+                          'cote ${pub['cote_offertes']} offertes'),
+                      subtitle: const Text('Par jour et par personne, sur son téléphone.'),
+                      trailing: const Icon(Icons.edit, size: 20),
+                      onTap: () async {
+                        const cles = ['chat_offerts', 'chat_par_video', 'questions_carte_offertes', 'soiree_heures', 'cote_offertes'];
+                        final nouveaux = await _EditeurDeNombres.ouvrir(
+                          context,
+                          titre: 'IA offerte et vidéos',
+                          valeurs: {for (final k in cles) k: (pub[k] as num?)?.toDouble() ?? 0},
+                          entiers: true,
+                        );
+                        if (nouveaux == null || !context.mounted) return;
+                        await _appliquer(context, ref, 'politique_pub', pub, {...pub, ...nouveaux});
+                      },
+                    ),
+                    ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(pub['unite_native_android'] == null && pub['unite_native_ios'] == null
+                          ? 'Cartes « Annonce » : éteintes (aucun bloc natif)'
+                          : 'Cartes « Annonce » : une toutes les ${pub['annonce_tous_les']} entrées du Journal'),
+                      subtitle: Text(
+                          'Blocs « natif avancé » AdMob — Android : ${pub['unite_native_android'] ?? '—'} · '
+                          'iPhone : ${pub['unite_native_ios'] ?? '—'}',
+                          style: const TextStyle(fontSize: 11.5)),
+                      trailing: const Icon(Icons.edit, size: 20),
+                      onTap: () async {
+                        final textes = await _EditeurDeTextes.ouvrir(
+                          context,
+                          titre: 'Cartes « Annonce »',
+                          valeurs: {
+                            'annonce_tous_les': '${pub['annonce_tous_les'] ?? 12}',
+                            'unite_native_android': '${pub['unite_native_android'] ?? ''}',
+                            'unite_native_ios': '${pub['unite_native_ios'] ?? ''}',
+                          },
+                          aide: 'Identifiant de bloc AdMob (ca-app-pub-…/…), vide pour éteindre. '
+                              '« annonce_tous_les » : une carte toutes les N entrées, 0 pour aucune.',
+                        );
+                        if (textes == null || !context.mounted) return;
+                        String? unite(String k) => textes[k]!.trim().isEmpty ? null : textes[k]!.trim();
+                        await _appliquer(context, ref, 'politique_pub', pub, {
+                          ...pub,
+                          'annonce_tous_les': int.tryParse(textes['annonce_tous_les']!.trim()) ?? pub['annonce_tous_les'],
+                          'unite_native_android': unite('unite_native_android'),
+                          'unite_native_ios': unite('unite_native_ios'),
+                        });
+                      },
+                    ),
+                  ],
+                  if (push is Map)
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Notifications push', style: TextStyle(fontSize: 14)),
+                      subtitle: const Text('Éteint : plus aucun push (les notifications restent dans la boîte).',
+                          style: TextStyle(fontSize: 12)),
+                      value: push['actif'] != false,
+                      onChanged: (v) => _appliquer(context, ref, 'push', push, {...push, 'actif': v}),
+                    ),
                   const SizedBox(height: 16),
                   const _Titre('Quotas d\'IA par jour'),
                   if (quotas is Map)
@@ -744,6 +827,67 @@ class _EditeurDeVersionState extends ConsumerState<_EditeurDeVersion> {
 }
 
 /// Une petite table de nombres (eCPM par format, quota d'une fonction).
+class _EditeurDeTextes extends StatefulWidget {
+  final String titre;
+  final Map<String, String> valeurs;
+  final String aide;
+  const _EditeurDeTextes({required this.titre, required this.valeurs, required this.aide});
+
+  static Future<Map<String, String>?> ouvrir(BuildContext context,
+          {required String titre, required Map<String, String> valeurs, required String aide}) =>
+      showDialog<Map<String, String>>(
+        context: context,
+        builder: (_) => _EditeurDeTextes(titre: titre, valeurs: valeurs, aide: aide),
+      );
+
+  @override
+  State<_EditeurDeTextes> createState() => _EditeurDeTextesState();
+}
+
+class _EditeurDeTextesState extends State<_EditeurDeTextes> {
+  late final _champs = {for (final e in widget.valeurs.entries) e.key: TextEditingController(text: e.value)};
+
+  @override
+  void dispose() {
+    for (final c in _champs.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.titre),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.aide, style: const TextStyle(fontSize: 12)),
+            const SizedBox(height: 12),
+            for (final e in _champs.entries)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: TextField(
+                  controller: e.value,
+                  decoration: InputDecoration(labelText: e.key, border: const OutlineInputBorder(), isDense: true),
+                ),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, {for (final e in _champs.entries) e.key: e.value.text}),
+          child: const Text('Enregistrer'),
+        ),
+      ],
+    );
+  }
+}
+
 class _EditeurDeNombres extends StatefulWidget {
   final String titre;
   final Map<String, double> valeurs;

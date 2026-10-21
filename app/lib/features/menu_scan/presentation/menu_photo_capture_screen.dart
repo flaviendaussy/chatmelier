@@ -10,10 +10,12 @@ import '../../../shared/services/cellar_location_service.dart';
 import '../../../shared/services/fonctions_ia.dart';
 import '../../../shared/services/nearby_places_service.dart';
 import '../../../shared/providers/premium_provider.dart';
+import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/widgets/chatmelier_loader.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../monetization/admob_config.dart';
 import '../../monetization/admob_service.dart';
+import '../../monetization/domain/credits_ia.dart';
 import '../data/cartes_de_lieux_service.dart';
 import '../data/menu_scan_service.dart';
 import '../domain/carte_du_lieu.dart';
@@ -326,6 +328,11 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
         // Pas de pub disponible (web, hors ligne, pas d'inventaire) : pas de fausse pub,
         // l'analyse continue simplement.
         if (pubMontree) recompense = await issue.future;
+        // La vidéo de la carte paie aussi la soirée : les questions sur la carte sont libres
+        // pendant quelques heures (modèle économique, 87).
+        if (videoRegardee) {
+          unawaited(CreditsIa.ouvrirLaSoireeApresUneCarte(ref.read(supabaseProvider).auth.currentUser?.id));
+        }
       }
 
       final (menu, erreur) = await analyse;

@@ -22,6 +22,7 @@ import '../../offline/data/offline_storage_service.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/utils/pays.dart';
 import '../../../shared/widgets/onglets.dart';
+import '../../monetization/presentation/annonce_native.dart';
 
 final tastingLogProvider = FutureProvider<List<TastingEntry>>((ref) async {
   final supabase = ref.watch(supabaseProvider);
@@ -620,13 +621,22 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                           )
                         : SliverList(
                             delegate: SliverChildBuilderDelegate(
-                              (context, index) => _buildTastingCard(
-                                context,
-                                filteredEntries[index],
-                                isDark,
-                                theme,
-                                isFr,
-                              ),
+                              (context, index) {
+                                final carte = _buildTastingCard(
+                                  context,
+                                  filteredEntries[index],
+                                  isDark,
+                                  theme,
+                                  isFr,
+                                );
+                                // Une carte « Annonce » toutes les N dégustations, si la console a
+                                // réglé un bloc natif (modèle économique, 87) ; sinon, rien.
+                                if (!AnnonceNative.apres(index)) return carte;
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [carte, AnnonceNative(key: ValueKey('annonce_$index'), emplacement: 'journal')],
+                                );
+                              },
                               childCount: filteredEntries.length,
                             ),
                           ),

@@ -148,6 +148,8 @@ class DescriptionDeReglage {
     'quotas_ia': 'Quotas d\'IA par jour',
     'voix_naturelle': 'Voix naturelle des récits (Gemini TTS)',
     'taux_de_change': 'Taux de change des revenus pub',
+    'politique_pub': 'Publicité et IA offerte',
+    'push': 'Notifications push',
   };
 
   static String libelle(String cle) => libelles[cle] ?? cle;
@@ -166,6 +168,15 @@ class DescriptionDeReglage {
       case 'admin_detail_nominatif':
       case 'voix_naturelle':
         return '${_ouiNon(avant)} → ${_ouiNon(apres)}';
+      case 'politique_pub':
+      case 'push':
+        final a = avant is Map ? avant : const {};
+        final b = apres is Map ? apres : const {};
+        final changees = <String>[
+          for (final k in {...a.keys, ...b.keys})
+            if ('${a[k]}' != '${b[k]}') '$k ${a[k] ?? '—'} → ${b[k] ?? '—'}',
+        ];
+        return changees.isEmpty ? 'aucun changement' : changees.join(' · ');
       case 'version_minimale_test':
         final a = avant is Map ? avant['build'] : null;
         final b = apres is Map ? apres['build'] : null;

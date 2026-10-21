@@ -2,6 +2,21 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.14.0+87] — 2026-10-21 — La pub paie l'IA, le reste est gratuit
+
+> Étude du 21/10 (« vivre de la publicité, sans version payante ») : chaque personne active coûtait plus d'IA qu'elle ne rapportait de pub. Désormais, la pub paie l'IA ; tout ce qui n'en demande pas reste gratuit et sans pub.
+
+### 🍷 Ce qui change pour vous
+- **Le sommelier** : cinq questions offertes chaque jour ; au-delà, une courte vidéo choisie en ouvre huit de plus.
+- **Au restaurant, une vidéo pour la soirée** : la vidéo qui lit la carte ouvre aussi, pendant quatre heures, les questions sur la carte. Une carte rouverte ou celle du lieu : trois questions offertes, puis une vidéo pour la soirée.
+- **La cote d'un vin** : trois recherches offertes par jour, puis une vidéo par recherche (chacune est une recherche payante sur le web).
+- **Jamais au détriment de la personne** : sans vidéo disponible (réseau du restaurant, web), le geste passe ; une vidéo se choisit, toujours après avoir dit ce qu'elle ouvre.
+- **Une carte « Annonce » discrète dans le Journal**, toutes les douze dégustations — jamais à table ni parmi les vins recommandés (activée depuis la console, une fois les blocs AdMob créés).
+
+### 🛠️ Notes Techniques (Développeurs)
+- *App* : `ReglagesDeLaPub` (`app_config.politique_pub`, copie sur le téléphone, valeurs par défaut sans la migration), `CreditsIa` (compteurs du jour par compte, soirée qui passe minuit), `PasserParUneVideo` (offert → vidéo choisie → crédit ; sans pub possible, le geste passe), `AnnonceNative` (gabarit « small », mesure `native`, revenu par impression). Console : section « Publicité et IA offerte » (interrupteur des vidéos, quantités offertes, blocs natifs) et interrupteur des push.
+- *Serveur* : migration **077** — plafonds par jour baissés (garde-fous : carte 12, chat 30, questions 40, cote 10), `politique_pub`, eCPM estimé du format natif, la console sait régler `politique_pub` et `push`. Essai de la 052 lu dans la configuration plutôt qu'en dur.
+
 ## [v1.13.0+86] — 2026-10-21 — Les notifications push
 
 > Décision de Flavien (16/10) : « des notifications push réelles tout de suite », à commencer par « Caro a ajouté des bouteilles à votre cave », au moment exact.

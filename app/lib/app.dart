@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'config/router.dart';
 import 'config/theme.dart';
 import 'l10n/app_localizations.dart';
@@ -12,6 +15,10 @@ import 'features/monetization/admob_service.dart';
 import 'shared/providers/premium_provider.dart';
 
 import 'features/feedback/data/shake_feedback_service.dart';
+import 'features/friends/data/friends_repository.dart';
+import 'features/notifications/data/notifications_push.dart';
+import 'features/notifications/presentation/notifications_inbox_sheet.dart';
+import 'shared/providers/cellar_provider.dart';
 import 'features/config/garde_de_version.dart';
 import 'features/config/porte_de_l_age.dart';
 import 'shared/utils/app_logger.dart';
@@ -94,6 +101,13 @@ class ChatmelierApp extends ConsumerWidget {
 
             // Initialize shake-to-report feedback service for testers
             ShakeFeedbackService.instance.startListening();
+
+            // Les notifications push (lot N) : rien n'est demandé ici, le téléphone
+            // s'inscrit seulement si les notifications sont déjà permises.
+            unawaited(NotificationsPush.demarrer(
+              ouvrir: (ouvrir, caveId) => _ouvrirDepuisUnPush(ref, ouvrir, caveId),
+              alerte: (titre, texte, ouvrir, caveId) => _alerteDuPush(ref, titre, texte, ouvrir, caveId),
+            ));
           });
         }
         return RepaintBoundary(
@@ -113,4 +127,31 @@ class ChatmelierApp extends ConsumerWidget {
       },
     );
   }
+}
+
+/// Une notification push touchée : l'écran qu'elle annonce (lot N). La cave concernée
+/// devient la cave affichée ; les demandes et invitations s'ouvrent dans la boîte.
+void _ouvrirDepuisUnPush(WidgetRef ref, String ouvrir, String? caveId) {
+  refreshFriendsAndNotifications(ref);
+  final ctx = rootNavigatorKey.currentContext;
+  if (ctx == null) return;
+  if (caveId != null) ref.read(currentCellarIdProvider.notifier).state = caveId;
+  if (ouvrir == 'boite') {
+    unawaited(NotificationsInboxSheet.show(ctx));
+    return;
+  }
+  GoRouter.of(ctx).go(ouvrir == '/cellar' ? '/' : ouvrir);
+}
+
+/// App ouverte : pas de bannière du système, un bandeau avec « Voir », et les listes à jour.
+void _alerteDuPush(WidgetRef ref, String titre, String texte, String ouvrir, String? caveId) {
+  refreshFriendsAndNotifications(ref);
+  if (caveId != null) notifyCellarChanged(ref, caveId);
+  final ctx = rootNavigatorKey.currentContext;
+  if (ctx == null) return;
+  ScaffoldMessenger.maybeOf(ctx)?.showSnackBar(SnackBar(
+    content: Text(texte.isEmpty ? titre : texte),
+    duration: const Duration(seconds: 6),
+    action: SnackBarAction(label: tr('Voir', 'View'), onPressed: () => _ouvrirDepuisUnPush(ref, ouvrir, caveId)),
+  ));
 }

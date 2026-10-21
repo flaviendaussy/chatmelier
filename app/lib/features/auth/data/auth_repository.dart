@@ -5,6 +5,7 @@ import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/avatar_et_pseudo.dart';
 import '../domain/retour_du_lien.dart';
 import '../domain/user_profile.dart';
+import '../../notifications/data/notifications_push.dart';
 
 class AuthRepository {
   final SupabaseClient _client;
@@ -495,6 +496,8 @@ class AuthRepository {
   }
 
   Future<void> signOut() async {
+    // Avant de perdre la session : ce téléphone ne reçoit plus les push de ce compte.
+    await NotificationsPush.oublier();
     await _client.auth.signOut();
   }
 

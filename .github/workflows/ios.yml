@@ -35,6 +35,15 @@ jobs:
     timeout-minutes: 60
     env:
       BUNDLE_ID: com.chatmelier.chatmelier
+      # Notifications push (lot N) : les identifiants PUBLICS de l'app Firebase (ils sont dans
+      # chaque IPA), en secrets pour ne pas les écrire dans ce dépôt public. Absents : l'app se
+      # construit sans push.
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_SENDER_ID: ${{ secrets.FIREBASE_SENDER_ID }}
+      FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+      FIREBASE_IOS_APP_ID: ${{ secrets.FIREBASE_IOS_APP_ID }}
+      FIREBASE_IOS_API_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
+      FIREBASE_IOS_BUNDLE_ID: ${{ secrets.FIREBASE_IOS_BUNDLE_ID }}
     steps:
       - name: Code
         uses: actions/checkout@v4
@@ -70,7 +79,13 @@ jobs:
           flutter build ios --release --no-codesign \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-            --dart-define=CHATMELIER_VERSION="$CHATMELIER_VERSION"
+            --dart-define=CHATMELIER_VERSION="$CHATMELIER_VERSION" \
+            --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
+            --dart-define=FIREBASE_SENDER_ID="$FIREBASE_SENDER_ID" \
+            --dart-define=FIREBASE_STORAGE_BUCKET="$FIREBASE_STORAGE_BUCKET" \
+            --dart-define=FIREBASE_IOS_APP_ID="$FIREBASE_IOS_APP_ID" \
+            --dart-define=FIREBASE_IOS_API_KEY="$FIREBASE_IOS_API_KEY" \
+            --dart-define=FIREBASE_IOS_BUNDLE_ID="$FIREBASE_IOS_BUNDLE_ID"
 
       # Certificat de distribution et profil App Store, créés au premier passage puis
       # réutilisés (outils libres de Codemagic, sans compte Codemagic).
@@ -98,7 +113,13 @@ jobs:
             --export-options-plist="$HOME/export_options.plist" \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-            --dart-define=CHATMELIER_VERSION="$CHATMELIER_VERSION"
+            --dart-define=CHATMELIER_VERSION="$CHATMELIER_VERSION" \
+            --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
+            --dart-define=FIREBASE_SENDER_ID="$FIREBASE_SENDER_ID" \
+            --dart-define=FIREBASE_STORAGE_BUCKET="$FIREBASE_STORAGE_BUCKET" \
+            --dart-define=FIREBASE_IOS_APP_ID="$FIREBASE_IOS_APP_ID" \
+            --dart-define=FIREBASE_IOS_API_KEY="$FIREBASE_IOS_API_KEY" \
+            --dart-define=FIREBASE_IOS_BUNDLE_ID="$FIREBASE_IOS_BUNDLE_ID"
 
       - name: Envoyer sur App Store Connect
         if: ${{ inputs.envoyer }}

@@ -22,6 +22,11 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round">
+        <!-- Notifications push (lot N) : le canal des amis et invitations, que l'app crée déjà,
+             pour un push reçu sans canal précisé. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="chatmelier_social"/>
         <!-- Google Mobile Ads (AdMob) Production App ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"

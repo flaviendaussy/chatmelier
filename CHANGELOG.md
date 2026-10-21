@@ -2,6 +2,20 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
+## [v1.13.0+86] — 2026-10-21 — Les notifications push
+
+> Décision de Flavien (16/10) : « des notifications push réelles tout de suite », à commencer par « Caro a ajouté des bouteilles à votre cave », au moment exact.
+
+### 🍷 Ce qui change pour vous
+- **Les notifications push** : quand un proche ajoute des bouteilles à une cave que vous partagez, vous demande en ami, accepte votre demande, demande à voir votre cave, vous invite à noter un vin ou note une dégustation pour vous — sur l'écran verrouillé, dans votre langue. Une seule alerte par demi-heure pour une série d'ajouts (« Caro a ajouté 6 bouteilles à « London » »).
+- **Rien la nuit** : les heures calmes de vos réglages valent aussi pour les push ; chaque type se coupe dans Profil → Notifications.
+- **Le toucher ouvre le bon écran** : la cave concernée, vos amis, ou la boîte des notifications. App ouverte, un bandeau « Voir » au lieu d'une alerte.
+- **La permission, au bon moment** : demandée une fois, juste après une demande d'ami, une amitié acceptée ou une cave partagée — plus jamais au hasard.
+
+### 🛠️ Notes Techniques (Développeurs)
+- *Serveur* : migration **075** — `appareils_push` (accès par `enregistrer_appareil_push` / `oublier_appareil_push`, droits explicites : changement Supabase du 30/10), `user_notifications.par_le_serveur` et `pousse_le` (un client ne peut ni se dire serveur ni marquer un envoi), envoi par pg_net vers la fonction **`envoyer-push`** (FCM HTTP v1, jeton Google signé RS256, textes en quatre langues, heures calmes et préférences de chaque appareil, pastille des non lues sur l'iPhone, jetons morts oubliés), activité des caves partagées par déclencheur (une notification par demi-heure, complétée). Interrupteur : `app_config.push.actif`. Essais : base jetable (075) et edge runtime local avec faux Google et faux Firebase (`tool/essai_push/essai.sh`).
+- *App* : `NotificationsPush` (firebase_core 5, firebase_messaging 17 — jeton d'enregistrement classique, `getToken` étant déprécié au profit des FID), options Firebase passées au build (`~/.chatmelier/firebase.env`, secrets du workflow iPhone), `aps-environment` sur l'iPhone ; demandes et acceptations d'amitié par `demander_amitie` / `accepter_amitie` (074, Q1b), l'ancien chemin en relais si la fonction manque.
+
 ## [v1.12.0+85] — 2026-10-21 — Un palais par famille
 
 > « Le radar suffit-il pour connaître un palais ? » (Flavien, 19/10) — non : il disait « moyen » de qui aime les blancs légers et les rouges puissants, ignorait la douceur et l'âge, et demandait six curseurs pour l'apprendre. Avec la revue du 20/10 et la 84 (jamais distribuée, ses nouveautés sont plus bas).

@@ -125,6 +125,10 @@ void refreshFriendsAndNotifications(WidgetRef ref) {
 }
 
 class FriendsRepository {
+  /// Une fonction du serveur pas encore installée (PGRST202) : l'ancien chemin prend le relais.
+  static bool _fonctionAbsente(PostgrestException e) =>
+      e.code == 'PGRST202' || e.message.contains('Could not find the function');
+
   /// 8 s et non plus 3 : ces lectures partent en arrière-plan, souvent au démarrage, en même
   /// temps que la cave. À 3 s, six personnes ont cumulé environ 200 dépassements en 21 jours
   /// (journaux du 30/09), sans rien de cassé pour autant.
@@ -410,6 +414,17 @@ class FriendsRepository {
     if (user == null) return;
     if (user.id == targetUser.id) throw Exception(tr('Vous ne pouvez pas vous ajouter vous-même en ami.', 'You can\'t add yourself as a friend.'));
 
+    // Par le serveur (074, Q1b) : la demande et sa notification s'écrivent ensemble, et une
+    // notification écrite par le serveur part aussi en push (075). L'ancien chemin ne sert
+    // plus que si la fonction manque.
+    try {
+      await _client.rpc('demander_amitie', params: {'p_ami': targetUser.id}).timeout(_delaiReseau);
+      AppLogger.info('FRIENDS', 'Sent friend request to ${targetUser.displayName} (${targetUser.id})');
+      return;
+    } on PostgrestException catch (e) {
+      if (!_fonctionAbsente(e)) rethrow;
+    }
+
     final friendshipId = const Uuid().v4();
 
     // 1. Insert friendship row with status = 'pending'
@@ -450,6 +465,15 @@ class FriendsRepository {
   Future<void> acceptFriendRequest(String friendshipId, String friendUserId) async {
     final user = _client.auth.currentUser;
     if (user == null) return;
+
+    // Par le serveur (074, Q1b) : seul le destinataire accepte, et l'avis part en push (075).
+    try {
+      await _client.rpc('accepter_amitie', params: {'p_demandeur': friendUserId}).timeout(_delaiReseau);
+      AppLogger.info('FRIENDS', 'Accepted friend request $friendshipId from $friendUserId');
+      return;
+    } on PostgrestException catch (e) {
+      if (!_fonctionAbsente(e)) rethrow;
+    }
 
     // 1. Update status to accepted
     await _client

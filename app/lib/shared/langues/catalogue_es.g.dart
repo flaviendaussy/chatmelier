@@ -1,6 +1,7 @@
 // Généré par tool/langues/generer.py depuis app/l10n_catalogues/es.json — ne pas modifier.
 // ignore_for_file: lines_longer_than_80_chars
 const Map<String, String> catalogueEs = {
+  'Voir': 'Ver',
   'Mes données Chatmelier': 'Mis datos de Chatmelier',
   'Vous aimez les {famille} plus {adj} que {b}': 'Te gustan los {famille} más {adj} que a {b}',
   '{a} aime les {famille} plus {adj} que vous': 'A {a} le gustan los {famille} más {adj} que a ti',

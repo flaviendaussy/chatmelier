@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/local_notification_service.dart';
@@ -15,6 +16,16 @@ class NotificationPrePermissionDialog extends ConsumerWidget {
       barrierDismissible: true,
       builder: (ctx) => const NotificationPrePermissionDialog(),
     );
+  }
+
+  /// Au bon moment (lot N) : juste après un geste qui appelle une réponse — une demande
+  /// d'ami, une amitié acceptée, une cave partagée —, une seule fois par installation.
+  /// Rien n'ouvrait ce dialogue : sans permission, aucun push ne pouvait arriver.
+  static Future<void> auBonMoment(BuildContext context, WidgetRef ref) async {
+    if (kIsWeb) return;
+    final dejaDemande = await ref.read(notificationPreferencesProvider.notifier).hasPromptedPermission();
+    if (dejaDemande || !context.mounted) return;
+    await show(context);
   }
 
   @override

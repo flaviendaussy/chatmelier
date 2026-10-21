@@ -7,6 +7,7 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import '../../../shared/utils/app_logger.dart';
 import '../../../shared/utils/langue.dart';
+import 'notifications_push.dart';
 
 /// Channels used on Android. Noms et descriptions suivent la langue de l'app : Android
 /// les affiche dans les réglages de notifications.
@@ -154,6 +155,8 @@ class LocalNotificationService {
             AndroidFlutterLocalNotificationsPlugin>();
         if (androidImpl != null) {
           final granted = await androidImpl.requestNotificationsPermission();
+          // La même permission vaut pour les push (lot N) : le téléphone s'inscrit.
+          if (granted ?? false) unawaited(NotificationsPush.activer());
           return granted ?? false;
         }
       } else if (Platform.isIOS) {
@@ -165,6 +168,7 @@ class LocalNotificationService {
             badge: true,
             sound: true,
           );
+          if (granted ?? false) unawaited(NotificationsPush.activer());
           return granted ?? false;
         }
       } else if (Platform.isMacOS) {

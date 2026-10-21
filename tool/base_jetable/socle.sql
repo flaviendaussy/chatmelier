@@ -72,6 +72,8 @@ CREATE TABLE IF NOT EXISTS public.cellars (
   name       TEXT NOT NULL DEFAULT 'Ma cave',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Le surnom de la cave, comme en production (pg_attribute, 21/10) : la 075 l'écrit dans ses avis.
+ALTER TABLE public.cellars ADD COLUMN IF NOT EXISTS nickname TEXT;
 CREATE TABLE IF NOT EXISTS public.cellar_members (
   cellar_id UUID REFERENCES public.cellars(id) ON DELETE CASCADE,
   user_id   UUID REFERENCES public.profiles(id) ON DELETE CASCADE,

@@ -10,6 +10,7 @@ import '../../../shared/widgets/notification_bell_button.dart';
 import '../../friends/data/friends_repository.dart';
 import '../../friends/domain/friend.dart';
 import '../../../shared/utils/langue.dart';
+import '../../notifications/presentation/notification_pre_permission_dialog.dart';
 
 /// Screen for managing cellar members and invitations.
 /// Allows admins to invite users (by email or shareable link),
@@ -117,6 +118,7 @@ class _CellarSharingScreenState extends ConsumerState<CellarSharingScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(tr('Invitation envoyée à {email}', 'Invite sent to {email}', {'email': email}))),
         );
+        await NotificationPrePermissionDialog.auBonMoment(context, ref);
       }
       _loadData();
     } catch (e) {

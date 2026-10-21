@@ -14,6 +14,7 @@ import 'friend_taste_card_sheet.dart';
 import 'contact_invite_sheet.dart';
 import '../../../shared/utils/langue.dart';
 import '../../../shared/utils/valeurs_rangees.dart';
+import '../../notifications/presentation/notification_pre_permission_dialog.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});
@@ -92,6 +93,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
             backgroundColor: const Color(0xFF10B981),
           ),
         );
+        // Pour savoir quand la réponse arrive : la permission, une fois (lot N).
+        await NotificationPrePermissionDialog.auBonMoment(context, ref);
       }
     } catch (e) {
       if (mounted) {
@@ -116,6 +119,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with SingleTicker
             backgroundColor: const Color(0xFF10B981),
           ),
         );
+        await NotificationPrePermissionDialog.auBonMoment(context, ref);
       }
     } catch (e) {
       if (mounted) {

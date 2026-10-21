@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'notifications_push.dart';
 
 /// User settings for on-device system notifications.
 class NotificationPreferences {
@@ -164,6 +167,8 @@ class NotificationPreferencesNotifier extends StateNotifier<NotificationPreferen
     _prefs ??= await SharedPreferences.getInstance();
     final service = NotificationPreferencesService(_prefs!);
     await service.savePreferences(updated);
+    // Le serveur ne pousse rien de ce qui vient d'être coupé (lot N).
+    unawaited(NotificationsPush.preferencesChangees());
   }
 
   Future<bool> hasPromptedPermission() async {

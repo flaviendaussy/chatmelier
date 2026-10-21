@@ -15,6 +15,7 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 
 ### 🛠️ Notes Techniques (Développeurs)
 - *App* : `ReglagesDeLaPub` (`app_config.politique_pub`, copie sur le téléphone, valeurs par défaut sans la migration), `CreditsIa` (compteurs du jour par compte, soirée qui passe minuit), `PasserParUneVideo` (offert → vidéo choisie → crédit ; sans pub possible, le geste passe), `AnnonceNative` (gabarit « small », mesure `native`, revenu par impression). Console : section « Publicité et IA offerte » (interrupteur des vidéos, quantités offertes, blocs natifs) et interrupteur des push.
+- *Push, après coup* : configuration publique de Firebase en ressources Android au build (le SDK natif démarre avec le processus : un push reçu app fermée), `duplicate-app` repris côté Dart ; l'avis d'activité de cave (075) écrit dans la langue du téléphone du destinataire. Vu à l'émulateur : Firebase démarre, l'inscription n'attend que la 075.
 - *Serveur* : migration **077** — plafonds par jour baissés (garde-fous : carte 12, chat 30, questions 40, cote 10), `politique_pub`, eCPM estimé du format natif, la console sait régler `politique_pub` et `push`. Essai de la 052 lu dans la configuration plutôt qu'en dur.
 
 ## [v1.13.0+86] — 2026-10-21 — Les notifications push

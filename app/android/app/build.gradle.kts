@@ -38,6 +38,25 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
+
+        // Notifications push (lot N) : la configuration PUBLIQUE de Firebase, en ressources lues
+        // par le SDK natif au démarrage du processus (un push qui réveille l'app fermée), sans
+        // google-services.json dans ce dépôt public. Les valeurs viennent de l'environnement
+        // du build (build_bundle.sh lit ~/.chatmelier/firebase.env) ; absentes : pas de push.
+        listOf(
+            "google_app_id" to "FIREBASE_ANDROID_APP_ID",
+            "gcm_defaultSenderId" to "FIREBASE_SENDER_ID",
+            "google_api_key" to "FIREBASE_ANDROID_API_KEY",
+            "project_id" to "FIREBASE_PROJECT_ID",
+            "google_storage_bucket" to "FIREBASE_STORAGE_BUCKET",
+        ).forEach { (ressource, variable) ->
+            val valeur = System.getenv(variable)
+            if (!valeur.isNullOrBlank()) resValue("string", ressource, valeur)
+        }
+    }
+
+    buildFeatures {
+        resValues = true
     }
 
     signingConfigs {

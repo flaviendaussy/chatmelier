@@ -80,7 +80,13 @@ class NotificationsPush {
     if (_demarre || options == null) return;
     _demarre = true;
     try {
-      await Firebase.initializeApp(options: options);
+      try {
+        await Firebase.initializeApp(options: options);
+      } on FirebaseException catch (e) {
+        // Sur Android, le SDK natif a déjà démarré l'app Firebase avec les mêmes valeurs
+        // (ressources du build) : on la reprend.
+        if (e.code != 'duplicate-app') rethrow;
+      }
       final m = FirebaseMessaging.instance;
       // App ouverte : pas de bannière du système (l'app le dit elle-même, avec « Voir »).
       await m.setForegroundNotificationPresentationOptions(alert: false, badge: true, sound: false);

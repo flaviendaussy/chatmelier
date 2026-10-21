@@ -150,15 +150,31 @@ REVOKE ALL ON FUNCTION public.reserver_le_push(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.reserver_le_push(UUID) TO service_role;
 
 -- ─── 4. L'activité d'une cave partagée ──────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.texte_activite_cave(p_langue TEXT, p_nom TEXT, p_n INTEGER, p_cave TEXT)
+RETURNS TEXT LANGUAGE sql IMMUTABLE AS $$
+  SELECT CASE coalesce(p_langue, 'fr')
+    WHEN 'en' THEN p_nom || ' added ' || p_n || CASE WHEN p_n > 1 THEN ' bottles' ELSE ' bottle' END
+                   || ' to "' || coalesce(p_cave, 'your cellar') || '".'
+    WHEN 'es' THEN p_nom || ' ha añadido ' || p_n || CASE WHEN p_n > 1 THEN ' botellas' ELSE ' botella' END
+                   || ' a «' || coalesce(p_cave, 'tu bodega') || '».'
+    WHEN 'it' THEN p_nom || ' ha aggiunto ' || p_n || CASE WHEN p_n > 1 THEN ' bottiglie' ELSE ' bottiglia' END
+                   || ' a «' || coalesce(p_cave, 'la tua cantina') || '».'
+    ELSE p_nom || ' a ajouté ' || p_n || CASE WHEN p_n > 1 THEN ' bouteilles' ELSE ' bouteille' END
+         || ' à « ' || coalesce(p_cave, 'votre cave') || ' ».'
+  END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.signaler_ajout_en_cave()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   v_acteur  UUID := coalesce(auth.uid(), NEW.added_by);
   v_nombre  INTEGER;
+  v_total   INTEGER;
   v_cave    TEXT;
   v_nom     TEXT;
   v_membre  UUID;
   v_existe  UUID;
+  v_langue  TEXT;
 BEGIN
   IF NEW.cellar_id IS NULL OR v_acteur IS NULL THEN RETURN NEW; END IF;
   v_nombre := CASE WHEN TG_OP = 'INSERT' THEN NEW.quantity
@@ -180,17 +196,21 @@ BEGIN
        AND NOT coalesce(n.is_read, false)
        AND n.created_at > now() - INTERVAL '30 minutes'
      ORDER BY n.created_at DESC LIMIT 1;
+    -- La boîte de l'app affiche ce texte tel quel : dans la langue du destinataire, celle de
+    -- son téléphone inscrit aux push (français sans téléphone inscrit).
+    SELECT a.langue INTO v_langue FROM appareils_push a WHERE a.user_id = v_membre ORDER BY a.maj_le DESC LIMIT 1;
     IF v_existe IS NOT NULL THEN
+      SELECT coalesce((data ->> 'nombre')::int, 0) + v_nombre INTO v_total FROM user_notifications WHERE id = v_existe;
       UPDATE user_notifications
-         SET data = jsonb_set(data, '{nombre}', to_jsonb(coalesce((data ->> 'nombre')::int, 0) + v_nombre)),
-             body = v_nom || ' a ajouté ' || (coalesce((data ->> 'nombre')::int, 0) + v_nombre)
-                    || ' bouteilles à « ' || coalesce(v_cave, 'votre cave') || ' ».'
+         SET data = jsonb_set(data, '{nombre}', to_jsonb(v_total)),
+             body = public.texte_activite_cave(v_langue, v_nom, v_total, v_cave)
        WHERE id = v_existe;
     ELSE
       INSERT INTO user_notifications (user_id, actor_id, type, title, body, data)
-      VALUES (v_membre, v_acteur, 'activite_cave', 'Votre cave partagée',
-              v_nom || ' a ajouté ' || v_nombre || CASE WHEN v_nombre > 1 THEN ' bouteilles' ELSE ' bouteille' END
-                || ' à « ' || coalesce(v_cave, 'votre cave') || ' ».',
+      VALUES (v_membre, v_acteur, 'activite_cave',
+              CASE coalesce(v_langue, 'fr') WHEN 'en' THEN 'Your shared cellar' WHEN 'es' THEN 'Tu bodega compartida'
+                                            WHEN 'it' THEN 'La tua cantina condivisa' ELSE 'Votre cave partagée' END,
+              public.texte_activite_cave(v_langue, v_nom, v_nombre, v_cave),
               jsonb_build_object('cellar_id', NEW.cellar_id, 'cellar_name', coalesce(v_cave, ''),
                                  'actor_name', v_nom, 'nombre', v_nombre, 'route', '/cellar'));
     END IF;

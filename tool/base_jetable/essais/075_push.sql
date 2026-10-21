@@ -92,6 +92,18 @@ BEGIN
   IF v_n <> 2 THEN RAISE EXCEPTION 'après lecture, un nouvel ajout fait un nouvel avis (% avis)', v_n; END IF;
   RAISE NOTICE '✅ un avis lu n''est plus complété';
 
+  -- Flavien a un téléphone en anglais : l'avis suivant est écrit en anglais (la boîte l'affiche tel quel).
+  UPDATE public.user_notifications SET is_read = true WHERE user_id = v_flavien AND type = 'activite_cave';
+  INSERT INTO public.appareils_push (jeton, user_id, plateforme, langue) VALUES ('jeton-langue-0123456789abcdef', v_flavien, 'ios', 'en');
+  INSERT INTO public.bottles (cellar_id, wine_id, quantity, added_by) VALUES (v_cave, v_vin, 2, v_caro);
+  SELECT * INTO v_notif FROM public.user_notifications
+   WHERE user_id = v_flavien AND type = 'activite_cave' AND NOT is_read;
+  IF v_notif.title <> 'Your shared cellar' OR v_notif.body <> 'Caro added 2 bottles to "London".' THEN
+    RAISE EXCEPTION 'avis en anglais attendu : % / %', v_notif.title, v_notif.body;
+  END IF;
+  DELETE FROM public.appareils_push WHERE jeton = 'jeton-langue-0123456789abcdef';
+  RAISE NOTICE '✅ l''avis de cave est écrit dans la langue du téléphone du destinataire';
+
   -- 4. La réservation : une seule fois, et seulement pour service_role.
   SET LOCAL ROLE service_role;
   SELECT count(*) INTO v_n FROM public.reserver_le_push(v_notif.id);

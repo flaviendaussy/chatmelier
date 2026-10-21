@@ -20,10 +20,13 @@ import 'notification_preferences_service.dart';
 /// langue, son décalage horaire et ce que la personne a coupé, et ouvre le bon écran au
 /// toucher.
 ///
-/// Rien n'est demandé au lancement : le téléphone ne s'inscrit que si les notifications sont
-/// déjà permises (la même permission que les rappels de dégustation), ou dès qu'elles le
-/// deviennent ([activer]). Sans les identifiants Firebase passés au build (`--dart-define`,
-/// voir `build_bundle.sh`) et sur le web, tout reste éteint.
+/// Rien n'est demandé au lancement : la permission vient au bon moment (après une demande
+/// d'ami, une cave partagée), et [activer] inscrit le téléphone dès qu'elle est donnée. Le
+/// téléphone s'inscrit aussi dès que Firebase lui donne un jeton (vu sur l'émulateur le 21/10) :
+/// sans permission, le système n'affiche rien ; la permission donnée plus tard dans les
+/// réglages du téléphone suffit alors, sans autre geste. Sans les identifiants Firebase passés
+/// au build (`--dart-define`, ressources Android : voir `build_bundle.sh`) et sur le web, tout
+/// reste éteint.
 class NotificationsPush {
   static const _projet = String.fromEnvironment('FIREBASE_PROJECT_ID');
   static const _expediteur = String.fromEnvironment('FIREBASE_SENDER_ID');

@@ -2,9 +2,9 @@
 
 Toutes les modifications notables apportées au projet Chatmelier sont consignées dans ce document selon la norme [SemVer](https://semver.org/lang/fr/) et les directives de `VERSIONING_AND_RELEASE_RULES.md`.
 
-## [À venir] — Un palais par famille (branche `palais-six-axes`, lot P)
+## [v1.12.0+85] — 2026-10-21 — Un palais par famille
 
-> « Le radar suffit-il pour connaître un palais ? » (Flavien, 19/10) — non : il disait « moyen » de qui aime les blancs légers et les rouges puissants, ignorait la douceur et l'âge, et demandait six curseurs pour l'apprendre.
+> « Le radar suffit-il pour connaître un palais ? » (Flavien, 19/10) — non : il disait « moyen » de qui aime les blancs légers et les rouges puissants, ignorait la douceur et l'âge, et demandait six curseurs pour l'apprendre. Avec la revue du 20/10 et la 84 (jamais distribuée, ses nouveautés sont plus bas).
 
 ### 🍷 Ce qui change pour vous
 - **Deux palais : les rouges, et les blancs, rosés et bulles.** Chaque famille apprend à part ; le radar, la carte du profil, l'empreinte et la fiche d'un ami ont un choix Rouges / Blancs.
@@ -19,6 +19,7 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - **Vos retours (17-19/10)** : un balayage dans le Journal demande confirmation avant de supprimer une dégustation ; la carte d'un restaurant se range du plus au moins « pour vous » (ou dans l'ordre de la carte, au choix) ; le rappel « À consommer avec modération » en pied de connexion et de profil ; « Bavette steak » en anglais ; un gin n'est plus placé au centre de Londres — « London Dry » est un style, pas un lieu.
 - **Les % des cartes dès le palais de départ** : « Profil à compléter » ne s'affiche plus quand le palais déclaré ou appris suffit.
 - **La cave plus lisible et plus fluide** : « À boire vite · d'ici 2027 » au lieu des années d'une apogée déjà passée ; les sections groupées se construisent au fil du défilement, et la recherche ne refait plus filtre, tri et regroupement à chaque frappe.
+- **Les vidéos s'annoncent** : le bouton d'analyse d'une carte le dit (« courte vidéo ») ; au-delà des 30 premières étiquettes, Chatmelier demande avant d'en lancer une, et l'on peut saisir le vin à la main. La vidéo est chargée dès l'ouverture de l'écran, pour être prête au restaurant.
 - **Le chenin de Loire** (Vouvray, Montlouis, Savennières…) est supposé élevé en foudre ou vieux bois, plus en barrique neuve : un Vouvray ordinaire n'apprend plus le boisé à votre palais.
 
 ### 🛠️ Notes Techniques (Développeurs)
@@ -28,7 +29,9 @@ Toutes les modifications notables apportées au projet Chatmelier sont consigné
 - *Moteurs par famille* : explication du score, table (`GuestProfile.palaisPour`, `palaisDistants` envoyés avec le convive, `radar` gardé pour les hôtes d'avant), accueil, frontière, angle mort, carte des terroirs, parcours ; archétype lu sur les palais par famille.
 - *Questionnaire* : `QuestionPourVous`, `ReponsesDuConvive.jugements` / `decrits`, `TastingQuestionnaireResult.jugements` ; `PalaisSaisi` (domaine) pour l'accueil, la page invité et les convives de démonstration.
 - *Historique* : instantanés par famille (`rouge:tannin`), dérive continue avec ceux d'avant. *Palais distant* : un palais appris par famille n'est plus « vierge ».
-- *Traductions* : espagnol et italien à jour (4 061 phrases).
+- *Traductions* : espagnol et italien à jour (4 069 phrases).
+- *Publicité* (modèle économique, phase 0) : `ProposerUneVideo` (une vidéo récompensée se choisit, règle d'AdMob) ; `AdMobService.assurerUnePubPrete` (vidéo périmée après 55 min remplacée, préchargée à l'ouverture des écrans de scan) ; « Vidéo indisponible : <emplacement> » journalisé, pour mesurer le revenu perdu.
+- *Serveur* : migration 074 (sécurité des caves, appliquée le 18/10) et ses essais versés au dépôt ; `tool/verifier_droits_des_tables.py` (tables sans `GRANT`, changement Supabase du 30/10).
 - *Journaux* (revue du 20/10) : chaque ligne part avec son identifiant ; un doublon refusé (23505) est tenu pour rangé — chaque ligne arrivait deux ou trois fois, un lot « expiré » au bout de 5 s étant souvent arrivé quand même. Version suffixée `-debug`/`-profile` hors release ; « Version minimale illisible » en information quand c'est le réseau.
 - *Robustesse* : `ref` après un `await` passe par le conteneur de l'app (`ProviderScope.containerOf`) — l'invalidation se fait même si la fiche a été fermée entre-temps ; `setState` gardés par `mounted` ; plus de `BuildContext` après `await` ; l'initialisation de la racine (rappels de dégustation, secousse, pub d'ouverture) ne se relance plus à chaque reconstruction. `RadioGroup`, `withValues`, `activeThumbColor` : plus aucune API dépréciée.
 - *Performances* (revue du 20/10) : `WineWorld` normalisé une fois et mémorisé ; `Wine.fenetreEffective`, `isSpirit`, `isFortified`, `ProfilDuVin.deLaCave` gardés par vin (et par année) ; tri par maturité en une passe ; badges et `TypeDeVin` sans regex recompilées ; vignettes sans animation d'attente, octets « data: » décodés une fois. Banc `test/_bench` (hors suite) et profileur `app/tool/profil_cpu.dart` (service VM d'un build profile).

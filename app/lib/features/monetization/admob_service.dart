@@ -21,6 +21,7 @@ class AdMobService {
   AdMobService._internal();
 
   RewardedAd? _rewardedAd;
+  DateTime? _rewardedLoadTime;
   bool _isAdLoading = false;
   bool _isInitialized = false;
 
@@ -39,7 +40,28 @@ class AdMobService {
   AppLifecycleListener? _lifecycleListener;
   bool Function()? _isPremiumChecker;
 
-  bool get isReady => _rewardedAd != null;
+  /// Une vidéo récompensée expire une heure après son chargement : passé ce délai, Google
+  /// refuse de l'afficher. On la tient pour périmée un peu avant.
+  static const Duration _dureeDeVieDUneVideo = Duration(minutes: 55);
+
+  bool get _videoPerimee =>
+      _rewardedAd != null &&
+      _rewardedLoadTime != null &&
+      DateTime.now().difference(_rewardedLoadTime!) > _dureeDeVieDUneVideo;
+
+  bool get isReady => _rewardedAd != null && !_videoPerimee;
+
+  /// Une vidéo prête avant d'en avoir besoin (business plan, phase 0). Au restaurant, le
+  /// réseau est souvent faible : on la charge dès l'ouverture des écrans qui la montreront,
+  /// et on remplace celle qui a dépassé l'heure.
+  void assurerUnePubPrete() {
+    if (_videoPerimee) {
+      _rewardedAd?.dispose();
+      _rewardedAd = null;
+      _rewardedLoadTime = null;
+    }
+    preloadRewardedAd();
+  }
   bool get isAppOpenAdAvailable =>
       _appOpenAd != null &&
       _appOpenLoadTime != null &&
@@ -206,6 +228,7 @@ class AdMobService {
         onAdLoaded: (RewardedAd ad) {
           AppLogger.debug('ADMOB', 'RewardedAd loaded successfully.');
           _rewardedAd = ad;
+          _rewardedLoadTime = DateTime.now();
           _isAdLoading = false;
         },
         onAdFailedToLoad: (LoadAdError error) {
@@ -229,8 +252,13 @@ class AdMobService {
     VoidCallback? onAdFailedToShow,
     String emplacement = 'autre',
   }) async {
+    if (_videoPerimee) assurerUnePubPrete();
     if (!AdMobConfig.isPlatformSupported || _rewardedAd == null) {
-      AppLogger.debug('ADMOB', 'Native AdMob rewarded ad not available (isPlatformSupported: ${AdMobConfig.isPlatformSupported}, isReady: ${_rewardedAd != null}).');
+      // Le revenu perdu sur un geste payant : on le compte (« Vidéo indisponible » dans les
+      // journaux, par emplacement) pour savoir ce que coûte le réseau faible des restaurants.
+      if (AdMobConfig.isPlatformSupported) {
+        AppLogger.info('ADMOB', 'Vidéo indisponible : $emplacement');
+      }
       // Replenish for next time
       preloadRewardedAd();
       return false;
@@ -238,6 +266,7 @@ class AdMobService {
 
     final ad = _rewardedAd!;
     _rewardedAd = null; // Consume the ad
+    _rewardedLoadTime = null;
 
     bool userEarnedReward = false;
     final idImpression = const Uuid().v4();

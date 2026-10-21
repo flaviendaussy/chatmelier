@@ -12,6 +12,7 @@ import '../../../shared/services/nearby_places_service.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../../shared/widgets/chatmelier_loader.dart';
 import '../../auth/data/taste_profile_service.dart';
+import '../../monetization/admob_config.dart';
 import '../../monetization/admob_service.dart';
 import '../data/cartes_de_lieux_service.dart';
 import '../data/menu_scan_service.dart';
@@ -52,6 +53,7 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
   @override
   void initState() {
     super.initState();
+    AdMobService().assurerUnePubPrete();
     // Sans rien demander : si la position est déjà permise, les lieux viennent d'eux-mêmes.
     _chercherLesLieux(demander: false);
   }
@@ -278,6 +280,10 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
   /// pas chargé, `showRewardedAd` avait rendu la main aussitôt — et chacune se paie.
   bool _analyseDemandee = false;
 
+  /// Une vidéo accompagnera l'analyse : seulement là où AdMob existe (pas sur le web) et
+  /// hors mode premium. Le bouton le dit avant qu'on appuie.
+  bool get _avecVideo => AdMobConfig.isPlatformSupported && !ref.watch(premiumProvider);
+
   Future<void> _startAnalysis() async {
     if (_capturedPages.isEmpty || _analyseDemandee) return;
     _analyseDemandee = true;
@@ -439,9 +445,11 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
           if (_capturedPages.isNotEmpty && !_isAnalyzing)
             TextButton.icon(
               onPressed: _startAnalysis,
-              icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
+              icon: Icon(_avecVideo ? Icons.play_circle_outline : Icons.auto_awesome, color: const Color(0xFFD4AF37)),
               label: Text(
-                trSi(isFr, 'Analyser ({capturedPages_length})', 'Analyze ({capturedPages_length})', {'capturedPages_length': _capturedPages.length}),
+                _avecVideo
+                    ? tr('Analyser · vidéo', 'Analyze · video')
+                    : trSi(isFr, 'Analyser ({capturedPages_length})', 'Analyze ({capturedPages_length})', {'capturedPages_length': _capturedPages.length}),
                 style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold),
               ),
             ),
@@ -721,13 +729,19 @@ class _MenuPhotoCaptureScreenState extends ConsumerState<MenuPhotoCaptureScreen>
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                             onPressed: _isAnalyzing ? null : _startAnalysis,
-                            icon: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
+                            icon: Icon(_avecVideo ? Icons.play_circle_outline : Icons.auto_awesome, color: const Color(0xFFD4AF37)),
                             label: Text(
-                              widget.ardoise
-                                  ? tr('Analyser l\'ardoise', 'Analyze the board')
-                                  : _capturedPages.length > 1
-                                      ? trSi(isFr, 'Analyser la carte ({n} pages)', 'Analyze wine list ({n} pages)', {'n': _capturedPages.length})
-                                      : trSi(isFr, 'Analyser la carte ({n} page)', 'Analyze wine list ({n} page)', {'n': _capturedPages.length}),
+                              _avecVideo
+                                  // La vidéo s'annonce sur le bouton qui la lance (règle d'AdMob :
+                                  // une vidéo récompensée se choisit).
+                                  ? (widget.ardoise
+                                      ? tr('Analyser · courte vidéo', 'Analyze · short video')
+                                      : tr('Analyser la carte · courte vidéo', 'Analyze the list · short video'))
+                                  : widget.ardoise
+                                      ? tr('Analyser l\'ardoise', 'Analyze the board')
+                                      : _capturedPages.length > 1
+                                          ? trSi(isFr, 'Analyser la carte ({n} pages)', 'Analyze wine list ({n} pages)', {'n': _capturedPages.length})
+                                          : trSi(isFr, 'Analyser la carte ({n} page)', 'Analyze wine list ({n} page)', {'n': _capturedPages.length}),
                               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                             ),
                           ),

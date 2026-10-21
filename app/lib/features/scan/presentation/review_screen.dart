@@ -26,6 +26,7 @@ import '../../offline/presentation/sync_provider.dart';
 import '../../offline/data/connectivity_service.dart';
 import '../../../shared/providers/premium_provider.dart';
 import '../../monetization/admob_service.dart';
+import '../../monetization/proposer_une_video.dart';
 import '../../cellar/presentation/custom_bottle_size_dialog.dart';
 import '../../../shared/utils/langue.dart';
 
@@ -91,6 +92,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   @override
   void initState() {
     super.initState();
+    AdMobService().assurerUnePubPrete();
     if (widget.prefillBottle != null) {
       _prefillFromExisting(widget.prefillBottle!);
     } else if (widget.imagePath.isNotEmpty || (widget.imageBytes != null && widget.imageBytes!.isNotEmpty)) {
@@ -104,12 +106,39 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     final isPremium = ref.read(premiumProvider);
     final uid = ref.read(supabaseProvider).auth.currentUser?.id;
     final dejaFaits = await PolitiquePub.scansEtiquette(uid);
-    unawaited(PolitiquePub.compterUnScanEtiquette(uid));
-    // Le premier inventaire (30 étiquettes) se fait sans vidéo (V2.3 · G2).
-    if (!PolitiquePub.doitMontrer(emplacement: 'scan_etiquette', premium: isPremium, scansEtiquetteDejaFaits: dejaFaits)) {
+    // Le premier inventaire (30 étiquettes) se fait sans vidéo (V2.3 · G2). Sans vidéo prête
+    // (web, hors ligne, pas de pub), la lecture passe aussi : la faute n'est pas à la personne.
+    final pub = AdMobService();
+    if (!PolitiquePub.doitMontrer(emplacement: 'scan_etiquette', premium: isPremium, scansEtiquetteDejaFaits: dejaFaits) ||
+        !pub.isReady) {
+      if (PolitiquePub.doitMontrer(emplacement: 'scan_etiquette', premium: isPremium, scansEtiquetteDejaFaits: dejaFaits)) {
+        AppLogger.info('ADMOB', 'Vidéo indisponible : scan_etiquette');
+      }
+      unawaited(PolitiquePub.compterUnScanEtiquette(uid));
       await _analyzeImage(runPrompts: true);
       return;
     }
+
+    // La vidéo se choisit : au-delà de l'inventaire, on demande avant (règle d'AdMob).
+    if (!mounted) return;
+    final regarder = await ProposerUneVideo.demander(
+      context,
+      titre: tr('Lire cette étiquette', 'Read this label'),
+      explication: tr(
+          'Vos {n} premières étiquettes étaient offertes. Au-delà, une courte vidéo finance chaque lecture : pendant qu\'elle passe, Chatmelier lit l\'étiquette.',
+          'Your first {n} labels were free. After that, a short video pays for each reading: while it plays, Chatmelier reads the label.',
+          {'n': PolitiquePub.scansDInventaireSansPub}),
+      renoncer: tr('Saisir à la main', 'Enter it by hand'),
+    );
+    if (!mounted) return;
+    if (!regarder) {
+      setState(() {
+        _isAnalyzing = false;
+        _ignoreUndetected = true;
+      });
+      return;
+    }
+    unawaited(PolitiquePub.compterUnScanEtiquette(uid));
 
     // 🚀 UX Optimization: Parallelize AI image analysis in background WHILE the ad plays
     // User experiences ~0 seconds perceived waiting time after closing the video!

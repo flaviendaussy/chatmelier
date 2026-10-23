@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:image/image.dart' as img;
 import '../../../shared/utils/app_logger.dart';
 
@@ -44,11 +45,30 @@ class LabelImageOptimizer {
   /// 2. Scales down to a maximum dimension of 1024px.
   /// 3. Re-encodes to high-clarity JPEG (quality 84).
   /// 4. Generates a deterministic SHA-256 hash for caching.
+  /// La même chose, hors du fil de l'écran : décoder une photo de 12 mégapixels en Dart
+  /// prenait deux secondes, écran figé, avant même l'envoi au serveur (le 22/10, à chaque
+  /// verre du Vagabond : 20:02:41 → 20:02:43). Le résultat est identique ; le journal
+  /// s'écrit ici, l'isolat n'ayant pas le sien.
+  static Future<OptimizedLabelImage> optimiserEnArrierePlan(
+    Uint8List rawBytes, {
+    bool autoCrop = true,
+    int? maxDimension,
+  }) async {
+    final r = await compute(_optimiserIsole, (rawBytes, autoCrop, maxDimension));
+    AppLogger.info('IMAGE_OPT',
+        'Optimized label: ${r.originalWidth}x${r.originalHeight} (${r.originalSizeBytes} B) -> ${r.width}x${r.height} (${r.optimizedSizeBytes} B) [Saved: ${r.savedSpacePercentage.toStringAsFixed(1)}%] • Hash: ${r.sha256Hash.substring(0, 10)}...');
+    return r;
+  }
+
+  static OptimizedLabelImage _optimiserIsole((Uint8List, bool, int?) demande) =>
+      optimize(demande.$1, autoCrop: demande.$2, maxDimension: demande.$3, journaliser: false);
+
   static OptimizedLabelImage optimize(
     Uint8List rawBytes, {
     bool autoCrop = true,
     int targetQuality = defaultJpegQuality,
     int? maxDimension,
+    bool journaliser = true,
   }) {
     final originalSize = rawBytes.length;
 
@@ -123,12 +143,14 @@ class LabelImageOptimizer {
         optimizedSizeBytes: optimizedBytes.length,
       );
 
-      AppLogger.info('IMAGE_OPT',
-          'Optimized label: ${origW}x$origH ($originalSize B) -> ${result.width}x${result.height} (${result.optimizedSizeBytes} B) [Saved: ${result.savedSpacePercentage.toStringAsFixed(1)}%] • Hash: ${hash.substring(0, 10)}...');
+      if (journaliser) {
+        AppLogger.info('IMAGE_OPT',
+            'Optimized label: ${origW}x$origH ($originalSize B) -> ${result.width}x${result.height} (${result.optimizedSizeBytes} B) [Saved: ${result.savedSpacePercentage.toStringAsFixed(1)}%] • Hash: ${hash.substring(0, 10)}...');
+      }
 
       return result;
     } catch (e) {
-      AppLogger.warning('IMAGE_OPT', 'Image optimization failed, falling back to raw bytes: $e');
+      if (journaliser) AppLogger.warning('IMAGE_OPT', 'Image optimization failed, falling back to raw bytes: $e');
       final hash = sha256.convert(rawBytes).toString();
       return OptimizedLabelImage(
         bytes: rawBytes,

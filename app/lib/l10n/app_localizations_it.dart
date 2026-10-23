@@ -671,7 +671,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get checkoutAddGuestHint => 'Aggiungi (Mamma, Papà...)';
 
   @override
-  String get checkoutCloseAndTaste => 'Chiudi e degusta 🍷';
+  String get checkoutCloseAndTaste => 'Chiudi e degusta';
 
   @override
   String get checkoutSommelierThinking =>
@@ -1021,7 +1021,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get checkoutNoDecanting => 'Nessuna decantazione necessaria';
 
   @override
-  String get checkoutStoryTitle => 'La storia di questa bottiglia 📖';
+  String get checkoutStoryTitle => 'La storia di questa bottiglia';
 
   @override
   String get checkoutStorySubtitle =>
@@ -1211,7 +1211,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get checkoutFastExit => 'Prelievo rapido senza questionario ⚡';
+  String get checkoutFastExit => 'Prelievo rapido senza questionario';
 
   @override
   String get checkoutFastExitSubmitting => 'Prelievo in corso...';
@@ -1224,7 +1224,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get checkoutRecommendedBadge => 'Consigliato';
 
   @override
-  String get tastingWhoTastedTitle => '👥 Chi ha degustato questo vino?';
+  String get tastingWhoTastedTitle => 'Chi ha degustato questo vino?';
 
   @override
   String get tastingWhoTastedSubtitle =>
@@ -1238,14 +1238,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tastingEachTurnDesc =>
-      '📱 Passando il telefono: ciascuno risponde separatamente al proprio ritmo.';
+      'Passando il telefono: ciascuno risponde separatamente al proprio ritmo.';
 
   @override
   String get tastingTogether => 'Tutti insieme';
 
   @override
   String get tastingTogetherDesc =>
-      '🥂 Un unico questionario compilato insieme per tutti i commensali.';
+      'Un unico questionario compilato insieme per tutti i commensali.';
 
   @override
   String get tastingBlindMode => 'Modalità Degustazione alla Cieca';
@@ -1258,7 +1258,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tastingPrimaryProfile => 'Profilo principale';
 
   @override
-  String get tastingAppInstalled => 'App installata 📱';
+  String get tastingAppInstalled => 'App installata';
 
   @override
   String tastingQuestionnairesCompletedCount(int count) {
@@ -1274,7 +1274,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tastingStepNezTitle =>
-      '👃 L\'Esame Olfattivo — Espressione degli aromi';
+      'L\'Esame Olfattivo — Espressione degli aromi';
 
   @override
   String get tastingStepNezSubtitle =>
@@ -1322,7 +1322,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tastingAromaExplosive => '💥 Esplosiva / Intensa';
 
   @override
-  String get tastingStepBoucheTitle => '⚖️ L\'Esame Gustativo — Equilibrio';
+  String get tastingStepBoucheTitle => 'L\'Esame Gustativo — Equilibrio';
 
   @override
   String get tastingStepBoucheSubtitle =>
@@ -1386,7 +1386,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tastingLengthLong => '♾️ Molto persistente';
 
   @override
-  String get tastingStepVerdictTitle => '✅ Verdetto finale';
+  String get tastingStepVerdictTitle => 'Verdetto finale';
 
   @override
   String get sipSectionTitle => '🍷 Il sorso';
@@ -1478,20 +1478,20 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tastingOccasionLabel =>
-      'Occasione / Ricordo condiviso (opzionale) ✨';
+      'Occasione / Ricordo condiviso (opzionale)';
 
   @override
   String get tastingOccasionHint =>
       'es. Compleanno, Cena a lume di candela, Rimpatriata...';
 
   @override
-  String get tastingAddPhoto => 'Aggiungi una foto ricordo della tavola 📸';
+  String get tastingAddPhoto => 'Aggiungi una foto ricordo della tavola';
 
   @override
-  String get tastingPhotoSaved => 'Foto ricordo salvata 📸';
+  String get tastingPhotoSaved => 'Foto ricordo salvata';
 
   @override
-  String get tastingStepImpressionTitle => '🎯 Voto finale & Impressione';
+  String get tastingStepImpressionTitle => 'Voto finale & Impressione';
 
   @override
   String get tastingStepImpressionSubtitle =>
@@ -1508,7 +1508,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tastingCompletedSubtitle =>
-      'I profili di gusto sono stati aggiornati con successo ✨';
+      'I profili di gusto sono stati aggiornati con successo';
 
   @override
   String get tastingBottleRemoved =>
@@ -1519,13 +1519,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Guarda il debriefing del sommelier (Sfumature nascoste & Terroir)';
 
   @override
-  String get tastingFinishButton => 'Fine ✨';
+  String get tastingFinishButton => 'Fine';
 
   @override
   String get tastingNextTaster => 'Conferma → Prossimo degustatore';
 
   @override
-  String get tastingConfirmAndFinish => 'Conferma & Concludi ✨';
+  String get tastingConfirmAndFinish => 'Conferma & Concludi';
 
   @override
   String get tastingQuitTitle => 'Abbandonare il questionario?';
@@ -1546,7 +1546,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String tastingProfileSynced(String name) {
-    return 'Sincronizzato con l\'app di $name ✨';
+    return 'Sincronizzato con l\'app di $name';
   }
 
   @override
@@ -1566,27 +1566,27 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scopri da dove provengono profumi, colore e corpo del tuo vino';
 
   @override
-  String get tastingBlindQuizTitle => 'Quiz al tavolo alla cieca 🙈';
+  String get tastingBlindQuizTitle => 'Quiz al tavolo alla cieca';
 
   @override
-  String get tastingBlindQuizQ1 => '1. Qual è la regione di origine? 🌍';
+  String get tastingBlindQuizQ1 => '1. Qual è la regione di origine?';
 
   @override
-  String get tastingBlindQuizQ2 => '2. Qual è il vitigno principale? 🍇';
+  String get tastingBlindQuizQ2 => '2. Qual è il vitigno principale?';
 
   @override
-  String get tastingBlindQuizQ3 => '3. Età presunta / Annata? 📅';
+  String get tastingBlindQuizQ3 => '3. Età presunta / Annata?';
 
   @override
-  String get tastingBlindQuizQ4 => '4. Prezzo stimato? 💶';
+  String get tastingBlindQuizQ4 => '4. Prezzo stimato?';
 
   @override
   String get tastingBlindRevealTitle =>
-      'Grande svelamento della bottiglia misteriosa 🍾';
+      'Grande svelamento della bottiglia misteriosa';
 
   @override
   String tastingBlindQuizScore(int score) {
-    return 'Punteggio del quiz alla cieca: $score/4 🎯';
+    return 'Punteggio del quiz alla cieca: $score/4';
   }
 
   @override
@@ -1778,7 +1778,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String tastingPassPhoneTo(String name) {
-    return 'Passa il telefono a $name 📱';
+    return 'Passa il telefono a $name';
   }
 
   @override
@@ -1787,7 +1787,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get tastingDictateButton => 'Detta impressioni al tavolo 🎙️';
+  String get tastingDictateButton => 'Detta impressioni al tavolo';
 
   @override
   String get tastingDictateHint =>
@@ -1798,10 +1798,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Suggerimento: attiva il microfono sulla tastiera per dettare a voce!';
 
   @override
-  String get tastingTakePhoto => 'Scatta una foto a tavola 📸';
+  String get tastingTakePhoto => 'Scatta una foto a tavola';
 
   @override
-  String get tastingChooseGallery => 'Scegli dalla galleria 🖼️';
+  String get tastingChooseGallery => 'Scegli dalla galleria';
 
   @override
   String get tastingConclaveSummary => 'Sintesi del conclave';
@@ -1847,7 +1847,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tastingAromaAppliedByAI =>
-      'Impressioni di degustazione applicate dall\'IA Chatmelier ✨';
+      'Impressioni di degustazione applicate dall\'IA Chatmelier';
 
   @override
   String get tastingBlindYourPredictions =>
@@ -1862,7 +1862,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String tastingStartTaster(String name) {
-    return 'Tocca a te, $name! 🍷';
+    return 'Tocca a te, $name!';
   }
 
   @override
@@ -1881,18 +1881,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tastingDictateAnalyzing => 'Analisi in corso...';
 
   @override
-  String get tastingDictateAnalyzeAndApply =>
-      'Analizza & Applica alle schede ✨';
+  String get tastingDictateAnalyzeAndApply => 'Analizza & Applica alle schede';
 
   @override
-  String get tastingFormatExpress => 'Formato Express (1 pagina) ⚡';
+  String get tastingFormatExpress => 'Formato Express (1 pagina)';
 
   @override
   String get tastingFormatExpressDesc =>
       'Voto, aromi principali e verdetto rapido in 30s';
 
   @override
-  String get tastingFormatSommelier => 'Formato Sommelier (Dettagliato) 🎓';
+  String get tastingFormatSommelier => 'Formato Sommelier (Dettagliato)';
 
   @override
   String get tastingFormatSommelierDesc =>
@@ -1916,7 +1915,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'es. Pietra focaia affumicata, Mora selvatica, Rosa appassita...';
 
   @override
-  String get tastingFoodSynergyTitle => 'Sinergia con il cibo 🍽️';
+  String get tastingFoodSynergyTitle => 'Sinergia con il cibo';
 
   @override
   String get tastingSynergySublime => '🤩 Sublime';
@@ -1941,7 +1940,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Formato express (1 pagina) o dettagliato da sommelier';
 
   @override
-  String get checkoutActionDeferredRemind => 'Ricordamelo più tardi 🌙';
+  String get checkoutActionDeferredRemind => 'Ricordamelo più tardi';
 
   @override
   String get checkoutActionAerationTimer => 'Timer di aerazione ⏱️';
@@ -2082,7 +2081,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Es.: Frutta nera intensa, tannini setosi, ottima persistenza...';
 
   @override
-  String get externalTastingSubmit => 'Salva e valuta ✨';
+  String get externalTastingSubmit => 'Salva e valuta';
 
   @override
   String get externalTastingNameRequired => 'Indica almeno il nome del vino.';
@@ -2093,12 +2092,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String externalTastingAiRecognized(String name) {
-    return '✨ Bottiglia riconosciuta dall\'IA: $name';
+    return 'Bottiglia riconosciuta dall\'IA: $name';
   }
 
   @override
   String externalTastingAiFilled(String name) {
-    return '✨ Scheda completata dall\'IA: $name';
+    return 'Scheda completata dall\'IA: $name';
   }
 
   @override

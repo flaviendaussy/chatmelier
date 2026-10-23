@@ -1311,7 +1311,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkoutCloseAndTaste.
   ///
   /// In en, this message translates to:
-  /// **'Close & Enjoy 🍷'**
+  /// **'Close & Enjoy'**
   String get checkoutCloseAndTaste;
 
   /// No description provided for @checkoutSommelierThinking.
@@ -1929,7 +1929,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkoutStoryTitle.
   ///
   /// In en, this message translates to:
-  /// **'The Story of this Bottle 📖'**
+  /// **'The Story of this Bottle'**
   String get checkoutStoryTitle;
 
   /// No description provided for @checkoutStorySubtitle.
@@ -2265,7 +2265,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingWhoTastedTitle.
   ///
   /// In en, this message translates to:
-  /// **'👥 Who tasted this wine?'**
+  /// **'Who tasted this wine?'**
   String get tastingWhoTastedTitle;
 
   /// No description provided for @tastingWhoTastedSubtitle.
@@ -2289,7 +2289,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingEachTurnDesc.
   ///
   /// In en, this message translates to:
-  /// **'📱 Pass the phone: each person answers separately at their own pace.'**
+  /// **'Pass the phone: each person answers separately at their own pace.'**
   String get tastingEachTurnDesc;
 
   /// No description provided for @tastingTogether.
@@ -2301,7 +2301,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingTogetherDesc.
   ///
   /// In en, this message translates to:
-  /// **'🥂 A single questionnaire completed together for all guests.'**
+  /// **'A single questionnaire completed together for all guests.'**
   String get tastingTogetherDesc;
 
   /// No description provided for @tastingBlindMode.
@@ -2325,7 +2325,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingAppInstalled.
   ///
   /// In en, this message translates to:
-  /// **'App installed 📱'**
+  /// **'App installed'**
   String get tastingAppInstalled;
 
   /// No description provided for @tastingQuestionnairesCompletedCount.
@@ -2337,7 +2337,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingStepNezTitle.
   ///
   /// In en, this message translates to:
-  /// **'🍇 The Nose — Aromas'**
+  /// **'The Nose — Aromas'**
   String get tastingStepNezTitle;
 
   /// No description provided for @tastingStepNezSubtitle.
@@ -2421,7 +2421,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingStepBoucheTitle.
   ///
   /// In en, this message translates to:
-  /// **'⚖️ The Palate — Balance'**
+  /// **'The Palate — Balance'**
   String get tastingStepBoucheTitle;
 
   /// No description provided for @tastingStepBoucheSubtitle.
@@ -2547,7 +2547,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingStepVerdictTitle.
   ///
   /// In en, this message translates to:
-  /// **'✅ Final Verdict'**
+  /// **'Final Verdict'**
   String get tastingStepVerdictTitle;
 
   /// No description provided for @sipSectionTitle.
@@ -2697,7 +2697,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingOccasionLabel.
   ///
   /// In en, this message translates to:
-  /// **'Occasion / Shared memory (optional) ✨'**
+  /// **'Occasion / Shared memory (optional)'**
   String get tastingOccasionLabel;
 
   /// No description provided for @tastingOccasionHint.
@@ -2709,19 +2709,19 @@ abstract class AppLocalizations {
   /// No description provided for @tastingAddPhoto.
   ///
   /// In en, this message translates to:
-  /// **'Add a photo memory of the table 📸'**
+  /// **'Add a photo memory of the table'**
   String get tastingAddPhoto;
 
   /// No description provided for @tastingPhotoSaved.
   ///
   /// In en, this message translates to:
-  /// **'Photo memory saved 📸'**
+  /// **'Photo memory saved'**
   String get tastingPhotoSaved;
 
   /// No description provided for @tastingStepImpressionTitle.
   ///
   /// In en, this message translates to:
-  /// **'🎯 Final Rating & Impression'**
+  /// **'Final Rating & Impression'**
   String get tastingStepImpressionTitle;
 
   /// No description provided for @tastingStepImpressionSubtitle.
@@ -2751,7 +2751,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingCompletedSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Taste profiles have been successfully updated ✨'**
+  /// **'Taste profiles have been successfully updated'**
   String get tastingCompletedSubtitle;
 
   /// No description provided for @tastingBottleRemoved.
@@ -2769,7 +2769,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingFinishButton.
   ///
   /// In en, this message translates to:
-  /// **'Finish ✨'**
+  /// **'Finish'**
   String get tastingFinishButton;
 
   /// No description provided for @tastingNextTaster.
@@ -2781,7 +2781,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingConfirmAndFinish.
   ///
   /// In en, this message translates to:
-  /// **'Validate & Finish ✨'**
+  /// **'Validate & Finish'**
   String get tastingConfirmAndFinish;
 
   /// No description provided for @tastingQuitTitle.
@@ -2817,7 +2817,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingProfileSynced.
   ///
   /// In en, this message translates to:
-  /// **'Synced to {name}\'s app ✨'**
+  /// **'Synced to {name}\'s app'**
   String tastingProfileSynced(String name);
 
   /// No description provided for @tastingProfileEnriched.
@@ -2847,43 +2847,43 @@ abstract class AppLocalizations {
   /// No description provided for @tastingBlindQuizTitle.
   ///
   /// In en, this message translates to:
-  /// **'Blind Tasting Table Quiz 🙈'**
+  /// **'Blind Tasting Table Quiz'**
   String get tastingBlindQuizTitle;
 
   /// No description provided for @tastingBlindQuizQ1.
   ///
   /// In en, this message translates to:
-  /// **'1. What is the region of origin? 🌍'**
+  /// **'1. What is the region of origin?'**
   String get tastingBlindQuizQ1;
 
   /// No description provided for @tastingBlindQuizQ2.
   ///
   /// In en, this message translates to:
-  /// **'2. What is the primary grape? 🍇'**
+  /// **'2. What is the primary grape?'**
   String get tastingBlindQuizQ2;
 
   /// No description provided for @tastingBlindQuizQ3.
   ///
   /// In en, this message translates to:
-  /// **'3. Estimated age / vintage? 📅'**
+  /// **'3. Estimated age / vintage?'**
   String get tastingBlindQuizQ3;
 
   /// No description provided for @tastingBlindQuizQ4.
   ///
   /// In en, this message translates to:
-  /// **'4. Estimated price? 💶'**
+  /// **'4. Estimated price?'**
   String get tastingBlindQuizQ4;
 
   /// No description provided for @tastingBlindRevealTitle.
   ///
   /// In en, this message translates to:
-  /// **'Mystery Bottle Grand Reveal 🍾'**
+  /// **'Mystery Bottle Grand Reveal'**
   String get tastingBlindRevealTitle;
 
   /// No description provided for @tastingBlindQuizScore.
   ///
   /// In en, this message translates to:
-  /// **'Blind Quiz Score: {score}/4 🎯'**
+  /// **'Blind Quiz Score: {score}/4'**
   String tastingBlindQuizScore(int score);
 
   /// No description provided for @tastingDebriefTitle.
@@ -3249,7 +3249,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingPassPhoneTo.
   ///
   /// In en, this message translates to:
-  /// **'Pass the phone to {name} 📱'**
+  /// **'Pass the phone to {name}'**
   String tastingPassPhoneTo(String name);
 
   /// No description provided for @tastingAnswersSavedTurn.
@@ -3261,7 +3261,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingDictateButton.
   ///
   /// In en, this message translates to:
-  /// **'Dictate table impressions 🎙️'**
+  /// **'Dictate table impressions'**
   String get tastingDictateButton;
 
   /// No description provided for @tastingDictateHint.
@@ -3279,13 +3279,13 @@ abstract class AppLocalizations {
   /// No description provided for @tastingTakePhoto.
   ///
   /// In en, this message translates to:
-  /// **'Take a table photo 📸'**
+  /// **'Take a table photo'**
   String get tastingTakePhoto;
 
   /// No description provided for @tastingChooseGallery.
   ///
   /// In en, this message translates to:
-  /// **'Choose from gallery 🖼️'**
+  /// **'Choose from gallery'**
   String get tastingChooseGallery;
 
   /// No description provided for @tastingConclaveSummary.
@@ -3351,7 +3351,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingAromaAppliedByAI.
   ///
   /// In en, this message translates to:
-  /// **'Tasting impressions applied by Chatmelier AI ✨'**
+  /// **'Tasting impressions applied by Chatmelier AI'**
   String get tastingAromaAppliedByAI;
 
   /// No description provided for @tastingBlindYourPredictions.
@@ -3375,7 +3375,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingStartTaster.
   ///
   /// In en, this message translates to:
-  /// **'Let\'s go, {name}! 🍷'**
+  /// **'Let\'s go, {name}!'**
   String tastingStartTaster(String name);
 
   /// No description provided for @tastingQuizBravo.
@@ -3405,13 +3405,13 @@ abstract class AppLocalizations {
   /// No description provided for @tastingDictateAnalyzeAndApply.
   ///
   /// In en, this message translates to:
-  /// **'Analyze & Apply to Sheets ✨'**
+  /// **'Analyze & Apply to Sheets'**
   String get tastingDictateAnalyzeAndApply;
 
   /// No description provided for @tastingFormatExpress.
   ///
   /// In en, this message translates to:
-  /// **'Express Format (1 page) ⚡'**
+  /// **'Express Format (1 page)'**
   String get tastingFormatExpress;
 
   /// No description provided for @tastingFormatExpressDesc.
@@ -3423,7 +3423,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingFormatSommelier.
   ///
   /// In en, this message translates to:
-  /// **'Sommelier Format (Detailed) 🎓'**
+  /// **'Sommelier Format (Detailed)'**
   String get tastingFormatSommelier;
 
   /// No description provided for @tastingFormatSommelierDesc.
@@ -3465,7 +3465,7 @@ abstract class AppLocalizations {
   /// No description provided for @tastingFoodSynergyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Food pairing synergy 🍽️'**
+  /// **'Food pairing synergy'**
   String get tastingFoodSynergyTitle;
 
   /// No description provided for @tastingSynergySublime.
@@ -3513,7 +3513,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkoutActionDeferredRemind.
   ///
   /// In en, this message translates to:
-  /// **'Remind later 🌙'**
+  /// **'Remind later'**
   String get checkoutActionDeferredRemind;
 
   /// No description provided for @checkoutActionAerationTimer.
@@ -3759,7 +3759,7 @@ abstract class AppLocalizations {
   /// No description provided for @externalTastingSubmit.
   ///
   /// In en, this message translates to:
-  /// **'Save & Rate ✨'**
+  /// **'Save & Rate'**
   String get externalTastingSubmit;
 
   /// No description provided for @externalTastingNameRequired.
@@ -3777,13 +3777,13 @@ abstract class AppLocalizations {
   /// No description provided for @externalTastingAiRecognized.
   ///
   /// In en, this message translates to:
-  /// **'✨ Bottle recognized by AI: {name}'**
+  /// **'Bottle recognized by AI: {name}'**
   String externalTastingAiRecognized(String name);
 
   /// No description provided for @externalTastingAiFilled.
   ///
   /// In en, this message translates to:
-  /// **'✨ Form filled in by AI: {name}'**
+  /// **'Form filled in by AI: {name}'**
   String externalTastingAiFilled(String name);
 
   /// No description provided for @externalTastingAnalysisError.

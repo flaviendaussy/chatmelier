@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chatmelier/features/auth/data/taste_profile_service.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/friends/data/friends_repository.dart';
@@ -21,6 +23,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class _Palais extends Fake implements TasteProfileService {
   final List<TasteProfile> profils;
   final recus = <TastingQuestionnaireResult>[];
+  final cepagesRecus = <List<String>?>[];
+  final vins = <Wine?>[];
   _Palais(this.profils);
 
   @override
@@ -36,8 +40,11 @@ class _Palais extends Fake implements TasteProfileService {
     String? wineName,
     Wine? vin,
     DateTime? le,
-  }) async =>
-      recus.add(result);
+  }) async {
+    recus.add(result);
+    cepagesRecus.add(wineGrapes);
+    vins.add(vin);
+  }
 }
 
 class _SansAmis extends Fake implements FriendsRepository {
@@ -75,6 +82,8 @@ Future<_Palais> _ouvrir(
   List<TasteProfile> profils = const [_moi],
   List<String>? convives,
   DegustationsPartagees? partage,
+  String nom = 'Chablis',
+  Future<List<String>>? cepagesAVenir,
 }) async {
   SharedPreferences.setMockInitialValues({});
   // Large : la police des essais (Ahem) est bien plus large qu'une vraie, et l'écran de
@@ -98,10 +107,11 @@ Future<_Palais> _ouvrir(
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: TastingQuestionnaireSheet(
-          wineName: 'Chablis',
+          wineName: nom,
           wineType: type,
           initialIsExpress: express,
           preselectedTasters: convives,
+          cepagesAVenir: cepagesAVenir,
         ),
       ),
     ),
@@ -139,7 +149,7 @@ void main() {
     await _toucher(tester, find.text('Suivant'));
     // La note, en dernier : le visage le plus heureux.
     await _toucher(tester, find.text('😍').first);
-    await _toucher(tester, find.text('Valider & Terminer ✨'));
+    await _toucher(tester, find.text('Valider & Terminer'));
 
     final r = palais.recus.single;
     expect(r.profileId, 'moi');
@@ -158,13 +168,15 @@ void main() {
   testWidgets('en express, un rouge : une question « pour vous », et rien de supposé (V2.6)', (tester) async {
     final palais = await _ouvrir(tester, type: 'red', express: true);
 
+    // Le départ (22/10) : qui goûte et comment, puis les questions seules.
+    await _toucher(tester, find.text('Commencer (1)'));
     // Le visage d'abord : la liste ne garde pas construit ce qui sort de l'écran.
     await _toucher(tester, find.text('😐').first);
     // Ni toucher de bouche ni éclat du fruit : une seule question, trop · juste · pas assez.
     expect(find.textContaining(TastingQuestionnaireResult.textureOptions.first.emoji), findsNothing);
     final trop = find.descendant(of: find.byType(PourVous), matching: find.byType(InkWell)).at(2);
     await _toucher(tester, trop);
-    await _toucher(tester, find.text('Valider & Terminer ✨'));
+    await _toucher(tester, find.text('Valider & Terminer'));
 
     final r = palais.recus.single;
     expect(r.isExpressMode, isTrue);
@@ -184,7 +196,7 @@ void main() {
         partage: partage);
 
     expect(find.text('Commencer (2)'), findsOneWidget);
-    await _toucher(tester, find.text('Lui demander de noter sur son téléphone'));
+    await _toucher(tester, find.text('Inviter Flavien à noter sur son téléphone'));
 
     expect(partage.invitations.single, ('u-flavien', 'Chablis'));
     expect(find.text('✓ Demandé : Flavien note sur son téléphone.'), findsOneWidget);
@@ -198,18 +210,18 @@ void main() {
 
     await _toucher(tester, find.text('Commencer (2)'));
     // À plusieurs, le premier convive est annoncé lui aussi (V2.4 · R3, Caro, 07/10).
-    await _toucher(tester, find.text('C\'est parti, Moi ! 🍷'));
+    await _toucher(tester, find.text('C\'est parti, Moi !'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('😍').first);
     await _toucher(tester, find.text('Valider → Dégustateur suivant'));
-    await _toucher(tester, find.text('C\'est parti, Caro ! 🍷'));
+    await _toucher(tester, find.text('C\'est parti, Caro !'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('😕').first);
-    await _toucher(tester, find.text('Valider & Terminer ✨'));
+    await _toucher(tester, find.text('Valider & Terminer'));
 
     expect(palais.recus.map((r) => (r.profileId, r.emojiImpression)), [('moi', 4), ('caro', 1)]);
   });
@@ -218,13 +230,13 @@ void main() {
     await _ouvrir(tester, type: 'red', profils: const [_moi, _caro], convives: ['caro']);
 
     await _toucher(tester, find.text('Commencer (2)'));
-    await _toucher(tester, find.text('C\'est parti, Moi ! 🍷'));
+    await _toucher(tester, find.text('C\'est parti, Moi !'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('😍').first);
     await _toucher(tester, find.text('Valider → Dégustateur suivant'));
-    await _toucher(tester, find.text('C\'est parti, Caro ! 🍷'));
+    await _toucher(tester, find.text('C\'est parti, Caro !'));
 
     // Au premier écran de Caro, plus de « Retour » vers le choix des dégustateurs : c'est de
     // là que tout repartait de zéro.
@@ -238,22 +250,82 @@ void main() {
     final bouchon = find.widgetWithText(FilterChip, '📦 Carton mouillé, cave humide');
 
     await _toucher(tester, find.text('Commencer (2)'));
-    await _toucher(tester, find.text('C\'est parti, Moi ! 🍷'));
+    await _toucher(tester, find.text('C\'est parti, Moi !'));
     await _jusquA(tester, bouchon);
     await _toucher(tester, bouchon);
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Valider → Dégustateur suivant'));
-    await _toucher(tester, find.text('C\'est parti, Caro ! 🍷'));
+    await _toucher(tester, find.text('C\'est parti, Caro !'));
 
     await _jusquA(tester, bouchon);
     expect(tester.widget<FilterChip>(bouchon).selected, isTrue, reason: 'le défaut reste signalé au convive suivant');
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
     await _toucher(tester, find.text('Suivant'));
-    await _toucher(tester, find.text('Valider & Terminer ✨'));
+    await _toucher(tester, find.text('Valider & Terminer'));
 
     expect(palais.recus, isEmpty, reason: 'un vin bouchonné n\'apprend rien sur un palais');
+  });
+
+  testWidgets('22/10 : le format se choisit au départ, il est retenu, et les questions viennent seules', (tester) async {
+    await _ouvrir(tester, type: 'white');
+    // Au départ : le format et les dégustateurs.
+    expect(find.text('Express'), findsOneWidget);
+    expect(find.text('Sommelier'), findsOneWidget);
+    await _toucher(tester, find.text('Express'));
+    await _toucher(tester, find.text('Commencer (1)'));
+    // Les questions, sans les pastilles d'avant en tête (« Format Express (1 page) »…).
+    expect(find.text('Express'), findsNothing);
+    expect(find.textContaining('Format'), findsNothing);
+    expect(find.text('Enregistrer sans noter'), findsNothing);
+    expect(find.byType(PourVous), findsOneWidget);
+    // Trois questions d'emblée sur un blanc (douceur, fraîcheur, corps ou boisé).
+    expect(find.text('Juste'), findsNWidgets(3));
+  });
+
+  testWidgets('22/10 : sur un rosé, pas de question sur le boisé', (tester) async {
+    await _ouvrir(tester, type: 'rose', express: true);
+    await _toucher(tester, find.text('Commencer (1)'));
+    expect(find.text('Son boisé, pour vous ?'), findsNothing);
+    expect(find.text('Aller plus loin'), findsNothing, reason: 'trois axes, trois questions : rien de plus à dérouler');
+  });
+
+  testWidgets('22/10 : une bouteille défectueuse, en grand à la fin, et sans note', (tester) async {
+    await _ouvrir(tester, type: 'red');
+    final oxyde = find.widgetWithText(FilterChip, '🍎 Pomme blette, vinaigre, xérès');
+    await _toucher(tester, find.text('Commencer (1)'));
+    await _jusquA(tester, oxyde);
+    await _toucher(tester, oxyde);
+    await _toucher(tester, find.text('Suivant'));
+    await _toucher(tester, find.text('Suivant'));
+    await _toucher(tester, find.text('Suivant'));
+    await _toucher(tester, find.text('Valider & Terminer'));
+    expect(find.textContaining('Bouteille défectueuse : Pomme blette'), findsOneWidget);
+    expect(find.textContaining('/ 10'), findsNothing, reason: 'plus de « Pas aimé 1,0/10 » sous un défaut');
+  });
+
+  testWidgets('23/10 : les cépages trouvés pendant qu\'on répond servent au palais', (tester) async {
+    final palais = await _ouvrir(tester, type: 'red', express: true, nom: 'Ungrafted Cinsault',
+        cepagesAVenir: Future.value(const ['Cinsault']));
+    await _toucher(tester, find.text('Commencer (1)'));
+    await _toucher(tester, find.text('😊').first);
+    await _toucher(tester, find.text('Valider & Terminer'));
+    expect(palais.cepagesRecus.single, ['Cinsault']);
+    expect(palais.vins.single!.grapes.single.name, 'Cinsault',
+        reason: 'le palais apprend un Cinsault, pas un cabernet de sa région');
+  });
+
+  testWidgets('23/10 : une recherche qui ne répond pas ne retient pas la fin plus de trois secondes', (tester) async {
+    final jamais = Completer<List<String>>();
+    final palais = await _ouvrir(tester, type: 'red', express: true, cepagesAVenir: jamais.future);
+    await _toucher(tester, find.text('Commencer (1)'));
+    await _toucher(tester, find.text('😊').first);
+    await tester.tap(find.text('Valider & Terminer'));
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
+    expect(palais.recus, hasLength(1));
+    expect(palais.cepagesRecus.single, isNull, reason: 'sans cépages, comme avant');
   });
 }

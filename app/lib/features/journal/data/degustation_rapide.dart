@@ -24,6 +24,9 @@ class VinBuDehors {
   /// `red`, `white`, `rose`, `sparkling`… comme la colonne `wine_type`.
   final String couleur;
 
+  /// Les cépages quand on les sait (la carte, l'étiquette) : la fiche du vin les garde.
+  final List<String> cepages;
+
   /// Nulle tant que la personne n'a pas noté : on n'invente pas un avis.
   final double? note;
   final String? lieu;
@@ -53,6 +56,7 @@ class VinBuDehors {
     this.region,
     this.pays,
     this.couleur = 'red',
+    this.cepages = const [],
     this.note,
     this.lieu,
     this.plat,
@@ -112,6 +116,7 @@ class DegustationRapide {
           'wine_type': v.couleur,
           'region': region.isNotEmpty ? region : 'Autre',
           if (pays.isNotEmpty) 'country': pays,
+          if (v.cepages.isNotEmpty) 'grapes': [for (final c in v.cepages) {'name': c, 'pct': null}],
           'image_url': v.photoUrl,
         });
         vinCree = true;
@@ -227,6 +232,43 @@ class DegustationRapide {
 
     await _apprendre(v, wineId: wineId, tastingId: tastingId, region: region, pays: pays, producteur: producteur);
     return (id: tastingId, enLigne: enLigne);
+  }
+
+  /// Complète une dégustation déjà écrite : la note, le défaut, les arômes que le
+  /// questionnaire a recueillis après coup (`complementDuJournal`).
+  ///
+  /// Si la ligne attend encore le réseau dans la file, le complément y entre : une mise à
+  /// jour partie avant elle ne trouverait rien à modifier. Sinon, en ligne, et à défaut une
+  /// action de la file. Le cache suit tout de suite, pour que le journal affiche la note.
+  Future<void> completer(String tastingId, Map<String, dynamic> complement) async {
+    if (complement.isEmpty) return;
+    try {
+      await _horsLigne.mergeCachedTasting(tastingId, complement);
+    } catch (e) {
+      AppLogger.warning('EXTERNAL_TASTING', 'Cache non complété : $e');
+    }
+    final enAttente = _horsLigne
+        .getQueue()
+        .where((a) =>
+            a.id == tastingId && a.type == OfflineActionType.consumeBottle && a.status != OfflineActionStatus.completed)
+        .firstOrNull;
+    if (enAttente != null) {
+      await _horsLigne.updateAction(enAttente.copyWith(data: {...enAttente.data, ...complement}));
+      AppLogger.info('EXTERNAL_TASTING', 'Note ajoutée à la dégustation en attente de réseau');
+      return;
+    }
+    try {
+      await _supabase.from('tasting_log').update(complement).eq('id', tastingId);
+      AppLogger.info('EXTERNAL_TASTING', 'Dégustation complétée (note ${complement['rating'] ?? '—'})');
+    } catch (e) {
+      AppLogger.warning('EXTERNAL_TASTING', 'Note mise en file : $e');
+      await _horsLigne.queueAction(OfflineAction(
+        type: OfflineActionType.updateTasting,
+        status: OfflineActionStatus.pending,
+        data: {'tasting_id': tastingId, ...complement},
+        createdAt: DateTime.now(),
+      ));
+    }
   }
 
   /// Le palais du principal et de chaque convive nommé. Sans note, rien à apprendre.

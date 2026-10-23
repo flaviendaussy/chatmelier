@@ -13,11 +13,16 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
   DELETE FROM storage.objects WHERE bucket_id = 'labels';
+END $$;
+RESET ROLE;
+-- Vérifié hors du rôle du visiteur : depuis la 074, il ne voit plus aucun fichier, et ne
+-- pourrait donc pas constater lui-même que la photo est toujours là.
+DO $$
+BEGIN
   IF NOT EXISTS (SELECT 1 FROM storage.objects WHERE name LIKE '64000000-0000-0000-0000-00000000000b/%') THEN
     RAISE EXCEPTION 'un visiteur sans compte a effacé une photo';
   END IF;
 END $$;
-RESET ROLE;
 
 -- A, connecté : chez soi oui, chez B non.
 SET ROLE authenticated;
@@ -40,11 +45,16 @@ BEGIN
   END;
   DELETE FROM storage.objects WHERE name LIKE '64000000-0000-0000-0000-00000000000b/%';
   UPDATE storage.objects SET name = name || '.x' WHERE name LIKE '64000000-0000-0000-0000-00000000000b/%';
+  DELETE FROM storage.objects WHERE name = '64000000-0000-0000-0000-00000000000a/ma-bouteille.jpg';
+END $$;
+RESET ROLE;
+-- Constaté hors du rôle de A : depuis la 074 (et la 078), A ne voit que ses propres fichiers.
+DO $$
+DECLARE n INTEGER;
+BEGIN
   SELECT count(*) INTO n FROM storage.objects WHERE name = '64000000-0000-0000-0000-00000000000b/bouteille.jpg';
   IF n <> 1 THEN RAISE EXCEPTION 'A a effacé ou renommé la photo de B'; END IF;
-  DELETE FROM storage.objects WHERE name = '64000000-0000-0000-0000-00000000000a/ma-bouteille.jpg';
   SELECT count(*) INTO n FROM storage.objects WHERE name = '64000000-0000-0000-0000-00000000000a/ma-bouteille.jpg';
   IF n <> 0 THEN RAISE EXCEPTION 'A devait pouvoir effacer sa propre photo'; END IF;
 END $$;
-RESET ROLE;
 DO $$ BEGIN RAISE NOTICE '✓ 064 : les photos ne s''écrivent que chez soi'; END $$;

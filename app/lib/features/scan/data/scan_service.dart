@@ -49,11 +49,16 @@ class ScanService {
   }
 
   /// Analyze wine bottle photo with Google Gemini Multimodal Vision AI
+  ///
+  /// Avec [onLecture], en deux temps (23/10) : le vin lu arrive dès que l'étiquette est
+  /// lue (cinq secondes), la description — notes, cépages, garde — ensuite ; le résultat
+  /// rendu est complet. Sans, d'un seul tenant, comme avant.
   Future<ScanResult> analyzeBottleImage({
     String? imagePath,
     Uint8List? imageBytes,
     File? imageFile,
     String languageCode = 'fr',
+    void Function(ScanResult lu)? onLecture,
   }) async {
     final startTime = DateTime.now();
     final effectivePath = imagePath ?? imageFile?.path ?? '';
@@ -70,7 +75,7 @@ class ScanService {
       }
 
       // 1. Optimize image: Central ROI crop + scale down to max 1024px + JPEG compression
-      final optimized = LabelImageOptimizer.optimize(bytes);
+      final optimized = await LabelImageOptimizer.optimiserEnArrierePlan(bytes);
       final optimizedBytes = optimized.bytes;
       final sha256Hash = optimized.sha256Hash;
       final mimeType = optimized.mimeType;
@@ -86,10 +91,16 @@ class ScanService {
       final fileSizeKb = (optimizedBytes.length / 1024).round();
       AppLogger.debug('SCAN_AI', 'Encoded optimized image size: $fileSizeKb KB (Hash: ${sha256Hash.substring(0, 10)}...)');
 
-      final resultat = await _analyserParLeServeur(base64Image, mimeType, languageCode);
-      final duree = DateTime.now().difference(startTime).inMilliseconds;
-      AppLogger.info('SCAN_AI', 'Étiquette lue par le serveur en $duree ms');
-      await ScanCacheService().cacheResult(sha256Hash, resultat);
+      if (onLecture == null) {
+        final resultat = await _analyserParLeServeur(base64Image, mimeType, languageCode);
+        final duree = DateTime.now().difference(startTime).inMilliseconds;
+        AppLogger.info('SCAN_AI', 'Étiquette lue par le serveur en $duree ms');
+        await ScanCacheService().cacheResult(sha256Hash, resultat);
+        return resultat;
+      }
+      final (resultat, complet) = await _analyserEnDeuxTemps(base64Image, mimeType, languageCode, onLecture, startTime);
+      // Une description manquée ne se garde pas : la même photo la redemandera.
+      if (complet) await ScanCacheService().cacheResult(sha256Hash, resultat);
       return resultat;
     } catch (e, stack) {
       AppLogger.error('SCAN_AI', 'All scan methods failed for image: $effectivePath', e, stack);
@@ -104,6 +115,53 @@ class ScanService {
   static List<Future<void>> enregistrerLesCouts(Map<String, dynamic> reponse, String? userId,
           {AiCostTrackerService? suivi}) =>
       (suivi ?? AiCostTrackerService()).enregistrerCoutsServeur(reponse, userId);
+
+  /// La lecture, puis la description avec la suite signée que la lecture a rendue. Une
+  /// fonction serveur d'avant la 88 rend tout d'un coup : la lecture est alors complète.
+  Future<(ScanResult, bool)> _analyserEnDeuxTemps(String base64Image, String mimeType, String languageCode,
+      void Function(ScanResult) onLecture, DateTime debut) async {
+    final r1 = await _ia.appeler('scan-label', {
+      'imageBase64': base64Image,
+      'mimeType': mimeType,
+      'languageCode': languageCode,
+      'etape': 'lecture',
+    }, delai: const Duration(seconds: 40));
+    if (!r1.ok) {
+      if (r1.limiteAtteinte) throw Exception(r1.messageDeLimite());
+      throw Exception(tr(
+          'Analyse de l\'étiquette impossible. Vérifiez votre connexion ou saisissez les informations manuellement.',
+          'The label couldn\'t be analysed. Check your connection or enter the details manually.'));
+    }
+    final lecture = r1.donnees!;
+    final lu = ScanResult.fromJson(lecture);
+    final suite = lecture['suite'];
+    if (lecture['complete'] != false || suite is! String) {
+      _journaliser(lu, lecture, debut, 'lue par le serveur');
+      return (lu, true);
+    }
+    AppLogger.info('SCAN_AI', 'Étiquette lue en ${DateTime.now().difference(debut).inMilliseconds} ms, description à suivre');
+    onLecture(lu);
+    final r2 = await _ia.appeler('scan-label', {
+      'etape': 'description',
+      'suite': suite,
+      'languageCode': languageCode,
+    }, delai: const Duration(seconds: 50));
+    if (!r2.ok) {
+      AppLogger.warning('SCAN_AI', 'Description de l\'étiquette manquée (${r2.erreur}) : le vin lu reste');
+      return (lu, false);
+    }
+    final complet = ScanResult.fromJson({...lecture, ...r2.donnees!});
+    _journaliser(complet, r2.donnees!, debut, 'décrite');
+    return (complet, true);
+  }
+
+  void _journaliser(ScanResult r, Map<String, dynamic> donnees, DateTime debut, String quoi) {
+    final etapes = donnees['etapes'];
+    AppLogger.info('SCAN_AI', 'Étiquette $quoi en ${DateTime.now().difference(debut).inMilliseconds} ms : « ${r.name} »'
+        '${r.producer != null ? ', ${r.producer}' : ''}${r.vintage != null ? ', ${r.vintage}' : ''}'
+        ' — ${etapes is Map ? etapes.entries.map((e) => '${e.key} : ${e.value}').join(', ') : 'étapes non rendues par le serveur'}'
+        ', ${r.grapes.length} cépage(s)');
+  }
 
   Future<ScanResult> _analyserParLeServeur(String base64Image, String mimeType, String languageCode) async {
     // 60 s : un scan d'étiquette réussi en prend 16 (le 16/09, 16 391 ms), et celui d'edith a

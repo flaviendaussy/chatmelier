@@ -302,7 +302,7 @@
   },
   "checkoutAddGuest": "Add a guest",
   "checkoutAddGuestHint": "Add (Mom, Dad...)",
-  "checkoutCloseAndTaste": "Close & Enjoy 🍷",
+  "checkoutCloseAndTaste": "Close & Enjoy",
   "checkoutSommelierThinking": "The sommelier is preparing tasting stories...",
   "checkoutAerationTimerActive": "⏱️ Aeration timer active on your lock screen!",
   "checkoutStartAerationTimer": "Start timer ⏱️",
@@ -485,7 +485,7 @@
   "checkoutSommelierServiceAdvice": "Sommelier Serving Advice",
   "checkoutHistoryAnecdotes": "Stories & Trivia",
   "checkoutNoDecanting": "No decanting",
-  "checkoutStoryTitle": "The Story of this Bottle 📖",
+  "checkoutStoryTitle": "The Story of this Bottle",
   "checkoutStorySubtitle": "Captivating stories to share at the table",
   "checkoutStoryTerroir": "Terroir & Grapes",
   "checkoutStoryVintage": "The Vintage Story",
@@ -624,17 +624,17 @@
   "checkoutFastExitSubmitting": "Processing checkout...",
   "checkoutRatingSubtitle": "Rate your overall impression after tasting",
   "checkoutRecommendedBadge": "Recommended",
-  "tastingWhoTastedTitle": "👥 Who tasted this wine?",
+  "tastingWhoTastedTitle": "Who tasted this wine?",
   "tastingWhoTastedSubtitle": "Select the tasters. Taste profiles will be enriched automatically.",
   "tastingHowToTaste": "How to taste?",
   "tastingEachTurn": "Taking turns",
-  "tastingEachTurnDesc": "📱 Pass the phone: each person answers separately at their own pace.",
+  "tastingEachTurnDesc": "Pass the phone: each person answers separately at their own pace.",
   "tastingTogether": "Together",
-  "tastingTogetherDesc": "🥂 A single questionnaire completed together for all guests.",
+  "tastingTogetherDesc": "A single questionnaire completed together for all guests.",
   "tastingBlindMode": "Blind Tasting Mode",
   "tastingBlindModeDesc": "Hides the wine name and launches an interactive table quiz with a grand reveal!",
   "tastingPrimaryProfile": "Primary profile",
-  "tastingAppInstalled": "App installed 📱",
+  "tastingAppInstalled": "App installed",
   "tastingQuestionnairesCompletedCount": "{count, plural, =1{1 questionnaire completed} other{{count} questionnaires completed}}",
   "@tastingQuestionnairesCompletedCount": {
     "placeholders": {
@@ -643,7 +643,7 @@
       }
     }
   },
-  "tastingStepNezTitle": "🍇 The Nose — Aromas",
+  "tastingStepNezTitle": "The Nose — Aromas",
   "tastingStepNezSubtitle": "Which aromas did you perceive? (Multiple choices possible)",
   "tastingFaultTitle": "Does the wine smell of any of these?",
   "tastingFaultSubtitle": "If so, the bottle is faulty — it's neither your palate nor the wine's style.",
@@ -657,7 +657,7 @@
   "tastingAromaIntensity": "Aromatic intensity:",
   "tastingAromaDiscreet": "🤫 Subtle",
   "tastingAromaExplosive": "💥 Explosive",
-  "tastingStepBoucheTitle": "⚖️ The Palate — Balance",
+  "tastingStepBoucheTitle": "The Palate — Balance",
   "tastingStepBoucheSubtitle": "Describe the texture and balance of the wine on the palate.",
   "tastingAcidity": "Acidity:",
   "tastingAcidityFreshness": "Acidity & Crispness:",
@@ -678,7 +678,7 @@
   "tastingLength": "Finish / Length:",
   "tastingLengthShort": "⏱️ Short",
   "tastingLengthLong": "♾️ Lingering",
-  "tastingStepVerdictTitle": "✅ Final Verdict",
+  "tastingStepVerdictTitle": "Final Verdict",
   "sipSectionTitle": "🍷 The sip",
   "tasteConfidenceUnknown": "I don't know your palate yet: dashed lines and hollow dots are only guesses.",
   "tasteEvidenceTitle": "Where this profile comes from",
@@ -706,21 +706,21 @@
   "tastingMomentSolo": "🧘 Solo / Quiet moment",
   "tastingWhatLiked": "What you liked most:",
   "tastingWhatDisliked": "What you disliked most:",
-  "tastingOccasionLabel": "Occasion / Shared memory (optional) ✨",
+  "tastingOccasionLabel": "Occasion / Shared memory (optional)",
   "tastingOccasionHint": "e.g. Birthday, Candlelit dinner, Reunion...",
-  "tastingAddPhoto": "Add a photo memory of the table 📸",
-  "tastingPhotoSaved": "Photo memory saved 📸",
-  "tastingStepImpressionTitle": "🎯 Final Rating & Impression",
+  "tastingAddPhoto": "Add a photo memory of the table",
+  "tastingPhotoSaved": "Photo memory saved",
+  "tastingStepImpressionTitle": "Final Rating & Impression",
   "tastingStepImpressionSubtitle": "After savoring the nose and palate, assign your overall rating.",
   "tastingOverallFeeling": "Your overall impression:",
   "tastingScoreOutOf10": "Rating out of 10:",
   "tastingCompletedTitle": "Tasting completed & recorded!",
-  "tastingCompletedSubtitle": "Taste profiles have been successfully updated ✨",
+  "tastingCompletedSubtitle": "Taste profiles have been successfully updated",
   "tastingBottleRemoved": "Bottle uncorked & removed from cellar",
   "tastingConsultDebrief": "View Sommelier Debrief (Hidden nuances & Terroir)",
-  "tastingFinishButton": "Finish ✨",
+  "tastingFinishButton": "Finish",
   "tastingNextTaster": "Validate → Next taster",
-  "tastingConfirmAndFinish": "Validate & Finish ✨",
+  "tastingConfirmAndFinish": "Validate & Finish",
   "tastingQuitTitle": "Leave the questionnaire?",
   "tastingQuitMessage": "Your answers will not be saved.",
   "tastingContinue": "Continue",
@@ -733,7 +733,7 @@
       }
     }
   },
-  "tastingProfileSynced": "Synced to {name}'s app ✨",
+  "tastingProfileSynced": "Synced to {name}'s app",
   "@tastingProfileSynced": {
     "placeholders": {
       "name": {
@@ -755,13 +755,13 @@
   },
   "tastingFlavorOriginsTitle": "Origins of Flavors & Wine Secrets",
   "tastingFlavorOriginsSubtitle": "Discover where your wine's aromas, color, and structure come from",
-  "tastingBlindQuizTitle": "Blind Tasting Table Quiz 🙈",
-  "tastingBlindQuizQ1": "1. What is the region of origin? 🌍",
-  "tastingBlindQuizQ2": "2. What is the primary grape? 🍇",
-  "tastingBlindQuizQ3": "3. Estimated age / vintage? 📅",
-  "tastingBlindQuizQ4": "4. Estimated price? 💶",
-  "tastingBlindRevealTitle": "Mystery Bottle Grand Reveal 🍾",
-  "tastingBlindQuizScore": "Blind Quiz Score: {score}/4 🎯",
+  "tastingBlindQuizTitle": "Blind Tasting Table Quiz",
+  "tastingBlindQuizQ1": "1. What is the region of origin?",
+  "tastingBlindQuizQ2": "2. What is the primary grape?",
+  "tastingBlindQuizQ3": "3. Estimated age / vintage?",
+  "tastingBlindQuizQ4": "4. Estimated price?",
+  "tastingBlindRevealTitle": "Mystery Bottle Grand Reveal",
+  "tastingBlindQuizScore": "Blind Quiz Score: {score}/4",
   "@tastingBlindQuizScore": {
     "placeholders": {
       "score": {
@@ -843,7 +843,7 @@
       }
     }
   },
-  "tastingPassPhoneTo": "Pass the phone to {name} 📱",
+  "tastingPassPhoneTo": "Pass the phone to {name}",
   "@tastingPassPhoneTo": {
     "placeholders": {
       "name": {
@@ -859,11 +859,11 @@
       }
     }
   },
-  "tastingDictateButton": "Dictate table impressions 🎙️",
+  "tastingDictateButton": "Dictate table impressions",
   "tastingDictateHint": "Speak or write naturally, Chatmelier AI will pre-fill your aromas and palate balance!",
   "tastingDictateMicTip": "Tip: enable the microphone on your keyboard to dictate aloud!",
-  "tastingTakePhoto": "Take a table photo 📸",
-  "tastingChooseGallery": "Choose from gallery 🖼️",
+  "tastingTakePhoto": "Take a table photo",
+  "tastingChooseGallery": "Choose from gallery",
   "tastingConclaveSummary": "Conclave Summary",
   "tastingCellarMaster": "Cellar Master",
   "tastingGuestTaster": "Guest Taster",
@@ -919,11 +919,11 @@
       }
     }
   },
-  "tastingAromaAppliedByAI": "Tasting impressions applied by Chatmelier AI ✨",
+  "tastingAromaAppliedByAI": "Tasting impressions applied by Chatmelier AI",
   "tastingBlindYourPredictions": "Blind table predictions summary:",
   "tastingBlindGuessCorrect": "Correct! 🎯",
   "tastingBlindMakePredictionsPrompt": "Make your table predictions before the grand final reveal!",
-  "tastingStartTaster": "Let's go, {name}! 🍷",
+  "tastingStartTaster": "Let's go, {name}!",
   "@tastingStartTaster": {
     "placeholders": {
       "name": {
@@ -942,17 +942,17 @@
   },
   "tastingDictateInputHint": "E.g.: Dad loved it, 8.5/10, with forest-floor and blackcurrant notes. Mom gave it 7/10, finding it a little sharp…",
   "tastingDictateAnalyzing": "Analyzing...",
-  "tastingDictateAnalyzeAndApply": "Analyze & Apply to Sheets ✨",
-  "tastingFormatExpress": "Express Format (1 page) ⚡",
+  "tastingDictateAnalyzeAndApply": "Analyze & Apply to Sheets",
+  "tastingFormatExpress": "Express Format (1 page)",
   "tastingFormatExpressDesc": "Rating, key aromas and quick verdict in 30s",
-  "tastingFormatSommelier": "Sommelier Format (Detailed) 🎓",
+  "tastingFormatSommelier": "Sommelier Format (Detailed)",
   "tastingFormatSommelierDesc": "In-depth nose, palate balance, finish & terroir",
   "tastingCaudalieTooltipTitle": "What is a caudalie? ⏱️",
   "tastingCaudalieTooltipBody": "1 caudalie = 1 second of lingering flavor after swallowing or spitting.\n• 1 to 4 caudalies: light, crisp wine\n• 5 to 7 caudalies: beautiful balance\n• 8 to 12+ caudalies: exceptional fine wine!",
   "tastingAddCustomAroma": "+ Custom aroma",
   "tastingCustomAromaDialogTitle": "Add a precise aroma",
   "tastingCustomAromaHint": "e.g. Smoked flint, Wild blackberry, Dried rose...",
-  "tastingFoodSynergyTitle": "Food pairing synergy 🍽️",
+  "tastingFoodSynergyTitle": "Food pairing synergy",
   "tastingSynergySublime": "🤩 Elevated",
   "tastingSynergyHarmonious": "👍 Balanced",
   "tastingSynergyNeutral": "😐 Neutral",
@@ -960,7 +960,7 @@
   "checkoutFastRatingTitle": "1-tap quick rating (optional):",
   "checkoutActionTastingTitle": "Taste this wine",
   "checkoutActionTastingSubtitle": "Express (1 page) or detailed sommelier format",
-  "checkoutActionDeferredRemind": "Remind later 🌙",
+  "checkoutActionDeferredRemind": "Remind later",
   "checkoutActionAerationTimer": "Aeration timer ⏱️",
   "externalTastingTitle": "Out-of-Cellar Tasting",
   "externalTastingSubtitle": "Restaurant, bar, at a friend's place... without touching your stock",
@@ -1015,10 +1015,10 @@
   "externalTastingFoodLabel": "Food & Wine pairing",
   "externalTastingNotesLabel": "Impressions & Aromas perceived",
   "externalTastingNotesHint": "e.g. Intense black fruit, silky tannins, beautiful length...",
-  "externalTastingSubmit": "Save & Rate ✨",
+  "externalTastingSubmit": "Save & Rate",
   "externalTastingNameRequired": "Please enter at least the wine name.",
   "externalTastingSaved": "Out-of-cellar tasting saved! Chatmelier will remember it.",
-  "externalTastingAiRecognized": "✨ Bottle recognized by AI: {name}",
+  "externalTastingAiRecognized": "Bottle recognized by AI: {name}",
   "@externalTastingAiRecognized": {
     "placeholders": {
       "name": {
@@ -1026,7 +1026,7 @@
       }
     }
   },
-  "externalTastingAiFilled": "✨ Form filled in by AI: {name}",
+  "externalTastingAiFilled": "Form filled in by AI: {name}",
   "@externalTastingAiFilled": {
     "placeholders": {
       "name": {

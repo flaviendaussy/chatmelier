@@ -1,3 +1,5 @@
+import '../../../shared/utils/langue.dart';
+
 class TastingEntry {
   final String id;
   final String? bottleId;
@@ -115,8 +117,10 @@ class TastingEntry {
 
   /// Formatted rating string, e.g. "10/10" or "9.5/10"
   String get formattedRating {
+    // Une bouteille défectueuse n'a pas de note : « Non noté » laissait croire à un oubli.
+    if (fault != null && rating == null) return tr('Défaut', 'Faulty');
     final r = displayRating;
-    if (r == null) return 'Non noté';
+    if (r == null) return tr('Non noté', 'Not rated');
     return r % 1 == 0 ? '${r.toInt()}/10' : '${r.toStringAsFixed(1)}/10';
   }
 

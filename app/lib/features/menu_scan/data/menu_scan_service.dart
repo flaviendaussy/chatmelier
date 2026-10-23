@@ -87,29 +87,27 @@ class MenuScanService {
         ? imageBytesList.length
         : imagePaths.length;
 
-    for (int i = 0; i < count; i++) {
-      Uint8List bytes;
-      String mimeType = 'image/jpeg';
-
-      if (imageBytesList != null && i < imageBytesList.length) {
-        bytes = imageBytesList[i];
-      } else {
-        final path = imagePaths[i];
-        bytes = await _readImageBytes(path);
-      }
-
-      // Optimize & downsample image to prevent HTTP 413 / huge payloads while keeping text ultra-crisp
-      try {
-        final optimized = LabelImageOptimizer.optimize(bytes, autoCrop: false, maxDimension: 2560);
-        bytes = optimized.bytes;
-        mimeType = 'image/jpeg';
-      } catch (e) {
-        AppLogger.warning('MENU_SCAN', 'Image optimization skipped for page $i: $e');
-      }
-
+    // Les pages se préparent ensemble et hors du fil de l'écran : une à une sur le fil
+    // principal, deux pages prenaient deux secondes, l'écran figé au départ de la vidéo.
+    final pages = await Future.wait([
+      for (int i = 0; i < count; i++)
+        () async {
+          var bytes = imageBytesList != null && i < imageBytesList.length
+              ? imageBytesList[i]
+              : await _readImageBytes(imagePaths[i]);
+          // Optimize & downsample image to prevent HTTP 413 / huge payloads while keeping text ultra-crisp
+          try {
+            bytes = (await LabelImageOptimizer.optimiserEnArrierePlan(bytes, autoCrop: false, maxDimension: 2560)).bytes;
+          } catch (e) {
+            AppLogger.warning('MENU_SCAN', 'Image optimization skipped for page $i: $e');
+          }
+          return bytes;
+        }(),
+    ]);
+    for (final bytes in pages) {
       parts.add({
         'inlineData': {
-          'mimeType': mimeType,
+          'mimeType': 'image/jpeg',
           'data': base64Encode(bytes),
         }
       });

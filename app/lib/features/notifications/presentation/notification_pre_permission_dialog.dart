@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../data/notifications_push.dart';
 import '../data/local_notification_service.dart';
 import '../data/notification_preferences_service.dart';
 import '../../../shared/utils/langue.dart';
@@ -8,24 +11,46 @@ import '../../../shared/utils/langue.dart';
 /// Educational dialog displayed BEFORE the OS notification prompt.
 /// Explains why permissions are requested to maximize opt-in rate.
 class NotificationPrePermissionDialog extends ConsumerWidget {
-  const NotificationPrePermissionDialog({super.key});
+  /// Le téléphone les a déjà refusées : le système ne redemandera pas (l'iPhone dès le
+  /// premier refus). Le bouton ouvre alors les réglages de l'app — sans quoi il ne faisait
+  /// rien, et Caro, sur iPhone, n'aurait jamais pu les rouvrir depuis l'app (23/10).
+  final bool refusees;
 
-  static Future<bool?> show(BuildContext context) {
+  const NotificationPrePermissionDialog({super.key, this.refusees = false});
+
+  static Future<bool?> show(BuildContext context, {bool refusees = false}) {
     return showDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (ctx) => const NotificationPrePermissionDialog(),
+      builder: (ctx) => NotificationPrePermissionDialog(refusees: refusees),
     );
   }
 
-  /// Au bon moment (lot N) : juste après un geste qui appelle une réponse — une demande
-  /// d'ami, une amitié acceptée, une cave partagée —, une seule fois par installation.
-  /// Rien n'ouvrait ce dialogue : sans permission, aucun push ne pouvait arriver.
-  static Future<void> auBonMoment(BuildContext context, WidgetRef ref) async {
+  static const _cleDerniereDemande = 'chatmelier_notif_permission_derniere_demande_v1';
+
+  /// Au bon moment (lot N, revu le 22/10) : juste après un geste qui appelle une réponse —
+  /// une demande d'ami, une cave partagée, une invitation à noter envoyée ou reçue.
+  ///
+  /// Tant que les notifications ne sont pas permises, et au plus une fois par semaine. Le
+  /// dialogue ne venait qu'une fois par installation, et « Plus tard » valait « jamais » :
+  /// Caro, le 22/10, n'a reçu aucune des invitations de la soirée (« pas encore permises » à
+  /// chacun de ses lancements).
+  static Future<void> auBonMoment(BuildContext context, [WidgetRef? _]) async {
     if (kIsWeb) return;
-    final dejaDemande = await ref.read(notificationPreferencesProvider.notifier).hasPromptedPermission();
-    if (dejaDemande || !context.mounted) return;
-    await show(context);
+    final conteneur = ProviderScope.containerOf(context, listen: false);
+    final permises = await NotificationsPush.permises() ??
+        await conteneur.read(localNotificationServiceProvider).areNotificationsEnabled();
+    if (permises) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final derniere = prefs.getInt(_cleDerniereDemande);
+      final maintenant = DateTime.now().millisecondsSinceEpoch;
+      if (derniere != null && maintenant - derniere < const Duration(days: 7).inMilliseconds) return;
+      await prefs.setInt(_cleDerniereDemande, maintenant);
+    } catch (_) {}
+    final refusees = await NotificationsPush.refusees() ?? false;
+    if (!context.mounted) return;
+    await show(context, refusees: refusees);
   }
 
   @override
@@ -88,6 +113,24 @@ class NotificationPrePermissionDialog extends ConsumerWidget {
             title: tr('Caves partagées & Amis', 'Shared cellars & friends'),
             subtitle: tr('Être prévenu quand un proche sort un flacon ou vous invite.', 'Know when someone close opens a bottle or invites you.'),
           ),
+          if (refusees) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF8B1E3F).withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF8B1E3F).withValues(alpha: 0.35)),
+              ),
+              child: Text(
+                tr('Elles sont coupées dans les réglages de ce téléphone, qui ne les redemandera plus : '
+                    'Réglages → Chatmelier → Notifications → les autoriser.',
+                    'They are turned off in this phone\'s settings, which won\'t ask again: '
+                    'Settings → Chatmelier → Notifications → allow them.'),
+                style: TextStyle(fontSize: 12.5, height: 1.35, color: isDark ? Colors.white : Colors.black87),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
@@ -128,14 +171,21 @@ class NotificationPrePermissionDialog extends ConsumerWidget {
           ),
           onPressed: () async {
             await ref.read(notificationPreferencesProvider.notifier).markPermissionPrompted();
+            if (refusees) {
+              // Au retour dans l'app, NotificationsPush.auRetour() inscrit le téléphone.
+              await Geolocator.openAppSettings();
+              if (context.mounted) Navigator.of(context).pop(false);
+              return;
+            }
             final service = ref.read(localNotificationServiceProvider);
             final granted = await service.requestPermissions();
             if (context.mounted) {
               Navigator.of(context).pop(granted);
             }
           },
-          icon: const Icon(Icons.check, size: 18),
-          label: Text(tr('Activer les alertes', 'Turn on alerts'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          icon: Icon(refusees ? Icons.settings_outlined : Icons.check, size: 18),
+          label: Text(refusees ? tr('Ouvrir les réglages', 'Open settings') : tr('Activer les alertes', 'Turn on alerts'),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
       ],
     );

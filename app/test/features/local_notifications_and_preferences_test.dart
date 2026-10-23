@@ -144,6 +144,24 @@ void main() {
       expect(find.text('Plus tard'), findsOneWidget);
     });
 
+    // L'iPhone ne redemande jamais une permission refusée (Caro, 23/10) : le dialogue le dit,
+    // et son bouton mène aux réglages au lieu de ne rien faire.
+    testWidgets('déjà refusées : le dialogue envoie vers les réglages du téléphone', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(child: NotificationPrePermissionDialog(refusees: true)),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Ouvrir les réglages'), findsOneWidget);
+      expect(find.text('Activer les alertes'), findsNothing);
+      expect(find.textContaining('Réglages → Chatmelier → Notifications'), findsOneWidget);
+    });
+
     testWidgets('NotificationSettingsSheet renders categories and switches', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;

@@ -80,6 +80,11 @@ const NIVEAUX_DE_REFLEXION = ['minimal', 'low', 'medium', 'high']
 const MODELES_ESSAYES_AU_PLUS = 3
 const SIX_HEURES = 6 * 3600_000
 let catalogueDesModeles: { quand: number; modeles: string[] } | null = null
+// Le niveau qu'un modèle a accepté, pour un niveau demandé : « modèle|niveau demandé » →
+// niveau servi. Clé sur le modèle seul jusqu'au 23/10 : le premier niveau qui passait
+// restait collé au modèle, quel que soit le réglage — « minimal » réglé dans la console
+// servait « low » tant que l'instance vivait, et une tâche en « low » imposait son niveau aux
+// autres tâches du même modèle (essai en production du 23/10).
 const niveauxRetenus = new Map<string, string | null>()
 const modelesIntrouvables = new Map<string, number>()
 
@@ -189,7 +194,8 @@ async function appelerGemini(
     // Déjà introuvable dans cette instance : le relais, sans rappeler Google.
     if (estIntrouvable(modele)) continue
     appels++
-    let niveau: string | null | undefined = niveauxRetenus.has(modele) ? niveauxRetenus.get(modele)! : reglage.reflexion
+    const demande = `${modele}|${reglage.reflexion ?? 'aucun'}`
+    let niveau: string | null | undefined = niveauxRetenus.has(demande) ? niveauxRetenus.get(demande)! : reglage.reflexion
     while (niveau !== undefined) {
       try {
         const res = await fetch(`${GEMINI_BASE}/v1beta/models/${modele}:generateContent`, {
@@ -207,7 +213,7 @@ async function appelerGemini(
             niveau = undefined
             continue
           }
-          niveauxRetenus.set(modele, niveau)
+          niveauxRetenus.set(demande, niveau)
           const servi = typeof data.modelVersion === 'string' && data.modelVersion
             ? data.modelVersion.replace(/^models\//, '')
             : modele
@@ -427,6 +433,193 @@ async function enrichirLeCatalogue(ficheTrouvee: any, lue: any, enrichi: any, ve
   }
 }
 
+// ─── En deux temps (23/10) ─────────────────────────────────────────────────────────
+// Lire l'étiquette prend cinq secondes ; la décrire, dix de plus. Les versions de l'app
+// d'avant la 88 attendaient les deux : quinze secondes (médiane d'octobre), vingt et une au
+// 90e centile. Avec `etape: 'lecture'`, la fonction rend le vin lu dès qu'il l'est (ou la
+// fiche entière si le catalogue la connaît), avec une « suite » signée ; l'app la renvoie
+// aussitôt avec `etape: 'description'` pour le reste. Mêmes consignes, mêmes modèles : la
+// même fiche, plus tôt. La suite est signée par le serveur et ne vit que dix minutes : sans
+// elle, la description serait un générateur de texte gratuit, hors quota.
+
+function enBase64Url(octets: Uint8Array): string {
+  let b = ''
+  for (const o of octets) b += String.fromCharCode(o)
+  return btoa(b).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+function depuisBase64Url(t: string): Uint8Array {
+  const b = atob(t.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((t.length + 3) % 4))
+  return Uint8Array.from(b, (c) => c.charCodeAt(0))
+}
+
+async function cleDeLaSuite(): Promise<CryptoKey | null> {
+  const secret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!secret) return null
+  return await crypto.subtle.importKey('raw', new TextEncoder().encode(`scan-label/suite/${secret}`),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'])
+}
+
+const DUREE_DE_LA_SUITE_MS = 10 * 60_000
+
+async function signerLaSuite(lue: unknown): Promise<string | null> {
+  const cle = await cleDeLaSuite()
+  if (!cle) return null
+  const charge = enBase64Url(new TextEncoder().encode(JSON.stringify({ lue, exp: Date.now() + DUREE_DE_LA_SUITE_MS })))
+  const signature = new Uint8Array(await crypto.subtle.sign('HMAC', cle, new TextEncoder().encode(charge)))
+  return `${charge}.${enBase64Url(signature)}`
+}
+
+/** Le vin lu de la suite, ou nul : signature fausse, suite expirée ou illisible. */
+async function lireLaSuite(jeton: unknown): Promise<any | null> {
+  if (typeof jeton !== 'string' || jeton.length > 12_000) return null
+  const [charge, signature] = jeton.split('.')
+  if (!charge || !signature) return null
+  const cle = await cleDeLaSuite()
+  if (!cle) return null
+  try {
+    const bonne = await crypto.subtle.verify('HMAC', cle, depuisBase64Url(signature), new TextEncoder().encode(charge))
+    if (!bonne) return null
+    const contenu = JSON.parse(new TextDecoder().decode(depuisBase64Url(charge)))
+    if (typeof contenu?.exp !== 'number' || contenu.exp < Date.now() || !contenu.lue?.name) return null
+    return contenu.lue
+  } catch (_) {
+    return null
+  }
+}
+
+// Ce qui peut attendre la réponse (écrire au catalogue) part après elle quand le runtime le
+// permet : la personne n'a pas à attendre l'écriture d'une fiche qu'elle a déjà.
+function apresLaReponse(tache: Promise<unknown>): Promise<unknown> {
+  const runtime = (globalThis as any).EdgeRuntime
+  if (runtime && typeof runtime.waitUntil === 'function') {
+    runtime.waitUntil(tache)
+    return Promise.resolve()
+  }
+  return tache
+}
+
+// La fiche du catalogue, s'il en a une, pour ce vin lu.
+async function ficheDuCatalogue(supabase: any, lue: any): Promise<any> {
+  const { data: lignes } = await supabase.rpc('find_cached_wine', {
+    p_producer: lue.producer ?? null,
+    p_name: lue.name,
+    p_vintage: lue.vintage ?? null,
+    p_cuvee: lue.cuvee_parcel ?? null,
+  })
+  return Array.isArray(lignes) ? lignes[0] : null
+}
+
+// 3. Vin inconnu (ou fiche pauvre) : on le décrit. Avec la recherche Google si Flavien
+//    l'a activée (app_config.scan_etiquette_recherche) : pour les modèles 3.x, les 5 000
+//    premières requêtes du mois sont offertes, puis 0,014 $ chacune.
+async function decrireLeVin(
+  apiKey: string, extracted: any, fiche: any, avecRecherche: boolean, langue: string, reglage: Reglage,
+  couts: any[], etapes: Record<string, string>,
+): Promise<Record<string, unknown>> {
+  const identite = `Producer: ${extracted.producer || 'Unknown'}
+Name: ${extracted.name}
+Cuvée/Parcel: ${extracted.cuvee_parcel || 'not stated'}
+Vintage: ${extracted.vintage ? extracted.vintage : 'not read on the label'}
+Region: ${[extracted.region, extracted.country].filter(Boolean).join(', ') || 'Unknown'}`
+
+  // Sans recherche, on ne demande ni notes de critiques, ni sources, ni valeur de marché :
+  // le modèle les inventait (29/09 pour les critiques, 30/09 pour la valeur).
+  const enrichPrompt = avecRecherche
+    ? `Search the web for this specific wine and extract factual data from trusted sources (producer site, Guide Hachette, RVF, Wine Spectator, Decanter, Jancis Robinson).
+${identite}
+Write "tasting_notes", "food_pairings" and "ai_summary" in ${langue}; "ai_summary" names the grape varieties.
+"producer", "appellation", "region" and "country" are those the sources you found give for THIS wine; null when no source states them.
+Return strictly a valid JSON object, and nothing else:
+{
+  "producer": string | null,
+  "appellation": string | null,
+  "region": string | null,
+  "country": string | null,
+  "tasting_notes": string,
+  "grapes": [{"name": string, "pct": number | null}],
+  "ideal_drinking_start": number | null,
+  "ideal_drinking_end": number | null,
+  "peak_drinking_start": number | null,
+  "peak_drinking_end": number | null,
+  "food_pairings": [string],
+  "ai_summary": string,
+  "estimated_market_value": number | null,
+  "valeur_source": string | null,
+  "estimated_value_currency": "EUR",
+  "critic_scores": [{"source": string, "score": string, "reviewer": string | null, "year": number | null, "notes": string | null}],
+  "sources_verified": [string]
+}
+"estimated_market_value" is a typical current retail price in EUR that you found on a merchant or auction page; "valeur_source" is the URL of that page. Leave both null if you did not find one.
+Only include a critic score or a source you actually found. Leave arrays empty rather than guessing.`
+    : `Describe this wine as a sommelier would, from general knowledge of its appellation, producer and vintage.
+${identite}
+If you are unsure about a value, give the typical value for the appellation rather than a precise-looking guess.
+Write "tasting_notes", "food_pairings" and "ai_summary" in ${langue}; "ai_summary" names the grape varieties.
+Return strictly a valid JSON object matching this schema:
+{
+  "tasting_notes": string,
+  "grapes": [{"name": string, "pct": number | null}],
+  "ideal_drinking_start": number | null,
+  "ideal_drinking_end": number | null,
+  "peak_drinking_start": number | null,
+  "peak_drinking_end": number | null,
+  "food_pairings": [string],
+  "ai_summary": string
+}`
+
+  let enriched: any = {}
+  let verifiee = false
+  try {
+    const description = await appelerPourLaFiche(apiKey, [{ role: 'user', parts: [{ text: enrichPrompt }] }],
+      reglage, avecRecherche)
+    enriched = description.illisible ? {} : description.resultat
+    verifiee = description.recherche && !description.illisible
+    couts.push({
+      fonction: 'scan_enrichment', modele: description.modele, usageMetadata: description.usage,
+      recherche: description.recherche, requetes: description.requetes, reflexion: description.reflexion,
+    })
+    etapes.description = description.illisible ? 'réponse illisible'
+      : description.recherche ? `avec recherche (${description.requetes})`
+      : avecRecherche ? 'recherche demandée, non faite' : 'sans recherche'
+  } catch (enrichErr: any) {
+    etapes.description = `échec : ${String(enrichErr?.message ?? enrichErr).slice(0, 120)}`
+    console.warn('Enrichment step warning:', enrichErr)
+  }
+
+  // Ce que les sources disent de l'origine et du domaine complète la lecture, sans jamais
+  // la remplacer (V2.4 · R1) ; sans recherche, rien de tel n'est demandé.
+  const { producer: pTrouve, appellation: aTrouvee, region: rTrouvee, country: cTrouve, ...descriptionDuVin } =
+    enriched ?? {}
+  const trouve: Record<string, unknown> = { producer: pTrouve, appellation: aTrouvee, region: rTrouvee, country: cTrouve }
+  const lue: any = { ...extracted }
+  if (verifiee) {
+    for (const [cle, v] of Object.entries(trouve)) {
+      if (vide(lue[cle]) && typeof v === 'string' && v.trim()) lue[cle] = v.trim()
+    }
+  }
+
+  const valeur = valeurSourcee(enriched, verifiee)
+  await apresLaReponse(enrichirLeCatalogue(fiche, lue, descriptionDuVin, verifiee, valeur))
+
+  const { valeur_source: _source, ...enrichedSansSource } = descriptionDuVin
+  return {
+    ...lue,
+    ...enrichedSansSource,
+    estimated_market_value: valeur.valeur,
+    estimated_value_currency: 'EUR',
+    valeur_source: valeur.source,
+    critic_scores: verifiee ? (enriched.critic_scores ?? []) : [],
+    sources_verified: verifiee ? (enriched.sources_verified ?? []) : [],
+    is_verified_online: verifiee,
+    last_valuation_date: valeur.valeur !== null ? new Date().toISOString() : null,
+    from_cache: false,
+    complete: true,
+    couts,
+    etapes,
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -458,16 +651,37 @@ serve(async (req) => {
       }
     } catch (_) { /* configuration absente : valeurs par défaut, pas de recherche */ }
 
-    const refus = await garder(req, supabase, 'scan_etiquette', sessionObligatoire)
-    if (refus) return refus
-
     const body = await req.json()
-    const { photoUrls, imageBase64, mimeType = 'image/jpeg', forceRefresh = false } = body
+    const etape = body.etape === 'lecture' || body.etape === 'description' ? body.etape : 'tout'
     // Langue des notes et des accords. Les versions de l'app antérieures à la V2.3 ne
     // l'envoyaient pas : le français, langue de la grande majorité des comptes.
     const codeLangue = String(body.languageCode ?? 'fr').toLowerCase()
     const langue = codeLangue.startsWith('fr') ? 'French' : codeLangue.startsWith('es') ? 'Spanish'
       : codeLangue.startsWith('it') ? 'Italian' : 'English'
+
+    // La suite d'une lecture : la description seule, sans quota de plus — la lecture l'a
+    // compté — mais seulement avec la suite signée qu'elle a rendue.
+    if (etape === 'description') {
+      const lue = await lireLaSuite(body.suite)
+      if (!lue) return reponse({ error: 'suite_invalide' }, 403)
+      const cleGemini = Deno.env.get('GEMINI_API_KEY')
+      if (!cleGemini) return reponse({ error: 'GEMINI_API_KEY is not configured' }, 500)
+      const etapesDeLaSuite: Record<string, string> = { lecture: 'faite', catalogue: 'absent', description: 'non faite' }
+      let ficheConnue: any = null
+      try {
+        ficheConnue = await ficheDuCatalogue(supabase, lue)
+        if (ficheConnue) etapesDeLaSuite.catalogue = 'fiche pauvre'
+      } catch (_) {
+        etapesDeLaSuite.catalogue = 'indisponible'
+      }
+      return reponse(await decrireLeVin(cleGemini, lue, ficheConnue, avecRecherche, langue,
+        reglages.scan_etiquette_description, [], etapesDeLaSuite))
+    }
+
+    const refus = await garder(req, supabase, 'scan_etiquette', sessionObligatoire)
+    if (refus) return refus
+
+    const { photoUrls, imageBase64, mimeType = 'image/jpeg', forceRefresh = false } = body
 
     const imageParts: any[] = []
     if (imageBase64 && typeof imageBase64 === 'string') {
@@ -542,13 +756,7 @@ Never guess. Copy what the label shows. For country, region and appellation, use
     let fiche: any = null
     if (extracted?.name) {
       try {
-        const { data: lignes } = await supabase.rpc('find_cached_wine', {
-          p_producer: extracted.producer ?? null,
-          p_name: extracted.name,
-          p_vintage: extracted.vintage ?? null,
-          p_cuvee: extracted.cuvee_parcel ?? null,
-        })
-        fiche = Array.isArray(lignes) ? lignes[0] : null
+        fiche = await ficheDuCatalogue(supabase, extracted)
         etapes.catalogue = !fiche ? 'absent' : ficheRiche(fiche) ? 'trouvé' : 'fiche pauvre'
         if (!forceRefresh && ficheRiche(fiche)) {
           const verifiee = fiche.is_verified_online === true
@@ -578,6 +786,7 @@ Never guess. Copy what the label shows. For country, region and appellation, use
             sources_verified: verifiee ? (fiche.sources_verified ?? []) : [],
             is_verified_online: verifiee,
             from_cache: true,
+            complete: true,
             couts,
             etapes: { ...etapes, description: 'catalogue' },
           }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 })
@@ -588,114 +797,17 @@ Never guess. Copy what the label shows. For country, region and appellation, use
       }
     }
 
-    // 3. Vin inconnu (ou fiche pauvre) : on le décrit. Avec la recherche Google si Flavien
-    //    l'a activée (app_config.scan_etiquette_recherche) : pour les modèles 3.x, les 5 000
-    //    premières requêtes du mois sont offertes, puis 0,014 $ chacune.
-    const identite = `Producer: ${extracted.producer || 'Unknown'}
-Name: ${extracted.name}
-Cuvée/Parcel: ${extracted.cuvee_parcel || 'not stated'}
-Vintage: ${extracted.vintage ? extracted.vintage : 'not read on the label'}
-Region: ${[extracted.region, extracted.country].filter(Boolean).join(', ') || 'Unknown'}`
-
-    // Sans recherche, on ne demande ni notes de critiques, ni sources, ni valeur de marché :
-    // le modèle les inventait (29/09 pour les critiques, 30/09 pour la valeur).
-    const enrichPrompt = avecRecherche
-      ? `Search the web for this specific wine and extract factual data from trusted sources (producer site, Guide Hachette, RVF, Wine Spectator, Decanter, Jancis Robinson).
-${identite}
-Write "tasting_notes", "food_pairings" and "ai_summary" in ${langue}; "ai_summary" names the grape varieties.
-"producer", "appellation", "region" and "country" are those the sources you found give for THIS wine; null when no source states them.
-Return strictly a valid JSON object, and nothing else:
-{
-  "producer": string | null,
-  "appellation": string | null,
-  "region": string | null,
-  "country": string | null,
-  "tasting_notes": string,
-  "grapes": [{"name": string, "pct": number | null}],
-  "ideal_drinking_start": number | null,
-  "ideal_drinking_end": number | null,
-  "peak_drinking_start": number | null,
-  "peak_drinking_end": number | null,
-  "food_pairings": [string],
-  "ai_summary": string,
-  "estimated_market_value": number | null,
-  "valeur_source": string | null,
-  "estimated_value_currency": "EUR",
-  "critic_scores": [{"source": string, "score": string, "reviewer": string | null, "year": number | null, "notes": string | null}],
-  "sources_verified": [string]
-}
-"estimated_market_value" is a typical current retail price in EUR that you found on a merchant or auction page; "valeur_source" is the URL of that page. Leave both null if you did not find one.
-Only include a critic score or a source you actually found. Leave arrays empty rather than guessing.`
-      : `Describe this wine as a sommelier would, from general knowledge of its appellation, producer and vintage.
-${identite}
-If you are unsure about a value, give the typical value for the appellation rather than a precise-looking guess.
-Write "tasting_notes", "food_pairings" and "ai_summary" in ${langue}; "ai_summary" names the grape varieties.
-Return strictly a valid JSON object matching this schema:
-{
-  "tasting_notes": string,
-  "grapes": [{"name": string, "pct": number | null}],
-  "ideal_drinking_start": number | null,
-  "ideal_drinking_end": number | null,
-  "peak_drinking_start": number | null,
-  "peak_drinking_end": number | null,
-  "food_pairings": [string],
-  "ai_summary": string
-}`
-
-    let enriched: any = {}
-    let verifiee = false
-    try {
-      const description = await appelerPourLaFiche(apiKey, [{ role: 'user', parts: [{ text: enrichPrompt }] }],
-        reglages.scan_etiquette_description, avecRecherche)
-      enriched = description.illisible ? {} : description.resultat
-      verifiee = description.recherche && !description.illisible
-      couts.push({
-        fonction: 'scan_enrichment', modele: description.modele, usageMetadata: description.usage,
-        recherche: description.recherche, requetes: description.requetes, reflexion: description.reflexion,
-      })
-      etapes.description = description.illisible ? 'réponse illisible'
-        : description.recherche ? `avec recherche (${description.requetes})`
-        : avecRecherche ? 'recherche demandée, non faite' : 'sans recherche'
-    } catch (enrichErr: any) {
-      etapes.description = `échec : ${String(enrichErr?.message ?? enrichErr).slice(0, 120)}`
-      console.warn('Enrichment step warning:', enrichErr)
-    }
-
-    // Ce que les sources disent de l'origine et du domaine complète la lecture, sans jamais
-    // la remplacer (V2.4 · R1) ; sans recherche, rien de tel n'est demandé.
-    const { producer: pTrouve, appellation: aTrouvee, region: rTrouvee, country: cTrouve, ...descriptionDuVin } =
-      enriched ?? {}
-    const trouve: Record<string, unknown> = { producer: pTrouve, appellation: aTrouvee, region: rTrouvee, country: cTrouve }
-    const lue: any = { ...extracted }
-    if (verifiee) {
-      for (const [cle, v] of Object.entries(trouve)) {
-        if (vide(lue[cle]) && typeof v === 'string' && v.trim()) lue[cle] = v.trim()
+    // Lu, et à décrire : avec `etape: 'lecture'`, le vin lu part tout de suite, avec sa
+    // suite signée ; la description viendra au second appel.
+    if (etape === 'lecture') {
+      const suite = await signerLaSuite(extracted)
+      if (suite) {
+        return reponse({ ...extracted, from_cache: false, complete: false, suite, couts, etapes: { ...etapes, description: 'à suivre' } })
       }
     }
 
-    const valeur = valeurSourcee(enriched, verifiee)
-    await enrichirLeCatalogue(fiche, lue, descriptionDuVin, verifiee, valeur)
-
-    const { valeur_source: _source, ...enrichedSansSource } = descriptionDuVin
-    const finalResult = {
-      ...lue,
-      ...enrichedSansSource,
-      estimated_market_value: valeur.valeur,
-      estimated_value_currency: 'EUR',
-      valeur_source: valeur.source,
-      critic_scores: verifiee ? (enriched.critic_scores ?? []) : [],
-      sources_verified: verifiee ? (enriched.sources_verified ?? []) : [],
-      is_verified_online: verifiee,
-      last_valuation_date: valeur.valeur !== null ? new Date().toISOString() : null,
-      from_cache: false,
-      couts,
-      etapes,
-    }
-
-    return new Response(JSON.stringify(finalResult), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
+    return reponse(await decrireLeVin(apiKey, extracted, fiche, avecRecherche, langue,
+      reglages.scan_etiquette_description, couts, etapes))
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

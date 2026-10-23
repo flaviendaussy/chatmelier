@@ -1281,7 +1281,7 @@ class _CellarScreenState extends ConsumerState<CellarScreen>
             ActionChip(
               avatar: const Text('📊', style: TextStyle(fontSize: 14)),
               label: Text(
-                trSi(isFr, 'Opportunités de Cave', 'Cellar Gaps'),
+                trSi(isFr, 'Opportunités de Cave', 'Cellar opportunities'),
                 style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
               ),
               backgroundColor: Theme.of(context).brightness == Brightness.dark

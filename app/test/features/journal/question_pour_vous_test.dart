@@ -54,6 +54,27 @@ void main() {
     });
   });
 
+  group('trois questions, et pas de bois sur un rosé (22/10)', () {
+    test('trois d\'emblée, les plus utiles d\'abord ; la quatrième sous « Aller plus loin »', () {
+      final madiran = vin('Madiran', 'red', appellation: 'Madiran', cepages: ['Tannat']);
+      final ordre = QuestionPourVous.ordre(neuf, 'rouge', madiran);
+      expect(QuestionPourVous.dEmblee, 3);
+      expect(ordre, hasLength(4));
+      expect(ordre.first, 'tannin', reason: 'un Madiran tranche par ses tanins');
+      expect(ordre.toSet(), {'tannin', 'body', 'acidity', 'oak'});
+    });
+
+    test('un rosé ou une bulle : jamais le boisé (« pas très applicable ici », Douro rosé)', () {
+      expect(QuestionPourVous.sansBoisPour('rose'), isTrue);
+      expect(QuestionPourVous.sansBoisPour('sparkling'), isTrue);
+      expect(QuestionPourVous.sansBoisPour('white'), isFalse);
+      final douro = vin('Douro Rosé', 'rose');
+      final ordre = QuestionPourVous.ordre(neuf, 'blanc', douro, sansBois: true);
+      expect(ordre, isNot(contains('oak')));
+      expect(ordre, hasLength(3), reason: 'trois questions, sans « Aller plus loin »');
+    });
+  });
+
   group('les réponses', () {
     final rouge = QuestionnaireDuVin('red');
     TastingQuestionnaireResult resultat(ReponsesDuConvive r, {bool express = true}) =>

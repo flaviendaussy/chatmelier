@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../auth/domain/mots_du_palais.dart';
+
 import '../../../shared/utils/langue.dart';
 import '../../auth/data/taste_profile_service.dart';
 import '../../auth/domain/palais.dart';
@@ -10,6 +12,7 @@ import '../../auth/presentation/widgets/wine_taste_radar_chart.dart';
 import '../../journal/domain/filtres_du_journal.dart';
 import '../../sommelier/domain/guest_matcher_engine.dart';
 import '../../sommelier/domain/profil_du_vin.dart';
+import '../data/verres_de_la_soiree_store.dart';
 import '../domain/explication_du_score.dart';
 import '../domain/menu_wine.dart';
 
@@ -27,19 +30,24 @@ class FicheDuVinDeLaCarte extends ConsumerStatefulWidget {
   final bool selectionne;
   final ValueChanged<bool>? onComparer;
 
-  const FicheDuVinDeLaCarte({super.key, required this.vin, this.selectionne = false, this.onComparer});
+  /// La carte de la soirée : « Je le goûte » met ce vin dans « Mes verres » (Flavien, 22/10,
+  /// depuis cette fiche : « j'aimerais pouvoir faire une dégustation live depuis ça »).
+  final CarteDeLaSoiree? carte;
+
+  const FicheDuVinDeLaCarte({super.key, required this.vin, this.selectionne = false, this.onComparer, this.carte});
 
   static Future<void> montrer(
     BuildContext context, {
     required MenuWine vin,
     bool selectionne = false,
     ValueChanged<bool>? onComparer,
+    CarteDeLaSoiree? carte,
   }) =>
       showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) => FicheDuVinDeLaCarte(vin: vin, selectionne: selectionne, onComparer: onComparer),
+        builder: (_) => FicheDuVinDeLaCarte(vin: vin, selectionne: selectionne, onComparer: onComparer, carte: carte),
       );
 
   @override
@@ -105,9 +113,28 @@ class _FicheDuVinDeLaCarteState extends ConsumerState<FicheDuVinDeLaCarte> {
                 ),
               ),
             ),
+            if (widget.carte case final carte?)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                child: Builder(builder: (context) {
+                  final pris = ref.watch(verresDeLaSoireeProvider(carte)).contient(_vin.id);
+                  return FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: pris ? _bordeaux.withValues(alpha: 0.12) : _bordeaux,
+                      foregroundColor: pris ? _bordeaux : Colors.white,
+                      minimumSize: const Size.fromHeight(46),
+                    ),
+                    icon: Icon(pris ? Icons.wine_bar : Icons.wine_bar_outlined, size: 20),
+                    label: Text(pris
+                        ? tr('Dans mes verres : à déguster depuis la carte', 'In my glasses: taste it from the list')
+                        : tr('Je le goûte', 'I\'m tasting it')),
+                    onPressed: () => ref.read(verresDeLaSoireeProvider(carte).notifier).basculer(_vin),
+                  );
+                }),
+              ),
             if (widget.onComparer != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _bordeaux,
@@ -293,9 +320,15 @@ class _FicheDuVinDeLaCarteState extends ConsumerState<FicheDuVinDeLaCarte> {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              tr('Votre palais est encore deviné (connu à {pct} %) : ce pourcentage se précisera à chaque vin noté.',
-                  'Your palate is still a guess ({pct}% known): this percentage will sharpen with every wine you rate.',
-                  {'pct': (confiance * 100).round()}),
+              // La famille nommée : « connu à 0 % » pour quelqu'un qui a noté trente rouges
+              // laissait croire que l'app avait tout oublié (Flavien, 22/10, sur un Rioja blanc).
+              famille == null
+                  ? tr('Votre palais est encore deviné (connu à {pct} %) : ce pourcentage se précisera à chaque vin noté.',
+                      'Your palate is still a guess ({pct}% known): this percentage will sharpen with every wine you rate.',
+                      {'pct': (confiance * 100).round()})
+                  : tr('Votre palais des {famille} est encore deviné (connu à {pct} %) : il se précisera à chaque vin noté.',
+                      'Your palate for {famille} is still a guess ({pct}% known): it will sharpen with every wine you rate.',
+                      {'pct': (confiance * 100).round(), 'famille': MotsDuPalais.familleAuPluriel(famille)}),
               style: TextStyle(fontSize: 12, color: gris, height: 1.3),
             ),
           ),

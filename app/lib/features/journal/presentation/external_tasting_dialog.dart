@@ -22,12 +22,12 @@ import '../../friends/domain/friend.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../auth/data/taste_profile_service.dart';
 import 'journal_screen.dart';
-import '../domain/question_pour_vous.dart';
+import '../data/format_du_questionnaire.dart';
+import '../../sommelier/data/cepages_du_vin.dart';
+import '../../notifications/presentation/notification_pre_permission_dialog.dart';
+import '../data/degustations_partagees.dart';
 import 'tasting_questionnaire_sheet.dart';
-import 'widgets/pour_vous.dart';
 import '../data/degustation_rapide.dart';
-import '../../cellar/domain/wine.dart';
-import '../../sommelier/domain/profil_du_vin.dart';
 import '../../../shared/widgets/libere_a_la_fermeture.dart';
 
 class ExternalTastingDialog extends ConsumerStatefulWidget {
@@ -102,29 +102,24 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
   late final TextEditingController _paysController;
   late final TextEditingController _contextController;
   late final TextEditingController _notesController;
-  late final TextEditingController _foodController;
 
   String _wineType = 'red';
-  double _rating = 8.5;
-
-  /// Faux tant que le curseur n'a pas été touché : 8,5 n'est que sa position de départ,
-  /// pas une note. Sans note, la dégustation est gardée mais n'entre pas dans le profil.
-  bool _noteTouchee = false;
-  double? get _noteSaisie => _noteTouchee ? _rating : null;
-  bool _isFavorite = false;
   bool _isSaving = false;
 
-  // — Niveau « Gorgée » —
-  // Cet écran est le plus utilisé du produit (8 points d'entrée) et ne captait jusqu'ici
-  // aucune donnée sensorielle : il n'apprenait donc rien au modèle, alors que ce sont les
-  // dégustations au restaurant qui décrivent le mieux un palais en situation réelle.
-  // Deux touches facultatives suffisent : le « pour vous » et « en reprendriez-vous ? »
-  // (voir TasteProfileService.applyQuestionnaireResult).
-  String? _wouldBuyAgain;
+  /// Express (la note et trois questions) ou Sommelier, choisi ici et retenu : le
+  /// questionnaire s'ouvre ensuite directement sur les questions, en plein écran (Flavien,
+  /// 22/10 : « mets cette sélection sur l'écran précédent »). La note, la « gorgée », le plat
+  /// ne sont plus demandés ici : le questionnaire les demande, une seule fois (« vire tout
+  /// ça »).
+  bool _express = true;
 
-  /// Le « pour vous » (V2.6 · P6) : il remplace le toucher de bouche et l'éclat du fruit.
-  final Map<String, String> _jugements = {};
+  /// Les cépages lus sur l'étiquette : sans eux, un Cinsault de la Maipo se lisait comme un
+  /// cabernet (22/10).
+  List<String> _cepages = const [];
 
+  /// Les cépages qui arrivent après la lecture (la description de l'étiquette) : le
+  /// questionnaire les attend un instant avant d'apprendre au palais.
+  Future<List<String>>? _cepagesAVenir;
 
   // Friends & Co-tasters
   List<Friend> _friends = [];
@@ -243,10 +238,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     _contextController = TextEditingController(text: widget.initialPlace ?? '');
     _selectedCoTasters.addAll(widget.initialCoTasters ?? const []);
     _notesController = TextEditingController();
-    _foodController = TextEditingController();
     if (widget.initialType != null) {
       _wineType = widget.initialType!;
     }
+    FormatDuQuestionnaire.express().then((e) {
+      if (mounted) setState(() => _express = e);
+    });
 
     _detectNearbyPlaces();
   }
@@ -256,7 +253,9 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     final currentLang = Localizations.localeOf(context).languageCode;
     try {
       final picker = ImagePicker();
-      final picked = await picker.pickImage(source: source, imageQuality: 85);
+      // 2048 px suffisent : l'étiquette part recadrée à 1024. L'appareil réduit la photo
+      // lui-même, sans faire décoder 12 mégapixels à l'app (22/10 : deux secondes par verre).
+      final picked = await picker.pickImage(source: source, imageQuality: 85, maxWidth: 2048, maxHeight: 2048);
       // La fiche a pu être fermée pendant que l'appareil photo était ouvert.
       if (picked == null || !mounted) return;
 
@@ -269,68 +268,98 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
       final scanService = ScanService(supabase);
       final bytes = await picked.readAsBytes();
 
-      // 1. Automatic Gemini Vision OCR & Enology Extraction
+      // La photo part pendant la lecture, pas après : elle n'en dépend pas.
+      final envoi = scanService
+          .uploadPhoto(
+            bottleId: const Uuid().v4(),
+            imagePath: picked.path,
+            imageBytes: bytes,
+            rattacherALaBouteille: false,
+          )
+          .then<String?>((url) => url, onError: (Object e) {
+        debugPrint('Photo upload notice: $e');
+        return null;
+      });
+
+      // 1. La lecture d'abord (cinq secondes) : le nom, le domaine, le millésime remplissent
+      // le formulaire, qui se remplit ensuite de la description (23/10 : quinze secondes
+      // d'attente à chaque verre du Vagabond).
+      final cepages = Completer<List<String>>();
+      _cepagesAVenir = cepages.future;
       try {
         final result = await scanService.analyzeBottleImage(
           imagePath: picked.path,
           imageBytes: bytes,
           languageCode: currentLang,
+          onLecture: (lu) {
+            if (!mounted) return;
+            setState(() {
+              _remplirDepuis(lu, ecraser: true);
+              _isScanningPhoto = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.externalTastingAiRecognized(lu.name)),
+                backgroundColor: const Color(0xFF2E7D32),
+              ),
+            );
+          },
         );
+        final noms = [for (final g in result.grapes) if (g.name.trim().isNotEmpty) g.name.trim()];
+        if (!cepages.isCompleted) cepages.complete(noms);
         if (mounted) {
-          setState(() {
-            _nameController.text = result.name;
-            if (result.producer != null && result.producer!.isNotEmpty) {
-              _producerController.text = result.producer!;
-            }
-            if (result.vintage != null) {
-              _vintageController.text = '${result.vintage}';
-            }
-            if (result.appellation != null && result.appellation!.isNotEmpty) {
-              _regionController.text = result.appellation!;
-            } else if (result.region.isNotEmpty) {
-              _regionController.text = result.region;
-            }
-            if (result.country.isNotEmpty) _paysController.text = result.country;
-            _wineType = _normalizeWineType(result.wineType);
-            if (result.tastingNotes != null && result.tastingNotes!.isNotEmpty) {
-              _notesDuSommelier = result.tastingNotes;
-            }
-            _etiquetteLue = true;
-            _remplisParLeTexte = const {};
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l10n.externalTastingAiRecognized(result.name)),
-              backgroundColor: const Color(0xFF2E7D32),
-            ),
-          );
+          final dejaAnnonce = !_isScanningPhoto;
+          setState(() => _remplirDepuis(result, ecraser: !dejaAnnonce));
+          if (!dejaAnnonce) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.externalTastingAiRecognized(result.name)),
+                backgroundColor: const Color(0xFF2E7D32),
+              ),
+            );
+          }
           // La photo ne dit pas d'où vient le vin : on le cherche sur le web (17/10).
           if (CompletionParLeWeb.aCompleter(result)) unawaited(_completerParLeWeb(scanService, result));
         }
       } catch (scanErr) {
         AppLogger.warning('EXTERNAL_TASTING', 'AI photo scan error: $scanErr');
+        if (!cepages.isCompleted) cepages.complete(const []);
       } finally {
         if (mounted) setState(() => _isScanningPhoto = false);
       }
 
-      // 2. Upload photo in background
-      try {
-        final publicUrl = await scanService.uploadPhoto(
-          bottleId: const Uuid().v4(),
-          imagePath: picked.path,
-          imageBytes: bytes,
-          rattacherALaBouteille: false,
-        );
-        if (publicUrl != null && mounted) {
-          setState(() => _photoUrl = publicUrl);
-        }
-      } catch (e) {
-        debugPrint('Photo upload notice: $e');
-      }
+      // 2. La photo envoyée, son adresse remplace le chemin local.
+      final publicUrl = await envoi;
+      if (publicUrl != null && mounted) setState(() => _photoUrl = publicUrl);
     } catch (e) {
       if (mounted) setState(() => _isScanningPhoto = false);
       debugPrint('Error picking photo: $e');
     }
+  }
+
+  /// Ce que l'étiquette a dit, dans le formulaire. La lecture le remplit ([ecraser] : une
+  /// nouvelle photo remplace la précédente) ; la description, ensuite, n'ajoute que ce qui
+  /// manque — les cépages, la note du sommelier — sans rien effacer de ce que la personne
+  /// a pu corriger entre-temps.
+  void _remplirDepuis(ScanResult result, {required bool ecraser}) {
+    void mettre(TextEditingController c, String? v) {
+      if (v == null || v.trim().isEmpty) return;
+      if (ecraser || c.text.trim().isEmpty) c.text = v;
+    }
+
+    mettre(_nameController, result.name);
+    mettre(_producerController, result.producer);
+    mettre(_vintageController, result.vintage?.toString());
+    mettre(_regionController, (result.appellation ?? '').isNotEmpty ? result.appellation : result.region);
+    mettre(_paysController, result.country);
+    final cepages = [for (final g in result.grapes) if (g.name.trim().isNotEmpty) g.name.trim()];
+    if (cepages.isNotEmpty || ecraser) _cepages = cepages;
+    if (ecraser) _wineType = _normalizeWineType(result.wineType);
+    if (result.tastingNotes != null && result.tastingNotes!.isNotEmpty) {
+      _notesDuSommelier = result.tastingNotes;
+    }
+    _etiquetteLue = true;
+    _remplisParLeTexte = const {};
   }
 
   /// Le vin de la photo cherché sur le web : seuls les champs vides se remplissent, marqués
@@ -528,11 +557,16 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     _paysController.dispose();
     _contextController.dispose();
     _notesController.dispose();
-    _foodController.dispose();
     super.dispose();
   }
 
-  Future<void> _saveTasting() async {
+  /// Les convives qui ont l'app : ils notent eux-mêmes, sur leur téléphone. Les autres
+  /// (un profil local, « Papa ») répondent ici, à leur tour.
+  List<Friend> get _amisQuiNotent => _friends.where((f) => _selectedCoTasters.contains(f.displayName)).toList();
+
+  /// Écrire la dégustation, puis — avec [deguster] — ouvrir le questionnaire sur la ligne
+  /// écrite, qu'il complétera (note, défaut, arômes). Sans : « Enregistrer sans noter ».
+  Future<void> _saveTasting({bool deguster = true}) async {
     final l10n = AppLocalizations.of(context)!;
     final wineName = _nameController.text.trim();
     if (wineName.isEmpty) {
@@ -547,13 +581,9 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     final vintage = int.tryParse(_vintageController.text.trim());
     final producer = _producerController.text.trim();
     final region = _regionController.text.trim();
+    final pays = _paysController.text.trim();
     final occasion = _contextController.text.trim();
     final notes = _notesController.text.trim();
-    final food = _foodController.text.trim();
-    // La note et le coup de cœur sont deux informations distinctes. Écrire `rating = 5.0`
-    // pour signifier « coup de cœur » le rendait indistinguable d'un 5/10 tiède, et
-    // l'heuristique de relecture le remontait ensuite à 10/10.
-    final effectiveRating = _noteSaisie;
 
     // 1. If user checked to remember this place & we have a location, save it!
     if (_rememberThisPlace && occasion.isNotEmpty && _currentPosition != null) {
@@ -570,65 +600,89 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
     }
 
     try {
-      // La fiche, la dégustation, la file hors ligne et le palais : le même service que la
-      // fin de soirée d'une table (V2.3 · E2).
-      await ref.read(degustationRapideProvider).enregistrer(VinBuDehors(
+      // La fiche, la dégustation, la file hors ligne : le même service que la fin de
+      // soirée d'une table (V2.3 · E2). La note viendra du questionnaire.
+      final ecrite = await ref.read(degustationRapideProvider).enregistrer(VinBuDehors(
             nom: wineName,
             producteur: producer,
             millesime: vintage,
             region: region,
-            pays: _paysController.text.trim(),
+            pays: pays,
             couleur: _wineType,
-            note: effectiveRating,
             lieu: occasion,
-            plat: food,
             notes: notes,
             photoUrl: _photoUrl,
             convives: _selectedCoTasters.toList(),
-            coupDeCoeur: _isFavorite,
-            racheter: _wouldBuyAgain,
-            jugements: Map<String, String>.from(_jugements),
+            cepages: _cepages,
           ));
       ref.invalidate(tastingLogProvider);
-      ref.invalidate(tasteProfilesListProvider);
 
-      if (mounted) {
-        Navigator.pop(context);
+      // Sans cépages (un nom tapé, une étiquette qui ne les disait pas) : on les cherche
+      // pendant que la personne répond — le cache commun d'abord, puis le web (080).
+      final chercheur = ref.read(cepagesDuVinProvider);
+      Future<List<String>> chercher() => chercheur.chercher(
+          nom: wineName, producteur: producer, millesime: vintage, region: region, pays: pays, couleur: _wineType);
+      final cepagesAVenir = _cepages.isNotEmpty
+          ? null
+          : (_cepagesAVenir ?? Future.value(const <String>[])).then<List<String>>((c) async => c.isNotEmpty ? c : await chercher());
 
-        // Offer immediate questionnaire via rootContext or snackbar
-        final targetCtx = rootNavigatorKey.currentContext;
-        if (targetCtx != null && targetCtx.mounted) {
-          TastingQuestionnaireSheet.show(
-            targetCtx,
-            dejaAuJournal: true,
-            wineName: wineName,
-            vintage: vintage,
-            producer: producer.isNotEmpty ? producer : null,
-            region: region.isNotEmpty ? region : null,
-            wineType: _wineType,
-            // La « Gorgée » a déjà posé ces questions : le questionnaire ne les repose pas.
-            racheterDeja: _wouldBuyAgain,
-            jugementsDeja: Map<String, String>.from(_jugements),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Text('🍷 ', style: TextStyle(fontSize: 18)),
-                  Expanded(
-                    child: Text(
-                      l10n.externalTastingSaved,
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: const Color(0xFF8B1E3F),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
+      // Les amis qui ont l'app reçoivent le vin à noter, sans bouton à trouver (Caro, 22/10 :
+      // « je ne comprenais pas que c'était un bouton »). En arrière-plan : le bar capte mal.
+      final partages = ref.read(degustationsPartageesProvider);
+      for (final ami in _amisQuiNotent) {
+        unawaited(partages
+            .inviterANoter(
+              amiId: ami.friendUserId,
+              nomDuVin: wineName,
+              millesime: vintage,
+              producteur: producer,
+              couleur: _wineType,
+              region: region,
+              pays: pays,
+              lieu: occasion,
+            )
+            .then((_) => AppLogger.info('QUESTIONNAIRE', 'Invitation à noter envoyée à un ami'))
+            .catchError((Object e) => AppLogger.warning('QUESTIONNAIRE', 'Invitation à noter non envoyée : $e')));
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context);
+      if (!deguster) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+          content: Text(tr('Enregistré dans votre journal, sans note : vous pourrez la donner plus tard.',
+              'Saved to your journal, unrated: you can rate it later.')),
+        ));
+        return;
+      }
+
+      unawaited(FormatDuQuestionnaire.retenir(express: _express));
+      final invites = _amisQuiNotent.isNotEmpty;
+      final targetCtx = rootNavigatorKey.currentContext;
+      // Un ami va noter de son côté : autant recevoir sa réponse (Caro n'avait jamais permis
+      // les notifications, 22/10).
+      if (invites && targetCtx != null && targetCtx.mounted) await NotificationPrePermissionDialog.auBonMoment(targetCtx);
+      if (targetCtx != null && targetCtx.mounted) {
+        final locaux = [
+          for (final n in _selectedCoTasters)
+            if (!_amisQuiNotent.any((f) => f.displayName == n)) n,
+        ];
+        TastingQuestionnaireSheet.show(
+          targetCtx,
+          dejaAuJournal: true,
+          tastingLogId: ecrite.id,
+          notesDeja: notes,
+          lieu: occasion,
+          wineName: wineName,
+          vintage: vintage,
+          producer: producer.isNotEmpty ? producer : null,
+          region: region.isNotEmpty ? region : null,
+          wineType: _wineType,
+          wineGrapes: _cepages.isEmpty ? null : _cepages,
+          cepagesAVenir: cepagesAVenir,
+          preselectedTasters: locaux,
+          initialIsExpress: _express,
+          demarrerDirectement: true,
+        );
       }
     } catch (e, stack) {
       AppLogger.error('EXTERNAL_TASTING', 'Error saving tasting', e, stack);
@@ -639,121 +693,6 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
         );
       }
     }
-  }
-
-  /// Le « pour vous » de la gorgée : l'axe que le palais connaît le moins, là où ce vin
-  /// tranche. Nul pour un muté ou un spiritueux.
-  Widget? _pourVous() {
-    final famille = TasteProfile.familleDe(_wineType);
-    if (famille == null) return null;
-    final profils = ref.watch(tasteProfilesListProvider).valueOrNull ?? const <TasteProfile>[];
-    final principal = profils.firstWhere((p) => p.isPrimary,
-        orElse: () => profils.firstOrNull ?? const TasteProfile(id: 'moi', name: 'Moi', isPrimary: true));
-    final vin = ProfilDuVin.deLaCave(Wine(
-      id: '',
-      name: _nameController.text.trim(),
-      type: _wineType,
-      country: '',
-      region: _regionController.text.trim(),
-      vintage: int.tryParse(_vintageController.text.trim()),
-    ));
-    return PourVous(
-      key: ValueKey('gorgee_$famille'),
-      famille: famille,
-      premier: QuestionPourVous.aDemander(principal, famille, vin),
-      jugements: _jugements,
-      onJuger: (axe, sens) => setState(() {
-        // Le même choix une seconde fois le retire.
-        if (_jugements[axe] == sens) {
-          _jugements.remove(axe);
-        } else {
-          _jugements[axe] = sens;
-        }
-      }),
-    );
-  }
-
-  /// Niveau « Gorgée » : capture sensorielle minimale pour l'écran hors-cave.
-  ///
-  /// Tout est facultatif — c'est la condition pour que l'écran reste rapide au restaurant.
-  /// Mais dès qu'une seule touche est posée, la dégustation passe par
-  /// `applyQuestionnaireResult` et alimente les axes du profil, au lieu de ne transmettre
-  /// qu'une note. V2.6 : une question « pour vous » au lieu de deux descriptions de la
-  /// bouche — dire « trop tannique pour moi » ne demande pas de savoir déguster.
-  Widget _buildSipLevel(ThemeData theme, AppLocalizations l10n) {
-    Widget group({
-      required String title,
-      required List<({String id, String emoji, String label})> options,
-      required String? selected,
-      required void Function(String?) onPick,
-    }) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final o in options)
-                FilterChip(
-                  label: Text('${o.emoji} ${o.label}', style: const TextStyle(fontSize: 11.5)),
-                  selected: selected == o.id,
-                  selectedColor: const Color(0xFF8B1E3F).withValues(alpha: 0.15),
-                  checkmarkColor: const Color(0xFF8B1E3F),
-                  onSelected: (v) => setState(() => onPick(v ? o.id : null)),
-                ),
-            ],
-          ),
-        ],
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF8B1E3F).withValues(alpha: 0.22)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.sipSectionTitle,
-            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            tr('Une touche, et ce verre apprend quelque chose à votre palais.',
-                'One tap, and this glass teaches your palate something.'),
-            style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11.5),
-          ),
-          const SizedBox(height: 12),
-          if (_pourVous() case final pourVous?) ...[
-            pourVous,
-            const SizedBox(height: 12),
-          ],
-          group(
-            title: l10n.tastingBuyAgain,
-            options: [
-              (id: 'yes', emoji: '', label: l10n.tastingBuyAgainYes),
-              (id: 'maybe', emoji: '', label: l10n.tastingBuyAgainMaybe),
-              (id: 'no', emoji: '', label: l10n.tastingBuyAgainNo),
-            ],
-            selected: _wouldBuyAgain,
-            onPick: (v) => _wouldBuyAgain = v,
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -933,6 +872,25 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 ),
               ],
             ),
+            // Ce qui se passera pour eux, dit avant : plus de bouton à deviner (22/10).
+            if (_amisQuiNotent.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.send_to_mobile, size: 16, color: Colors.green),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        tr('{noms} recevra ce vin à noter sur son téléphone.', '{noms} will get this wine to rate on their phone.',
+                            {'noms': _amisQuiNotent.map((f) => f.displayName).join(', ')}),
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 16),
 
             // =================================================================
@@ -1037,93 +995,6 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Note et Coup de Cœur sur 10
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Texte agrandi du téléphone : la note et le coup de cœur passent à la ligne.
-                  Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    runSpacing: 4,
-                    children: [
-                      Text(l10n.externalTastingRatingLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFD4AF37),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              _noteTouchee ? '${_rating.toStringAsFixed(1)} / 10' : '— / 10',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          FilterChip(
-                            avatar: Icon(
-                              _isFavorite ? Icons.favorite : Icons.favorite_border,
-                              color: _isFavorite ? Colors.red : Colors.grey,
-                              size: 16,
-                            ),
-                            label: Text(l10n.externalTastingFavorite, style: const TextStyle(fontSize: 12)),
-                            selected: _isFavorite,
-                            selectedColor: Colors.red.withValues(alpha: 0.15),
-                            onSelected: (val) => setState(() => _isFavorite = val),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Slider(
-                    value: _rating,
-                    min: 1.0,
-                    max: 10.0,
-                    divisions: 18,
-                    activeColor: const Color(0xFFD4AF37),
-                    label: '${_rating.toStringAsFixed(1)} / 10',
-                    onChanged: (val) => setState(() {
-                      _rating = val;
-                      _noteTouchee = true;
-                    }),
-                  ),
-                  if (!_noteTouchee)
-                    Text(
-                      tr('Pas de note ? La dégustation est gardée, mais n\'entre pas dans votre profil.',
-                          'No rating? The tasting is kept, but won\'t shape your profile.'),
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            _buildSipLevel(theme, l10n),
-            const SizedBox(height: 14),
-
-            // Plat dégusté avec
-            TextField(
-              controller: _foodController,
-              decoration: InputDecoration(
-                labelText: l10n.externalTastingFoodLabel,
-                hintText: l10n.checkoutFoodHint,
-                prefixIcon: const Icon(Icons.dinner_dining, size: 20),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              ),
-            ),
-            const SizedBox(height: 12),
-
             // Notes & Impressions
             TextField(
               controller: _notesController,
@@ -1146,13 +1017,39 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
             ),
             const SizedBox(height: 20),
 
+            // Le format, choisi ici une fois pour toutes (il est retenu) : le questionnaire
+            // s'ouvre ensuite directement sur les questions.
+            Text(tr('Comment le noter ?', 'How to rate it?'),
+                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _choixDuFormat(
+                    express: true,
+                    titre: tr('Express', 'Express'),
+                    detail: tr('La note et trois questions', 'Rating and three questions'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _choixDuFormat(
+                    express: false,
+                    titre: tr('Sommelier', 'Sommelier'),
+                    detail: tr('Le nez, la bouche, le verdict', 'Nose, palate, verdict'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
             // Action Buttons
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(l10n.cancel),
+                    onPressed: _isSaving ? null : () => _saveTasting(deguster: false),
+                    child: Text(tr('Enregistrer sans noter', 'Save without rating'), textAlign: TextAlign.center),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1172,7 +1069,7 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                           )
                         : const Icon(Icons.arrow_forward),
                     label: Text(
-                      _isSaving ? l10n.tastingSaving : l10n.externalTastingSubmit,
+                      _isSaving ? l10n.tastingSaving : tr('Déguster', 'Taste it'),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     onPressed: _isSaving ? null : _saveTasting,
@@ -1180,6 +1077,32 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _choixDuFormat({required bool express, required String titre, required String detail}) {
+    final choisi = _express == express;
+    const bordeaux = Color(0xFF8B1E3F);
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => setState(() => _express = express),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: choisi ? bordeaux.withValues(alpha: 0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: choisi ? bordeaux : Colors.grey.withValues(alpha: 0.35), width: choisi ? 1.6 : 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(titre, style: TextStyle(fontWeight: FontWeight.bold, color: choisi ? bordeaux : null)),
+            const SizedBox(height: 2),
+            Text(detail, style: const TextStyle(fontSize: 11.5, color: Colors.grey)),
           ],
         ),
       ),
@@ -1416,7 +1339,10 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  l10n.externalTastingAiIdentifyTitle,
+                  // Caro, 22/10 : « explique-moi mieux la différence entre la photo et
+                  // l'entrée en écriture ». La photo d'abord ; écrire, quand il n'y a pas
+                  // d'étiquette.
+                  tr('Pas d\'étiquette sous la main ? Tapez son nom', 'No label at hand? Type its name'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
                 ),
               ),
@@ -1430,7 +1356,8 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
           ),
           const SizedBox(height: 6),
           Text(
-            l10n.externalTastingAiIdentifyDesc,
+            tr('Un verre au bar, une ardoise : quelques mots suffisent (« Saint-Joseph Coursodon 2021 »), l\'IA remplit la fiche.',
+                'A glass at the bar, a chalkboard: a few words are enough ("Saint-Joseph Coursodon 2021"), the AI fills in the rest.'),
             style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 10),
@@ -1632,11 +1559,12 @@ class _ExternalTastingDialogState extends ConsumerState<ExternalTastingDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.externalTastingScanLabelTitle,
+                        tr('Photographier l\'étiquette', 'Photograph the label'),
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                       Text(
-                        l10n.externalTastingScanLabelSub,
+                        tr('Le plus sûr : l\'IA y lit le vin, le domaine et le millésime.',
+                            'The surest way: the AI reads the wine, producer and vintage.'),
                         style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],

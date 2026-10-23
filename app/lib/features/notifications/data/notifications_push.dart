@@ -114,19 +114,68 @@ class NotificationsPush {
         unawaited(_inscrire());
       });
       final reglages = await m.getNotificationSettings();
-      if (_permis(reglages.authorizationStatus)) await _inscrire();
+      _permisConnu = _permis(reglages.authorizationStatus);
+      if (_permisConnu) await _inscrire();
       // Une connexion (autre compte, nouvel appareil) : le téléphone passe au compte connecté.
       Supabase.instance.client.auth.onAuthStateChange.listen((etat) {
         if (etat.event == AuthChangeEvent.signedIn) unawaited(_inscrire());
       });
-      AppLogger.info('PUSH', 'Notifications push prêtes (${_permis(reglages.authorizationStatus) ? 'permises' : 'pas encore permises'})');
+      // « Refusées » et « jamais demandées » ne se soignent pas pareil : sur l'iPhone, une
+      // fois refusées, seuls les Réglages du téléphone peuvent les rouvrir (Caro, 23/10).
+      final etat = switch (reglages.authorizationStatus) {
+        AuthorizationStatus.authorized || AuthorizationStatus.provisional => 'permises',
+        AuthorizationStatus.denied || AuthorizationStatus.deniedPermanently => 'refusées dans les réglages du téléphone',
+        AuthorizationStatus.notDetermined => 'pas encore demandées',
+      };
+      AppLogger.info('PUSH', 'Notifications push prêtes ($etat)');
     } catch (e) {
       AppLogger.warning('PUSH', 'Démarrage des push impossible : $e');
     }
   }
 
+  /// Les notifications sont-elles permises sur ce téléphone ? Nul quand on ne le sait pas
+  /// (push non démarrées : web, configuration absente).
+  static Future<bool?> permises() async {
+    if (!_demarre) return null;
+    try {
+      return _permis((await FirebaseMessaging.instance.getNotificationSettings()).authorizationStatus);
+    } catch (_) {
+      return null;
+    }
+  }
+
   static bool _permis(AuthorizationStatus s) =>
       s == AuthorizationStatus.authorized || s == AuthorizationStatus.provisional;
+
+  /// La personne les a refusées : le système ne redemandera plus (l'iPhone dès le premier
+  /// refus, Android après le deuxième). Seuls les réglages du téléphone peuvent les rouvrir.
+  /// Nul quand on ne le sait pas.
+  static Future<bool?> refusees() async {
+    if (!_demarre) return null;
+    try {
+      final s = (await FirebaseMessaging.instance.getNotificationSettings()).authorizationStatus;
+      return s == AuthorizationStatus.denied || s == AuthorizationStatus.deniedPermanently;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// La permission telle qu'on la connaissait au dernier coup d'œil.
+  static bool _permisConnu = false;
+
+  /// Au retour dans l'app : si la permission vient d'être donnée dans les réglages du
+  /// téléphone, il s'inscrit tout de suite — sans attendre le prochain lancement.
+  static Future<void> auRetour() async {
+    if (!_demarre) return;
+    try {
+      final permis = _permis((await FirebaseMessaging.instance.getNotificationSettings()).authorizationStatus);
+      if (permis && !_permisConnu) {
+        AppLogger.info('PUSH', 'Notifications permises depuis les réglages du téléphone');
+        await _inscrire();
+      }
+      _permisConnu = permis;
+    } catch (_) {}
+  }
 
   /// La personne vient de permettre les notifications (dialogue de l'app, réglages) : le
   /// téléphone s'inscrit. Ne montre rien de plus : la permission est déjà décidée.

@@ -216,6 +216,13 @@ class WineWorld {
     'australia': 'australie',
     'new zealand': 'nouvelle zelande', 'nueva zelanda': 'nouvelle zelande',
     'south africa': 'afrique du sud', 'sudafrica': 'afrique du sud',
+    // Les pays de la base des vins connus (23/10).
+    'switzerland': 'suisse', 'suiza': 'suisse', 'svizzera': 'suisse', 'schweiz': 'suisse',
+    'lebanon': 'liban', 'libano': 'liban',
+    'georgia': 'georgie',
+    'morocco': 'maroc', 'marruecos': 'maroc',
+    'united states of america': 'etats unis', 'u s a': 'etats unis',
+    'scotland': 'angleterre', 'wales': 'angleterre',
   };
 
   /// La référence nommée qui correspond à ce vin, s'il y en a une.

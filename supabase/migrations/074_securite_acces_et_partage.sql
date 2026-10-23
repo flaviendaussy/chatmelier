@@ -357,6 +357,8 @@ BEGIN
     WHERE schemaname = 'storage' AND tablename = 'objects'
       AND cmd IN ('SELECT', 'ALL')
       AND (coalesce(qual, '') ILIKE '%labels%' OR coalesce(qual, '') ILIKE '%avatars%')
+      -- La lecture de SES fichiers (078) reste : sans elle, aucun dépôt « upsert ».
+      AND policyname <> 'photos_lecture_chez_soi'
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS %I ON storage.objects', pol.policyname);
   END LOOP;

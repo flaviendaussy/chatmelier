@@ -340,8 +340,10 @@ class LigneDuQuestionnaire {
     required this.quand,
   });
 
-  /// La note du maître de cave. Sans réponse, pas de note : on n'en invente pas.
-  double? get note => resultat?.noteOutOf10;
+  /// La note du maître de cave. Sans réponse, pas de note : on n'en invente pas. Une
+  /// bouteille défectueuse non plus : c'est la bouteille qu'on a jugée, pas le vin (le
+  /// Bio Tinto oxydé du 22/10 s'affichait « Pas aimé 1,0/10 »).
+  double? get note => defaut != null ? null : resultat?.noteOutOf10;
 
   /// « Dégustation guidée. Arômes : 🍋 Agrumes, 🌸 Floral », dans la langue de l'écran.
   String get notes {
@@ -395,6 +397,33 @@ class LigneDuQuestionnaire {
         ...essentielle(),
         'rating': note == null ? null : (note! / 2.0).clamp(0.0, 5.0),
       };
+}
+
+/// Ce que le questionnaire ajoute à une dégustation déjà au journal — un vin bu dehors, un
+/// verre de la carte : la note, le défaut, les arômes, le plat.
+///
+/// Le 22/10, ces quatre-là restaient en route : « Noter un vin bu dehors » écrivait la ligne
+/// sans note, et le questionnaire, sans fiche de cave, n'y revenait jamais. Vingt et une
+/// dégustations « Non noté » pour deux personnes qui avaient tout rempli.
+Map<String, dynamic> complementDuJournal({
+  required TastingQuestionnaireResult? resultat,
+  String? defaut,
+  String? notesDeja,
+  bool aLAveugle = false,
+}) {
+  final aromes = libellesDesAromes(resultat?.perceivedAromas ?? const <String>{});
+  final notes = [
+    if ((notesDeja ?? '').trim().isNotEmpty) notesDeja!.trim(),
+    if (aromes.isNotEmpty) tr('Arômes : {v1}', 'Aromas: {v1}', {'v1': aromes.join(', ')}),
+  ].join('\n');
+  return {
+    'rating': defaut != null ? null : resultat?.noteOutOf10,
+    'rating_scale': 10,
+    if (defaut != null) 'fault': defaut,
+    if (notes.isNotEmpty) 'tasting_notes': notes,
+    if (resultat?.platAccorde != null) 'food_paired': resultat!.platAccorde,
+    if (aLAveugle) 'is_blind': true,
+  };
 }
 
 /// La sortie de cave et sa dégustation, mises en file quand le réseau a manqué : la

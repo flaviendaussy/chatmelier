@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
+import '../data/notifications_push.dart';
 import '../data/local_notification_service.dart';
 import '../data/notification_preferences_service.dart';
 import '../../../shared/utils/langue.dart';
@@ -44,6 +46,12 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
   }
 
   Future<void> _requestPermission() async {
+    // Déjà refusées : le système ne redemande plus (l'iPhone dès le premier refus), seuls
+    // ses réglages le peuvent. Au retour, NotificationsPush.auRetour() inscrit le téléphone.
+    if (await NotificationsPush.refusees() ?? false) {
+      await Geolocator.openAppSettings();
+      return;
+    }
     final service = ref.read(localNotificationServiceProvider);
     final granted = await service.requestPermissions();
     if (mounted) {
@@ -59,17 +67,38 @@ class _NotificationSettingsSheetState extends ConsumerState<NotificationSettings
     }
   }
 
+  /// Le test dit la vérité : sans permission, il la demande d'abord, et si le téléphone
+  /// la refuse, il dit où la donner. Avant, il annonçait « Regardez en haut de votre écran »
+  /// à Caro, dont le téléphone n'avait jamais permis la moindre notification (22/10).
   Future<void> _sendTest() async {
     final service = ref.read(localNotificationServiceProvider);
-    await service.sendTestNotification();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    var permises = await NotificationsPush.permises() ?? await service.areNotificationsEnabled();
+    if (!permises) permises = await service.requestPermissions();
+    if (!mounted) return;
+    setState(() => _permissionEnabled = permises);
+    final messager = ScaffoldMessenger.of(context);
+    if (!permises) {
+      messager.showSnackBar(
         SnackBar(
-          content: Text(tr('Notification test envoyée ! Regardez en haut de votre écran 🔔', 'Test notification sent! Look at the top of your screen 🔔')),
-          backgroundColor: const Color(0xFF8B1E3F),
+          duration: const Duration(seconds: 8),
+          content: Text(tr('Les notifications de Chatmelier sont bloquées sur ce téléphone : autorisez-les dans ses réglages.',
+              'Chatmelier notifications are blocked on this phone: allow them in its settings.')),
+          action: SnackBarAction(
+            label: tr('Réglages', 'Settings'),
+            onPressed: () => Geolocator.openAppSettings(),
+          ),
         ),
       );
+      return;
     }
+    await service.sendTestNotification();
+    messager.showSnackBar(
+      SnackBar(
+        content: Text(tr('Notification test envoyée : elle doit apparaître en haut de l\'écran.',
+            'Test notification sent: it should appear at the top of the screen.')),
+        backgroundColor: const Color(0xFF8B1E3F),
+      ),
+    );
   }
 
   @override

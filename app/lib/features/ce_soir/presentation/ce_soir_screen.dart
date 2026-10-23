@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../shared/providers/cellar_provider.dart';
 import '../../../shared/utils/langue.dart';
+import '../../../shared/widgets/notification_bell_button.dart';
 import '../../../shared/widgets/onglets.dart';
+import '../../friends/data/friends_repository.dart';
+import '../../friends/domain/user_notification.dart';
 import '../../cellar/presentation/cellar_food_pairing_sheet.dart';
 import '../../journal/presentation/external_tasting_dialog.dart';
 import '../../menu_scan/data/recent_menus_store.dart';
@@ -12,6 +15,7 @@ import '../../menu_scan/domain/carte_du_lieu.dart';
 import '../../menu_scan/domain/menu_wine.dart';
 import '../../menu_scan/presentation/carte_du_lieu_vue.dart';
 import '../../menu_scan/presentation/join_table_sheet.dart';
+import '../../notifications/presentation/noter_une_invitation.dart';
 import '../../prise_en_main/presentation/cibles_du_projecteur.dart';
 
 /// L'onglet « Ce soir » (V2.3 · E1) : ce qu'on fait d'un vin ce soir, au restaurant ou à
@@ -33,11 +37,23 @@ class CeSoirScreen extends ConsumerWidget {
     // Les cartes récentes, pas seulement la dernière : celle d'un restaurant scanné avant
     // un autre restait inaccessible (V2.3 · K6).
     final recentes = ref.watch(recentMenusProvider).valueOrNull ?? const [];
+    // Les vins qu'un ami nous invite à noter, et pas encore notés : en tête de l'écran, pas
+    // seulement dans la boîte (Flavien, 22/10 : « la notif doit être inratable »).
+    final notees = ref.watch(invitationsNoteesProvider).valueOrNull ?? const {};
+    final aNoter = [
+      for (final n in ref.watch(userNotificationsProvider).valueOrNull ?? const <UserNotification>[])
+        if (n.type == 'invitation_a_noter' &&
+            n.data['vin'] is Map &&
+            notees[n.id]?.terminee != true &&
+            DateTime.now().difference(n.createdAt) < const Duration(hours: 18))
+          n,
+    ];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(tr('Ce soir', 'Tonight')),
-        actions: const [BoutonSommelier()],
+        // La cloche de la boîte, ici aussi (Caro, 22/10).
+        actions: const [NotificationBellButton(), BoutonSommelier()],
       ),
       // Une colonne plutôt qu'une liste paresseuse : l'écran est court, et « Me montrer » doit
       // pouvoir éclairer une tuile du bas, qu'une liste ne construit qu'en y arrivant (E6).
@@ -50,38 +66,13 @@ class CeSoirScreen extends ConsumerWidget {
               tr('Au restaurant ou à la maison : choisissons ensemble.', 'Out or at home: let\'s choose together.'),
               style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
-            const SizedBox(height: 16),
-            _Titre(tr('Au restaurant', 'Eating out')),
-            _GrandeAction(
-              key: CiblesDuProjecteur.scannerLaCarte,
-              icone: Icons.document_scanner_outlined,
-              titre: tr('Scanner la carte des vins', 'Scan the wine list'),
-              sousTitre: tr(
-                  'Les vins qui vous iront, et ceux de toute la table', 'The wines that suit you, and the whole table'),
-              couleur: _bordeaux,
-              onTap: () => context.push('/scan/menu'),
-            ),
-            if (recentes.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _CartesRecentes(
-                cartes: recentes.take(RecentMenusStore.maximum).toList(),
-                fond: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
-              ),
+            for (final n in aNoter.take(3)) ...[
+              const SizedBox(height: 10),
+              _InvitationANoter(notification: n),
             ],
-            const SizedBox(height: 8),
-            _Ligne(
-              icone: Icons.near_me_outlined,
-              couleur: Colors.teal.shade700,
-              titre: tr('Les cartes autour de moi', 'Menus around me'),
-              sousTitre: tr('Déjà scannées par d\'autres membres : sans rescanner',
-                  'Already scanned by other members: no rescan needed'),
-              fond: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
-              onTap: () async {
-                final choisie = await CartesAutourDeMoiSheet.show(context);
-                if (choisie != null && context.mounted) await ouvrirLaCarteDuLieu(context, ref, choisie);
-              },
-            ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
+            // Ce qu'on fait le plus souvent d'abord : rejoindre la table, noter le verre bu
+            // (Caro, 22/10 : « la section carte en dessous »).
             Row(
               children: [
                 Expanded(
@@ -107,15 +98,37 @@ class CeSoirScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 22),
-            _Titre(tr('Au bar', 'At the bar')),
+            _Titre(tr('À l\'extérieur', 'Eating out')),
+            _GrandeAction(
+              key: CiblesDuProjecteur.scannerLaCarte,
+              icone: Icons.document_scanner_outlined,
+              titre: tr('Scanner la carte des vins', 'Scan the wine list'),
+              // Une carte ou une ardoise : c'est le même scan (Caro, 22/10 : « enlever la partie
+              // au bar »). On y choisit aussi les verres qu'on goûte.
+              sousTitre: tr('Une carte ou une ardoise : les vins qui vous iront, et les verres à déguster',
+                  'A list or a board: the wines that suit you, and the glasses to taste'),
+              couleur: _bordeaux,
+              onTap: () => context.push('/scan/menu'),
+            ),
+            if (recentes.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _CartesRecentes(
+                cartes: recentes.take(RecentMenusStore.maximum).toList(),
+                fond: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
+              ),
+            ],
+            const SizedBox(height: 8),
             _Ligne(
-              icone: Icons.local_bar_outlined,
-              couleur: const Color(0xFF6A4C93),
-              titre: tr('Scanner l\'ardoise', 'Scan the board'),
-              sousTitre: tr('Les vins au verre, et un parcours qui vous apprend quelque chose',
-                  'Wines by the glass, and a flight that teaches you something'),
-              fond: isDark ? const Color(0xFF241D30) : const Color(0xFFF0EAF7),
-              onTap: () => context.push('/scan/menu?mode=ardoise'),
+              icone: Icons.near_me_outlined,
+              couleur: Colors.teal.shade700,
+              titre: tr('Les cartes autour de moi', 'Menus around me'),
+              sousTitre: tr('Déjà scannées par d\'autres membres : sans rescanner',
+                  'Already scanned by other members: no rescan needed'),
+              fond: isDark ? const Color(0xFF1F2A2A) : const Color(0xFFE8F4F2),
+              onTap: () async {
+                final choisie = await CartesAutourDeMoiSheet.show(context);
+                if (choisie != null && context.mounted) await ouvrirLaCarteDuLieu(context, ref, choisie);
+              },
             ),
             const SizedBox(height: 22),
             _Titre(tr('À la maison', 'At home')),
@@ -162,6 +175,57 @@ class CeSoirScreen extends ConsumerWidget {
       }
     }
     CellarFoodPairingSheet.show(context, bottles: bouteilles, cellarName: nom);
+  }
+}
+
+/// « Caro vous invite à noter l'Ungrafted Muscat » : un geste, et les questions.
+class _InvitationANoter extends StatelessWidget {
+  final UserNotification notification;
+  const _InvitationANoter({required this.notification});
+
+  @override
+  Widget build(BuildContext context) {
+    const bordeaux = Color(0xFF8B1E3F);
+    final vin = notification.data['vin'] as Map;
+    final ami = notification.actorName?.trim();
+    final nomDuVin = '${vin['nom'] ?? ''}${vin['millesime'] != null ? ' ${vin['millesime']}' : ''}';
+    return Material(
+      color: bordeaux,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => noterUneInvitation(context, notification),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              const Icon(Icons.rate_review_outlined, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      (ami == null || ami.isEmpty)
+                          ? tr('Un vin à noter', 'A wine to rate')
+                          : tr('{ami} vous invite à noter', '{ami} invites you to rate', {'ami': ami}),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    Text(nomDuVin, maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12.5)),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                child: Text(tr('Noter', 'Rate'), style: const TextStyle(color: bordeaux, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -212,10 +212,13 @@ BEGIN
   END;
   RESET ROLE;
 
-  -- Plus aucune règle de lecture/listage sur labels ou avatars.
+  -- Plus aucune règle qui laisse lister labels ou avatars chez les autres. La 078 rend à
+  -- chacun la lecture de SES fichiers (le dépôt « upsert » en a besoin) : elle passe par
+  -- photo_a_moi, et n'ouvre rien des autres.
   SELECT count(*) INTO v_n FROM pg_policies
    WHERE schemaname = 'storage' AND tablename = 'objects' AND cmd IN ('SELECT', 'ALL')
-     AND (coalesce(qual, '') ILIKE '%labels%' OR coalesce(qual, '') ILIKE '%avatars%');
+     AND (coalesce(qual, '') ILIKE '%labels%' OR coalesce(qual, '') ILIKE '%avatars%')
+     AND coalesce(qual, '') NOT ILIKE '%photo_a_moi%';
   IF v_n <> 0 THEN RAISE EXCEPTION 'il reste % règle(s) de lecture sur labels/avatars', v_n; END IF;
 
   -- Les gardiens d'accès ont bien un search_path figé.

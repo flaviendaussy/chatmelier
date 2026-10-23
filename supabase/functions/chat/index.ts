@@ -55,6 +55,11 @@ const NIVEAUX_DE_REFLEXION = ['minimal', 'low', 'medium', 'high']
 const MODELES_ESSAYES_AU_PLUS = 3
 const SIX_HEURES = 6 * 3600_000
 let catalogueDesModeles: { quand: number; modeles: string[] } | null = null
+// Le niveau qu'un modèle a accepté, pour un niveau demandé : « modèle|niveau demandé » →
+// niveau servi. Clé sur le modèle seul jusqu'au 23/10 : le premier niveau qui passait
+// restait collé au modèle, quel que soit le réglage — « minimal » réglé dans la console
+// servait « low » tant que l'instance vivait, et une tâche en « low » imposait son niveau aux
+// autres tâches du même modèle (essai en production du 23/10).
 const niveauxRetenus = new Map<string, string | null>()
 const modelesIntrouvables = new Map<string, number>()
 
@@ -164,7 +169,8 @@ async function appelerGemini(
     // Déjà introuvable dans cette instance : le relais, sans rappeler Google.
     if (estIntrouvable(modele)) continue
     appels++
-    let niveau: string | null | undefined = niveauxRetenus.has(modele) ? niveauxRetenus.get(modele)! : reglage.reflexion
+    const demande = `${modele}|${reglage.reflexion ?? 'aucun'}`
+    let niveau: string | null | undefined = niveauxRetenus.has(demande) ? niveauxRetenus.get(demande)! : reglage.reflexion
     while (niveau !== undefined) {
       try {
         const res = await fetch(`${GEMINI_BASE}/v1beta/models/${modele}:generateContent`, {
@@ -182,7 +188,7 @@ async function appelerGemini(
             niveau = undefined
             continue
           }
-          niveauxRetenus.set(modele, niveau)
+          niveauxRetenus.set(demande, niveau)
           const servi = typeof data.modelVersion === 'string' && data.modelVersion
             ? data.modelVersion.replace(/^models\//, '')
             : modele

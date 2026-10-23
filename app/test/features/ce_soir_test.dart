@@ -1,9 +1,14 @@
 import 'dart:convert';
 
 import 'package:chatmelier/features/ce_soir/presentation/ce_soir_screen.dart';
+import 'package:chatmelier/features/friends/data/friends_repository.dart';
+import 'package:chatmelier/features/friends/domain/user_notification.dart';
 import 'package:chatmelier/features/menu_scan/domain/menu_wine.dart';
+import 'package:chatmelier/features/notifications/data/invitations_notees.dart';
+import 'package:chatmelier/features/notifications/presentation/noter_une_invitation.dart';
 import 'package:chatmelier/l10n/app_localizations.dart';
 import 'package:chatmelier/shared/l10n/fallback_localizations_delegates.dart';
+import 'package:chatmelier/shared/widgets/notification_bell_button.dart';
 import 'package:chatmelier/shared/widgets/onglets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -130,21 +135,33 @@ void main() {
     expect((ouverte as ScannedMenu).restaurantName, 'The Kitchin');
   });
 
-  testWidgets('au bar : scanner l\'ardoise ouvre la capture en mode ardoise', (tester) async {
+  testWidgets('22/10 : plus de « Au bar », la table et le vin bu dehors en haut, la cloche, l\'invitation à noter',
+      (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
     SharedPreferences.setMockInitialValues({});
 
-    String? mode;
-    final routeur = GoRouter(routes: [
-      GoRoute(path: '/', builder: (_, __) => const CeSoirScreen()),
-      GoRoute(path: '/scan/menu', builder: (_, state) {
-        mode = state.uri.queryParameters['mode'];
-        return const Scaffold(body: Text('Scanner'));
-      }),
-    ]);
+    final routeur = GoRouter(routes: [GoRoute(path: '/', builder: (_, __) => const CeSoirScreen())]);
     await tester.pumpWidget(ProviderScope(
+      overrides: [
+        userNotificationsProvider.overrideWith((ref) async => [
+              UserNotification(
+                id: 'n1',
+                userId: 'moi',
+                actorName: 'Caro',
+                type: 'invitation_a_noter',
+                title: 'Un vin à noter',
+                body: '',
+                data: const {
+                  'vin': {'nom': 'Ungrafted - Muscat', 'millesime': 2024, 'couleur': 'white'},
+                  'lieu': 'Vagabond',
+                },
+                createdAt: DateTime.now().subtract(const Duration(minutes: 3)),
+              ),
+            ]),
+        invitationsNoteesProvider.overrideWith((ref) async => const {}),
+      ],
       child: MaterialApp.router(
         locale: const Locale('fr'),
         localizationsDelegates: kAppLocalizationsDelegates,
@@ -154,10 +171,48 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('Scanner l\'ardoise'));
-    await tester.tap(find.text('Scanner l\'ardoise'));
+    // Caro : « enlever la partie au bar » ; une ardoise se scanne comme une carte.
+    expect(find.text('AU BAR'), findsNothing);
+    expect(find.text('Scanner l\'ardoise'), findsNothing);
+    // Caro : « la section carte en dessous ».
+    expect(tester.getTopLeft(find.text('Rejoindre une table')).dy,
+        lessThan(tester.getTopLeft(find.text('Scanner la carte des vins')).dy));
+    // Caro : « ajouter la cloche de notification ».
+    expect(find.byType(NotificationBellButton), findsOneWidget);
+    // Flavien : « la notif doit être inratable ».
+    expect(find.text('Caro vous invite à noter'), findsOneWidget);
+    expect(find.text('Ungrafted - Muscat 2024'), findsOneWidget);
+  });
+
+  testWidgets('une invitation déjà notée ne s\'affiche plus en tête', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final routeur = GoRouter(routes: [GoRoute(path: '/', builder: (_, __) => const CeSoirScreen())]);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        userNotificationsProvider.overrideWith((ref) async => [
+              UserNotification(
+                id: 'n1',
+                userId: 'moi',
+                actorName: 'Caro',
+                type: 'invitation_a_noter',
+                title: '',
+                body: '',
+                data: const {'vin': {'nom': 'Rosy'}},
+                createdAt: DateTime.now(),
+              ),
+            ]),
+        invitationsNoteesProvider
+            .overrideWith((ref) async => {'n1': const InvitationNotee(tastingId: 't', note: 4.5, terminee: true)}),
+      ],
+      child: MaterialApp.router(
+        locale: const Locale('fr'),
+        localizationsDelegates: kAppLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: routeur,
+      ),
+    ));
     await tester.pumpAndSettle();
-    expect(mode, 'ardoise');
+    expect(find.text('Caro vous invite à noter'), findsNothing);
   });
 
   test('une ardoise reste une ardoise une fois rangée parmi les cartes récentes', () {

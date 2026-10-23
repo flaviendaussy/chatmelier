@@ -44,12 +44,20 @@ class BouteillesQuiApprendraient extends ConsumerWidget {
   final TasteProfile profil;
   final Color couleur;
 
-  const BouteillesQuiApprendraient({super.key, required this.profil, required this.couleur});
+  /// La famille que montre le radar au-dessus : la liste parle d'elle seule (Flavien,
+  /// 22/10 : « je regarde la spider des blancs mais tu me parles de rouges ici »). Nulle :
+  /// toutes les familles.
+  final String? famille;
+
+  const BouteillesQuiApprendraient({super.key, required this.profil, required this.couleur, this.famille});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bouteilles = ref.watch(bouteillesPourApprendreProvider).valueOrNull ?? const [];
-    final axes = TasteFrontierEngine.parAxe(bouteilles, [profil], profilDe: (b) => ProfilDeVin.depuisLaCave(b.wine!));
+    final axes = [
+      for (final a in TasteFrontierEngine.parAxe(bouteilles, [profil], profilDe: (b) => ProfilDeVin.depuisLaCave(b.wine!)))
+        if (famille == null || a.famille == famille) a,
+    ];
     if (axes.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -67,10 +75,10 @@ class BouteillesQuiApprendraient extends ConsumerWidget {
         children: [
           Text(
             profil.isPrimary
-                ? tr('🧭 Les bouteilles de votre cave qui m\'apprendraient le plus',
-                    '🧭 The bottles in your cellar that would teach me the most')
-                : tr('🧭 Les bouteilles de votre cave qui m\'apprendraient le plus sur {nom}',
-                    '🧭 The bottles in your cellar that would teach me the most about {nom}', {'nom': profil.name}),
+                ? tr('Les bouteilles de votre cave qui m\'apprendraient le plus',
+                    'The bottles in your cellar that would teach me the most')
+                : tr('Les bouteilles de votre cave qui m\'apprendraient le plus sur {nom}',
+                    'The bottles in your cellar that would teach me the most about {nom}', {'nom': profil.name}),
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
           ),
           const SizedBox(height: 4),

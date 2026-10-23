@@ -153,6 +153,10 @@ class SyncService {
             case OfflineActionType.moveBottle:
               await _syncMoveBottle(action);
               break;
+
+            case OfflineActionType.updateTasting:
+              await _syncUpdateTasting(action);
+              break;
           }
 
           await _offlineStorage.updateAction(
@@ -477,6 +481,11 @@ class SyncService {
           'co_tasters': coTasters,
           'location_name': locationName,
           'is_external': true,
+          // La note et le défaut que le questionnaire a ajoutés pendant que la ligne
+          // attendait le réseau (22/10).
+          if (data['rating_scale'] != null) 'rating_scale': data['rating_scale'],
+          if (data['fault'] != null) 'fault': data['fault'],
+          if (data['is_blind'] == true) 'is_blind': true,
           'consumed_at': action.createdAt.toIso8601String(),
         };
         final fallback = <String, dynamic>{
@@ -823,6 +832,13 @@ class SyncService {
         'notes': bottleRes['notes'],
       });
     }
+  }
+
+  Future<void> _syncUpdateTasting(OfflineAction action) async {
+    final updates = Map<String, dynamic>.from(action.data);
+    final id = updates.remove('tasting_id')?.toString();
+    if (id == null || id.isEmpty) return;
+    await _executeResilientUpdate('tasting_log', id, updates);
   }
 
   Future<void> _syncUpdateWine(OfflineAction action) async {

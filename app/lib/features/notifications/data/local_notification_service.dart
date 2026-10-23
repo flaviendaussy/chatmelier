@@ -200,7 +200,17 @@ class LocalNotificationService {
           final enabled = await androidImpl.areNotificationsEnabled();
           return enabled ?? false;
         }
-      } else if (Platform.isIOS || Platform.isMacOS) {
+      } else if (Platform.isIOS) {
+        // On répondait toujours « oui » sur l'iPhone : l'écran des notifications disait
+        // « Autorisation accordée » et cachait « Autoriser ». Caro n'avait aucun moyen de
+        // déclencher la demande d'Apple, et ses Réglages n'avaient même pas de ligne
+        // « Notifications » (23/10) — iOS ne la crée qu'après la première demande.
+        final push = await NotificationsPush.permises();
+        if (push != null) return push;
+        final iosImpl = _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+        final options = await iosImpl?.checkPermissions();
+        return options?.isEnabled ?? false;
+      } else if (Platform.isMacOS) {
         return true;
       }
     } catch (e) {

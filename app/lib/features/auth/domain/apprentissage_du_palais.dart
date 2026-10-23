@@ -112,11 +112,22 @@ class ApprentissageDuPalais {
         if (valeurDuVin == null) continue;
         final decalage = switch (jugement) { 'trop' => -ecartDuJugement, 'pas_assez' => ecartDuJugement, _ => 0.0 };
         final cible = (valeurDuVin + decalage).clamp(0.0, 1.0).toDouble();
+        // « Trop » et « pas assez » ne disent que le côté : la préférence est sous le vin,
+        // ou au-dessus. Un palais déjà de ce côté-là est confirmé, pas tiré vers le vin.
+        // Le 22/10, « trop mou » sur un Muscat faisait baisser la fraîcheur de Flavien
+        // (0,91 → 0,78) et « trop puissant » montait le corps des rouges de Caro.
+        final enPlace = base(axe);
+        final dejaDuBonCote = enPlace != null &&
+            switch (jugement) {
+              'trop' => enPlace <= cible,
+              'pas_assez' => enPlace >= cible,
+              _ => false,
+            };
         changements.add(ChangementDAxe(
           famille: famille,
           axe: axe,
           avant: avant,
-          apres: vers(baseObservee(axe), cible, pas),
+          apres: dejaDuBonCote ? enPlace : vers(baseObservee(axe), cible, pas),
           compte: true,
           motif: 'jugement',
           jugement: jugement,
@@ -150,7 +161,13 @@ class ApprentissageDuPalais {
       }
     }
 
-    if (note <= noteDecevante) changements.addAll(_deception(profil, famille, jugements, mesures, vin, base));
+    // Une déception dont la personne a dit la cause (« trop mou », « trop léger ») est
+    // expliquée : elle n'éloigne pas en plus les axes dont elle n'a rien dit. Le 22/10, le
+    // Muscat « trop mou » de Flavien lui faisait aimer le bois et le sucre.
+    final causeDite = jugements.values.any((s) => s != 'juste');
+    if (note <= noteDecevante && !causeDite) {
+      changements.addAll(_deception(profil, famille, jugements, mesures, vin, base));
+    }
     return changements;
   }
 

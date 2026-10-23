@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
@@ -6,17 +8,22 @@ import '../../../shared/utils/app_logger.dart';
 import '../../../shared/providers/supabase_provider.dart';
 import '../../../shared/providers/cellar_provider.dart';
 import '../../auth/data/taste_profile_service.dart';
+import '../../auth/domain/taste_evidence.dart';
 import '../../auth/domain/taste_profile.dart';
 import '../../friends/data/friends_repository.dart';
 import '../../friends/domain/friend.dart';
 import '../../offline/presentation/sync_provider.dart';
 import 'package:image_picker/image_picker.dart';
+import '../data/degustation_rapide.dart';
+import '../data/format_du_questionnaire.dart';
+import '../../notifications/presentation/notification_pre_permission_dialog.dart';
 import '../data/tasting_ai_assistant_service.dart';
 import '../domain/question_pour_vous.dart';
 import '../domain/questionnaire_de_degustation.dart';
 import '../domain/tasting_questionnaire_result.dart';
 import '../../cellar/domain/wine.dart';
 import '../../sommelier/domain/profil_du_vin.dart';
+import 'widgets/ce_que_ce_verre_a_appris.dart';
 import 'widgets/pour_vous.dart';
 import '../domain/tasting_pedagogy_engine.dart';
 import 'tasting_pedagogy_sheet.dart';
@@ -46,7 +53,10 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
   final String? bottleOwnerId;
   final String? bottleOwnerName;
   final VoidCallback? onFinished;
-  final bool initialIsExpress;
+
+  /// Express (trois questions) ou Sommelier ; nul : le dernier format choisi, retenu d'une
+  /// fois sur l'autre (Caro s'en tient à trois questions, Flavien en veut plus — 22/10).
+  final bool? initialIsExpress;
 
   /// La dégustation est déjà au journal (vin bu dehors) : le questionnaire n'est qu'un
   /// complément, et « Enregistrer sans noter » le referme (V2.4 · R3, Dimitri, 04/10).
@@ -60,6 +70,34 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
 
   /// Le « pour vous » que la Gorgée a déjà demandé (V2.6).
   final Map<String, String>? jugementsDeja;
+
+  /// La ligne de journal déjà écrite (vin bu dehors, verre de la carte, invitation) : le
+  /// questionnaire la complète à la fin — note, défaut, arômes — et ses traces de palais
+  /// portent son identifiant. Le 22/10, sans elle, 21 dégustations sont restées « Non noté ».
+  final String? tastingLogId;
+
+  /// Ce qui était déjà écrit dans la ligne : les arômes s'y ajoutent sans l'écraser.
+  final String? notesDeja;
+
+  /// Le lieu de la dégustation, transmis à l'ami invité à noter.
+  final String? lieu;
+
+  /// L'ami qui a invité à noter ce vin : il note déjà de son côté, on ne lui propose pas de
+  /// l'inviter en retour (Flavien, 22/10).
+  final String? invitePar;
+
+  /// Le départ (qui goûte, format) a déjà été choisi avant : les questions d'emblée, en
+  /// plein écran (Flavien, 22/10 : « mets cette sélection sur l'écran précédent »).
+  final bool demarrerDirectement;
+
+  /// La note donnée (nulle si non notée ou défectueuse), et le défaut s'il y en a un : la
+  /// liste « Mes verres » et la boîte de réception s'en servent.
+  final void Function(double? note, String? defaut)? onNote;
+
+  /// Les cépages qui arrivent pendant qu'on répond (la description d'une étiquette, une
+  /// recherche sur le web) : attendus un instant avant d'apprendre au palais, pour qu'un
+  /// Cinsault ne soit pas appris comme un cabernet de sa région (22/10).
+  final Future<List<String>>? cepagesAVenir;
 
   const TastingQuestionnaireSheet({
     super.key,
@@ -77,12 +115,19 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
     this.bottleOwnerId,
     this.bottleOwnerName,
     this.onFinished,
-    this.initialIsExpress = false,
+    this.initialIsExpress,
     this.dejaAuJournal = false,
     this.racheterDeja,
     this.textureDeja,
     this.fruitDeja,
     this.jugementsDeja,
+    this.tastingLogId,
+    this.notesDeja,
+    this.lieu,
+    this.invitePar,
+    this.demarrerDirectement = false,
+    this.onNote,
+    this.cepagesAVenir,
   });
 
   /// Show the questionnaire as a full-screen modal bottom sheet.
@@ -102,12 +147,19 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
     String? bottleOwnerId,
     String? bottleOwnerName,
     VoidCallback? onFinished,
-    bool initialIsExpress = false,
+    bool? initialIsExpress,
     bool dejaAuJournal = false,
     String? racheterDeja,
     String? textureDeja,
     String? fruitDeja,
     Map<String, String>? jugementsDeja,
+    String? tastingLogId,
+    String? notesDeja,
+    String? lieu,
+    String? invitePar,
+    bool demarrerDirectement = false,
+    void Function(double? note, String? defaut)? onNote,
+    Future<List<String>>? cepagesAVenir,
   }) {
     return showModalBottomSheet<bool>(
       context: context,
@@ -136,6 +188,13 @@ class TastingQuestionnaireSheet extends ConsumerStatefulWidget {
         textureDeja: textureDeja,
         fruitDeja: fruitDeja,
         jugementsDeja: jugementsDeja,
+        tastingLogId: tastingLogId,
+        notesDeja: notesDeja,
+        lieu: lieu,
+        invitePar: invitePar,
+        demarrerDirectement: demarrerDirectement,
+        onNote: onNote,
+        cepagesAVenir: cepagesAVenir,
       ),
     );
   }
@@ -176,7 +235,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   /// Les réponses alimentent le profil AVANT que la ligne de journal ne soit écrite. Sans
   /// un identifiant fixé d'avance, les traces laissées au registre de goût ne pourraient
   /// pas être rattachées à l'entrée du journal — et supprimer celle-ci ne défairait rien.
-  final String _tastingId = const Uuid().v4();
+  late final String _tastingId = widget.tastingLogId ?? const Uuid().v4();
   final Set<String> _syncedFriendNames = {};
 
   /// Les amis qui notent eux-mêmes, sur leur téléphone (V2.4 · R4, #59) : on ne répond plus
@@ -242,6 +301,31 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   );
   late final ProfilDuVin _profilDuVin = ProfilDuVin.deLaCave(_vinDeLaDegustation);
 
+  /// Les cépages pour apprendre : ceux du vin, sinon ceux qui arrivent pendant qu'on répond
+  /// (trois secondes de plus au plus). Les questions, elles, ne changent pas en route.
+  Future<List<String>> _cepagesPourApprendre() async {
+    final connus = [for (final c in widget.wineGrapes ?? const <String>[]) if (c.trim().isNotEmpty) c.trim()];
+    if (connus.isNotEmpty || widget.cepagesAVenir == null) return connus;
+    try {
+      return await widget.cepagesAVenir!.timeout(const Duration(seconds: 3));
+    } catch (_) {
+      return connus;
+    }
+  }
+
+  Wine _vinAvecLesCepages(List<String> cepages) => cepages.isEmpty || (widget.wineGrapes ?? const []).isNotEmpty
+      ? _vinDeLaDegustation
+      : Wine(
+          id: _vinDeLaDegustation.id,
+          name: _vinDeLaDegustation.name,
+          type: _vinDeLaDegustation.type,
+          country: _vinDeLaDegustation.country,
+          region: _vinDeLaDegustation.region,
+          producer: _vinDeLaDegustation.producer,
+          vintage: _vinDeLaDegustation.vintage,
+          grapes: [for (final c in cepages) Grape(name: c)],
+        );
+
   /// Le convive dont c'est le tour.
   TasteProfile get _quiRepond {
     if (_selectedProfiles.isNotEmpty) return _selectedProfiles[_currentProfileIndex.clamp(0, _selectedProfiles.length - 1)];
@@ -258,7 +342,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     return PourVous(
       key: ValueKey('pour_vous_${convive.id}'),
       famille: famille,
-      premier: QuestionPourVous.aDemander(convive, famille, _profilDuVin),
+      ordre: QuestionPourVous.ordre(convive, famille, _profilDuVin,
+          sansBois: QuestionPourVous.sansBoisPour(_vin.couleur)),
       jugements: _r.jugements,
       onJuger: (axe, sens) => setState(() => _r.juger(axe, sens)),
     );
@@ -276,7 +361,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   @override
   void initState() {
     super.initState();
-    _isExpressMode = widget.initialIsExpress;
+    _isExpressMode = widget.initialIsExpress ?? true;
+    if (widget.initialIsExpress == null) {
+      FormatDuQuestionnaire.express().then((e) {
+        if (mounted && !_demarre) setState(() => _isExpressMode = e);
+      });
+    }
     _loadProfiles();
   }
 
@@ -304,7 +394,39 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         _selectedProfiles = merged.where((p) => initialSelected.contains(p.id)).toList();
         _profilesLoaded = true;
       });
+      // Le départ a été choisi avant (le formulaire, « Mes verres », une invitation) : les
+      // questions d'emblée.
+      if (widget.demarrerDirectement && initialSelected.isNotEmpty) _commencer();
     }
+  }
+
+  /// Le départ est passé : qui goûte et comment sont choisis.
+  bool _demarre = false;
+
+  /// Commencer avec les dégustateurs choisis : le premier qui n'a pas fini, avec ses
+  /// réponses déjà données (R3) ; à plusieurs, chacun est annoncé avant ses questions, le
+  /// premier aussi (Caro, 07/10).
+  void _commencer() {
+    _selectedProfiles = _allProfiles.where((p) => _selectedProfileIds.contains(p.id)).toList();
+    if (_selectedProfiles.isEmpty) return;
+    final aFaire = _selectedProfiles.indexWhere((p) => !_completedResults.containsKey(p.id));
+    final suivant = aFaire < 0 ? 0 : aFaire;
+    if (_reponsesDe != _selectedProfiles[suivant].id) _resetAnswers();
+    _reponsesDe = _selectedProfiles[suivant].id;
+    if (widget.initialIsExpress == null) unawaited(FormatDuQuestionnaire.retenir(express: _isExpressMode));
+    _pageController.dispose();
+    setState(() {
+      _demarre = true;
+      _currentStep = 1;
+      _pageController = PageController(initialPage: 1);
+      if (_selectedProfiles.length > 1) {
+        _currentProfileIndex = suivant - 1;
+        _isTransitioningToNextTaster = true;
+      } else {
+        _currentProfileIndex = suivant;
+      }
+    });
+    HapticFeedback.selectionClick();
   }
 
   void _resetAnswers() => _r = ReponsesDuConvive();
@@ -336,6 +458,10 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   /// Les convives dont le palais n'a pas été modifié : bouteille défectueuse (R3).
   final Set<String> _palaisNonModifie = {};
 
+  /// Ce que la dégustation a appris au palais de chacun, axe par axe (les traces du
+  /// registre) : montré à la fin, animé (Flavien, 22/10).
+  final Map<String, List<TasteEvidenceEntry>> _appris = {};
+
   void _nextStep() {
     if (_currentStep < 4) {
       setState(() => _currentStep++);
@@ -353,6 +479,16 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
   bool get _peutRevenir => _currentStep > 1 || (_currentStep == 1 && _currentProfileIndex == 0);
 
   void _prevStep() {
+    // De la première question, on revient au départ (qui goûte, format).
+    if (_currentStep == 1) {
+      _pageController.dispose();
+      setState(() {
+        _demarre = false;
+        _currentStep = 0;
+        _pageController = PageController();
+      });
+      return;
+    }
     if (_currentStep > 0) {
       setState(() => _currentStep--);
       _pageController.animateToPage(
@@ -383,6 +519,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     );
 
     setState(() => _isSaving = true);
+    final cepages = await _cepagesPourApprendre();
     try {
       if (_defaut != null) {
         // Bouteille défectueuse : la dégustation est enregistrée dans le journal — elle a
@@ -393,16 +530,23 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         _palaisNonModifie.add(profile.id);
       } else {
         final service = ref.read(tasteProfileServiceProvider);
+        final debut = DateTime.now();
         await service.applyQuestionnaireResult(
           result: result,
           wineRegion: widget.region,
-          wineGrapes: widget.wineGrapes,
+          wineGrapes: cepages.isEmpty ? widget.wineGrapes : cepages,
           wineType: widget.wineType,
           tastingId: _tastingId,
           wineName: widget.wineName,
-          vin: _vinDeLaDegustation,
+          vin: _vinAvecLesCepages(cepages),
         );
         AppLogger.info('QUESTIONNAIRE', 'Saved answers for ${profile.name}');
+        try {
+          _appris[profile.id] = (await TasteEvidenceLedger.ouvrir())
+              .pourDegustation(_tastingId)
+              .where((e) => e.cible.startsWith('axe:') && !e.quand.isBefore(debut))
+              .toList();
+        } catch (_) {}
       }
     } catch (e) {
       AppLogger.error('QUESTIONNAIRE', 'Error saving answers', e);
@@ -422,7 +566,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               producteur: widget.producer,
               couleur: widget.wineType,
               region: widget.region,
-              cepages: widget.wineGrapes ?? const [],
+              cepages: cepages,
               resultat: result,
               convives: _selectedProfiles.map((p) => p.name).toList(),
               defaut: _defaut,
@@ -569,6 +713,27 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       }
     }
 
+    // 2 bis. La dégustation déjà au journal (vin bu dehors, verre de la carte, invitation) :
+    // le questionnaire la complète — la note, le défaut, les arômes. Le 22/10, faute de cette
+    // étape, vingt et une dégustations sont restées « Non noté ».
+    if (widget.dejaAuJournal && widget.tastingLogId != null && widget.wineId == null) {
+      try {
+        await ref.read(degustationRapideProvider).completer(
+              widget.tastingLogId!,
+              complementDuJournal(
+                resultat: _resultatDuMaitreDeCave(),
+                defaut: _defaut,
+                notesDeja: widget.notesDeja,
+                aLAveugle: _isBlindTasting,
+              ),
+            );
+      } catch (e) {
+        AppLogger.error('QUESTIONNAIRE', 'Dégustation non complétée', e);
+      }
+    }
+    final principal = _resultatDuMaitreDeCave();
+    widget.onNote?.call(_defaut != null ? null : principal?.noteOutOf10, _defaut);
+
     // Generate table conclave summary if multiple tasters
     if (_selectedProfiles.length > 1) {
       try {
@@ -662,6 +827,110 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       );
     }
 
+    // Le départ : qui goûte et comment, avant toute question (Flavien et Caro, 22/10 : « pas
+    // assez clair comment arriver à la dégustation, moins d'options à l'écran initialement »).
+    // Les questions viennent ensuite en plein écran, sous le seul nom du vin.
+    final poignee = Center(
+      child: Container(
+        margin: const EdgeInsets.only(top: 10),
+        width: 40,
+        height: 4,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade400,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+    );
+    final enTete = Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      child: Row(
+        children: [
+          const Icon(Icons.wine_bar, color: Color(0xFF8B1E3F), size: 26),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _isBlindTasting
+                      ? tr('Bouteille mystère ({v1})', 'Mystery bottle ({v1})',
+                          {'v1': _isRed ? l10n.wineTypeRed : (_isWhite ? l10n.wineTypeWhite : l10n.wineTypeRose)})
+                      : '${widget.wineName}$vintageStr',
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                // À plusieurs sur un téléphone : à qui c'est le tour.
+                if (_demarre && _selectedProfiles.length > 1)
+                  Text(
+                    '${l10n.tastingAnswersOf(_profileDisplayName(_selectedProfiles[_currentProfileIndex.clamp(0, _selectedProfiles.length - 1)]))}'
+                    ' (${_currentProfileIndex.clamp(0, _selectedProfiles.length - 1) + 1}/${_selectedProfiles.length})',
+                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFFB8941F)),
+                  ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: l10n.tastingDictateButton,
+            icon: const Icon(Icons.mic, color: Color(0xFF8B1E3F)),
+            onPressed: _showVoiceDictationDialog,
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => _confirmClose(context),
+          ),
+        ],
+      ),
+    );
+
+    if (!_demarre) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.88,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A1520) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          children: [
+            poignee,
+            enTete,
+            Expanded(child: _buildProfileSelector(avant: _choixDuFormat(theme))),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: Row(
+                  children: [
+                    // Pas le temps : la dégustation est déjà au journal, on referme (R3).
+                    if (widget.dejaAuJournal)
+                      TextButton(
+                        onPressed: () {
+                          ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+                            content: Text(tr('Enregistré dans votre journal, sans note : vous pourrez la donner plus tard.',
+                                'Saved to your journal, unrated: you can rate it later.')),
+                          ));
+                          Navigator.of(context).pop(false);
+                        },
+                        child: Text(tr('Enregistrer sans noter', 'Save without rating')),
+                      ),
+                    const Spacer(),
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF8B1E3F),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: _selectedProfileIds.isEmpty ? null : _commencer,
+                      icon: const Icon(Icons.arrow_forward, size: 16),
+                      label: Text(l10n.tastingStartCount(_selectedProfileIds.length)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.88,
       decoration: BoxDecoration(
@@ -670,137 +939,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       ),
       child: Column(
         children: [
-          // Handle bar
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 10),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-
-          // Header: Wine name + profile selector or current profile indicator
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    const Text('🍷', style: TextStyle(fontSize: 28)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.tastingHeaderTitle,
-                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            _isBlindTasting
-                                ? 'Bouteille Mystère 🕵️‍♂️ (Vin ${_isRed ? (l10n.wineTypeRed) : (_isWhite ? (l10n.wineTypeWhite) : (l10n.wineTypeRose))})'
-                                : '${widget.wineName}$vintageStr',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: const Color(0xFF8B1E3F),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: l10n.tastingDictateButton,
-                      icon: const Icon(Icons.mic, color: Color(0xFF8B1E3F)),
-                      onPressed: _showVoiceDictationDialog,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => _confirmClose(context),
-                    ),
-                  ],
-                ),
-
-                // Profile indicator for multi-profile flow
-                if (_selectedProfiles.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.person, size: 16, color: Color(0xFFD4AF37)),
-                          const SizedBox(width: 6),
-                          Text(
-                            l10n.tastingAnswersOf(_profileDisplayName(_selectedProfiles[_currentProfileIndex])) +
-                            (_selectedProfiles.length > 1 ? ' (${_currentProfileIndex + 1}/${_selectedProfiles.length})' : ''),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: Color(0xFFD4AF37),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                // Mode switcher (Express ⚡ vs Sommelier 🎓). Un Wrap, pas une Row : en anglais
-                // les deux pastilles débordaient de 51 px sur un téléphone, en espagnol plus
-                // encore (01/10) ; elles passent sur deux lignes quand il le faut.
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    runSpacing: 6,
-                    children: [
-                      ChoiceChip(
-                        avatar: const Icon(Icons.bolt, size: 14, color: Color(0xFFF59E0B)),
-                        label: Text(l10n.tastingFormatExpress, style: const TextStyle(fontSize: 11.5)),
-                        selected: _isExpressMode,
-                        onSelected: (val) {
-                          if (val) setState(() => _isExpressMode = true);
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      ChoiceChip(
-                        avatar: const Icon(Icons.school, size: 14, color: Color(0xFFD4AF37)),
-                        label: Text(l10n.tastingFormatSommelier, style: const TextStyle(fontSize: 11.5)),
-                        selected: !_isExpressMode,
-                        onSelected: (val) {
-                          if (val) setState(() => _isExpressMode = false);
-                        },
-                      ),
-                      // Pas le temps : la dégustation est déjà au journal, on referme (R3).
-                      if (widget.dejaAuJournal) ...[
-                        const SizedBox(width: 8),
-                        ActionChip(
-                          avatar: const Icon(Icons.check_rounded, size: 14, color: Color(0xFF10B981)),
-                          label: Text(tr('Enregistrer sans noter', 'Save without rating'), style: const TextStyle(fontSize: 11.5)),
-                          onPressed: () {
-                            ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
-                              content: Text(tr('Enregistré dans votre journal, sans note : vous pourrez la donner plus tard.',
-                                  'Saved to your journal, unrated: you can rate it later.')),
-                            ));
-                            Navigator.of(context).pop(false);
-                          },
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+          poignee,
+          enTete,
 
           if (_isExpressMode)
             Expanded(
@@ -811,19 +951,19 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Row(
-                children: List.generate(5, (i) {
+                children: List.generate(4, (i) {
+                  // Les dégustateurs sont choisis au départ : quatre étapes de questions.
                   final labels = [
-                    l10n.tastingStepTasters,
                     l10n.tastingStepNezNav,
                     l10n.tastingStepBoucheNav,
                     l10n.tastingStepVerdictNav,
                     l10n.tastingStepRatingNav,
                   ];
-                  final isActive = i == _currentStep;
-                  final isDone = i < _currentStep;
+                  final isActive = i + 1 == _currentStep;
+                  final isDone = i + 1 < _currentStep;
                   return Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(right: i < 4 ? 4 : 0),
+                      padding: EdgeInsets.only(right: i < 3 ? 4 : 0),
                       child: Column(
                         children: [
                           Container(
@@ -882,41 +1022,6 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                         label: Text(l10n.tastingBack),
                       ),
                     const Spacer(),
-                    if (_currentStep == 0)
-                      FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF8B1E3F),
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: _selectedProfileIds.isEmpty
-                            ? null
-                            : () {
-                                _selectedProfiles = _allProfiles
-                                    .where((p) => _selectedProfileIds.contains(p.id))
-                                    .toList();
-                                // Reprendre au premier convive qui n'a pas fini, avec ses
-                                // réponses déjà données (R3).
-                                final aFaire = _selectedProfiles.indexWhere((p) => !_completedResults.containsKey(p.id));
-                                final suivant = aFaire < 0 ? 0 : aFaire;
-                                if (_reponsesDe != _selectedProfiles[suivant].id) _resetAnswers();
-                                _reponsesDe = _selectedProfiles[suivant].id;
-                                if (_selectedProfiles.length > 1) {
-                                  // À plusieurs, chacun est annoncé avant ses questions, le
-                                  // premier aussi (Caro, 07/10).
-                                  setState(() {
-                                    _currentProfileIndex = suivant - 1;
-                                    _isTransitioningToNextTaster = true;
-                                  });
-                                } else {
-                                  _currentProfileIndex = suivant;
-                                  _nextStep();
-                                }
-                              },
-                        icon: const Icon(Icons.arrow_forward, size: 16),
-                        label: Text(
-                          l10n.tastingStartCount(_selectedProfileIds.length),
-                        ),
-                      ),
                     if (_currentStep > 0 && _currentStep < 4)
                       FilledButton.icon(
                         style: FilledButton.styleFrom(
@@ -973,6 +1078,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
             producteur: widget.producer,
             couleur: widget.wineType,
             region: widget.region,
+            lieu: widget.lieu,
           );
       if (!mounted) return;
       setState(() {
@@ -980,6 +1086,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
         _selectedProfileIds.remove(profile.id);
       });
       AppLogger.info('QUESTIONNAIRE', 'Invitation à noter envoyée à un ami');
+      // L'ami répondra : autant recevoir sa réponse.
+      if (mounted) unawaited(NotificationPrePermissionDialog.auBonMoment(context));
     } catch (e) {
       AppLogger.warning('QUESTIONNAIRE', 'Invitation à noter non envoyée : $e');
       messenger?.showSnackBar(SnackBar(
@@ -1003,25 +1111,83 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
       );
     }
     final enCours = _invitationsEnCours.contains(profile.id);
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: TextButton.icon(
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+    // Un vrai bouton : un lien rouge ne se lisait pas comme tel (Caro, 22/10 : « je ne
+    // comprenais pas que c'était un bouton »).
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: FilledButton.tonalIcon(
+        style: FilledButton.styleFrom(
           visualDensity: VisualDensity.compact,
           foregroundColor: const Color(0xFF8B1E3F),
+          backgroundColor: const Color(0xFF8B1E3F).withValues(alpha: 0.12),
         ),
         onPressed: enCours ? null : () => _inviterANoter(profile),
         icon: enCours
             ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
             : const Icon(Icons.send_to_mobile, size: 16),
-        label: Text(tr('Lui demander de noter sur son téléphone', 'Ask them to rate it on their phone'),
+        label: Text(tr('Inviter {nom} à noter sur son téléphone', 'Invite {nom} to rate it on their phone', {'nom': nom}),
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
       ),
     );
   }
 
-  Widget _buildProfileSelector() {
+  /// Express ou Sommelier, au départ et plus en tête des questions ; retenu d'une fois sur
+  /// l'autre.
+  List<Widget> _choixDuFormat(ThemeData theme) {
+    Widget carte({required bool express, required String titre, required String detail}) {
+      final choisi = _isExpressMode == express;
+      const bordeaux = Color(0xFF8B1E3F);
+      return Expanded(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () {
+            setState(() => _isExpressMode = express);
+            HapticFeedback.selectionClick();
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: choisi ? bordeaux.withValues(alpha: 0.12) : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: choisi ? bordeaux : Colors.grey.withValues(alpha: 0.35), width: choisi ? 1.6 : 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(titre, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: choisi ? bordeaux : null)),
+                const SizedBox(height: 3),
+                Text(detail, style: const TextStyle(fontSize: 11.5, color: Colors.grey, height: 1.25)),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return [
+      Text(tr('Comment le noter ?', 'How to rate it?'), style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          carte(
+            express: true,
+            titre: tr('Express', 'Express'),
+            detail: tr('La note et trois questions. Une minute.', 'Your rating and three questions. One minute.'),
+          ),
+          const SizedBox(width: 10),
+          carte(
+            express: false,
+            titre: tr('Sommelier', 'Sommelier'),
+            detail: tr('Le nez, la bouche, le verdict : de quoi décrire le vin.', 'Nose, palate, verdict: enough to describe the wine.'),
+          ),
+        ],
+      ),
+      const SizedBox(height: 24),
+    ];
+  }
+
+  Widget _buildProfileSelector({List<Widget> avant = const []}) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     if (!_profilesLoaded) {
@@ -1030,6 +1196,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        ...avant,
         Text(
           l10n.tastingWhoTastedTitle,
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -1097,7 +1264,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                   color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Text('🙈', style: TextStyle(fontSize: 20)),
+                child: const Icon(Icons.visibility_off_outlined, size: 20, color: Color(0xFFB8941F)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1230,7 +1397,12 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                                 ),
                             ],
                           ),
-                          if (profile.hasApp && !profile.isPrimary) _ligneDInvitation(profile),
+                          // L'ami qui a invité à noter note déjà de son côté (Flavien, 22/10 :
+                          // « ça ne devrait pas m'être demandé »).
+                          if (profile.hasApp &&
+                              !profile.isPrimary &&
+                              profile.name.toLowerCase() != (widget.invitePar ?? '').toLowerCase())
+                            _ligneDInvitation(profile),
                         ],
                       ),
                     ),
@@ -1554,39 +1726,26 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
-        // V2.6 · P6 : on demande ce que la personne en pense, pas de décrire le vin.
+        // V2.6 · P6 : on demande ce que la personne en pense, pas de décrire le vin. Trois
+        // questions, les plus utiles pour ce vin et ce palais (22/10 : une seule n'en
+        // apprenait pas assez à Flavien, quatre en disaient trop à Caro).
         Text(
-          tr('Une seule question suffit : le reste, le vin le dit de lui-même.',
-              'One question is enough: the wine tells the rest itself.'),
+          tr('Pour vous, ce vin est…', 'For you, this wine is…'),
           style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         if (pourVous != null) pourVous,
-        const SizedBox(height: 12),
-        // Décrire le vin reste possible, replié : un curseur qu'on ne touche pas ne dit rien.
-        // Son propre Material : la page a un fond, qui cacherait l'encre de la tuile.
-        Material(
-          type: MaterialType.transparency,
-          child: Theme(
-            data: theme.copyWith(dividerColor: Colors.transparent),
-            child: ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              childrenPadding: EdgeInsets.zero,
-              expandedAlignment: Alignment.centerLeft,
-              expandedCrossAxisAlignment: CrossAxisAlignment.start,
-              initiallyExpanded: _r.decrits.isNotEmpty,
-              title: Text(tr('Décrire le vin (facultatif)', 'Describe the wine (optional)'),
-                  style: theme.textTheme.titleSmall),
-              subtitle: Text(
-                tr('Pour votre journal : sa vivacité, sa structure, sa longueur.', 'For your journal: its crispness, structure, length.'),
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              children: [
-                ..._curseursDeDescription(l10n, theme.textTheme.titleSmall),
-              ],
-            ),
-          ),
+        const SizedBox(height: 20),
+        // Décrire le vin : toujours là en Sommelier, pas repliable (Flavien, 22/10 : « ça doit
+        // toujours être présent »). Un curseur qu'on ne touche pas ne dit toujours rien.
+        Text(tr('Décrire le vin', 'Describe the wine'), style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          tr('Pour votre journal : sa vivacité, sa structure, sa longueur. Facultatif.',
+              'For your journal: its crispness, structure, length. Optional.'),
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
+        const SizedBox(height: 12),
+        ..._curseursDeDescription(l10n, theme.textTheme.titleSmall),
       ],
     );
   }
@@ -1711,49 +1870,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           const SizedBox(height: 20),
         ],
 
-        // Ideal moment
-        Text(
-          l10n.tastingIdealMoment,
-          style: theme.textTheme.titleSmall,
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _buildChoiceChip(
-              l10n.tastingMomentApero,
-              'apero',
-              _r.moment,
-              (v) => setState(() => _r.moment = _r.moment == v ? null : v),
-            ),
-            _buildChoiceChip(
-              l10n.tastingMomentMeal,
-              'repas',
-              _r.moment,
-              (v) => setState(() => _r.moment = _r.moment == v ? null : v),
-            ),
-            _buildChoiceChip(
-              l10n.tastingMomentDinner,
-              'grand_diner',
-              _r.moment,
-              (v) => setState(() => _r.moment = _r.moment == v ? null : v),
-            ),
-            _buildChoiceChip(
-              l10n.tastingMomentRomantic,
-              'diner_romantique',
-              _r.moment,
-              (v) => setState(() => _r.moment = _r.moment == v ? null : v),
-            ),
-            _buildChoiceChip(
-              l10n.tastingMomentSolo,
-              'solo',
-              _r.moment,
-              (v) => setState(() => _r.moment = _r.moment == v ? null : v),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
+        // « Quel moment idéal pour ce vin ? » retiré : « ça sert à rien, enlève » (Flavien,
+        // 22/10). Le palais ne s'en servait pas.
 
         // Le plat d'abord, puis l'accord : on ne demande pas l'accord avec un plat sans
         // savoir s'il y en avait un (Flavien, 30/09).
@@ -1897,9 +2015,8 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
               shape: BoxShape.circle,
               border: Border.all(color: const Color(0xFFD4AF37), width: 2),
             ),
-            child: const Center(
-              child: Text('🎉', style: TextStyle(fontSize: 38)),
-            ),
+            child: Icon(_defaut != null ? Icons.report_gmailerrorred_rounded : Icons.check_rounded,
+                size: 40, color: _defaut != null ? Colors.orange.shade800 : const Color(0xFFB8941F)),
           ),
         ),
         const SizedBox(height: 16),
@@ -1921,11 +2038,41 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          l10n.tastingCompletedSubtitle,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
-        ),
+        if (_defaut == null)
+          Text(
+            tr('Enregistrée dans votre journal.', 'Saved to your journal.'),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
+          ),
+        // Le défaut, en tête et en grand (Flavien, 22/10 : « ça doit être bien plus visible
+        // que le vin a un défaut ») : il n'était qu'une ligne orange au bas de chaque carte,
+        // sous un « Pas aimé 1,0/10 » qui disait le contraire.
+        if (_defaut != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.orange.shade700, width: 1.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tr('Bouteille défectueuse : {defaut}', 'Faulty bottle: {defaut}', {'defaut': _libelleDuDefaut(_defaut!, l10n)}),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.orange.shade900),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  tr('Elle est dans votre journal, sans note. Votre palais n\'apprend rien d\'une bouteille abîmée : ce n\'est pas le vin que vous avez goûté.',
+                      'It is in your journal, unrated. Your palate learns nothing from a damaged bottle: that is not the wine you tasted.'),
+                  style: const TextStyle(fontSize: 12.5, height: 1.35),
+                ),
+              ],
+            ),
+          ),
+        ],
         if (widget.bottleId != null) ...[
           const SizedBox(height: 10),
           Center(
@@ -1962,10 +2109,6 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           _buildConclaveSummaryCard(l10n),
           const SizedBox(height: 16),
         ],
-
-        // Wine Flavor Origins Section (Cépages, Boisé, Terroir, Âge)
-        _buildFlavorOriginsCard(wineObj, l10n),
-        const SizedBox(height: 16),
 
         // Summary cards for each taster
         ..._selectedProfiles.map((profile) {
@@ -2036,7 +2179,7 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                               personaSubtitle,
                               style: const TextStyle(fontSize: 11, color: Colors.grey),
                             ),
-                            if (res != null) ...[
+                            if (res != null && _defaut == null) ...[
                               const SizedBox(height: 2),
                               Row(
                                 children: [
@@ -2104,54 +2247,28 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
                       ],
                     ),
                   ],
-                  if (report != null) ...[
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.school, size: 16, color: Color(0xFFD4AF37)),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              l10n.tastingAcuityScoreSummary(report.acuityScore, report.sommelierPraise),
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFD4AF37)),
-                            ),
-                          ),
-                        ],
+                  // L'acuité en grand, et ce qu'on a bien, mal ou pas deviné sans avoir à
+                  // ouvrir le débrief (Flavien, 22/10).
+                  if (report != null && _defaut == null) ...[
+                    const SizedBox(height: 12),
+                    _acuite(report),
+                    if (report.comparaisonAromes.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      _debriefDesAromes(report),
+                    ],
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                        onPressed: () => TastingPedagogySheet.show(context, report: report),
+                        child: Text(tr('Le débrief complet du sommelier', 'The sommelier\'s full debrief'),
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF8B1E3F))),
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    InkWell(
-                      onTap: () => TastingPedagogySheet.show(context, report: report),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.auto_stories_outlined, size: 14, color: Color(0xFF8B1E3F)),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                l10n.tastingConsultDebrief,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF8B1E3F),
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                            const Icon(Icons.arrow_forward_ios, size: 10, color: Color(0xFF8B1E3F)),
-                          ],
-                        ),
-                      ),
-                    ),
+                  ],
+                  if (_appris[profile.id] case final traces? when traces.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    CeQueCeVerreAAppris(traces: traces),
                   ],
                   const SizedBox(height: 10),
                   if (_palaisNonModifie.contains(profile.id))
@@ -2204,6 +2321,24 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           );
         }),
 
+        // D'où viennent ses goûts : sur demande, replié (Flavien, 22/10 : « ça peut être
+        // folded, seulement affiché sur requête »).
+        if (TastingPedagogyEngine.analyze(wine: wineObj).flavorOrigins.isNotEmpty)
+          Material(
+            type: MaterialType.transparency,
+            child: Theme(
+              data: theme.copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Text(tr('D\'où viennent ses goûts', 'Where its flavours come from'),
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                subtitle: Text(tr('Les cépages, le terroir, l\'élevage.', 'Grapes, terroir, ageing.'),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                children: [_buildFlavorOriginsCard(wineObj, l10n)],
+              ),
+            ),
+          ),
+
         const SizedBox(height: 24),
         FilledButton.icon(
           style: FilledButton.styleFrom(
@@ -2219,6 +2354,94 @@ class _TastingQuestionnaireSheetState extends ConsumerState<TastingQuestionnaire
           icon: const Icon(Icons.celebration, color: Colors.white),
           label: Text(l10n.tastingFinishButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ),
+      ],
+    );
+  }
+
+  /// Le défaut en mots, sans l'émoticône de sa pastille : c'est une explication (Caro, 22/10).
+  String _libelleDuDefaut(String defaut, AppLocalizations l10n) => switch (defaut) {
+        'cork' => l10n.tastingFaultCorkLabel,
+        'oxidation' => l10n.tastingFaultOxidationLabel,
+        'reduction' => l10n.tastingFaultReductionLabel,
+        _ => tr('défaut', 'fault'),
+      }
+          .replaceFirst(RegExp(r'^[^\p{L}]+', unicode: true), '');
+
+  /// L'acuité sensorielle, en grand (Flavien, 22/10 : « bien plus en valeur que ça »).
+  Widget _acuite(TastingPedagogyReport report) {
+    const or = Color(0xFFB8941F);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: or.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: or.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: report.acuityScore.toDouble()),
+            duration: const Duration(milliseconds: 900),
+            curve: Curves.easeOutCubic,
+            builder: (context, v, _) => Text(
+              '${v.round()} %',
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: or, fontFeatures: [FontFeature.tabularFigures()]),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(tr('Acuité sensorielle', 'Sensory acuity'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(report.sommelierPraise, style: const TextStyle(fontSize: 12, height: 1.3)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Bien vu, à côté, à chercher : la confrontation du nez, sans clic.
+  Widget _debriefDesAromes(TastingPedagogyReport report) {
+    Widget groupe(String titre, Color couleur, VerdictArome verdict) {
+      final aromes = report.comparaisonAromes.where((a) => a.verdict == verdict).toList();
+      if (aromes.isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(titre, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: couleur, letterSpacing: 0.3)),
+            const SizedBox(height: 3),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                for (final a in aromes)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: couleur.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: couleur.withValues(alpha: 0.4)),
+                    ),
+                    child: Text(a.libelle, style: const TextStyle(fontSize: 11.5)),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        groupe(tr('Bien vu', 'Spot on'), const Color(0xFF2E7D32), VerdictArome.bienVu),
+        groupe(tr('À côté', 'Off the mark'), const Color(0xFFB3261E), VerdictArome.aCote),
+        groupe(tr('À chercher la prochaine fois', 'To look for next time'), const Color(0xFFE08B00), VerdictArome.manque),
       ],
     );
   }

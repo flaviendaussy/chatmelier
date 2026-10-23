@@ -175,12 +175,15 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
       // personne ; le journal cite son chemin, pas une adresse : il ne donne accès à rien
       // sans signature. Jamais l'identifiant de la personne dans le message (AppLogger
       // renseigne `user_id` à part).
+      // Gardé sur le téléphone, puis envoyé en arrière-plan : l'écran se ferme tout de
+      // suite, réseau ou pas (Flavien, 22/10 : « fire and forget »).
       final annotatedBytes = await _renderAnnotatedImage();
-      final parti = await RetoursEnAttente.deposer(
+      await RetoursEnAttente.deposer(
         commentaire: comment,
         annotations: _strokes.isNotEmpty,
         capture: annotatedBytes,
         contexte: widget.contexte,
+        attendreLEnvoi: false,
       );
       unawaited(AppLogger.flushToServer());
 
@@ -193,15 +196,13 @@ class _FeedbackAnnotationSheetState extends State<FeedbackAnnotationSheet> {
                 const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(parti
-                      ? (l10n?.feedbackSuccess ?? 'Merci pour votre retour ! 🍷 Le rapport a été transmis.')
-                      : tr('Retour gardé sur le téléphone : il partira avec sa capture dès que le réseau revient.',
-                          'Feedback saved on this phone: it will be sent with its screenshot as soon as you are back online.')),
+                  child: Text(tr('Merci ! Votre retour part avec sa capture, même sans réseau.',
+                      'Thanks! Your feedback is on its way with its screenshot, even offline.')),
                 ),
               ],
             ),
-            backgroundColor: parti ? const Color(0xFF2E7D32) : const Color(0xFF5D4037),
-            duration: const Duration(seconds: 4),
+            backgroundColor: const Color(0xFF2E7D32),
+            duration: const Duration(seconds: 3),
           ),
         );
       }

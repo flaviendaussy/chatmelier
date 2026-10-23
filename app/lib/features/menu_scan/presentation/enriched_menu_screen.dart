@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,6 +12,8 @@ import '../domain/cellar_bridge.dart';
 import '../data/cellar_context_provider.dart';
 import '../data/recent_menus_store.dart';
 import 'fiche_du_vin_de_la_carte.dart';
+import 'mes_verres_sheet.dart';
+import '../data/verres_de_la_soiree_store.dart';
 import 'menu_chat_assistant_sheet.dart';
 import 'menu_matchmaker_sheet.dart';
 import 'menu_photo_capture_screen.dart';
@@ -1131,7 +1134,33 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Les verres choisis, à déguster sans rescanner (22/10).
+            if (ref.watch(verresDeLaSoireeProvider(carteDeLaSoiree(_menu))) case final soiree when soiree.verres.isNotEmpty) ...[
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B1E3F),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  onPressed: () => MesVerresSheet.show(context, carteDeLaSoiree(_menu)),
+                  icon: const Icon(Icons.wine_bar, size: 18),
+                  label: Text(
+                    soiree.notes == 0
+                        ? tr('Mes verres ({n}) · Déguster', 'My glasses ({n}) · Taste', {'n': soiree.verres.length})
+                        : tr('Mes verres · {notes} notés sur {n}', 'My glasses · {notes} of {n} rated',
+                            {'notes': soiree.notes, 'n': soiree.verres.length}),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            Row(
           children: [
             // Chat Sommelier Button
             Expanded(
@@ -1210,6 +1239,31 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
             ),
           ],
         ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Le verre de chaque vin : « je le goûte ce soir » (Flavien, 22/10). Plein quand il est
+  /// dans « Mes verres », d'où on le déguste sans photographier l'étiquette.
+  Widget _boutonVerre(MenuWine wine) {
+    final carte = carteDeLaSoiree(_menu);
+    final pris = ref.watch(verresDeLaSoireeProvider(carte)).contient(wine.id);
+    // Aussi bas que la case du comparatif : la vue compacte reste dense (un IconButton
+    // réserve 48 px de haut et repoussait les vins suivants hors de l'écran).
+    return Tooltip(
+      message: pris ? tr('Retirer de mes verres', 'Remove from my glasses') : tr('Je le goûte', 'I\'m tasting it'),
+      child: InkResponse(
+        radius: 20,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          ref.read(verresDeLaSoireeProvider(carte).notifier).basculer(wine);
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(left: 8, right: 2),
+          child: Icon(pris ? Icons.wine_bar : Icons.wine_bar_outlined, size: 21, color: const Color(0xFF8B1E3F)),
+        ),
       ),
     );
   }
@@ -1236,6 +1290,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
         },
         selectionne: _selectedWineIds.contains(wine.id),
         onComparer: (retenu) => setState(() => retenu ? _selectedWineIds.add(wine.id) : _selectedWineIds.remove(wine.id)),
+        carte: carteDeLaSoiree(_menu),
       );
 
   Widget _buildCompactWineCard(
@@ -1378,6 +1433,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                         color: Color(0xFF8B1E3F),
                       ),
                     ),
+                  _boutonVerre(wine),
                 ],
               ),
 
@@ -1708,6 +1764,7 @@ class _EnrichedMenuScreenState extends ConsumerState<EnrichedMenuScreen> {
                       ],
                     ],
                   ),
+                  _boutonVerre(wine),
                 ],
               ),
 

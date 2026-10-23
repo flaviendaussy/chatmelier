@@ -1,5 +1,6 @@
 import '../../../shared/utils/sans_accents.dart';
 import '../../auth/domain/wine_taste_radar.dart';
+import '../../cellar/domain/vins_connus/vins_connus.dart';
 import '../../cellar/domain/wine.dart';
 import '../../cellar/domain/wine_world/wine_world.dart';
 import '../../journal/domain/questionnaire_de_degustation.dart';
@@ -25,30 +26,79 @@ class ProfilDuVinDeCave {
     // 1. Les cépages : ceux de la fiche, sinon ceux de l'appellation — de la couleur du
     // vin seulement : la Côte de Beaune plante pinot noir et chardonnay, un Meursault
     // n'est pas fait de pinot.
+    final deLaCouleur = switch (couleur) {
+      'red' || 'rose' => const [_rouges],
+      'white' || 'dessert' => const [_blancs],
+      _ => const <Map<String, Map<String, double>>>[],
+    };
+    // Le cépage écrit dans le nom passe avant ceux de la région : « Ungrafted Cinsault » de
+    // la Maipo n'est pas un cabernet, ni « Finca Notables Tannat » un malbec de Salta. Le
+    // 22/10, un vin bu dehors arrivait sans cépages, et le Cinsault était lu tannique à
+    // 0,83 et boisé à 0,67.
+    final nomNormalise = ' ${_norm('${wine.name} ${wine.cuveeParcel ?? ''}')} ';
+    final dansLeNom = [
+      for (final t in deLaCouleur)
+        for (final c in t.keys)
+          if (!_lieuxPlutotQueCepages.contains(c) && nomNormalise.contains(' $c ')) c,
+    ];
     final deLaFiche = [for (final g in wine.grapes) _norm(g.name)].where((c) => c.isNotEmpty).toList();
+    // La base des vins connus (23/10) : la cuvée d'abord quand elle fixe ses cépages
+    // (Château Margaux, Gran Reserva 904, Koonunga Hill), puis le cépage du nom, puis
+    // l'encépagement de l'appellation pour la couleur du vin, et la région en dernier.
+    // Ses listes vont du dominant au moindre.
+    final connu = deLaFiche.isNotEmpty
+        ? null
+        : VinsConnus.trouver(
+            nom: wine.name,
+            producteur: wine.producer,
+            cuvee: wine.cuveeParcel,
+            appellation: wine.appellation,
+            region: wine.region,
+            pays: wine.country,
+            type: wine.type,
+          );
+    final deLaCuvee = connu != null && connu.cepagesDeLaCuvee ? [for (final c in connu.cepages) _norm(c)] : const <String>[];
+    final deLaBase = deLaFiche.isNotEmpty || deLaCuvee.isNotEmpty || dansLeNom.isNotEmpty
+        ? const <String>[]
+        : [
+            for (final c in connu?.cepages ??
+                VinsConnus.cepagesPour(
+                    nom: wine.name, appellation: wine.appellation, region: wine.region, pays: wine.country, type: wine.type))
+              _norm(c),
+          ];
     final cepages = deLaFiche.isNotEmpty
         ? deLaFiche
-        : (WineWorld.region(pays: wine.country, region: wine.region, appellation: appellation)?.cepages ??
-                const <String>[])
-            .map(_norm)
-            .toList();
+        : deLaCuvee.isNotEmpty
+            ? deLaCuvee
+            : dansLeNom.isNotEmpty
+                ? dansLeNom
+                : deLaBase.isNotEmpty
+                    ? deLaBase
+                    : (WineWorld.region(pays: wine.country, region: wine.region, appellation: appellation)?.cepages ??
+                            const <String>[])
+                        .map(_norm)
+                        .toList();
+    // Les cépages d'une cuvée connue se lisent d'abord dans la table de sa couleur : le
+    // grenache blanc d'un Châteauneuf blanc n'est pas le grenache d'un rouge.
     final tables = deLaFiche.isNotEmpty
         ? const [_rouges, _blancs]
-        : switch (couleur) {
-            'red' || 'rose' => const [_rouges],
-            'white' || 'dessert' => const [_blancs],
-            _ => const <Map<String, Map<String, double>>>[],
-          };
+        : deLaCuvee.isNotEmpty
+            ? (couleur == 'red' || couleur == 'rose' ? const [_rouges, _blancs] : const [_blancs, _rouges])
+            : deLaCouleur;
     final connus = [
       for (final c in cepages)
         if ([for (final t in tables) ...t.entries].where((e) => c.contains(e.key)).firstOrNull case final e?) e.value,
     ];
     if (connus.isNotEmpty) {
       // Un assemblage pèse chaque cépage à parts égales : sans les proportions, on ne
-      // prétend pas savoir lequel domine.
-      final poids = 1 / connus.length;
-      for (final d in connus) {
-        p.ajouter(d, poids);
+      // prétend pas savoir lequel domine. Les listes de la base, elles, vont du dominant
+      // au moindre : le premier pèse le plus (1, 1/2, 1/3…), et le petit verdot d'un
+      // Château Margaux ne compte plus autant que son cabernet.
+      final ordonnes = deLaFiche.isEmpty && (deLaCuvee.isNotEmpty || deLaBase.isNotEmpty);
+      final rangs = [for (var i = 0; i < connus.length; i++) ordonnes ? 1 / (i + 1) : 1.0];
+      final total = rangs.fold(0.0, (s, r) => s + r);
+      for (var i = 0; i < connus.length; i++) {
+        p.ajouter(connus[i], rangs[i] / total);
       }
     }
 
@@ -149,6 +199,10 @@ class ProfilDuVinDeCave {
   }
 
   static String _norm(String s) => sansAccents(s).replaceAll('-', ' ');
+
+  /// Des cépages qui sont aussi des lieux : dans un nom, « Vino Nobile di Montepulciano »
+  /// est un sangiovese, et « país » se lit sur bien des étiquettes qui n'en contiennent pas.
+  static const _lieuxPlutotQueCepages = {'montepulciano', 'pais'};
   static double _max(double a, double b) => a > b ? a : b;
   static double _min(double a, double b) => a < b ? a : b;
 
@@ -177,17 +231,66 @@ class ProfilDuVinDeCave {
     'cinsault': {'tannin': -1.5, 'freshFruit': 1.5, 'body': -1.0},
     'zinfandel': {'ripeFruit': 2.5, 'body': 1.5, 'spice': 1.0},
     'primitivo': {'ripeFruit': 2.5, 'body': 1.5, 'spice': 1.0},
+    // Les cépages que la base des vins connus apporte (23/10).
+    'tinta roriz': {'tannin': 0.8, 'body': 0.5, 'ripeFruit': 0.5, 'spice': 0.5},
+    'aragonez': {'tannin': 0.8, 'body': 0.5, 'ripeFruit': 0.5, 'spice': 0.5},
+    'tinta de toro': {'tannin': 1.5, 'body': 1.5, 'ripeFruit': 1.0},
+    'touriga': {'tannin': 1.5, 'body': 1.5, 'ripeFruit': 1.0, 'spice': 0.5},
+    'aglianico': {'tannin': 2.5, 'acidity': 1.5, 'body': 1.0},
+    'sagrantino': {'tannin': 3.0, 'body': 1.5},
+    'nero d avola': {'ripeFruit': 1.5, 'body': 1.0, 'tannin': 0.5},
+    'nerello': {'acidity': 1.5, 'tannin': 1.0, 'freshFruit': 1.0, 'body': -0.5, 'minerality': 1.0},
+    'frappato': {'tannin': -2.0, 'freshFruit': 2.5, 'body': -1.5},
+    'montepulciano': {'ripeFruit': 1.0, 'tannin': 1.0, 'body': 1.0},
+    'corvina': {'acidity': 1.0, 'freshFruit': 1.5, 'tannin': -0.5, 'body': -0.5},
+    'barbera': {'acidity': 2.0, 'tannin': -1.0, 'freshFruit': 1.0},
+    'dolcetto': {'tannin': 0.3, 'freshFruit': 1.0, 'acidity': -0.5},
+    'mencia': {'freshFruit': 1.5, 'acidity': 0.5, 'tannin': -0.3},
+    'blaufrankisch': {'acidity': 1.5, 'spice': 1.5, 'freshFruit': 1.0},
+    'kekfrankos': {'acidity': 1.5, 'spice': 1.5, 'freshFruit': 1.0},
+    'zweigelt': {'tannin': -1.0, 'freshFruit': 2.0, 'body': -0.5},
+    'saperavi': {'tannin': 1.5, 'acidity': 1.5, 'body': 1.0, 'ripeFruit': 1.0},
+    'pinotage': {'ripeFruit': 1.5, 'body': 1.0, 'tannin': 0.5, 'spice': 0.5},
+    'carmenere': {'spice': 1.5, 'ripeFruit': 1.0, 'tannin': 0.5},
+    'petit verdot': {'tannin': 2.0, 'body': 1.5, 'spice': 1.0},
+    'petite sirah': {'tannin': 2.5, 'body': 2.0, 'ripeFruit': 1.0},
+    'xinomavro': {'tannin': 2.5, 'acidity': 2.0, 'freshFruit': 0.5},
+    'agiorgitiko': {'ripeFruit': 1.5, 'tannin': 0.3},
+    'baga': {'tannin': 2.5, 'acidity': 2.0},
+    'alicante bouschet': {'tannin': 1.5, 'body': 1.5, 'ripeFruit': 1.0},
+    'trincadeira': {'acidity': 1.0, 'spice': 1.0, 'freshFruit': 0.5},
+    'castelao': {'freshFruit': 1.0, 'ripeFruit': 0.5},
+    'trousseau': {'tannin': -1.0, 'freshFruit': 1.5, 'body': -0.5, 'acidity': 0.5},
+    'poulsard': {'tannin': -2.5, 'freshFruit': 2.0, 'body': -2.0, 'acidity': 0.5},
+    'mondeuse': {'spice': 2.0, 'acidity': 1.0, 'freshFruit': 1.0},
+    'negrette': {'freshFruit': 1.0, 'spice': 1.0, 'tannin': -0.5},
+    'teroldego': {'ripeFruit': 1.0, 'acidity': 1.0},
+    'lagrein': {'tannin': 1.0, 'body': 1.0, 'ripeFruit': 1.0},
+    'schiava': {'tannin': -2.0, 'body': -1.5, 'freshFruit': 1.5},
+    'nielluccio': {'acidity': 1.5, 'tannin': 1.0, 'freshFruit': 1.0},
+    'sciaccarellu': {'tannin': -1.0, 'spice': 1.5, 'freshFruit': 1.0, 'body': -0.5},
+    'cannonau': {'ripeFruit': 1.5, 'body': 1.0, 'spice': 1.5, 'tannin': -0.5, 'acidity': -0.5},
+    'graciano': {'acidity': 1.0, 'tannin': 1.0, 'spice': 0.5},
+    'mazuelo': {'tannin': 1.0, 'spice': 1.0, 'acidity': 0.5},
+    'bobal': {'tannin': 1.0, 'freshFruit': 1.0, 'acidity': 0.5},
+    'listan negro': {'tannin': -0.5, 'spice': 1.0, 'freshFruit': 1.0, 'minerality': 1.0},
+    'pais': {'tannin': -0.5, 'freshFruit': 1.0, 'body': -1.0},
   };
 
   static const Map<String, Map<String, double>> _blancs = {
     'chardonnay': {'body': 1.0, 'ripeFruit': 0.5, 'acidity': -0.5},
     'sauvignon': {'acidity': 1.5, 'freshFruit': 1.0, 'minerality': 1.5},
-    'riesling': {'acidity': 2.0, 'minerality': 2.0, 'freshFruit': 1.0},
+    // Les cépages aromatiques se vinifient presque toujours sans bois : leur boisé descend
+    // sous celui d'un blanc quelconque (un Riesling de Moselle lu boisé à 0,35, 22/10).
+    'riesling': {'acidity': 2.0, 'minerality': 2.0, 'freshFruit': 1.0, 'oak': -2.5},
     'chenin': {'acidity': 1.5, 'minerality': 1.0, 'ripeFruit': 0.5},
     'viognier': {'body': 1.5, 'ripeFruit': 2.0, 'acidity': -1.5},
-    'gewurztraminer': {'ripeFruit': 2.0, 'spice': 3.0, 'acidity': -2.0, 'body': 1.0},
-    'albarino': {'acidity': 1.5, 'minerality': 1.5, 'freshFruit': 1.0},
-    'alvarinho': {'acidity': 1.5, 'minerality': 1.5, 'freshFruit': 1.0},
+    'gewurztraminer': {'ripeFruit': 2.0, 'spice': 3.0, 'acidity': -2.0, 'body': 1.0, 'oak': -2.5},
+    'muscat': {'ripeFruit': 2.0, 'acidity': -2.0, 'oak': -2.5},
+    'moscatel': {'ripeFruit': 2.0, 'acidity': -2.0, 'oak': -2.5},
+    'moscato': {'ripeFruit': 2.0, 'acidity': -2.0, 'oak': -2.5, 'body': -1.0},
+    'albarino': {'acidity': 1.5, 'minerality': 1.5, 'freshFruit': 1.0, 'oak': -2.0},
+    'alvarinho': {'acidity': 1.5, 'minerality': 1.5, 'freshFruit': 1.0, 'oak': -2.0},
     'melon': {'acidity': 1.5, 'minerality': 2.0, 'body': -1.0},
     'marsanne': {'body': 1.5, 'ripeFruit': 1.0, 'acidity': -1.0},
     'roussanne': {'body': 1.5, 'ripeFruit': 1.0, 'acidity': -1.0},
@@ -196,6 +299,54 @@ class ProfilDuVinDeCave {
     'pinot gris': {'body': 1.0, 'ripeFruit': 1.0, 'acidity': -0.5},
     'savagnin': {'acidity': 1.0, 'minerality': 1.0, 'spice': 0.5},
     'assyrtiko': {'acidity': 2.0, 'minerality': 2.5},
+    // Les cépages que la base des vins connus apporte (23/10).
+    'grenache blanc': {'body': 1.0, 'ripeFruit': 0.5, 'acidity': -1.0},
+    'garnacha blanca': {'body': 1.0, 'ripeFruit': 0.5, 'acidity': -1.0},
+    'pinot blanc': {'body': 0.5, 'acidity': -0.5},
+    'chasselas': {'acidity': -1.0, 'body': -1.0, 'minerality': 1.0, 'oak': -2.0},
+    'petite arvine': {'acidity': 1.5, 'minerality': 1.5, 'ripeFruit': 0.5},
+    'vermentino': {'acidity': 0.5, 'freshFruit': 1.0, 'minerality': 1.0},
+    'rolle': {'acidity': 0.5, 'freshFruit': 1.0, 'minerality': 1.0},
+    'garganega': {'minerality': 1.0, 'freshFruit': 0.5},
+    'verdejo': {'acidity': 1.0, 'freshFruit': 1.0},
+    'godello': {'body': 0.5, 'minerality': 1.0},
+    'furmint': {'acidity': 2.0, 'minerality': 1.5},
+    'aligote': {'acidity': 2.0, 'body': -1.0},
+    'palomino': {'body': -0.5, 'acidity': -1.0, 'minerality': 1.5},
+    'torrontes': {'ripeFruit': 1.5, 'acidity': -1.0, 'oak': -2.0},
+    'ugni': {'acidity': 1.0, 'body': -1.0},
+    'trebbiano': {'acidity': 1.0, 'body': -1.0},
+    'clairette': {'body': 0.5, 'acidity': -0.5},
+    'picpoul': {'acidity': 2.0, 'minerality': 1.0},
+    'arneis': {'ripeFruit': 0.5, 'acidity': -0.5},
+    'cortese': {'acidity': 1.0, 'minerality': 0.5},
+    'fiano': {'body': 1.0, 'ripeFruit': 0.5},
+    'greco': {'acidity': 1.0, 'minerality': 1.0},
+    'carricante': {'acidity': 2.0, 'minerality': 2.0},
+    'verdicchio': {'acidity': 1.5, 'minerality': 1.0},
+    'friulano': {'body': 0.5},
+    'ribolla': {'acidity': 1.0, 'minerality': 0.5},
+    'viura': {'acidity': 0.5},
+    'macab': {'acidity': 0.5},
+    'xarel': {'acidity': 0.5, 'body': 0.5},
+    'encruzado': {'body': 1.0, 'minerality': 1.0},
+    'arinto': {'acidity': 2.0, 'minerality': 1.0},
+    'loureiro': {'acidity': 1.0, 'freshFruit': 1.0, 'body': -1.0},
+    'silvaner': {'minerality': 1.0, 'acidity': 0.5, 'body': -0.5},
+    'sylvaner': {'minerality': 1.0, 'acidity': 0.5, 'body': -0.5},
+    'muller thurgau': {'body': -1.0, 'acidity': -0.5},
+    'jacquere': {'acidity': 1.0, 'body': -1.5},
+    'altesse': {'acidity': 1.0, 'minerality': 1.0},
+    'petit manseng': {'acidity': 2.0, 'ripeFruit': 1.5, 'body': 1.0},
+    'gros manseng': {'acidity': 1.5, 'ripeFruit': 1.0},
+    'malvasia': {'ripeFruit': 1.5, 'body': 0.5, 'acidity': -0.5},
+    'rkatsiteli': {'acidity': 1.5},
+    'romorantin': {'acidity': 2.0, 'minerality': 1.0},
+    'zibibbo': {'ripeFruit': 2.0, 'acidity': -2.0, 'oak': -2.5},
+    'grillo': {'acidity': 0.5, 'freshFruit': 1.0},
+    'pecorino': {'acidity': 1.0, 'minerality': 1.0},
+    'glera': {'freshFruit': 1.0, 'body': -1.0},
+    'bacchus': {'acidity': 1.0, 'freshFruit': 1.5},
   };
 
   /// Les lieux qui disent plus que leur cépage.

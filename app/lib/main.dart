@@ -1,4 +1,5 @@
 import 'features/feedback/data/retours_en_attente.dart';
+import 'features/notifications/data/notifications_push.dart';
 import 'shared/services/croissance.dart';
 import 'dart:async';
 
@@ -90,7 +91,12 @@ void main() async {
   // Les retours « secouer pour commenter » restés sans réseau, capture comprise (16/10) :
   // au lancement, et chaque fois que l'app revient au premier plan.
   unawaited(RetoursEnAttente.envoyer());
-  _auPremierPlan = AppLifecycleListener(onResume: () => unawaited(RetoursEnAttente.envoyer()));
+  // Au retour, aussi : une permission de notifications donnée entre-temps dans les réglages
+  // du téléphone inscrit celui-ci aux push sans attendre un redémarrage.
+  _auPremierPlan = AppLifecycleListener(onResume: () {
+    unawaited(RetoursEnAttente.envoyer());
+    unawaited(NotificationsPush.auRetour());
+  });
   unawaited(MesureDesPubs.envoyerEnAttente());
   // Ce que l'IA offre chaque jour et ce qu'une vidéo débloque (modèle économique, 87).
   unawaited(ReglagesDeLaPub.charger(Supabase.instance.client));

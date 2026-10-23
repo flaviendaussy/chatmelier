@@ -63,6 +63,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   bool _isSaving = false;
   bool _isAnalyzing = false;
   ScanResult? _scanResult;
+
+  /// La description de l'étiquette (notes, cépages, garde) arrive après sa lecture (23/10) :
+  /// l'enregistrement l'attend un instant si elle est encore en route.
+  Completer<void>? _descriptionEnRoute;
   String? _analysisError;
 
   /// Le vin cherché sur le web quand l'étiquette ne suffit pas (17/10).
@@ -239,42 +243,51 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     try {
       final scanService = ScanService(ref.read(supabaseProvider));
       final currentLang = Localizations.localeOf(context).languageCode;
+      // En deux temps (23/10) : le formulaire se remplit dès que l'étiquette est lue (cinq
+      // secondes), et les questions (millésime, carton, doublon) partent aussitôt ; la
+      // description arrive pendant qu'on y répond.
+      var luDabord = false;
+      final description = Completer<void>();
+      _descriptionEnRoute = description;
       final result = await scanService.analyzeBottleImage(
         imagePath: widget.imagePath,
         imageBytes: widget.imageBytes,
         languageCode: currentLang,
+        onLecture: (lu) {
+          if (!mounted) return;
+          luDabord = true;
+          setState(() {
+            _remplirDepuis(lu);
+            _isAnalyzing = false;
+          });
+          if (runPrompts) unawaited(_runPostAnalysisPrompts(lu));
+        },
       );
-      
+      if (!description.isCompleted) description.complete();
+
       if (mounted) {
         setState(() {
-          _scanResult = result;
-          _nameCtrl.text = result.name;
-          _producerCtrl.text = result.producer ?? '';
-          _vintageCtrl.text = result.vintage != null ? '${result.vintage}' : '';
-          _wineType = _normalizeWineType(result.wineType);
-          _countryCtrl.text = result.country;
-          _regionCtrl.text = result.region;
-          _appellationCtrl.text = result.appellation ?? '';
-          if (result.alcoholPct != null) {
-            _alcoholPctCtrl.text = result.alcoholPct!.toStringAsFixed(result.alcoholPct! % 1 == 0 ? 0 : 1);
+          // Lu d'abord : la personne a pu corriger le formulaire ; seule la fiche (notes,
+          // cépages, garde) change.
+          if (luDabord) {
+            _scanResult = result;
+          } else {
+            _remplirDepuis(result);
           }
-          // Note: result.tastingNotes is an enological property of the wine, stored on Wine,
-          // not user's personal bottle notes (_notesCtrl.text remains clean for user input).
-          // Le prix d'achat n'est pas la valeur de marché : on ne le préremplit plus avec
-          // une estimation (30/09). La personne saisit ce qu'elle a payé.
-          _rechercheWeb = _RechercheWeb.aucune;
         });
 
         // Un vin que l'étiquette ne suffit pas à trouver : on le cherche sur le web pendant
         // que la personne confirme le millésime (« quand je vais sur Google, je le trouve !! »).
         if (CompletionParLeWeb.aCompleter(result)) unawaited(_chercherSurLeWeb());
 
-        if (runPrompts) {
+        if (runPrompts && !luDabord) {
           await _runPostAnalysisPrompts(result);
         }
       }
       return result;
     } catch (e, stack) {
+      final enRoute = _descriptionEnRoute;
+      if (enRoute != null && !enRoute.isCompleted) enRoute.complete();
       AppLogger.error('REVIEW_SCREEN', 'Image scan failed', e, stack);
       if (mounted) {
         setState(() {
@@ -287,6 +300,25 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         setState(() => _isAnalyzing = false);
       }
     }
+  }
+
+  void _remplirDepuis(ScanResult result) {
+    _scanResult = result;
+    _nameCtrl.text = result.name;
+    _producerCtrl.text = result.producer ?? '';
+    _vintageCtrl.text = result.vintage != null ? '${result.vintage}' : '';
+    _wineType = _normalizeWineType(result.wineType);
+    _countryCtrl.text = result.country;
+    _regionCtrl.text = result.region;
+    _appellationCtrl.text = result.appellation ?? '';
+    if (result.alcoholPct != null) {
+      _alcoholPctCtrl.text = result.alcoholPct!.toStringAsFixed(result.alcoholPct! % 1 == 0 ? 0 : 1);
+    }
+    // Note: result.tastingNotes is an enological property of the wine, stored on Wine,
+    // not user's personal bottle notes (_notesCtrl.text remains clean for user input).
+    // Le prix d'achat n'est pas la valeur de marché : on ne le préremplit plus avec
+    // une estimation (30/09). La personne saisit ce qu'elle a payé.
+    _rechercheWeb = _RechercheWeb.aucune;
   }
 
   /// Ce que la fiche dit en ce moment : la lecture de l'étiquette, corrigée par la personne.
@@ -777,6 +809,15 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
+    // La description de l'étiquette encore en route : on l'attend un instant, pour que la
+    // bouteille entre en cave avec ses cépages et sa garde.
+    final enRoute = _descriptionEnRoute;
+    if (enRoute != null && !enRoute.isCompleted) {
+      try {
+        await enRoute.future.timeout(const Duration(seconds: 12));
+      } catch (_) {}
+    }
+    if (!mounted) return;
     // Le conteneur survit à l'écran, pas `ref` : voir l'invalidation en fin d'enregistrement.
     final conteneur = ProviderScope.containerOf(context, listen: false);
 

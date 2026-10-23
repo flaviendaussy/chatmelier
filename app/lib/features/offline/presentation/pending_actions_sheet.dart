@@ -43,6 +43,8 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
         return trSi(isFr, 'Modification cave', 'Edit cellar');
       case OfflineActionType.moveBottle:
         return trSi(isFr, 'Déplacement de cave', 'Move bottle');
+      case OfflineActionType.updateTasting:
+        return trSi(isFr, 'Note d\'une dégustation', 'Tasting rating');
     }
   }
 
@@ -62,6 +64,8 @@ class _PendingActionsSheetState extends ConsumerState<PendingActionsSheet> {
         return Icons.home_work_outlined;
       case OfflineActionType.moveBottle:
         return Icons.move_to_inbox_outlined;
+      case OfflineActionType.updateTasting:
+        return Icons.star_outline;
     }
   }
 

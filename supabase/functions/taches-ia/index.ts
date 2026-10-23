@@ -42,6 +42,11 @@ const REGLAGES: Record<string, Reglage> = {
   traduire_fiche: { modele: 'flash-lite', reflexion: 'minimal' },
   // Le récit d'un vin, à la demande, avec des faits trouvés par la recherche (V2.4 · R8).
   recit_source: { modele: 'flash', reflexion: 'low' },
+  // Les cépages d'un vin inconnu, cherchés sur le web et gardés pour tous (080, 23/10).
+  // « medium » : essai en production du 23/10 (enrichir_fiche, cinq vins de la soirée du
+  // Vagabond, recherche permise) — en « low », 0 recherche sur 5, des cépages devinés de la
+  // région (Baga dans un Alentejo) ; en « medium », 2 sur 4.
+  cepages: { modele: 'flash', reflexion: 'medium' },
 }
 
 // Le quota de chaque tâche (consommer_quota_ia) : l'import d'une grande cave compte à part.
@@ -50,6 +55,7 @@ const QUOTAS: Record<string, string> = {
   traduire_fiche: 'traduction',
   recit_source: 'recit',
   voix: 'voix',
+  cepages: 'cepages',
 }
 
 type Langue = 'fr' | 'en' | 'es' | 'it'
@@ -98,6 +104,11 @@ const NIVEAUX_DE_REFLEXION = ['minimal', 'low', 'medium', 'high']
 const MODELES_ESSAYES_AU_PLUS = 3
 const SIX_HEURES = 6 * 3600_000
 let catalogueDesModeles: { quand: number; modeles: string[] } | null = null
+// Le niveau qu'un modèle a accepté, pour un niveau demandé : « modèle|niveau demandé » →
+// niveau servi. Clé sur le modèle seul jusqu'au 23/10 : le premier niveau qui passait
+// restait collé au modèle, quel que soit le réglage — « minimal » réglé dans la console
+// servait « low » tant que l'instance vivait, et une tâche en « low » imposait son niveau aux
+// autres tâches du même modèle (essai en production du 23/10).
 const niveauxRetenus = new Map<string, string | null>()
 const modelesIntrouvables = new Map<string, number>()
 
@@ -207,7 +218,8 @@ async function appelerGemini(
     // Déjà introuvable dans cette instance : le relais, sans rappeler Google.
     if (estIntrouvable(modele)) continue
     appels++
-    let niveau: string | null | undefined = niveauxRetenus.has(modele) ? niveauxRetenus.get(modele)! : reglage.reflexion
+    const demande = `${modele}|${reglage.reflexion ?? 'aucun'}`
+    let niveau: string | null | undefined = niveauxRetenus.has(demande) ? niveauxRetenus.get(demande)! : reglage.reflexion
     while (niveau !== undefined) {
       try {
         const res = await fetch(`${GEMINI_BASE}/v1beta/models/${modele}:generateContent`, {
@@ -225,7 +237,7 @@ async function appelerGemini(
             niveau = undefined
             continue
           }
-          niveauxRetenus.set(modele, niveau)
+          niveauxRetenus.set(demande, niveau)
           const servi = typeof data.modelVersion === 'string' && data.modelVersion
             ? data.modelVersion.replace(/^models\//, '')
             : modele
@@ -555,6 +567,170 @@ Do not give any price.` }],
   return 'tâche inconnue'
 }
 
+// ─── Les cépages d'un vin (080, 23/10) ─────────────────────────────────────────────────
+// « Go check the grapes when you don't know them and when you can find them on internet!
+// And then cache them in the database for the next user » (Flavien, 23/10). D'abord ce
+// qu'on sait déjà — le cache commun, puis les fiches du catalogue qui ont leurs cépages —,
+// et seulement ensuite le web ; ce qui est trouvé se garde dans `cepages_des_vins`. Le
+// quota ne compte que la recherche : le cache et le catalogue ne coûtent rien.
+
+const TRENTE_JOURS = 30 * 24 * 3600_000
+const TROIS_JOURS = 3 * 24 * 3600_000
+
+/** « domaine|vin » en minuscules, sans accents ni ponctuation (la clé de 080). */
+function cleDuVin(producteur: string, nom: string): string {
+  const net = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ').trim()
+  return `${net(producteur)}|${net(nom)}`.slice(0, 300)
+}
+
+/** Des cépages lisibles : huit au plus, des noms courts, un pourcentage plausible ou rien. */
+function cepagesPropres(v: unknown): { name: string; pct: number | null }[] {
+  if (!Array.isArray(v)) return []
+  const vus = new Set<string>()
+  const propres: { name: string; pct: number | null }[] = []
+  for (const g of v.slice(0, 8)) {
+    const brut = typeof g === 'string' ? g : (g && typeof (g as any).name === 'string' ? (g as any).name : '')
+    const nom = brut.trim().slice(0, 40)
+    if (!nom || vus.has(nom.toLowerCase())) continue
+    vus.add(nom.toLowerCase())
+    const p = (g as any)?.pct
+    propres.push({ name: nom, pct: typeof p === 'number' && p > 0 && p <= 100 ? Math.round(p) : null })
+  }
+  return propres
+}
+
+async function chercherLesCepages(supabase: any, corps: any): Promise<Response> {
+  const nom = texte(corps.nom, 200)
+  if (!nom) return json({ error: 'nom vide' }, 400)
+  const producteur = texte(corps.producteur, 120)
+  const cle = cleDuVin(producteur, nom)
+  const cleService = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  const serveur = cleService
+    ? createClient(Deno.env.get('SUPABASE_URL') ?? '', cleService, { auth: { persistSession: false } })
+    : null
+  const rendre = (cepages: unknown, methode: string, source: string | null, extra: Record<string, unknown> = {}) =>
+    json({ tache: 'cepages', resultat: { cepages, methode, source }, couts: [], ...extra })
+  const garderLaReponse = async (cepages: unknown[], methode: string, source: string | null, rechercheFaite = false) => {
+    if (!serveur) return
+    const { error } = await serveur.from('cepages_des_vins').upsert({
+      cle, producteur: producteur || null, nom, cepages, methode, source, recherche_faite: rechercheFaite,
+      trouve_le: new Date().toISOString(),
+    })
+    if (error) console.warn('Cépages non gardés :', error.message)
+  }
+
+  // 1. Le cache commun. Un vin cherché en vain se recherche après trente jours — trois, si
+  //    la recherche n'avait pas eu lieu.
+  if (serveur) {
+    try {
+      const { data } = await serveur.from('cepages_des_vins').select('cepages, methode, source, trouve_le, recherche_faite').eq('cle', cle).maybeSingle()
+      if (data) {
+        const trouves = cepagesPropres(data.cepages)
+        const delai = data.recherche_faite === false && trouves.length === 0 ? TROIS_JOURS : TRENTE_JOURS
+        const recent = Date.now() - new Date(data.trouve_le).getTime() < delai
+        if (trouves.length > 0 || recent) return rendre(trouves, 'cache', data.source ?? null, { depuis: data.methode })
+      }
+    } catch (e) {
+      console.warn('Cache des cépages illisible :', e instanceof Error ? e.message : e)
+    }
+  }
+
+  // 2. Une fiche du catalogue du même vin qui a déjà ses cépages (un scan d'étiquette, une
+  //    fiche décrite) : tous millésimes, les cépages d'une cuvée changent peu.
+  if (serveur) {
+    try {
+      const motif = nom.replace(/[\\%_]/g, (c) => `\\${c}`)
+      const { data: fiches } = await serveur.from('wines').select('name, producer, grapes').ilike('name', motif).limit(20)
+      const meme = (fiches ?? []).find((f: any) => cleDuVin(f.producer ?? '', f.name ?? '') === cle && cepagesPropres(f.grapes).length > 0)
+      if (meme) {
+        const trouves = cepagesPropres(meme.grapes)
+        await garderLaReponse(trouves, 'catalogue', null)
+        return rendre(trouves, 'catalogue', null)
+      }
+    } catch (e) {
+      console.warn('Catalogue illisible pour les cépages :', e instanceof Error ? e.message : e)
+    }
+  }
+
+  // 3. Le web : seulement ici, le quota du jour compte.
+  try {
+    const { data, error } = await supabase.rpc('consommer_quota_ia', { p_fonction: QUOTAS.cepages })
+    if (!error && data && data.autorise === false && data.raison === 'limite') {
+      return json({ error: 'limite_du_jour', limite: data.limite, anonyme: data.anonyme === true }, 429)
+    }
+  } catch (_) { /* migration 052 absente : pas de quota */ }
+  const apiKey = Deno.env.get('GEMINI_API_KEY')
+  if (!apiKey) return json({ error: 'GEMINI_API_KEY non configurée' }, 500)
+  let reglage = REGLAGES.cepages
+  try {
+    const { data } = await supabase.from('app_config').select('valeur').eq('cle', 'modeles_ia').maybeSingle()
+    const r = data?.valeur?.cepages
+    if (r && typeof r.modele === 'string') reglage = { modele: r.modele, reflexion: typeof r.reflexion === 'string' ? r.reflexion : reglage.reflexion }
+  } catch (_) { /* réglage par défaut */ }
+
+  const identite = `Wine: ${nom}
+Producer: ${producteur || 'unknown'}
+Vintage: ${entier(corps.millesime) ?? 'not stated'}
+Region: ${texte(corps.region, 80) || 'unknown'}
+Country: ${texte(corps.pays, 60) || 'unknown'}
+Type: ${texte(corps.couleur, 30) || 'not stated'}`
+  // Chercher d'abord : le modèle décide seul d'utiliser la recherche, et ne le fait souvent
+  // pas quand il croit savoir (23/10). La consigne le lui impose ; la seconde, plus nette
+  // encore, ne part que si la première n'a pas cherché.
+  const consigne = (insister: boolean) => `${insister ? 'You answered without searching. This time, run Google Search FIRST — at least one query with the producer and the wine name — and answer only from the pages you find.\n' : ''}Find the grape varieties of this exact wine.
+${identite}
+Before answering, run a Google Search for this exact wine (producer and name, e.g. "${[producteur, nom].filter(Boolean).join(' ')} cépages" or "grape varieties"). Look for the producer's page, a merchant or a wine guide that lists the grape varieties ("cépages", "uvas", "uve", "Rebsorten") of THIS wine, with their share when it is given.
+Answer only from what you find. Never answer with the usual grapes of the region or of the producer: if no page states the grapes of this wine, "trouve" is false.
+Return strictly one JSON object, and nothing else: {"trouve": true, "cepages": [{"name": "Cinsault", "pct": 100}], "source": "<the URL of the page you read, or null>"}`
+
+  const couts: unknown[] = []
+  let appel: AppelReussi | null = null
+  let n = 0
+  for (const insister of [false, true]) {
+    try {
+      appel = await appelerGemini(apiKey, reglage, (niveau) => {
+        const generationConfig: Record<string, unknown> = {}
+        if (niveau) generationConfig.thinkingConfig = { thinkingLevel: niveau }
+        return { contents: [{ role: 'user', parts: [{ text: consigne(insister) }] }], generationConfig, tools: [{ google_search: {} }] }
+      }, 30_000, (d) => texteDeLaReponse(d).trim().length > 0)
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err)
+      console.error('taches-ia (cepages) : aucun modèle n\'a répondu', detail)
+      if (!appel) return json({ error: 'Aucun modèle n\'a répondu', details: [detail] }, 502)
+      break
+    }
+    const requetes = appel.data.candidates?.[0]?.groundingMetadata?.webSearchQueries
+    n = Array.isArray(requetes) ? requetes.length : 0
+    couts.push({ fonction: 'cepages', modele: appel.modele, usageMetadata: appel.data.usageMetadata ?? null, recherche: n > 0, requetes: n, reflexion: appel.reflexion })
+    if (n > 0) break
+  }
+  const sources = sourcesDeLaRecherche(appel!.data)
+  let reponseLue: any = {}
+  try {
+    reponseLue = lireJson(texteDeLaReponse(appel!.data))
+  } catch (_) { /* illisible : rien de trouvé */ }
+  let trouves = reponseLue?.trouve === false ? [] : cepagesPropres(reponseLue?.cepages)
+  // Sans recherche, on ne garde que ce que le nom du vin dit lui-même (« Finca Notables
+  // Tannat ») : le reste serait de la mémoire du modèle, qui a mis du Baga dans un
+  // Alentejo (23/10).
+  if (n === 0) {
+    const nomNet = cleDuVin('', nom)
+    trouves = trouves.filter((g) => nomNet.includes(cleDuVin('', g.name).slice(1)))
+  }
+  const methode = trouves.length === 0 ? 'inconnu' : n > 0 ? 'recherche' : 'connaissance'
+  const source = trouves.length === 0 ? null
+    : (sources[0]?.url ?? (n > 0 && typeof reponseLue?.source === 'string' && /^https:\/\//.test(reponseLue.source) ? reponseLue.source : null))
+  await garderLaReponse(trouves, methode, source, n > 0)
+  return json({
+    tache: 'cepages',
+    resultat: { cepages: trouves, methode, source },
+    sources,
+    modele: appel!.modele,
+    couts,
+  })
+}
+
 function sourcesDeLaRecherche(data: any): { titre: string; url: string }[] {
   const morceaux = data?.candidates?.[0]?.groundingMetadata?.groundingChunks
   if (!Array.isArray(morceaux)) return []
@@ -711,6 +887,7 @@ serve(async (req) => {
 
     const corps = await req.json()
     const tache = texte(corps.tache, 40)
+    if (tache === 'cepages') return await chercherLesCepages(supabase, corps)
     if (tache === 'voix') {
       const apiKeyVoix = Deno.env.get('GEMINI_API_KEY')
       if (!apiKeyVoix) return json({ error: 'GEMINI_API_KEY non configurée' }, 500)

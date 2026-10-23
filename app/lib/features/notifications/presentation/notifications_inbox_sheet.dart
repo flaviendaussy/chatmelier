@@ -5,7 +5,8 @@ import '../../friends/domain/cellar_access_request.dart';
 import '../../friends/domain/friend.dart';
 import '../../friends/domain/user_notification.dart';
 import '../../journal/data/degustations_partagees.dart';
-import '../../journal/presentation/external_tasting_dialog.dart';
+import '../data/invitations_notees.dart';
+import 'noter_une_invitation.dart';
 import '../../journal/presentation/journal_screen.dart' show tastingLogProvider;
 import '../../auth/data/taste_profile_service.dart' show tasteProfilesListProvider;
 import '../../../shared/widgets/owner_avatar.dart';
@@ -866,6 +867,9 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
     }
     final aDecider = notif.type == 'degustation_a_accepter' && !notif.isRead && notif.data['degustation_id'] != null;
     final aNoter = notif.type == 'invitation_a_noter' && notif.data['vin'] is Map;
+    // Déjà noté ici : plus de bouton, la note (Flavien, 22/10).
+    final notees = ref.watch(invitationsNoteesProvider).valueOrNull ?? const <String, InvitationNotee>{};
+    final notee = aNoter ? notees[notif.id] : null;
 
     return Card(
       elevation: 0.5,
@@ -918,13 +922,22 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
                 ],
               ),
             ],
-            if (aNoter) ...[
+            if (aNoter && notee != null && notee.terminee) ...[
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(Icons.check_circle, size: 16, color: Color(0xFF10B981)),
+                  const SizedBox(width: 6),
+                  Text(notee.libelle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
+                ],
+              ),
+            ] else if (aNoter) ...[
               const SizedBox(height: 6),
               FilledButton.icon(
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B1E3F)),
-                onPressed: () => _noterLeVinInvite(notif),
+                onPressed: () => noterUneInvitation(context, notif),
                 icon: const Icon(Icons.edit_outlined, size: 16),
-                label: Text(tr('Noter ce vin', 'Rate this wine')),
+                label: Text(notee != null ? tr('Reprendre la dégustation', 'Resume tasting') : tr('Noter ce vin', 'Rate this wine')),
               ),
             ],
           ],
@@ -954,32 +967,6 @@ class _NotificationsInboxSheetState extends ConsumerState<NotificationsInboxShee
           ],
         ),
       ),
-    );
-  }
-
-  /// L'invitation d'un ami à noter le vin goûté ensemble (V2.4 · R4, #59) : « Noter un vin
-  /// bu dehors », avec le vin, l'ami parmi les convives, et le lieu s'il est connu.
-  Future<void> _noterLeVinInvite(UserNotification notif) async {
-    final vin = Map<String, dynamic>.from(notif.data['vin'] as Map);
-    if (!notif.isRead) {
-      try {
-        await ref.read(friendsRepositoryProvider).markNotificationRead(notif.id);
-      } catch (_) {}
-      refreshFriendsAndNotifications(ref);
-    }
-    if (!mounted) return;
-    final ami = notif.actorName?.trim();
-    final millesime = vin['millesime'];
-    await ExternalTastingDialog.show(
-      context,
-      wineName: vin['nom']?.toString(),
-      producer: vin['producteur']?.toString(),
-      vintage: millesime is num ? millesime.toInt() : int.tryParse('${millesime ?? ''}'),
-      region: vin['region']?.toString(),
-      country: vin['pays']?.toString(),
-      wineType: vin['couleur']?.toString(),
-      coTasters: ami == null || ami.isEmpty ? null : [ami],
-      place: notif.data['lieu']?.toString(),
     );
   }
 

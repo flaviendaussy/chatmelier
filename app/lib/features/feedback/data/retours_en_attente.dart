@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -139,6 +140,11 @@ class RetoursEnAttente {
     Uint8List? capture,
     Map<String, dynamic> contexte = const {},
     @visibleForTesting SupabaseClient? client,
+
+    /// Faux : le retour est gardé, et il part en arrière-plan — l'écran n'attend pas le
+    /// réseau (Flavien, 22/10 : « les commentaires doivent être fire and forget, ils ne
+    /// doivent jamais mettre de temps à s'envoyer »). Le résultat est alors toujours faux.
+    bool attendreLEnvoi = true,
   }) async {
     final supabase = client ?? Supabase.instance.client;
     final id = const Uuid().v4();
@@ -171,7 +177,12 @@ class RetoursEnAttente {
       creeLe: DateTime.now(),
     );
     await _ecrire([...await lire(), retour]);
-    final partis = await envoyer(client: supabase, enMemoire: capture == null ? null : {id: capture});
+    final envoi = envoyer(client: supabase, enMemoire: capture == null ? null : {id: capture});
+    if (!attendreLEnvoi) {
+      unawaited(envoi.then((_) {}, onError: (Object e) => AppLogger.warning('FEEDBACK', 'Retour pas encore parti : $e')));
+      return false;
+    }
+    final partis = await envoi;
     return partis.contains(id);
   }
 

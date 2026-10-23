@@ -379,6 +379,7 @@ class _TasteProfileRadarScreenState extends ConsumerState<TasteProfileRadarScree
         BouteillesQuiApprendraient(
           profil: currentProfile,
           couleur: couleur,
+          famille: famille,
         ),
 
         // Le détail des axes de la famille (V2.6 : cinq par famille, et non huit).

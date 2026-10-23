@@ -190,7 +190,9 @@ void main() {
         quand: quand,
       );
       final c = ligne.complete();
-      expect(c['rating'], 7.5);
+      expect(c['rating'], isNull,
+          reason: 'une bouteille défectueuse n\'a pas de note : c\'est la bouteille qu\'on a jugée (le Bio Tinto oxydé du '
+              '22/10 s\'affichait « Pas aimé 1,0/10 »)');
       expect(c['rating_scale'], 10);
       expect(c['co_tasters'], ['Caro']);
       expect(c['bottle_id'], idBouteille);

@@ -78,17 +78,41 @@ void main() {
 
   group('ce qu\'une dégustation apprend', () {
     const rouge = FamillesDeVins.rouge;
-    ProfilDuVin vin(Map<String, double> v, {Set<String> surs = const {}}) => ProfilDuVin(famille: rouge, valeurs: v, surs: surs);
+    ProfilDuVin vin(Map<String, double> v, {Set<String> surs = const {}, String famille = rouge}) =>
+        ProfilDuVin(famille: famille, valeurs: v, surs: surs);
     ChangementDAxe sur(List<ChangementDAxe> cs, String axe) => cs.singleWhere((c) => c.axe == axe);
 
     test('« trop tannique » place la préférence en deçà du vin, et compte', () {
-      const p = TasteProfile(id: 'p', name: 'P', palais: {'rouge': {'tannin': 0.6}}, observationsPalais: {'rouge': {'tannin': 3}});
+      const p = TasteProfile(id: 'p', name: 'P', palais: {'rouge': {'tannin': 0.8}}, observationsPalais: {'rouge': {'tannin': 3}});
       final cs = ApprentissageDuPalais.apprendre(
           profil: p, famille: rouge, note: 6, jugements: {'tannin': 'trop'}, vin: vin({'tannin': 0.9}));
       final c = sur(cs, 'tannin');
-      expect(c.apres, closeTo(0.6 * 0.75 + 0.7 * 0.25, 1e-9));
+      expect(c.apres, closeTo(0.8 * 0.75 + 0.7 * 0.25, 1e-9));
       expect(c.compte, isTrue);
       expect(c.motif, 'jugement');
+    });
+
+    test('« trop tannique » quand le palais est déjà en deçà : confirmé, il ne remonte pas vers le vin (22/10)', () {
+      // Avant : 0,6 → 0,625. Dire « trop tannique » rendait plus amateur de tanins.
+      const p = TasteProfile(id: 'p', name: 'P', palais: {'rouge': {'tannin': 0.6}}, observationsPalais: {'rouge': {'tannin': 3}});
+      final c = sur(ApprentissageDuPalais.apprendre(
+          profil: p, famille: rouge, note: 6, jugements: {'tannin': 'trop'}, vin: vin({'tannin': 0.9})), 'tannin');
+      expect(c.apres, 0.6);
+      expect(c.compte, isTrue, reason: 'une vraie observation, qui confirme');
+    });
+
+    test('« trop mou » quand le palais est déjà plus vif : la fraîcheur ne baisse pas (le Muscat de Flavien, 22/10)', () {
+      const p = TasteProfile(id: 'p', name: 'P', palais: {'blanc': {'acidity': 0.91}}, observationsPalais: {'blanc': {'acidity': 2}});
+      final c = sur(ApprentissageDuPalais.apprendre(
+          profil: p, famille: 'blanc', note: 3.5, jugements: {'acidity': 'pas_assez'}, vin: vin({'acidity': 0.2}, famille: 'blanc')), 'acidity');
+      expect(c.apres, 0.91);
+    });
+
+    test('une déception dont la cause est dite n\'éloigne pas les autres axes', () {
+      const p = TasteProfile(id: 'p', name: 'P', palais: {'blanc': {'acidity': 0.8, 'body': 0.7, 'oak': 0.3}});
+      final cs = ApprentissageDuPalais.apprendre(
+          profil: p, famille: 'blanc', note: 3, jugements: {'acidity': 'pas_assez'}, vin: vin({'acidity': 0.4, 'body': 0.5, 'oak': 0.05}, famille: 'blanc'));
+      expect(cs.map((c) => c.axe), ['acidity']);
     });
 
     test('« juste » sur un axe inconnu le fixe au niveau du vin', () {

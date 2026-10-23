@@ -332,6 +332,15 @@ class OfflineStorageService {
   /// Les reponses du serveur ne portent jamais cette cle.
   static const String pendingSyncKey = '_pending_sync';
 
+  /// Complète une dégustation du cache (la note arrivée après la ligne) sans la déplacer.
+  Future<void> mergeCachedTasting(String id, Map<String, dynamic> complement) async {
+    final list = getCachedTastings();
+    final i = list.indexWhere((t) => t['id']?.toString() == id);
+    if (i == -1) return;
+    list[i] = {...list[i], ...complement};
+    await saveCachedTastings(list);
+  }
+
   Future<void> addCachedTasting(Map<String, dynamic> tasting) async {
     final list = getCachedTastings();
     final newId = tasting['id']?.toString();

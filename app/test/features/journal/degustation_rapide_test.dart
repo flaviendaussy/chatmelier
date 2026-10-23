@@ -2,6 +2,8 @@ import 'package:chatmelier/features/auth/data/taste_profile_service.dart';
 import 'package:chatmelier/features/auth/domain/taste_profile.dart';
 import 'package:chatmelier/features/cellar/domain/wine.dart';
 import 'package:chatmelier/features/journal/data/degustation_rapide.dart';
+import 'package:chatmelier/features/journal/domain/questionnaire_de_degustation.dart';
+import 'package:chatmelier/features/offline/domain/offline_action.dart';
 import 'package:chatmelier/features/journal/domain/tasting_questionnaire_result.dart';
 import 'package:chatmelier/features/offline/data/offline_storage_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -93,5 +95,55 @@ void main() {
     expect(palais.appris, isEmpty);
     expect(palais.parQuestionnaire, isEmpty);
     expect(horsLigne.getCachedTastings(), hasLength(1), reason: 'la dégustation est gardée quand même');
+  });
+
+  group('la note arrive après la ligne (22/10 : vingt et une dégustations « Non noté »)', () {
+    TastingQuestionnaireResult resultat(double note, {Set<String> aromes = const {}}) => TastingQuestionnaireResult(
+          emojiImpression: TastingQuestionnaireResult.emojiIndexForRating(note),
+          noteOutOf10: note,
+          perceivedAromas: aromes,
+          aromaIntensity: 0.5,
+          length: 0.5,
+          wouldBuyAgain: 'maybe',
+          idealMoment: '',
+          whatLikedMost: const {},
+          whatDislikedMost: const {},
+          profileId: 'moi',
+          profileName: 'Moi',
+        );
+
+    test('le complément : la note, les arômes à la suite des notes déjà écrites', () {
+      final c = complementDuJournal(resultat: resultat(8.5, aromes: {'agrumes'}), notesDeja: 'Au verre, au comptoir');
+      expect(c['rating'], 8.5);
+      expect(c['rating_scale'], 10);
+      expect(c.containsKey('fault'), isFalse);
+      expect(c['tasting_notes'], startsWith('Au verre, au comptoir\n'));
+    });
+
+    test('une bouteille défectueuse : le défaut, et pas de note (le Bio Tinto oxydé)', () {
+      final c = complementDuJournal(resultat: resultat(1.0), defaut: 'oxidation');
+      expect(c['fault'], 'oxidation');
+      expect(c['rating'], isNull);
+    });
+
+    test('la ligne attend encore le réseau : la note entre dans la même action', () async {
+      final r = await service.enregistrer(const VinBuDehors(nom: 'Ungrafted - Muscat', couleur: 'white', lieu: 'Vagabond'));
+      await service.completer(r.id, complementDuJournal(resultat: resultat(9.5)));
+      final file = horsLigne.getQueue();
+      expect(file, hasLength(1), reason: 'une mise à jour partie avant la ligne ne trouverait rien');
+      expect(file.single.data['rating'], 9.5);
+      expect(file.single.data['location_name'], 'Vagabond');
+      expect(horsLigne.getCachedTastings().single['rating'], 9.5, reason: 'le journal affiche la note tout de suite');
+    });
+
+    test('la ligne est partie mais le réseau manque pour la note : une action de mise à jour', () async {
+      await horsLigne.addCachedTasting({'id': 'deja-en-ligne', 'rating': null});
+      await service.completer('deja-en-ligne', complementDuJournal(resultat: resultat(7.0)));
+      final action = horsLigne.getQueue().single;
+      expect(action.type, OfflineActionType.updateTasting);
+      expect(action.data['tasting_id'], 'deja-en-ligne');
+      expect(action.data['rating'], 7.0);
+      expect(horsLigne.getCachedTastings().single['rating'], 7.0);
+    });
   });
 }

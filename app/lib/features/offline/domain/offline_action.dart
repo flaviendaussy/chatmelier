@@ -9,6 +9,10 @@ enum OfflineActionType {
   createCellar,
   updateCellar,
   moveBottle,
+
+  /// Compléter une dégustation déjà au journal (la note du questionnaire, son défaut) : le
+  /// 22/10, faute de cette action, les notes d'une soirée entière sont restées en route.
+  updateTasting,
 }
 
 enum OfflineActionStatus {

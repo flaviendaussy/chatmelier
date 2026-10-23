@@ -5,13 +5,13 @@ import '../../../../shared/utils/langue.dart';
 import '../../../auth/domain/palais.dart';
 import '../../domain/question_pour_vous.dart';
 
-/// Le « pour vous » d'une dégustation (V2.6 · P6) : une question, trois réponses — trop,
-/// juste, pas assez. Les autres axes se précisent si l'on veut.
+/// Le « pour vous » d'une dégustation (V2.6 · P6) : trop, juste ou pas assez, sur les trois
+/// axes les plus utiles (`QuestionPourVous.ordre`). Les autres se précisent si l'on veut.
 class PourVous extends StatefulWidget {
   final String famille;
 
-  /// L'axe demandé d'abord (`QuestionPourVous.aDemander`).
-  final String premier;
+  /// Les axes, du plus utile au moins utile (`QuestionPourVous.ordre`).
+  final List<String> ordre;
 
   /// Axe → `trop`, `juste` ou `pas_assez`.
   final Map<String, String> jugements;
@@ -20,7 +20,7 @@ class PourVous extends StatefulWidget {
   const PourVous({
     super.key,
     required this.famille,
-    required this.premier,
+    required this.ordre,
     required this.jugements,
     required this.onJuger,
   });
@@ -30,30 +30,35 @@ class PourVous extends StatefulWidget {
 }
 
 class _PourVousState extends State<PourVous> {
-  // Ouvert d'emblée quand un autre axe a déjà une réponse (la « Gorgée », une dictée).
-  late bool _preciser = widget.jugements.keys.any((a) => a != widget.premier);
+  List<String> get _dEmblee => widget.ordre.take(QuestionPourVous.dEmblee).toList();
+  List<String> get _autres => widget.ordre.skip(QuestionPourVous.dEmblee).toList();
+
+  // Ouvert d'emblée quand un axe de plus a déjà une réponse (une dictée).
+  late bool _plusLoin = widget.jugements.keys.any(_autres.contains);
 
   @override
   Widget build(BuildContext context) {
-    final autres = QuestionPourVous.autres(widget.famille, widget.premier);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Question(axe: widget.premier, jugement: widget.jugements[widget.premier], onJuger: widget.onJuger, principale: true),
-        if (!_preciser)
+        for (final (i, axe) in _dEmblee.indexed) ...[
+          if (i > 0) const SizedBox(height: 14),
+          _Question(axe: axe, jugement: widget.jugements[axe], onJuger: widget.onJuger, principale: true),
+        ],
+        if (_autres.isNotEmpty && !_plusLoin)
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               style: TextButton.styleFrom(visualDensity: VisualDensity.compact, padding: EdgeInsets.zero),
-              onPressed: () => setState(() => _preciser = true),
+              onPressed: () => setState(() => _plusLoin = true),
               icon: const Icon(Icons.tune, size: 16),
-              label: Text(tr('Préciser autre chose', 'Say more'), style: const TextStyle(fontSize: 12.5)),
+              label: Text(tr('Aller plus loin', 'Go further'), style: const TextStyle(fontSize: 12.5)),
             ),
           )
         else
-          for (final axe in autres) ...[
-            const SizedBox(height: 12),
-            _Question(axe: axe, jugement: widget.jugements[axe], onJuger: widget.onJuger),
+          for (final axe in _autres) ...[
+            const SizedBox(height: 14),
+            _Question(axe: axe, jugement: widget.jugements[axe], onJuger: widget.onJuger, principale: true),
           ],
       ],
     );

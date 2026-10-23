@@ -398,12 +398,15 @@ class NearbyPlacesService {
 
     final placeName = name ?? amenity ?? address['road'] as String?;
     if (placeName != null && placeName.isNotEmpty) {
+      // Sans établissement, c'est le nom du bâtiment ou de la rue : une suggestion, pas un
+      // lieu sûr à 20 m. Présélectionné puis mémorisé, il donnait « Dawson House » à tous
+      // les verres du Vagabond (22/10).
       return [
         NearbyPlace(
           id: const Uuid().v4(),
           name: placeName,
-          type: amenity != null ? 'restaurant' : 'custom',
-          distanceMeters: 20,
+          type: amenity != null ? 'restaurant' : 'adresse',
+          distanceMeters: amenity != null ? 20 : null,
           isCustom: false,
           latitude: lat,
           longitude: lon,

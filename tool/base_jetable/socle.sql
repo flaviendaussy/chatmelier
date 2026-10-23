@@ -309,6 +309,9 @@ CREATE TABLE IF NOT EXISTS storage.objects (
   owner     UUID DEFAULT auth.uid()
 );
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Comme en production : un fichier par (bucket, nom). Un dépôt « upsert » de l'API de
+-- stockage fait INSERT … ON CONFLICT (bucket_id, name) DO UPDATE (078).
+CREATE UNIQUE INDEX IF NOT EXISTS objects_bucket_nom ON storage.objects (bucket_id, name);
 CREATE OR REPLACE FUNCTION storage.foldername(name TEXT) RETURNS TEXT[] LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE _parts TEXT[];
 BEGIN
